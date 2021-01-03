@@ -133,7 +133,6 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	//}
 	//a = vec4(frx_vanillaClearColor(), a.a);
 
-	// TODO: need a separate fog pass?
 	gl_FragData[TARGET_BASECOLOR] = p_fog(a);
 	gl_FragDepth = gl_FragCoord.z;
 	gl_FragData[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);

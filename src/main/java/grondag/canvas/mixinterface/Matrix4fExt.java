@@ -173,6 +173,37 @@ public interface Matrix4fExt {
 		a33(b33);
 	}
 
+	default void invertProjection () {
+		final float inv00 = 1.0f / a00();
+		final float inv11 = 1.0f / a11();
+		final float inv23 = 1.0f / a23();
+		final float inv32 = 1.0f / a32();
+
+		final float m20 = a20();
+		final float m21 = a21();
+		final float m22 = a22();
+
+		a00(inv00);
+		a01(0);
+		a02(0);
+		a03(0);
+
+		a10(0);
+		a11(inv11);
+		a12(0);
+		a13(0);
+
+		a20(0);
+		a21(0);
+		a22(inv32);
+		a23(0);
+
+		a30(-m20 * inv00 * inv23);
+		a31(-m21 * inv11 * inv23);
+		a32(inv23);
+		a33(-m22 * inv23 * inv32);
+	}
+
 	default void scale(float x, float y, float z) {
 		final float b00 = a00() * x;
 		final float b01 = a01() * y;

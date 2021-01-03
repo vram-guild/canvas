@@ -79,30 +79,67 @@ public enum MatrixState {
 		assert val != null;
 		current = val;
 
+		// write values for prior frame before updating
+		viewMatrixExt.writeToBuffer(VIEW_LAST * 16, DATA);
+		projMatrixExt.writeToBuffer(PROJ_LAST * 16, DATA);
+		viewProjMatrixExt.writeToBuffer(VP_LAST * 16, DATA);
+
 		((Matrix3fExt) (Object) viewNormalMatrix).set((Matrix3fExt) (Object) view.getNormal());
+
 		viewMatrixExt.set((Matrix4fExt) (Object) view.getModel());
-		viewMatrixExt.writeToBuffer(MATRIX_VIEW * 16, DATA);
+		viewMatrixExt.writeToBuffer(VIEW * 16, DATA);
 		projMatrixExt.set((Matrix4fExt) (Object) projectionMatrix);
-		projMatrixExt.writeToBuffer(MAT_PROJ * 16, DATA);
+		projMatrixExt.writeToBuffer(PROJ * 16, DATA);
+
+		viewMatrixInvExt.set(viewMatrixExt);
+		// reliable inversion of rotation matrix
+		viewMatrixInv.transpose();
+		viewMatrixInvExt.writeToBuffer(VIEW_INVERSE * 16, DATA);
+
+		projMatrixInvExt.set(projMatrixExt);
+		projMatrixInvExt.invertProjection();
+
+		projMatrixInvExt.writeToBuffer(PROJ_INVERSE * 16, DATA);
+
+		viewProjMatrixExt.set(projMatrixExt);
+		viewProjMatrixExt.multiply(viewMatrixExt);
+		viewProjMatrixExt.writeToBuffer(VP * 16, DATA);
+
+		viewProjMatrixInvExt.set(viewMatrixInvExt);
+		viewProjMatrixInvExt.multiply(projMatrixInvExt);
+		viewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
 	}
 
 	public static final Matrix4f viewMatrix = new Matrix4f();
 	public static final Matrix4fExt viewMatrixExt = (Matrix4fExt) (Object) viewMatrix;
+	private static final Matrix4f viewMatrixInv = new Matrix4f();
+	private static final Matrix4fExt viewMatrixInvExt = (Matrix4fExt) (Object) viewMatrixInv;
+
 	public static final Matrix4f projMatrix = new Matrix4f();
 	public static final Matrix4fExt projMatrixExt = (Matrix4fExt) (Object) projMatrix;
+	private static final Matrix4f projMatrixInv = new Matrix4f();
+	private static final Matrix4fExt projMatrixInvExt = (Matrix4fExt) (Object) projMatrixInv;
+
+	private static final Matrix4f viewProjMatrix = new Matrix4f();
+	private static final Matrix4fExt viewProjMatrixExt = (Matrix4fExt) (Object) viewProjMatrix;
+	private static final Matrix4f viewProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt viewProjMatrixInvExt = (Matrix4fExt) (Object) viewProjMatrixInv;
 
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
 
-	private static final int MATRIX_VIEW = 0;
-	private static final int MATRIX_VIEW_INVERSE = 1;
-	private static final int MATRIX_VIEW_LAST = 2;
-	private static final int MAT_PROJ = 3;
-	private static final int MAT_PROJ_INVERSE = 4;
-	private static final int MAT_PROJ_LAST = 5;
-	private static final int MATRIX_SHADOW_VIEW = 6;
-	private static final int MATRIX_SHADOW_VIEW_INVERSE = 7;
-	private static final int MAT_SHADOW_PROJ = 8;
-	private static final int MAT_SHADOW_PROJ_INVERSE = 9;
+	private static final int VIEW = 0;
+	private static final int VIEW_INVERSE = 1;
+	private static final int VIEW_LAST = 2;
+	private static final int PROJ = 3;
+	private static final int PROJ_INVERSE = 4;
+	private static final int PROJ_LAST = 5;
+	private static final int VP = 6;
+	private static final int VP_INVERSE = 7;
+	private static final int VP_LAST = 8;
+	private static final int SHADOW_VIEW = 9;
+	private static final int SHADOW_VIEW_INVERSE = 10;
+	private static final int SHADOW_PROJ = 11;
+	private static final int SHADOW_PROJ_INVERSE = 12;
 
 	public static final int COUNT = 10;
 	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(COUNT * 16);

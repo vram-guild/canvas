@@ -155,11 +155,39 @@ mat3 frx_normalModelMatrix() {
 }
 
 mat4 frx_viewMatrix() {
-	return _cvu_matrix[_CV_MATRIX_VIEW];
+	return _cvu_matrix[_CV_MAT_VIEW];
+}
+
+mat4 frx_inversViewMatrix() {
+	return _cvu_matrix[_CV_MAT_VIEW_INVERSE];
+}
+
+mat4 frx_lastViewMatrix() {
+	return _cvu_matrix[_CV_MAT_VIEW_LAST];
 }
 
 mat4 frx_projectionMatrix() {
 	return _cvu_matrix[_CV_MAT_PROJ];
+}
+
+mat4 frx_lastProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_PROJ_LAST];
+}
+
+mat4 frx_inverseProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_PROJ_INVERSE];
+}
+
+mat4 frx_viewProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_VIEW_PROJ];
+}
+
+mat4 frx_lastViewProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_VIEW_PROJ_INVERSE];
+}
+
+mat4 frx_inverseViewProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_VIEW_PROJ_LAST];
 }
 
 /*
