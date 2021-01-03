@@ -108,6 +108,7 @@ public class WorldDataManager {
 	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
 
 	private static final int SLYLIGHT_POSITION = 4 * 12;
+	private static final int SKYLIGHT_STRENGTH = SLYLIGHT_POSITION + 3;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -131,6 +132,7 @@ public class WorldDataManager {
 	private static final BitPacker32<Void>.BooleanElement FLAG_SLEEPING = WORLD_FLAGS.createBooleanElement();
 	private static final BitPacker32<Void>.BooleanElement FLAG_SPRINTING = WORLD_FLAGS.createBooleanElement();
 	private static final BitPacker32<Void>.BooleanElement FLAG_WET = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_MOONLIT = WORLD_FLAGS.createBooleanElement();
 
 	private static final BitPacker32<Void> PLAYER_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_SPEED = PLAYER_FLAGS.createBooleanElement();
@@ -264,6 +266,43 @@ public class WorldDataManager {
 		DATA.put(SMOOTHED_RAIN_STRENGTH, (float) smoothedRainStrength);
 	}
 
+	// WIP: make configurable by dimension, add smoothing
+	/**
+	 * Creates smooth transition between sun / moon direct lighting.
+	 * @param tickTime 0 - 23999
+	 * @return true if sky light is moon
+	 */
+	static boolean computeSkylightFactor(long tickTime) {
+		boolean result = false;
+		float factor = 1;
+
+		if (tickTime > 22000) {
+			// sunrise
+			if (tickTime < 23000) {
+				// waning moon
+				result = true;
+				factor = (23000 - tickTime) / 1000f;
+			} else if (tickTime < 24000) {
+				// rising sun
+				factor = (tickTime - 23000) / 1000f;
+			}
+		} else if (tickTime > 12000) {
+			if (tickTime < 13000) {
+				// waning sun
+				factor = (13000 - tickTime) / 1000f;
+			} else if (tickTime < 14000) {
+				// rising moon
+				factor = (14000 - tickTime) / 1000f;
+				result = true;
+			} else {
+				result = true;
+			}
+		}
+
+		DATA.put(SKYLIGHT_STRENGTH, factor);
+		return result;
+	}
+
 	/**
 	 * Called just before terrain setup each frame after camera, fog and projection
 	 * matrix are set up.
@@ -296,8 +335,7 @@ public class WorldDataManager {
 			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
 
-			// WIP: make configurable by dimension, add smoothing
-			final boolean moonLight = tickTime > 13200 && tickTime < 23300;
+			final boolean moonLight = computeSkylightFactor(tickTime);
 
 			if (skyLight) {
 				final float skyAngle = world.getSkyAngleRadians(tickDelta);
@@ -310,7 +348,7 @@ public class WorldDataManager {
 			}
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);
-
+			worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
 			worldFlags = FLAG_SNEAKING.setValue(player.isInSneakingPose(), worldFlags);
 			worldFlags = FLAG_SNEAKING_POSE.setValue(player.isSneaking(), worldFlags);
 			worldFlags = FLAG_SWIMMING.setValue(player.isSwimming(), worldFlags);

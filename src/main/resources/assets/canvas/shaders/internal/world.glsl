@@ -47,6 +47,7 @@
 // w is sky rotation in radians
 #define _CV_SKYLIGHT_VECTOR 11
 
+// w is skylight strength 0-1
 #define _CV_SKYLIGHT_POSITION 12
 
 #define _CV_FLAG_HAS_SKYLIGHT 0

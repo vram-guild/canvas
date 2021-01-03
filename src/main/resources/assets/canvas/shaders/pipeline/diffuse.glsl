@@ -28,9 +28,11 @@ float p_diffuseBaked(vec3 normal) {
 	return 0.4 + min(0.6, l1 + l2);
 }
 
-// for testing
+// for testing - not a good way to do it
 float p_diffuseSky(vec3 normal) {
-	return 0.4 + max(0.0, dot(frx_skyLightVector(), normal));
+	float f = dot(frx_skyLightVector(), normal);
+	f = f > 0.0 ? 0.4 * f : 0.2 * f;
+	return 0.6 + frx_skyLightStrength() * f;
 }
 
 /**

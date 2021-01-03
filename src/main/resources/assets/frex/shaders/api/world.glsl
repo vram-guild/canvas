@@ -80,6 +80,20 @@ vec3 frx_skyLightVector() {
 }
 
 /*
+ * Smoothing factor to help with the transition from sun to/from moon light.
+ *
+ * This is useful when the vanilla lightmap is the source for brightness
+ * values because it ramps to zero down as the moon set and then back up to
+ * one as the sun rises. In future, will be configurable by dimension.
+ *
+ * Use the FRX_WORLD_IS_MOONLIT flag to query if this is sun or moonlight.
+ * Will be undefined / meaningless if the world has no skylight.
+ */
+float frx_skyLightStrength() {
+	return _cvu_world[_CV_SKYLIGHT_POSITION].w;
+}
+
+/*
  * Ambient light intensity of the currently rendering world.
  * Zero represents the morning / start of the day cycle in Minecraft.
  *
@@ -175,7 +189,8 @@ bool frx_testCondition(int conditionIndex) {
 #define FRX_WORLD_IS_THUNDERING 5
 // The sky - it is dark
 #define FRX_WORLD_IS_SKY_DARKENED 6
-
+// The sky light modeled by frx_skyLightStrength and frx_skyLightVector is the moon
+#define FRX_WORLD_IS_MOONLIT 21
 
 bool frx_worldFlag(int flag) {
 	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1.0;
