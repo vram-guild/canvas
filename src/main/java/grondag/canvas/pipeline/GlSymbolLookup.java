@@ -43,7 +43,12 @@ public class GlSymbolLookup {
 	}
 
 	public static int lookup(String symbol) {
-		symbol = "GL_" + symbol.toUpperCase();
+		symbol = symbol.toUpperCase();
+
+		if (!symbol.startsWith("GL_")) {
+			symbol = "GL_" + symbol;
+		}
+
 		return MAP.getOrDefault(symbol, -1);
 	}
 
