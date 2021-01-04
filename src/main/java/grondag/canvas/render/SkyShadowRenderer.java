@@ -21,24 +21,18 @@ import grondag.canvas.pipeline.Pipeline;
 public class SkyShadowRenderer {
 	private static boolean active = false;
 
-	public static void prepareForFrame() {
-		// WIP: remove if nothing
-	}
-
-	public static void renderSomething() {
+	public static void begin() {
 		if (Pipeline.skyShadowFbo != null) {
-			// WIP: remove
+			assert !active;
+			active = true;
 		}
 	}
 
-	public static void begin() {
-		assert !active;
-		active = true;
-	}
-
 	public static void end() {
-		assert active;
-		active = false;
+		if (Pipeline.skyShadowFbo != null) {
+			assert active;
+			active = false;
+		}
 	}
 
 	public static boolean isActive() {
