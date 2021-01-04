@@ -30,6 +30,8 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import net.minecraft.client.MinecraftClient;
 
+import net.fabricmc.loader.api.FabricLoader;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.pipeline.GlSymbolLookup;
@@ -60,7 +62,8 @@ public class CanvasGlHelper {
 		final MinecraftClient client = MinecraftClient.getInstance();
 
 		log.info("==================  CANVAS RENDERER DEBUG INFORMATION ==================");
-		log.info(String.format(" Java: %s %dbit", System.getProperty("java.version"), client.is64Bit() ? 64 : 32));
+		log.info(String.format(" Java: %s %dbit   Canvas: %s", System.getProperty("java.version"), client.is64Bit() ? 64 : 32,
+				FabricLoader.getInstance().getModContainer(CanvasMod.MODID).get().getMetadata().getVersion()));
 		log.info(String.format(" CPU: %s", GLX._getCpuInfo()));
 		log.info(String.format(" GPU: %s  %s", GLX._getCapsString(), GLX._getLWJGLVersion()));
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
