@@ -79,14 +79,8 @@ varying vec4 frx_vertex;
  * frx_vertex, frx_normal and frx_color.
  * The renderer does nothing else and calls frx_writeVertex when complete.
  *
- * The pipeline is responsible for ALL OTHER WRITES. This includes
- * transforming UV coordinates for atlas textures from normalized
- * to mapped and populating frx_texcoord. The pipeline must also declare
- * and populate out variables to populate the interpolated values
- * presented in frx_startFragment.
- *
- * Lastly, the pipeline must write to fog, clip, vertex or any other built-in
- * variable as required by open GL.
+ * The pipeline is responsible for ALL OTHER WRITES, including fog,
+ * clip, vertex or any other built-in variable as required by Open GL.
  */
 struct frx_VertexData {
 	/*

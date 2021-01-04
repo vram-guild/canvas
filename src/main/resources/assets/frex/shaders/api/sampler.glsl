@@ -13,11 +13,8 @@ uniform sampler2D frxs_spriteAltas;
  * fragment shader runs. But this doesn't help if you want to
  * re-sample during fragment shading using normalized coordinates.
  *
- * This function will remap normalized coordinates to atlas coordinates
- * during fragment shading and also during frx_endVertex().  It has no
- * effect when the bound texture is not an atlas texture.
- *
- * This is also needed by pipeline shaders to output mapped coordinates.
+ * This function will remap normalized coordinates to atlas coordinates.
+ * It has no effect when the bound texture is not an atlas texture.
  */
 vec2 frx_mapNormalizedUV(vec2 coord) {
 	return _cvv_spriteBounds.xy + coord * _cvv_spriteBounds.zw;
