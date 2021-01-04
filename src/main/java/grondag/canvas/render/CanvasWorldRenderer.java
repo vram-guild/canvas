@@ -392,7 +392,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final BlockRenderContext blockContext = BlockRenderContext.get();
 		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
 		MaterialFog.allow(Configurator.fogMode != FogMode.NONE || mc.player.hasStatusEffect(StatusEffects.BLINDNESS));
-		SkyShadowRenderer.prepareForFrame();
 		updatePlayerLightmap(mc, tickDelta);
 
 		final ClientWorld world = this.world;
