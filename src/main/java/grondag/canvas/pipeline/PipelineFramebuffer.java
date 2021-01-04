@@ -109,6 +109,9 @@ public class PipelineFramebuffer {
 	public void clear() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
 
+		GlStateManager.colorMask(true, true, true, true);
+		GlStateManager.depthMask(true);
+
 		if (colorClearFlags == 1) {
 			// Try for combined depth/color clear if have single color
 			int mask = GL21.GL_COLOR_BUFFER_BIT;
