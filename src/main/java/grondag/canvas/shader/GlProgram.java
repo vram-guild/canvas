@@ -622,6 +622,11 @@ public class GlProgram {
 		public String searchString() {
 			return "vec4\\s*\\[\\s*[0-9]+\\s*]";
 		}
+
+		@Override
+		public void set(float[] v) {
+			uniformFloatBuffer.put(v, 0, v.length);
+		}
 	}
 
 	protected abstract class UniformInt<T extends Uniform> extends UniformImpl<T> {
