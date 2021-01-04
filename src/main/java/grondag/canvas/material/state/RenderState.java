@@ -32,6 +32,8 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
@@ -60,9 +62,57 @@ public final class RenderState extends AbstractRenderState {
 		enable(0, 0, 0);
 	}
 
-	// PERF: probably better not to pass this in but retrieve from global state
-	// the origin tupe is already global state
 	public void enable(int x, int y, int z) {
+		if (SkyShadowRenderer.isActive()) {
+			enableShadow(x, y, z);
+		} else {
+			enableMaterial(x, y, z);
+		}
+	}
+
+	private void enableShadow(int x, int y, int z) {
+		if (shadowActive == this) {
+			shader.setModelOrigin(x, y, z);
+			return;
+		}
+
+		if (shadowActive == null) {
+			// same for all, so only do 1X
+			RenderSystem.shadeModel(GL11.GL_SMOOTH);
+			Pipeline.skyShadowFbo.bind();
+		}
+
+		shadowActive = this;
+		active = null;
+
+		if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
+			MaterialInfoTexture.INSTANCE.enable();
+		} else {
+			MaterialInfoTexture.INSTANCE.disable();
+		}
+
+		// WIP: can probably remove many of these
+
+		// controlled in shader
+		RenderSystem.disableAlphaTest();
+
+		texture.enable(blur);
+		transparency.enable();
+		depthTest.enable();
+		writeMask.enable();
+		fog.enable();
+		decal.enable();
+
+		CULL_STATE.setEnabled(cull);
+		LIGHTMAP_STATE.setEnabled(enableLightmap);
+		LINE_STATE.setEnabled(lines);
+
+		shader.activate(this);
+		shader.setContextInfo(texture.atlasInfo(), target.index);
+		shader.setModelOrigin(x, y, z);
+	}
+
+	private void enableMaterial(int x, int y, int z) {
 		if (active == this) {
 			shader.setModelOrigin(x, y, z);
 			return;
@@ -81,6 +131,7 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		active = this;
+		shadowActive = null;
 
 		if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
 			MaterialInfoTexture.INSTANCE.enable();
@@ -118,11 +169,12 @@ public final class RenderState extends AbstractRenderState {
 		() -> RenderSystem.lineWidth(1.0F));
 
 	public static void disable() {
-		if (active == null) {
+		if (active == null && shadowActive == null) {
 			return;
 		}
 
 		active = null;
+		shadowActive = null;
 
 		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();
@@ -154,6 +206,7 @@ public final class RenderState extends AbstractRenderState {
 	static final Long2ObjectOpenHashMap<RenderState> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
 
 	private static RenderState active = null;
+	private static RenderState shadowActive = null;
 
 	public static final RenderState MISSING = new RenderState(0);
 

@@ -42,6 +42,7 @@ public class PipelineConfig {
 
 	@Nullable public final FabulousConfig fabulosity;
 	@Nullable public final DrawTargetsConfig drawTargets;
+	@Nullable public final SkyShadowConfig skyShadow;
 
 	public final NamedDependency<FramebufferConfig> defaultFramebuffer;
 
@@ -58,6 +59,7 @@ public class PipelineConfig {
 		images = new ImageConfig[] { ImageConfig.defaultMain(context), ImageConfig.defaultDepth(context) };
 		framebuffers = new FramebufferConfig[] { FramebufferConfig.makeDefault(context) };
 		fabulosity = null;
+		skyShadow = null;
 		drawTargets = DrawTargetsConfig.makeDefault(context);
 		defaultFramebuffer = context.frameBuffers.dependOn("default");
 		materialVertexShader = new Identifier("canvas:shaders/pipeline/standard.vert");
@@ -70,6 +72,7 @@ public class PipelineConfig {
 		defaultFramebuffer = builder.defaultFramebuffer;
 		fabulosity = builder.fabulosity;
 		drawTargets = builder.drawTargets;
+		skyShadow = builder.skyShadow;
 
 		params = builder.params.toArray(new PipelineParam[builder.params.size()]);
 		fabulous = builder.fabulous.toArray(new PassConfig[builder.fabulous.size()]);

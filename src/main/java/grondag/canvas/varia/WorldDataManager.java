@@ -24,6 +24,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
@@ -175,6 +176,9 @@ public class WorldDataManager {
 	static double smoothedEyeLightBlock = 0;
 	static double smoothedEyeLightSky = 0;
 	static double smoothedRainStrength = 0;
+
+	private static final Vector3f skylightPosition = new Vector3f();
+	public static final Vector3f skyShadowVector = new Vector3f();
 
 	public static float cameraX, cameraY, cameraZ = 0f;
 
@@ -341,8 +345,12 @@ public class WorldDataManager {
 				final float skyAngle = world.getSkyAngleRadians(tickDelta);
 				final float moonFactor = moonLight ? -1f : 1f;
 
-				DATA.put(SKYLIGHT_VECTOR + 0, moonFactor * (float) Math.sin(-skyAngle));
-				DATA.put(SKYLIGHT_VECTOR + 1, moonFactor * (float) Math.cos(skyAngle));
+				final float sx = moonFactor * (float) Math.sin(-skyAngle);
+				final float sy = moonFactor * (float) Math.cos(skyAngle);
+				skyShadowVector.set(-sx, -sy, 0);
+
+				DATA.put(SKYLIGHT_VECTOR + 0, sx);
+				DATA.put(SKYLIGHT_VECTOR + 1, sy);
 				DATA.put(SKYLIGHT_VECTOR + 2, 0);
 				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
 			}

@@ -94,6 +94,10 @@
 				framebuffer: "solid",
 				program: "frex_clear"
 			}, {
+				name: "clear_shadow",
+				framebuffer: "shadow",
+				program: "frex_clear"
+			}, {
 				name: "clear_entity",
 				framebuffer: "entity",
 				program: "frex_clear"
@@ -115,6 +119,16 @@
 				program: "frex_clear"
 			}
 		]
+	},
+
+	skyShadows: {
+		framebuffer: "shadow",
+		includeTerrain: true,
+		includeEntities: true,
+		includeParticles: true,
+		supportForwardRender: true,
+		materialVertexShader: "canvas:shaders/pipeline/shadow.vert",
+		materialFragmentShader: "canvas:shaders/pipeline/shadow.frag",
 	},
 
 	// TODO: put where belongs

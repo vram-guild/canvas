@@ -392,8 +392,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final BlockRenderContext blockContext = BlockRenderContext.get();
 		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
 		MaterialFog.allow(Configurator.fogMode != FogMode.NONE || mc.player.hasStatusEffect(StatusEffects.BLINDNESS));
-
+		SkyShadowRenderer.prepareForFrame();
 		updatePlayerLightmap(mc, tickDelta);
+
 		final ClientWorld world = this.world;
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
@@ -486,6 +487,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
 
 		MatrixState.set(MatrixState.REGION);
+		// WIP: move this to a prepass - or more accurately defer terrain until after solid entity prepass
+		SkyShadowRenderer.begin();
+		renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+		SkyShadowRenderer.end();
+
 		renderTerrainLayer(false, cameraX, cameraY, cameraZ);
 		MatrixState.set(MatrixState.CAMERA);
 

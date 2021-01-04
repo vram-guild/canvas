@@ -61,6 +61,7 @@ public class Pipeline {
 	public static int fabTranslucentColor = -1;
 	public static int fabTranslucentDepth = -1;
 
+	public static PipelineFramebuffer skyShadowFbo;
 	public static PipelineFramebuffer solidTerrainFbo;
 	public static PipelineFramebuffer translucentTerrainFbo;
 	public static PipelineFramebuffer translucentEntityFbo;
@@ -190,6 +191,12 @@ public class Pipeline {
 		weatherFbo = getFramebuffer(cfg.drawTargets.weather.name);
 		cloudsFbo = getFramebuffer(cfg.drawTargets.clouds.name);
 		translucentParticlesFbo = getFramebuffer(cfg.drawTargets.translucentParticles.name);
+
+		if (cfg.skyShadow != null) {
+			skyShadowFbo = getFramebuffer(cfg.skyShadow.framebuffer.name);
+		} else {
+			skyShadowFbo = null;
+		}
 
 		isFabulous = cfg.fabulosity != null;
 
