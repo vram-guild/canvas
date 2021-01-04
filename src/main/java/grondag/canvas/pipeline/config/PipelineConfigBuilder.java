@@ -33,6 +33,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
+import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.LoadHelper;
@@ -124,22 +125,13 @@ public class PipelineConfigBuilder {
 	public boolean validate() {
 		boolean valid = true;
 
-		if (drawTargets == null || !drawTargets.validate()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - missing or invalid drawTargets config.");
-			valid = false;
-		}
+		valid &= AbstractConfig.assertAndWarn(drawTargets != null && drawTargets.validate(), "Invalid pipeline config - missing or invalid drawTargets config.");
 
-		if (materialVertexShader == null || materialVertexShader.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - missing materialVertexShader.");
-			valid = false;
-		}
-
-		if (materialFragmentShader == null || materialFragmentShader.isEmpty()) {
-			CanvasMod.LOG.warn("Invalid pipeline config - missing materialFragmentShader.");
-			valid = false;
-		}
+		valid &= AbstractConfig.assertAndWarn(materialVertexShader != null && !materialVertexShader.isEmpty(), "Invalid pipeline config - missing materialVertexShader.");
+		valid &= AbstractConfig.assertAndWarn(materialFragmentShader != null && !materialFragmentShader.isEmpty(), "Invalid pipeline config - missing materialFragmentShader.");
 
 		valid &= (fabulosity == null || fabulosity.validate());
+		valid &= (skyShadow == null || skyShadow.validate());
 
 		valid &= defaultFramebuffer != null && defaultFramebuffer.validate("Invalid pipeline config - missing or invalid defaultFramebuffer.");
 

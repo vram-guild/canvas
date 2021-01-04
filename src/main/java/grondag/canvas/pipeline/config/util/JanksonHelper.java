@@ -22,6 +22,8 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.util.Identifier;
+
 import grondag.canvas.CanvasMod;
 
 public class JanksonHelper {
@@ -31,6 +33,19 @@ public class JanksonHelper {
 
 			if (p.getValue() instanceof String) {
 				return (String) p.getValue();
+			}
+		}
+
+		return null;
+	}
+
+	public static @Nullable Identifier asIdentifier(JsonElement json) {
+		if (json instanceof JsonPrimitive) {
+			final JsonPrimitive p = (JsonPrimitive) json;
+
+			if (p.getValue() instanceof String) {
+				final String id = (String) p.getValue();
+				return id == null || id.isEmpty() ? null : Identifier.tryParse((String) p.getValue());
 			}
 		}
 

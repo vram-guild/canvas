@@ -400,7 +400,7 @@ public class GlProgram {
 	}
 
 	protected abstract class UniformFloat<T extends Uniform> extends UniformImpl<T> {
-		protected final FloatBuffer uniformFloatBuffer;
+		protected FloatBuffer uniformFloatBuffer;
 
 		protected UniformFloat(String name, Consumer<T> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency);
@@ -596,8 +596,6 @@ public class GlProgram {
 	}
 
 	public class UniformArray4fImpl extends UniformFloat<UniformArray4f> implements UniformArray4f {
-		@Nullable protected FloatBuffer externalFloatBuffer;
-
 		protected UniformArray4fImpl(String name, Consumer<UniformArray4f> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size * 4);
 		}
@@ -608,33 +606,15 @@ public class GlProgram {
 				return;
 			}
 
-			this.externalFloatBuffer = externalFloatBuffer;
+			uniformFloatBuffer = externalFloatBuffer;
 			setDirty();
 		}
 
 		@Override
-		public final void set(float[] data) {
-			if (unifID == -1) {
-				return;
-			}
-
-			final int limit = data.length;
-
-			for (int i = 0; i < limit; i++) {
-				if (uniformFloatBuffer.get(i) != data[i]) {
-					uniformFloatBuffer.put(i, data[i]);
-					setDirty();
-				}
-			}
-		}
-
-		@Override
 		protected void uploadInner() {
-			if (externalFloatBuffer == null) {
+			if (uniformFloatBuffer != null) {
 				GL21.glUniform4fv(unifID, uniformFloatBuffer);
-			} else {
-				GL21.glUniform4fv(unifID, externalFloatBuffer);
-				externalFloatBuffer = null;
+				uniformFloatBuffer = null;
 			}
 		}
 

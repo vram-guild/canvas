@@ -127,8 +127,8 @@
 		includeEntities: true,
 		includeParticles: true,
 		supportForwardRender: true,
-		materialVertexShader: "canvas:shaders/pipeline/shadow.vert",
-		materialFragmentShader: "canvas:shaders/pipeline/shadow.frag",
+		vertexShader: "canvas:shaders/pipeline/shadow.vert",
+		fragmentShader: "canvas:shaders/pipeline/shadow.frag",
 	},
 
 	// TODO: put where belongs

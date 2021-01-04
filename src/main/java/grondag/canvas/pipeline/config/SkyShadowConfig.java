@@ -18,22 +18,39 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
 
+import net.minecraft.util.Identifier;
+
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class SkyShadowConfig extends AbstractConfig {
 	public final NamedDependency<FramebufferConfig> framebuffer;
+	public final boolean includeTerrain;
+	public final boolean includeEntities;
+	public final boolean includeParticles;
+	public final boolean supportForwardRender;
+	public final Identifier vertexShader;
+	public final Identifier fragmentShader;
 
 	SkyShadowConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
 		framebuffer = ctx.frameBuffers.dependOn(config, "framebuffer");
+		vertexShader = JanksonHelper.asIdentifier(config.get("vertexShader"));
+		fragmentShader = JanksonHelper.asIdentifier(config.get("fragmentShader"));
+		includeTerrain = config.getBoolean("includeTerrain", true);
+		includeEntities = config.getBoolean("includeEntities", true);
+		includeParticles = config.getBoolean("includeParticles", true);
+		supportForwardRender = config.getBoolean("supportForwardRender", true);
 	}
 
 	@Override
 	public boolean validate() {
 		boolean valid = true;
-		valid &= framebuffer.validate("Invalid pipeline config - shadow framebuffer target missing or invalid.");
+		valid &= framebuffer.validate("Invalid pipeline config - skyShadows framebuffer missing or invalid.");
+		valid &= assertAndWarn(vertexShader != null, "Invalid pipeline config - skyShadows 'vertexShader' missing or invalid.");
+		valid &= assertAndWarn(fragmentShader != null, "Invalid pipeline config - skyShadows 'fragmentShader' missing or invalid.");
 		return valid;
 	}
 }

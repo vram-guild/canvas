@@ -99,7 +99,11 @@ public class GlMaterialShader extends GlShader {
 			starts = startsBuilder.toString();
 		}
 
-		final String pipelineSource = loadShaderSource(resourceManager, Pipeline.config().materialFragmentShader);
+		final Identifier sourceId = programType.isShadow && Pipeline.config().skyShadow != null
+			? Pipeline.config().skyShadow.fragmentShader
+			: Pipeline.config().materialFragmentShader;
+
+		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
 		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);
 		baseSource = StringUtils.replace(baseSource, ShaderData.FRAGMENT_START, starts);
 		return baseSource;
@@ -173,7 +177,11 @@ public class GlMaterialShader extends GlShader {
 			ends = endsBuilder.toString();
 		}
 
-		final String pipelineSource = loadShaderSource(resourceManager, Pipeline.config().materialVertexShader);
+		final Identifier sourceId = programType.isShadow && Pipeline.config().skyShadow != null
+				? Pipeline.config().skyShadow.vertexShader
+				: Pipeline.config().materialVertexShader;
+
+		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
 		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);
 		baseSource = StringUtils.replace(baseSource, ShaderData.VERTEX_START, starts);
 		baseSource = StringUtils.replace(baseSource, ShaderData.VEREX_END, ends);

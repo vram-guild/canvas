@@ -16,14 +16,37 @@
 
 package grondag.canvas.shader;
 
+import net.minecraft.util.Identifier;
+
 public enum ProgramType {
-	MATERIAL_UNIFORM_LOGIC,
-	MATERIAL_VERTEX_LOGIC,
-	PROCESS;
+	MATERIAL_UNIFORM_LOGIC(false, false, ShaderData.MATERIAL_MAIN_VERTEX, ShaderData.MATERIAL_MAIN_FRAGMENT),
+	MATERIAL_VERTEX_LOGIC(true, false, ShaderData.MATERIAL_MAIN_VERTEX, ShaderData.MATERIAL_MAIN_FRAGMENT),
+	SHADOW_UNIFORM_LOGIC(false, true, ShaderData.SHADOW_MAIN_VERTEX, ShaderData.SHADOW_MAIN_FRAGMENT),
+	SHADOW_VERTEX_LOGIC(true, true, ShaderData.SHADOW_MAIN_VERTEX, ShaderData.SHADOW_MAIN_FRAGMENT),
+	PROCESS(false, false, null, null);
 
 	public final String name;
+	public final boolean isVertexLogic;
+	public final boolean isShadow;
+	public final Identifier vertexSource;
+	public final Identifier fragmentSource;
 
-	ProgramType() {
+	ProgramType(boolean isVertexLogic, boolean isShadow, Identifier vertexSource, Identifier fragmentSource) {
 		name = name().toLowerCase();
+		this.isVertexLogic = isVertexLogic;
+		this.isShadow = isShadow;
+		this.vertexSource = vertexSource;
+		this.fragmentSource = fragmentSource;
+	}
+
+	public static ProgramType shadowType(ProgramType materialType) {
+		if (materialType == MATERIAL_UNIFORM_LOGIC) {
+			return SHADOW_UNIFORM_LOGIC;
+		} else if (materialType == MATERIAL_VERTEX_LOGIC) {
+			return SHADOW_VERTEX_LOGIC;
+		} else {
+			assert false : "Shadow program type requested for unrecognized material program type.";
+			return null;
+		}
 	}
 }

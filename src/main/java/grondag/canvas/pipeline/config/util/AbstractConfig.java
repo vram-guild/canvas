@@ -16,6 +16,8 @@
 
 package grondag.canvas.pipeline.config.util;
 
+import grondag.canvas.CanvasMod;
+
 public abstract class AbstractConfig {
 	protected final ConfigContext context;
 
@@ -24,4 +26,12 @@ public abstract class AbstractConfig {
 	}
 
 	public abstract boolean validate();
+
+	public static boolean assertAndWarn(boolean isOK, String msg) {
+		if (!isOK) {
+			CanvasMod.LOG.warn(msg);
+		}
+
+		return isOK;
+	}
 }

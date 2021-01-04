@@ -72,7 +72,7 @@ public final class RenderState extends AbstractRenderState {
 
 	private void enableShadow(int x, int y, int z) {
 		if (shadowActive == this) {
-			shader.setModelOrigin(x, y, z);
+			shadowShader.setModelOrigin(x, y, z);
 			return;
 		}
 
@@ -107,9 +107,9 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.setEnabled(enableLightmap);
 		LINE_STATE.setEnabled(lines);
 
-		shader.activate(this);
-		shader.setContextInfo(texture.atlasInfo(), target.index);
-		shader.setModelOrigin(x, y, z);
+		shadowShader.activate(this);
+		shadowShader.setContextInfo(texture.atlasInfo(), target.index);
+		shadowShader.setModelOrigin(x, y, z);
 	}
 
 	private void enableMaterial(int x, int y, int z) {
@@ -133,7 +133,7 @@ public final class RenderState extends AbstractRenderState {
 		active = this;
 		shadowActive = null;
 
-		if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
+		if (programType.isVertexLogic) {
 			MaterialInfoTexture.INSTANCE.enable();
 		} else {
 			MaterialInfoTexture.INSTANCE.disable();

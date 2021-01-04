@@ -66,7 +66,8 @@ public final class MaterialShaderImpl {
 	}
 
 	public void setModelOrigin(int x, int y, int z) {
-		getOrCreate().setModelOrigin(x, y, z);
+		getOrCreate().activate();
+		program.setModelOrigin(x, y, z);
 	}
 
 	public void activate(RenderState renderState) {
