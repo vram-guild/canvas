@@ -44,13 +44,8 @@ void main() {
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
 	_cvv_flags = uint(in_normal_flags.w + 0.5);
-
 	_cv_setupProgram();
-
 	int cv_programId = _cv_vertexProgramId();
-
-	// material shaders go first
-	_cv_startVertex(data, cv_programId);
 
 	// map texture coordinates
 	if (_cvu_context[_CV_SPRITE_INFO_TEXTURE_SIZE] == 0.0) {
@@ -71,6 +66,9 @@ void main() {
 		spriteBounds /= vec4(atlasWidth, atlasHeight, atlasWidth, atlasHeight);
 		_cvv_spriteBounds = spriteBounds;
 	}
+
+	// material shaders go first
+	_cv_startVertex(data, cv_programId);
 
 	frx_texcoord = frx_mapNormalizedUV(data.spriteUV);
 	frx_color = data.color;
