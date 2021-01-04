@@ -190,6 +190,22 @@ mat4 frx_inverseViewProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_VIEW_PROJ_LAST];
 }
 
+mat4 frx_shadowViewMatrix() {
+	return _cvu_matrix[_CV_MAT_SHADOW_VIEW];
+}
+
+mat4 frx_inverseShadowViewMatrix() {
+	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_INVERSE];
+}
+
+mat4 frx_shadowProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_SHADOW_PROJ];
+}
+
+mat4 frx_inverseShadowProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_SHADOW_PROJ_INVERSE];
+}
+
 /*
  * True when rendering to GUI.
  */

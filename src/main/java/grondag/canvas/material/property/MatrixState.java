@@ -75,7 +75,10 @@ public enum MatrixState {
 		current = val;
 	}
 
-	public static void set(MatrixState val, MatrixStack.Entry view, Matrix4f projectionMatrix) {
+	/**
+	 * Depends on WorldDataManager and should be called after it updates.
+	 */
+	public static void update(MatrixState val, MatrixStack.Entry view, Matrix4f projectionMatrix) {
 		assert val != null;
 		current = val;
 
@@ -98,7 +101,6 @@ public enum MatrixState {
 
 		projMatrixInvExt.set(projMatrixExt);
 		projMatrixInvExt.invertProjection();
-
 		projMatrixInvExt.writeToBuffer(PROJ_INVERSE * 16, DATA);
 
 		viewProjMatrixExt.set(projMatrixExt);
@@ -108,6 +110,21 @@ public enum MatrixState {
 		viewProjMatrixInvExt.set(viewMatrixInvExt);
 		viewProjMatrixInvExt.multiply(projMatrixInvExt);
 		viewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
+
+		// shadow perspective
+		shadowViewMatrixExt.set((Matrix4fExt) (Object) view.getModel());
+		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, DATA);
+		shadowProjMatrixExt.set((Matrix4fExt) (Object) projectionMatrix);
+		shadowProjMatrixExt.writeToBuffer(SHADOW_PROJ * 16, DATA);
+
+		shadowViewMatrixInvExt.set(viewMatrixExt);
+		// reliable inversion of rotation matrix
+		shadowViewMatrixInv.transpose();
+		shadowViewMatrixInvExt.writeToBuffer(SHADOW_VIEW_INVERSE * 16, DATA);
+
+		shadowProjMatrixInvExt.set(projMatrixExt);
+		shadowProjMatrixInvExt.invertProjection();
+		shadowProjMatrixInvExt.writeToBuffer(SHADOW_PROJ_INVERSE * 16, DATA);
 	}
 
 	public static final Matrix4f viewMatrix = new Matrix4f();
@@ -125,6 +142,16 @@ public enum MatrixState {
 	private static final Matrix4f viewProjMatrixInv = new Matrix4f();
 	private static final Matrix4fExt viewProjMatrixInvExt = (Matrix4fExt) (Object) viewProjMatrixInv;
 
+	public static final Matrix4f shadowViewMatrix = new Matrix4f();
+	public static final Matrix4fExt shadowViewMatrixExt = (Matrix4fExt) (Object) shadowViewMatrix;
+	private static final Matrix4f shadowViewMatrixInv = new Matrix4f();
+	private static final Matrix4fExt shadowViewMatrixInvExt = (Matrix4fExt) (Object) shadowViewMatrixInv;
+
+	public static final Matrix4f shadowProjMatrix = new Matrix4f();
+	public static final Matrix4fExt shadowProjMatrixExt = (Matrix4fExt) (Object) shadowProjMatrix;
+	private static final Matrix4f shadowProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt shadowProjMatrixInvExt = (Matrix4fExt) (Object) shadowProjMatrixInv;
+
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
 
 	private static final int VIEW = 0;
@@ -141,6 +168,6 @@ public enum MatrixState {
 	private static final int SHADOW_PROJ = 11;
 	private static final int SHADOW_PROJ_INVERSE = 12;
 
-	public static final int COUNT = 10;
+	public static final int COUNT = 13;
 	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(COUNT * 16);
 }

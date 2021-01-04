@@ -41,7 +41,6 @@ public class ShaderData {
 	public static final String API_TARGET = "#include canvas:apitarget";
 	public static final String FRAGMENT_START = "#include canvas:startfragment";
 	public static final String VERTEX_START = "#include canvas:startvertex";
-	public static final String VEREX_END = "#include canvas:endvertex";
 
 	public static final Consumer<GlProgram> MATERIAL_UNIFORM_SETUP = program -> {
 		program.uniformSampler2d("frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));

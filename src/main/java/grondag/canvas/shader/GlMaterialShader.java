@@ -112,7 +112,6 @@ public class GlMaterialShader extends GlShader {
 	// WIP: REMOVE MATERIAL END
 	private String preprocessVertexSource(ResourceManager resourceManager, String baseSource) {
 		String starts;
-		String ends;
 		String impl;
 
 		final int[] shaders = MaterialShaderManager.VERTEX_INDEXES.toIntArray();
@@ -120,34 +119,33 @@ public class GlMaterialShader extends GlShader {
 
 		if (limit == 0) {
 			starts = "\t// NOOP";
-			ends = "\t// NOOP";
 			impl = "\t// NOOP";
 		} else if (limit == 1) {
 			impl = loadShaderSource(resourceManager, MaterialShaderManager.VERTEX_INDEXER.fromHandle(shaders[0]));
+
+			// prevent abandoned endVertex calls from conflicting
+			impl = StringUtils.replace(impl, "frx_endVertex", "frx_endVertex_UNUSED");
+
 			starts = impl.contains("frx_startVertex") ? "\tfrx_startVertex(data);" : "\t// NOOP";
-			ends = impl.contains("frx_endVertex") ? "\tfrx_endVertex(data);" : "\t// NOOP";
 		} else {
 			final StringBuilder startsBuilder = new StringBuilder();
-			final StringBuilder endsBuilder = new StringBuilder();
 			final StringBuilder implBuilder = new StringBuilder();
 
 			for (int i = 0; i < limit; ++i) {
 				final int index = shaders[i];
 				String src = loadShaderSource(resourceManager, MaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
 
+				// prevent abandoned endVertex calls from conflicting
+				src = StringUtils.replace(src, "frx_endVertex", "frx_endVertex" + i + "_UNUSED");
+
 				if (i > 0) {
 					startsBuilder.append("\telse ");
-					endsBuilder.append("\telse ");
 				}
 
 				if (i < limit - 1) {
 					startsBuilder.append("\tif (cv_programId == ");
 					startsBuilder.append(index);
 					startsBuilder.append(") ");
-
-					endsBuilder.append("\tif (cv_programId == ");
-					endsBuilder.append(index);
-					endsBuilder.append(") ");
 				}
 
 				if (src.contains("frx_startVertex")) {
@@ -159,22 +157,12 @@ public class GlMaterialShader extends GlShader {
 					startsBuilder.append("{ }\n");
 				}
 
-				if (src.contains("frx_endVertex")) {
-					endsBuilder.append("{ frx_endVertex");
-					endsBuilder.append(index);
-					endsBuilder.append("(data); }\n");
-					src = StringUtils.replace(src, "frx_endVertex", "frx_endVertex" + index);
-				} else {
-					endsBuilder.append("{ }\n");
-				}
-
 				implBuilder.append(src);
 				implBuilder.append("\n");
 			}
 
 			impl = implBuilder.toString();
 			starts = startsBuilder.toString();
-			ends = endsBuilder.toString();
 		}
 
 		final Identifier sourceId = programType.isShadow && Pipeline.config().skyShadow != null
@@ -184,7 +172,6 @@ public class GlMaterialShader extends GlShader {
 		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
 		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);
 		baseSource = StringUtils.replace(baseSource, ShaderData.VERTEX_START, starts);
-		baseSource = StringUtils.replace(baseSource, ShaderData.VEREX_END, ends);
 		return baseSource;
 	}
 }

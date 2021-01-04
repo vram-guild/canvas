@@ -18,10 +18,6 @@ void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:startvertex
 }
 
-void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
-#include canvas:endvertex
-}
-
 void main() {
 #ifdef VANILLA_LIGHTING
 	frx_VertexData data = frx_VertexData(

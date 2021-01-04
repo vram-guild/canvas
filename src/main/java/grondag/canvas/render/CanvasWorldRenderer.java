@@ -268,7 +268,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		regionStorage.closeRegionsOnRenderThread();
 
 		mc.getProfiler().push("camera");
-		WorldDataManager.update(camera);
 		MaterialConditionImpl.update();
 		GlProgramManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
@@ -1203,7 +1202,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// and managed draws will correctly have no rotation applies.  Direct draws may attempt to transform
 		// the GL state to the view matrix but it will have no effect - it is already applied.
 
-		MatrixState.set(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix);
+		WorldDataManager.update(camera);
+		MatrixState.update(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix);
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(MatrixState.viewMatrix);
 

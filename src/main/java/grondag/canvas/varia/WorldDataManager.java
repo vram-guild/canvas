@@ -197,7 +197,7 @@ public class WorldDataManager {
 		DATA.put(VEC_VANILLA_CLEAR_COLOR + 2, b);
 	}
 
-	static void computeEyeNumbers(ClientWorld world, ClientPlayerEntity player) {
+	private static void computeEyeNumbers(ClientWorld world, ClientPlayerEntity player) {
 		float sky = 15, block = 15;
 
 		DATA.put(EYE_POSITION, (float) player.getX());
@@ -241,7 +241,7 @@ public class WorldDataManager {
 		DATA.put(SMOOTHED_EYE_LIGHT_SKY, (float) smoothedEyeLightSky);
 	}
 
-	static void computeEyeFlags(ClientWorld world, ClientPlayerEntity player, BlockPos eyePos) {
+	private static void computeEyeFlags(ClientWorld world, ClientPlayerEntity player, BlockPos eyePos) {
 		final FluidState fluidState = world.getFluidState(eyePos);
 
 		if (!fluidState.isEmpty()) {
@@ -259,7 +259,7 @@ public class WorldDataManager {
 		}
 	}
 
-	static void updateRain(ClientWorld world, float tickDelta) {
+	private static void updateRain(ClientWorld world, float tickDelta) {
 		final float rain = world.getRainGradient(tickDelta);
 		DATA.put(RAIN_STRENGTH, rain);
 		DATA.put(THUNDER_STRENGTH, world.getThunderGradient(tickDelta));
@@ -276,7 +276,7 @@ public class WorldDataManager {
 	 * @param tickTime 0 - 23999
 	 * @return true if sky light is moon
 	 */
-	static boolean computeSkylightFactor(long tickTime) {
+	private static boolean computeSkylightFactor(long tickTime) {
 		boolean result = false;
 		float factor = 1;
 

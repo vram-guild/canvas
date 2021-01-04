@@ -18,10 +18,6 @@ void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:startvertex
 }
 
-void _cv_endVertex(inout frx_VertexData data, in int cv_programId) {
-#include canvas:endvertex
-}
-
 void main() {
 #ifdef VANILLA_LIGHTING
 	frx_VertexData data = frx_VertexData(
@@ -73,6 +69,8 @@ void main() {
 	}
 
 	frx_texcoord = frx_mapNormalizedUV(data.spriteUV);
+
+	// WIP: remove these?  maybe undefine in shadow pass?
 	frx_color = data.color;
 	frx_normal = data.normal;
 	frx_vertex = data.vertex;
