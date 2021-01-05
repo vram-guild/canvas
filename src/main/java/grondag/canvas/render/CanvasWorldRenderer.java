@@ -715,6 +715,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// Should generally not have anything here but draw in case content injected in hooks
 		immediate.drawCollectors(MaterialTarget.MAIN);
 
+		// WIP: glint not working again?
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
 		immediate.draw(RenderLayer.getGlint());
@@ -802,11 +803,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		GlProgram.deactivate();
 
 		// WIP: need to properly target the designated buffer here in both clouds and weather
-		// also may not work with non-fabulous pipelines
+		// also need to ensure works with non-fabulous pipelines
 
 		// NB: important to clear the cloud FB even when clouds are off - prevents leftover clouds
 		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-			getCloudsFramebuffer().clear(MinecraftClient.IS_SYSTEM_MAC);
+			if (advancedTranslucency && getCloudsFramebuffer() != null) {
+				getCloudsFramebuffer().clear(MinecraftClient.IS_SYSTEM_MAC);
+			}
+
 			RenderPhase.CLOUDS_TARGET.startDrawing();
 			// NB: vanilla cloud renderer wants/needs the transformed stack even though it is already applied
 			renderClouds(viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
