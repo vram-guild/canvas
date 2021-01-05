@@ -26,6 +26,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -83,32 +84,47 @@ public enum MatrixState {
 	static int i = 0;
 	@SuppressWarnings("resource")
 	private static void computeShadowMatrices(Camera camera) {
-		// view from sun position
+		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
 
-		//System.out.println(camera.getPitch() + ", " + camera.getYaw());
+		// construct rotation matrix from sun position
 		shadowViewMatrixExt.loadIdentity();
-		//shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(90));
-		//shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180));
 
-		// sort of works at noon
-		//shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(90));
-		//shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getRadialQuaternion(WorldDataManager.skyShadowRotationRadiansZ));// + (float) (Math.PI * 0.5)));
+		// WIP: automatically scale this and ortho frustum depth for best precision
+		// move camera back from frustum center to see whole scene
+		// Is Z-axis only because we are now pointing towards the center
+		// (Steps are reverse order for matrix multiply)
+		shadowViewMatrixExt.translate(0f, 0f, -viewDist);
 
-		++i;
-		i %= 1440;
+		// Rotate to fit image mostly into the size of our regular framebuffer
+		// We don't have to use that size for the shadow map, but it tends to fit pretty well.
+		// WIP: use a fixed res, probably square size, and cascaded levels
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(camera.getYaw()));
 
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(i / 4));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getRadialQuaternion(WorldDataManager.skyShadowRotationRadiansZ + (float) (Math.PI * -0.5)));
+		// Rotate for position of sun
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getRadialQuaternion((float) (Math.PI * 0.5) - WorldDataManager.skyShadowRotationRadiansZ));
+
+		// Rotate to view from top down
 		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(90));
-		//shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(i / 4));
+
+		// reverse Z-axis direction to align w/ opengl view
 		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(180));
+
+		// translate to middle of frustum
+		final Vec3d cv = Vec3d.fromPolar(camera.getPitch(), camera.getYaw());
+		shadowViewMatrixExt.translate(
+				(float) (cv.x * viewDist * -0.5),
+				(float) (cv.y * viewDist * -0.5),
+				(float) (cv.z * viewDist * -0.5));
 
 		// orthographic projection
 		final float near = 0.05f;
-		final float far = MinecraftClient.getInstance().gameRenderer.getViewDistance() * 2;
+		final float far = viewDist * 2;
 
-		shadowProjMatrixExt.a00(2f / PipelineManager.width());
-		shadowProjMatrixExt.a11(2f / PipelineManager.height());
+		// WIP: improve scaling based on bounds of rendered chunks
+		final float scale = viewDist * 2 / PipelineManager.width();
+
+		shadowProjMatrixExt.a00(2f / scale / PipelineManager.width());
+		shadowProjMatrixExt.a11(2f / scale / PipelineManager.height());
 		shadowProjMatrixExt.a22(-2f / (far - near));
 		shadowProjMatrixExt.a03(0.0f);
 		shadowProjMatrixExt.a13(0.0f);
