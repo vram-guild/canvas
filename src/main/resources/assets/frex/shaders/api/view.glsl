@@ -206,6 +206,10 @@ mat4 frx_inverseShadowProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_SHADOW_PROJ_INVERSE];
 }
 
+vec4 frx_cameraToSkylight() {
+	return vec4(_cvu_world[_CV_SKYLIGHT_POSITION].xyz, 0.0);
+}
+
 /*
  * True when rendering to GUI.
  */

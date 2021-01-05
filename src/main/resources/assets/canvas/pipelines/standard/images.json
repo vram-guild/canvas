@@ -57,7 +57,7 @@
     {
       name: "shadow_depth",
       lod: 0,
-      internalFormat: "DEPTH_COMPONENT",
+      internalFormat: "DEPTH_COMPONENT32",
       pixelFormat: "DEPTH_COMPONENT",
       pixelDataType: "FLOAT",
       target: "TEXTURE_2D",

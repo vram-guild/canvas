@@ -20,12 +20,17 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.varia.WorldDataManager;
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.
@@ -75,10 +80,46 @@ public enum MatrixState {
 		current = val;
 	}
 
+	static int i = 0;
+	@SuppressWarnings("resource")
+	private static void computeShadowMatrices(Camera camera) {
+		// view from sun position
+
+		//System.out.println(camera.getPitch() + ", " + camera.getYaw());
+		shadowViewMatrixExt.loadIdentity();
+		//shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(90));
+		//shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180));
+
+		// sort of works at noon
+		//shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(90));
+		//shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getRadialQuaternion(WorldDataManager.skyShadowRotationRadiansZ));// + (float) (Math.PI * 0.5)));
+
+		++i;
+		i %= 1440;
+
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(i / 4));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getRadialQuaternion(WorldDataManager.skyShadowRotationRadiansZ + (float) (Math.PI * -0.5)));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(90));
+		//shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(i / 4));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(180));
+
+		// orthographic projection
+		final float near = 0.05f;
+		final float far = MinecraftClient.getInstance().gameRenderer.getViewDistance() * 2;
+
+		shadowProjMatrixExt.a00(2f / PipelineManager.width());
+		shadowProjMatrixExt.a11(2f / PipelineManager.height());
+		shadowProjMatrixExt.a22(-2f / (far - near));
+		shadowProjMatrixExt.a03(0.0f);
+		shadowProjMatrixExt.a13(0.0f);
+		shadowProjMatrixExt.a23(-((far + near) / (far - near)));
+		shadowProjMatrixExt.a33(1f);
+	}
+
 	/**
 	 * Depends on WorldDataManager and should be called after it updates.
 	 */
-	public static void update(MatrixState val, MatrixStack.Entry view, Matrix4f projectionMatrix) {
+	public static void update(MatrixState val, MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera) {
 		assert val != null;
 		current = val;
 
@@ -112,17 +153,16 @@ public enum MatrixState {
 		viewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
 
 		// shadow perspective
-		shadowViewMatrixExt.set((Matrix4fExt) (Object) view.getModel());
+		computeShadowMatrices(camera);
 		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, DATA);
-		shadowProjMatrixExt.set((Matrix4fExt) (Object) projectionMatrix);
 		shadowProjMatrixExt.writeToBuffer(SHADOW_PROJ * 16, DATA);
 
-		shadowViewMatrixInvExt.set(viewMatrixExt);
+		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		// reliable inversion of rotation matrix
 		shadowViewMatrixInv.transpose();
 		shadowViewMatrixInvExt.writeToBuffer(SHADOW_VIEW_INVERSE * 16, DATA);
 
-		shadowProjMatrixInvExt.set(projMatrixExt);
+		shadowProjMatrixInvExt.set(shadowProjMatrixExt);
 		shadowProjMatrixInvExt.invertProjection();
 		shadowProjMatrixInvExt.writeToBuffer(SHADOW_PROJ_INVERSE * 16, DATA);
 	}

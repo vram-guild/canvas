@@ -108,8 +108,9 @@ public class WorldDataManager {
 	private static final int SKYLIGHT_VECTOR = 4 * 11;
 	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
 
-	private static final int SLYLIGHT_POSITION = 4 * 12;
-	private static final int SKYLIGHT_STRENGTH = SLYLIGHT_POSITION + 3;
+	// WIP: rename to cameraToSkylight and make w always zero
+	private static final int SKYLIGHT_POSITION = 4 * 12;
+	private static final int SKYLIGHT_STRENGTH = SKYLIGHT_POSITION + 3;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -179,6 +180,7 @@ public class WorldDataManager {
 
 	private static final Vector3f skylightPosition = new Vector3f();
 	public static final Vector3f skyShadowVector = new Vector3f();
+	public static float skyShadowRotationRadiansZ;
 
 	public static float cameraX, cameraY, cameraZ = 0f;
 
@@ -327,6 +329,31 @@ public class WorldDataManager {
 		DATA.put(RENDER_SECONDS, (System.currentTimeMillis() - baseRenderTime) / 1000f);
 		DATA.put(VIEW_DISTANCE, client.options.viewDistance * 16);
 
+		DATA.put(VEC_LAST_CAMERA_POS, cameraX);
+		DATA.put(VEC_LAST_CAMERA_POS + 1, cameraY);
+		DATA.put(VEC_LAST_CAMERA_POS + 2, cameraZ);
+		final Vec3d cameraPos = camera.getPos();
+		cameraXd = cameraPos.x;
+		cameraX = (float) cameraXd;
+
+		cameraYd = cameraPos.y;
+		cameraY = (float) cameraYd;
+
+		cameraZd = cameraPos.z;
+		cameraZ = (float) cameraZd;
+
+		DATA.put(VEC_CAMERA_POS, cameraX);
+		DATA.put(VEC_CAMERA_POS + 1, cameraY);
+		DATA.put(VEC_CAMERA_POS + 2, cameraZ);
+
+		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch());
+		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
+
+		DATA.put(VIEW_WIDTH, PipelineManager.width());
+		DATA.put(VIEW_HEIGHT, PipelineManager.height());
+		DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
+		DATA.put(VIEW_BRIGHTNESS, (float) client.options.gamma);
+
 		final ClientWorld world = client.world;
 
 		if (world != null) {
@@ -344,6 +371,8 @@ public class WorldDataManager {
 			if (skyLight) {
 				final float skyAngle = world.getSkyAngleRadians(tickDelta);
 				final float moonFactor = moonLight ? -1f : 1f;
+				// WIP: flip if moon, probably don't need the half pi
+				skyShadowRotationRadiansZ = skyAngle + (float) (0.5 * Math.PI);
 
 				final float sx = moonFactor * (float) Math.sin(-skyAngle);
 				final float sy = moonFactor * (float) Math.cos(skyAngle);
@@ -353,6 +382,19 @@ public class WorldDataManager {
 				DATA.put(SKYLIGHT_VECTOR + 1, sy);
 				DATA.put(SKYLIGHT_VECTOR + 2, 0);
 				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
+
+				final float vd = -client.gameRenderer.getViewDistance() * 0.5f;
+
+				// point being viewed is middle of camera frustum
+				final float px = DATA.get(VEC_CAMERA_VIEW) * vd;
+				final float py = DATA.get(VEC_CAMERA_VIEW + 1) * vd;
+				final float pz = 0.5f * DATA.get(VEC_CAMERA_VIEW + 2) * vd;
+
+				//vd *= 0.5f;
+
+				DATA.put(SKYLIGHT_POSITION + 0, px + sx * vd);
+				DATA.put(SKYLIGHT_POSITION + 1, py + sy * vd);
+				DATA.put(SKYLIGHT_POSITION + 2, pz + vd);
 			}
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);
@@ -449,31 +491,6 @@ public class WorldDataManager {
 			}
 		}
 
-		DATA.put(VEC_LAST_CAMERA_POS, cameraX);
-		DATA.put(VEC_LAST_CAMERA_POS + 1, cameraY);
-		DATA.put(VEC_LAST_CAMERA_POS + 2, cameraZ);
-		final Vec3d cameraPos = camera.getPos();
-		cameraXd = cameraPos.x;
-		cameraX = (float) cameraXd;
-
-		cameraYd = cameraPos.y;
-		cameraY = (float) cameraYd;
-
-		cameraZd = cameraPos.z;
-		cameraZ = (float) cameraZd;
-
-		DATA.put(VEC_CAMERA_POS, cameraX);
-		DATA.put(VEC_CAMERA_POS + 1, cameraY);
-		DATA.put(VEC_CAMERA_POS + 2, cameraZ);
-
-		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch());
-		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
-
-		DATA.put(VIEW_WIDTH, PipelineManager.width());
-		DATA.put(VIEW_HEIGHT, PipelineManager.height());
-		DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
-		DATA.put(VIEW_BRIGHTNESS, (float) client.options.gamma);
-
 		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
 
@@ -488,11 +505,15 @@ public class WorldDataManager {
 	}
 
 	private static void putViewVector(int index, float yaw, float pitch) {
-		final float y = (float) Math.toRadians(yaw);
-		final float p = (float) Math.toRadians(pitch);
+		//final float y = (float) Math.toRadians(yaw);
+		//final float p = (float) Math.toRadians(pitch);
 
-		DATA.put(index, -MathHelper.sin(y) * MathHelper.cos(p));
-		DATA.put(index + 1, -MathHelper.sin(p));
-		DATA.put(index + 2, MathHelper.cos(y) * MathHelper.cos(p));
+		final Vec3d vec = Vec3d.fromPolar(pitch, yaw);
+		DATA.put(index, (float) vec.x);
+		DATA.put(index + 1, (float) vec.y);
+		DATA.put(index + 2, (float) vec.z);
+		//DATA.put(index, -MathHelper.sin(y) * MathHelper.cos(p));
+		//DATA.put(index + 1, -MathHelper.sin(p));
+		//DATA.put(index + 2, MathHelper.cos(y) * MathHelper.cos(p));
 	}
 }

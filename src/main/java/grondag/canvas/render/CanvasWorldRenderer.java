@@ -1203,7 +1203,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// the GL state to the view matrix but it will have no effect - it is already applied.
 
 		WorldDataManager.update(camera);
-		MatrixState.update(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix);
+		MatrixState.update(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix, camera);
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(MatrixState.viewMatrix);
 
