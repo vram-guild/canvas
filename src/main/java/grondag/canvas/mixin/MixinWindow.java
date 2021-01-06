@@ -27,7 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Window;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 // Approach is based on that used by RetiNo, by Julian Dunskus
 // https://github.com/juliand665/retiNO

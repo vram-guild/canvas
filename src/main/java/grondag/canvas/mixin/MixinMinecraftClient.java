@@ -30,7 +30,7 @@ import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.util.thread.ReentrantThreadExecutor;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.PrimaryFrameBuffer;

@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class CanvasVertexFormat {

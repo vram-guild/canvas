@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.terrain.region.BuiltRenderRegion;

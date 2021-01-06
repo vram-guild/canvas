@@ -19,7 +19,7 @@ package grondag.canvas.terrain.occlusion;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 public class Constants {
 	public static final int UP = 1 << Direction.UP.getId();

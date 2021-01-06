@@ -18,7 +18,7 @@ package grondag.canvas.light;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 public final class LightmapSizer {
 	public static final int texSize = Configurator.moreLightmap ? 8192 : 4096;

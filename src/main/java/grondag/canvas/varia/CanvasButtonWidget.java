@@ -21,12 +21,12 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.ConfigGui;
 
 public class CanvasButtonWidget extends ButtonWidget {
 	public static Screen parent;
 
 	public CanvasButtonWidget(int x, int y, int width, int height, Text text) {
-		super(x, y, width, height, text, button -> MinecraftClient.getInstance().openScreen(Configurator.display(parent)));
+		super(x, y, width, height, text, button -> MinecraftClient.getInstance().openScreen(ConfigGui.display(parent)));
 	}
 }

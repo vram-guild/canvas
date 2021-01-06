@@ -27,6 +27,7 @@ import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class SkyShadowConfig extends AbstractConfig {
 	public final NamedDependency<FramebufferConfig> framebuffer;
+	public final boolean allowDisable;
 	public final boolean includeTerrain;
 	public final boolean includeEntities;
 	public final boolean includeParticles;
@@ -43,6 +44,7 @@ public class SkyShadowConfig extends AbstractConfig {
 		includeEntities = config.getBoolean("includeEntities", true);
 		includeParticles = config.getBoolean("includeParticles", true);
 		supportForwardRender = config.getBoolean("supportForwardRender", true);
+		allowDisable = config.getBoolean("allowDisable", true);
 	}
 
 	@Override

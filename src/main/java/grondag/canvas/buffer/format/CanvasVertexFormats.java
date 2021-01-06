@@ -25,7 +25,7 @@ import static grondag.canvas.buffer.format.CanvasVertextFormatElement.NORMAL_FLA
 import static grondag.canvas.buffer.format.CanvasVertextFormatElement.POSITION_3F;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 public final class CanvasVertexFormats {
 	static {

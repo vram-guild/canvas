@@ -34,8 +34,8 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.Matrix3f;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;

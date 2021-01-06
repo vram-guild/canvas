@@ -84,8 +84,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.impl.client.rendering.WorldRenderContextImpl;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.canvas.Configurator.FogMode;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
@@ -93,6 +91,8 @@ import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.compat.FirstPersonModelHolder;
+import grondag.canvas.config.Configurator;
+import grondag.canvas.config.FogMode;
 import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;

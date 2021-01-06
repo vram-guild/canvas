@@ -27,11 +27,11 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.shader.GlProgram;

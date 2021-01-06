@@ -26,7 +26,7 @@ import static grondag.fermion.position.PackedBlockPos.Z_MASK;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 public class TerrainModelSpace {
 	private static int CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;

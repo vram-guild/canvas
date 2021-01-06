@@ -21,7 +21,7 @@ import net.minecraft.client.MinecraftClient;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class GlProgramManager implements ClientTickEvents.EndTick {

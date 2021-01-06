@@ -31,7 +31,7 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.ConfigManager;
 
 public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 	private static boolean hasLoadedOnce = false;
@@ -60,7 +60,7 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 			final Identifier id = (Identifier) it.next();
 
 			try (Resource res = manager.getResource(id)) {
-				final JsonObject configJson = Configurator.JANKSON.load(res.getInputStream());
+				final JsonObject configJson = ConfigManager.JANKSON.load(res.getInputStream());
 				final PipelineDescription p = new PipelineDescription(id, configJson);
 				MAP.put(id.toString(), p);
 			} catch (final Exception e) {

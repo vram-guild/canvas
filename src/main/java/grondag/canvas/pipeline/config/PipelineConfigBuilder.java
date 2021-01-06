@@ -32,7 +32,7 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
@@ -172,7 +172,7 @@ public class PipelineConfigBuilder {
 			final Identifier target = queue.dequeue();
 
 			try (Resource res = rm.getResource(target)) {
-				final JsonObject configJson = Configurator.JANKSON.load(res.getInputStream());
+				final JsonObject configJson = ConfigManager.JANKSON.load(res.getInputStream());
 				result.load(configJson);
 				getIncludes(configJson, included, queue);
 			} catch (final IOException e) {

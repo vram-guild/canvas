@@ -25,7 +25,7 @@ import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 // adapted from http://www.anisopteragames.com/how-to-fix-color-banding-with-dithering/
 public class DitherTexture implements AutoCloseable {

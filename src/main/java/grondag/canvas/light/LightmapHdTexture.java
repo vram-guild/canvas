@@ -24,7 +24,7 @@ import org.lwjgl.opengl.GL11;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.texture.SimpleImage;
 import grondag.canvas.texture.SimpleTexture;
 import grondag.canvas.texture.TextureData;

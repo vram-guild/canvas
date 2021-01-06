@@ -29,7 +29,7 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Matrix4f;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;

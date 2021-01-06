@@ -27,8 +27,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;

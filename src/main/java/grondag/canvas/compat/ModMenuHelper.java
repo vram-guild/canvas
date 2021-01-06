@@ -20,12 +20,12 @@ import io.github.prospector.modmenu.api.ConfigScreenFactory;
 import io.github.prospector.modmenu.api.ModMenuApi;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.ConfigGui;
 
 public class ModMenuHelper implements ModMenuApi {
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-		return Configurator::display;
+		return ConfigGui::display;
 	}
 
 	@Override

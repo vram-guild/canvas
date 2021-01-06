@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 public enum GlShaderManager {
 	INSTANCE;

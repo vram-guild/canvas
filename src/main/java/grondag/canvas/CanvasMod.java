@@ -36,6 +36,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
+import grondag.canvas.config.ConfigManager;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.frex.api.fluid.FluidQuadSupplier;
@@ -61,7 +63,7 @@ public class CanvasMod implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		Configurator.init();
+		ConfigManager.init();
 		RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
 		FluidQuadSupplier.setReloadHandler(FluidHandler.HANDLER);
 		InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);

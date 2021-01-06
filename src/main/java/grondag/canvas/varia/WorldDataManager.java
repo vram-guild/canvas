@@ -38,7 +38,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.light.LightingProvider;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.fermion.bits.BitPacker32;

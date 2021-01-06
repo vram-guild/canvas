@@ -49,10 +49,10 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.canvas.Configurator.AoMode;
-import grondag.canvas.Configurator.DiffuseMode;
-import grondag.canvas.Configurator.FogMode;
+import grondag.canvas.config.AoMode;
+import grondag.canvas.config.Configurator;
+import grondag.canvas.config.DiffuseMode;
+import grondag.canvas.config.FogMode;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;

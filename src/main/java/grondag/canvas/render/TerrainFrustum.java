@@ -28,7 +28,7 @@ import net.minecraft.util.math.Vec3d;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.terrain.region.BuiltRenderRegion;

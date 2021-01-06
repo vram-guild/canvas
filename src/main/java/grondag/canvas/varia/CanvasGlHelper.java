@@ -33,7 +33,7 @@ import net.minecraft.client.MinecraftClient;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.GlSymbolLookup;
 
 public class CanvasGlHelper {

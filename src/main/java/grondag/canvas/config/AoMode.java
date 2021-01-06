@@ -14,31 +14,18 @@
  *  the License.
  */
 
-package grondag.canvas.light;
+package grondag.canvas.config;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import net.minecraft.client.resource.language.I18n;
 
-import grondag.canvas.config.Configurator;
+public enum AoMode {
+	NORMAL,
+	SUBTLE_ALWAYS,
+	SUBTLE_BLOCK_LIGHT,
+	NONE;
 
-@Environment(EnvType.CLIENT)
-public final class AoVertexClampFunction {
-	static ClampFunc func;
-
-	static {
-		reload();
-	}
-
-	public static void reload() {
-		func = Configurator.clampExteriorVertices ? x -> x < 0f ? 0f : (x > 1f ? 1f : x) : x -> x;
-	}
-
-	static float clamp(float x) {
-		return func.clamp(x);
-	}
-
-	@FunctionalInterface
-	private interface ClampFunc {
-		float clamp(float x);
+	@Override
+	public String toString() {
+		return I18n.translate("config.canvas.enum.ao_mode." + name().toLowerCase());
 	}
 }

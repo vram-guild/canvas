@@ -19,8 +19,8 @@ package grondag.canvas.shader;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.config.Configurator;
 
 public enum MaterialProgramManager {
 	INSTANCE;

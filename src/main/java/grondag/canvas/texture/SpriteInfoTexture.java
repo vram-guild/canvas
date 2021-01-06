@@ -36,7 +36,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
 import grondag.canvas.varia.CanvasGlHelper;
 
