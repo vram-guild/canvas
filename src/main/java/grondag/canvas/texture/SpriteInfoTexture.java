@@ -38,6 +38,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
+import grondag.canvas.varia.CanvasGlHelper;
 
 @Environment(EnvType.CLIENT)
 public class SpriteInfoTexture {
@@ -105,8 +106,11 @@ public class SpriteInfoTexture {
 			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
 			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
 			GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4);
+			assert CanvasGlHelper.checkError();
 
 			image.upload();
+			assert CanvasGlHelper.checkError();
+
 			image.close();
 
 			GlStateManager.enableTexture();
@@ -122,6 +126,8 @@ public class SpriteInfoTexture {
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_REPEAT);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_REPEAT);
 			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+
+			assert CanvasGlHelper.checkError();
 
 			GlStateManager.bindTexture(0);
 			GlStateManager.disableTexture();
@@ -147,8 +153,7 @@ public class SpriteInfoTexture {
 		createImageIfNeeded();
 		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
 		GlStateManager.bindTexture(glId);
-		GlStateManager.enableTexture();
-		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+		assert CanvasGlHelper.checkError();
 	}
 
 	public int coordinate(int spriteId) {

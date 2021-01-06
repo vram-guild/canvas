@@ -9,8 +9,7 @@
 			colorAttachments: [{image: "solid_main"}]
 		}, {
 			name: "shadow",
-			depthAttachment: {image: "shadow_depth", clearDepth: 1.0},
-			colorAttachments: [{image: "shadow_color", clearColor: 0x00000000}]
+			depthAttachment: {image: "shadow_depth", clearDepth: 1.0}
 		}, {
 			name: "fab_entity",
 			depthAttachment: {image: "entity_depth"},

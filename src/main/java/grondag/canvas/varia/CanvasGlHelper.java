@@ -119,7 +119,9 @@ public class CanvasGlHelper {
 					CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", attributeEnabledCount + 1));
 				}
 
+				assert CanvasGlHelper.checkError();
 				GL20.glEnableVertexAttribArray(++attributeEnabledCount);
+				assert CanvasGlHelper.checkError();
 			}
 		} else if (enabledCount < attributeEnabledCount) {
 			while (enabledCount < attributeEnabledCount) {
@@ -128,6 +130,7 @@ public class CanvasGlHelper {
 				}
 
 				GL20.glDisableVertexAttribArray(attributeEnabledCount--);
+				assert CanvasGlHelper.checkError();
 			}
 		}
 	}

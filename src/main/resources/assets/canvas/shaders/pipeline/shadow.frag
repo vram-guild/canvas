@@ -34,7 +34,5 @@ frx_FragmentData frx_createPipelineFragment() {
 }
 
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
-	// WIP: remove
-	gl_FragData[0] = fragData.spriteColor * fragData.vertexColor;
 	gl_FragDepth = gl_FragCoord.z;
 }

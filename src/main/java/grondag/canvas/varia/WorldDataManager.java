@@ -493,9 +493,6 @@ public class WorldDataManager {
 
 		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
-
-		// WIP: remove
-		//System.out.println(String.format("%f, %f, %f", cameraX, cameraY, cameraZ));
 	}
 
 	public static void updateEmissiveColor(int color) {

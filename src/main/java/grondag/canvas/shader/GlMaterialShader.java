@@ -109,7 +109,6 @@ public class GlMaterialShader extends GlShader {
 		return baseSource;
 	}
 
-	// WIP: REMOVE MATERIAL END
 	private String preprocessVertexSource(ResourceManager resourceManager, String baseSource) {
 		String starts;
 		String impl;

@@ -16,10 +16,12 @@
 
 package grondag.canvas.material.state;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 
@@ -38,6 +40,8 @@ import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.texture.TextureData;
+import grondag.canvas.varia.CanvasGlHelper;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -113,6 +117,8 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	private void enableMaterial(int x, int y, int z) {
+		assert CanvasGlHelper.checkError();
+
 		if (active == this) {
 			shader.setModelOrigin(x, y, z);
 			return;
@@ -130,6 +136,8 @@ public final class RenderState extends AbstractRenderState {
 			target.enable();
 		}
 
+		assert CanvasGlHelper.checkError();
+
 		active = this;
 		shadowActive = null;
 
@@ -139,23 +147,43 @@ public final class RenderState extends AbstractRenderState {
 			MaterialInfoTexture.INSTANCE.disable();
 		}
 
+		assert CanvasGlHelper.checkError();
+
 		// controlled in shader
 		RenderSystem.disableAlphaTest();
 
+		if (Pipeline.shadowMapDepth != -1) {
+			GlStateManager.activeTexture(TextureData.SHADOWMAP);
+			GlStateManager.bindTexture(Pipeline.shadowMapDepth);
+		}
+
+		assert CanvasGlHelper.checkError();
+
 		texture.enable(blur);
+
 		transparency.enable();
+		assert CanvasGlHelper.checkError();
+
 		depthTest.enable();
+		assert CanvasGlHelper.checkError();
+
 		writeMask.enable();
 		fog.enable();
 		decal.enable();
+
+		assert CanvasGlHelper.checkError();
 
 		CULL_STATE.setEnabled(cull);
 		LIGHTMAP_STATE.setEnabled(enableLightmap);
 		LINE_STATE.setEnabled(lines);
 
+		assert CanvasGlHelper.checkError();
+
 		shader.activate(this);
 		shader.setContextInfo(texture.atlasInfo(), target.index);
 		shader.setModelOrigin(x, y, z);
+
+		assert CanvasGlHelper.checkError();
 	}
 
 	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(RenderSystem::enableCull, RenderSystem::disableCull);
@@ -192,8 +220,15 @@ public final class RenderState extends AbstractRenderState {
 		RenderSystem.color4f(1f, 1f, 1f, 1f);
 		MaterialInfoTexture.INSTANCE.disable();
 
-		MaterialTarget.disable();
+		if (Pipeline.shadowMapDepth != -1) {
+			GlStateManager.activeTexture(TextureData.SHADOWMAP);
+			GlStateManager.bindTexture(0);
+		}
 
+		MaterialTarget.disable();
+		RenderSystem.activeTexture(GL21.GL_TEXTURE0);
+
+		assert CanvasGlHelper.checkError();
 		//		if (enablePrint) {
 		//			GlStateSpy.print();
 		//			enablePrint = false;

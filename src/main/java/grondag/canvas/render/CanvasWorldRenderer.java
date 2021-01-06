@@ -851,6 +851,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		MaterialFog.allow(false);
 
 		//RenderState.enablePrint = true;
+		assert CanvasGlHelper.checkError();
 
 		Configurator.lagFinder.complete();
 	}

@@ -60,6 +60,7 @@ public class Pipeline {
 	public static int fabTranslucentFbo = -1;
 	public static int fabTranslucentColor = -1;
 	public static int fabTranslucentDepth = -1;
+	public static int shadowMapDepth = -1;
 
 	public static PipelineFramebuffer skyShadowFbo;
 	public static PipelineFramebuffer solidTerrainFbo;
@@ -194,8 +195,10 @@ public class Pipeline {
 
 		if (cfg.skyShadow != null) {
 			skyShadowFbo = getFramebuffer(cfg.skyShadow.framebuffer.name);
+			shadowMapDepth = getImage(cfg.skyShadow.framebuffer.value().depthAttachment.image.name).glId();
 		} else {
 			skyShadowFbo = null;
+			shadowMapDepth = -1;
 		}
 
 		isFabulous = cfg.fabulosity != null;

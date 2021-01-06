@@ -16,15 +16,25 @@
 
 package grondag.canvas.pipeline;
 
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_NONE;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glDrawBuffer;
+import static org.lwjgl.opengl.GL11.glReadBuffer;
+import static org.lwjgl.opengl.GL20.glDrawBuffers;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
+
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.AttachmentConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
+import grondag.canvas.varia.CanvasGlHelper;
 
 // FEAT: handle clear masks
 public class PipelineFramebuffer {
@@ -78,9 +88,16 @@ public class PipelineFramebuffer {
 	void open(int width, int height) {
 		fboGlId = GlStateManager.genFramebuffers();
 
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
+		GlStateManager.bindFramebuffer(GL_FRAMEBUFFER, fboGlId);
 
-		GL21.glDrawBuffers(attachmentPoints);
+		if (config.colorAttachments.length == 0) {
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+		} else {
+			glDrawBuffers(attachmentPoints);
+		}
+
+		assert CanvasGlHelper.checkError();
 
 		for (int i = 0; i < config.colorAttachments.length; ++i) {
 			final AttachmentConfig ac = config.colorAttachments[i];
@@ -90,7 +107,8 @@ public class PipelineFramebuffer {
 				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because color attachment %s was not found",
 						config.name, ac.image.name));
 			} else {
-				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, GL21.GL_TEXTURE_2D, img.glId(), ac.lod);
+				GlStateManager.framebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, GL_TEXTURE_2D, img.glId(), ac.lod);
+				assert CanvasGlHelper.checkError();
 			}
 		}
 
@@ -101,8 +119,15 @@ public class PipelineFramebuffer {
 				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because depth attachment %s was not found",
 						config.name, config.depthAttachment.image.name));
 			} else {
-				GlStateManager.framebufferTexture2D(FramebufferInfo.FRAME_BUFFER, FramebufferInfo.DEPTH_ATTACHMENT, GL21.GL_TEXTURE_2D, img.glId, 0);
+				GlStateManager.framebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, GL_TEXTURE_2D, img.glId, 0);
+				assert CanvasGlHelper.checkError();
 			}
+		}
+
+		final int check = GlStateManager.checkFramebufferStatus(GL_FRAMEBUFFER);
+
+		if (check != GL_FRAMEBUFFER_COMPLETE) {
+			CanvasMod.LOG.warn("Framebuffer " + config.name + " has invalid status " + check + " " + GlSymbolLookup.reverseLookup(check));
 		}
 	}
 
@@ -114,10 +139,10 @@ public class PipelineFramebuffer {
 
 		if (colorClearFlags == 1) {
 			// Try for combined depth/color clear if have single color
-			int mask = GL21.GL_COLOR_BUFFER_BIT;
+			int mask = GL_COLOR_BUFFER_BIT;
 
 			if (config.depthAttachment.clear) {
-				mask |= GL21.GL_DEPTH_BUFFER_BIT;
+				mask |= GL_DEPTH_BUFFER_BIT;
 				GlStateManager.clearDepth(config.depthAttachment.clearDepth);
 			}
 
@@ -127,7 +152,7 @@ public class PipelineFramebuffer {
 			// Clears happen separately in other cases
 			if (config.depthAttachment.clear) {
 				GlStateManager.clearDepth(config.depthAttachment.clearDepth);
-				GlStateManager.clear(GL21.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+				GlStateManager.clear(GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
 			}
 
 			if (colorClearFlags != 0) {
@@ -135,19 +160,21 @@ public class PipelineFramebuffer {
 
 				for (int i = 0; i < count; ++i) {
 					if ((colorClearFlags & (1 << i)) != 0) {
-						GL21.glDrawBuffer(FramebufferInfo.COLOR_ATTACHMENT + i);
+						glDrawBuffer(FramebufferInfo.COLOR_ATTACHMENT + i);
 						GlStateManager.clearColor(clearColor[i][R], clearColor[i][G], clearColor[i][B], clearColor[i][A]);
-						GlStateManager.clear(GL21.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+						GlStateManager.clear(GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
 					}
 				}
 
-				GL21.glDrawBuffers(attachmentPoints);
+				glDrawBuffers(attachmentPoints);
+				assert CanvasGlHelper.checkError();
 			}
 		}
 	}
 
 	public void bind() {
 		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
+		assert CanvasGlHelper.checkError();
 	}
 
 	void close() {

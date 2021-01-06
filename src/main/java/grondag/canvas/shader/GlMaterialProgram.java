@@ -30,8 +30,6 @@ import grondag.frex.api.material.UniformRefreshFrequency;
 public class GlMaterialProgram extends GlProgram {
 	// UGLY: special casing, public
 	public final UniformArray4fImpl modelOrigin;
-	// converts world normals to view space
-	// WIP: rename
 	public final UniformArrayiImpl contextInfo;
 	public final Uniform3iImpl programInfo;
 	public final Uniform1iImpl modelOriginType;

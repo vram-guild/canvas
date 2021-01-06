@@ -80,13 +80,16 @@ public class CanvasVertexFormat {
 			if (e.attributeName == null) {
 				assert i == 0 : "position element must be first";
 				GlStateManager.vertexPointer(3, GL21.GL_FLOAT, vertexStrideBytes, memPointer);
+				assert CanvasGlHelper.checkError();
 				GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+				assert CanvasGlHelper.checkError();
 			} else {
 				if (Configurator.logGlStateChanges) {
 					CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d) [direct non-VBO]", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes));
 				}
 
 				GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, memPointer + offset);
+				assert CanvasGlHelper.checkError();
 			}
 
 			offset += e.byteSize;

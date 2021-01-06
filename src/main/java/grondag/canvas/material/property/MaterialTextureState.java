@@ -30,6 +30,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.varia.CanvasGlHelper;
 
 public class MaterialTextureState {
 	public final int index;
@@ -78,23 +79,35 @@ public class MaterialTextureState {
 	public void enable(boolean bilinear) {
 		if (activeState == this) {
 			if (bilinear != activeIsBilinearFilter) {
+				RenderSystem.activeTexture(GL21.GL_TEXTURE0);
 				final AbstractTexture tex = texture();
 				tex.bindTexture();
+				assert CanvasGlHelper.checkError();
 				setFilter(bilinear);
+				assert CanvasGlHelper.checkError();
 				activeIsBilinearFilter = bilinear;
 			}
 		} else {
 			if (this == MaterialTextureState.NO_TEXTURE) {
+				RenderSystem.activeTexture(GL21.GL_TEXTURE0);
 				RenderSystem.disableTexture();
+				assert CanvasGlHelper.checkError();
 			} else {
-				RenderSystem.enableTexture();
-				final AbstractTexture tex = texture();
-				tex.bindTexture();
-				setFilter(bilinear);
-
+				// Should happen before primary texture binding because resets active texture
 				if (isAtlas()) {
 					atlasInfo().enable();
 				}
+
+				RenderSystem.activeTexture(GL21.GL_TEXTURE0);
+				RenderSystem.enableTexture();
+				assert CanvasGlHelper.checkError();
+
+				final AbstractTexture tex = texture();
+				tex.bindTexture();
+				assert CanvasGlHelper.checkError();
+
+				setFilter(bilinear);
+				assert CanvasGlHelper.checkError();
 
 				activeIsBilinearFilter = bilinear;
 				activeState = this;
