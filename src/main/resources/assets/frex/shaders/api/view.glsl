@@ -68,9 +68,8 @@ vec3 frx_lastCameraPos() {
 /**
  * Translation from inbound model coordinates to world space. Conventionally
  * this is handled with a matrix, but because inbound coordinates outside of
- * overlay and GUI rendering are always world-algined, this can avoid a
+ * overlay and GUI rendering are always world-aligned, this can avoid a
  * matrix multiplication.
- *
  *
  * When frx_modelOriginType() == MODEL_ORIGIN_CAMERA, inbound coordinates are
  * relative to the camera position and this will equal frx_cameraPos().
@@ -158,7 +157,7 @@ mat4 frx_viewMatrix() {
 	return _cvu_matrix[_CV_MAT_VIEW];
 }
 
-mat4 frx_inversViewMatrix() {
+mat4 frx_inverseViewMatrix() {
 	return _cvu_matrix[_CV_MAT_VIEW_INVERSE];
 }
 
