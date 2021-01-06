@@ -15,9 +15,9 @@
 #define TARGET_BASECOLOR 0
 #define TARGET_EMISSIVE  1
 
-uniform sampler2D frxs_shadowMap;
-
+#ifdef SHADOW_MAP_PRESENT
 varying vec4 shadowPos;
+#endif
 
 #if AO_SHADING_MODE != AO_MODE_NONE
 vec4 aoFactor(vec2 lightCoord, float ao) {
@@ -101,11 +101,14 @@ frx_FragmentData frx_createPipelineFragment() {
 }
 
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
+
+#ifdef SHADOW_MAP_PRESENT
 	float shadowDepth = texture2D(frxs_shadowMap, shadowPos.xy).x;
 
 	if (shadowDepth < shadowPos.z - 0.01) {
 		fragData.light.y *= 0.50;
 	}
+#endif
 
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 	a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);

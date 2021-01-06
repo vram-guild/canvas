@@ -1,0 +1,23 @@
+{
+	nameKey: "pipeline.canvas_dev.name",
+	descriptionKey: "pipeline.canvas_dev.desc",
+	materialVertexShader: "canvas:shaders/pipeline/standard.vert",
+	materialFragmentShader: "canvas:shaders/pipeline/standard.frag",
+
+	drawTargets: {
+		solidTerrain: "solid",
+		translucentTerrain: "translucent",
+		translucentEntity: "entity",
+		weather: "weather",
+		clouds: "clouds",
+		// TODO: segregate solid particles
+		translucentParticles: "particles"
+	},
+
+	include: [
+		"canvas:pipeline/base.json",
+		"canvas:pipeline/skyshadow.json",
+		"canvas:pipeline/bloom.json",
+		"canvas:pipeline/fabulous.json"
+	]
+}

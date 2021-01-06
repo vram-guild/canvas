@@ -19,3 +19,5 @@
 // Will define VERTEX_SHADER or FRAGMENT_SHADER - useful for checks in common libraries
 // #define VERTEX_SHADER
 
+// present only when pipeline support the feature and it is enabled
+#define SHADOW_MAP_PRESENT

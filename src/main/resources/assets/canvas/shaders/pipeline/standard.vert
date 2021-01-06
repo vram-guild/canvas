@@ -6,7 +6,9 @@
   canvas:shaders/pipeline/standard.vert
 ******************************************************/
 
+#ifdef SHADOW_MAP_PRESENT
 varying vec4 shadowPos;
+#endif
 
 void frx_writePipelineVertex(in frx_VertexData data) {
 	// WIP: remove - various api tests
@@ -35,10 +37,12 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 		gl_Position = frx_projectionMatrix() * viewCoord;
 	}
 
+#ifdef SHADOW_MAP_PRESENT
 	shadowPos  = frx_shadowProjectionMatrix() * frx_shadowViewMatrix() * data.vertex;
 
     // Transform from screen coordinates to texture coordinates
 	shadowPos = shadowPos * 0.5 + 0.5;
+#endif
 
 #ifdef VANILLA_LIGHTING
 	pv_lightcoord = data.light;

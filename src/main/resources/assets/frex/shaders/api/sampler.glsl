@@ -31,3 +31,10 @@ vec2 frx_normalizeMappedUV(vec2 coord) {
 #ifdef VANILLA_LIGHTING
 uniform sampler2D frxs_lightmap;
 #endif
+
+
+#ifdef SHADOW_MAP_PRESENT
+#ifdef FRAGMENT_SHADER
+uniform sampler2D frxs_shadowMap;
+#endif
+#endif

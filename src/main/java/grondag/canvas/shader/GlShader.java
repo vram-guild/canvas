@@ -53,6 +53,7 @@ import grondag.canvas.Configurator;
 import grondag.canvas.Configurator.AoMode;
 import grondag.canvas.Configurator.DiffuseMode;
 import grondag.canvas.Configurator.FogMode;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.config.ShaderConfig;
@@ -273,6 +274,10 @@ public class GlShader implements Shader {
 
 			if (Configurator.enableBloom) {
 				result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
+			}
+
+			if (Pipeline.skyShadowFbo == null) {
+				result = StringUtils.replace(result, "#define SHADOW_MAP_PRESENT", "//#define SHADOW_MAP_PRESENT");
 			}
 
 			result = StringUtils.replace(result, "#define HANDHELD_LIGHT_RADIUS 0", "#define HANDHELD_LIGHT_RADIUS " + Configurator.handheldLightRadius);
