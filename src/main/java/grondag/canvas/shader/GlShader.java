@@ -336,7 +336,8 @@ public class GlShader implements Shader {
 				return CharStreams.toString(reader);
 			}
 		} catch (final FileNotFoundException e) {
-			return ShaderConfig.getShaderConfigSupplier(shaderSourceId).get();
+			final String result = Pipeline.config().configSource(shaderSourceId);
+			return result == null ? ShaderConfig.getShaderConfigSupplier(shaderSourceId).get() : result;
 		} catch (final IOException e) {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + " due to exception.", e);
 			return "";

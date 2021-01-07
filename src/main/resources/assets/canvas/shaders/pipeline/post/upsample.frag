@@ -1,6 +1,7 @@
 #include frex:shaders/api/header.glsl
 #include frex:shaders/lib/sample.glsl
 #include canvas:shaders/pipeline/pipeline.glsl
+#include canvas:shaders/pipeline/post/bloom_options.glsl
 
 /******************************************************
   canvas:shaders/pipeline/post/downsample.frag

@@ -58,7 +58,7 @@ public class ConfigManager {
 		}
 	}
 
-	static Text[] parse(String key) {
+	public static Text[] parse(String key) {
 		return Arrays.stream(I18n.translate(key).split(";")).map(s -> new LiteralText(s)).collect(Collectors.toList()).toArray(new Text[0]);
 	}
 
@@ -73,7 +73,7 @@ public class ConfigManager {
 			// WIP: remove
 			//final JsonObject boop = new JsonObject();
 			//boop.put("thing", new JsonPrimitive(false));
-			//json.put("container", boop);
+			//json.put("canvas:container", boop);
 
 			final String result = json.toJson(true, true);
 

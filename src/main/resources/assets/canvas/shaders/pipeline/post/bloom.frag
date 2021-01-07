@@ -4,10 +4,12 @@
 #include frex:shaders/lib/sample.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/api/world.glsl
+#include canvas:shaders/pipeline/post/bloom_options.glsl
 
 /******************************************************
   canvas:shaders/pipeline/post/bloom.frag
 ******************************************************/
+
 uniform sampler2D _cvu_base;
 uniform sampler2D _cvu_bloom;
 

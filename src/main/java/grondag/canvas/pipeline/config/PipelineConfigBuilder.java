@@ -33,6 +33,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.ConfigManager;
+import grondag.canvas.pipeline.config.option.OptionConfig;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
@@ -45,6 +46,7 @@ public class PipelineConfigBuilder {
 	public final ObjectArrayList<PipelineParam> params = new ObjectArrayList<>();
 	public final ObjectArrayList<ProgramConfig> shaders = new ObjectArrayList<>();
 	public final ObjectArrayList<FramebufferConfig> framebuffers = new ObjectArrayList<>();
+	public final ObjectArrayList<OptionConfig> options = new ObjectArrayList<>();
 
 	public final ObjectArrayList<PassConfig> onWorldStart = new ObjectArrayList<>();
 	public final ObjectArrayList<PassConfig> afterRenderHand = new ObjectArrayList<>();
@@ -120,6 +122,7 @@ public class PipelineConfigBuilder {
 		LoadHelper.loadList(context, configJson, "images", images, ImageConfig::new);
 		LoadHelper.loadList(context, configJson, "programs", shaders, ProgramConfig::new);
 		LoadHelper.loadList(context, configJson, "framebuffers", framebuffers, FramebufferConfig::new);
+		LoadHelper.loadList(context, configJson, "options", options, OptionConfig::new);
 	}
 
 	public boolean validate() {
@@ -149,6 +152,10 @@ public class PipelineConfigBuilder {
 
 		for (final ProgramConfig prog : shaders) {
 			valid &= prog.validate();
+		}
+
+		for (final OptionConfig opt : options) {
+			valid &= opt.validate();
 		}
 
 		return valid;

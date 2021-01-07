@@ -16,10 +16,12 @@
 
 package grondag.canvas.pipeline.config;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.pipeline.config.option.OptionConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
@@ -35,6 +37,7 @@ public class PipelineConfig {
 	public final PipelineParam[] params;
 	public final ProgramConfig[] shaders;
 	public final FramebufferConfig[] framebuffers;
+	public final OptionConfig[] options;
 
 	public final PassConfig[] onWorldStart;
 	public final PassConfig[] afterRenderHand;
@@ -49,6 +52,8 @@ public class PipelineConfig {
 	public final Identifier materialVertexShader;
 	public final Identifier materialFragmentShader;
 
+	private final Object2ObjectOpenHashMap<Identifier, OptionConfig> optionMap = new Object2ObjectOpenHashMap<>();
+
 	private PipelineConfig() {
 		context = new ConfigContext();
 		params = new PipelineParam[0];
@@ -58,6 +63,7 @@ public class PipelineConfig {
 		fabulous = new PassConfig[0];
 		images = new ImageConfig[] { ImageConfig.defaultMain(context), ImageConfig.defaultDepth(context) };
 		framebuffers = new FramebufferConfig[] { FramebufferConfig.makeDefault(context) };
+		options = new OptionConfig[0];
 		fabulosity = null;
 		skyShadow = null;
 		drawTargets = DrawTargetsConfig.makeDefault(context);
@@ -79,10 +85,20 @@ public class PipelineConfig {
 		images = builder.images.toArray(new ImageConfig[builder.images.size()]);
 		shaders = builder.shaders.toArray(new ProgramConfig[builder.shaders.size()]);
 		framebuffers = builder.framebuffers.toArray(new FramebufferConfig[builder.framebuffers.size()]);
+		options = builder.options.toArray(new OptionConfig[builder.options.size()]);
 		onWorldStart = builder.onWorldStart.toArray(new PassConfig[builder.onWorldStart.size()]);
 		afterRenderHand = builder.afterRenderHand.toArray(new PassConfig[builder.afterRenderHand.size()]);
 		materialVertexShader = new Identifier(builder.materialVertexShader);
 		materialFragmentShader = new Identifier(builder.materialFragmentShader);
+
+		for (final OptionConfig opt : builder.options) {
+			optionMap.put(opt.includeToken, opt);
+		}
+	}
+
+	public String configSource(Identifier id) {
+		final OptionConfig opt = optionMap.get(id);
+		return opt == null ? null : opt.createSource();
 	}
 
 	public static PipelineConfig minimalConfig() {
