@@ -35,6 +35,7 @@ public class OptionConfig extends AbstractConfig {
 	public Identifier includeToken;
 	public String categoryKey;
 	public List<OptionConfigEntry> entries = new ObjectArrayList<>();
+
 	private final boolean isDuplicate;
 
 	public OptionConfig(ConfigContext ctx, JsonObject config) {
@@ -48,7 +49,9 @@ public class OptionConfig extends AbstractConfig {
 
 		if (opts != null && !opts.isEmpty()) {
 			opts.forEach((key, element) -> {
-				entries.add(new FloatConfigEntry(ctx, key, (JsonObject) element));
+				if (element instanceof JsonObject) {
+					entries.add(OptionConfigEntry.of(ctx, key, (JsonObject) element));
+				}
 			});
 		}
 	}

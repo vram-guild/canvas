@@ -16,7 +16,9 @@
 
 package grondag.canvas.pipeline.config.option;
 
+import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
+import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
@@ -25,9 +27,9 @@ import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 
 public abstract class OptionConfigEntry extends AbstractConfig {
-	public final String name;
 	public final String nameKey;
 	public final String descriptionKey;
+	public final String name;
 
 	protected OptionConfigEntry(ConfigContext ctx, String name, JsonObject config) {
 		super(ctx);
@@ -52,5 +54,28 @@ public abstract class OptionConfigEntry extends AbstractConfig {
 		valid &= assertAndWarn(name != null && !nameKey.isEmpty(), "Invalid pipeline config option - nameKey is missing");
 
 		return valid;
+	}
+
+	/**
+	 *
+	 * @param ctx
+	 * @param key will be reliably present and is key for element - only called if exists
+	 * @param element  will be reliably present and is element matching key - only called if exists
+	 * @return
+	 */
+	static OptionConfigEntry of(ConfigContext ctx, String key, JsonObject obj) {
+		final JsonElement defaultVal = obj.get("default");
+
+		if (defaultVal instanceof JsonPrimitive) {
+			final JsonPrimitive val = (JsonPrimitive) defaultVal;
+
+			if (val.getValue().getClass() == Double.class) {
+				return new FloatConfigEntry(ctx, key, obj);
+			} else {
+				return new BooleanConfigEntry(ctx, key, obj);
+			}
+		} else {
+			return new BooleanConfigEntry(ctx, key, obj);
+		}
 	}
 }

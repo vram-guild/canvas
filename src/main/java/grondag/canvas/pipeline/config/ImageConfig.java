@@ -92,11 +92,6 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 	}
 
 	@Override
-	public boolean validate() {
-		return super.validate();
-	}
-
-	@Override
 	public NamedDependencyMap<ImageConfig> nameMap() {
 		return context.images;
 	}

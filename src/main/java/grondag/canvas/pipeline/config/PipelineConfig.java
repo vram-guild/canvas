@@ -34,8 +34,7 @@ public class PipelineConfig {
 
 	public final ConfigContext context;
 	public final ImageConfig[] images;
-	public final PipelineParam[] params;
-	public final ProgramConfig[] shaders;
+	public final ProgramConfig[] programs;
 	public final FramebufferConfig[] framebuffers;
 	public final OptionConfig[] options;
 
@@ -56,8 +55,7 @@ public class PipelineConfig {
 
 	private PipelineConfig() {
 		context = new ConfigContext();
-		params = new PipelineParam[0];
-		shaders = new ProgramConfig[0];
+		programs = new ProgramConfig[0];
 		onWorldStart = new PassConfig[0];
 		afterRenderHand = new PassConfig[0];
 		fabulous = new PassConfig[0];
@@ -80,20 +78,20 @@ public class PipelineConfig {
 		drawTargets = builder.drawTargets;
 		skyShadow = builder.skyShadow;
 
-		params = builder.params.toArray(new PipelineParam[builder.params.size()]);
+		for (final OptionConfig opt : builder.options) {
+			optionMap.put(opt.includeToken, opt);
+		}
+
+		options = builder.options.toArray(new OptionConfig[builder.options.size()]);
+
 		fabulous = builder.fabulous.toArray(new PassConfig[builder.fabulous.size()]);
 		images = builder.images.toArray(new ImageConfig[builder.images.size()]);
-		shaders = builder.shaders.toArray(new ProgramConfig[builder.shaders.size()]);
+		programs = builder.programs.toArray(new ProgramConfig[builder.programs.size()]);
 		framebuffers = builder.framebuffers.toArray(new FramebufferConfig[builder.framebuffers.size()]);
-		options = builder.options.toArray(new OptionConfig[builder.options.size()]);
 		onWorldStart = builder.onWorldStart.toArray(new PassConfig[builder.onWorldStart.size()]);
 		afterRenderHand = builder.afterRenderHand.toArray(new PassConfig[builder.afterRenderHand.size()]);
 		materialVertexShader = new Identifier(builder.materialVertexShader);
 		materialFragmentShader = new Identifier(builder.materialFragmentShader);
-
-		for (final OptionConfig opt : builder.options) {
-			optionMap.put(opt.includeToken, opt);
-		}
 	}
 
 	public String configSource(Identifier id) {

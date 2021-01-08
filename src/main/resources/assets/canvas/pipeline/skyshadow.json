@@ -1,5 +1,7 @@
 {
   skyShadows: {
+    // if your entire pipeline breaks or looks like trash without shadow map, set this false and player won't have option to disable
+    allowDisable: true,
 		framebuffer: "shadow",
 		includeTerrain: true,
 		includeEntities: true,

@@ -18,6 +18,7 @@ package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.Identifier;
 
@@ -26,6 +27,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.config.FabulousConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
+import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.ProgramConfig;
@@ -163,13 +165,13 @@ public class Pipeline {
 			IMAGES.put(img.name, new Image(img, width, height));
 		}
 
-		for (final ProgramConfig shader : cfg.shaders) {
-			if (SHADERS.containsKey(shader.name)) {
-				CanvasMod.LOG.warn(String.format("Duplicate pipeline shader definition encountered with name %s. Duplicate was skipped.", shader.name));
+		for (final ProgramConfig program : cfg.programs) {
+			if (SHADERS.containsKey(program.name)) {
+				CanvasMod.LOG.warn(String.format("Duplicate pipeline shader definition encountered with name %s. Duplicate was skipped.", program.name));
 				continue;
 			}
 
-			SHADERS.put(shader.name, new ProcessShader(shader.vertexSource, shader.fragmentSource, shader.samplerNames));
+			SHADERS.put(program.name, new ProcessShader(program.vertexSource, program.fragmentSource, program.samplerNames));
 		}
 
 		for (final FramebufferConfig buffer : cfg.framebuffers) {
@@ -239,17 +241,18 @@ public class Pipeline {
 
 		BufferDebug.init(cfg);
 
-		onWorldRenderStart = new Pass[cfg.onWorldStart.length];
+		onWorldRenderStart = buildPasses(cfg, cfg.onWorldStart);
+		afterRenderHand = buildPasses(cfg, cfg.afterRenderHand);
+	}
 
-		for (int i = 0; i < cfg.onWorldStart.length; ++i) {
-			onWorldRenderStart[i] = Pass.create(cfg.onWorldStart[i]);
+	private static Pass[] buildPasses(PipelineConfig cfg, PassConfig[] configs) {
+		final ObjectArrayList<Pass> passes = new ObjectArrayList<>();
+
+		for (int i = 0; i < configs.length; ++i) {
+			passes.add(Pass.create(configs[i]));
 		}
 
-		afterRenderHand = new Pass[cfg.afterRenderHand.length];
-
-		for (int i = 0; i < cfg.afterRenderHand.length; ++i) {
-			afterRenderHand[i] = Pass.create(cfg.afterRenderHand[i]);
-		}
+		return passes.toArray(new Pass[passes.size()]);
 	}
 
 	public static boolean isFabulous() {

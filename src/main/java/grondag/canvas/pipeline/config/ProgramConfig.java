@@ -92,9 +92,4 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 	public NamedDependencyMap<ProgramConfig> nameMap() {
 		return context.programs;
 	}
-
-	@Override
-	public boolean validate() {
-		return super.validate();
-	}
 }

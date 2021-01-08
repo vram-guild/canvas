@@ -46,6 +46,10 @@ public class NamedDependencyMap<T extends NamedConfig<T>> extends Object2ObjectO
 		return dependOn(json.get(key));
 	}
 
+	public NamedDependency<T> dependOn(JsonObject json, String key, String defaultName) {
+		return dependOn(JanksonHelper.asStringOrDefault(json.get(key), defaultName));
+	}
+
 	public boolean isValidReference(String name) {
 		if (name == null || name.isEmpty()) {
 			return false;

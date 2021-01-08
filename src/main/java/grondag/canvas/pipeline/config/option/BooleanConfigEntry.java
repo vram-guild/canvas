@@ -26,37 +26,34 @@ import net.minecraft.text.TranslatableText;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 
-public class FloatConfigEntry extends OptionConfigEntry {
-	public final float defaultVal;
-	public final float min;
-	public final float max;
-	private float value;
+public class BooleanConfigEntry extends OptionConfigEntry {
+	public final boolean defaultVal;
+	private boolean value;
 
-	protected FloatConfigEntry(ConfigContext ctx, String name, JsonObject config) {
+	protected BooleanConfigEntry(ConfigContext ctx, String name, JsonObject config) {
 		super(ctx, name, config);
-		defaultVal = config.getFloat("default", Float.NaN);
-		min = config.getFloat("min", Float.NaN);
-		max = config.getFloat("max", Float.NaN);
+		defaultVal = config.getBoolean("default", true);
 		value = defaultVal;
 	}
 
 	@Override
 	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
-		return builder.startIntSlider(new TranslatableText(nameKey),
-				(int) (value * 100), (int) (min * 100), (int) (max * 100))
-				.setDefaultValue((int) (defaultVal * 100))
+		return builder.startBooleanToggle(new TranslatableText(nameKey), value)
+				.setDefaultValue(defaultVal)
 				.setTooltip(ConfigManager.parse(descriptionKey))
 				.build();
 	}
 
 	@Override
 	String createSource() {
-		return "#define " + name.toUpperCase() + " " + value + "\n";
+		final String result = "#define " + name.toUpperCase() + "\n";
+
+		return value ? result : "// " + result;
 	}
 
 	@Override
 	void readConfig(JsonObject config) {
-		value = config.getFloat(name, defaultVal);
+		value = config.getBoolean(name, defaultVal);
 	}
 
 	@Override
@@ -64,14 +61,7 @@ public class FloatConfigEntry extends OptionConfigEntry {
 		config.put(name, new JsonPrimitive(value));
 	}
 
-	@Override
-	public boolean validate() {
-		boolean valid = super.validate();
-
-		valid &= assertAndWarn(!Float.isNaN(defaultVal), "Invalid pipeline config option - missing default value");
-		valid &= assertAndWarn(!Float.isNaN(min), "Invalid pipeline config option - missing min value");
-		valid &= assertAndWarn(!Float.isNaN(max), "Invalid pipeline config option - missing max value");
-
-		return valid;
+	public boolean value() {
+		return value;
 	}
 }

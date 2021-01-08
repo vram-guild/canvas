@@ -43,8 +43,7 @@ import grondag.canvas.pipeline.config.util.NamedDependency;
 public class PipelineConfigBuilder {
 	public final ConfigContext context = new ConfigContext();
 	public final ObjectArrayList<ImageConfig> images = new ObjectArrayList<>();
-	public final ObjectArrayList<PipelineParam> params = new ObjectArrayList<>();
-	public final ObjectArrayList<ProgramConfig> shaders = new ObjectArrayList<>();
+	public final ObjectArrayList<ProgramConfig> programs = new ObjectArrayList<>();
 	public final ObjectArrayList<FramebufferConfig> framebuffers = new ObjectArrayList<>();
 	public final ObjectArrayList<OptionConfig> options = new ObjectArrayList<>();
 
@@ -62,11 +61,6 @@ public class PipelineConfigBuilder {
 	public String materialFragmentShader;
 
 	public void load(JsonObject configJson) {
-		if (params.isEmpty()) {
-			params.add(PipelineParam.of(context, "bloom_intensity", 0.0f, 0.5f, 0.1f));
-			params.add(PipelineParam.of(context, "bloom_scale", 0.0f, 2.0f, 0.25f));
-		}
-
 		if (configJson.containsKey("defaultFramebuffer")) {
 			if (defaultFramebuffer == null) {
 				defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
@@ -120,7 +114,7 @@ public class PipelineConfigBuilder {
 		LoadHelper.loadSubList(context, configJson, "afterRenderHand", "passes", afterRenderHand, PassConfig::new);
 
 		LoadHelper.loadList(context, configJson, "images", images, ImageConfig::new);
-		LoadHelper.loadList(context, configJson, "programs", shaders, ProgramConfig::new);
+		LoadHelper.loadList(context, configJson, "programs", programs, ProgramConfig::new);
 		LoadHelper.loadList(context, configJson, "framebuffers", framebuffers, FramebufferConfig::new);
 		LoadHelper.loadList(context, configJson, "options", options, OptionConfig::new);
 	}
@@ -146,11 +140,7 @@ public class PipelineConfigBuilder {
 			valid &= img.validate();
 		}
 
-		for (final PipelineParam param : params) {
-			valid &= param.validate();
-		}
-
-		for (final ProgramConfig prog : shaders) {
+		for (final ProgramConfig prog : programs) {
 			valid &= prog.validate();
 		}
 
