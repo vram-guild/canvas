@@ -35,8 +35,8 @@ public class ShaderData {
 	public static final Identifier MATERIAL_MAIN_VERTEX = new Identifier("canvas:shaders/internal/material_main.vert");
 	public static final Identifier MATERIAL_MAIN_FRAGMENT = new Identifier("canvas:shaders/internal/material_main.frag");
 
-	public static final Identifier SHADOW_MAIN_VERTEX = new Identifier("canvas:shaders/internal/shadow_main.vert");
-	public static final Identifier SHADOW_MAIN_FRAGMENT = new Identifier("canvas:shaders/internal/shadow_main.frag");
+	public static final Identifier DEPTH_MAIN_VERTEX = new Identifier("canvas:shaders/internal/shadow_main.vert");
+	public static final Identifier DEPTH_MAIN_FRAGMENT = new Identifier("canvas:shaders/internal/shadow_main.frag");
 
 	public static final String API_TARGET = "#include canvas:apitarget";
 	public static final String FRAGMENT_START = "#include canvas:startfragment";

@@ -62,15 +62,23 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean lines;
 	public final MaterialFog fog;
 	public final boolean gui;
+	public final MaterialShaderId shaderId;
+
 	public final int vertexShaderIndex;
 	public final Identifier vertexShaderId;
 	public final String vertexShader;
 	public final int fragmentShaderIndex;
 	public final Identifier fragmentShaderId;
 	public final String fragmentShader;
-	public final MaterialShaderId shaderId;
 	public final MaterialShaderImpl shader;
-	public final MaterialShaderImpl shadowShader;
+
+	public final int depthVertexShaderIndex;
+	public final Identifier depthVertexShaderId;
+	public final String depthVertexShader;
+	public final int depthFragmentShaderIndex;
+	public final Identifier depthFragmentShaderId;
+	public final String depthFragmentShader;
+	public final MaterialShaderImpl depthShader;
 
 	/**
 	 * Will be always visible condition in vertex-controlled render state.
@@ -119,10 +127,18 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		fragmentShaderIndex = shaderId.fragmentIndex;
 		fragmentShaderId = shaderId.fragmentId;
 		fragmentShader = fragmentShaderId.toString();
+
+		depthVertexShaderIndex = shaderId.depthVertexIndex;
+		depthVertexShaderId = shaderId.depthVertexId;
+		depthVertexShader = depthVertexShaderId.toString();
+		depthFragmentShaderIndex = shaderId.depthFragmentIndex;
+		depthFragmentShaderId = shaderId.depthFragmentId;
+		depthFragmentShader = depthFragmentShaderId.toString();
+
 		primaryTargetTransparency = primaryTargetTransparency();
 		programType = ((VERTEX_CONTROL_MODE && !gui && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
-		shadowShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.shadowType(programType));
+		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.shadowType(programType));
 		blendMode = blendMode();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();

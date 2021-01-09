@@ -4,6 +4,33 @@
   frex:shaders/api/vertex.glsl
 ******************************************************/
 
+/**
+ * Interpolated vertex position in camera space.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec4 frx_vertex;
+
+/**
+ * Interpolated texture coordinate in mapped (non-normalized) coordinates.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec2 frx_texcoord;
+
+/**
+ * Interpolated vertex color output.
+ * Set by renderer after material shader runs. Do not modify.
+ */
+varying vec4 frx_color;
+
+#ifndef DEPTH_PASS
+/**
+ * Interpolated vertex normal in world/camera space.
+ * Set by renderer after material shader runs. Do not modify.
+ *
+ * Not available in depth pass.
+ */
+varying vec3 frx_normal;
+
 /*
  * Varying variables for generic use in material shaders. Material
  * shader authors are encouraged to exhaust these before creating new
@@ -26,35 +53,15 @@
  * Note that pipeline shader devs should NOT use these.  There will only
  * ever be a single pipeline active at any time - piplines can define as
  * many out variables as needed, within reason.
+ *
+ * Not available in depth pass.
  */
 varying vec4 frx_var0;
 varying vec4 frx_var1;
 varying vec4 frx_var2;
 varying vec4 frx_var3;
 
-/**
- * Interpolated texture coordinate in mapped (non-normalized) coordinates.
- * Set by renderer after material shader runs. Do not modify.
- */
-varying vec2 frx_texcoord;
-
-/**
- * Interpolated vertex color output.
- * Set by renderer after material shader runs. Do not modify.
- */
-varying vec4 frx_color;
-
-/**
- * Interpolated vertex normal in world/camera space.
- * Set by renderer after material shader runs. Do not modify.
- */
-varying vec3 frx_normal;
-
-/**
- * Interpolated vertex position in camera space.
- * Set by renderer after material shader runs. Do not modify.
- */
-varying vec4 frx_vertex;
+#endif
 
 /*
  * Usage in API for material shaders:
@@ -120,6 +127,7 @@ struct frx_VertexData {
 	 */
 	vec3 normal;
 
+#ifndef DEPTH_PASS
 #ifdef VANILLA_LIGHTING
 	/*
 	 * Block and sky light intensity for this vertex as 0 to 1 values.
@@ -131,6 +139,8 @@ struct frx_VertexData {
 	 * Avoid using or modifying this value unless VANILLA_LIGHTING is defined.
 	 *
 	 * The emissive flag is generally a better alternative.
+	 *
+	 * Not available in depth pass.
 	 */
 	vec2 light;
 
@@ -141,7 +151,10 @@ struct frx_VertexData {
 	 * this may not be populated or used.
 	 *
 	 * Avoid using or modifying this value unless VANILLA_LIGHTING is defined.
+	 *
+	 * Not available in depth pass.
 	 */
 	float aoShade;
+#endif
 #endif
 };

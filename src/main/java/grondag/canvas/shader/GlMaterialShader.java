@@ -49,7 +49,7 @@ public class GlMaterialShader extends GlShader {
 		String starts;
 		String impl;
 
-		final int[] shaders = MaterialShaderManager.FRAGMENT_INDEXES.toIntArray();
+		final int[] shaders = MaterialShaderManager.fragmentIds(programType);
 		final int limit = shaders.length;
 
 		if (limit == 0) {
@@ -99,7 +99,7 @@ public class GlMaterialShader extends GlShader {
 			starts = startsBuilder.toString();
 		}
 
-		final Identifier sourceId = programType.isShadow && Pipeline.config().skyShadow != null
+		final Identifier sourceId = programType.isDepth && Pipeline.config().skyShadow != null
 			? Pipeline.config().skyShadow.fragmentShader
 			: Pipeline.config().materialFragmentShader;
 
@@ -113,7 +113,7 @@ public class GlMaterialShader extends GlShader {
 		String starts;
 		String impl;
 
-		final int[] shaders = MaterialShaderManager.VERTEX_INDEXES.toIntArray();
+		final int[] shaders = MaterialShaderManager.vertexIds(programType);
 		final int limit = shaders.length;
 
 		if (limit == 0) {
@@ -164,7 +164,7 @@ public class GlMaterialShader extends GlShader {
 			starts = startsBuilder.toString();
 		}
 
-		final Identifier sourceId = programType.isShadow && Pipeline.config().skyShadow != null
+		final Identifier sourceId = programType.isDepth && Pipeline.config().skyShadow != null
 				? Pipeline.config().skyShadow.vertexShader
 				: Pipeline.config().materialVertexShader;
 

@@ -68,15 +68,15 @@ public final class RenderState extends AbstractRenderState {
 
 	public void enable(int x, int y, int z) {
 		if (SkyShadowRenderer.isActive()) {
-			enableShadow(x, y, z);
+			enableDepthPass(x, y, z);
 		} else {
 			enableMaterial(x, y, z);
 		}
 	}
 
-	private void enableShadow(int x, int y, int z) {
+	private void enableDepthPass(int x, int y, int z) {
 		if (shadowActive == this) {
-			shadowShader.setModelOrigin(x, y, z);
+			depthShader.setModelOrigin(x, y, z);
 			return;
 		}
 
@@ -111,9 +111,9 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.setEnabled(enableLightmap);
 		LINE_STATE.setEnabled(lines);
 
-		shadowShader.activate(this);
-		shadowShader.setContextInfo(texture.atlasInfo(), target.index);
-		shadowShader.setModelOrigin(x, y, z);
+		depthShader.activate(this);
+		depthShader.setContextInfo(texture.atlasInfo(), target.index);
+		depthShader.setModelOrigin(x, y, z);
 	}
 
 	private void enableMaterial(int x, int y, int z) {
