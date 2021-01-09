@@ -49,10 +49,8 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.config.AoMode;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.DiffuseMode;
-import grondag.canvas.config.FogMode;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -268,10 +266,6 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
 			}
 
-			if (Configurator.fogMode != FogMode.VANILLA) {
-				result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA", "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_SUBTLE");
-			}
-
 			if (Pipeline.skyShadowFbo == null) {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_PRESENT", "//#define SHADOW_MAP_PRESENT");
 			}
@@ -288,15 +282,6 @@ public class GlShader implements Shader {
 			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
 			//	}
 			//}
-
-			if (!MinecraftClient.isAmbientOcclusionEnabled()) {
-				// disable ao for particles or if disabled by player
-				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
-			} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
-				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
-			}
 
 			if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
 				result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",

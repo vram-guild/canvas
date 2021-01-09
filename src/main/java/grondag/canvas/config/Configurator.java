@@ -30,14 +30,12 @@ import grondag.canvas.pipeline.config.PipelineLoader;
 @Environment(EnvType.CLIENT)
 public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
-	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
 	public static int handheldLightRadius = DEFAULTS.handheldLightRadius;
 	// public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
-	public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
@@ -102,7 +100,6 @@ public class Configurator {
 			pipelineId = PipelineConfig.DEFAULT_ID.toString();
 		}
 
-		fogMode = config.fogMode;
 		blendFluidColors = config.blendFluidColors;
 		wavyGrass = config.wavyGrass;
 		handheldLightRadius = config.handheldLightRadius;
@@ -115,7 +112,6 @@ public class Configurator {
 		// lightmapNoise = config.lightmapNoise;
 		diffuseShadingMode = config.diffuseShadingMode;
 		lightSmoothing = config.lightSmoothing;
-		aoShadingMode = config.aoShadingMode;
 		semiFlatLighting = config.semiFlatLighting;
 
 		batchedChunkRender = config.batchedChunkRender;
@@ -156,7 +152,6 @@ public class Configurator {
 
 	static void writeToConfig(ConfigData config) {
 		config.pipelineId = pipelineId;
-		config.fogMode = fogMode;
 		config.blendFluidColors = blendFluidColors;
 		config.wavyGrass = wavyGrass;
 		config.handheldLightRadius = handheldLightRadius;
@@ -168,7 +163,6 @@ public class Configurator {
 		// config.lightmapNoise = lightmapNoise;
 		config.diffuseShadingMode = diffuseShadingMode;
 		config.lightSmoothing = lightSmoothing;
-		config.aoShadingMode = aoShadingMode;
 		//config.moreLightmap = moreLightmap;
 		config.semiFlatLighting = semiFlatLighting;
 

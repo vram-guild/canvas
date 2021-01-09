@@ -31,8 +31,6 @@ class ConfigData {
 	public boolean enableBufferDebug = false;
 	@Comment("Output load/reload trace data to log. Will have performance impact.")
 	public boolean enableLifeCycleDebug = false;
-	@Comment("Makes terrain fog a little less foggy or turns it off.")
-	FogMode fogMode = FogMode.VANILLA;
 	@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
 	boolean blendFluidColors = true;
 	//@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
@@ -43,8 +41,6 @@ class ConfigData {
 	DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
 	@Comment("Makes light sources less cross-shaped. Chunk loading a little slower. Overall light levels remain similar.")
 	boolean lightSmoothing = false;
-	@Comment("Mimics light blocked by nearby objects.")
-	AoMode aoShadingMode = AoMode.NORMAL;
 	//@Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")
 	//int maxLightmapDelayFrames = 0;
 	//@Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")

@@ -64,18 +64,22 @@ public abstract class OptionConfigEntry extends AbstractConfig {
 	 * @return
 	 */
 	static OptionConfigEntry of(ConfigContext ctx, String key, JsonObject obj) {
-		final JsonElement defaultVal = obj.get("default");
+		if (obj.containsKey("choices")) {
+			return new EnumConfigEntry(ctx, key, obj);
+		} else {
+			final JsonElement defaultVal = obj.get("default");
 
-		if (defaultVal instanceof JsonPrimitive) {
-			final JsonPrimitive val = (JsonPrimitive) defaultVal;
+			if (defaultVal instanceof JsonPrimitive) {
+				final JsonPrimitive val = (JsonPrimitive) defaultVal;
 
-			if (val.getValue().getClass() == Double.class) {
-				return new FloatConfigEntry(ctx, key, obj);
+				if (val.getValue().getClass() == Double.class || val.getValue().getClass() == Float.class) {
+					return new FloatConfigEntry(ctx, key, obj);
+				} else {
+					return new BooleanConfigEntry(ctx, key, obj);
+				}
 			} else {
 				return new BooleanConfigEntry(ctx, key, obj);
 			}
-		} else {
-			return new BooleanConfigEntry(ctx, key, obj);
 		}
 	}
 }

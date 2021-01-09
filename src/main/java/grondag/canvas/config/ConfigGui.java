@@ -18,7 +18,6 @@ package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 import static grondag.canvas.config.ConfigManager.parse;
-import static grondag.canvas.config.Configurator.aoShadingMode;
 import static grondag.canvas.config.Configurator.batchedChunkRender;
 import static grondag.canvas.config.Configurator.blendFluidColors;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
@@ -35,7 +34,6 @@ import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
 import static grondag.canvas.config.Configurator.enableVao;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
-import static grondag.canvas.config.Configurator.fogMode;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
 import static grondag.canvas.config.Configurator.handheldLightRadius;
@@ -132,16 +130,6 @@ public class ConfigGui {
 		features.addEntry(new PipelineOptionsEntry());
 
 		features.addEntry(ENTRY_BUILDER
-				.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
-				.setDefaultValue(DEFAULTS.fogMode)
-				.setTooltip(parse("config.canvas.help.fog_mode"))
-				.setSaveConsumer(b -> {
-					reload |= fogMode != b;
-					fogMode = b;
-				})
-				.build());
-
-		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.blend_fluid_colors"), blendFluidColors)
 				.setDefaultValue(DEFAULTS.blendFluidColors)
 				.setTooltip(parse("config.canvas.help.blend_fluid_colors"))
@@ -220,16 +208,6 @@ public class ConfigGui {
 				.setSaveConsumer(b -> {
 					reload |= diffuseShadingMode != b;
 					diffuseShadingMode = b;
-				})
-				.build());
-
-		lighting.addEntry(ENTRY_BUILDER
-				.startEnumSelector(new TranslatableText("config.canvas.value.ao_shading"), AoMode.class, aoShadingMode)
-				.setDefaultValue(DEFAULTS.aoShadingMode)
-				.setTooltip(parse("config.canvas.help.ao_shading"))
-				.setSaveConsumer(b -> {
-					reload |= aoShadingMode != b;
-					aoShadingMode = b;
 				})
 				.build());
 

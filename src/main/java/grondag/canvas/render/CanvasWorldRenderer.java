@@ -67,7 +67,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.Util;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -92,7 +91,6 @@ import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.config.FogMode;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MatrixState;
@@ -388,7 +386,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final Framebuffer mcfb = mc.getFramebuffer();
 		final BlockRenderContext blockContext = BlockRenderContext.get();
 		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
-		MaterialFog.allow(Configurator.fogMode != FogMode.NONE || mc.player.hasStatusEffect(StatusEffects.BLINDNESS));
+		MaterialFog.allow(true);
 		updatePlayerLightmap(mc, tickDelta);
 
 		final ClientWorld world = this.world;

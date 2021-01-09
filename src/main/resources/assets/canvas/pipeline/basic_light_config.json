@@ -1,0 +1,17 @@
+{
+  options: [
+    {
+      includeToken: "canvas:basic_light_config",
+      categoryKey: "config.canvas.category.features",
+      options: {
+        ao_shading_mode: {
+          choices: ["normal", "subtle_always", "subtle_block_light", "none"],
+          enum: true,
+          prefix: "AO_MODE_",
+          nameKey: "config.canvas.value.ao_shading",
+          descriptionKey: "config.canvas.help.ao_shading"
+        }
+      }
+    }
+  ]
+}

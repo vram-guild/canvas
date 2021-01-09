@@ -78,4 +78,22 @@ public class JanksonHelper {
 			return null;
 		}
 	}
+
+	public static String[] asStringArray(JsonElement element) {
+		if (element instanceof JsonArray) {
+			final JsonArray array = (JsonArray) element;
+
+			if (!array.getString(0, "").equals("")) {
+				final String[] result = new String[array.size()];
+
+				for (int i = 0; i < array.size(); ++i) {
+					result[i] = array.getString(i, "");
+				}
+
+				return result;
+			}
+		}
+
+		return new String[0];
+	}
 }
