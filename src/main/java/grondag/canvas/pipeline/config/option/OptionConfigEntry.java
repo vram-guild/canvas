@@ -74,6 +74,8 @@ public abstract class OptionConfigEntry extends AbstractConfig {
 
 				if (val.getValue().getClass() == Double.class || val.getValue().getClass() == Float.class) {
 					return new FloatConfigEntry(ctx, key, obj);
+				} else if (val.getValue().getClass() == Integer.class || val.getValue().getClass() == Long.class) {
+					return new IntConfigEntry(ctx, key, obj);
 				} else {
 					return new BooleanConfigEntry(ctx, key, obj);
 				}

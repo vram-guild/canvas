@@ -25,8 +25,6 @@ class ConfigData {
 	public String pipelineId = PipelineConfig.DEFAULT_ID.toString();
 	@Comment("Glow effect around light sources.")
 	public boolean wavyGrass = true;
-	@Comment("Hand held light max radius. 0-15, Zero disables")
-	public int handheldLightRadius = 11;
 	@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
 	public boolean enableBufferDebug = false;
 	@Comment("Output load/reload trace data to log. Will have performance impact.")

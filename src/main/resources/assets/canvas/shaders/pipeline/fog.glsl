@@ -2,11 +2,11 @@
 #include frex:shaders/api/fog.glsl
 #include canvas:shaders/pipeline/options.glsl
 #include frex:shaders/api/player.glsl
+#include canvas:fog_config
 
 /******************************************************
   canvas:shaders/pipeline/fog.glsl
 ******************************************************/
-#include canvas:fog_config
 
 /**
  * Linear fog.  Is an inverse factor - 0 means full fog.

@@ -32,7 +32,6 @@ public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
-	public static int handheldLightRadius = DEFAULTS.handheldLightRadius;
 	// public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
@@ -101,7 +100,6 @@ public class Configurator {
 
 		blendFluidColors = config.blendFluidColors;
 		wavyGrass = config.wavyGrass;
-		handheldLightRadius = config.handheldLightRadius;
 
 		shaderDebug = config.shaderDebug;
 		//maxLightmapDelayFrames = config.maxLightmapDelayFrames;
@@ -152,7 +150,6 @@ public class Configurator {
 		config.pipelineId = pipelineId;
 		config.blendFluidColors = blendFluidColors;
 		config.wavyGrass = wavyGrass;
-		config.handheldLightRadius = handheldLightRadius;
 
 		config.shaderDebug = shaderDebug;
 		//config.maxLightmapDelayFrames = maxLightmapDelayFrames;

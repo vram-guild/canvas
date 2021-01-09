@@ -34,6 +34,7 @@ public class EnumConfigEntry extends OptionConfigEntry {
 	private final String[] choices;
 	private final String prefix;
 	private final String define;
+	private final boolean enumerate;
 
 	protected EnumConfigEntry(ConfigContext ctx, String name, JsonObject config) {
 		super(ctx, name, config);
@@ -42,6 +43,7 @@ public class EnumConfigEntry extends OptionConfigEntry {
 		value = defaultVal;
 		define = JanksonHelper.asStringOrDefault(config.get("define"), name).toUpperCase();
 		prefix = JanksonHelper.asStringOrDefault(config.get("prefix"), "").toUpperCase();
+		enumerate = config.getBoolean("enum", false);
 	}
 
 	@Override
@@ -57,12 +59,17 @@ public class EnumConfigEntry extends OptionConfigEntry {
 	String createSource() {
 		final StringBuilder builder = new StringBuilder();
 
-		for (int i = 0; i < choices.length; ++i) {
-			builder.append("#define " + prefix + choices[i].toUpperCase() + " " + i + "\n");
+		if (enumerate) {
+			for (int i = 0; i < choices.length; ++i) {
+				builder.append("#define " + prefix + choices[i].toUpperCase() + " " + i + "\n");
+			}
+
+			builder.append("\n");
+			builder.append("#define " + define.toUpperCase() + " " + prefix + value.toUpperCase() + "\n");
+		} else {
+			builder.append("#define " + prefix + value.toUpperCase() + "\n");
 		}
 
-		builder.append("\n");
-		builder.append("#define " + define.toUpperCase() + " " + prefix + value.toUpperCase() + "\n");
 		return builder.toString();
 	}
 

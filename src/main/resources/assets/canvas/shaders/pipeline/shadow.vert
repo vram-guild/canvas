@@ -1,5 +1,3 @@
-#include canvas:shaders/pipeline/options.glsl
-
 /******************************************************
   canvas:shaders/pipeline/shadow.vert
 ******************************************************/
