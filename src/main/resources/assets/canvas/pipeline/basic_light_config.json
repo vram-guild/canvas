@@ -10,6 +10,13 @@
           prefix: "AO_MODE_",
           nameKey: "config.canvas.value.ao_shading",
           descriptionKey: "config.canvas.help.ao_shading"
+        },
+        diffuse_shading_mode: {
+          choices: ["normal", "sky_only", "none"],
+          enum: true,
+          prefix: "DIFFUSE_MODE_",
+          nameKey: "config.canvas.value.diffuse_shading",
+          descriptionKey: "config.canvas.help.diffuse_shading"
         }
       }
     }

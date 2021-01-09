@@ -2,12 +2,6 @@
   canvas:shaders/pipeline/options.glsl
 ******************************************************/
 
-#define DIFFUSE_MODE_NORMAL 0
-#define DIFFUSE_MODE_SKY_ONLY 1
-#define DIFFUSE_MODE_NONE 2
-
-#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL
-
 #define HANDHELD_LIGHT_RADIUS 0
 
 // define if lighting should be noised to prevent mach banding

@@ -7,11 +7,11 @@
 #include frex:shaders/api/world.glsl
 #include frex:shaders/api/player.glsl
 #include frex:shaders/api/material.glsl
+#include canvas:basic_light_config
 
 /******************************************************
   canvas:shaders/pipeline/standard.frag
 ******************************************************/
-#include canvas:basic_light_config
 
 #define TARGET_BASECOLOR 0
 #define TARGET_EMISSIVE  1

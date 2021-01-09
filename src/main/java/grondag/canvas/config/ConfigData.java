@@ -37,8 +37,6 @@ class ConfigData {
 	//boolean hdLightmaps = false;
 	//@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
 	//boolean lightmapNoise = false;
-	@Comment("Mimics directional light.")
-	DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
 	@Comment("Makes light sources less cross-shaped. Chunk loading a little slower. Overall light levels remain similar.")
 	boolean lightSmoothing = false;
 	//@Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")

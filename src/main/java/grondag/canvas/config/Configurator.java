@@ -34,7 +34,6 @@ public class Configurator {
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
 	public static int handheldLightRadius = DEFAULTS.handheldLightRadius;
 	// public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
-	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
@@ -110,7 +109,6 @@ public class Configurator {
 
 		// hdLightmaps = config.hdLightmaps;
 		// lightmapNoise = config.lightmapNoise;
-		diffuseShadingMode = config.diffuseShadingMode;
 		lightSmoothing = config.lightSmoothing;
 		semiFlatLighting = config.semiFlatLighting;
 
@@ -161,7 +159,6 @@ public class Configurator {
 
 		// config.hdLightmaps = hdLightmaps;
 		// config.lightmapNoise = lightmapNoise;
-		config.diffuseShadingMode = diffuseShadingMode;
 		config.lightSmoothing = lightSmoothing;
 		//config.moreLightmap = moreLightmap;
 		config.semiFlatLighting = semiFlatLighting;
