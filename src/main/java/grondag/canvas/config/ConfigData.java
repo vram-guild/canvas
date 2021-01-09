@@ -31,8 +31,6 @@ class ConfigData {
 	public boolean enableBufferDebug = false;
 	@Comment("Output load/reload trace data to log. Will have performance impact.")
 	public boolean enableLifeCycleDebug = false;
-	@Comment("Makes terrain fog a little less foggy or turns it off.")
-	FogMode fogMode = FogMode.VANILLA;
 	@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
 	boolean blendFluidColors = true;
 	//@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")

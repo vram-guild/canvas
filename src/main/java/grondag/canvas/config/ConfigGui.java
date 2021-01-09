@@ -35,7 +35,6 @@ import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
 import static grondag.canvas.config.Configurator.enableVao;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
-import static grondag.canvas.config.Configurator.fogMode;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
 import static grondag.canvas.config.Configurator.handheldLightRadius;
@@ -130,16 +129,6 @@ public class ConfigGui {
 		features.addEntry(pipeline);
 
 		features.addEntry(new PipelineOptionsEntry());
-
-		features.addEntry(ENTRY_BUILDER
-				.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
-				.setDefaultValue(DEFAULTS.fogMode)
-				.setTooltip(parse("config.canvas.help.fog_mode"))
-				.setSaveConsumer(b -> {
-					reload |= fogMode != b;
-					fogMode = b;
-				})
-				.build());
 
 		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.blend_fluid_colors"), blendFluidColors)

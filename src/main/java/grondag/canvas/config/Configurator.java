@@ -30,7 +30,6 @@ import grondag.canvas.pipeline.config.PipelineLoader;
 @Environment(EnvType.CLIENT)
 public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
-	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
 	public static int handheldLightRadius = DEFAULTS.handheldLightRadius;
@@ -102,7 +101,6 @@ public class Configurator {
 			pipelineId = PipelineConfig.DEFAULT_ID.toString();
 		}
 
-		fogMode = config.fogMode;
 		blendFluidColors = config.blendFluidColors;
 		wavyGrass = config.wavyGrass;
 		handheldLightRadius = config.handheldLightRadius;
@@ -156,7 +154,6 @@ public class Configurator {
 
 	static void writeToConfig(ConfigData config) {
 		config.pipelineId = pipelineId;
-		config.fogMode = fogMode;
 		config.blendFluidColors = blendFluidColors;
 		config.wavyGrass = wavyGrass;
 		config.handheldLightRadius = handheldLightRadius;

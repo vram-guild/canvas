@@ -16,11 +16,6 @@
 
 #define HANDHELD_LIGHT_RADIUS 0
 
-#define _CV_FOG_CONFIG_VANILLA    0
-#define _CV_FOG_CONFIG_SUBTLE    1
-
-#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA
-
 // define if lighting should be noised to prevent mach banding
 // will only be enabled if smooth light is also enabled
 //#define ENABLE_LIGHT_NOISE

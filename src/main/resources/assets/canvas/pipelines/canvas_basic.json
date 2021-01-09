@@ -14,6 +14,7 @@
 	},
 
 	include: [
-		"canvas:pipeline/base.json"
+		"canvas:pipeline/base.json",
+		"canvas:pipeline/fog_config.json"
 	]
 }
