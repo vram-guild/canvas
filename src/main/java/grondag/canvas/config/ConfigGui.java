@@ -18,7 +18,6 @@ package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 import static grondag.canvas.config.ConfigManager.parse;
-import static grondag.canvas.config.Configurator.aoShadingMode;
 import static grondag.canvas.config.Configurator.batchedChunkRender;
 import static grondag.canvas.config.Configurator.blendFluidColors;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
@@ -209,16 +208,6 @@ public class ConfigGui {
 				.setSaveConsumer(b -> {
 					reload |= diffuseShadingMode != b;
 					diffuseShadingMode = b;
-				})
-				.build());
-
-		lighting.addEntry(ENTRY_BUILDER
-				.startEnumSelector(new TranslatableText("config.canvas.value.ao_shading"), AoMode.class, aoShadingMode)
-				.setDefaultValue(DEFAULTS.aoShadingMode)
-				.setTooltip(parse("config.canvas.help.ao_shading"))
-				.setSaveConsumer(b -> {
-					reload |= aoShadingMode != b;
-					aoShadingMode = b;
 				})
 				.build());
 

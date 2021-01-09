@@ -37,11 +37,11 @@ public class EnumConfigEntry extends OptionConfigEntry {
 
 	protected EnumConfigEntry(ConfigContext ctx, String name, JsonObject config) {
 		super(ctx, name, config);
-		defaultVal = JanksonHelper.asString(config.get("default"));
+		choices = JanksonHelper.asStringArray(config.get("choices"));
+		defaultVal = JanksonHelper.asStringOrDefault(config.get("default"), choices.length > 0 ? choices[0] : "");
 		value = defaultVal;
 		define = JanksonHelper.asStringOrDefault(config.get("define"), name).toUpperCase();
 		prefix = JanksonHelper.asStringOrDefault(config.get("prefix"), "").toUpperCase();
-		choices = JanksonHelper.asStringArray(config.get("choices"));
 	}
 
 	@Override

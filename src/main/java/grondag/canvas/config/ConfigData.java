@@ -41,8 +41,6 @@ class ConfigData {
 	DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
 	@Comment("Makes light sources less cross-shaped. Chunk loading a little slower. Overall light levels remain similar.")
 	boolean lightSmoothing = false;
-	@Comment("Mimics light blocked by nearby objects.")
-	AoMode aoShadingMode = AoMode.NORMAL;
 	//@Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")
 	//int maxLightmapDelayFrames = 0;
 	//@Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")

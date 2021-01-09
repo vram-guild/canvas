@@ -1,12 +1,6 @@
 /******************************************************
   canvas:shaders/pipeline/options.glsl
 ******************************************************/
-#define AO_MODE_NORMAL 0
-#define AO_MODE_SUBTLE_ALWAYS 1
-#define AO_MODE_SUBTLE_BLOCK_LIGHT 2
-#define AO_MODE_NONE 3
-
-#define AO_SHADING_MODE AO_MODE_NORMAL
 
 #define DIFFUSE_MODE_NORMAL 0
 #define DIFFUSE_MODE_SKY_ONLY 1

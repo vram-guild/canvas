@@ -36,7 +36,6 @@ public class Configurator {
 	// public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
-	public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
@@ -113,7 +112,6 @@ public class Configurator {
 		// lightmapNoise = config.lightmapNoise;
 		diffuseShadingMode = config.diffuseShadingMode;
 		lightSmoothing = config.lightSmoothing;
-		aoShadingMode = config.aoShadingMode;
 		semiFlatLighting = config.semiFlatLighting;
 
 		batchedChunkRender = config.batchedChunkRender;
@@ -165,7 +163,6 @@ public class Configurator {
 		// config.lightmapNoise = lightmapNoise;
 		config.diffuseShadingMode = diffuseShadingMode;
 		config.lightSmoothing = lightSmoothing;
-		config.aoShadingMode = aoShadingMode;
 		//config.moreLightmap = moreLightmap;
 		config.semiFlatLighting = semiFlatLighting;
 

@@ -49,7 +49,6 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.config.AoMode;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.DiffuseMode;
 import grondag.canvas.pipeline.Pipeline;
@@ -283,15 +282,6 @@ public class GlShader implements Shader {
 			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
 			//	}
 			//}
-
-			if (!MinecraftClient.isAmbientOcclusionEnabled()) {
-				// disable ao for particles or if disabled by player
-				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
-			} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
-				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
-			}
 
 			if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
 				result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
