@@ -1,5 +1,6 @@
 #include frex:shaders/api/context.glsl
 #include frex:shaders/api/world.glsl
+#include canvas:basic_light_config
 
 /******************************************************
   canvas:shaders/pipeline/diffuse.glsl

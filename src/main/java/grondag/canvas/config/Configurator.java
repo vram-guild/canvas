@@ -32,9 +32,7 @@ public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
-	public static int handheldLightRadius = DEFAULTS.handheldLightRadius;
 	// public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
-	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
@@ -102,7 +100,6 @@ public class Configurator {
 
 		blendFluidColors = config.blendFluidColors;
 		wavyGrass = config.wavyGrass;
-		handheldLightRadius = config.handheldLightRadius;
 
 		shaderDebug = config.shaderDebug;
 		//maxLightmapDelayFrames = config.maxLightmapDelayFrames;
@@ -110,7 +107,6 @@ public class Configurator {
 
 		// hdLightmaps = config.hdLightmaps;
 		// lightmapNoise = config.lightmapNoise;
-		diffuseShadingMode = config.diffuseShadingMode;
 		lightSmoothing = config.lightSmoothing;
 		semiFlatLighting = config.semiFlatLighting;
 
@@ -154,14 +150,12 @@ public class Configurator {
 		config.pipelineId = pipelineId;
 		config.blendFluidColors = blendFluidColors;
 		config.wavyGrass = wavyGrass;
-		config.handheldLightRadius = handheldLightRadius;
 
 		config.shaderDebug = shaderDebug;
 		//config.maxLightmapDelayFrames = maxLightmapDelayFrames;
 
 		// config.hdLightmaps = hdLightmaps;
 		// config.lightmapNoise = lightmapNoise;
-		config.diffuseShadingMode = diffuseShadingMode;
 		config.lightSmoothing = lightSmoothing;
 		//config.moreLightmap = moreLightmap;
 		config.semiFlatLighting = semiFlatLighting;

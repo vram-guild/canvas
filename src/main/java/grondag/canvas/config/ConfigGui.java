@@ -28,7 +28,6 @@ import static grondag.canvas.config.Configurator.cullParticles;
 import static grondag.canvas.config.Configurator.debugNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
-import static grondag.canvas.config.Configurator.diffuseShadingMode;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
@@ -36,7 +35,6 @@ import static grondag.canvas.config.Configurator.enableVao;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
-import static grondag.canvas.config.Configurator.handheldLightRadius;
 import static grondag.canvas.config.Configurator.lagFinder;
 import static grondag.canvas.config.Configurator.lightSmoothing;
 import static grondag.canvas.config.Configurator.logGlStateChanges;
@@ -149,18 +147,6 @@ public class ConfigGui {
 				})
 				.build());
 
-		features.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.handheld_light_radius"), handheldLightRadius, 0, 15)
-				.setDefaultValue(DEFAULTS.handheldLightRadius)
-				.setMax(15)
-				.setMin(0)
-				.setTooltip(parse("config.canvas.help.handheld_light_radius"))
-				.setSaveConsumer(b -> {
-					reload |= handheldLightRadius != b;
-					handheldLightRadius = b;
-				})
-				.build());
-
 		// LIGHTING
 		final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
 
@@ -200,16 +186,6 @@ public class ConfigGui {
 		//					lightmapNoise = b;
 		//				})
 		//				.build());
-
-		lighting.addEntry(ENTRY_BUILDER
-				.startEnumSelector(new TranslatableText("config.canvas.value.diffuse_shading"), DiffuseMode.class, diffuseShadingMode)
-				.setDefaultValue(DEFAULTS.diffuseShadingMode)
-				.setTooltip(parse("config.canvas.help.diffuse_shading"))
-				.setSaveConsumer(b -> {
-					reload |= diffuseShadingMode != b;
-					diffuseShadingMode = b;
-				})
-				.build());
 
 		//		lighting.addEntry(ENTRY_BUILDER
 		//				.startIntSlider(new TranslatableText("config.canvas.value.lightmap_delay_frames"), maxLightmapDelayFrames, 0, 20)

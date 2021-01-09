@@ -25,8 +25,6 @@ class ConfigData {
 	public String pipelineId = PipelineConfig.DEFAULT_ID.toString();
 	@Comment("Glow effect around light sources.")
 	public boolean wavyGrass = true;
-	@Comment("Hand held light max radius. 0-15, Zero disables")
-	public int handheldLightRadius = 11;
 	@Comment("Enable rendering of internal buffers for debug purposes. Off by default to prevent accidental activation.")
 	public boolean enableBufferDebug = false;
 	@Comment("Output load/reload trace data to log. Will have performance impact.")
@@ -37,8 +35,6 @@ class ConfigData {
 	//boolean hdLightmaps = false;
 	//@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
 	//boolean lightmapNoise = false;
-	@Comment("Mimics directional light.")
-	DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
 	@Comment("Makes light sources less cross-shaped. Chunk loading a little slower. Overall light levels remain similar.")
 	boolean lightSmoothing = false;
 	//@Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")

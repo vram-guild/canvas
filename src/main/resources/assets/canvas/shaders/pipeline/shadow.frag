@@ -1,4 +1,3 @@
-#include canvas:shaders/pipeline/options.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
 #include frex:shaders/api/world.glsl

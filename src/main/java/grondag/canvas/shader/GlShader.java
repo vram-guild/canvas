@@ -50,7 +50,6 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.config.DiffuseMode;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -270,8 +269,6 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_PRESENT", "//#define SHADOW_MAP_PRESENT");
 			}
 
-			result = StringUtils.replace(result, "#define HANDHELD_LIGHT_RADIUS 0", "#define HANDHELD_LIGHT_RADIUS " + Configurator.handheldLightRadius);
-
 			result = StringUtils.replace(result, "#define _CV_MATERIAL_INFO_TEXTURE_SIZE 0", "#define _CV_MATERIAL_INFO_TEXTURE_SIZE " + MaterialInfoTexture.INSTANCE.squareSizePixels());
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
 
@@ -282,11 +279,6 @@ public class GlShader implements Shader {
 			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
 			//	}
 			//}
-
-			if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
-				result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
-					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
-			}
 
 			if (!MinecraftClient.IS_SYSTEM_MAC) {
 				result = StringUtils.replace(result, "#version 120", "#version 130");

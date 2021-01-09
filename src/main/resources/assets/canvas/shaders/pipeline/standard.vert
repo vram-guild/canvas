@@ -1,4 +1,3 @@
-#include canvas:shaders/pipeline/options.glsl
 #include canvas:shaders/pipeline/diffuse.glsl
 #include canvas:shaders/pipeline/varying.glsl
 

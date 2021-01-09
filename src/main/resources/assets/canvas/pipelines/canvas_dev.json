@@ -18,6 +18,7 @@
 		"canvas:pipeline/base.json",
 		"canvas:pipeline/basic_light_config.json",
 		"canvas:pipeline/fog_config.json",
+		"canvas:pipeline/handheld_light_config.json",
 		"canvas:pipeline/skyshadow.json",
 		"canvas:pipeline/bloom.json",
 		"canvas:pipeline/fabulous.json"

@@ -104,6 +104,9 @@ public class OptionConfig extends AbstractConfig {
 
 	public String createSource() {
 		final StringBuilder builder = new StringBuilder();
+		builder.append("/******************************************************\n");
+		builder.append("  Generated from " + includeToken.toString() + "\n");
+		builder.append("******************************************************/\n");
 
 		for (final OptionConfigEntry entry : entries) {
 			builder.append(entry.createSource());
