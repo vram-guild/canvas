@@ -28,8 +28,6 @@ import net.minecraft.client.gui.hud.DebugHud;
 import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.encoding.VertexCollectorImpl;
-import grondag.canvas.config.Configurator;
-import grondag.canvas.light.LightmapHd;
 
 @Mixin(DebugHud.class)
 public class MixinDebugHud {
@@ -37,9 +35,9 @@ public class MixinDebugHud {
 	private void onGetBufferBuilders(CallbackInfoReturnable<List<String>> ci) {
 		final List<String> list = ci.getReturnValue();
 
-		if (Configurator.hdLightmaps()) {
-			list.add("HD Lightmap Occupancy: " + LightmapHd.occupancyReport());
-		}
+		// if (Configurator.hdLightmaps()) {
+		// 	list.add("HD Lightmap Occupancy: " + LightmapHd.occupancyReport());
+		// }
 
 		list.add(TransferBufferAllocator.debugString());
 		list.add(GlBufferAllocator.debugString());

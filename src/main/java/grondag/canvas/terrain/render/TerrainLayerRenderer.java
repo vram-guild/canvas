@@ -24,11 +24,9 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.config.Configurator;
-import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.util.TerrainModelSpace;
-import grondag.canvas.texture.DitherTexture;
 
 public class TerrainLayerRenderer {
 	private final String profileString;
@@ -52,10 +50,10 @@ public class TerrainLayerRenderer {
 		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
 		final int step = isTranslucent ? -1 : 1;
 
-		if (Configurator.hdLightmaps()) {
-			LightmapHdTexture.instance().enable();
-			DitherTexture.instance().enable();
-		}
+		//if (Configurator.hdLightmaps()) {
+		//	LightmapHdTexture.instance().enable();
+		//	DitherTexture.instance().enable();
+		//}
 
 		long lastRelativeOrigin = -1;
 

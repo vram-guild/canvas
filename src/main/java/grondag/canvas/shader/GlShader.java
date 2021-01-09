@@ -281,13 +281,13 @@ public class GlShader implements Shader {
 			result = StringUtils.replace(result, "#define _CV_MATERIAL_INFO_TEXTURE_SIZE 0", "#define _CV_MATERIAL_INFO_TEXTURE_SIZE " + MaterialInfoTexture.INSTANCE.squareSizePixels());
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
 
-			if (Configurator.hdLightmaps()) {
-				result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
-
-				if (Configurator.lightmapNoise) {
-					result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
-				}
-			}
+			//if (Configurator.hdLightmaps()) {
+			//	result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
+			//
+			//	if (Configurator.lightmapNoise) {
+			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
+			//	}
+			//}
 
 			if (!MinecraftClient.isAmbientOcclusionEnabled()) {
 				// disable ao for particles or if disabled by player

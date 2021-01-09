@@ -26,7 +26,7 @@ import net.minecraft.util.math.MathHelper;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
-public class LightmapHd {
+class LightmapHd {
 	// PERF: use Fermion cache
 	static final Object2ObjectOpenHashMap<AoFaceData, LightmapHd> MAP = new Object2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float) MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
 	private static final AtomicInteger nextIndex = new AtomicInteger();

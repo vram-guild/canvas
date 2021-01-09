@@ -165,13 +165,13 @@ public abstract class AoCalculator {
 			} else {
 				// currently can't handle these
 				irregularFace(quad);
-				quad.hdLight = null;
+				//quad.hdLight = null;
 			}
 
 			return;
 		}
 
-		quad.hdLight = null;
+		//quad.hdLight = null;
 
 		switch (flags) {
 			case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
@@ -195,7 +195,7 @@ public abstract class AoCalculator {
 	public void computeFlat(MutableQuadViewImpl quad) {
 		final int flags = quad.geometryFlags();
 
-		quad.hdLight = null;
+		//quad.hdLight = null;
 
 		switch (flags) {
 			case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
@@ -244,7 +244,7 @@ public abstract class AoCalculator {
 
 	private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
 		final int lightFace = quad.lightFaceId();
-		final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
+		//final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
 		final AoFace face = AoFace.get(lightFace);
 		final Vertex2Float uFunc = face.uFunc;
 		final Vertex2Float vFunc = face.vFunc;
@@ -254,7 +254,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.hdLight = LightmapHd.find(faceData);
+		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	private void flatFaceSmoothHd(MutableQuadViewImpl quad, int flatBrightness) {
@@ -270,7 +270,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.hdLight = LightmapHd.find(faceData);
+		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	/**
@@ -344,7 +344,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.hdLight = LightmapHd.find(faceData);
+		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	private void irregularFace(MutableQuadViewImpl quad) {
@@ -354,7 +354,7 @@ public abstract class AoCalculator {
 		final float[] aoResult = quad.ao;
 
 		//TODO: currently no way to handle 3d interpolation shader-side
-		quad.hdLight = null;
+		//quad.hdLight = null;
 
 		for (int i = 0; i < 4; i++) {
 			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;

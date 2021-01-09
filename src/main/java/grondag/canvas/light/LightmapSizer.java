@@ -18,10 +18,8 @@ package grondag.canvas.light;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
-import grondag.canvas.config.Configurator;
-
 public final class LightmapSizer {
-	public static final int texSize = Configurator.moreLightmap ? 8192 : 4096;
+	public static final int texSize = 8192; //Configurator.moreLightmap ? 8192 : 4096;
 	public static final int paddedSize = 6;
 	public static final int centerToCenterPixelDistance = paddedSize - 1;
 	public static final int radius = paddedSize / 2;

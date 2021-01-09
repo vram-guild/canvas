@@ -35,20 +35,20 @@ class ConfigData {
 	FogMode fogMode = FogMode.VANILLA;
 	@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
 	boolean blendFluidColors = true;
-	@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
-	boolean hdLightmaps = false;
-	@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
-	boolean lightmapNoise = false;
+	//@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
+	//boolean hdLightmaps = false;
+	//@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
+	//boolean lightmapNoise = false;
 	@Comment("Mimics directional light.")
 	DiffuseMode diffuseShadingMode = DiffuseMode.NORMAL;
 	@Comment("Makes light sources less cross-shaped. Chunk loading a little slower. Overall light levels remain similar.")
 	boolean lightSmoothing = false;
 	@Comment("Mimics light blocked by nearby objects.")
 	AoMode aoShadingMode = AoMode.NORMAL;
-	@Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")
-	int maxLightmapDelayFrames = 0;
-	@Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")
-	boolean moreLightmap = true;
+	//@Comment("Setting > 0 may give slightly better FPS at cost of potential flickering when lighting changes.")
+	//int maxLightmapDelayFrames = 0;
+	//@Comment("Extra lightmap capacity. Ensure enabled if you are getting `unable to create HD lightmap(s) - out of space' messages.")
+	//boolean moreLightmap = true;
 	@Comment("Models with flat lighting have smoother lighting (but no ambient occlusion).")
 	boolean semiFlatLighting = true;
 
@@ -85,8 +85,8 @@ class ConfigData {
 	// DEBUG
 	@Comment("Output runtime per-material shader source. For shader development debugging.")
 	boolean shaderDebug = false;
-	@Comment("Shows HD lightmap pixels for debug purposes. Also looks cool.")
-	boolean lightmapDebug = false;
+	//@Comment("Shows HD lightmap pixels for debug purposes. Also looks cool.")
+	//boolean lightmapDebug = false;
 	@Comment("Summarizes multiple errors and warnings to single-line entries in the log.")
 	boolean conciseErrors = true;
 	@Comment("Writes information useful for bug reports to the game log at startup.")

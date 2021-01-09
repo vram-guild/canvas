@@ -34,12 +34,12 @@ public class Configurator {
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
 	public static int handheldLightRadius = DEFAULTS.handheldLightRadius;
-	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
+	// public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static DiffuseMode diffuseShadingMode = DEFAULTS.diffuseShadingMode;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
 	public static AoMode aoShadingMode = DEFAULTS.aoShadingMode;
-	public static boolean moreLightmap = DEFAULTS.moreLightmap;
-	public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
+	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
+	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
 	public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
@@ -55,7 +55,7 @@ public class Configurator {
 	public static int dynamicFrustumPadding = DEFAULTS.dynamicFrustumPadding;
 	public static boolean cullParticles = DEFAULTS.cullParticles;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
-	public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
+	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -84,7 +84,7 @@ public class Configurator {
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
 	static boolean reload = false;
-	static boolean hdLightmaps = DEFAULTS.hdLightmaps;
+	// static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	static boolean enableVao = DEFAULTS.enableVao;
 
 	public static boolean hdLightmaps() {
@@ -108,11 +108,11 @@ public class Configurator {
 		handheldLightRadius = config.handheldLightRadius;
 
 		shaderDebug = config.shaderDebug;
-		maxLightmapDelayFrames = config.maxLightmapDelayFrames;
-		moreLightmap = config.moreLightmap;
+		//maxLightmapDelayFrames = config.maxLightmapDelayFrames;
+		//moreLightmap = config.moreLightmap;
 
-		hdLightmaps = config.hdLightmaps;
-		lightmapNoise = config.lightmapNoise;
+		// hdLightmaps = config.hdLightmaps;
+		// lightmapNoise = config.lightmapNoise;
 		diffuseShadingMode = config.diffuseShadingMode;
 		lightSmoothing = config.lightSmoothing;
 		aoShadingMode = config.aoShadingMode;
@@ -135,7 +135,7 @@ public class Configurator {
 		staticFrustumPadding = MathHelper.clamp(config.staticFrustumPadding, 0, 30);
 		cullParticles = config.cullParticles;
 
-		lightmapDebug = config.lightmapDebug;
+		// lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -162,14 +162,14 @@ public class Configurator {
 		config.handheldLightRadius = handheldLightRadius;
 
 		config.shaderDebug = shaderDebug;
-		config.maxLightmapDelayFrames = maxLightmapDelayFrames;
+		//config.maxLightmapDelayFrames = maxLightmapDelayFrames;
 
-		config.hdLightmaps = hdLightmaps;
-		config.lightmapNoise = lightmapNoise;
+		// config.hdLightmaps = hdLightmaps;
+		// config.lightmapNoise = lightmapNoise;
 		config.diffuseShadingMode = diffuseShadingMode;
 		config.lightSmoothing = lightSmoothing;
 		config.aoShadingMode = aoShadingMode;
-		config.moreLightmap = moreLightmap;
+		//config.moreLightmap = moreLightmap;
 		config.semiFlatLighting = semiFlatLighting;
 
 		config.batchedChunkRender = batchedChunkRender;
@@ -188,7 +188,7 @@ public class Configurator {
 		config.dynamicFrustumPadding = dynamicFrustumPadding;
 		config.cullParticles = cullParticles;
 
-		config.lightmapDebug = lightmapDebug;
+		// config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;

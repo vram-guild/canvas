@@ -30,7 +30,8 @@ import grondag.canvas.texture.SimpleTexture;
 import grondag.canvas.texture.TextureData;
 
 @Environment(EnvType.CLIENT)
-public class LightmapHdTexture implements AutoCloseable {
+@SuppressWarnings("unused")
+class LightmapHdTexture implements AutoCloseable {
 	private static final ConcurrentLinkedQueue<LightmapHd> updates = new ConcurrentLinkedQueue<>();
 	private static LightmapHdTexture instance;
 	private final SimpleTexture texture;
@@ -88,7 +89,7 @@ public class LightmapHdTexture implements AutoCloseable {
 		texture.close();
 	}
 
-	public void disable() {
+	private void disable() {
 		if (!Configurator.hdLightmaps()) {
 			return;
 		}
@@ -98,26 +99,26 @@ public class LightmapHdTexture implements AutoCloseable {
 		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
-	public void enable() {
-		if (!Configurator.hdLightmaps()) {
-			return;
-		}
-
-		GlStateManager.activeTexture(TextureData.HD_LIGHTMAP);
-		texture.bindTexture();
-
-		final int mode = Configurator.lightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mode);
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, mode);
-		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-		GlStateManager.enableTexture();
-		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+	private void enable() {
+	//		if (!Configurator.hdLightmaps()) {
+	//			return;
+	//		}
+	//
+	//		GlStateManager.activeTexture(TextureData.HD_LIGHTMAP);
+	//		texture.bindTexture();
+	//
+	//		final int mode = Configurator.lightmapDebug ? GL11.GL_NEAREST : GL11.GL_LINEAR;
+	//		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mode);
+	//		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, mode);
+	//		GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+	//		GlStateManager.enableTexture();
+	//		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public void onRenderTick() {
 		frameCounter++;
 
-		if (updates.isEmpty() || frameCounter < Configurator.maxLightmapDelayFrames) {
+		if (updates.isEmpty() || frameCounter < 0) { //Configurator.maxLightmapDelayFrames) {
 			return;
 		}
 

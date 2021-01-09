@@ -93,7 +93,6 @@ import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.FogMode;
-import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MatrixState;
@@ -115,7 +114,6 @@ import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionPruner;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
-import grondag.canvas.texture.DitherTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -235,7 +233,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			regionBuilder = new RenderRegionBuilder();
 		}
 
-		DitherTexture.instance().initializeIfNeeded();
+		// DitherTexture.instance().initializeIfNeeded();
 		world = clientWorld;
 		visibleRegionCount = 0;
 		terrainIterator.reset();
@@ -1029,10 +1027,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			CanvasGlHelper.glBindVertexArray(0);
 		}
 
-		if (Configurator.hdLightmaps()) {
-			LightmapHdTexture.instance().disable();
-			DitherTexture.instance().disable();
-		}
+		//if (Configurator.hdLightmaps()) {
+		//	LightmapHdTexture.instance().disable();
+		//	DitherTexture.instance().disable();
+		//}
 
 		VboBuffer.unbind();
 		RenderSystem.clearCurrentColor();

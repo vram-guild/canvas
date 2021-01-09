@@ -39,18 +39,13 @@ import static grondag.canvas.config.Configurator.fogMode;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
 import static grondag.canvas.config.Configurator.handheldLightRadius;
-import static grondag.canvas.config.Configurator.hdLightmaps;
 import static grondag.canvas.config.Configurator.lagFinder;
 import static grondag.canvas.config.Configurator.lightSmoothing;
-import static grondag.canvas.config.Configurator.lightmapDebug;
-import static grondag.canvas.config.Configurator.lightmapNoise;
 import static grondag.canvas.config.Configurator.logGlStateChanges;
 import static grondag.canvas.config.Configurator.logMachineInfo;
 import static grondag.canvas.config.Configurator.logMaterials;
 import static grondag.canvas.config.Configurator.logMissingUniforms;
 import static grondag.canvas.config.Configurator.logRenderLagSpikes;
-import static grondag.canvas.config.Configurator.maxLightmapDelayFrames;
-import static grondag.canvas.config.Configurator.moreLightmap;
 import static grondag.canvas.config.Configurator.pipelineId;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
 import static grondag.canvas.config.Configurator.reduceResolutionOnMac;
@@ -191,32 +186,32 @@ public class ConfigGui {
 				})
 				.build());
 
-		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
-				.setDefaultValue(DEFAULTS.hdLightmaps)
-				.setTooltip(parse("config.canvas.help.hd_lightmaps"))
-				.setSaveConsumer(b -> {
-					reload |= hdLightmaps != b;
-					hdLightmaps = b;
-				})
-				.build());
+		//		lighting.addEntry(ENTRY_BUILDER
+		//				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
+		//				.setDefaultValue(DEFAULTS.hdLightmaps)
+		//				.setTooltip(parse("config.canvas.help.hd_lightmaps"))
+		//				.setSaveConsumer(b -> {
+		//					reload |= hdLightmaps != b;
+		//					hdLightmaps = b;
+		//				})
+		//				.build());
 
-		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.more_lightmap"), moreLightmap)
-				.setDefaultValue(DEFAULTS.moreLightmap)
-				.setTooltip(parse("config.canvas.help.more_lightmap"))
-				.setSaveConsumer(b -> moreLightmap = b)
-				.build());
+		//		lighting.addEntry(ENTRY_BUILDER
+		//				.startBooleanToggle(new TranslatableText("config.canvas.value.more_lightmap"), moreLightmap)
+		//				.setDefaultValue(DEFAULTS.moreLightmap)
+		//				.setTooltip(parse("config.canvas.help.more_lightmap"))
+		//				.setSaveConsumer(b -> moreLightmap = b)
+		//				.build());
 
-		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.lightmap_noise"), lightmapNoise)
-				.setDefaultValue(DEFAULTS.lightmapNoise)
-				.setTooltip(parse("config.canvas.help.lightmap_noise"))
-				.setSaveConsumer(b -> {
-					reload |= lightmapNoise != b;
-					lightmapNoise = b;
-				})
-				.build());
+		//		lighting.addEntry(ENTRY_BUILDER
+		//				.startBooleanToggle(new TranslatableText("config.canvas.value.lightmap_noise"), lightmapNoise)
+		//				.setDefaultValue(DEFAULTS.lightmapNoise)
+		//				.setTooltip(parse("config.canvas.help.lightmap_noise"))
+		//				.setSaveConsumer(b -> {
+		//					reload |= lightmapNoise != b;
+		//					lightmapNoise = b;
+		//				})
+		//				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.diffuse_shading"), DiffuseMode.class, diffuseShadingMode)
@@ -238,12 +233,12 @@ public class ConfigGui {
 				})
 				.build());
 
-		lighting.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.lightmap_delay_frames"), maxLightmapDelayFrames, 0, 20)
-				.setDefaultValue(DEFAULTS.maxLightmapDelayFrames)
-				.setTooltip(parse("config.canvas.help.lightmap_delay_frames"))
-				.setSaveConsumer(b -> maxLightmapDelayFrames = b)
-				.build());
+		//		lighting.addEntry(ENTRY_BUILDER
+		//				.startIntSlider(new TranslatableText("config.canvas.value.lightmap_delay_frames"), maxLightmapDelayFrames, 0, 20)
+		//				.setDefaultValue(DEFAULTS.maxLightmapDelayFrames)
+		//				.setTooltip(parse("config.canvas.help.lightmap_delay_frames"))
+		//				.setSaveConsumer(b -> maxLightmapDelayFrames = b)
+		//				.build());
 
 		lighting.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_flat_lighting"), semiFlatLighting)
@@ -409,12 +404,12 @@ public class ConfigGui {
 				.setSaveConsumer(b -> shaderDebug = b)
 				.build());
 
-		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug_lightmap"), lightmapDebug)
-				.setDefaultValue(DEFAULTS.lightmapDebug)
-				.setTooltip(parse("config.canvas.help.shader_debug_lightmap"))
-				.setSaveConsumer(b -> lightmapDebug = b)
-				.build());
+		//		debug.addEntry(ENTRY_BUILDER
+		//				.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug_lightmap"), lightmapDebug)
+		//				.setDefaultValue(DEFAULTS.lightmapDebug)
+		//				.setTooltip(parse("config.canvas.help.shader_debug_lightmap"))
+		//				.setSaveConsumer(b -> lightmapDebug = b)
+		//				.build());
 
 		debug.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.concise_errors"), conciseErrors)
