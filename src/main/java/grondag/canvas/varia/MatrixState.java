@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.material.property;
+package grondag.canvas.varia;
 
 import java.nio.FloatBuffer;
 
@@ -31,7 +31,6 @@ import net.minecraft.util.math.Vec3d;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.PipelineManager;
-import grondag.canvas.varia.WorldDataManager;
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.
@@ -181,6 +180,14 @@ public enum MatrixState {
 		shadowProjMatrixInvExt.set(shadowProjMatrixExt);
 		shadowProjMatrixInvExt.invertProjection();
 		shadowProjMatrixInvExt.writeToBuffer(SHADOW_PROJ_INVERSE * 16, DATA);
+
+		shadowViewProjMatrixExt.set(shadowProjMatrixExt);
+		shadowViewProjMatrixExt.multiply(shadowViewMatrixExt);
+		shadowViewProjMatrixExt.writeToBuffer(SHADOW_VIEW_PROJ * 16, DATA);
+
+		shadowViewProjMatrixInvExt.set(shadowViewMatrixInvExt);
+		shadowViewProjMatrixInvExt.multiply(shadowProjMatrixInvExt);
+		shadowViewProjMatrixInvExt.writeToBuffer(SHADOW_VIEW_PROJ_INVERSE * 16, DATA);
 	}
 
 	public static final Matrix4f viewMatrix = new Matrix4f();
@@ -208,6 +215,11 @@ public enum MatrixState {
 	private static final Matrix4f shadowProjMatrixInv = new Matrix4f();
 	private static final Matrix4fExt shadowProjMatrixInvExt = (Matrix4fExt) (Object) shadowProjMatrixInv;
 
+	public static final Matrix4f shadowViewProjMatrix = new Matrix4f();
+	public static final Matrix4fExt shadowViewProjMatrixExt = (Matrix4fExt) (Object) shadowViewProjMatrix;
+	private static final Matrix4f shadowViewProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt shadowViewProjMatrixInvExt = (Matrix4fExt) (Object) shadowViewProjMatrixInv;
+
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
 
 	private static final int VIEW = 0;
@@ -223,7 +235,9 @@ public enum MatrixState {
 	private static final int SHADOW_VIEW_INVERSE = 10;
 	private static final int SHADOW_PROJ = 11;
 	private static final int SHADOW_PROJ_INVERSE = 12;
+	private static final int SHADOW_VIEW_PROJ = 13;
+	private static final int SHADOW_VIEW_PROJ_INVERSE = 14;
 
-	public static final int COUNT = 13;
+	public static final int COUNT = 15;
 	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(COUNT * 16);
 }

@@ -37,7 +37,7 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 	}
 
 #ifdef SHADOW_MAP_PRESENT
-	shadowPos  = frx_shadowProjectionMatrix() * frx_shadowViewMatrix() * data.vertex;
+	shadowPos  = frx_shadowViewProjectionMatrix() * data.vertex;
 
     // Transform from screen coordinates to texture coordinates
 	shadowPos = shadowPos * 0.5 + 0.5;

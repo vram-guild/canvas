@@ -47,8 +47,11 @@
 // w is sky rotation in radians
 #define _CV_SKYLIGHT_VECTOR 11
 
-// w is skylight strength 0-1
-#define _CV_SKYLIGHT_POSITION 12
+// w is always zero
+#define _CV_CAMERA_TO_SKYLIGHT 12
+
+// x: skylight strength 0-1
+#define _CV_THINGS_AND_STUFF 13
 
 #define _CV_FLAG_HAS_SKYLIGHT 0
 #define _CV_FLAG_IS_OVERWORLD 1
@@ -88,8 +91,10 @@ uniform int _cvu_fog_mode;
 #define _CV_MAT_SHADOW_VIEW_INVERSE 10
 #define _CV_MAT_SHADOW_PROJ 11
 #define _CV_MAT_SHADOW_PROJ_INVERSE 12
+#define _CV_MAT_SHADOW_VIEW_PROJ 13
+#define _CV_MAT_SHADOW_VIEW_PROJ_INVERSE 14
 
-uniform mat4[13] _cvu_matrix;
+uniform mat4[15] _cvu_matrix;
 
 bool _cv_testCondition(int conditionIndex) {
 	return frx_bitValue(_cvu_flags[_CV_CONDITION_FLAGS_START + (conditionIndex >> 5)], conditionIndex & 31) == 1.0;

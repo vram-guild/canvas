@@ -90,7 +90,7 @@ vec3 frx_skyLightVector() {
  * Will be undefined / meaningless if the world has no skylight.
  */
 float frx_skyLightStrength() {
-	return _cvu_world[_CV_SKYLIGHT_POSITION].w;
+	return _cvu_world[_CV_THINGS_AND_STUFF].x;
 }
 
 /*

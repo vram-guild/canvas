@@ -108,9 +108,11 @@ public class WorldDataManager {
 	private static final int SKYLIGHT_VECTOR = 4 * 11;
 	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
 
-	// WIP: rename to cameraToSkylight and make w always zero
-	private static final int SKYLIGHT_POSITION = 4 * 12;
-	private static final int SKYLIGHT_STRENGTH = SKYLIGHT_POSITION + 3;
+	// WIP: make w always zero
+	private static final int CAMERA_TO_SKYLIGHT = 4 * 12;
+
+	private static final int THINGS_AND_STUFF = 4 * 13;
+	private static final int SKYLIGHT_STRENGTH = THINGS_AND_STUFF;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -178,7 +180,6 @@ public class WorldDataManager {
 	static double smoothedEyeLightSky = 0;
 	static double smoothedRainStrength = 0;
 
-	private static final Vector3f skylightPosition = new Vector3f();
 	public static final Vector3f skyShadowVector = new Vector3f();
 	public static float skyShadowRotationRadiansZ;
 
@@ -392,9 +393,9 @@ public class WorldDataManager {
 
 				//vd *= 0.5f;
 
-				DATA.put(SKYLIGHT_POSITION + 0, px + sx * vd);
-				DATA.put(SKYLIGHT_POSITION + 1, py + sy * vd);
-				DATA.put(SKYLIGHT_POSITION + 2, pz + vd);
+				DATA.put(CAMERA_TO_SKYLIGHT + 0, px + sx * vd);
+				DATA.put(CAMERA_TO_SKYLIGHT + 1, py + sy * vd);
+				DATA.put(CAMERA_TO_SKYLIGHT + 2, pz + vd);
 			}
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);

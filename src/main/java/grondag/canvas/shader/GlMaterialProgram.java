@@ -21,9 +21,9 @@ import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.material.property.MatrixState;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
 

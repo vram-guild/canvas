@@ -22,9 +22,9 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.material.property.MatrixState;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.FlagData;
+import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
