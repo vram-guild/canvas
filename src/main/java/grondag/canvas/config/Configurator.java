@@ -18,8 +18,6 @@ package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-
 import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
@@ -31,7 +29,6 @@ import grondag.canvas.pipeline.config.PipelineLoader;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
-	static final ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
 	public static String pipelineId = DEFAULTS.pipelineId;
 	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;

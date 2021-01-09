@@ -27,7 +27,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
@@ -35,18 +34,16 @@ import net.minecraft.text.Text;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.pipeline.config.option.OptionConfig;
 
 public class ConfigManager {
 	static final ConfigData DEFAULTS = new ConfigData();
 	public static final Gson GSON = new GsonBuilder().create();
 	public static final Jankson JANKSON = Jankson.builder().build();
 
-	/**
-	 * Use to stash parent screen during display.
-	 */
-	static Screen screenIn;
-
 	static File configFile;
+	static File pipelineFile;
 
 	public static void init() {
 		configFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "canvas.json5");
@@ -56,10 +53,65 @@ public class ConfigManager {
 		} else {
 			ConfigManager.saveConfig();
 		}
+
+		pipelineFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "canvas_pipeline_options.json5");
 	}
 
 	public static Text[] parse(String key) {
 		return Arrays.stream(I18n.translate(key).split(";")).map(s -> new LiteralText(s)).collect(Collectors.toList()).toArray(new Text[0]);
+	}
+
+	public static void initPipelineOptions(OptionConfig[] options) {
+		if (options == null || options.length == 0) {
+			return;
+		}
+
+		try {
+			final JsonObject configJson = pipelineFile.exists() ? JANKSON.load(pipelineFile) : new JsonObject();
+
+			for (final OptionConfig cfg : options) {
+				cfg.readConfig(configJson);
+				cfg.writeConfig(configJson);
+			}
+
+			try (FileOutputStream out = new FileOutputStream(pipelineFile, false)) {
+				out.write(configJson.toJson(true, true).getBytes());
+				out.flush();
+				out.close();
+			}
+		} catch (final Exception e) {
+			e.printStackTrace();
+			CanvasMod.LOG.error("Error loading pipeline config. Using default values.");
+		}
+	}
+
+	public static void savePipelineOptions(OptionConfig[] options) {
+		if (options == null || options.length == 0) {
+			return;
+		}
+
+		try {
+			final JsonObject configJson = JANKSON.load(pipelineFile);
+
+			for (final OptionConfig cfg : options) {
+				cfg.writeConfig(configJson);
+			}
+
+			if (!pipelineFile.exists()) {
+				pipelineFile.createNewFile();
+			}
+
+			try (FileOutputStream out = new FileOutputStream(pipelineFile, false)) {
+				out.write(configJson.toJson(true, true).getBytes());
+				out.flush();
+				out.close();
+			}
+		} catch (final Exception e) {
+			e.printStackTrace();
+			CanvasMod.LOG.error("Error loading pipeline config. Using default values.");
+		}
+
+		Canvas.INSTANCE.recompile();
 	}
 
 	static void saveConfig() {
@@ -69,21 +121,13 @@ public class ConfigManager {
 
 		try {
 			final JsonObject json = (JsonObject) JANKSON.toJson(config);
-
-			// WIP: remove
-			//final JsonObject boop = new JsonObject();
-			//boop.put("thing", new JsonPrimitive(false));
-			//json.put("canvas:container", boop);
-
 			final String result = json.toJson(true, true);
 
 			if (!configFile.exists()) {
 				configFile.createNewFile();
 			}
 
-			try (
-					FileOutputStream out = new FileOutputStream(configFile, false)
-					) {
+			try (FileOutputStream out = new FileOutputStream(configFile, false)) {
 				out.write(result.getBytes());
 				out.flush();
 				out.close();

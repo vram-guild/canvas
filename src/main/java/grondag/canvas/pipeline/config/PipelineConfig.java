@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependency;
@@ -92,6 +93,8 @@ public class PipelineConfig {
 		afterRenderHand = builder.afterRenderHand.toArray(new PassConfig[builder.afterRenderHand.size()]);
 		materialVertexShader = new Identifier(builder.materialVertexShader);
 		materialFragmentShader = new Identifier(builder.materialFragmentShader);
+
+		ConfigManager.initPipelineOptions(options);
 	}
 
 	public String configSource(Identifier id) {

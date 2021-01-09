@@ -106,6 +106,8 @@ public class Canvas implements Renderer {
 	}
 
 	public void recompile() {
+		PipelineLoader.INSTANCE.apply(MinecraftClient.getInstance().getResourceManager());
+		Pipeline.reload();
 		GlShader.forceReloadErrors();
 		GlShaderManager.INSTANCE.reload();
 		GlProgramManager.INSTANCE.reload();
@@ -113,8 +115,6 @@ public class Canvas implements Renderer {
 		LightmapHdTexture.reload();
 		LightmapHd.reload();
 		TerrainModelSpace.reload();
-		PipelineLoader.INSTANCE.apply(MinecraftClient.getInstance().getResourceManager());
-		Pipeline.reload();
 		MaterialTextureState.reload();
 	}
 

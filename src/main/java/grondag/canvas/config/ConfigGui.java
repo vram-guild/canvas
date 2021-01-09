@@ -18,8 +18,6 @@ package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 import static grondag.canvas.config.ConfigManager.parse;
-import static grondag.canvas.config.ConfigManager.screenIn;
-import static grondag.canvas.config.Configurator.ENTRY_BUILDER;
 import static grondag.canvas.config.Configurator.aoShadingMode;
 import static grondag.canvas.config.Configurator.batchedChunkRender;
 import static grondag.canvas.config.Configurator.blendFluidColors;
@@ -71,25 +69,46 @@ import static grondag.canvas.config.Configurator.traceOcclusionOutcomes;
 import static grondag.canvas.config.Configurator.vertexControlMode;
 import static grondag.canvas.config.Configurator.wavyGrass;
 
+import java.lang.ref.WeakReference;
 import java.util.Optional;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
+import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import me.shedaniel.clothconfig2.gui.entries.SelectionListEntry;
 
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Identifier;
 
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
 
 public class ConfigGui {
-	public static Screen display(Screen screen) {
-		screenIn = screen;
+	static final ConfigEntryBuilder ENTRY_BUILDER = ConfigEntryBuilder.create();
+
+	/**
+	 * Use to stash parent screen during display.
+	 */
+	private static WeakReference<Screen> configScreen;
+	private static SelectionListEntry<PipelineDescription> pipeline;
+
+	static Identifier pipeline() {
+		return pipeline == null ? PipelineConfig.DEFAULT_ID : pipeline.getValue().id;
+	}
+
+	static Screen current() {
+		return configScreen.get();
+	}
+
+	public static Screen display(Screen parent) {
 		reload = false;
 
 		final ConfigBuilder builder = ConfigBuilder.create()
-				.setParentScreen(screenIn)
+				.setParentScreen(parent)
 				.setTitle(new TranslatableText("config.canvas.title"))
 				.setSavingRunnable(ConfigManager::saveUserInput)
 				.setAlwaysShowTabs(false)
@@ -102,8 +121,7 @@ public class ConfigGui {
 		// FEATURES
 		final ConfigCategory features = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.features"));
 
-		features.addEntry(
-			ENTRY_BUILDER
+		pipeline = ENTRY_BUILDER
 				.startSelector(new TranslatableText("config.canvas.value.pipeline"), PipelineLoader.array(), PipelineLoader.get(pipelineId))
 				.setNameProvider(o -> new LiteralText(o.name()))
 				.setTooltip(parse("config.canvas.help.pipeline"))
@@ -115,8 +133,11 @@ public class ConfigGui {
 						pipelineId = b.id.toString();
 					}
 				})
-				.build()
-		);
+				.build();
+
+		features.addEntry(pipeline);
+
+		features.addEntry(new PipelineOptionsEntry());
 
 		features.addEntry(ENTRY_BUILDER
 				.startEnumSelector(new TranslatableText("config.canvas.value.fog_mode"), FogMode.class, fogMode)
@@ -533,6 +554,8 @@ public class ConfigGui {
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 
-		return builder.build();
+		final Screen result = builder.build();
+		configScreen = new WeakReference<>(result);
+		return result;
 	}
 }

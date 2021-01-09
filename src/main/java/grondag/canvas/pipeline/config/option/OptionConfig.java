@@ -82,7 +82,7 @@ public class OptionConfig extends AbstractConfig {
 	public boolean validate() {
 		boolean valid = true;
 
-		valid &= assertAndWarn(includeToken != null, "Invlid pipeline config option - includeToken is missing");
+		valid &= assertAndWarn(includeToken != null, "Invalid pipeline config option - includeToken is missing");
 		valid &= assertAndWarn(categoryKey != null && !categoryKey.isEmpty(), "Invalid pipeline config option - categoryKey is missing");
 		valid &= assertAndWarn(!entries.isEmpty(), "Invalid pipeline config option - no entries");
 		valid &= assertAndWarn(!isDuplicate, "Invalid pipeline config option - duplicate includeToken " + includeToken);

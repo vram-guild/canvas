@@ -42,10 +42,12 @@ public class FloatConfigEntry extends OptionConfigEntry {
 
 	@Override
 	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
-		return builder.startIntSlider(new TranslatableText(nameKey),
-				(int) (value * 100), (int) (min * 100), (int) (max * 100))
-				.setDefaultValue((int) (defaultVal * 100))
+		return builder.startFloatField(new TranslatableText(nameKey), value)
+				.setMin(min)
+				.setMax(max)
+				.setDefaultValue(defaultVal)
 				.setTooltip(ConfigManager.parse(descriptionKey))
+				.setSaveConsumer(f -> value = f)
 				.build();
 	}
 

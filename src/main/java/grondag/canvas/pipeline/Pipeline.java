@@ -153,10 +153,10 @@ public class Pipeline {
 	}
 
 	private static void activateInner(int width, int height) {
-		final PipelineConfig cfg = PipelineConfigBuilder.build(new Identifier(Configurator.pipelineId));
-		config = cfg;
+		final PipelineConfig config = PipelineConfigBuilder.build(new Identifier(Configurator.pipelineId));
+		Pipeline.config = config;
 
-		for (final ImageConfig img : cfg.images) {
+		for (final ImageConfig img : config.images) {
 			if (IMAGES.containsKey(img.name)) {
 				CanvasMod.LOG.warn(String.format("Duplicate pipeline image definition encountered with name %s. Duplicate was skipped.", img.name));
 				continue;
@@ -165,7 +165,7 @@ public class Pipeline {
 			IMAGES.put(img.name, new Image(img, width, height));
 		}
 
-		for (final ProgramConfig program : cfg.programs) {
+		for (final ProgramConfig program : config.programs) {
 			if (SHADERS.containsKey(program.name)) {
 				CanvasMod.LOG.warn(String.format("Duplicate pipeline shader definition encountered with name %s. Duplicate was skipped.", program.name));
 				continue;
@@ -174,7 +174,7 @@ public class Pipeline {
 			SHADERS.put(program.name, new ProcessShader(program.vertexSource, program.fragmentSource, program.samplerNames));
 		}
 
-		for (final FramebufferConfig buffer : cfg.framebuffers) {
+		for (final FramebufferConfig buffer : config.framebuffers) {
 			if (FRAMEBUFFERS.containsKey(buffer.name)) {
 				CanvasMod.LOG.warn(String.format("Duplicate pipeline framebuffer definition encountered with name %s. Duplicate was skipped.", buffer.name));
 				continue;
@@ -183,30 +183,30 @@ public class Pipeline {
 			FRAMEBUFFERS.put(buffer.name, new PipelineFramebuffer(buffer, width, height));
 		}
 
-		PipelineFramebuffer b = getFramebuffer(cfg.defaultFramebuffer.name);
+		PipelineFramebuffer b = getFramebuffer(config.defaultFramebuffer.name);
 		defaultFbo = b;
 		defaultColor = getImage(b.config.colorAttachments[0].image.name).glId();
 		defaultDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-		solidTerrainFbo = getFramebuffer(cfg.drawTargets.solidTerrain.name);
-		translucentTerrainFbo = getFramebuffer(cfg.drawTargets.translucentTerrain.name);
-		translucentEntityFbo = getFramebuffer(cfg.drawTargets.translucentEntity.name);
-		weatherFbo = getFramebuffer(cfg.drawTargets.weather.name);
-		cloudsFbo = getFramebuffer(cfg.drawTargets.clouds.name);
-		translucentParticlesFbo = getFramebuffer(cfg.drawTargets.translucentParticles.name);
+		solidTerrainFbo = getFramebuffer(config.drawTargets.solidTerrain.name);
+		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain.name);
+		translucentEntityFbo = getFramebuffer(config.drawTargets.translucentEntity.name);
+		weatherFbo = getFramebuffer(config.drawTargets.weather.name);
+		cloudsFbo = getFramebuffer(config.drawTargets.clouds.name);
+		translucentParticlesFbo = getFramebuffer(config.drawTargets.translucentParticles.name);
 
-		if (cfg.skyShadow != null) {
-			skyShadowFbo = getFramebuffer(cfg.skyShadow.framebuffer.name);
-			shadowMapDepth = getImage(cfg.skyShadow.framebuffer.value().depthAttachment.image.name).glId();
+		if (config.skyShadow != null) {
+			skyShadowFbo = getFramebuffer(config.skyShadow.framebuffer.name);
+			shadowMapDepth = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name).glId();
 		} else {
 			skyShadowFbo = null;
 			shadowMapDepth = -1;
 		}
 
-		isFabulous = cfg.fabulosity != null;
+		isFabulous = config.fabulosity != null;
 
 		if (isFabulous) {
-			final FabulousConfig fc = cfg.fabulosity;
+			final FabulousConfig fc = config.fabulosity;
 			b = getFramebuffer(fc.entityFrambuffer.name);
 			fabEntityFbo = b.glId();
 			fabEntityColor = getImage(b.config.colorAttachments[0].image.name).glId();
@@ -232,17 +232,17 @@ public class Pipeline {
 			fabTranslucentColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabTranslucentDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			fabulous = new Pass[cfg.fabulous.length];
+			fabulous = new Pass[config.fabulous.length];
 
-			for (int i = 0; i < cfg.fabulous.length; ++i) {
-				fabulous[i] = Pass.create(cfg.fabulous[i]);
+			for (int i = 0; i < config.fabulous.length; ++i) {
+				fabulous[i] = Pass.create(config.fabulous[i]);
 			}
 		}
 
-		BufferDebug.init(cfg);
+		BufferDebug.init(config);
 
-		onWorldRenderStart = buildPasses(cfg, cfg.onWorldStart);
-		afterRenderHand = buildPasses(cfg, cfg.afterRenderHand);
+		onWorldRenderStart = buildPasses(config, config.onWorldStart);
+		afterRenderHand = buildPasses(config, config.afterRenderHand);
 	}
 
 	private static Pass[] buildPasses(PipelineConfig cfg, PassConfig[] configs) {

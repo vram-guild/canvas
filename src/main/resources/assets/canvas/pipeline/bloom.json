@@ -2,12 +2,12 @@
   options: [
     {
       includeToken: "canvas:bloom_config",
-      categoryKey: "bloom",
+      categoryKey: "config.canvas.category.bloom",
       options: {
         bloom_intensity: {
           default: 0.1,
-          min: 0.02,
-          max: 0.3,
+          min: 0.01,
+          max: 0.8,
           nameKey: "config.canvas.value.bloom_intensity",
           descriptionKey: "config.canvas.help.bloom_intensity"
         },

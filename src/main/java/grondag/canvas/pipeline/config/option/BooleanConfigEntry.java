@@ -41,6 +41,7 @@ public class BooleanConfigEntry extends OptionConfigEntry {
 		return builder.startBooleanToggle(new TranslatableText(nameKey), value)
 				.setDefaultValue(defaultVal)
 				.setTooltip(ConfigManager.parse(descriptionKey))
+				.setSaveConsumer(b -> value = b)
 				.build();
 	}
 
