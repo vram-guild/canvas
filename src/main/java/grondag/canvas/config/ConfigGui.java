@@ -21,8 +21,6 @@ import static grondag.canvas.config.ConfigManager.parse;
 import static grondag.canvas.config.Configurator.aoShadingMode;
 import static grondag.canvas.config.Configurator.batchedChunkRender;
 import static grondag.canvas.config.Configurator.blendFluidColors;
-import static grondag.canvas.config.Configurator.bloomIntensity;
-import static grondag.canvas.config.Configurator.bloomScale;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
 import static grondag.canvas.config.Configurator.conciseErrors;
 import static grondag.canvas.config.Configurator.createLagFinder;
@@ -33,7 +31,6 @@ import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
 import static grondag.canvas.config.Configurator.diffuseShadingMode;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
-import static grondag.canvas.config.Configurator.enableBloom;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
 import static grondag.canvas.config.Configurator.enableVao;
@@ -157,34 +154,6 @@ public class ConfigGui {
 					reload |= blendFluidColors != b;
 					blendFluidColors = b;
 				})
-				.build());
-
-		features.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.bloom"), enableBloom)
-				.setDefaultValue(DEFAULTS.enableBloom)
-				.setTooltip(parse("config.canvas.help.bloom"))
-				.setSaveConsumer(b -> {
-					reload |= enableBloom != b;
-					enableBloom = b;
-				})
-				.build());
-
-		features.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.bloom_intensity"), (int) (bloomIntensity * 200), 0, 100)
-				.setDefaultValue((int) (DEFAULTS.bloomIntensity * 200))
-				.setMax(100)
-				.setMin(0)
-				.setTooltip(parse("config.canvas.help.bloom_intensity"))
-				.setSaveConsumer(b -> bloomIntensity = b / 200f)
-				.build());
-
-		features.addEntry(ENTRY_BUILDER
-				.startIntSlider(new TranslatableText("config.canvas.value.bloom_scale"), (int) (bloomScale * 100), 0, 200)
-				.setDefaultValue((int) (DEFAULTS.bloomScale * 100))
-				.setMax(200)
-				.setMin(0)
-				.setTooltip(parse("config.canvas.help.bloom_scale"))
-				.setSaveConsumer(b -> bloomScale = b / 100f)
 				.build());
 
 		features.addEntry(ENTRY_BUILDER

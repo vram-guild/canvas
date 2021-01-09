@@ -32,9 +32,6 @@ public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
 	public static FogMode fogMode = DEFAULTS.fogMode;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
-	public static boolean enableBloom = DEFAULTS.enableBloom;
-	public static float bloomIntensity = DEFAULTS.bloomIntensity;
-	public static float bloomScale = DEFAULTS.bloomScale;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
 	public static int handheldLightRadius = DEFAULTS.handheldLightRadius;
 	public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
@@ -107,9 +104,6 @@ public class Configurator {
 
 		fogMode = config.fogMode;
 		blendFluidColors = config.blendFluidColors;
-		enableBloom = config.enableBloom;
-		bloomIntensity = config.bloomIntensity;
-		bloomScale = config.bloomScale;
 		wavyGrass = config.wavyGrass;
 		handheldLightRadius = config.handheldLightRadius;
 
@@ -164,9 +158,6 @@ public class Configurator {
 		config.pipelineId = pipelineId;
 		config.fogMode = fogMode;
 		config.blendFluidColors = blendFluidColors;
-		config.enableBloom = enableBloom;
-		config.bloomIntensity = bloomIntensity;
-		config.bloomScale = bloomScale;
 		config.wavyGrass = wavyGrass;
 		config.handheldLightRadius = handheldLightRadius;
 

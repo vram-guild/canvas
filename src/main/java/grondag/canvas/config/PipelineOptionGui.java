@@ -35,7 +35,6 @@ public class PipelineOptionGui {
 		final ConfigBuilder builder = ConfigBuilder.create()
 				.setParentScreen(ConfigGui.current())
 				.setTitle(new TranslatableText("config.canvas.value.pipeline_config"))
-				.setSavingRunnable(ConfigManager::saveUserInput)
 				.setAlwaysShowTabs(false)
 				.setShouldListSmoothScroll(true)
 				.setShouldListSmoothScroll(true)

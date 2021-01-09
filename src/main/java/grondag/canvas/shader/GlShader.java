@@ -272,10 +272,6 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA", "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_SUBTLE");
 			}
 
-			if (Configurator.enableBloom) {
-				result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
-			}
-
 			if (Pipeline.skyShadowFbo == null) {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_PRESENT", "//#define SHADOW_MAP_PRESENT");
 			}

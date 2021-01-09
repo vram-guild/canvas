@@ -48,9 +48,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderHand", require = 1, at = @At("RETURN"))
 	private void afterRenderHand(CallbackInfo ci) {
-		if (Configurator.enableBloom) {
-			PipelineManager.afterRenderHand();
-		}
+		PipelineManager.afterRenderHand();
 
 		if (Configurator.enableBufferDebug) {
 			BufferDebug.render();

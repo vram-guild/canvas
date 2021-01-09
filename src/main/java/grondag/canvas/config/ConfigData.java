@@ -24,12 +24,6 @@ class ConfigData {
 	@Comment("Renderer configuration. Determines appearance, performance and available options.")
 	public String pipelineId = PipelineConfig.DEFAULT_ID.toString();
 	@Comment("Glow effect around light sources.")
-	public boolean enableBloom = true;
-	@Comment("Intensity of glow effect around light sources. 0.0 to 0.5, default is 0.1.")
-	public float bloomIntensity = 0.1f;
-	@Comment("Size of bloom effect around light sources. 0.0 to 2.0, default is 0.25.")
-	public float bloomScale = 0.25f;
-	@Comment("Animated foliage")
 	public boolean wavyGrass = true;
 	@Comment("Hand held light max radius. 0-15, Zero disables")
 	public int handheldLightRadius = 11;
