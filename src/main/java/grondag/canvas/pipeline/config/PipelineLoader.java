@@ -72,6 +72,10 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 	private static final Object2ObjectOpenHashMap<String, PipelineDescription> MAP = new Object2ObjectOpenHashMap<>();
 
 	public static PipelineDescription get(String idString) {
+		if (!MAP.containsKey(idString)) {
+			idString = PipelineConfig.DEFAULT_ID.toString();
+		}
+
 		return MAP.get(idString);
 	}
 

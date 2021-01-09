@@ -25,7 +25,6 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.perf.LagFinder;
 import grondag.canvas.pipeline.config.PipelineConfig;
-import grondag.canvas.pipeline.config.PipelineLoader;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
@@ -94,7 +93,7 @@ public class Configurator {
 	static void readFromConfig(ConfigData config) {
 		pipelineId = config.pipelineId;
 
-		if (pipelineId == null || pipelineId.isEmpty() || PipelineLoader.get(pipelineId) == null) {
+		if (pipelineId == null || pipelineId.isEmpty()) {
 			pipelineId = PipelineConfig.DEFAULT_ID.toString();
 		}
 
