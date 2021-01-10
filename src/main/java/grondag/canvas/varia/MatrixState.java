@@ -26,11 +26,10 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.
@@ -82,22 +81,19 @@ public enum MatrixState {
 
 	static int i = 0;
 	@SuppressWarnings("resource")
-	private static void computeShadowMatrices(Camera camera) {
+	private static void computeShadowMatrices(Camera camera, TerrainBounds bounds) {
 		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
 
 		// construct rotation matrix from sun position
 		shadowViewMatrixExt.loadIdentity();
 
-		// WIP: automatically scale this and ortho frustum depth for best precision
 		// move camera back from frustum center to see whole scene
 		// Is Z-axis only because we are now pointing towards the center
 		// (Steps are reverse order for matrix multiply)
 		shadowViewMatrixExt.translate(0f, 0f, -viewDist);
 
-		// Rotate to fit image mostly into the size of our regular framebuffer
-		// We don't have to use that size for the shadow map, but it tends to fit pretty well.
-		// WIP: use a fixed res, probably square size, and cascaded levels
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(camera.getYaw()));
+		// Rotate to make easier to look at
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(90));
 
 		// Rotate for position of sun
 		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getRadialQuaternion((float) (Math.PI * 0.5) - WorldDataManager.skyShadowRotationRadiansZ));
@@ -108,33 +104,26 @@ public enum MatrixState {
 		// reverse Z-axis direction to align w/ opengl view
 		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(180));
 
-		// translate to middle of frustum
-		final Vec3d cv = Vec3d.fromPolar(camera.getPitch(), camera.getYaw());
+		// translate to middle of view area
 		shadowViewMatrixExt.translate(
-				(float) (cv.x * viewDist * -0.5),
-				(float) (cv.y * viewDist * -0.5),
-				(float) (cv.z * viewDist * -0.5));
+				bounds.midX() - WorldDataManager.cameraX,
+				bounds.midY() - WorldDataManager.cameraY,
+				bounds.midZ() - WorldDataManager.cameraZ);
+
+		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
 
 		// orthographic projection
-		final float near = 0.05f;
-		final float far = viewDist * 2;
-
-		// WIP: improve scaling based on bounds of rendered chunks
-		final float scale = viewDist * 2 / PipelineManager.width();
-
-		shadowProjMatrixExt.a00(2f / scale / PipelineManager.width());
-		shadowProjMatrixExt.a11(2f / scale / PipelineManager.height());
-		shadowProjMatrixExt.a22(-2f / (far - near));
-		shadowProjMatrixExt.a03(0.0f);
-		shadowProjMatrixExt.a13(0.0f);
-		shadowProjMatrixExt.a23(-((far + near) / (far - near)));
-		shadowProjMatrixExt.a33(1f);
+		shadowProjMatrixExt.setOrtho(
+				bounds.minViewX(), bounds.maxViewX(),
+				bounds.minViewY(), bounds.maxViewY(),
+				0.05f, viewDist + bounds.maxViewZ() - bounds.minViewZ());
 	}
 
 	/**
 	 * Depends on WorldDataManager and should be called after it updates.
+	 * @param bounds
 	 */
-	public static void update(MatrixState val, MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera) {
+	public static void update(MatrixState val, MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, TerrainBounds bounds) {
 		assert val != null;
 		current = val;
 
@@ -168,7 +157,7 @@ public enum MatrixState {
 		viewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
 
 		// shadow perspective
-		computeShadowMatrices(camera);
+		computeShadowMatrices(camera, bounds);
 		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, DATA);
 		shadowProjMatrixExt.writeToBuffer(SHADOW_PROJ * 16, DATA);
 

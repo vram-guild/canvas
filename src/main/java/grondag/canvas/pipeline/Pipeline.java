@@ -65,6 +65,7 @@ public class Pipeline {
 	public static int shadowMapDepth = -1;
 
 	public static PipelineFramebuffer skyShadowFbo;
+	public static int skyShadowSize;
 	public static PipelineFramebuffer solidTerrainFbo;
 	public static PipelineFramebuffer translucentTerrainFbo;
 	public static PipelineFramebuffer translucentEntityFbo;
@@ -162,7 +163,7 @@ public class Pipeline {
 				continue;
 			}
 
-			IMAGES.put(img.name, new Image(img, width, height));
+			IMAGES.put(img.name, new Image(img, img.width > 0 ? img.width : width, img.height > 0 ? img.height : height));
 		}
 
 		for (final ProgramConfig program : config.programs) {
@@ -197,10 +198,13 @@ public class Pipeline {
 
 		if (config.skyShadow != null) {
 			skyShadowFbo = getFramebuffer(config.skyShadow.framebuffer.name);
-			shadowMapDepth = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name).glId();
+			final Image sd = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name);
+			shadowMapDepth = sd.glId();
+			skyShadowSize = sd.config.width;
 		} else {
 			skyShadowFbo = null;
 			shadowMapDepth = -1;
+			skyShadowSize = 0;
 		}
 
 		isFabulous = config.fabulosity != null;

@@ -30,6 +30,10 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 	public final int pixelFormat;
 	public final int pixelDataType;
 	public final int lod;
+	/** 0 if tied to framebuffer size. */
+	public final int width;
+	/** 0 if tied to framebuffer size. */
+	public final int height;
 	public final int[] texParamPairs;
 
 	private ImageConfig(ConfigContext ctx, String name, int internalFormat, int lod, int pixelFormat, int pixelDataType, boolean depth) {
@@ -38,6 +42,8 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 		this.lod = lod;
 		this.pixelDataType = pixelDataType;
 		this.pixelFormat = pixelFormat;
+		width = 0;
+		height = 0;
 
 		if (depth) {
 			texParamPairs = new int[10];
@@ -65,6 +71,8 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 		lod = config.getInt("lod", 0);
 		pixelFormat = GlSymbolLookup.lookup(config, "pixelFormat", "RGBA");
 		pixelDataType = GlSymbolLookup.lookup(config, "pixelDataType", "UNSIGNED_BYTE");
+		width = config.getInt("size", 0);
+		height = width;
 
 		if (!config.containsKey("texParams")) {
 			texParamPairs = new int[0];

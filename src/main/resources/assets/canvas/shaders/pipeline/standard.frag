@@ -106,7 +106,7 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 #ifdef SHADOW_MAP_PRESENT
 	float shadowDepth = texture2D(frxs_shadowMap, shadowPos.xy).x;
 
-	if (shadowDepth < shadowPos.z - 0.01) {
+	if (shadowDepth < shadowPos.z - 0.002) {
 		fragData.light.y *= 0.50;
 	}
 #endif

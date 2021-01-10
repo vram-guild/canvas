@@ -233,4 +233,14 @@ public interface Matrix4fExt {
 	}
 
 	void writeToBuffer(int baseIndex, FloatBuffer floatBuffer);
+
+	default void setOrtho(float left, float right, float bottom, float top, float near, float far) {
+		loadIdentity();
+		a00(2.0f / (right - left));
+		a11(2.0f / (top - bottom));
+		a22(2.0f / (near - far));
+		a03((right + left) / (left - right));
+		a13((top + bottom) / (bottom - top));
+		a23((far + near) / (near - far));
+	}
 }

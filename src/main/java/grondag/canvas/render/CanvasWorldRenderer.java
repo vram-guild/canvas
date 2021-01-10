@@ -106,6 +106,7 @@ import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
+import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionPruner;
@@ -129,6 +130,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder, distanceSorter);
 	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
+	public final TerrainBounds bounds = new TerrainBounds();
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
@@ -295,6 +297,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				final int size = terrainIterator.visibleRegionCount;
 				visibleRegionCount = size;
 				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
+				bounds.set(terrainIterator.bounds);
 				assert size == 0 || visibleRegions[0] != null;
 				scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
@@ -322,6 +325,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				lastViewVersion = terrainFrustum.viewVersion();
 				visibleRegionCount = size;
 				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
+				bounds.set(terrainIterator.bounds);
 				scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 			}
@@ -1204,7 +1208,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// the GL state to the view matrix but it will have no effect - it is already applied.
 
 		WorldDataManager.update(camera);
-		MatrixState.update(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix, camera);
+		MatrixState.update(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix, camera, bounds);
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(MatrixState.viewMatrix);
 

@@ -32,6 +32,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
 import grondag.canvas.terrain.region.RenderRegionStorage;
@@ -47,6 +48,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	public static final int COMPLETE = 3;
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[CanvasWorldRenderer.MAX_REGION_COUNT];
+	public final TerrainBounds bounds = new TerrainBounds();
 	private final RenderRegionStorage renderRegionStorage;
 	public final TerrainOccluder terrainOccluder;
 	private final AtomicInteger state = new AtomicInteger(IDLE);
@@ -100,6 +102,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		final PotentiallyVisibleRegionSorter distanceSorter = this.distanceSorter;
 		int visibleRegionCount = 0;
 		updateRegions.clear();
+		bounds.reset();
 		renderRegionStorage.updateCameraDistanceAndVisibilityInfo(cameraChunkOrigin);
 		final boolean redrawOccluder = terrainOccluder.prepareScene(cameraPos);
 		final int occluderVersion = terrainOccluder.version();
@@ -184,6 +187,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 			if (!chunkCullingEnabled || builtRegion.isNear()) {
 				builtRegion.enqueueUnvistedNeighbors();
 				visibleRegions[visibleRegionCount++] = builtRegion;
+				bounds.addRegion(builtRegion.getOrigin());
 
 				if (redrawOccluder || builtRegion.occluderVersion() != occluderVersion) {
 					terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
@@ -196,6 +200,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				if (builtRegion.occluderResult()) {
 					builtRegion.enqueueUnvistedNeighbors();
 					visibleRegions[visibleRegionCount++] = builtRegion;
+					bounds.addRegion(builtRegion.getOrigin());
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
@@ -209,6 +214,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				if (terrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
 					builtRegion.enqueueUnvistedNeighbors();
 					visibleRegions[visibleRegionCount++] = builtRegion;
+					bounds.addRegion(builtRegion.getOrigin());
 					builtRegion.setOccluderResult(true, occluderVersion);
 
 					// these must always be drawn - will be additive if view hasn't changed

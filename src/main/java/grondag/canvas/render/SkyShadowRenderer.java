@@ -16,7 +16,10 @@
 
 package grondag.canvas.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.PipelineManager;
 
 public class SkyShadowRenderer {
 	private static boolean active = false;
@@ -25,6 +28,9 @@ public class SkyShadowRenderer {
 		if (Pipeline.skyShadowFbo != null) {
 			assert !active;
 			active = true;
+			final int size = Pipeline.skyShadowSize;
+			PipelineManager.setProjection(size, size);
+			RenderSystem.viewport(0, 0, size, size);
 		}
 	}
 
@@ -32,6 +38,8 @@ public class SkyShadowRenderer {
 		if (Pipeline.skyShadowFbo != null) {
 			assert active;
 			active = false;
+			PipelineManager.setProjection(PipelineManager.width(), PipelineManager.height());
+			RenderSystem.viewport(0, 0, PipelineManager.width(), PipelineManager.height());
 		}
 	}
 
