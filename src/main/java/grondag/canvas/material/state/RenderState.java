@@ -22,6 +22,7 @@ import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 
@@ -105,6 +106,7 @@ public final class RenderState extends AbstractRenderState {
 		depthTest.enable();
 		writeMask.enable();
 		fog.enable();
+		// WIP: disable decal renders in depth pass
 		decal.enable();
 
 		CULL_STATE.setEnabled(cull);
@@ -114,6 +116,10 @@ public final class RenderState extends AbstractRenderState {
 		depthShader.activate(this);
 		depthShader.setContextInfo(texture.atlasInfo(), target.index);
 		depthShader.setModelOrigin(x, y, z);
+
+		GL46.glEnable(GL46.GL_POLYGON_OFFSET_FILL);
+		GL46.glPolygonOffset(1.5f, 4.0f);
+		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 
 	private void enableMaterial(int x, int y, int z) {
@@ -203,6 +209,9 @@ public final class RenderState extends AbstractRenderState {
 
 		active = null;
 		shadowActive = null;
+
+		GL46.glDisable(GL46.GL_POLYGON_OFFSET_FILL);
+		//GL46.glCullFace(GL46.GL_BACK);
 
 		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();

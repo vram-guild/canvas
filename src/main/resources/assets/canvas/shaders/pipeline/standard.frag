@@ -102,15 +102,6 @@ frx_FragmentData frx_createPipelineFragment() {
 }
 
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
-
-#ifdef SHADOW_MAP_PRESENT
-	float shadowDepth = texture2D(frxs_shadowMap, shadowPos.xy).x;
-
-	if (shadowDepth < shadowPos.z - 0.002) {
-		fragData.light.y *= 0.50;
-	}
-#endif
-
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 	a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
 

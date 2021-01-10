@@ -1,8 +1,8 @@
 {
 	nameKey: "pipeline.canvas_dev.name",
 	descriptionKey: "pipeline.canvas_dev.desc",
-	materialVertexShader: "canvas:shaders/pipeline/standard.vert",
-	materialFragmentShader: "canvas:shaders/pipeline/standard.frag",
+	materialVertexShader: "canvas:shaders/pipeline/dev.vert",
+	materialFragmentShader: "canvas:shaders/pipeline/dev.frag",
 
 	drawTargets: {
 		solidTerrain: "solid",

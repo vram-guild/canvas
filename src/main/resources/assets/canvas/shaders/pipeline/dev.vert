@@ -1,9 +1,10 @@
-#include canvas:shaders/pipeline/diffuse.glsl
 #include canvas:shaders/pipeline/varying.glsl
 
 /******************************************************
-  canvas:shaders/pipeline/standard.vert
+  canvas:shaders/pipeline/dev.vert
 ******************************************************/
+
+varying vec4 shadowPos;
 
 void frx_writePipelineVertex(in frx_VertexData data) {
 	// WIP: remove - various api tests
@@ -32,12 +33,8 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 		gl_Position = frx_projectionMatrix() * viewCoord;
 	}
 
-#ifdef VANILLA_LIGHTING
+	shadowPos  = frx_shadowViewProjectionMatrix() * data.vertex;
+
 	pv_lightcoord = data.light;
 	pv_ao = data.aoShade;
-#endif
-
-#if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-	pv_diffuse = p_diffuse(data.normal);
-#endif
 }
