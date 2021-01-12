@@ -21,6 +21,7 @@ import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.mixinterface.Matrix4fExt;
 
+// WIP: use or remove
 public class TerrainBounds {
 	private int minX;
 	private int minY;

@@ -29,6 +29,7 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 
 /**
@@ -84,39 +85,77 @@ public enum MatrixState {
 	private static void computeShadowMatrices(Camera camera, TerrainBounds bounds) {
 		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
 
-		// construct rotation matrix from sun position
-		shadowViewMatrixExt.loadIdentity();
+		// Look from skylight towards center of the view frustum
+		shadowViewMatrixExt.lookAt(
+				WorldDataManager.skyLightPosition.getX(),
+				WorldDataManager.skyLightPosition.getY(),
+				WorldDataManager.skyLightPosition.getZ(),
+				WorldDataManager.frustumCenter.getX(),
+				WorldDataManager.frustumCenter.getY(),
+				WorldDataManager.frustumCenter.getZ(),
+				0.0f, 1.0f, 0.0f);
 
-		// move camera back from frustum center to see whole scene
-		// Is Z-axis only because we are now pointing towards the center
-		// (Steps are reverse order for matrix multiply)
-		shadowViewMatrixExt.translate(0f, 0f, -viewDist);
+		// Frustum center is at most half view distance away from each frustum plane
+		// Expanding in each direction by that much should enclose the visible scene
+		// (Approximate because view frustum isn't a simple box.)
+		// Note the Y-axis pffset is inverted because MC Y is inverted relative to OpenGL/matrix transform
+		final float hvd = viewDist * 0.5f;
+		final Vector3f orthoMinLight = new Vector3f(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+		shadowViewMatrixExt.fastTransform(orthoMinLight);
 
-		// Rotate to make easier to look at
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(90));
+		final Vector3f orthoMaxLight = new Vector3f(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		shadowViewMatrixExt.fastTransform(orthoMaxLight);
 
-		// Rotate for position of sun
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getRadialQuaternion((float) (Math.PI * 0.5) - WorldDataManager.skyShadowRotationRadiansZ));
+		// We need to keep the skylight projection consistently aligned to
+		// pixels in the shadowmap texture.  The alignment must be to world
+		// coordinates in the x/y axis of the skylight perspective.
+		// Both the frustum center and light position move as the camera moves,
+		// which causes shimmering if we don't adjust for this movement.
+		//
+		// Because all of our coordinates and matrices at this point are relative to camera,
+		// we can't test use them for the alignment to world coordinates.
+		// So we compute the position of the frustum center in world space in a
+		// projection centered on world origin. Depth doesn't matter here.
+		// As the camera moves, the x/y distance of its position from the origin
+		// indicate how much we need to translate the shadowmap projection to maintain alignment.
+		final Matrix4f worldShadowView = new Matrix4f();
+		final Matrix4fExt worldShadowViewExt = (Matrix4fExt) (Object) worldShadowView;
 
-		// Rotate to view from top down
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(90));
+		worldShadowViewExt.lookAt(
+				WorldDataManager.skyLightVector.getX() * hvd,
+				WorldDataManager.skyLightVector.getY() * hvd,
+				WorldDataManager.skyLightVector.getZ() * hvd,
+				0,
+				0,
+				0,
+				0.0f, 1.0f, 0.0f);
 
-		// reverse Z-axis direction to align w/ opengl view
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(180));
+		final Vector3f centerDelta = new Vector3f();
 
-		// translate to middle of view area
-		shadowViewMatrixExt.translate(
-				bounds.midX() - WorldDataManager.cameraX,
-				bounds.midY() - WorldDataManager.cameraY,
-				bounds.midZ() - WorldDataManager.cameraZ);
+		// WIP: prevent precision loss at world edges
+		centerDelta.set(
+				WorldDataManager.cameraX + WorldDataManager.frustumCenter.getX(),
+				WorldDataManager.cameraY + WorldDataManager.frustumCenter.getY(),
+				WorldDataManager.cameraZ + WorldDataManager.frustumCenter.getZ());
+		worldShadowViewExt.fastTransform(centerDelta);
 
-		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
+		final float xSpan = orthoMaxLight.getX() - orthoMinLight.getX();
+		final float ySpan = orthoMaxLight.getY() - orthoMinLight.getY();
+		final float xWorldUnitsPerTexel = xSpan / Pipeline.skyShadowSize;
+		final float yWorldUnitsPerTexel = ySpan / Pipeline.skyShadowSize;
 
-		// orthographic projection
+		final float clampedX = Math.round((centerDelta.getX()) / xWorldUnitsPerTexel) * xWorldUnitsPerTexel;
+		final float clampedY = Math.round((centerDelta.getY()) / yWorldUnitsPerTexel) * yWorldUnitsPerTexel;
+		final float dx = centerDelta.getX() - clampedX;
+		final float dy = centerDelta.getY() - clampedY;
+
+		// Construct ortho matrix using min-max bounds above
+		// Should give us a consistent size each frame until the sun moves.
+		// Z axis inverted to match depth axis in OpenGL
 		shadowProjMatrixExt.setOrtho(
-				bounds.minViewX(), bounds.maxViewX(),
-				bounds.minViewY(), bounds.maxViewY(),
-				0.05f, viewDist + bounds.maxViewZ() - bounds.minViewZ());
+				orthoMinLight.getX() - dx, orthoMaxLight.getX() - dx,
+				orthoMinLight.getY() - dy, orthoMaxLight.getY() - dy,
+				-orthoMaxLight.getZ(), -orthoMinLight.getZ());
 	}
 
 	/**

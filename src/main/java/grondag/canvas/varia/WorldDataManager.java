@@ -180,7 +180,15 @@ public class WorldDataManager {
 	static double smoothedEyeLightSky = 0;
 	static double smoothedRainStrength = 0;
 
-	public static final Vector3f skyShadowVector = new Vector3f();
+	/** Camera view vector in world space - normalized. */
+	public static final Vector3f cameraVector = new Vector3f();
+	/** Middle of view frustum in camera space - skylight points towards this. */
+	public static final Vector3f frustumCenter = new Vector3f();
+	/** Points towards the light - normalized. */
+	public static final Vector3f skyLightVector = new Vector3f();
+	/** Position of the sky light in camera space. Inverse of camera-to-skylight offset. */
+	public static final Vector3f skyLightPosition = new Vector3f();
+
 	public static float skyShadowRotationRadiansZ;
 
 	public static float cameraX, cameraY, cameraZ = 0f;
@@ -347,8 +355,8 @@ public class WorldDataManager {
 		DATA.put(VEC_CAMERA_POS + 1, cameraY);
 		DATA.put(VEC_CAMERA_POS + 2, cameraZ);
 
-		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch());
-		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
+		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
+		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch, null);
 
 		DATA.put(VIEW_WIDTH, PipelineManager.width());
 		DATA.put(VIEW_HEIGHT, PipelineManager.height());
@@ -369,6 +377,11 @@ public class WorldDataManager {
 
 			final boolean moonLight = computeSkylightFactor(tickTime);
 
+			final float hvd = client.gameRenderer.getViewDistance() * 0.5f;
+
+			// point being viewed is middle of camera frustum
+			frustumCenter.set(cameraVector.getX() * hvd, cameraVector.getY() * hvd, cameraVector.getZ() * hvd);
+
 			if (skyLight) {
 				final float skyAngle = world.getSkyAngleRadians(tickDelta);
 				final float moonFactor = moonLight ? -1f : 1f;
@@ -377,25 +390,22 @@ public class WorldDataManager {
 
 				final float sx = moonFactor * (float) Math.sin(-skyAngle);
 				final float sy = moonFactor * (float) Math.cos(skyAngle);
-				skyShadowVector.set(-sx, -sy, 0);
+				skyLightVector.set(sx, sy, 0);
 
 				DATA.put(SKYLIGHT_VECTOR + 0, sx);
 				DATA.put(SKYLIGHT_VECTOR + 1, sy);
 				DATA.put(SKYLIGHT_VECTOR + 2, 0);
 				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
 
-				final float vd = -client.gameRenderer.getViewDistance() * 0.5f;
+				// sky light is half view distance from that
+				skyLightPosition.set(
+						frustumCenter.getX() + skyLightVector.getX() * hvd,
+						frustumCenter.getY() + skyLightVector.getY() * hvd,
+						frustumCenter.getZ() + skyLightVector.getZ() * hvd);
 
-				// point being viewed is middle of camera frustum
-				final float px = DATA.get(VEC_CAMERA_VIEW) * vd;
-				final float py = DATA.get(VEC_CAMERA_VIEW + 1) * vd;
-				final float pz = 0.5f * DATA.get(VEC_CAMERA_VIEW + 2) * vd;
-
-				//vd *= 0.5f;
-
-				DATA.put(CAMERA_TO_SKYLIGHT + 0, px + sx * vd);
-				DATA.put(CAMERA_TO_SKYLIGHT + 1, py + sy * vd);
-				DATA.put(CAMERA_TO_SKYLIGHT + 2, pz + vd);
+				DATA.put(CAMERA_TO_SKYLIGHT + 0, -skyLightPosition.getX());
+				DATA.put(CAMERA_TO_SKYLIGHT + 1, -skyLightPosition.getY());
+				DATA.put(CAMERA_TO_SKYLIGHT + 2, -skyLightPosition.getZ());
 			}
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);
@@ -502,16 +512,18 @@ public class WorldDataManager {
 		DATA.put(EMISSIVE_COLOR_BLUE, (color & 0xFF) / 255f);
 	}
 
-	private static void putViewVector(int index, float yaw, float pitch) {
-		//final float y = (float) Math.toRadians(yaw);
-		//final float p = (float) Math.toRadians(pitch);
-
+	private static void putViewVector(int index, float yaw, float pitch, Vector3f storeTo) {
 		final Vec3d vec = Vec3d.fromPolar(pitch, yaw);
-		DATA.put(index, (float) vec.x);
-		DATA.put(index + 1, (float) vec.y);
-		DATA.put(index + 2, (float) vec.z);
-		//DATA.put(index, -MathHelper.sin(y) * MathHelper.cos(p));
-		//DATA.put(index + 1, -MathHelper.sin(p));
-		//DATA.put(index + 2, MathHelper.cos(y) * MathHelper.cos(p));
+		final float x = (float) vec.x;
+		final float y = (float) vec.y;
+		final float z = (float) vec.z;
+
+		DATA.put(index, x);
+		DATA.put(index + 1, y);
+		DATA.put(index + 2, z);
+
+		if (storeTo != null) {
+			storeTo.set(x, y, z);
+		}
 	}
 }

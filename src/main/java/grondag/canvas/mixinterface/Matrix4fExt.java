@@ -243,4 +243,51 @@ public interface Matrix4fExt {
 		a13((top + bottom) / (bottom - top));
 		a23((far + near) / (near - far));
 	}
+
+	default void lookAt(
+		float fromX, float fromY, float fromZ,
+		float toX, float toY, float toZ,
+		float basisX, float basisY, float basisZ
+	) {
+		float viewX, viewY, viewZ;
+		viewX = fromX - toX;
+		viewY = fromY - toY;
+		viewZ = fromZ - toZ;
+
+		final float inverseViewLength = 1.0f / (float) Math.sqrt(viewX * viewX + viewY * viewY + viewZ * viewZ);
+		viewX *= inverseViewLength;
+		viewY *= inverseViewLength;
+		viewZ *= inverseViewLength;
+
+		float aX, aY, aZ;
+		aX = basisY * viewZ - basisZ * viewY;
+		aY = basisZ * viewX - basisX * viewZ;
+		aZ = basisX * viewY - basisY * viewX;
+
+		final float inverseLengthA = 1.0f / (float) Math.sqrt(aX * aX + aY * aY + aZ * aZ);
+		aX *= inverseLengthA;
+		aY *= inverseLengthA;
+		aZ *= inverseLengthA;
+
+		final float bX = viewY * aZ - viewZ * aY;
+		final float bY = viewZ * aX - viewX * aZ;
+		final float bZ = viewX * aY - viewY * aX;
+
+		a00(aX);
+		a10(bX);
+		a20(viewX);
+		a30(0.0f);
+		a01(aY);
+		a11(bY);
+		a21(viewY);
+		a21(0.0f);
+		a02(aZ);
+		a12(bZ);
+		a22(viewZ);
+		a32(0.0f);
+		a03(-(aX * fromX + aY * fromY + aZ * fromZ));
+		a13(-(bX * fromX + bY * fromY + bZ * fromZ));
+		a23(-(viewX * fromX + viewY * fromY + viewZ * fromZ));
+		a33(1.0f);
+	}
 }
