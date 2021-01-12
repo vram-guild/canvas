@@ -173,6 +173,7 @@ public interface Matrix4fExt {
 		a33(b33);
 	}
 
+	// FIX: doesn't seem to work reliably - remove or fix
 	default void invertProjection () {
 		final float inv00 = 1.0f / a00();
 		final float inv11 = 1.0f / a11();

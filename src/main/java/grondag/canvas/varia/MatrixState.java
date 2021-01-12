@@ -99,27 +99,22 @@ public enum MatrixState {
 		// Expanding in each direction by that much should enclose the visible scene
 		// (Approximate because view frustum isn't a simple box.)
 		// Note the Y-axis pffset is inverted because MC Y is inverted relative to OpenGL/matrix transform
-		final float hvd = viewDist * 0.5f;
-		final Vector3f orthoMinLight = new Vector3f(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() - hvd);
-		shadowViewMatrixExt.fastTransform(orthoMinLight);
-
-		final Vector3f orthoMaxLight = new Vector3f(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
-		shadowViewMatrixExt.fastTransform(orthoMaxLight);
+		computeBounds(viewDist);
 
 		// We need to keep the skylight projection consistently aligned to
 		// pixels in the shadowmap texture.  The alignment must be to world
 		// coordinates in the x/y axis of the skylight perspective.
 		// Both the frustum center and light position move as the camera moves,
 		// which causes shimmering if we don't adjust for this movement.
-		//
+
 		// Because all of our coordinates and matrices at this point are relative to camera,
 		// we can't test use them for the alignment to world coordinates.
 		// So we compute the position of the frustum center in world space in a
 		// projection centered on world origin. Depth doesn't matter here.
 		// As the camera moves, the x/y distance of its position from the origin
 		// indicate how much we need to translate the shadowmap projection to maintain alignment.
-		final Matrix4f worldShadowView = new Matrix4f();
-		final Matrix4fExt worldShadowViewExt = (Matrix4fExt) (Object) worldShadowView;
+
+		final float hvd = viewDist * 0.5f;
 
 		worldShadowViewExt.lookAt(
 				WorldDataManager.skyLightVector.getX() * hvd,
@@ -130,32 +125,90 @@ public enum MatrixState {
 				0,
 				0.0f, 1.0f, 0.0f);
 
-		final Vector3f centerDelta = new Vector3f();
+		// To avoid precision issues at the edge of the world, use a world boundary
+		// that is relatively close - keeping them at regular intervals.
+		final int ox = (int) Math.floor(WorldDataManager.cameraXd) & 0xFFFFFF00;
+		final int oy = (int) Math.floor(WorldDataManager.cameraYd) & 0xFFFFFF00;
+		final int oz = (int) Math.floor(WorldDataManager.cameraZd) & 0xFFFFFF00;
 
-		// WIP: prevent precision loss at world edges
-		centerDelta.set(
-				WorldDataManager.cameraX + WorldDataManager.frustumCenter.getX(),
-				WorldDataManager.cameraY + WorldDataManager.frustumCenter.getY(),
-				WorldDataManager.cameraZ + WorldDataManager.frustumCenter.getZ());
-		worldShadowViewExt.fastTransform(centerDelta);
+		texelAlignmentPos.set(
+				(float) (WorldDataManager.cameraXd - ox + WorldDataManager.frustumCenter.getX()),
+				(float) (WorldDataManager.cameraYd - oy + WorldDataManager.frustumCenter.getY()),
+				(float) (WorldDataManager.cameraZd - oz + WorldDataManager.frustumCenter.getZ()));
+		worldShadowViewExt.fastTransform(texelAlignmentPos);
 
-		final float xSpan = orthoMaxLight.getX() - orthoMinLight.getX();
-		final float ySpan = orthoMaxLight.getY() - orthoMinLight.getY();
+		final float xSpan = x1 - x0;
+		final float ySpan = y1 - y0;
 		final float xWorldUnitsPerTexel = xSpan / Pipeline.skyShadowSize;
 		final float yWorldUnitsPerTexel = ySpan / Pipeline.skyShadowSize;
 
-		final float clampedX = Math.round((centerDelta.getX()) / xWorldUnitsPerTexel) * xWorldUnitsPerTexel;
-		final float clampedY = Math.round((centerDelta.getY()) / yWorldUnitsPerTexel) * yWorldUnitsPerTexel;
-		final float dx = centerDelta.getX() - clampedX;
-		final float dy = centerDelta.getY() - clampedY;
+		final float clampedX = Math.round((texelAlignmentPos.getX()) / xWorldUnitsPerTexel) * xWorldUnitsPerTexel;
+		final float clampedY = Math.round((texelAlignmentPos.getY()) / yWorldUnitsPerTexel) * yWorldUnitsPerTexel;
+		final float dx = texelAlignmentPos.getX() - clampedX;
+		final float dy = texelAlignmentPos.getY() - clampedY;
 
-		// Construct ortho matrix using min-max bounds above
+		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
+
+		// Construct ortho matrix using bounding sphere box computed above
 		// Should give us a consistent size each frame until the sun moves.
+		// We use actual geometry depth to give better precision on Z.
 		// Z axis inverted to match depth axis in OpenGL
 		shadowProjMatrixExt.setOrtho(
-				orthoMinLight.getX() - dx, orthoMaxLight.getX() - dx,
-				orthoMinLight.getY() - dy, orthoMaxLight.getY() - dy,
-				-orthoMaxLight.getZ(), -orthoMinLight.getZ());
+			x0 - dx, x1 - dx,
+			y0 - dy, y1 - dy,
+			-bounds.maxViewZ(), -bounds.minViewZ());
+	}
+
+	private static void computeBounds(float viewDistance) {
+		final float hvd = viewDistance * 0.5f;
+		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+		shadowViewMatrixExt.fastTransform(boundsPos);
+
+		x0 = boundsPos.getX();
+		x1 = x0;
+		y0 = boundsPos.getY();
+		y1 = x0;
+
+		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		computeBoundsInner();
+
+		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+		computeBoundsInner();
+
+		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		computeBoundsInner();
+
+		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+		computeBoundsInner();
+
+		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		computeBoundsInner();
+
+		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+		computeBoundsInner();
+
+		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		computeBoundsInner();
+	}
+
+	private static void computeBoundsInner() {
+		shadowViewMatrixExt.fastTransform(boundsPos);
+
+		final float x = boundsPos.getX();
+
+		if (x < x0) {
+			x0 = x;
+		} else if (x > x1) {
+			x1 = x;
+		}
+
+		final float y = boundsPos.getY();
+
+		if (y < y0) {
+			y0 = y;
+		} else if (y > y1) {
+			y1 = y;
+		}
 	}
 
 	/**
@@ -184,7 +237,8 @@ public enum MatrixState {
 		viewMatrixInvExt.writeToBuffer(VIEW_INVERSE * 16, DATA);
 
 		projMatrixInvExt.set(projMatrixExt);
-		projMatrixInvExt.invertProjection();
+		projMatrixInv.invert();
+		//projMatrixInvExt.invertProjection();
 		projMatrixInvExt.writeToBuffer(PROJ_INVERSE * 16, DATA);
 
 		viewProjMatrixExt.set(projMatrixExt);
@@ -206,7 +260,8 @@ public enum MatrixState {
 		shadowViewMatrixInvExt.writeToBuffer(SHADOW_VIEW_INVERSE * 16, DATA);
 
 		shadowProjMatrixInvExt.set(shadowProjMatrixExt);
-		shadowProjMatrixInvExt.invertProjection();
+		shadowProjMatrixInv.invert();
+		//shadowProjMatrixInvExt.invertProjection();
 		shadowProjMatrixInvExt.writeToBuffer(SHADOW_PROJ_INVERSE * 16, DATA);
 
 		shadowViewProjMatrixExt.set(shadowProjMatrixExt);
@@ -249,6 +304,13 @@ public enum MatrixState {
 	private static final Matrix4fExt shadowViewProjMatrixInvExt = (Matrix4fExt) (Object) shadowViewProjMatrixInv;
 
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
+
+	private static final Matrix4f worldShadowView = new Matrix4f();
+	private static final Matrix4fExt worldShadowViewExt = (Matrix4fExt) (Object) worldShadowView;
+
+	private static final Vector3f texelAlignmentPos = new Vector3f();
+	private static final Vector3f boundsPos = new Vector3f();
+	private static float x0, y0, x1, y1;
 
 	private static final int VIEW = 0;
 	private static final int VIEW_INVERSE = 1;
