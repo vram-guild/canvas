@@ -128,7 +128,7 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		float directSkyLight = shadowDepth < shadowCoords.z ? 0.0 : max(0.0, exposure * 0.3);
 
 		a *= mix(ambientLight(fragData, exposure), frx_emissiveColor(), fragData.emissivity);
-		a += frx_emissiveColor() * directSkyLight;
+		a += vec4(frx_emissiveColor().xyz * directSkyLight, 0.0);
 
 		if (fragData.ao) {
 			a *= aoFactor(fragData.light, fragData.aoShade);
