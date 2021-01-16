@@ -388,7 +388,9 @@ public class GlProgram {
 
 			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD && unifID != -1) {
 				uploadInner();
-				assert CanvasGlHelper.checkError();
+				CanvasGlHelper.checkError();
+				// WIP: put back
+				//assert CanvasGlHelper.checkError();
 			}
 
 			flags = 0;

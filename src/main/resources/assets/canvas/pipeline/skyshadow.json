@@ -1,9 +1,8 @@
 {
   skyShadows: {
 		framebuffer: "shadow",
-		includeTerrain: true,
-		includeEntities: true,
-		includeParticles: true,
+		allowEntities: true,
+		allowParticles: true,
 		supportForwardRender: true,
 		vertexShader: "canvas:shaders/pipeline/shadow.vert",
 		fragmentShader: "canvas:shaders/pipeline/shadow.frag",

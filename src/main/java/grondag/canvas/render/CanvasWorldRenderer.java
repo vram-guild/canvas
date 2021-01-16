@@ -539,6 +539,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		blockContext.collectors = immediate.collectors;
 
 		// PERF: find way to reduce allocation for this and MatrixStack generally
+		SkyShadowRenderer.beforeEntityRender(mc);
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
@@ -579,6 +580,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		contextState.setCurrentEntity(null);
+		SkyShadowRenderer.afterEntityRender(mc);
 
 		profiler.swap("blockentities");
 

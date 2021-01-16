@@ -27,10 +27,8 @@ import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class SkyShadowConfig extends AbstractConfig {
 	public final NamedDependency<FramebufferConfig> framebuffer;
-	public final boolean allowDisable;
-	public final boolean includeTerrain;
-	public final boolean includeEntities;
-	public final boolean includeParticles;
+	public final boolean allowEntities;
+	public final boolean allowParticles;
 	public final boolean supportForwardRender;
 	public final Identifier vertexShader;
 	public final Identifier fragmentShader;
@@ -40,11 +38,9 @@ public class SkyShadowConfig extends AbstractConfig {
 		framebuffer = ctx.frameBuffers.dependOn(config, "framebuffer");
 		vertexShader = JanksonHelper.asIdentifier(config.get("vertexShader"));
 		fragmentShader = JanksonHelper.asIdentifier(config.get("fragmentShader"));
-		includeTerrain = config.getBoolean("includeTerrain", true);
-		includeEntities = config.getBoolean("includeEntities", true);
-		includeParticles = config.getBoolean("includeParticles", true);
+		allowEntities = config.getBoolean("allowEntities", true);
+		allowParticles = config.getBoolean("allowParticles", true);
 		supportForwardRender = config.getBoolean("supportForwardRender", true);
-		allowDisable = config.getBoolean("allowDisable", true);
 	}
 
 	@Override
