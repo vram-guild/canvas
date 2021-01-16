@@ -481,17 +481,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		//LightmapHdTexture.instance().onRenderTick();
 
-		profiler.swap("terrain");
-		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
-
-		MatrixState.set(MatrixState.REGION);
-		// WIP: move this to a prepass - or more accurately defer terrain until after solid entity prepass
-		SkyShadowRenderer.begin();
-		renderTerrainLayer(false, cameraX, cameraY, cameraZ);
-		SkyShadowRenderer.end();
-
-		renderTerrainLayer(false, cameraX, cameraY, cameraZ);
-		MatrixState.set(MatrixState.CAMERA);
+		// WIP: have a way to render terrain here if deferred?
+		//profiler.swap("terrain");
+		//Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
+		//
+		//MatrixState.set(MatrixState.REGION);
+		//SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ);
+		//
+		//renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+		//MatrixState.set(MatrixState.CAMERA);
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
@@ -639,7 +637,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		contextState.setCurrentBlockEntity(null);
 
-		immediate.drawCollectors(MaterialTarget.MAIN);
+		profiler.swap("terrain");
+		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
+
+		// WIP: move this to a prepass - or more accurately defer terrain until after solid entity prepass
+		SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, immediate);
+
+		MatrixState.set(MatrixState.REGION);
+		renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+		MatrixState.set(MatrixState.CAMERA);
+		immediate.drawCollectors(MaterialTarget.MAIN, true);
 
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
 
@@ -713,7 +720,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.swap("WorldRenderer-SolidDraws");
 
 		// Should generally not have anything here but draw in case content injected in hooks
-		immediate.drawCollectors(MaterialTarget.MAIN);
+		immediate.drawCollectors(MaterialTarget.MAIN, true);
 
 		// WIP: glint not working again?
 		immediate.draw(RenderLayer.getArmorGlint());
@@ -745,7 +752,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			immediate.draw(RenderLayer.getLines());
 
 			// PERF: Why is this here? Should be empty
-			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
+			immediate.drawCollectors(MaterialTarget.TRANSLUCENT, true);
 
 			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
@@ -775,7 +782,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			immediate.draw(RenderLayer.getLines());
 
 			// PERF: how is this needed? - would either have been drawn above or will be drawn below
-			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
+			immediate.drawCollectors(MaterialTarget.TRANSLUCENT, true);
 
 			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
@@ -1008,7 +1015,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().pop();
 	}
 
-	private void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
+	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final int visibleRegionCount = this.visibleRegionCount;
 
