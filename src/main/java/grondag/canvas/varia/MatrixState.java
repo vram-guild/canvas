@@ -93,7 +93,7 @@ public enum MatrixState {
 				WorldDataManager.frustumCenter.getX(),
 				WorldDataManager.frustumCenter.getY(),
 				WorldDataManager.frustumCenter.getZ(),
-				0.0f, 1.0f, 0.0f);
+				0.0f, 0.0f, 1.0f);
 
 		// Frustum center is at most half view distance away from each frustum plane
 		// Expanding in each direction by that much should enclose the visible scene
@@ -123,7 +123,7 @@ public enum MatrixState {
 				0,
 				0,
 				0,
-				0.0f, 1.0f, 0.0f);
+				0.0f, 0.0f, 1.0f);
 
 		// To avoid precision issues at the edge of the world, use a world boundary
 		// that is relatively close - keeping them at regular intervals.
@@ -157,6 +157,8 @@ public enum MatrixState {
 			x0 - dx, x1 - dx,
 			y0 - dy, y1 - dy,
 			-bounds.maxViewZ(), -bounds.minViewZ());
+
+		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
 	}
 
 	private static void computeBounds(float viewDistance) {
@@ -273,6 +275,11 @@ public enum MatrixState {
 		shadowViewProjMatrixInvExt.writeToBuffer(SHADOW_VIEW_PROJ_INVERSE * 16, DATA);
 	}
 
+	/** Depth of the shadow map projection.  Lower values require less offset to avoid artifacts. */
+	public static float shadowDepth() {
+		return shadowDepth;
+	}
+
 	public static final Matrix4f viewMatrix = new Matrix4f();
 	public static final Matrix4fExt viewMatrixExt = (Matrix4fExt) (Object) viewMatrix;
 	private static final Matrix4f viewMatrixInv = new Matrix4f();
@@ -311,6 +318,7 @@ public enum MatrixState {
 	private static final Vector3f texelAlignmentPos = new Vector3f();
 	private static final Vector3f boundsPos = new Vector3f();
 	private static float x0, y0, x1, y1;
+	private static float shadowDepth;
 
 	private static final int VIEW = 0;
 	private static final int VIEW_INVERSE = 1;

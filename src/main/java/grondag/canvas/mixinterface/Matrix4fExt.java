@@ -173,38 +173,6 @@ public interface Matrix4fExt {
 		a33(b33);
 	}
 
-	// FIX: doesn't seem to work reliably - remove or fix
-	default void invertProjection () {
-		final float inv00 = 1.0f / a00();
-		final float inv11 = 1.0f / a11();
-		final float inv23 = 1.0f / a23();
-		final float inv32 = 1.0f / a32();
-
-		final float m20 = a20();
-		final float m21 = a21();
-		final float m22 = a22();
-
-		a00(inv00);
-		a01(0);
-		a02(0);
-		a03(0);
-
-		a10(0);
-		a11(inv11);
-		a12(0);
-		a13(0);
-
-		a20(0);
-		a21(0);
-		a22(inv32);
-		a23(0);
-
-		a30(-m20 * inv00 * inv23);
-		a31(-m21 * inv11 * inv23);
-		a32(inv23);
-		a33(-m22 * inv23 * inv32);
-	}
-
 	default void scale(float x, float y, float z) {
 		final float b00 = a00() * x;
 		final float b01 = a01() * y;
@@ -245,50 +213,55 @@ public interface Matrix4fExt {
 		a23((far + near) / (near - far));
 	}
 
+	// best explanation seen so far:  http://www.songho.ca/opengl/gl_camera.html#lookat
 	default void lookAt(
 		float fromX, float fromY, float fromZ,
 		float toX, float toY, float toZ,
 		float basisX, float basisY, float basisZ
 	) {
-		float viewX, viewY, viewZ;
-		viewX = fromX - toX;
-		viewY = fromY - toY;
-		viewZ = fromZ - toZ;
+		// the forward (Z) axis is the implied look vector
+		float forwardX, forwardY, forwardZ;
+		forwardX = fromX - toX;
+		forwardY = fromY - toY;
+		forwardZ = fromZ - toZ;
 
-		final float inverseViewLength = 1.0f / (float) Math.sqrt(viewX * viewX + viewY * viewY + viewZ * viewZ);
-		viewX *= inverseViewLength;
-		viewY *= inverseViewLength;
-		viewZ *= inverseViewLength;
+		final float inverseForwardLength = 1.0f / (float) Math.sqrt(forwardX * forwardX + forwardY * forwardY + forwardZ * forwardZ);
+		forwardX *= inverseForwardLength;
+		forwardY *= inverseForwardLength;
+		forwardZ *= inverseForwardLength;
 
-		float aX, aY, aZ;
-		aX = basisY * viewZ - basisZ * viewY;
-		aY = basisZ * viewX - basisX * viewZ;
-		aZ = basisX * viewY - basisY * viewX;
+		// the left (X) axis is found with cross product of forward and given "up" vector
+		float leftX, leftY, leftZ;
+		leftX = basisY * forwardZ - basisZ * forwardY;
+		leftY = basisZ * forwardX - basisX * forwardZ;
+		leftZ = basisX * forwardY - basisY * forwardX;
 
-		final float inverseLengthA = 1.0f / (float) Math.sqrt(aX * aX + aY * aY + aZ * aZ);
-		aX *= inverseLengthA;
-		aY *= inverseLengthA;
-		aZ *= inverseLengthA;
+		final float inverseLengthA = 1.0f / (float) Math.sqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
+		leftX *= inverseLengthA;
+		leftY *= inverseLengthA;
+		leftZ *= inverseLengthA;
 
-		final float bX = viewY * aZ - viewZ * aY;
-		final float bY = viewZ * aX - viewX * aZ;
-		final float bZ = viewX * aY - viewY * aX;
+		// Orthonormal "up" axis (Y) is the cross product of those two
+		// Should already be a unit vector as both inputs are.
+		final float upX = forwardY * leftZ - forwardZ * leftY;
+		final float upY = forwardZ * leftX - forwardX * leftZ;
+		final float upZ = forwardX * leftY - forwardY * leftX;
 
-		a00(aX);
-		a10(bX);
-		a20(viewX);
+		a00(leftX);
+		a01(leftY);
+		a02(leftZ);
+		a03(-(leftX * fromX + leftY * fromY + leftZ * fromZ));
+		a10(upX);
+		a11(upY);
+		a12(upZ);
+		a13(-(upX * fromX + upY * fromY + upZ * fromZ));
+		a20(forwardX);
+		a21(forwardY);
+		a22(forwardZ);
+		a23(-(forwardX * fromX + forwardY * fromY + forwardZ * fromZ));
 		a30(0.0f);
-		a01(aY);
-		a11(bY);
-		a21(viewY);
-		a21(0.0f);
-		a02(aZ);
-		a12(bZ);
-		a22(viewZ);
+		a31(0.0f);
 		a32(0.0f);
-		a03(-(aX * fromX + aY * fromY + aZ * fromZ));
-		a13(-(bX * fromX + bY * fromY + bZ * fromZ));
-		a23(-(viewX * fromX + viewY * fromY + viewZ * fromZ));
 		a33(1.0f);
 	}
 }

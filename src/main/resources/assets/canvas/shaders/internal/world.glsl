@@ -50,8 +50,13 @@
 // w is always zero
 #define _CV_CAMERA_TO_SKYLIGHT 12
 
-// x: skylight strength 0-1
-#define _CV_THINGS_AND_STUFF 13
+// rgb: skylight color modified for atmospheric effects
+// a: skylight transition smoothing factor 0-1
+#define _CV_ATMOSPEHRIC_COLOR 13
+
+// rgb: raw skylight color
+// a: skylight illuminance in lux
+#define _CV_SKYLIGHT_COLOR 14
 
 #define _CV_FLAG_HAS_SKYLIGHT 0
 #define _CV_FLAG_IS_OVERWORLD 1

@@ -17,13 +17,6 @@
 
 varying vec4 shadowPos;
 
-// for testing - not a good way to do it
-float p_diffuseSky(vec3 normal) {
-	float f = dot(frx_skyLightVector(), normal);
-	f = f > 0.0 ? 0.4 * f : 0.2 * f;
-	return 0.6 + frx_skyLightStrength() * f;
-}
-
 /**
  * Offers results similar to vanilla in GUI, assumes a fixed transform.
  * Vanilla GUI light setup looks like this:
@@ -47,10 +40,6 @@ float p_diffuseGui(vec3 normal) {
 	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.96104145, -0.078606814, -0.2593495)), 0.0, 1.0)
 	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.26765957, -0.95667744, 0.100838766)), 0.0, 1.0);
 	return min(light, 1.0);
-}
-
-float p_diffuse (vec3 normal) {
-	return frx_isGui() ? p_diffuseGui(normal) : p_diffuseSky(normal);
 }
 
 vec4 aoFactor(vec2 lightCoord, float ao) {
@@ -104,6 +93,8 @@ frx_FragmentData frx_createPipelineFragment() {
 	);
 }
 
+vec3 skyLight = frx_skyLightAtmosphericColor() * frx_skyLightColor() * (frx_skyLightTransitionFactor() * frx_skyLightIlluminance() / 32000.0);
+
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 
@@ -117,22 +108,43 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 
 		// NB: this "lighting model" is a made-up garbage
 		// temporary hack to see / test the shadow map quality
+		// for testing - not a good way to do it
 
-		float exposure = dot(frx_skyLightVector(), frx_normal);
+		// ambient
+		float skyCoord = fragData.diffuse ? 0.03125 + (fragData.light.y - 0.03125) * 0.5 : fragData.light.y;
+		vec4 light = frx_fromGamma(texture2D(frxs_lightmap, vec2(fragData.light.x, skyCoord)));
+		light = mix(light, frx_emissiveColor(), fragData.emissivity);
+
+	#if HANDHELD_LIGHT_RADIUS != 0
+		vec4 held = frx_heldLight();
+
+		if (held.w > 0.0) {
+			float d = clamp(gl_FogFragCoord / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
+			d = 1.0 - d * d;
+
+			vec4 maxBlock = texture2D(frxs_lightmap, vec2(0.96875, 0.03125));
+
+			held = vec4(held.xyz, 0.0) * maxBlock * d;
+
+			light += held;
+		}
+	#endif
 
 		vec3 shadowCoords = shadowPos.xyz / shadowPos.w;
 
 		// Transform from screen coordinates to texture coordinates
 		shadowCoords = shadowCoords * 0.5 + 0.5;
 		float shadowDepth = texture2D(frxs_shadowMap, shadowCoords.xy).x;
-		float directSkyLight = shadowDepth < shadowCoords.z ? 0.0 : max(0.0, exposure * 0.3);
 
-		a *= mix(ambientLight(fragData, exposure), frx_emissiveColor(), fragData.emissivity);
-		a += vec4(frx_emissiveColor().xyz * directSkyLight, 0.0);
+		if (shadowDepth >= shadowCoords.z) {
+			light += vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
+		}
 
 		if (fragData.ao) {
-			a *= aoFactor(fragData.light, fragData.aoShade);
+			light *= aoFactor(fragData.light, fragData.aoShade);
 		}
+
+		a *= frx_toGamma(light);
 	}
 
 	if (frx_matFlash()) {

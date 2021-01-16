@@ -25,6 +25,7 @@ import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
@@ -43,6 +44,7 @@ import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.MatrixState;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -117,8 +119,14 @@ public final class RenderState extends AbstractRenderState {
 		depthShader.setContextInfo(texture.atlasInfo(), target.index);
 		depthShader.setModelOrigin(x, y, z);
 
+		// Try to select appopriate slope offset scale.
+		// Per NVidia some years back, 1.1 and 4.0 work well, but...
+		// 	More precision requires less bias and...
+		// 	When the shadowmap is being magnified requires larger scale
+		// What seems to actually work is adjusting scale for depth
 		GL46.glEnable(GL46.GL_POLYGON_OFFSET_FILL);
-		GL46.glPolygonOffset(1.5f, 4.0f);
+		final float bias = MathHelper.clamp(MatrixState.shadowDepth() * 0.01f, 0.5f, 1.5f);
+		GL46.glPolygonOffset(bias, 4.0f);
 		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 

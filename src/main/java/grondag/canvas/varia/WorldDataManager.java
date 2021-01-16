@@ -32,6 +32,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
@@ -41,6 +42,8 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectInput;
+import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 import grondag.fermion.bits.BitPacker32;
 import grondag.frex.api.light.ItemLight;
 
@@ -108,11 +111,14 @@ public class WorldDataManager {
 	private static final int SKYLIGHT_VECTOR = 4 * 11;
 	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
 
-	// WIP: make w always zero
+	// w is always zero
 	private static final int CAMERA_TO_SKYLIGHT = 4 * 12;
 
-	private static final int THINGS_AND_STUFF = 4 * 13;
-	private static final int SKYLIGHT_STRENGTH = THINGS_AND_STUFF;
+	private static final int ATMOSPHERIC_COLOR = 4 * 13;
+	private static final int SKYLIGHT_TRANSITION_FACTOR = ATMOSPHERIC_COLOR + 3;
+
+	private static final int SKYLIGHT_COLOR = 4 * 14;
+	private static final int SKYLIGHT_ILLUMINANCE = SKYLIGHT_COLOR + 3;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -189,12 +195,48 @@ public class WorldDataManager {
 	/** Position of the sky light in camera space. Inverse of camera-to-skylight offset. */
 	public static final Vector3f skyLightPosition = new Vector3f();
 
-	public static float skyShadowRotationRadiansZ;
-
 	public static float cameraX, cameraY, cameraZ = 0f;
 
 	// keep extra precision for terrain
 	public static double cameraXd, cameraYd, cameraZd = 0;
+	private static float tickDelta;
+	private static ClientWorld world;
+
+	private static final CelestialObjectOutput skyOutput = new CelestialObjectOutput();
+
+	private static final CelestialObjectInput skyInput = new CelestialObjectInput() {
+		private final Matrix4f workingMatrix = new Matrix4f();
+
+		@Override
+		public ClientWorld world() {
+			return world;
+		}
+
+		@Override
+		public float tickDelta() {
+			return tickDelta;
+		}
+
+		@Override
+		public double cameraX() {
+			return cameraXd;
+		}
+
+		@Override
+		public double cameraY() {
+			return cameraYd;
+		}
+
+		@Override
+		public double cameraZ() {
+			return cameraZd;
+		}
+
+		@Override
+		public Matrix4f workingMatrix() {
+			return workingMatrix;
+		}
+	};
 
 	static {
 		if (Configurator.enableLifeCycleDebug) {
@@ -314,7 +356,7 @@ public class WorldDataManager {
 			}
 		}
 
-		DATA.put(SKYLIGHT_STRENGTH, factor);
+		DATA.put(SKYLIGHT_TRANSITION_FACTOR, factor);
 		return result;
 	}
 
@@ -375,26 +417,32 @@ public class WorldDataManager {
 			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
 
-			final boolean moonLight = computeSkylightFactor(tickTime);
-
 			final float hvd = client.gameRenderer.getViewDistance() * 0.5f;
 
 			// point being viewed is middle of camera frustum
 			frustumCenter.set(cameraVector.getX() * hvd, cameraVector.getY() * hvd, cameraVector.getZ() * hvd);
 
 			if (skyLight) {
+				final boolean moonLight = computeSkylightFactor(tickTime);
+
 				final float skyAngle = world.getSkyAngleRadians(tickDelta);
-				final float moonFactor = moonLight ? -1f : 1f;
-				// WIP: flip if moon, probably don't need the half pi
-				skyShadowRotationRadiansZ = skyAngle + (float) (0.5 * Math.PI);
 
-				final float sx = moonFactor * (float) Math.sin(-skyAngle);
-				final float sy = moonFactor * (float) Math.cos(skyAngle);
-				skyLightVector.set(sx, sy, 0);
+				// WIP: fully implement celestial object model
+				// should compute all objects and choose brightest as the skylight
+				// and also apply dimension/pack settings
+				WorldDataManager.world = world;
+				WorldDataManager.tickDelta = tickDelta;
 
-				DATA.put(SKYLIGHT_VECTOR + 0, sx);
-				DATA.put(SKYLIGHT_VECTOR + 1, sy);
-				DATA.put(SKYLIGHT_VECTOR + 2, 0);
+				if (moonLight) {
+					CelestialObjectFunction.VANILLA_MOON.compute(skyInput, skyOutput);
+				} else {
+					CelestialObjectFunction.VANILLA_SUN.compute(skyInput, skyOutput);
+				}
+
+				skyLightVector.set(skyOutput.cameraToObject.getX(), skyOutput.cameraToObject.getY(), skyOutput.cameraToObject.getZ());
+				DATA.put(SKYLIGHT_VECTOR + 0, skyOutput.cameraToObject.getX());
+				DATA.put(SKYLIGHT_VECTOR + 1, skyOutput.cameraToObject.getY());
+				DATA.put(SKYLIGHT_VECTOR + 2, skyOutput.cameraToObject.getZ());
 				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
 
 				// sky light is half view distance from that
@@ -406,10 +454,28 @@ public class WorldDataManager {
 				DATA.put(CAMERA_TO_SKYLIGHT + 0, -skyLightPosition.getX());
 				DATA.put(CAMERA_TO_SKYLIGHT + 1, -skyLightPosition.getY());
 				DATA.put(CAMERA_TO_SKYLIGHT + 2, -skyLightPosition.getZ());
+
+				worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
+				DATA.put(ATMOSPHERIC_COLOR + 0, skyOutput.atmosphericColorModifier.getX());
+				DATA.put(ATMOSPHERIC_COLOR + 1, skyOutput.atmosphericColorModifier.getY());
+				DATA.put(ATMOSPHERIC_COLOR + 2, skyOutput.atmosphericColorModifier.getZ());
+				DATA.put(SKYLIGHT_COLOR + 0, skyOutput.lightColor.getX());
+				DATA.put(SKYLIGHT_COLOR + 1, skyOutput.lightColor.getY());
+				DATA.put(SKYLIGHT_COLOR + 2, skyOutput.lightColor.getZ());
+				DATA.put(SKYLIGHT_ILLUMINANCE, skyOutput.illuminance);
+			} else {
+				DATA.put(SKYLIGHT_TRANSITION_FACTOR, 1);
+				worldFlags = FLAG_MOONLIT.setValue(false, worldFlags);
+				DATA.put(ATMOSPHERIC_COLOR + 0, 1);
+				DATA.put(ATMOSPHERIC_COLOR + 1, 1);
+				DATA.put(ATMOSPHERIC_COLOR + 2, 1);
+				DATA.put(SKYLIGHT_COLOR + 0, 1);
+				DATA.put(SKYLIGHT_COLOR + 1, 1);
+				DATA.put(SKYLIGHT_COLOR + 2, 1);
+				DATA.put(SKYLIGHT_ILLUMINANCE, 0);
 			}
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);
-			worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
 			worldFlags = FLAG_SNEAKING.setValue(player.isInSneakingPose(), worldFlags);
 			worldFlags = FLAG_SNEAKING_POSE.setValue(player.isSneaking(), worldFlags);
 			worldFlags = FLAG_SWIMMING.setValue(player.isSwimming(), worldFlags);
