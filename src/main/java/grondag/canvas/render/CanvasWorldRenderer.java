@@ -89,6 +89,7 @@ import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
+import grondag.canvas.buffer.encoding.DrawableBuffer;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialFog;
@@ -642,13 +643,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("terrain");
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
 
-		// WIP: move this to a prepass - or more accurately defer terrain until after solid entity prepass
-		SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, immediate);
-
-		MatrixState.set(MatrixState.REGION);
-		renderTerrainLayer(false, cameraX, cameraY, cameraZ);
-		MatrixState.set(MatrixState.CAMERA);
-		immediate.drawCollectors(MaterialTarget.MAIN, true);
+		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
+			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
+			MatrixState.set(MatrixState.REGION);
+			renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+			MatrixState.set(MatrixState.CAMERA);
+			entityBuffer.draw();
+			entityBuffer.close();
+		}
 
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
 
@@ -722,7 +724,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.swap("WorldRenderer-SolidDraws");
 
 		// Should generally not have anything here but draw in case content injected in hooks
-		immediate.drawCollectors(MaterialTarget.MAIN, true);
+		immediate.drawCollectors(MaterialTarget.MAIN);
 
 		// WIP: glint not working again?
 		immediate.draw(RenderLayer.getArmorGlint());
@@ -754,7 +756,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			immediate.draw(RenderLayer.getLines());
 
 			// PERF: Why is this here? Should be empty
-			immediate.drawCollectors(MaterialTarget.TRANSLUCENT, true);
+			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
 
 			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
@@ -784,7 +786,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			immediate.draw(RenderLayer.getLines());
 
 			// PERF: how is this needed? - would either have been drawn above or will be drawn below
-			immediate.drawCollectors(MaterialTarget.TRANSLUCENT, true);
+			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
 
 			// This catches entity layer and any remaining non-main layers
 			immediate.draw();

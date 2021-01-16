@@ -20,8 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.buffer.encoding.DrawableBuffer;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.varia.MatrixState;
@@ -49,7 +48,7 @@ public class SkyShadowRenderer {
 		return active;
 	}
 
-	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, CanvasImmediate immediate) {
+	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer) {
 		if (Pipeline.skyShadowFbo != null) {
 			begin();
 
@@ -59,7 +58,7 @@ public class SkyShadowRenderer {
 			MatrixState.set(MatrixState.CAMERA);
 
 			if (Pipeline.config().skyShadow.allowEntities && MinecraftClient.getInstance().options.entityShadows) {
-				immediate.drawCollectors(MaterialTarget.MAIN, false);
+				entityBuffer.draw();
 			}
 
 			end();

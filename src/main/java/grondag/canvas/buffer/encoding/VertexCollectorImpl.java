@@ -204,7 +204,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		}
 	}
 
-	private void sortIfNeeded() {
+	void sortIfNeeded() {
 		if (materialState.sorted) {
 			sortQuads(0, 0, 0);
 		}
@@ -235,49 +235,10 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	 * Single-buffer draw, minimizes state changes.
 	 * Assumes all collectors are non-empty.
 	 */
-	public static void draw(ObjectArrayList<VertexCollectorImpl> drawList, boolean clear) {
-		final int limit = drawList.size();
-
-		int bytes = 0;
-
-		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = drawList.get(i);
-			collector.sortIfNeeded();
-			bytes += collector.byteSize();
-		}
-
-		// PERF: trial memory mapped here
-		final ByteBuffer buffer = TransferBufferAllocator.claim(bytes);
-		final IntBuffer intBuffer = buffer.asIntBuffer();
-		intBuffer.position(0);
-
-		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = drawList.get(i);
-			collector.toBuffer(intBuffer);
-		}
-
-		CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
-		int startIndex = 0;
-
-		// WIP: allow reuse of draw buffer
-		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = drawList.get(i);
-			final int vertexCount = collector.vertexCount();
-			collector.materialState.renderState.enable();
-			GlStateManager.drawArrays(collector.materialState.primitive, startIndex, vertexCount);
-			startIndex += vertexCount;
-
-			if (clear) {
-				collector.clear();
-			}
-		}
-
-		TransferBufferAllocator.release(buffer);
-		RenderState.disable();
-
-		if (clear) {
-			drawList.clear();
-		}
+	public static void draw(ObjectArrayList<VertexCollectorImpl> drawList) {
+		final DrawableBuffer buffer = new DrawableBuffer(drawList);
+		buffer.draw();
+		buffer.close();
 	}
 
 	@Override
