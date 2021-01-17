@@ -48,6 +48,7 @@ public class PipelineManager {
 	}
 
 	static ProcessShader debugShader;
+	static ProcessShader debugDepthShader;
 
 	static VboBuffer drawBuffer;
 	static int h;
@@ -164,6 +165,7 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
+	/** Negative lod indicates depth buffer. */
 	static void renderDebug(int glId, int lod) {
 		beginFullFrameRender();
 
@@ -175,7 +177,13 @@ public class PipelineManager {
 		GlStateManager.enableTexture();
 		CanvasTextureState.bindTexture(glId);
 		setProjection(w, h);
-		debugShader.activate().size(w, h).lod(lod);
+
+		if (lod < 0) {
+			debugDepthShader.activate().size(w, h).lod(0);
+		} else {
+			debugShader.activate().size(w, h).lod(lod);
+		}
+
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endFullFrameRender();
@@ -206,6 +214,7 @@ public class PipelineManager {
 		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsMode.FABULOUS : GraphicsMode.FANCY;
 
 		debugShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
+		debugDepthShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 		assert CanvasGlHelper.checkError();
@@ -226,6 +235,12 @@ public class PipelineManager {
 	private static void tearDown() {
 		if (debugShader != null) {
 			debugShader.unload();
+			debugShader = null;
+		}
+
+		if (debugDepthShader != null) {
+			debugDepthShader.unload();
+			debugDepthShader = null;
 		}
 
 		if (drawBuffer != null) {

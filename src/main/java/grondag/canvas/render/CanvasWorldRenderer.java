@@ -24,6 +24,8 @@ import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.Sets;
+import com.mojang.blaze3d.platform.FramebufferInfo;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -807,27 +809,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		Configurator.lagFinder.swap("WorldRenderer-PostTransluent");
-
-		profiler.swap("clouds");
-
 		RenderState.disable();
 		GlProgram.deactivate();
 
+		renderClouds(mc, profiler, viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
+
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
-
-		// NB: important to clear the cloud FB even when clouds are off - prevents leftover clouds
-		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-			if (advancedTranslucency && getCloudsFramebuffer() != null) {
-				getCloudsFramebuffer().clear(MinecraftClient.IS_SYSTEM_MAC);
-			}
-
-			RenderPhase.CLOUDS_TARGET.startDrawing();
-			// NB: vanilla cloud renderer wants/needs the transformed stack even though it is already applied
-			renderClouds(viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
-			RenderPhase.CLOUDS_TARGET.endDrawing();
-		}
-
 		profiler.swap("weather");
 
 		if (advancedTranslucency) {
@@ -865,6 +853,24 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		assert CanvasGlHelper.checkError();
 
 		Configurator.lagFinder.complete();
+	}
+
+	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack viewMatrixStack, float tickDelta, double cameraX, double cameraY, double cameraZ) {
+		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
+			profiler.swap("clouds");
+
+			if (Pipeline.fabCloudsFbo > 0) {
+				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, Pipeline.fabCloudsFbo);
+				//Pipeline.cloudsFbo.bind();
+			}
+
+			// NB: vanilla cloud renderer wants/needs the transformed stack even though it is already applied
+			renderClouds(viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
+
+			if (Pipeline.cloudsFbo != null) {
+				Pipeline.defaultFbo.bind();
+			}
+		}
 	}
 
 	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();

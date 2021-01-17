@@ -20,7 +20,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
@@ -36,8 +35,8 @@ import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
@@ -243,7 +242,7 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		MaterialTarget.disable();
-		RenderSystem.activeTexture(GL21.GL_TEXTURE0);
+		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 
 		assert CanvasGlHelper.checkError();
 		//		if (enablePrint) {
