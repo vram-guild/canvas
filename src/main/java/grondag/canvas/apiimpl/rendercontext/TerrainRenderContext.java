@@ -105,7 +105,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 	}
 
 	// PERF: don't pass in matrixStack each time, just change model matrix directly
-	private void rebnderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
+	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
 		matrix = matrixStack.peek().getModel();
 
 		// PERF: can probably grab this at prepare
