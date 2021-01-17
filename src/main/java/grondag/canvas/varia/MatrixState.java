@@ -169,7 +169,7 @@ public enum MatrixState {
 		x0 = boundsPos.getX();
 		x1 = x0;
 		y0 = boundsPos.getY();
-		y1 = x0;
+		y1 = y0;
 
 		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
 		computeBoundsInner();
