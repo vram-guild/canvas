@@ -34,4 +34,8 @@ public abstract class AbstractConfig {
 
 		return isOK;
 	}
+
+	public static boolean assertAndWarn(boolean isOK, String msg, Object... args) {
+		return assertAndWarn(isOK, String.format(msg, args));
+	}
 }

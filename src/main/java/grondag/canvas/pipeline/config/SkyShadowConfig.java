@@ -17,6 +17,7 @@
 package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.util.Identifier;
 
@@ -49,6 +50,12 @@ public class SkyShadowConfig extends AbstractConfig {
 		valid &= framebuffer.validate("Invalid pipeline config - skyShadows framebuffer missing or invalid.");
 		valid &= assertAndWarn(vertexShader != null, "Invalid pipeline config - skyShadows 'vertexShader' missing or invalid.");
 		valid &= assertAndWarn(fragmentShader != null, "Invalid pipeline config - skyShadows 'fragmentShader' missing or invalid.");
+
+		if (valid) {
+			valid &= assertAndWarn(framebuffer.value().depthAttachment.image.value().target == GL46.GL_TEXTURE_2D_ARRAY,
+					"Invalid pipeline config - skyShadows depth image must be a 2D array texture.");
+		}
+
 		return valid;
 	}
 }

@@ -19,6 +19,7 @@ package grondag.canvas.pipeline.config;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
 import grondag.canvas.pipeline.config.util.ConfigContext;
@@ -26,6 +27,7 @@ import grondag.canvas.pipeline.config.util.NamedConfig;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
 public class ImageConfig extends NamedConfig<ImageConfig> {
+	public final int target;
 	public final int internalFormat;
 	public final int pixelFormat;
 	public final int pixelDataType;
@@ -34,16 +36,19 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 	public final int width;
 	/** 0 if tied to framebuffer size. */
 	public final int height;
+	public final int depth;
 	public final int[] texParamPairs;
 
 	private ImageConfig(ConfigContext ctx, String name, int internalFormat, int lod, int pixelFormat, int pixelDataType, boolean depth) {
 		super(ctx, name);
+		target = GL21.GL_TEXTURE_2D;
 		this.internalFormat = internalFormat;
 		this.lod = lod;
 		this.pixelDataType = pixelDataType;
 		this.pixelFormat = pixelFormat;
 		width = 0;
 		height = 0;
+		this.depth = 1;
 
 		if (depth) {
 			texParamPairs = new int[10];
@@ -67,11 +72,13 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 
 	ImageConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx, config.get(String.class, "name"));
+		target = GlSymbolLookup.lookup(config, "target", "TEXTURE_2D");
 		internalFormat = GlSymbolLookup.lookup(config, "internalFormat", "RGBA8");
 		lod = config.getInt("lod", 0);
 		pixelFormat = GlSymbolLookup.lookup(config, "pixelFormat", "RGBA");
 		pixelDataType = GlSymbolLookup.lookup(config, "pixelDataType", "UNSIGNED_BYTE");
 		width = config.getInt("size", 0);
+		depth = config.getInt("depth", 1);
 		height = width;
 
 		if (!config.containsKey("texParams")) {
@@ -102,5 +109,16 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 	@Override
 	public NamedDependencyMap<ImageConfig> nameMap() {
 		return context.images;
+	}
+
+	@Override
+	public boolean validate() {
+		boolean valid = super.validate();
+
+		valid &= assertAndWarn(target == GL21.GL_TEXTURE_3D || target == GL46.GL_TEXTURE_2D_ARRAY || target == GL46.GL_TEXTURE_2D, "Invalid pipeline config for image %s. Unsupported target.", name, GlSymbolLookup.reverseLookup(target));
+		valid &= assertAndWarn(!(target == GL21.GL_TEXTURE_2D && depth > 1), "Invalid pipeline config for image %s.  2D texture has depth > 1.", name);
+		valid &= assertAndWarn(!((target == GL21.GL_TEXTURE_3D || target == GL46.GL_TEXTURE_2D_ARRAY) && depth < 1), "Invalid pipeline config for image %s.  3D texture must have depth >= 1.", name);
+
+		return valid;
 	}
 }

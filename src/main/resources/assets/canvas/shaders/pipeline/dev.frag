@@ -134,7 +134,7 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 
 		// Transform from screen coordinates to texture coordinates
 		shadowCoords = shadowCoords * 0.5 + 0.5;
-		float shadowDepth = texture2D(frxs_shadowMap, shadowCoords.xy).x;
+		float shadowDepth = texture2DArray(frxs_shadowMap, vec3(shadowCoords.xy, 0)).x;
 
 		if (shadowDepth >= shadowCoords.z) {
 			light += vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);

@@ -25,6 +25,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.config.Configurator;
+import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.SimpleImage;
 import grondag.canvas.texture.SimpleTexture;
 import grondag.canvas.texture.TextureData;
@@ -94,9 +95,10 @@ class LightmapHdTexture implements AutoCloseable {
 			return;
 		}
 
-		GlStateManager.activeTexture(TextureData.HD_LIGHTMAP);
+		// UGLY: should not be needed - enable doesn't affect shaders
+		CanvasTextureState.activeTextureUnit(TextureData.HD_LIGHTMAP);
 		GlStateManager.disableTexture();
-		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	private void enable() {

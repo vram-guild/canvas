@@ -28,6 +28,7 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.render.CanvasTextureState;
 
 @Environment(EnvType.CLIENT)
 public class MaterialInfoTexture {
@@ -79,10 +80,10 @@ public class MaterialInfoTexture {
 	public void disable() {
 		if (enabled) {
 			enabled = false;
-			GlStateManager.activeTexture(TextureData.MATERIAL_INFO);
-			GlStateManager.bindTexture(0);
+			CanvasTextureState.activeTextureUnit(TextureData.MATERIAL_INFO);
+			CanvasTextureState.bindTexture(0);
 			GlStateManager.disableTexture();
-			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 	}
 
@@ -95,8 +96,8 @@ public class MaterialInfoTexture {
 				isNew = true;
 			}
 
-			GlStateManager.activeTexture(TextureData.MATERIAL_INFO);
-			GlStateManager.bindTexture(glId);
+			CanvasTextureState.activeTextureUnit(TextureData.MATERIAL_INFO);
+			CanvasTextureState.bindTexture(glId);
 
 			image.upload();
 
@@ -116,7 +117,7 @@ public class MaterialInfoTexture {
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_REPEAT);
 			}
 
-			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
 			CanvasMod.LOG.warn("Unable to create material info texture due to error:", e);
 

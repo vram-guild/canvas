@@ -66,6 +66,8 @@ public class Pipeline {
 
 	public static PipelineFramebuffer skyShadowFbo;
 	public static int skyShadowSize;
+	public static int skyShadowDepth;
+
 	public static PipelineFramebuffer solidTerrainFbo;
 	public static PipelineFramebuffer translucentTerrainFbo;
 	public static PipelineFramebuffer translucentEntityFbo;

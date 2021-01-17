@@ -16,7 +16,6 @@
 
 package grondag.canvas.material.state;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -38,6 +37,7 @@ import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.SkyShadowRenderer;
+import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
@@ -167,8 +167,8 @@ public final class RenderState extends AbstractRenderState {
 		RenderSystem.disableAlphaTest();
 
 		if (Pipeline.shadowMapDepth != -1) {
-			GlStateManager.activeTexture(TextureData.SHADOWMAP);
-			GlStateManager.bindTexture(Pipeline.shadowMapDepth);
+			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 		}
 
 		assert CanvasGlHelper.checkError();
@@ -238,8 +238,8 @@ public final class RenderState extends AbstractRenderState {
 		MaterialInfoTexture.INSTANCE.disable();
 
 		if (Pipeline.shadowMapDepth != -1) {
-			GlStateManager.activeTexture(TextureData.SHADOWMAP);
-			GlStateManager.bindTexture(0);
+			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, 0);
 		}
 
 		MaterialTarget.disable();

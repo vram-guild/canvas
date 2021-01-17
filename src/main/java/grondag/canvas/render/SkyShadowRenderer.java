@@ -52,6 +52,8 @@ public class SkyShadowRenderer {
 		if (Pipeline.skyShadowFbo != null) {
 			begin();
 
+			Pipeline.skyShadowFbo.clear();
+
 			// WIP: will need purpose-specific methods for each frustum/render type
 			MatrixState.set(MatrixState.REGION);
 			canvasWorldRenderer.renderTerrainLayer(false, cameraX, cameraY, cameraZ);

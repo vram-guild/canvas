@@ -34,6 +34,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.pass.Pass;
+import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -102,11 +103,12 @@ public class PipelineManager {
 	}
 
 	static void beginFullFrameRender() {
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		oldTex1 = GlStateManager.getActiveBoundTexture();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		// UGLY: put state preservation into texture manager
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE1);
+		oldTex1 = CanvasTextureState.getActiveBoundTexture();
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-		oldTex0 = GlStateManager.getActiveBoundTexture();
+		oldTex0 = CanvasTextureState.getActiveBoundTexture();
 
 		RenderSystem.depthMask(false);
 		RenderSystem.disableBlend();
@@ -124,11 +126,11 @@ public class PipelineManager {
 
 	static void endFullFrameRender() {
 		VboBuffer.unbind();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		GlStateManager.bindTexture(oldTex1);
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE1);
+		CanvasTextureState.bindTexture(oldTex1);
 		GlStateManager.disableTexture();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-		GlStateManager.bindTexture(oldTex0);
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
+		CanvasTextureState.bindTexture(oldTex0);
 		GlProgram.deactivate();
 		RenderSystem.popMatrix();
 		GlStateManager.matrixMode(GL11.GL_MODELVIEW);
@@ -169,9 +171,9 @@ public class PipelineManager {
 		RenderSystem.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
 		PipelineManager.setProjection(w, h);
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(glId);
+		CanvasTextureState.bindTexture(glId);
 		setProjection(w, h);
 		debugShader.activate().size(w, h).lod(lod);
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
@@ -205,7 +207,7 @@ public class PipelineManager {
 
 		debugShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
-		GlStateManager.bindTexture(0);
+		CanvasTextureState.bindTexture(0);
 		assert CanvasGlHelper.checkError();
 
 		final VertexCollectorImpl collector = new VertexCollectorImpl();

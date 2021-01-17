@@ -127,8 +127,8 @@ public class GlProgram {
 		return new UniformArray4fImpl(name, initializer, frequency, size);
 	}
 
-	public Uniform1i uniformSampler2d(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-		return new UniformSamplerImpl(name, initializer, frequency);
+	public Uniform1i uniformSampler(String name, String type, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
+		return new UniformSamplerImpl(name, type, initializer, frequency);
 	}
 
 	public Uniform1i uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
@@ -669,13 +669,16 @@ public class GlProgram {
 	}
 
 	public class UniformSamplerImpl extends Uniform1iImpl {
-		protected UniformSamplerImpl(String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
+		private final String type;
+
+		public UniformSamplerImpl(String name, String type, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency);
+			this.type = type;
 		}
 
 		@Override
 		public String searchString() {
-			return "sampler2D";
+			return type;
 		}
 	}
 

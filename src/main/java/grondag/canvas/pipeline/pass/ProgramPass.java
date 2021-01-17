@@ -29,6 +29,7 @@ import grondag.canvas.pipeline.Image;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.PassConfig;
+import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.ProcessShader;
 
 class ProgramPass extends Pass {
@@ -86,8 +87,9 @@ class ProgramPass extends Pass {
 		final int slimit = binds.length;
 
 		for (int i = 0; i < slimit; ++i) {
-			GlStateManager.activeTexture(GL21.GL_TEXTURE0 + i);
-			GlStateManager.bindTexture(binds[i]);
+			CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0 + i);
+			// TODO: support targets other than 2D
+			CanvasTextureState.bindTexture(binds[i]);
 		}
 
 		shader.activate().lod(config.lod).size(width, height);
