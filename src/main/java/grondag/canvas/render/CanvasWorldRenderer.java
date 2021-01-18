@@ -861,13 +861,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			if (Pipeline.fabCloudsFbo > 0) {
 				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, Pipeline.fabCloudsFbo);
-				//Pipeline.cloudsFbo.bind();
 			}
 
 			// NB: vanilla cloud renderer wants/needs the transformed stack even though it is already applied
 			renderClouds(viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
 
-			if (Pipeline.cloudsFbo != null) {
+			if (Pipeline.fabCloudsFbo > 0) {
 				Pipeline.defaultFbo.bind();
 			}
 		}
