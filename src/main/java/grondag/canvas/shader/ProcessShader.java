@@ -48,6 +48,15 @@ public class ProcessShader {
 		}
 	}
 
+	/** Unloads if non-null and always returns null. */
+	public static ProcessShader unload(ProcessShader shader) {
+		if (shader != null) {
+			shader.unload();
+		}
+
+		return null;
+	}
+
 	public ProcessShader activate() {
 		if (program == null) {
 			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ProgramType.PROCESS);
@@ -60,7 +69,13 @@ public class ProcessShader {
 
 			for (final String samplerName : samplers) {
 				final int n = tex++;
-				program.uniformSampler(samplerName, "sampler2D", UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+
+				// PERF: should probably match on any sampler uniform type - names must be unique anyway
+				if (program.containsUniformSpec(samplerName, "sampler2DArray")) {
+					program.uniformSampler(samplerName, "sampler2DArray", UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				} else if (program.containsUniformSpec(samplerName, "sampler2D")) {
+					program.uniformSampler(samplerName, "sampler2D", UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				}
 			}
 
 			program.load();

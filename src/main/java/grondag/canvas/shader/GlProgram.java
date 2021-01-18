@@ -194,6 +194,12 @@ public class GlProgram {
 
 		GL21.glUseProgram(progID);
 
+		if (!CanvasGlHelper.checkError()) {
+			isErrored = true;
+			CanvasMod.LOG.warn(String.format("Unable to activate program with shaders %s and %s.  Program was disabled.", vertexShader.getShaderSourceId(), fragmentShader.getShaderSourceId()));
+			return;
+		}
+
 		if (hasDirty) {
 			final int count = activeUniforms.size();
 
@@ -217,7 +223,7 @@ public class GlProgram {
 		return new UniformMatrix3fImpl(name, initializer, frequency);
 	}
 
-	private void loadUniforms() {
+	private void findActiveUniforms() {
 		activeUniforms.clear();
 		renderTickUpdates.clear();
 		gameTickUpdates.clear();
@@ -264,7 +270,7 @@ public class GlProgram {
 		}
 
 		if (!isErrored) {
-			loadUniforms();
+			findActiveUniforms();
 			final int limit = activeUniforms.size();
 
 			for (int i = 0; i < limit; i++) {
@@ -276,6 +282,10 @@ public class GlProgram {
 	}
 
 	public final void unload() {
+		for (final UniformImpl<?> u : uniforms) {
+			u.unload();
+		}
+
 		if (progID > 0) {
 			GL21.glDeleteProgram(progID);
 			progID = -1;
@@ -326,9 +336,10 @@ public class GlProgram {
 	}
 
 	public boolean containsUniformSpec(UniformImpl<?> uniform) {
-		final String type = uniform.searchString();
-		final String name = uniform.name;
+		return containsUniformSpec(uniform.searchString(), uniform.name);
+	}
 
+	public boolean containsUniformSpec(String type, String name) {
 		return vertexShader.containsUniformSpec(type, name)
 				|| fragmentShader.containsUniformSpec(type, name);
 	}
@@ -359,8 +370,13 @@ public class GlProgram {
 			flags |= FLAG_NEEDS_INITIALIZATION;
 		}
 
+		public void unload() {
+			this.unifID = -1;
+		}
+
 		private void load(int programID) {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
+			assert CanvasGlHelper.checkError();
 
 			if (this.unifID == -1) {
 				if (Configurator.logMissingUniforms) {
@@ -377,7 +393,7 @@ public class GlProgram {
 
 		@SuppressWarnings("unchecked")
 		public final void upload() {
-			if (flags == 0) {
+			if (flags == 0 || unifID == -1) {
 				return;
 			}
 
@@ -386,11 +402,9 @@ public class GlProgram {
 				assert CanvasGlHelper.checkError();
 			}
 
-			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD && unifID != -1) {
+			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD) {
 				uploadInner();
-				CanvasGlHelper.checkError();
-				// WIP: put back
-				//assert CanvasGlHelper.checkError();
+				assert CanvasGlHelper.checkError();
 			}
 
 			flags = 0;

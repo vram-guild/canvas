@@ -45,6 +45,8 @@ public class BufferDebug {
 	private static int[] glIds;
 	private static int[] lods;
 	private static String[] labels;
+	private static boolean[] depth;
+	private static boolean[] array;
 
 	private static int keyOption;
 
@@ -60,6 +62,8 @@ public class BufferDebug {
 		glIds = new int[imageCount];
 		lods = new int[imageCount];
 		labels = new String[imageCount];
+		depth = new boolean[imageCount];
+		array = new boolean[imageCount];
 
 		int i = 0;
 
@@ -69,7 +73,9 @@ public class BufferDebug {
 			for (int lod = 0; lod <= img.lod; ++lod) {
 				labels[i] = img.name + " lod=" + lod;
 				glIds[i] = glId;
-				lods[i] = img.pixelFormat == GL46.GL_DEPTH_COMPONENT ? -1 : lod;
+				lods[i] = lod;
+				depth[i] = img.pixelFormat == GL46.GL_DEPTH_COMPONENT;
+				array[i] = img.target == GL46.GL_TEXTURE_2D_ARRAY;
 				++i;
 			}
 		}
@@ -122,7 +128,8 @@ public class BufferDebug {
 			MinecraftClient.getInstance().player.sendMessage(new LiteralText(labels[VIEWS[keyOption]]), true);
 		}
 
-		PipelineManager.renderDebug(glIds[VIEWS[keyOption]], lods[VIEWS[keyOption]]);
+		final int n = VIEWS[keyOption];
+		PipelineManager.renderDebug(glIds[n], lods[n], depth[n], array[n]);
 	}
 
 	public static void renderOverlay(MatrixStack matrices, TextRenderer fontRenderer) {
