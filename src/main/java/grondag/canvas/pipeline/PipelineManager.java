@@ -187,9 +187,9 @@ public class PipelineManager {
 
 		if (depth) {
 			if (array) {
-				debugDepthShader.activate().size(w, h).lod(0);
-			} else {
 				debugDepthArrayShader.activate().size(w, h).lod(lod);
+			} else {
+				debugDepthShader.activate().size(w, h).lod(0);
 			}
 		} else {
 			debugShader.activate().size(w, h).lod(lod);
