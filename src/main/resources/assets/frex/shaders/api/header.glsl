@@ -11,6 +11,7 @@
 #else
 	#ifdef VERTEX_SHADER
 		#define varying out
+		#define attribute in
 	#else
 		#define varying in
 	#endif
