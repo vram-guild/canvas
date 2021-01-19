@@ -98,7 +98,7 @@ public enum MatrixState {
 		// Frustum center is at most half view distance away from each frustum plane
 		// Expanding in each direction by that much should enclose the visible scene
 		// (Approximate because view frustum isn't a simple box.)
-		// Note the Y-axis pffset is inverted because MC Y is inverted relative to OpenGL/matrix transform
+		// Note the Y-axis offset is inverted because MC Y is inverted relative to OpenGL/matrix transform
 		computeBounds(viewDist);
 
 		// We need to keep the skylight projection consistently aligned to
