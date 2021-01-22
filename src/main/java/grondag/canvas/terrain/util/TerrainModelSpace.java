@@ -45,7 +45,7 @@ public class TerrainModelSpace {
 
 	/**
 	 * Returns coordinate value relative to its origin. Essentially a macro for
-	 * worldCood - {@link #renderCubeOrigin(int)}
+	 * worldCoord - {@link #renderCubeOrigin(int)}
 	 */
 	public static final int renderCubeRelative(int worldCoord) {
 		return worldCoord - renderCubeOrigin(worldCoord);
