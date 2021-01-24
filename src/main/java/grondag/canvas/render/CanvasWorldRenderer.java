@@ -419,8 +419,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("culling");
 
 		final TerrainFrustum frustum = terrainFrustum;
-		frustum.prepare(MatrixState.viewMatrix, tickDelta, camera);
-		particleRenderer.frustum.prepare(MatrixState.viewMatrix, tickDelta, camera, projectionMatrix);
 
 		mc.getProfiler().swap("regions");
 
@@ -1140,6 +1138,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			z1 = box.maxZ;
 		}
 
+		// PERF: should probably use same frustum as for particles - don't need the padding
 		if (!terrainFrustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
 			return false;
 		}
@@ -1223,8 +1222,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// and managed draws will correctly have no rotation applies.  Direct draws may attempt to transform
 		// the GL state to the view matrix but it will have no effect - it is already applied.
 
-		WorldDataManager.update(camera);
-		MatrixState.update(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix, camera, bounds);
+		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
+		terrainFrustum.prepare(viewMatrix, tickDelta, camera);
+		particleRenderer.frustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
+		WorldDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera, bounds);
+		MatrixState.set(MatrixState.CAMERA);
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(MatrixState.viewMatrix);
 

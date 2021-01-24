@@ -24,6 +24,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack.Entry;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -42,6 +43,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectInput;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 import grondag.fermion.bits.BitPacker32;
@@ -190,10 +192,12 @@ public class WorldDataManager {
 	public static final Vector3f cameraVector = new Vector3f();
 	/** Middle of view frustum in camera space - skylight points towards this. */
 	public static final Vector3f frustumCenter = new Vector3f();
+	public static final Vector3f lastFrustumCenter = new Vector3f();
 	/** Points towards the light - normalized. */
 	public static final Vector3f skyLightVector = new Vector3f();
 	/** Position of the sky light in camera space. Inverse of camera-to-skylight offset. */
 	public static final Vector3f skyLightPosition = new Vector3f();
+	public static final Vector3f lastSkyLightPosition = new Vector3f();
 
 	public static float cameraX, cameraY, cameraZ = 0f;
 
@@ -363,8 +367,10 @@ public class WorldDataManager {
 	/**
 	 * Called just before terrain setup each frame after camera, fog and projection
 	 * matrix are set up.
+	 * @param projectionMatrix
+	 * @param entry
 	 */
-	public static void update(Camera camera) {
+	public static void update(Entry entry, Matrix4f projectionMatrix, Camera camera, TerrainBounds bounds) {
 		final MinecraftClient client = MinecraftClient.getInstance();
 		final Entity cameraEntity = camera.getFocusedEntity();
 		final float tickDelta = client.getTickDelta();
@@ -400,6 +406,8 @@ public class WorldDataManager {
 		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
 		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch, null);
 
+		MatrixState.update(entry, projectionMatrix, camera, tickDelta, bounds);
+
 		DATA.put(VIEW_WIDTH, PipelineManager.width());
 		DATA.put(VIEW_HEIGHT, PipelineManager.height());
 		DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
@@ -416,11 +424,6 @@ public class WorldDataManager {
 			final ClientPlayerEntity player = client.player;
 			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
-
-			final float hvd = client.gameRenderer.getViewDistance() * 0.5f;
-
-			// point being viewed is middle of camera frustum
-			frustumCenter.set(cameraVector.getX() * hvd, cameraVector.getY() * hvd, cameraVector.getZ() * hvd);
 
 			if (skyLight) {
 				final boolean moonLight = computeSkylightFactor(tickTime);
@@ -445,11 +448,8 @@ public class WorldDataManager {
 				DATA.put(SKYLIGHT_VECTOR + 2, skyOutput.cameraToObject.getZ());
 				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
 
-				// sky light is half view distance from that
-				skyLightPosition.set(
-						frustumCenter.getX() + skyLightVector.getX() * hvd,
-						frustumCenter.getY() + skyLightVector.getY() * hvd,
-						frustumCenter.getZ() + skyLightVector.getZ() * hvd);
+				// Note this changes the value of skyLightPosition - quantizing it to align to shadow map pixels
+				MatrixState.updateShadow(camera, tickDelta, bounds);
 
 				DATA.put(CAMERA_TO_SKYLIGHT + 0, -skyLightPosition.getX());
 				DATA.put(CAMERA_TO_SKYLIGHT + 1, -skyLightPosition.getY());

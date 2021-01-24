@@ -78,4 +78,11 @@ public class CanvasMath {
 			axis.getZ() * f,
 			(float) Math.cos(radians / 2.0F));
 	}
+
+	public static float dist(float x0, float y0, float z0, float x1, float y1, float z1) {
+		final float dx = x1 - x0;
+		final float dy = y1 - y0;
+		final float dz = z1 - z0;
+		return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+	}
 }

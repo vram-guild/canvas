@@ -39,9 +39,12 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 @Environment(EnvType.CLIENT)
 public abstract class CanvasFrustum extends Frustum {
 	protected static final float MIN_GAP = 0.0001f;
-	protected final Matrix4fExt mvpMatrix = (Matrix4fExt) (Object) new Matrix4f();
-	protected final Matrix4fExt lastProjectionMatrix = (Matrix4fExt) (Object) new Matrix4f();
-	protected final Matrix4fExt lastModelMatrix = (Matrix4fExt) (Object) new Matrix4f();
+	protected final Matrix4f mvpMatrix = new Matrix4f();
+	protected final Matrix4fExt mvpMatrixExt = (Matrix4fExt) (Object) mvpMatrix;
+	protected final Matrix4f projectionMatrix = new Matrix4f();
+	protected final Matrix4fExt projectionMatrixExt = (Matrix4fExt) (Object) projectionMatrix;
+	protected final Matrix4f modelMatrix = new Matrix4f();
+	protected final Matrix4fExt modelMatrixExt = (Matrix4fExt) (Object) modelMatrix;
 
 	protected float lastViewXf = Float.MAX_VALUE;
 	protected float lastViewYf = Float.MAX_VALUE;
@@ -65,11 +68,11 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	public final Matrix4fExt projectionMatrix() {
-		return lastProjectionMatrix;
+		return projectionMatrixExt;
 	}
 
 	public final Matrix4fExt modelMatrix() {
-		return lastModelMatrix;
+		return modelMatrixExt;
 	}
 
 	@Override
@@ -110,7 +113,7 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	protected final void extractPlanes() {
-		final Matrix4fExt matrix = mvpMatrix;
+		final Matrix4fExt matrix = mvpMatrixExt;
 		final float a00 = matrix.a00();
 		final float a01 = matrix.a01();
 		final float a02 = matrix.a02();

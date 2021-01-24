@@ -56,7 +56,7 @@ public class CanvasParticleRenderer {
 	private Runnable drawHandler = Runnables.doNothing();
 	private RenderMaterialImpl baseMat;
 	private RenderMaterialImpl emissiveMat;
-	public final ParticleFrustum frustum = new ParticleFrustum();
+	public final FastFrustum frustum = new FastFrustum();
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
 		RenderSystem.pushMatrix();

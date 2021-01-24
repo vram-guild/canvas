@@ -70,11 +70,16 @@ public class ProcessShader {
 			for (final String samplerName : samplers) {
 				final int n = tex++;
 
+				// WIP: remove
+				if (samplerName.equals("_cvu_emissive")) {
+					System.out.println("boop");
+				}
+
 				// PERF: should probably match on any sampler uniform type - names must be unique anyway
-				if (program.containsUniformSpec(samplerName, "sampler2DArray")) {
-					program.uniformSampler(samplerName, "sampler2DArray", UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
-				} else if (program.containsUniformSpec(samplerName, "sampler2D")) {
-					program.uniformSampler(samplerName, "sampler2D", UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				if (program.containsUniformSpec("sampler2DArray", samplerName)) {
+					program.uniformSampler("sampler2DArray", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				} else if (program.containsUniformSpec("sampler2D", samplerName)) {
+					program.uniformSampler("sampler2D", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
 				}
 			}
 

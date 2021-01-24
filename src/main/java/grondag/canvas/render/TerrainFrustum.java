@@ -112,9 +112,9 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		viewDistanceSquared = src.viewDistanceSquared;
 
-		lastModelMatrix.set(src.lastModelMatrix);
-		lastProjectionMatrix.set(src.lastProjectionMatrix);
-		mvpMatrix.set(src.mvpMatrix);
+		modelMatrixExt.set(src.modelMatrixExt);
+		projectionMatrixExt.set(src.projectionMatrixExt);
+		mvpMatrixExt.set(src.mvpMatrixExt);
 
 		leftX = src.leftX;
 		leftY = src.leftY;
@@ -207,7 +207,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			modelMatrixUpdate = dPitch * dPitch + dYaw * dYaw >= paddingFov * paddingFov;
 		}
 
-		if (movedOneBlock || modelMatrixUpdate || !lastProjectionMatrix.matches(occlusionProjMat)) {
+		if (movedOneBlock || modelMatrixUpdate || !projectionMatrixExt.matches(occlusionProjMat)) {
 			++viewVersion;
 
 			lastViewX = x;
@@ -221,12 +221,12 @@ public class TerrainFrustum extends CanvasFrustum {
 			lastCameraPitch = cameraPitch;
 			lastCameraYaw = cameraYaw;
 
-			lastModelMatrix.set(modelMatrix);
-			lastProjectionMatrix.set(occlusionProjMat);
+			modelMatrixExt.set(modelMatrix);
+			projectionMatrixExt.set(occlusionProjMat);
 
-			mvpMatrix.loadIdentity();
-			mvpMatrix.multiply(lastProjectionMatrix);
-			mvpMatrix.multiply(lastModelMatrix);
+			mvpMatrixExt.loadIdentity();
+			mvpMatrixExt.multiply(projectionMatrixExt);
+			mvpMatrixExt.multiply(modelMatrixExt);
 
 			// depends on mvpMatrix being complete
 			extractPlanes();
@@ -281,6 +281,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			occlusionProjMatEx.scale(zoom, zoom, 1.0F);
 		}
 
+		// PERF: WHY 4X ON FAR CLIPPING PLANE MOJANG?
 		occlusionProjMat.multiply(Matrix4f.viewboxMatrix(fov + padding, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
 	}
 

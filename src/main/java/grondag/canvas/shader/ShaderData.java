@@ -43,19 +43,19 @@ public class ShaderData {
 	public static final String VERTEX_START = "#include canvas:startvertex";
 
 	public static final Consumer<GlProgram> MATERIAL_UNIFORM_SETUP = program -> {
-		program.uniformSampler("frxs_spriteAltas", "sampler2D", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
+		program.uniformSampler("sampler2D", "frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
 
-		program.uniformSampler("frxs_lightmap", "sampler2D", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_LIGHTMAP - GL21.GL_TEXTURE0));
+		program.uniformSampler("sampler2D", "frxs_lightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_LIGHTMAP - GL21.GL_TEXTURE0));
 
-		program.uniformSampler("frxs_shadowMap", "sampler2DArray", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SHADOWMAP - GL21.GL_TEXTURE0));
+		program.uniformSampler("sampler2DArray", "frxs_shadowMap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SHADOWMAP - GL21.GL_TEXTURE0));
 
 		//program.uniformSampler2d("frxs_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.DITHER - GL21.GL_TEXTURE0));
 
 		//program.uniformSampler2d("frxs_hdLightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.HD_LIGHTMAP - GL21.GL_TEXTURE0));
 
-		program.uniformSampler("_cvu_spriteInfo", "sampler2D", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
+		program.uniformSampler("sampler2D", "_cvu_spriteInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
 
-		program.uniformSampler("_cvu_materialInfo", "sampler2D", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MATERIAL_INFO - GL21.GL_TEXTURE0));
+		program.uniformSampler("sampler2D", "_cvu_materialInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MATERIAL_INFO - GL21.GL_TEXTURE0));
 	};
 
 	public static final Consumer<GlProgram> COMMON_UNIFORM_SETUP = program -> {

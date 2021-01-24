@@ -16,6 +16,12 @@
 
 package grondag.canvas.varia;
 
+import static grondag.canvas.varia.WorldDataManager.frustumCenter;
+import static grondag.canvas.varia.WorldDataManager.lastFrustumCenter;
+import static grondag.canvas.varia.WorldDataManager.lastSkyLightPosition;
+import static grondag.canvas.varia.WorldDataManager.skyLightPosition;
+import static grondag.canvas.varia.WorldDataManager.skyLightVector;
+
 import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
@@ -24,12 +30,15 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 
+import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.render.FastFrustum;
 import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 
 /**
@@ -80,27 +89,139 @@ public enum MatrixState {
 		current = val;
 	}
 
-	static int i = 0;
-	@SuppressWarnings("resource")
-	private static void computeShadowMatrices(Camera camera, TerrainBounds bounds) {
+	@SuppressWarnings({ "resource", "unused" })
+	private static void computeShadowMatricesWip(Camera camera, float tickDelta, TerrainBounds bounds) {
 		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
 
-		// Look from skylight towards center of the view frustum
+		straightFrustum.prepare(viewMatrix, tickDelta, camera, straightProjMatrix);
+
+		final Vector4f corner = new Vector4f();
+
+		// near lower left
+		corner.set(-1f, -1f, -1f, 1f);
+		corner.transform(straightProjMatrixInv);
+
+		float nx0 = corner.getX() / corner.getW();
+		float ny0 = corner.getY() / corner.getW();
+		float nz0 = corner.getZ() / corner.getW();
+
+		corner.set(nx0, ny0, nz0, 1f);
+		corner.transform(viewMatrixInv);
+
+		nx0 = corner.getX();
+		ny0 = corner.getY();
+		nz0 = corner.getZ();
+
+		// near top right
+		corner.set(1f, 1f, -1f, 1f);
+		corner.transform(straightProjMatrixInv);
+
+		float nx1 = corner.getX() / corner.getW();
+		float ny1 = corner.getY() / corner.getW();
+		float nz1 = corner.getZ() / corner.getW();
+
+		corner.set(nx1, ny1, nz1, 1f);
+		corner.transform(viewMatrixInv);
+
+		nx1 = corner.getX();
+		ny1 = corner.getY();
+		nz1 = corner.getZ();
+
+		// far lower left
+		corner.set(-1f, -1f, 1f, 1f);
+		corner.transform(straightProjMatrixInv);
+
+		float fx0 = corner.getX() / corner.getW();
+		float fy0 = corner.getY() / corner.getW();
+		float fz0 = corner.getZ() / corner.getW();
+
+		corner.set(fx0, fy0, fz0, 1f);
+		corner.transform(viewMatrixInv);
+
+		fx0 = corner.getX();
+		fy0 = corner.getY();
+		fz0 = corner.getZ();
+
+		// far top right
+		corner.set(1f, 1f, 1f, 1f);
+		corner.transform(straightProjMatrixInv);
+
+		float fx1 = corner.getX() / corner.getW();
+		float fy1 = corner.getY() / corner.getW();
+		float fz1 = corner.getZ() / corner.getW();
+
+		corner.set(fx1, fy1, fz1, 1f);
+		corner.transform(viewMatrixInv);
+
+		fx1 = corner.getX();
+		fy1 = corner.getY();
+		fz1 = corner.getZ();
+
+		final float mx = (nx0 + nx1 + fx0 + fx1) * 0.25f;
+		final float my = (ny0 + ny1 + fy0 + fy1) * 0.25f;
+		final float mz = (nz0 + nz1 + fz0 + fz1) * 0.25f;
+
+		WorldDataManager.frustumCenter.set(mx, my, mz);
+
+		// WIP: compute radius 1X
+		final float radius = (float) Math.sqrt((mx - fx1) * (mx - fx1) + (my - fy1) * (my - fy1) + (mz - fz1) * (mz - fz1));
+
+		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
+
+		skyLightPosition.set(
+				mx + skyLightVector.getX() * radius,
+				my + skyLightVector.getY() * radius,
+				mz + skyLightVector.getZ() * radius);
+
+		// don't move skylight unless it is at least a 1 pixel change in 1 axis
+
+		// Look from skylight towards center of the view frustum in camera space
 		shadowViewMatrixExt.lookAt(
-				WorldDataManager.skyLightPosition.getX(),
-				WorldDataManager.skyLightPosition.getY(),
-				WorldDataManager.skyLightPosition.getZ(),
-				WorldDataManager.frustumCenter.getX(),
-				WorldDataManager.frustumCenter.getY(),
-				WorldDataManager.frustumCenter.getZ(),
+				lastSkyLightPosition.getX(),
+				lastSkyLightPosition.getY(),
+				lastSkyLightPosition.getZ(),
+				mx, my, mz,
 				0.0f, 0.0f, 1.0f);
 
-		// Frustum center is at most half view distance away from each frustum plane
-		// Expanding in each direction by that much should enclose the visible scene
-		// (Approximate because view frustum isn't a simple box.)
-		// Note the Y-axis pffset is inverted because MC Y is inverted relative to OpenGL/matrix transform
-		computeBounds(viewDist);
+		final Vector4f last = new Vector4f(lastSkyLightPosition.getX(), lastSkyLightPosition.getY(), lastSkyLightPosition.getZ(), 1.0f);
+		final Vector4f current = new Vector4f(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ(), 1.0f);
+		last.transform(shadowViewMatrix);
+		current.transform(shadowViewMatrix);
 
+		final float qdx = current.getX() - last.getX();
+		final float qdy = current.getY() - last.getY();
+
+		final float pixelSize = radius / Pipeline.skyShadowSize;
+		final float qx = (float) (Math.floor(qdx / pixelSize) * pixelSize);
+		final float qy = (float) (Math.floor(qdy / pixelSize) * pixelSize);
+		//final float qz = (float) (Math.floor(qdz / 0.5f) * 0.5f);
+
+		current.set(last.getX() + qx, last.getY() + qy, radius, 1.0f);
+
+		shadowViewMatrix.invert();
+
+		current.transform(shadowViewMatrix);
+
+		skyLightPosition.set(
+				current.getX(),
+				current.getY(),
+				current.getZ());
+
+		shadowViewMatrixExt.lookAt(
+				skyLightPosition.getX(),
+				skyLightPosition.getY(),
+				skyLightPosition.getZ(),
+				mx, my, mz,
+				0.0f, 0.0f, 1.0f);
+
+		worldShadowViewExt.lookAt(
+				WorldDataManager.skyLightVector.getX() * viewDist * 2,
+				WorldDataManager.skyLightVector.getY() * viewDist * 2,
+				WorldDataManager.skyLightVector.getZ() * viewDist * 2,
+				0,
+				0,
+				0,
+				0.0f, 0.0f, 1.0f);
 		// We need to keep the skylight projection consistently aligned to
 		// pixels in the shadowmap texture.  The alignment must be to world
 		// coordinates in the x/y axis of the skylight perspective.
@@ -114,16 +235,11 @@ public enum MatrixState {
 		// As the camera moves, the x/y distance of its position from the origin
 		// indicate how much we need to translate the shadowmap projection to maintain alignment.
 
-		final float hvd = viewDist * 0.5f;
-
-		worldShadowViewExt.lookAt(
-				WorldDataManager.skyLightVector.getX() * hvd,
-				WorldDataManager.skyLightVector.getY() * hvd,
-				WorldDataManager.skyLightVector.getZ() * hvd,
-				0,
-				0,
-				0,
-				0.0f, 0.0f, 1.0f);
+		// Frustum center is at most half view distance away from each frustum plane
+		// Expanding in each direction by that much should enclose the visible scene
+		// (Approximate because view frustum isn't a simple box.)
+		// Note the Y-axis pffset is inverted because MC Y is inverted relative to OpenGL/matrix transform
+		computeBounds(radius, mx, my, mz);
 
 		// To avoid precision issues at the edge of the world, use a world boundary
 		// that is relatively close - keeping them at regular intervals.
@@ -132,9 +248,10 @@ public enum MatrixState {
 		final int oz = (int) Math.floor(WorldDataManager.cameraZd) & 0xFFFFFF00;
 
 		texelAlignmentPos.set(
-				(float) (WorldDataManager.cameraXd - ox + WorldDataManager.frustumCenter.getX()),
-				(float) (WorldDataManager.cameraYd - oy + WorldDataManager.frustumCenter.getY()),
-				(float) (WorldDataManager.cameraZd - oz + WorldDataManager.frustumCenter.getZ()));
+				(float) (WorldDataManager.cameraXd - ox + mx),
+				(float) (WorldDataManager.cameraYd - oy + my),
+				(float) (WorldDataManager.cameraZd - oz + mz));
+
 		worldShadowViewExt.fastTransform(texelAlignmentPos);
 
 		final float xSpan = x1 - x0;
@@ -161,9 +278,96 @@ public enum MatrixState {
 		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
 	}
 
-	private static void computeBounds(float viewDistance) {
-		final float hvd = viewDistance * 0.5f;
-		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+	// WIP: remove
+	@SuppressWarnings({ "resource"})
+	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds) {
+		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
+
+		final float mx = straightFrustum.circumCenterX();
+		final float my = straightFrustum.circumCenterY();
+		final float mz = straightFrustum.circumCenterZ();
+		final float radius = straightFrustum.circumRadius();
+
+		skyLightPosition.set(
+				mx + skyLightVector.getX() * radius,
+				my + skyLightVector.getY() * radius,
+				mz + skyLightVector.getZ() * radius);
+
+		// Look from skylight towards center of the view frustum in camera space
+		shadowViewMatrixExt.lookAt(
+				WorldDataManager.skyLightPosition.getX(),
+				WorldDataManager.skyLightPosition.getY(),
+				WorldDataManager.skyLightPosition.getZ(),
+				mx, my, mz,
+				0.0f, 0.0f, 1.0f);
+
+		worldShadowViewExt.lookAt(
+				WorldDataManager.skyLightVector.getX() * viewDist * 2,
+				WorldDataManager.skyLightVector.getY() * viewDist * 2,
+				WorldDataManager.skyLightVector.getZ() * viewDist * 2,
+				0,
+				0,
+				0,
+				0.0f, 0.0f, 1.0f);
+
+		// We need to keep the skylight projection consistently aligned to
+		// pixels in the shadowmap texture.  The alignment must be to world
+		// coordinates in the x/y axis of the skylight perspective.
+		// Both the frustum center and light position move as the camera moves,
+		// which causes shimmering if we don't adjust for this movement.
+
+		// Because all of our coordinates and matrices at this point are relative to camera,
+		// we can't test use them for the alignment to world coordinates.
+		// So we compute the position of the frustum center in world space in a
+		// projection centered on world origin. Depth doesn't matter here.
+		// As the camera moves, the x/y distance of its position from the origin
+		// indicate how much we need to translate the shadowmap projection to maintain alignment.
+
+		// Frustum center is at most half view distance away from each frustum plane
+		// Expanding in each direction by that much should enclose the visible scene
+		// (Approximate because view frustum isn't a simple box.)
+		// Note the Y-axis pffset is inverted because MC Y is inverted relative to OpenGL/matrix transform
+		computeBounds(radius, mx, my, mz);
+
+		// To avoid precision issues at the edge of the world, use a world boundary
+		// that is relatively close - keeping them at regular intervals.
+		final int ox = (int) Math.floor(WorldDataManager.cameraXd) & 0xFFFFFF00;
+		final int oy = (int) Math.floor(WorldDataManager.cameraYd) & 0xFFFFFF00;
+		final int oz = (int) Math.floor(WorldDataManager.cameraZd) & 0xFFFFFF00;
+
+		texelAlignmentPos.set(
+				(float) (WorldDataManager.cameraXd - ox + mx),
+				(float) (WorldDataManager.cameraYd - oy + my),
+				(float) (WorldDataManager.cameraZd - oz + mz));
+
+		worldShadowViewExt.fastTransform(texelAlignmentPos);
+
+		final float xSpan = x1 - x0;
+		final float ySpan = y1 - y0;
+		final float xWorldUnitsPerTexel = xSpan / Pipeline.skyShadowSize;
+		final float yWorldUnitsPerTexel = ySpan / Pipeline.skyShadowSize;
+
+		final float clampedX = Math.round((texelAlignmentPos.getX()) / xWorldUnitsPerTexel) * xWorldUnitsPerTexel;
+		final float clampedY = Math.round((texelAlignmentPos.getY()) / yWorldUnitsPerTexel) * yWorldUnitsPerTexel;
+		final float dx = texelAlignmentPos.getX() - clampedX;
+		final float dy = texelAlignmentPos.getY() - clampedY;
+
+		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
+
+		// Construct ortho matrix using bounding sphere box computed above
+		// Should give us a consistent size each frame until the sun moves.
+		// We use actual geometry depth to give better precision on Z.
+		// Z axis inverted to match depth axis in OpenGL
+		shadowProjMatrixExt.setOrtho(
+			x0 - dx, x1 - dx,
+			y0 - dy, y1 - dy,
+			-bounds.maxViewZ(), -bounds.minViewZ());
+
+		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
+	}
+
+	private static void computeBounds(float radius, float fcx, float fcy, float fcz) {
+		boundsPos.set(fcx - radius, fcy - radius, fcz - radius);
 		shadowViewMatrixExt.fastTransform(boundsPos);
 
 		x0 = boundsPos.getX();
@@ -171,25 +375,25 @@ public enum MatrixState {
 		y0 = boundsPos.getY();
 		y1 = y0;
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		boundsPos.set(fcx - radius, fcy - radius, fcz + radius);
 		computeBoundsInner();
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+		boundsPos.set(fcx - radius, fcy + radius, fcz - radius);
 		computeBoundsInner();
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		boundsPos.set(fcx - radius, fcy + radius, fcz + radius);
 		computeBoundsInner();
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+		boundsPos.set(fcx + radius, fcy - radius, fcz - radius);
 		computeBoundsInner();
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		boundsPos.set(fcx + radius, fcy - radius, fcz + radius);
 		computeBoundsInner();
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() - hvd);
+		boundsPos.set(fcx + radius, fcy + radius, fcz - radius);
 		computeBoundsInner();
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() + hvd);
+		boundsPos.set(fcx + radius, fcy + radius, fcz + radius);
 		computeBoundsInner();
 	}
 
@@ -213,14 +417,7 @@ public enum MatrixState {
 		}
 	}
 
-	/**
-	 * Depends on WorldDataManager and should be called after it updates.
-	 * @param bounds
-	 */
-	public static void update(MatrixState val, MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, TerrainBounds bounds) {
-		assert val != null;
-		current = val;
-
+	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta, TerrainBounds bounds) {
 		// write values for prior frame before updating
 		viewMatrixExt.writeToBuffer(VIEW_LAST * 16, DATA);
 		projMatrixExt.writeToBuffer(PROJ_LAST * 16, DATA);
@@ -251,8 +448,28 @@ public enum MatrixState {
 		viewProjMatrixInvExt.multiply(projMatrixInvExt);
 		viewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
 
-		// shadow perspective
-		computeShadowMatrices(camera, bounds);
+		computeStraightProjection(camera, tickDelta);
+
+		// WIP: write these to buffer, along with straight projection
+		straightViewProjMatrixExt.set(straightProjMatrixExt);
+		straightViewProjMatrixExt.multiply(viewMatrixExt);
+		//straightViewProjMatrixExt.writeToBuffer(VP * 16, DATA);
+
+		straightViewProjMatrixInvExt.set(viewMatrixInvExt);
+		straightViewProjMatrixInvExt.multiply(straightProjMatrixInvExt);
+		//straightViewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
+
+		straightFrustum.prepare(viewMatrix, tickDelta, camera, straightProjMatrix);
+		straightFrustum.computeCircumCenter(viewMatrixInv, straightProjMatrixInv);
+
+		lastFrustumCenter.set(frustumCenter.getX(), frustumCenter.getY(), frustumCenter.getZ());
+		frustumCenter.set(straightFrustum.circumCenterX(), straightFrustum.circumCenterY(), straightFrustum.circumCenterZ());
+	}
+
+	static void updateShadow(Camera camera, float tickDelta, TerrainBounds bounds) {
+		computeShadowMatrices(camera, tickDelta, bounds);
+
+		// shadow perspective were computed earlier
 		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, DATA);
 		shadowProjMatrixExt.writeToBuffer(SHADOW_PROJ * 16, DATA);
 
@@ -280,6 +497,27 @@ public enum MatrixState {
 		return shadowDepth;
 	}
 
+	/**
+	 * Computes projection that doesn't include nausea or view bob and doesn't have 4X depth like vanilla.
+	 */
+	public static void computeStraightProjection(Camera camera, float tickDelta) {
+		final MinecraftClient mc = MinecraftClient.getInstance();
+		final GameRendererExt gx = (GameRendererExt) mc.gameRenderer;
+		final float zoom = gx.canvas_zoom();
+
+		straightProjMatrix.loadIdentity();
+
+		if (zoom != 1.0F) {
+			straightProjMatrixExt.translate(gx.canvas_zoomX(), -gx.canvas_zoomY(), 0.0f);
+			straightProjMatrixExt.scale(zoom, zoom, 1.0F);
+		}
+
+		straightProjMatrix.multiply(Matrix4f.viewboxMatrix(gx.canvas_getFov(camera, tickDelta, true), mc.getWindow().getFramebufferWidth() / mc.getWindow().getFramebufferHeight(), 0.05F, mc.gameRenderer.getViewDistance()));
+
+		straightProjMatrixInvExt.set(straightProjMatrixExt);
+		straightProjMatrixInv.invert();
+	}
+
 	public static final Matrix4f viewMatrix = new Matrix4f();
 	public static final Matrix4fExt viewMatrixExt = (Matrix4fExt) (Object) viewMatrix;
 	private static final Matrix4f viewMatrixInv = new Matrix4f();
@@ -294,6 +532,16 @@ public enum MatrixState {
 	private static final Matrix4fExt viewProjMatrixExt = (Matrix4fExt) (Object) viewProjMatrix;
 	private static final Matrix4f viewProjMatrixInv = new Matrix4f();
 	private static final Matrix4fExt viewProjMatrixInvExt = (Matrix4fExt) (Object) viewProjMatrixInv;
+
+	public static final Matrix4f straightProjMatrix = new Matrix4f();
+	public static final Matrix4fExt straightProjMatrixExt = (Matrix4fExt) (Object) straightProjMatrix;
+	private static final Matrix4f straightProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt straightProjMatrixInvExt = (Matrix4fExt) (Object) straightProjMatrixInv;
+
+	private static final Matrix4f straightViewProjMatrix = new Matrix4f();
+	private static final Matrix4fExt straightViewProjMatrixExt = (Matrix4fExt) (Object) straightViewProjMatrix;
+	private static final Matrix4f straightViewProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt straightViewProjMatrixInvExt = (Matrix4fExt) (Object) straightViewProjMatrixInv;
 
 	public static final Matrix4f shadowViewMatrix = new Matrix4f();
 	public static final Matrix4fExt shadowViewMatrixExt = (Matrix4fExt) (Object) shadowViewMatrix;
@@ -319,6 +567,9 @@ public enum MatrixState {
 	private static final Vector3f boundsPos = new Vector3f();
 	private static float x0, y0, x1, y1;
 	private static float shadowDepth;
+
+	// frustum without nausea or view bob
+	public static final FastFrustum straightFrustum = new FastFrustum();
 
 	private static final int VIEW = 0;
 	private static final int VIEW_INVERSE = 1;
