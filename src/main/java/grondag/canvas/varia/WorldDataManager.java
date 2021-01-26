@@ -190,11 +190,14 @@ public class WorldDataManager {
 
 	/** Camera view vector in world space - normalized. */
 	public static final Vector3f cameraVector = new Vector3f();
-	/** Middle of view frustum in camera space - skylight points towards this. */
+	// WIP: does this need to go up?
+	/** Middle of view frustum in camera space - relationship to skylight position is not fixed. */
 	public static final Vector3f frustumCenter = new Vector3f();
-	public static final Vector3f lastFrustumCenter = new Vector3f();
+
 	/** Points towards the light - normalized. */
 	public static final Vector3f skyLightVector = new Vector3f();
+
+	// WIP: docs need changed to clarify this is view position of skylight, NOT where it should be rendered.
 	/** Position of the sky light in camera space. Inverse of camera-to-skylight offset. */
 	public static final Vector3f skyLightPosition = new Vector3f();
 	public static final Vector3f lastSkyLightPosition = new Vector3f();
