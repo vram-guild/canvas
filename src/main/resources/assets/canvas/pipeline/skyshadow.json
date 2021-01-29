@@ -12,7 +12,7 @@
     // depth attachment for shadow map - must be an array texture
     {
       name: "shadow_depth",
-      size: 1024,
+      size: 4096,
       depth: 4,
       internalFormat: "DEPTH_COMPONENT32",
       pixelFormat: "DEPTH_COMPONENT",

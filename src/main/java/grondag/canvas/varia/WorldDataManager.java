@@ -446,6 +446,7 @@ public class WorldDataManager {
 				}
 
 				skyLightVector.set(skyOutput.cameraToObject.getX(), skyOutput.cameraToObject.getY(), skyOutput.cameraToObject.getZ());
+				// WIP: should this be the clamped value in shader?
 				DATA.put(SKYLIGHT_VECTOR + 0, skyOutput.cameraToObject.getX());
 				DATA.put(SKYLIGHT_VECTOR + 1, skyOutput.cameraToObject.getY());
 				DATA.put(SKYLIGHT_VECTOR + 2, skyOutput.cameraToObject.getZ());
