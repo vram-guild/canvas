@@ -87,15 +87,8 @@ public enum MatrixState {
 		current = val;
 	}
 
-	private static double lastErr;
-	private static boolean didIncrease;
-	private static double bestErr;
-
 	private static Vector3f lastSkylightVector = new Vector3f();
-
-	private static float xVec, yVec, zVec;
-	private static boolean xDecrease, yDecrease, zDecrease;
-	private static double xLastErr, yLastErr, zLastErr;
+	private static float xCurrent, yCurrent, zCurrent;
 
 	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds) {
 		// We need to keep the skylight projection consistently aligned to
@@ -121,51 +114,128 @@ public enum MatrixState {
 
 		final float radius = MinecraftClient.getInstance().gameRenderer.getViewDistance() * 0.5f; //Math.round(straightFrustum.circumRadius());
 
-		float x = WorldDataManager.skyLightVector.getX();
-		float y = WorldDataManager.skyLightVector.getY();
-		float z = WorldDataManager.skyLightVector.getZ();
+		final float x = WorldDataManager.skyLightVector.getX() * radius;
+		final float y = WorldDataManager.skyLightVector.getY() * radius;
+		final float z = WorldDataManager.skyLightVector.getZ() * radius;
 
-		// look at world origin to compute relative scale of world XYZ
 		shadowViewMatrixExt.lookAt(
-				x * radius,
-				y * radius,
-				z * radius,
+				x,
+				y,
+				z,
 				0,
 				0,
 				0,
 				0.0f, 0.0f, 1.0f);
 
+		final float worldPerPixel = 2f * radius / Pipeline.skyShadowSize;
+
+		final float x0 = (float) (Math.floor(x / worldPerPixel) * worldPerPixel);
+		final float y0 = (float) (Math.floor(y / worldPerPixel) * worldPerPixel);
+		final float z0 = (float) (Math.floor(z / worldPerPixel) * worldPerPixel);
+
+		final float x1 = x0 + worldPerPixel;
+		final float y1 = y0 + worldPerPixel;
+		final float z1 = z0 + worldPerPixel;
+
+		float xBest = x0;
+		float yBest = y0;
+		float zBest = z0;
+
 		final Vector4f testVec = new Vector4f();
 
-		testVec.set(radius, 0, 0, 1.0f);
+		testVec.set(x0 - x, y0 - y, z0 - z, 1f);
 		testVec.transform(shadowViewMatrix);
-		final double xProjectedRadius = Math.sqrt(testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
-		final double xErr = Math.abs(xProjectedRadius - Math.round(xProjectedRadius));
+		float bestErr = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
-		if (xErr > 0.01) {
-			x = lastSkylightVector.getX();
+		testVec.set(x0 - x, y0 - y, z1 - z, 1f);
+		testVec.transform(shadowViewMatrix);
+		float err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+
+		if (err < bestErr) {
+			bestErr = err;
+			xBest = x0;
+			yBest = y0;
+			zBest = z1;
 		}
 
-		testVec.set(0, radius, 0, 1.0f);
+		testVec.set(x0 - x, y1 - y, z0 - z, 1f);
 		testVec.transform(shadowViewMatrix);
-		final double yProjectedRadius = Math.sqrt(testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
-		final double yErr = Math.abs(yProjectedRadius - Math.round(yProjectedRadius));
+		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
-		if (yErr > 0.01) {
-			y = lastSkylightVector.getY();
+		if (err < bestErr) {
+			bestErr = err;
+			xBest = x0;
+			yBest = y1;
+			zBest = z0;
 		}
 
-		testVec.set(0, 0, radius, 1.0f);
+		testVec.set(x0 - x, y1 - y, z1 - z, 1f);
 		testVec.transform(shadowViewMatrix);
-		final double zProjectedRadius = Math.sqrt(testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
-		final double zErr = Math.abs(zProjectedRadius - Math.round(zProjectedRadius));
+		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
-		if (zErr > 0.01) {
-			z = lastSkylightVector.getZ();
+		if (err < bestErr) {
+			bestErr = err;
+			xBest = x0;
+			yBest = y1;
+			zBest = z1;
 		}
 
-		lastSkylightVector.set(x, y, z);
-		WorldDataManager.skyLightVector.set(x, y, z);
+		testVec.set(x1 - x, y0 - y, z0 - z, 1f);
+		testVec.transform(shadowViewMatrix);
+		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+
+		if (err < bestErr) {
+			bestErr = err;
+			xBest = x1;
+			yBest = y0;
+			zBest = z0;
+		}
+
+		testVec.set(x1 - x, y0 - y, z1 - z, 1f);
+		testVec.transform(shadowViewMatrix);
+		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+
+		if (err < bestErr) {
+			bestErr = err;
+			xBest = x1;
+			yBest = y0;
+			zBest = z1;
+		}
+
+		testVec.set(x1 - x, y1 - y, z0 - z, 1f);
+		testVec.transform(shadowViewMatrix);
+		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+
+		if (err < bestErr) {
+			bestErr = err;
+			xBest = x1;
+			yBest = y1;
+			zBest = z0;
+		}
+
+		testVec.set(x1 - x, y1 - y, z1 - z, 1f);
+		testVec.transform(shadowViewMatrix);
+		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+
+		if (err < bestErr) {
+			bestErr = err;
+			xBest = x1;
+			yBest = y1;
+			zBest = z1;
+		}
+
+		testVec.set(xCurrent - x, yCurrent - y, zCurrent - z, 1f);
+		testVec.transform(shadowViewMatrix);
+		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+
+		if (err - bestErr >= 0.15) {
+			xCurrent = xBest;
+			yCurrent = yBest;
+			zCurrent = zBest;
+		}
+
+		lastSkylightVector.set(xCurrent, yCurrent, zCurrent);
+		WorldDataManager.skyLightVector.set(xCurrent, yCurrent, zCurrent);
 
 		computeShadowMatricesInner(camera, radius, bounds);
 	}
@@ -197,9 +267,9 @@ public enum MatrixState {
 
 		// look at world origin to compute relative scale of world XYZ
 		shadowViewMatrixExt.lookAt(
-				lastSkylightVector.getX() * radius,
-				lastSkylightVector.getY() * radius,
-				lastSkylightVector.getZ() * radius,
+				xCurrent * radius,
+				yCurrent * radius,
+				zCurrent * radius,
 				0,
 				0,
 				0,
@@ -249,9 +319,9 @@ public enum MatrixState {
 		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
 
 		skyLightPosition.set(
-				mx + lastSkylightVector.getX() * radius,
-				my + lastSkylightVector.getY() * radius,
-				mz + lastSkylightVector.getZ() * radius);
+				mx + xCurrent * radius,
+				my + yCurrent * radius,
+				mz + zCurrent * radius);
 
 		// Look from skylight towards center of the view frustum in camera space
 		shadowViewMatrixExt.lookAt(
