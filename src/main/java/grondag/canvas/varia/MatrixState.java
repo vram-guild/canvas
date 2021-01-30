@@ -89,6 +89,29 @@ public enum MatrixState {
 
 	private static Vector3f lastSkylightVector = new Vector3f();
 	private static float xCurrent, yCurrent, zCurrent;
+	private static float xFrom, yFrom, zFrom;
+	private static float xMovement, yMovement, zMovement;
+	private static final Vector4f testVec = new Vector4f();
+	private static float bestErr, xBest, yBest, zBest;
+
+	private static void testCorner(float x, float y, float z, float tx, float ty, float tz) {
+		// confirm going same direction
+		if ((tx - xFrom) * xMovement < 0 || (ty - yFrom) * yMovement < 0 || (tz - zFrom) * zMovement < 0) {
+			return;
+		}
+
+		shadowViewMatrixExt.lookAt(tx, ty, tz, 0, 0, 0, 0.0f, 0.0f, 1.0f);
+		testVec.set(tx - x, ty - y, tz - z, 1f);
+		testVec.transform(shadowViewMatrix);
+		final float err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+
+		if (err < bestErr) {
+			bestErr = err;
+			xBest = tx;
+			yBest = ty;
+			zBest = tz;
+		}
+	}
 
 	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds) {
 		// We need to keep the skylight projection consistently aligned to
@@ -112,7 +135,7 @@ public enum MatrixState {
 		// To avoid precision issues at the edge of the world, use a world boundary
 		// that is relatively close - keeping them at regular intervals.
 
-		final float radius = MinecraftClient.getInstance().gameRenderer.getViewDistance() * 0.5f; //Math.round(straightFrustum.circumRadius());
+		final int radius = (int) (MinecraftClient.getInstance().gameRenderer.getViewDistance() / 2); //Math.round(straightFrustum.circumRadius());
 
 		final float x = WorldDataManager.skyLightVector.getX() * radius;
 		final float y = WorldDataManager.skyLightVector.getY() * radius;
@@ -128,115 +151,45 @@ public enum MatrixState {
 		final float y1 = y0 + worldPerPixel;
 		final float z1 = z0 + worldPerPixel;
 
-		float xBest = x0;
-		float yBest = y0;
-		float zBest = z0;
+		xMovement = x - xFrom;
+		yMovement = y - yFrom;
+		zMovement = z - zFrom;
 
-		final Vector4f testVec = new Vector4f();
-
-		testVec.set(x0 - x, y0 - y, z0 - z, 1f);
-		shadowViewMatrixExt.lookAt(x0, y0, z0, 0, 0, 0, 0.0f, 0.0f, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		float bestErr = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
-
-		testVec.set(x0 - x, y0 - y, z1 - z, 1f);
-		shadowViewMatrixExt.lookAt(x0, y0, z1, 0, 0, 0, 0.0f, 0.0f, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		float err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
-
-		if (err < bestErr) {
-			bestErr = err;
-			xBest = x0;
-			yBest = y0;
-			zBest = z1;
-		}
-
-		testVec.set(x0 - x, y1 - y, z0 - z, 1f);
-		shadowViewMatrixExt.lookAt(x0, y1, z0, 0, 0, 0, 0.0f, 0.0f, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
-
-		if (err < bestErr) {
-			bestErr = err;
-			xBest = x0;
-			yBest = y1;
-			zBest = z0;
-		}
-
-		testVec.set(x0 - x, y1 - y, z1 - z, 1f);
-		shadowViewMatrixExt.lookAt(x0, y1, z1, 0, 0, 0, 0.0f, 0.0f, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
-
-		if (err < bestErr) {
-			bestErr = err;
-			xBest = x0;
-			yBest = y1;
-			zBest = z1;
-		}
-
-		testVec.set(x1 - x, y0 - y, z0 - z, 1f);
-		shadowViewMatrixExt.lookAt(x1, y0, z0, 0, 0, 0, 0.0f, 0.0f, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
-
-		if (err < bestErr) {
-			bestErr = err;
-			xBest = x1;
-			yBest = y0;
-			zBest = z0;
-		}
-
-		testVec.set(x1 - x, y0 - y, z1 - z, 1f);
-		shadowViewMatrixExt.lookAt(x1, y0, z1, 0, 0, 0, 0.0f, 0.0f, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
-
-		if (err < bestErr) {
-			bestErr = err;
-			xBest = x1;
-			yBest = y0;
-			zBest = z1;
-		}
-
-		testVec.set(x1 - x, y1 - y, z0 - z, 1f);
-		shadowViewMatrixExt.lookAt(x1, y1, z0, 0, 0, 0, 0.0f, 0.0f, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
-
-		if (err < bestErr) {
-			bestErr = err;
-			xBest = x1;
-			yBest = y1;
-			zBest = z0;
-		}
-
-		testVec.set(x1 - x, y1 - y, z1 - z, 1f);
-		shadowViewMatrixExt.lookAt(x1, y1, z1, 0, 0, 0, 0.0f, 0.0f, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
-
-		if (err < bestErr) {
-			bestErr = err;
-			xBest = x1;
-			yBest = y1;
-			zBest = z1;
-		}
-
-		if (CanvasMath.squareDist(x, y, z, xCurrent, yCurrent, zCurrent) > 2f) {
+		if (xMovement * xMovement + yMovement * yMovement + zMovement * zMovement > 1f) {
 			xCurrent = x;
 			yCurrent = y;
 			zCurrent = z;
+			xFrom = x;
+			yFrom = y;
+			zFrom = z;
 		} else {
+			xBest = xCurrent;
+			yBest = yCurrent;
+			zBest = zCurrent;
+			bestErr = 1f;
+
+			testCorner(x, y, z, x0, y0, z0);
+			testCorner(x, y, z, x0, y0, z1);
+			testCorner(x, y, z, x0, y1, z0);
+			testCorner(x, y, z, x0, y1, z1);
+			testCorner(x, y, z, x1, y0, z0);
+			testCorner(x, y, z, x1, y0, z1);
+			testCorner(x, y, z, x1, y1, z0);
+			testCorner(x, y, z, x1, y1, z1);
+
 			testVec.set(xCurrent - x, yCurrent - y, zCurrent - z, 1f);
 			shadowViewMatrixExt.lookAt(xCurrent, yCurrent, zCurrent, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 			testVec.transform(shadowViewMatrix);
-			err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+			final float err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
-			if (err - bestErr >= 0.15) {
+			if (bestErr != 1f && err - bestErr >= 0.1) {
+				System.out.println(String.format("Err: %f   BestErr: %f   xBest: %f   yBest: %f   zBest: %f", err, bestErr, xBest, yBest, zBest));
 				xCurrent = xBest;
 				yCurrent = yBest;
 				zCurrent = zBest;
+				xFrom = x;
+				yFrom = y;
+				zFrom = z;
 			}
 		}
 
@@ -268,8 +221,8 @@ public enum MatrixState {
 		// To avoid precision issues at the edge of the world, use a world boundary
 		// that is relatively close - keeping them at regular intervals.
 
-		final float radius = MinecraftClient.getInstance().gameRenderer.getViewDistance() * 0.5f; //Math.round(straightFrustum.circumRadius());
-		final double sqRadius = (double) radius * (double) radius;
+		final int radius = (int) (MinecraftClient.getInstance().gameRenderer.getViewDistance() / 2); //Math.round(straightFrustum.circumRadius());
+		final int sqRadius = radius * radius;
 
 		// look at world origin to compute relative scale of world XYZ
 		shadowViewMatrixExt.lookAt(
