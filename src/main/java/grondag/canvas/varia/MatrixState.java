@@ -118,15 +118,6 @@ public enum MatrixState {
 		final float y = WorldDataManager.skyLightVector.getY() * radius;
 		final float z = WorldDataManager.skyLightVector.getZ() * radius;
 
-		shadowViewMatrixExt.lookAt(
-				x,
-				y,
-				z,
-				0,
-				0,
-				0,
-				0.0f, 0.0f, 1.0f);
-
 		final float worldPerPixel = 2f * radius / Pipeline.skyShadowSize;
 
 		final float x0 = (float) (Math.floor(x / worldPerPixel) * worldPerPixel);
@@ -144,10 +135,12 @@ public enum MatrixState {
 		final Vector4f testVec = new Vector4f();
 
 		testVec.set(x0 - x, y0 - y, z0 - z, 1f);
+		shadowViewMatrixExt.lookAt(x0, y0, z0, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 		testVec.transform(shadowViewMatrix);
 		float bestErr = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
 		testVec.set(x0 - x, y0 - y, z1 - z, 1f);
+		shadowViewMatrixExt.lookAt(x0, y0, z1, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 		testVec.transform(shadowViewMatrix);
 		float err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
@@ -159,6 +152,7 @@ public enum MatrixState {
 		}
 
 		testVec.set(x0 - x, y1 - y, z0 - z, 1f);
+		shadowViewMatrixExt.lookAt(x0, y1, z0, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 		testVec.transform(shadowViewMatrix);
 		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
@@ -170,6 +164,7 @@ public enum MatrixState {
 		}
 
 		testVec.set(x0 - x, y1 - y, z1 - z, 1f);
+		shadowViewMatrixExt.lookAt(x0, y1, z1, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 		testVec.transform(shadowViewMatrix);
 		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
@@ -181,6 +176,7 @@ public enum MatrixState {
 		}
 
 		testVec.set(x1 - x, y0 - y, z0 - z, 1f);
+		shadowViewMatrixExt.lookAt(x1, y0, z0, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 		testVec.transform(shadowViewMatrix);
 		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
@@ -192,6 +188,7 @@ public enum MatrixState {
 		}
 
 		testVec.set(x1 - x, y0 - y, z1 - z, 1f);
+		shadowViewMatrixExt.lookAt(x1, y0, z1, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 		testVec.transform(shadowViewMatrix);
 		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
@@ -203,6 +200,7 @@ public enum MatrixState {
 		}
 
 		testVec.set(x1 - x, y1 - y, z0 - z, 1f);
+		shadowViewMatrixExt.lookAt(x1, y1, z0, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 		testVec.transform(shadowViewMatrix);
 		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
@@ -214,6 +212,7 @@ public enum MatrixState {
 		}
 
 		testVec.set(x1 - x, y1 - y, z1 - z, 1f);
+		shadowViewMatrixExt.lookAt(x1, y1, z1, 0, 0, 0, 0.0f, 0.0f, 1.0f);
 		testVec.transform(shadowViewMatrix);
 		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
@@ -224,14 +223,21 @@ public enum MatrixState {
 			zBest = z1;
 		}
 
-		testVec.set(xCurrent - x, yCurrent - y, zCurrent - z, 1f);
-		testVec.transform(shadowViewMatrix);
-		err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
+		if (CanvasMath.squareDist(x, y, z, xCurrent, yCurrent, zCurrent) > 2f) {
+			xCurrent = x;
+			yCurrent = y;
+			zCurrent = z;
+		} else {
+			testVec.set(xCurrent - x, yCurrent - y, zCurrent - z, 1f);
+			shadowViewMatrixExt.lookAt(xCurrent, yCurrent, zCurrent, 0, 0, 0, 0.0f, 0.0f, 1.0f);
+			testVec.transform(shadowViewMatrix);
+			err = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY();
 
-		if (err - bestErr >= 0.15) {
-			xCurrent = xBest;
-			yCurrent = yBest;
-			zCurrent = zBest;
+			if (err - bestErr >= 0.15) {
+				xCurrent = xBest;
+				yCurrent = yBest;
+				zCurrent = zBest;
+			}
 		}
 
 		lastSkylightVector.set(xCurrent, yCurrent, zCurrent);
@@ -267,9 +273,9 @@ public enum MatrixState {
 
 		// look at world origin to compute relative scale of world XYZ
 		shadowViewMatrixExt.lookAt(
-				xCurrent * radius,
-				yCurrent * radius,
-				zCurrent * radius,
+				xCurrent,
+				yCurrent,
+				zCurrent,
 				0,
 				0,
 				0,
@@ -319,9 +325,9 @@ public enum MatrixState {
 		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
 
 		skyLightPosition.set(
-				mx + xCurrent * radius,
-				my + yCurrent * radius,
-				mz + zCurrent * radius);
+				mx + xCurrent,
+				my + yCurrent,
+				mz + zCurrent);
 
 		// Look from skylight towards center of the view frustum in camera space
 		shadowViewMatrixExt.lookAt(
@@ -341,9 +347,9 @@ public enum MatrixState {
 		// We use actual geometry depth to give better precision on Z.
 		// Z axis inverted to match depth axis in OpenGL
 		shadowProjMatrixExt.setOrtho(
-				-radius - dx, radius - dx,
-				-radius - dy, radius - dy,
-				-bounds.maxViewZ(), -bounds.minViewZ());
+			-radius - dx, radius - dx,
+			-radius - dy, radius - dy,
+			-bounds.maxViewZ(), -bounds.minViewZ());
 
 		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
 	}
