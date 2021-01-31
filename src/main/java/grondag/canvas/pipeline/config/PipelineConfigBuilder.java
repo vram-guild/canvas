@@ -173,7 +173,7 @@ public class PipelineConfigBuilder {
 				result.load(configJson);
 				getIncludes(configJson, included, queue);
 			} catch (final IOException e) {
-				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to IOExeption: %s", target.toString(), e.getLocalizedMessage()));
+				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to IOException: %s", target.toString(), e.getLocalizedMessage()));
 			} catch (final SyntaxError e) {
 				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to Syntax Error: %s", target.toString(), e.getLocalizedMessage()));
 			}
