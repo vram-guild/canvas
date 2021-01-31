@@ -196,7 +196,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		final float cameraPitch = camera.getPitch();
 		final float cameraYaw = camera.getYaw();
 
-		// view (rotaion) version changes if moved beyond the configured limit
+		// view (rotation) version changes if moved beyond the configured limit
 		// the frustum is padded elsewhere to compensate
 		// avoids excessive visibility rebuilds when rotating view
 		if (cameraPitch != lastCameraPitch || cameraYaw != lastCameraYaw) {
