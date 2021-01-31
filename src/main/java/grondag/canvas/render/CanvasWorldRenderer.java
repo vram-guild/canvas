@@ -137,7 +137,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
-	 * Distinct from occluder state, which indiciates if/when occluder must be reset or redrawn.
+	 * Distinct from occluder state, which indicates if/when occluder must be reset or redrawn.
 	 */
 	private final AtomicInteger regionDataVersion = new AtomicInteger();
 	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
@@ -255,7 +255,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 * The raster must be redrawn whenever the frustum view changes but prior visibility
 	 * checks remain valid until the player location changes more than 1 block
 	 * (regions are fuzzed one block to allow this) or a region that was already drawn into
-	 * the raster is updated with different visibility informaiton.  New occluders can
+	 * the raster is updated with different visibility information.  New occluders can
 	 * also  be added to the existing raster.
 	 * or
 	 */
@@ -718,7 +718,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		}
 
-		// NB: view matrix is already applied to GL state before renderWorkd is called
+		// NB: view matrix is already applied to GL state before renderWorld is called
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().beforeDebugRender(eventContext);
 		// We still pass in the transformed stack because that is what debug renderer normally gets
 		mc.debugRenderer.render(viewMatrixStack, immediate, cameraX, cameraY, cameraZ);

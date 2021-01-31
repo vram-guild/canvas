@@ -60,6 +60,6 @@ public class FabulousFrameBuffer extends Framebuffer {
 	public void clear(boolean getError) {
 		// NOOP - should be done in pipeline buffers
 		// removed because vanilla clouds does it...
-		//assert false : "Unmanaged frambuffer clear";
+		//assert false : "Unmanaged framebuffer clear";
 	}
 }
