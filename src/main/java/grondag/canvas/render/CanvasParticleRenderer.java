@@ -110,7 +110,7 @@ public class CanvasParticleRenderer {
 		}
 
 		RenderSystem.popMatrix();
-		teardownVanillParticleRender();
+		teardownVanillaParticleRender();
 	}
 
 	private void setupVanillaParticleRender() {
@@ -121,7 +121,7 @@ public class CanvasParticleRenderer {
 		RenderSystem.enableFog();
 	}
 
-	private void teardownVanillParticleRender() {
+	private void teardownVanillaParticleRender() {
 		RenderSystem.depthMask(true);
 		RenderSystem.depthFunc(515);
 		RenderSystem.disableBlend();
