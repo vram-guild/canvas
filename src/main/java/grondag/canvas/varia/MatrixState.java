@@ -185,9 +185,7 @@ public enum MatrixState {
 	}
 
 	private static float lastDx, lastDy;
-	private static double lastWorldPerPixelX, lastWorldPerPixelY, lastWorldPerPixelZ;
-	private static double lastX, lastY, lastZ, lastCwx, lastCwy, lastCwz, lastDwx, lastDwy, lastDwz;
-	private static float apx, apy, lastPx, lastPy;
+	private static double lastX, lastY, lastZ;
 
 	private static void computeShadowMatricesInner(Camera camera, float tickDelta, TerrainBounds bounds) {
 		final int sqRadius = radius * radius;
@@ -214,9 +212,9 @@ public enum MatrixState {
 		final double dwz = cameraZd - lastZ;
 
 		// clamp to pixel boundary
-		final double cwx = dwx - Math.floor(dwx / worldPerPixelX) * worldPerPixelX;
-		final double cwy = dwy - Math.floor(dwy / worldPerPixelY) * worldPerPixelY;
-		final double cwz = dwz - Math.floor(dwz / worldPerPixelZ) * worldPerPixelZ;
+		final double cwx = Double.isInfinite(worldPerPixelX) ? 0.0 : dwx - Math.floor(dwx / worldPerPixelX) * worldPerPixelX;
+		final double cwy = Double.isInfinite(worldPerPixelY) ? 0.0 : dwy - Math.floor(dwy / worldPerPixelY) * worldPerPixelY;
+		final double cwz = Double.isInfinite(worldPerPixelZ) ? 0.0 : dwz - Math.floor(dwz / worldPerPixelZ) * worldPerPixelZ;
 
 		testVec.set((float) cwx, (float) cwy, (float) cwz, 0.0f);
 		testVec.transform(shadowViewMatrix);
@@ -244,21 +242,11 @@ public enum MatrixState {
 
 		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
 
-		//System.out.println(dx + "   " + dy);
 		lastDx = dx;
 		lastDy = dy;
 		lastX = cameraXd;
 		lastY = cameraYd;
 		lastZ = cameraZd;
-		lastCwx = cwx;
-		lastCwy = cwy;
-		lastCwz = cwz;
-		lastDwx = dwx;
-		lastDwy = dwy;
-		lastDwz = dwz;
-		lastWorldPerPixelX = worldPerPixelX;
-		lastWorldPerPixelY = worldPerPixelY;
-		lastWorldPerPixelZ = worldPerPixelZ;
 	}
 
 	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta, TerrainBounds bounds) {
