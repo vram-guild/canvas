@@ -445,19 +445,15 @@ public class WorldDataManager {
 					CelestialObjectFunction.VANILLA_SUN.compute(skyInput, skyOutput);
 				}
 
-				skyLightVector.set(skyOutput.cameraToObject.getX(), skyOutput.cameraToObject.getY(), skyOutput.cameraToObject.getZ());
-				// WIP: should this be the clamped value in shader?
-				DATA.put(SKYLIGHT_VECTOR + 0, skyOutput.cameraToObject.getX());
-				DATA.put(SKYLIGHT_VECTOR + 1, skyOutput.cameraToObject.getY());
-				DATA.put(SKYLIGHT_VECTOR + 2, skyOutput.cameraToObject.getZ());
-				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
-
-				// Note this changes the value of skyLightPosition - quantizing it to align to shadow map pixels
-				MatrixState.updateShadow(camera, tickDelta, bounds);
-
+				// Note this computes the value of skyLightVector and skyLightPosition - quantizing to align to shadow map pixels
+				MatrixState.updateShadow(camera, tickDelta, bounds, skyOutput);
 				DATA.put(CAMERA_TO_SKYLIGHT + 0, -skyLightPosition.getX());
 				DATA.put(CAMERA_TO_SKYLIGHT + 1, -skyLightPosition.getY());
 				DATA.put(CAMERA_TO_SKYLIGHT + 2, -skyLightPosition.getZ());
+				DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
+				DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());
+				DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.getZ());
+				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
 
 				worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
 				DATA.put(ATMOSPHERIC_COLOR + 0, skyOutput.atmosphericColorModifier.getX());

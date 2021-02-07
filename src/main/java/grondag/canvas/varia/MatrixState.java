@@ -31,6 +31,7 @@ import org.lwjgl.BufferUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
@@ -41,6 +42,7 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.FastFrustum;
 import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
+import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.
@@ -91,12 +93,10 @@ public enum MatrixState {
 	}
 
 	private static final Vector4f testVec = new Vector4f();
-	private static float lastDx, lastDy;
+	private static float lastDx = 0, lastDy = 0;
 	private static double lastCameraX, lastCameraY, lastCameraZ;
 
-	// WIP: handle other sun angles
-
-	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds) {
+	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds, CelestialObjectOutput skyOutput) {
 		// We need to keep the skylight projection consistently aligned to
 		// pixels in the shadowmap texture.  The alignment must be to world
 		// coordinates in the x/y axis of the skylight perspective.
@@ -120,7 +120,16 @@ public enum MatrixState {
 
 		// PERF: could be a little tighter by accounting for view distance - far corners aren't actually visible
 		final int radius = Math.round(straightFrustum.circumRadius());
-		final double radiusPixels = Pipeline.skyShadowSize / 2.0;
+
+		shadowViewMatrix.loadIdentity();
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(skyOutput.yAngle));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(skyOutput.zAngle));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(skyOutput.xAngle));
+		testVec.set(0, 1, 0, 0);
+		testVec.transform(shadowViewMatrix);
+		skyLightVector.set(testVec.getX(), testVec.getY(), testVec.getZ());
+
+		//System.out.println(shadowViewMatrix.toString());
 
 		shadowViewMatrixExt.lookAt(
 				skyLightVector.getX() * radius,
@@ -131,99 +140,39 @@ public enum MatrixState {
 				0,
 				0.0f, 0.0f, 1.0f);
 
+		//System.out.println(shadowViewMatrix.toString());
+
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		shadowViewMatrixInv.invert();
-
-		final float a = shadowViewMatrixExt.a01();
-		final float ca = (float) (Math.round(a * radiusPixels) / radiusPixels);
-
-		final float b = Math.abs(shadowViewMatrixExt.a00());
-		final float cb = (float) (Math.round(b * radiusPixels) / radiusPixels);
-
-		// 00 01 02 03
-		// 10 11 12 13
-		// 20 21 22 23
-		// 30 31 32 33
-
-		shadowViewMatrixExt.a00(Math.signum(shadowViewMatrixExt.a00()) * cb);
-		shadowViewMatrixExt.a01(ca);
-		shadowViewMatrixExt.a02(0);
-		shadowViewMatrixExt.a03(0);
-
-		shadowViewMatrixExt.a10(0);
-		shadowViewMatrixExt.a11(0);
-		shadowViewMatrixExt.a12(1);
-		shadowViewMatrixExt.a13(0);
-
-		shadowViewMatrixExt.a20(ca);
-		shadowViewMatrixExt.a21(Math.signum(shadowViewMatrixExt.a21()) * cb);
-		shadowViewMatrixExt.a22(0);
-		shadowViewMatrixExt.a23(shadowViewMatrixExt.a23());
-
-		shadowViewMatrixExt.a30(0);
-		shadowViewMatrixExt.a31(0);
-		shadowViewMatrixExt.a32(0);
-		shadowViewMatrixExt.a33(1);
 
 		testVec.set(0, 0, 0, 1.0f);
 		testVec.transform(shadowViewMatrixInv);
 
-		final float xCurrent = testVec.getX();
-		final float yCurrent = testVec.getY();
-		final float zCurrent = testVec.getZ();
+		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
 
-		testVec.set(radius, radius, radius, 1.0f);
-		testVec.transform(shadowViewMatrix);
-
-		skyLightVector.set(xCurrent, yCurrent, zCurrent);
-
-		// WIP: not correct for sky rendering purposes and not used for transform
-		// so either improve or remove
 		skyLightPosition.set(
-				xCurrent,
-				yCurrent,
-				zCurrent);
+				testVec.getX(),
+				testVec.getY(),
+				testVec.getZ());
 
-		final int sqRadius = radius * radius;
-
-		testVec.set(radius, 0, 0, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		final double xProjectedRadius = Math.sqrt(testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
-
-		testVec.set(0, radius, 0, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		final double yProjectedRadius = Math.sqrt(testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
-
-		testVec.set(0, 0, radius, 1.0f);
-		testVec.transform(shadowViewMatrix);
-		final double zProjectedRadius = Math.sqrt(testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
-
-		final double worldPerPixel = 2.0 * radius / Pipeline.skyShadowSize;
-		final double worldPerPixelX = 2.0 * sqRadius / xProjectedRadius / Pipeline.skyShadowSize;
-		final double worldPerPixelY = 2.0 * sqRadius / yProjectedRadius / Pipeline.skyShadowSize;
-		final double worldPerPixelZ = 2.0 * sqRadius / zProjectedRadius / Pipeline.skyShadowSize;
-
-		final double dwx = cameraXd - lastCameraX;
-		final double dwy = cameraYd - lastCameraY;
-		final double dwz = cameraZd - lastCameraZ;
-
-		// clamp to pixel boundary
-		final double cwx = Double.isInfinite(worldPerPixelX) ? 0.0 : dwx - Math.floor(dwx / worldPerPixelX) * worldPerPixelX;
-		final double cwy = Double.isInfinite(worldPerPixelY) ? 0.0 : dwy - Math.floor(dwy / worldPerPixelY) * worldPerPixelY;
-		final double cwz = Double.isInfinite(worldPerPixelZ) ? 0.0 : dwz - Math.floor(dwz / worldPerPixelZ) * worldPerPixelZ;
-
-		testVec.set((float) cwx, (float) cwy, (float) cwz, 0.0f);
+		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
 		testVec.transform(shadowViewMatrix);
 
 		float dx = lastDx + testVec.getX();
 		float dy = lastDy + testVec.getY();
 
+		// clamp to pixel boundary
+		final double worldPerPixel = 2.0 * radius / Pipeline.skyShadowSize;
 		dx = (float) (dx - Math.floor(dx / worldPerPixel) * worldPerPixel);
 		dy = (float) (dy - Math.floor(dy / worldPerPixel) * worldPerPixel);
 
-		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
-		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
-		shadowViewMatrixInv.invert();
+		if (Float.isNaN(dx)) {
+			dx = 0f;
+		}
+
+		if (Float.isNaN(dy)) {
+			dy = 0f;
+		}
 
 		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
 
@@ -303,8 +252,8 @@ public enum MatrixState {
 		frustumCenter.set(straightFrustum.circumCenterX(), straightFrustum.circumCenterY(), straightFrustum.circumCenterZ());
 	}
 
-	static void updateShadow(Camera camera, float tickDelta, TerrainBounds bounds) {
-		computeShadowMatrices(camera, tickDelta, bounds);
+	static void updateShadow(Camera camera, float tickDelta, TerrainBounds bounds, CelestialObjectOutput skyoutput) {
+		computeShadowMatrices(camera, tickDelta, bounds, skyoutput);
 
 		// shadow perspective were computed earlier
 		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, DATA);

@@ -17,7 +17,6 @@
 package grondag.canvas.varia;
 
 import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Matrix4f;
 
@@ -27,12 +26,8 @@ public interface CelestialObjectFunction {
 
 	CelestialObjectFunction VANILLA_SUN = (input, output) -> {
 		final float angle = input.world().getSkyAngle(input.tickDelta());
-		final Matrix4f matrix = input.workingMatrix();
-		matrix.loadIdentity();
-		matrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90.0F));
-		matrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(angle * 360.0F));
-		output.cameraToObject.set(0, 1, 0, 0);
-		output.cameraToObject.transform(matrix);
+		output.xAngle = angle * 360.0F;
+		output.zAngle = 0;
 
 		final float[] fs = input.world().getSkyProperties().getFogColorOverride(angle, input.tickDelta());
 
@@ -47,12 +42,8 @@ public interface CelestialObjectFunction {
 	};
 
 	CelestialObjectFunction VANILLA_MOON = (input, output) -> {
-		final Matrix4f matrix = input.workingMatrix();
-		matrix.loadIdentity();
-		matrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90.0F));
-		matrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(input.world().getSkyAngle(input.tickDelta()) * 360.0F + 180.0F));
-		output.cameraToObject.set(0, 1, 0, 0);
-		output.cameraToObject.transform(matrix);
+		final float angle = input.world().getSkyAngle(input.tickDelta());
+		output.xAngle = angle * 360.0F + 180F;
 
 		output.atmosphericColorModifier.set(1, 1, 1);
 		// based on vanilla sky lightmap at midnight
@@ -63,14 +54,8 @@ public interface CelestialObjectFunction {
 
 	CelestialObjectFunction DEFAULT_SUN = (input, output) -> {
 		final float angle = input.world().getSkyAngle(input.tickDelta());
-		final Matrix4f matrix = input.workingMatrix();
-		matrix.loadIdentity();
-		matrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90.0F));
-		matrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(20.0F));
-		matrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(angle * 360.0F));
-		output.cameraToObject.set(0, 1, 0, 0);
-		output.cameraToObject.transform(matrix);
-
+		output.xAngle = angle * 360.0F;
+		output.zAngle = 35f;
 		final float[] fs = input.world().getSkyProperties().getFogColorOverride(angle, input.tickDelta());
 
 		if (fs == null) {
@@ -108,7 +93,9 @@ public interface CelestialObjectFunction {
 	}
 
 	class CelestialObjectOutput {
-		public final Vector4f cameraToObject = new Vector4f();
+		public float yAngle = -90;
+		public float zAngle = 0;
+		public float xAngle = 0;
 
 		public final Vector3f lightColor = new Vector3f();
 
