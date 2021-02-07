@@ -95,10 +95,7 @@ public enum MatrixState {
 	private static double lastCameraX, lastCameraY, lastCameraZ;
 
 	// WIP: handle other sun angles
-	// WIP: fix frustum center
-	// WIP: fix frustum radius
 
-	@SuppressWarnings("resource")
 	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds) {
 		// We need to keep the skylight projection consistently aligned to
 		// pixels in the shadowmap texture.  The alignment must be to world
@@ -121,7 +118,8 @@ public enum MatrixState {
 		// To avoid precision issues at the edge of the world, use a world boundary
 		// that is relatively close - keeping them at regular intervals.
 
-		final int radius = (int) (MinecraftClient.getInstance().gameRenderer.getViewDistance() / 2); //Math.round(straightFrustum.circumRadius());
+		// PERF: could be a little tighter by accounting for view distance - far corners aren't actually visible
+		final int radius = Math.round(straightFrustum.circumRadius());
 		final double radiusPixels = Pipeline.skyShadowSize / 2.0;
 
 		shadowViewMatrixExt.lookAt(
@@ -229,14 +227,24 @@ public enum MatrixState {
 
 		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
 
+		float cx = (bounds.minViewX() + bounds.maxViewX()) * 0.5f;
+		float cy = (bounds.minViewY() + bounds.maxViewY()) * 0.5f;
+
+		cx = (float) (Math.floor(cx / worldPerPixel) * worldPerPixel) - dx;
+		cy = (float) (Math.floor(cy / worldPerPixel) * worldPerPixel) - dy;
+
+		// We use actual geometry depth to give better precision on Z.
+		// but clamp to pixel boundaries to minimize aliasing.
+		// Z axis inverted to match depth axis in OpenGL
+		final float maxZ = -(float) (Math.ceil(bounds.minViewZ() / worldPerPixel) * worldPerPixel);
+		final float minZ = -(float) (Math.ceil(bounds.maxViewZ() / worldPerPixel) * worldPerPixel);
+
 		// Construct ortho matrix using bounding sphere box computed above.
 		// Should give us a consistent size each frame until the sun moves.
-		// We use actual geometry depth to give better precision on Z.
-		// Z axis inverted to match depth axis in OpenGL
 		shadowProjMatrixExt.setOrtho(
-			-radius - dx, radius - dx,
-			-radius - dy, radius - dy,
-			-bounds.maxViewZ(), -bounds.minViewZ());
+			cx - radius, cx + radius,
+			cy - radius, cy + radius,
+			minZ, maxZ);
 
 		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
 
