@@ -16,6 +16,9 @@
 
 package grondag.canvas.varia;
 
+import static grondag.canvas.varia.WorldDataManager.cameraXd;
+import static grondag.canvas.varia.WorldDataManager.cameraYd;
+import static grondag.canvas.varia.WorldDataManager.cameraZd;
 import static grondag.canvas.varia.WorldDataManager.frustumCenter;
 import static grondag.canvas.varia.WorldDataManager.lastSkyLightPosition;
 import static grondag.canvas.varia.WorldDataManager.skyLightPosition;
@@ -181,6 +184,11 @@ public enum MatrixState {
 		computeShadowMatricesInner(camera, radius, bounds);
 	}
 
+	private static float lastDx, lastDy;
+	private static double lastWorldPerPixelX, lastWorldPerPixelY, lastWorldPerPixelZ;
+	private static double lastX, lastY, lastZ, lastCwx, lastCwy, lastCwz, lastDwx, lastDwy, lastDwz;
+	private static float apx, apy, lastPx, lastPy;
+
 	private static void computeShadowMatricesInner(Camera camera, float tickDelta, TerrainBounds bounds) {
 		final int sqRadius = radius * radius;
 
@@ -196,34 +204,28 @@ public enum MatrixState {
 		testVec.transform(shadowViewMatrix);
 		final double zProjectedRadius = Math.sqrt(testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
 
-		final double xWorldPerPixel = 2.0 * sqRadius / xProjectedRadius / Pipeline.skyShadowSize;
-		final double yWorldPerPixel = 2.0 * sqRadius / yProjectedRadius / Pipeline.skyShadowSize;
-		final double zWorldPerPixel = 2.0 * sqRadius / zProjectedRadius / Pipeline.skyShadowSize;
+		final double worldPerPixel = 2.0 * radius / Pipeline.skyShadowSize;
+		final double worldPerPixelX = 2.0 * sqRadius / xProjectedRadius / Pipeline.skyShadowSize;
+		final double worldPerPixelY = 2.0 * sqRadius / yProjectedRadius / Pipeline.skyShadowSize;
+		final double worldPerPixelZ = 2.0 * sqRadius / zProjectedRadius / Pipeline.skyShadowSize;
 
-		final float mx = radius * WorldDataManager.cameraVector.getX(); //straightFrustum.circumCenterX();
-		final float my = radius * WorldDataManager.cameraVector.getY(); //straightFrustum.circumCenterY();
-		final float mz = radius * WorldDataManager.cameraVector.getZ(); //straightFrustum.circumCenterZ();
-
-		final double fwx = WorldDataManager.cameraXd;// + mx;
-		final double fwy = WorldDataManager.cameraYd;// + my;
-		final double fwz = WorldDataManager.cameraZd;// + mz;
+		final double dwx = cameraXd - lastX;
+		final double dwy = cameraYd - lastY;
+		final double dwz = cameraZd - lastZ;
 
 		// clamp to pixel boundary
-		final double cfwx = Math.floor(fwx / xWorldPerPixel) * xWorldPerPixel;
-		final double cfwy = Math.floor(fwy / yWorldPerPixel) * yWorldPerPixel;
-		final double cfwz = Math.floor(fwz / zWorldPerPixel) * zWorldPerPixel;
+		final double cwx = dwx - Math.floor(dwx / worldPerPixelX) * worldPerPixelX;
+		final double cwy = dwy - Math.floor(dwy / worldPerPixelY) * worldPerPixelY;
+		final double cwz = dwz - Math.floor(dwz / worldPerPixelZ) * worldPerPixelZ;
 
-		final double fdx = fwx - cfwx;
-		final double fdy = fwy - cfwy;
-		final double fdz = fwz - cfwz;
-
-		testVec.set((float) fdx, (float) fdy, (float) fdz, 0.0f);
+		testVec.set((float) cwx, (float) cwy, (float) cwz, 0.0f);
 		testVec.transform(shadowViewMatrix);
 
-		//final float dx = 0;
-		//final float dy = 0;
-		final float dx = testVec.getX();
-		final float dy = testVec.getY();
+		float dx = lastDx + testVec.getX();
+		float dy = lastDy + testVec.getY();
+
+		dx = (float) (dx - Math.floor(dx / worldPerPixel) * worldPerPixel);
+		dy = (float) (dy - Math.floor(dy / worldPerPixel) * worldPerPixel);
 
 		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
@@ -241,6 +243,22 @@ public enum MatrixState {
 			-bounds.maxViewZ(), -bounds.minViewZ());
 
 		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
+
+		//System.out.println(dx + "   " + dy);
+		lastDx = dx;
+		lastDy = dy;
+		lastX = cameraXd;
+		lastY = cameraYd;
+		lastZ = cameraZd;
+		lastCwx = cwx;
+		lastCwy = cwy;
+		lastCwz = cwz;
+		lastDwx = dwx;
+		lastDwy = dwy;
+		lastDwz = dwz;
+		lastWorldPerPixelX = worldPerPixelX;
+		lastWorldPerPixelY = worldPerPixelY;
+		lastWorldPerPixelZ = worldPerPixelZ;
 	}
 
 	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta, TerrainBounds bounds) {
