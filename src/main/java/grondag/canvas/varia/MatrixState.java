@@ -90,8 +90,13 @@ public enum MatrixState {
 		current = val;
 	}
 
-	private static int radius;
 	private static final Vector4f testVec = new Vector4f();
+	private static float lastDx, lastDy;
+	private static double lastCameraX, lastCameraY, lastCameraZ;
+
+	// WIP: handle other sun angles
+	// WIP: fix frustum center
+	// WIP: fix frustum radius
 
 	@SuppressWarnings("resource")
 	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds) {
@@ -116,7 +121,7 @@ public enum MatrixState {
 		// To avoid precision issues at the edge of the world, use a world boundary
 		// that is relatively close - keeping them at regular intervals.
 
-		radius = (int) (MinecraftClient.getInstance().gameRenderer.getViewDistance() / 2); //Math.round(straightFrustum.circumRadius());
+		final int radius = (int) (MinecraftClient.getInstance().gameRenderer.getViewDistance() / 2); //Math.round(straightFrustum.circumRadius());
 		final double radiusPixels = Pipeline.skyShadowSize / 2.0;
 
 		shadowViewMatrixExt.lookAt(
@@ -181,13 +186,6 @@ public enum MatrixState {
 				yCurrent,
 				zCurrent);
 
-		computeShadowMatricesInner(camera, radius, bounds);
-	}
-
-	private static float lastDx, lastDy;
-	private static double lastX, lastY, lastZ;
-
-	private static void computeShadowMatricesInner(Camera camera, float tickDelta, TerrainBounds bounds) {
 		final int sqRadius = radius * radius;
 
 		testVec.set(radius, 0, 0, 1.0f);
@@ -207,9 +205,9 @@ public enum MatrixState {
 		final double worldPerPixelY = 2.0 * sqRadius / yProjectedRadius / Pipeline.skyShadowSize;
 		final double worldPerPixelZ = 2.0 * sqRadius / zProjectedRadius / Pipeline.skyShadowSize;
 
-		final double dwx = cameraXd - lastX;
-		final double dwy = cameraYd - lastY;
-		final double dwz = cameraZd - lastZ;
+		final double dwx = cameraXd - lastCameraX;
+		final double dwy = cameraYd - lastCameraY;
+		final double dwz = cameraZd - lastCameraZ;
 
 		// clamp to pixel boundary
 		final double cwx = Double.isInfinite(worldPerPixelX) ? 0.0 : dwx - Math.floor(dwx / worldPerPixelX) * worldPerPixelX;
@@ -244,9 +242,9 @@ public enum MatrixState {
 
 		lastDx = dx;
 		lastDy = dy;
-		lastX = cameraXd;
-		lastY = cameraYd;
-		lastZ = cameraZd;
+		lastCameraX = cameraXd;
+		lastCameraY = cameraYd;
+		lastCameraZ = cameraZd;
 	}
 
 	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta, TerrainBounds bounds) {
