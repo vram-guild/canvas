@@ -134,11 +134,19 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 
 		// Transform from screen coordinates to texture coordinates
 		shadowCoords = shadowCoords * 0.5 + 0.5;
+
 		float shadowDepth = texture2DArray(frxs_shadowMap, vec3(shadowCoords.xy, 0)).x;
 
 		if (shadowDepth >= shadowCoords.z) {
 			light += vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
 		}
+
+		//shadowCoords = abs(fract(shadowCoords * 4096.0));
+
+		//if (!(shadowCoords.x > 0.05 && shadowCoords.x < 0.95 && shadowCoords.y > 0.05 && shadowCoords.y < 0.95)) {
+		//	light = vec4(1.0);
+		//	a = vec4(0.0, 1.0, 1.0, 1.0);
+		//}
 
 		if (fragData.ao) {
 			light *= aoFactor(fragData.light, fragData.aoShade);
