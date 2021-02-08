@@ -98,8 +98,14 @@ uniform int _cvu_fog_mode;
 #define _CV_MAT_SHADOW_PROJ_INVERSE 12
 #define _CV_MAT_SHADOW_VIEW_PROJ 13
 #define _CV_MAT_SHADOW_VIEW_PROJ_INVERSE 14
+#define _CV_MAT_CLEAN_PROJ 15
+#define _CV_MAT_CLEAN_PROJ_INVERSE 16
+#define _CV_MAT_CLEAN_PROJ_LAST 17
+#define _CV_MAT_CLEAN_VIEW_PROJ 18
+#define _CV_MAT_CLEAN_VIEW_PROJ_INVERSE 19
+#define _CV_MAT_CLEAN_VIEW_PROJ_LAST 20
 
-uniform mat4[15] _cvu_matrix;
+uniform mat4[21] _cvu_matrix;
 
 bool _cv_testCondition(int conditionIndex) {
 	return frx_bitValue(_cvu_flags[_CV_CONDITION_FLAGS_START + (conditionIndex >> 5)], conditionIndex & 31) == 1.0;

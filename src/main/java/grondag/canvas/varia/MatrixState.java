@@ -19,7 +19,6 @@ package grondag.canvas.varia;
 import static grondag.canvas.varia.WorldDataManager.cameraXd;
 import static grondag.canvas.varia.WorldDataManager.cameraYd;
 import static grondag.canvas.varia.WorldDataManager.cameraZd;
-import static grondag.canvas.varia.WorldDataManager.frustumCenter;
 import static grondag.canvas.varia.WorldDataManager.lastSkyLightPosition;
 import static grondag.canvas.varia.WorldDataManager.skyLightPosition;
 import static grondag.canvas.varia.WorldDataManager.skyLightVector;
@@ -133,7 +132,7 @@ public enum MatrixState {
 		// that is relatively close - keeping them at regular intervals.
 
 		// PERF: could be a little tighter by accounting for view distance - far corners aren't actually visible
-		final int radius = Math.round(straightFrustum.circumRadius());
+		final int radius = Math.round(cleanFrustum.circumRadius());
 
 		shadowViewMatrix.loadIdentity();
 		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
@@ -210,6 +209,8 @@ public enum MatrixState {
 		viewMatrixExt.writeToBuffer(VIEW_LAST * 16, DATA);
 		projMatrixExt.writeToBuffer(PROJ_LAST * 16, DATA);
 		viewProjMatrixExt.writeToBuffer(VP_LAST * 16, DATA);
+		cleanProjMatrixExt.writeToBuffer(CLEAN_PROJ_LAST * 16, DATA);
+		cleanViewProjMatrixExt.writeToBuffer(CLEAN_VP_LAST * 16, DATA);
 
 		((Matrix3fExt) (Object) viewNormalMatrix).set((Matrix3fExt) (Object) view.getNormal());
 
@@ -225,7 +226,6 @@ public enum MatrixState {
 
 		projMatrixInvExt.set(projMatrixExt);
 		projMatrixInv.invert();
-		//projMatrixInvExt.invertProjection();
 		projMatrixInvExt.writeToBuffer(PROJ_INVERSE * 16, DATA);
 
 		viewProjMatrixExt.set(projMatrixExt);
@@ -236,21 +236,20 @@ public enum MatrixState {
 		viewProjMatrixInvExt.multiply(projMatrixInvExt);
 		viewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
 
-		computeStraightProjection(camera, tickDelta);
+		computeCleanProjection(camera, tickDelta);
+		cleanProjMatrixExt.writeToBuffer(CLEAN_PROJ * 16, DATA);
+		cleanProjMatrixInvExt.writeToBuffer(CLEAN_PROJ_INVERSE * 16, DATA);
 
-		// WIP: write these to buffer, along with straight projection?
-		straightViewProjMatrixExt.set(straightProjMatrixExt);
-		straightViewProjMatrixExt.multiply(viewMatrixExt);
-		//straightViewProjMatrixExt.writeToBuffer(VP * 16, DATA);
+		cleanViewProjMatrixExt.set(cleanProjMatrixExt);
+		cleanViewProjMatrixExt.multiply(viewMatrixExt);
+		cleanViewProjMatrixExt.writeToBuffer(CLEAN_VP * 16, DATA);
 
-		straightViewProjMatrixInvExt.set(viewMatrixInvExt);
-		straightViewProjMatrixInvExt.multiply(straightProjMatrixInvExt);
-		//straightViewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
+		cleanViewProjMatrixInvExt.set(viewMatrixInvExt);
+		cleanViewProjMatrixInvExt.multiply(cleanProjMatrixInvExt);
+		cleanViewProjMatrixInvExt.writeToBuffer(CLEAN_VP_INVERSE * 16, DATA);
 
-		straightFrustum.prepare(viewMatrix, tickDelta, camera, straightProjMatrix);
-		straightFrustum.computeCircumCenter(viewMatrixInv, straightProjMatrixInv);
-
-		frustumCenter.set(straightFrustum.circumCenterX(), straightFrustum.circumCenterY(), straightFrustum.circumCenterZ());
+		cleanFrustum.prepare(viewMatrix, tickDelta, camera, cleanProjMatrix);
+		cleanFrustum.computeCircumCenter(viewMatrixInv, cleanProjMatrixInv);
 	}
 
 	static void updateShadow(Camera camera, float tickDelta, TerrainBounds bounds, CelestialObjectOutput skyoutput) {
@@ -267,7 +266,6 @@ public enum MatrixState {
 
 		shadowProjMatrixInvExt.set(shadowProjMatrixExt);
 		shadowProjMatrixInv.invert();
-		//shadowProjMatrixInvExt.invertProjection();
 		shadowProjMatrixInvExt.writeToBuffer(SHADOW_PROJ_INVERSE * 16, DATA);
 
 		shadowViewProjMatrixExt.set(shadowProjMatrixExt);
@@ -287,22 +285,22 @@ public enum MatrixState {
 	/**
 	 * Computes projection that doesn't include nausea or view bob and doesn't have 4X depth like vanilla.
 	 */
-	public static void computeStraightProjection(Camera camera, float tickDelta) {
+	public static void computeCleanProjection(Camera camera, float tickDelta) {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 		final GameRendererExt gx = (GameRendererExt) mc.gameRenderer;
 		final float zoom = gx.canvas_zoom();
 
-		straightProjMatrix.loadIdentity();
+		cleanProjMatrix.loadIdentity();
 
 		if (zoom != 1.0F) {
-			straightProjMatrixExt.translate(gx.canvas_zoomX(), -gx.canvas_zoomY(), 0.0f);
-			straightProjMatrixExt.scale(zoom, zoom, 1.0F);
+			cleanProjMatrixExt.translate(gx.canvas_zoomX(), -gx.canvas_zoomY(), 0.0f);
+			cleanProjMatrixExt.scale(zoom, zoom, 1.0F);
 		}
 
-		straightProjMatrix.multiply(Matrix4f.viewboxMatrix(gx.canvas_getFov(camera, tickDelta, true), mc.getWindow().getFramebufferWidth() / mc.getWindow().getFramebufferHeight(), 0.05F, mc.gameRenderer.getViewDistance()));
+		cleanProjMatrix.multiply(Matrix4f.viewboxMatrix(gx.canvas_getFov(camera, tickDelta, true), mc.getWindow().getFramebufferWidth() / mc.getWindow().getFramebufferHeight(), 0.05F, mc.gameRenderer.getViewDistance()));
 
-		straightProjMatrixInvExt.set(straightProjMatrixExt);
-		straightProjMatrixInv.invert();
+		cleanProjMatrixInvExt.set(cleanProjMatrixExt);
+		cleanProjMatrixInv.invert();
 	}
 
 	public static final Matrix4f viewMatrix = new Matrix4f();
@@ -320,15 +318,15 @@ public enum MatrixState {
 	private static final Matrix4f viewProjMatrixInv = new Matrix4f();
 	private static final Matrix4fExt viewProjMatrixInvExt = (Matrix4fExt) (Object) viewProjMatrixInv;
 
-	public static final Matrix4f straightProjMatrix = new Matrix4f();
-	public static final Matrix4fExt straightProjMatrixExt = (Matrix4fExt) (Object) straightProjMatrix;
-	private static final Matrix4f straightProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt straightProjMatrixInvExt = (Matrix4fExt) (Object) straightProjMatrixInv;
+	public static final Matrix4f cleanProjMatrix = new Matrix4f();
+	public static final Matrix4fExt cleanProjMatrixExt = (Matrix4fExt) (Object) cleanProjMatrix;
+	private static final Matrix4f cleanProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt cleanProjMatrixInvExt = (Matrix4fExt) (Object) cleanProjMatrixInv;
 
-	private static final Matrix4f straightViewProjMatrix = new Matrix4f();
-	private static final Matrix4fExt straightViewProjMatrixExt = (Matrix4fExt) (Object) straightViewProjMatrix;
-	private static final Matrix4f straightViewProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt straightViewProjMatrixInvExt = (Matrix4fExt) (Object) straightViewProjMatrixInv;
+	private static final Matrix4f cleanViewProjMatrix = new Matrix4f();
+	private static final Matrix4fExt cleanViewProjMatrixExt = (Matrix4fExt) (Object) cleanViewProjMatrix;
+	private static final Matrix4f cleanViewProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt cleanViewProjMatrixInvExt = (Matrix4fExt) (Object) cleanViewProjMatrixInv;
 
 	public static final Matrix4f shadowViewMatrix = new Matrix4f();
 	public static final Matrix4fExt shadowViewMatrixExt = (Matrix4fExt) (Object) shadowViewMatrix;
@@ -350,7 +348,7 @@ public enum MatrixState {
 	private static float shadowDepth;
 
 	// frustum without nausea or view bob
-	public static final FastFrustum straightFrustum = new FastFrustum();
+	public static final FastFrustum cleanFrustum = new FastFrustum();
 
 	private static final int VIEW = 0;
 	private static final int VIEW_INVERSE = 1;
@@ -361,6 +359,7 @@ public enum MatrixState {
 	private static final int VP = 6;
 	private static final int VP_INVERSE = 7;
 	private static final int VP_LAST = 8;
+
 	private static final int SHADOW_VIEW = 9;
 	private static final int SHADOW_VIEW_INVERSE = 10;
 	private static final int SHADOW_PROJ = 11;
@@ -368,6 +367,13 @@ public enum MatrixState {
 	private static final int SHADOW_VIEW_PROJ = 13;
 	private static final int SHADOW_VIEW_PROJ_INVERSE = 14;
 
-	public static final int COUNT = 15;
+	private static final int CLEAN_PROJ = 15;
+	private static final int CLEAN_PROJ_INVERSE = 16;
+	private static final int CLEAN_PROJ_LAST = 17;
+	private static final int CLEAN_VP = 18;
+	private static final int CLEAN_VP_INVERSE = 19;
+	private static final int CLEAN_VP_LAST = 20;
+
+	public static final int COUNT = 24;
 	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(COUNT * 16);
 }

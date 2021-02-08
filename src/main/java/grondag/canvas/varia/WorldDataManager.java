@@ -190,9 +190,6 @@ public class WorldDataManager {
 
 	/** Camera view vector in world space - normalized. */
 	public static final Vector3f cameraVector = new Vector3f();
-	// WIP: does this need to go up?
-	/** Middle of view frustum in camera space - relationship to skylight position is not fixed. */
-	public static final Vector3f frustumCenter = new Vector3f();
 
 	/** Points towards the light - normalized. */
 	public static final Vector3f skyLightVector = new Vector3f();
