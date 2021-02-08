@@ -19,8 +19,6 @@ package grondag.canvas.varia;
 import static grondag.canvas.varia.WorldDataManager.cameraXd;
 import static grondag.canvas.varia.WorldDataManager.cameraYd;
 import static grondag.canvas.varia.WorldDataManager.cameraZd;
-import static grondag.canvas.varia.WorldDataManager.lastSkyLightPosition;
-import static grondag.canvas.varia.WorldDataManager.skyLightPosition;
 import static grondag.canvas.varia.WorldDataManager.skyLightVector;
 
 import java.nio.FloatBuffer;
@@ -144,11 +142,8 @@ public enum MatrixState {
 		testVec.transform(shadowViewMatrix);
 		skyLightVector.set(testVec.getX(), testVec.getY(), testVec.getZ());
 
-		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
-		skyLightPosition.set(skyLightVector.getX() * 2048, skyLightVector.getY() * 2048, skyLightVector.getZ() * 2048);
-
 		shadowViewMatrixExt.lookAt(
-			skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ(),
+				skyLightVector.getX() * 2048, skyLightVector.getY() * 2048, skyLightVector.getZ() * 2048,
 			0, 0, 0,
 			0.0f, 0.0f, 1.0f);
 

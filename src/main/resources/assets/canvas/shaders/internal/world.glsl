@@ -47,8 +47,7 @@
 // w is sky rotation in radians
 #define _CV_SKYLIGHT_VECTOR 11
 
-// w is always zero
-#define _CV_CAMERA_TO_SKYLIGHT 12
+#define _CV_RESERVED 12
 
 // rgb: skylight color modified for atmospheric effects
 // a: skylight transition smoothing factor 0-1

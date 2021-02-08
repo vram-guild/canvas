@@ -113,8 +113,9 @@ public class WorldDataManager {
 	private static final int SKYLIGHT_VECTOR = 4 * 11;
 	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
 
-	// w is always zero
-	private static final int CAMERA_TO_SKYLIGHT = 4 * 12;
+	// was previously skylight position
+	@SuppressWarnings("unused")
+	private static final int RESERVED = 4 * 12;
 
 	private static final int ATMOSPHERIC_COLOR = 4 * 13;
 	private static final int SKYLIGHT_TRANSITION_FACTOR = ATMOSPHERIC_COLOR + 3;
@@ -193,11 +194,6 @@ public class WorldDataManager {
 
 	/** Points towards the light - normalized. */
 	public static final Vector3f skyLightVector = new Vector3f();
-
-	// WIP: docs need changed to clarify this is view position of skylight, NOT where it should be rendered.
-	/** Position of the sky light in camera space. Inverse of camera-to-skylight offset. */
-	public static final Vector3f skyLightPosition = new Vector3f();
-	public static final Vector3f lastSkyLightPosition = new Vector3f();
 
 	public static float cameraX, cameraY, cameraZ = 0f;
 
@@ -437,11 +433,8 @@ public class WorldDataManager {
 					CelestialObjectFunction.VANILLA_SUN.compute(skyInput, skyOutput);
 				}
 
-				// Note this computes the value of skyLightVector and skyLightPosition - quantizing to align to shadow map pixels
+				// Note this computes the value of skyLightVector - quantizing to align to shadow map pixels
 				MatrixState.updateShadow(camera, tickDelta, bounds, skyOutput);
-				DATA.put(CAMERA_TO_SKYLIGHT + 0, -skyLightPosition.getX());
-				DATA.put(CAMERA_TO_SKYLIGHT + 1, -skyLightPosition.getY());
-				DATA.put(CAMERA_TO_SKYLIGHT + 2, -skyLightPosition.getZ());
 				DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
 				DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());
 				DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.getZ());
