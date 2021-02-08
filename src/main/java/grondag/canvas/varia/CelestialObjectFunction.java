@@ -18,7 +18,6 @@ package grondag.canvas.varia;
 
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.Matrix4f;
 
 @FunctionalInterface
 public interface CelestialObjectFunction {
@@ -26,8 +25,7 @@ public interface CelestialObjectFunction {
 
 	CelestialObjectFunction VANILLA_SUN = (input, output) -> {
 		final float angle = input.world().getSkyAngle(input.tickDelta());
-		output.xAngle = angle * 360.0F;
-		output.zAngle = 0;
+		output.hourAngle = angle * 360.0F;
 
 		final float[] fs = input.world().getSkyProperties().getFogColorOverride(angle, input.tickDelta());
 
@@ -43,29 +41,13 @@ public interface CelestialObjectFunction {
 
 	CelestialObjectFunction VANILLA_MOON = (input, output) -> {
 		final float angle = input.world().getSkyAngle(input.tickDelta());
-		output.xAngle = angle * 360.0F + 180F;
+		output.hourAngle = angle * 360.0F + 180F;
 
 		output.atmosphericColorModifier.set(1, 1, 1);
 		// based on vanilla sky lightmap at midnight
 		// real moonlight is reddish but not so much
 		output.lightColor.set(1, 0.5475f, 0.5475f);
 		output.illuminance = 2000;
-	};
-
-	CelestialObjectFunction DEFAULT_SUN = (input, output) -> {
-		final float angle = input.world().getSkyAngle(input.tickDelta());
-		output.xAngle = angle * 360.0F;
-		output.zAngle = 35f;
-		final float[] fs = input.world().getSkyProperties().getFogColorOverride(angle, input.tickDelta());
-
-		if (fs == null) {
-			output.atmosphericColorModifier.set(1, 1, 1);
-		} else {
-			output.atmosphericColorModifier.set(fs[0], fs[1], fs[2]);
-		}
-
-		output.lightColor.set(1, 1, 1);
-		output.illuminance = 32000f;
 	};
 
 	// Vanilla skylight 51%:
@@ -87,15 +69,11 @@ public interface CelestialObjectFunction {
 		double cameraX();
 		double cameraY();
 		double cameraZ();
-
-		/** Hold no input data - for implementations to prevent allocation. */
-		Matrix4f workingMatrix();
 	}
 
 	class CelestialObjectOutput {
-		public float yAngle = -90;
-		public float zAngle = 0;
-		public float xAngle = 0;
+		public float zenithAngle = 0;
+		public float hourAngle = 0;
 
 		public final Vector3f lightColor = new Vector3f();
 

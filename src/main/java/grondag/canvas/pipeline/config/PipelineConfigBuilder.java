@@ -54,6 +54,7 @@ public class PipelineConfigBuilder {
 	@Nullable public FabulousConfig fabulosity;
 	@Nullable public DrawTargetsConfig drawTargets;
 	@Nullable public SkyShadowConfig skyShadow;
+	@Nullable public SkyConfig sky;
 
 	public NamedDependency<FramebufferConfig> defaultFramebuffer;
 
@@ -82,6 +83,14 @@ public class PipelineConfigBuilder {
 				skyShadow = LoadHelper.loadObject(context, configJson, "skyShadows", SkyShadowConfig::new);
 			} else {
 				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'skyShadows' ignored.");
+			}
+		}
+
+		if (configJson.containsKey("sky")) {
+			if (sky == null) {
+				sky = LoadHelper.loadObject(context, configJson, "sky", SkyConfig::new);
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'sky' ignored.");
 			}
 		}
 

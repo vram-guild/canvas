@@ -93,8 +93,22 @@ public enum MatrixState {
 	}
 
 	private static final Vector4f testVec = new Vector4f();
-	private static float lastDx = 0, lastDy = 0;
+	private static float lastDx, lastDy;
 	private static double lastCameraX, lastCameraY, lastCameraZ;
+
+	private static float clampAngle(float angle, int radius) {
+		if (radius == 0) {
+			return angle;
+		}
+
+		final double sin = Math.sin(Math.toRadians(angle));
+		final double cos = Math.cos(Math.toRadians(angle));
+
+		final double csin = Math.round(sin * radius) / (double) radius;
+		final double ccos = Math.round(cos * radius) / (double) radius;
+
+		return (float) Math.toDegrees(Math.atan2(csin, ccos));
+	}
 
 	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds, CelestialObjectOutput skyOutput) {
 		// We need to keep the skylight projection consistently aligned to
@@ -122,38 +136,25 @@ public enum MatrixState {
 		final int radius = Math.round(straightFrustum.circumRadius());
 
 		shadowViewMatrix.loadIdentity();
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(skyOutput.yAngle));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(skyOutput.zAngle));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(skyOutput.xAngle));
+		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(clampAngle(skyOutput.zenithAngle, Pipeline.skyShadowSize / 2)));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(clampAngle(skyOutput.hourAngle, Pipeline.skyShadowSize / 2)));
+
 		testVec.set(0, 1, 0, 0);
 		testVec.transform(shadowViewMatrix);
 		skyLightVector.set(testVec.getX(), testVec.getY(), testVec.getZ());
 
-		//System.out.println(shadowViewMatrix.toString());
+		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
+		skyLightPosition.set(skyLightVector.getX() * 2048, skyLightVector.getY() * 2048, skyLightVector.getZ() * 2048);
 
 		shadowViewMatrixExt.lookAt(
-				skyLightVector.getX() * radius,
-				skyLightVector.getY() * radius,
-				skyLightVector.getZ() * radius,
-				0,
-				0,
-				0,
-				0.0f, 0.0f, 1.0f);
-
-		//System.out.println(shadowViewMatrix.toString());
+			skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ(),
+			0, 0, 0,
+			0.0f, 0.0f, 1.0f);
 
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		shadowViewMatrixInv.invert();
-
-		testVec.set(0, 0, 0, 1.0f);
-		testVec.transform(shadowViewMatrixInv);
-
-		lastSkyLightPosition.set(skyLightPosition.getX(), skyLightPosition.getY(), skyLightPosition.getZ());
-
-		skyLightPosition.set(
-				testVec.getX(),
-				testVec.getY(),
-				testVec.getZ());
 
 		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
 		testVec.transform(shadowViewMatrix);

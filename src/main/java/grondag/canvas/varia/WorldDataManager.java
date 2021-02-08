@@ -212,8 +212,6 @@ public class WorldDataManager {
 	private static final CelestialObjectOutput skyOutput = new CelestialObjectOutput();
 
 	private static final CelestialObjectInput skyInput = new CelestialObjectInput() {
-		private final Matrix4f workingMatrix = new Matrix4f();
-
 		@Override
 		public ClientWorld world() {
 			return world;
@@ -237,11 +235,6 @@ public class WorldDataManager {
 		@Override
 		public double cameraZ() {
 			return cameraZd;
-		}
-
-		@Override
-		public Matrix4f workingMatrix() {
-			return workingMatrix;
 		}
 	};
 
@@ -438,6 +431,8 @@ public class WorldDataManager {
 				// and also apply dimension/pack settings
 				WorldDataManager.world = world;
 				WorldDataManager.tickDelta = tickDelta;
+
+				skyOutput.zenithAngle = Pipeline.defaultZenithAngle;
 
 				if (moonLight) {
 					CelestialObjectFunction.VANILLA_MOON.compute(skyInput, skyOutput);

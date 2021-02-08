@@ -68,6 +68,8 @@ public class Pipeline {
 	public static int skyShadowSize;
 	public static int skyShadowDepth;
 
+	public static float defaultZenithAngle = 0f;
+
 	public static PipelineFramebuffer solidTerrainFbo;
 	public static PipelineFramebuffer translucentTerrainFbo;
 	public static PipelineFramebuffer translucentEntityFbo;
@@ -207,6 +209,12 @@ public class Pipeline {
 			skyShadowFbo = null;
 			shadowMapDepth = -1;
 			skyShadowSize = 0;
+		}
+
+		if (config.sky != null) {
+			defaultZenithAngle = config.sky.defaultZenithAngle;
+		} else {
+			defaultZenithAngle = 0f;
 		}
 
 		isFabulous = config.fabulosity != null;
