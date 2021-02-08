@@ -6,6 +6,10 @@
 		supportForwardRender: true,
 		vertexShader: "canvas:shaders/pipeline/shadow.vert",
 		fragmentShader: "canvas:shaders/pipeline/shadow.frag",
+    // first parameter to glPolygonOffset - variable slope factor
+    offsetSlopeFactor: 1.1,
+    // second parameter to glPolygonOffset - constant offset bias
+    offsetBiasUnits: 4.0
   },
 
   images: [

@@ -169,28 +169,27 @@ public enum MatrixState {
 			dy = 0f;
 		}
 
+		// WIP: should not need bounds if using fixed positions within frustum
 		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
 
 		float cx = (bounds.minViewX() + bounds.maxViewX()) * 0.5f;
 		float cy = (bounds.minViewY() + bounds.maxViewY()) * 0.5f;
+		float cz = (bounds.minViewZ() + bounds.maxViewZ()) * 0.5f;
 
 		cx = (float) (Math.floor(cx / worldPerPixel) * worldPerPixel) - dx;
 		cy = (float) (Math.floor(cy / worldPerPixel) * worldPerPixel) - dy;
+		cz = (float) -(Math.floor(cz / worldPerPixel) * worldPerPixel);
 
-		// We use actual geometry depth to give better precision on Z.
-		// but clamp to pixel boundaries to minimize aliasing.
+		// We previously use actual geometry depth to give better precision on Z.
+		// However, scenes are so variable that this causes problems for optimizing polygonOffset
 		// Z axis inverted to match depth axis in OpenGL
-		final float maxZ = -(float) (Math.ceil(bounds.minViewZ() / worldPerPixel) * worldPerPixel);
-		final float minZ = -(float) (Math.ceil(bounds.maxViewZ() / worldPerPixel) * worldPerPixel);
 
 		// Construct ortho matrix using bounding sphere box computed above.
 		// Should give us a consistent size each frame until the sun moves.
 		shadowProjMatrixExt.setOrtho(
 			cx - radius, cx + radius,
 			cy - radius, cy + radius,
-			minZ, maxZ);
-
-		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
+			cz - radius, cz + radius);
 
 		lastDx = dx;
 		lastDy = dy;
@@ -272,11 +271,6 @@ public enum MatrixState {
 		shadowViewProjMatrixInvExt.writeToBuffer(SHADOW_VIEW_PROJ_INVERSE * 16, DATA);
 	}
 
-	/** Depth of the shadow map projection.  Lower values require less offset to avoid artifacts. */
-	public static float shadowDepth() {
-		return shadowDepth;
-	}
-
 	/**
 	 * Computes projection that doesn't include nausea or view bob and doesn't have 4X depth like vanilla.
 	 */
@@ -339,8 +333,6 @@ public enum MatrixState {
 	private static final Matrix4fExt shadowViewProjMatrixInvExt = (Matrix4fExt) (Object) shadowViewProjMatrixInv;
 
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
-
-	private static float shadowDepth;
 
 	// frustum without nausea or view bob
 	public static final FastFrustum cleanFrustum = new FastFrustum();

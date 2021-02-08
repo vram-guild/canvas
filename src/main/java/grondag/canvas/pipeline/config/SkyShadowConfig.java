@@ -33,6 +33,8 @@ public class SkyShadowConfig extends AbstractConfig {
 	public final boolean supportForwardRender;
 	public final Identifier vertexShader;
 	public final Identifier fragmentShader;
+	public final float offsetSlopeFactor;
+	public final float offsetBiasUnits;
 
 	SkyShadowConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
@@ -42,6 +44,8 @@ public class SkyShadowConfig extends AbstractConfig {
 		allowEntities = config.getBoolean("allowEntities", true);
 		allowParticles = config.getBoolean("allowParticles", true);
 		supportForwardRender = config.getBoolean("supportForwardRender", true);
+		offsetSlopeFactor = config.getFloat("offsetSlopeFactor", DEFAULT_SHADOW_SLOPE_FACTOR);
+		offsetBiasUnits = config.getFloat("offsetBiasUnits", DEFAULT_SHADOW_BIAS_UNITS);
 	}
 
 	@Override
@@ -58,4 +62,7 @@ public class SkyShadowConfig extends AbstractConfig {
 
 		return valid;
 	}
+
+	public static final float DEFAULT_SHADOW_BIAS_UNITS = 4.0f;
+	public static final float DEFAULT_SHADOW_SLOPE_FACTOR = 1.1f;
 }

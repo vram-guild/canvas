@@ -31,6 +31,7 @@ import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.ProgramConfig;
+import grondag.canvas.pipeline.config.SkyShadowConfig;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.shader.ProcessShader;
 
@@ -67,6 +68,8 @@ public class Pipeline {
 	public static PipelineFramebuffer skyShadowFbo;
 	public static int skyShadowSize;
 	public static int skyShadowDepth;
+	public static float shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
+	public static float shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
 
 	public static float defaultZenithAngle = 0f;
 
@@ -205,10 +208,14 @@ public class Pipeline {
 			final Image sd = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name);
 			shadowMapDepth = sd.glId();
 			skyShadowSize = sd.config.width;
+			shadowSlopeFactor = config.skyShadow.offsetSlopeFactor;
+			shadowBiasUnits = config.skyShadow.offsetBiasUnits;
 		} else {
 			skyShadowFbo = null;
 			shadowMapDepth = -1;
 			skyShadowSize = 0;
+			shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
+			shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
 		}
 
 		if (config.sky != null) {

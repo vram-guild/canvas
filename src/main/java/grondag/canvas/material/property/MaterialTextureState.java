@@ -79,21 +79,23 @@ public class MaterialTextureState {
 	}
 
 	public void enable(boolean bilinear) {
+		// Note we don't call texture enable anywhere here - it only applies to fixed function pipeline
+
 		if (activeState == this) {
 			if (bilinear != activeIsBilinearFilter) {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-				RenderSystem.enableTexture();
 				CanvasTextureState.bindTexture(texture().getGlId());
 				assert CanvasGlHelper.checkError();
 				setFilter(bilinear);
 				assert CanvasGlHelper.checkError();
 				activeIsBilinearFilter = bilinear;
+			} else {
+				assert CanvasGlHelper.checkError();
 			}
 		} else {
 			if (this == MaterialTextureState.NO_TEXTURE) {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 				CanvasTextureState.bindTexture(0);
-				RenderSystem.disableTexture();
 				assert CanvasGlHelper.checkError();
 			} else {
 				// Should happen before primary texture binding because resets active texture
@@ -102,7 +104,6 @@ public class MaterialTextureState {
 				}
 
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-				RenderSystem.enableTexture();
 				assert CanvasGlHelper.checkError();
 
 				CanvasTextureState.bindTexture(texture().getGlId());
