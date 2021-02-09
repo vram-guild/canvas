@@ -50,6 +50,9 @@ public class SkyShadowRenderer {
 
 	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer) {
 		if (Pipeline.skyShadowFbo != null) {
+			// Viewport call (or something else) seems to be messing up fixed-function matrix state
+			RenderSystem.pushMatrix();
+
 			begin();
 
 			Pipeline.skyShadowFbo.clear();
@@ -64,6 +67,8 @@ public class SkyShadowRenderer {
 			}
 
 			end();
+
+			RenderSystem.popMatrix();
 		}
 	}
 

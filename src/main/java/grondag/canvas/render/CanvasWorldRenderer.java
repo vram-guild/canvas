@@ -441,12 +441,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (mc.options.viewDistance >= 4) {
 			// NB: fog / sky renderer really wants it this way
-			RenderSystem.popMatrix();
+			RenderSystem.pushMatrix();
+			RenderSystem.loadIdentity();
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
 			profiler.swap("sky");
 			((WorldRenderer) wr).renderSky(viewMatrixStack, tickDelta);
-			RenderSystem.pushMatrix();
-			RenderSystem.multMatrix(MatrixState.viewMatrix);
+			RenderSystem.popMatrix();
 		}
 
 		profiler.swap("fog");
@@ -645,6 +645,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
 			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
+
 			MatrixState.set(MatrixState.REGION);
 			renderTerrainLayer(false, cameraX, cameraY, cameraZ);
 			MatrixState.set(MatrixState.CAMERA);
