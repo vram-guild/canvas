@@ -93,16 +93,21 @@ public enum MatrixState {
 	private static float lastDx, lastDy;
 	private static double lastCameraX, lastCameraY, lastCameraZ;
 
-	private static float clampAngle(float angle, int radius) {
-		if (radius == 0) {
+	// Clamps the angle to align to an integer pixel boundary on both axes.
+	// Not entirely confident this works in three dimensions when transforms
+	// are multiplied but does seem to help.
+	private static float clampAngle(float angle) {
+		final int pixelRadius = Pipeline.skyShadowSize / 2;
+
+		if (pixelRadius == 0) {
 			return angle;
 		}
 
 		final double sin = Math.sin(Math.toRadians(angle));
 		final double cos = Math.cos(Math.toRadians(angle));
 
-		final double csin = Math.round(sin * radius) / (double) radius;
-		final double ccos = Math.round(cos * radius) / (double) radius;
+		final double csin = Math.round(sin * pixelRadius) / (double) pixelRadius;
+		final double ccos = Math.round(cos * pixelRadius) / (double) pixelRadius;
 
 		return (float) Math.toDegrees(Math.atan2(csin, ccos));
 	}
@@ -110,57 +115,69 @@ public enum MatrixState {
 	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds, CelestialObjectOutput skyOutput) {
 		// We need to keep the skylight projection consistently aligned to
 		// pixels in the shadowmap texture.  The alignment must be to world
-		// coordinates in the x/y axis of the skylight perspective.
-		// Both the frustum center and light position move as the camera moves,
+		// coordinates in the x/y axis of the skylight projection.
+		// Both the frustum center and relative light position move as the camera moves,
 		// which causes shimmering if we don't adjust for this movement.
 
 		// Because all of our coordinates and matrices at this point are relative to camera,
-		// we can't test use them for the alignment to world coordinates.
-		// So we compute the position of the frustum center in world space in a
-		// projection centered on world origin. Depth doesn't matter here.
-		// As the camera moves, the x/y distance of its position from the origin
-		// indicate how much we need to translate the shadowmap projection to maintain alignment.
+		// we can't use them directly to test for alignment to world coordinates.
+		// To correct for this, each frame we compute the X/Y movement of the
+		// camera in projected light space and adjust an offset that snaps the camera
+		// to a nearby pixel boundary.
 
-		// Frustum center is at most half view distance away from each frustum plane
-		// Expanding in each direction by that much should enclose the visible scene
-		// (Approximate because view frustum isn't a simple box.)
-		// Note the Y-axis pffset is inverted because MC Y is inverted relative to OpenGL/matrix transform
+		// As the sun moves, the shape and size of individual pixels changes.  This
+		// can also cause aliasing and shimmering and cannot be fully countered.
+		// To minimize the effect, we do two things:
+		// 1) Keep pixel center near the camera.  This reduces the apparent warping
+		// of pixel size on surfaces nearest the viewer.
+		// 2) Clamp the angles of sun position to angles that result in an integer
+		// number of pixels in the projected radius. Without this, there is constant
+		// movement of pixel boundaries for shadows away from the camera.
 
-		// To avoid precision issues at the edge of the world, use a world boundary
-		// that is relatively close - keeping them at regular intervals.
-
+		// Was previously using half the distance from the camera to the far plane, but that
+		// isn't an accurate enough center position of a view frustum when the field of view is wide.
 		// PERF: could be a little tighter by accounting for view distance - far corners aren't actually visible
 		final int radius = Math.round(cleanFrustum.circumRadius());
 
+		// Compute sky light vector transform - points towards the sun
 		shadowViewMatrix.loadIdentity();
 		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
 		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(clampAngle(skyOutput.zenithAngle, Pipeline.skyShadowSize / 2)));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(clampAngle(skyOutput.hourAngle, Pipeline.skyShadowSize / 2)));
-
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(clampAngle(skyOutput.zenithAngle)));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(clampAngle(skyOutput.hourAngle)));
 		testVec.set(0, 1, 0, 0);
 		testVec.transform(shadowViewMatrix);
 		skyLightVector.set(testVec.getX(), testVec.getY(), testVec.getZ());
 
+		// Use the unit vector we just computed to create a view matrix from perspective of the sky light.
+		// Distance here isn't too picky, we need to ensure it is far enough away to contain any shadow-casting
+		// geometry but not far enough to lose much precision in the depth (Z) dimension.
 		shadowViewMatrixExt.lookAt(
-				skyLightVector.getX() * 2048, skyLightVector.getY() * 2048, skyLightVector.getZ() * 2048,
+			skyLightVector.getX() * radius * 2, skyLightVector.getY() * radius * 2, skyLightVector.getZ() * radius * 2,
 			0, 0, 0,
 			0.0f, 0.0f, 1.0f);
 
+		// Compute inverse while we're here
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		shadowViewMatrixInv.invert();
 
+		// Compute how much camera has moved in projected x/y space.
 		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
 		testVec.transform(shadowViewMatrix);
 
+		// Accumulate camera adjustment
 		float dx = lastDx + testVec.getX();
 		float dy = lastDy + testVec.getY();
 
-		// clamp to pixel boundary
+		// Clamp accumulated camera adjustment to pixel boundary.
+		// This keep the projection center near the camera position.
 		final double worldPerPixel = 2.0 * radius / Pipeline.skyShadowSize;
 		dx = (float) (dx - Math.floor(dx / worldPerPixel) * worldPerPixel);
 		dy = (float) (dy - Math.floor(dy / worldPerPixel) * worldPerPixel);
 
+		// NaN values sometime crop up in edge cases, esp during initialization.
+		// If we don't correct for them then the accumulated adjustment becomes Nan
+		// and never recovers.
 		if (Float.isNaN(dx)) {
 			dx = 0f;
 		}
@@ -169,6 +186,7 @@ public enum MatrixState {
 			dy = 0f;
 		}
 
+		// Find the center of our projection.
 		// WIP: should not need bounds if using fixed positions within frustum
 		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
 
@@ -184,8 +202,8 @@ public enum MatrixState {
 		// However, scenes are so variable that this causes problems for optimizing polygonOffset
 		// Z axis inverted to match depth axis in OpenGL
 
-		// Construct ortho matrix using bounding sphere box computed above.
-		// Should give us a consistent size each frame until the sun moves.
+		// Construct ortho matrix using bounding sphere/box computed above.
+		// Should give us a consistent size each frame, which helps prevent shimmering.
 		shadowProjMatrixExt.setOrtho(
 			cx - radius, cx + radius,
 			cy - radius, cy + radius,
