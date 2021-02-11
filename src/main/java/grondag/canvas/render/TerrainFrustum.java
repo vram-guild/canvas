@@ -49,9 +49,6 @@ public class TerrainFrustum extends CanvasFrustum {
 	private int viewDistanceSquared;
 	private int viewVersion;
 	private int positionVersion;
-	private double lastViewX = Float.MAX_VALUE;
-	private double lastViewY = Float.MAX_VALUE;
-	private double lastViewZ = Float.MAX_VALUE;
 	private double lastPositionX = Double.MAX_VALUE;
 	private double lastPositionY = Double.MAX_VALUE;
 	private double lastPositionZ = Double.MAX_VALUE;
@@ -61,12 +58,9 @@ public class TerrainFrustum extends CanvasFrustum {
 	private double fov;
 
 	void reload() {
-		lastViewX = Float.MAX_VALUE;
-		lastViewY = Float.MAX_VALUE;
-		lastViewZ = Float.MAX_VALUE;
-		lastViewXf = Float.MAX_VALUE;
-		lastViewYf = Float.MAX_VALUE;
-		lastViewZf = Float.MAX_VALUE;
+		lastViewX = Double.MAX_VALUE;
+		lastViewY = Double.MAX_VALUE;
+		lastViewZ = Double.MAX_VALUE;
 		lastPositionX = Double.MAX_VALUE;
 		lastPositionY = Double.MAX_VALUE;
 		lastPositionZ = Double.MAX_VALUE;
@@ -98,9 +92,9 @@ public class TerrainFrustum extends CanvasFrustum {
 		lastViewY = src.lastViewY;
 		lastViewZ = src.lastViewZ;
 
-		lastViewXf = src.lastViewXf;
-		lastViewYf = src.lastViewYf;
-		lastViewZf = src.lastViewZf;
+		lastViewX = src.lastViewX;
+		lastViewY = src.lastViewY;
+		lastViewZ = src.lastViewZ;
 
 		lastPositionX = src.lastPositionX;
 		lastPositionY = src.lastPositionY;
@@ -213,10 +207,6 @@ public class TerrainFrustum extends CanvasFrustum {
 			lastViewX = x;
 			lastViewY = y;
 			lastViewZ = z;
-
-			lastViewXf = (float) x;
-			lastViewYf = (float) y;
-			lastViewZf = (float) z;
 
 			lastCameraPitch = cameraPitch;
 			lastCameraYaw = cameraYaw;

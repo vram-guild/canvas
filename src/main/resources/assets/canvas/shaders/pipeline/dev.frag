@@ -7,6 +7,7 @@
 #include frex:shaders/api/material.glsl
 #include canvas:basic_light_config
 #include canvas:handheld_light_config
+#include canvas:shadow_debug
 
 /******************************************************
   canvas:shaders/pipeline/dev.frag
@@ -133,20 +134,22 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		vec3 shadowCoords = shadowPos.xyz / shadowPos.w;
 
 		// Transform from screen coordinates to texture coordinates
-		shadowCoords = shadowCoords * 0.5 + 0.5;
+		vec3 shadowTexCoords = shadowCoords * 0.5 + 0.5;
 
-		float shadowDepth = texture2DArray(frxs_shadowMap, vec3(shadowCoords.xy, 0)).x;
+		float shadowDepth = texture2DArray(frxs_shadowMap, vec3(shadowTexCoords.xy, 0.0)).x;
 
-		if (shadowDepth >= shadowCoords.z) {
+		if (shadowDepth >= shadowTexCoords.z) {
 			light += vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
 		}
 
-		//shadowCoords = abs(fract(shadowCoords * 4096.0));
+	#ifdef SHADOW_DEBUG
+		shadowCoords = abs(fract(shadowCoords * 1024.0));
 
-		//if (!(shadowCoords.x > 0.05 && shadowCoords.x < 0.95 && shadowCoords.y > 0.05 && shadowCoords.y < 0.95)) {
-		//	light = vec4(1.0);
-		//	a = vec4(0.0, 1.0, 1.0, 1.0);
-		//}
+		if (!(shadowCoords.x > 0.05 && shadowCoords.x < 0.95 && shadowCoords.y > 0.05 && shadowCoords.y < 0.95)) {
+			light = vec4(1.0);
+			a = vec4(0.0, 1.0, 1.0, 1.0);
+		}
+	#endif
 
 		if (fragData.ao) {
 			light *= aoFactor(fragData.light, fragData.aoShade);

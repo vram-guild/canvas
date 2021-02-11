@@ -46,7 +46,7 @@ public class FastFrustum extends CanvasFrustum {
 		return circumRadius;
 	}
 
-	public void computeCircumCenter(Matrix4f invVewMatrix, Matrix4f invProjMatrix) {
+	public void computeCircumCenter(Matrix4f invViewMatrix, Matrix4f invProjMatrix) {
 		final Vector4f corner = new Vector4f();
 
 		// near lower left
@@ -58,7 +58,7 @@ public class FastFrustum extends CanvasFrustum {
 		float nz0 = corner.getZ() / corner.getW();
 
 		corner.set(nx0, ny0, nz0, 1f);
-		corner.transform(invVewMatrix);
+		corner.transform(invViewMatrix);
 
 		nx0 = corner.getX();
 		ny0 = corner.getY();
@@ -73,7 +73,7 @@ public class FastFrustum extends CanvasFrustum {
 		float nz1 = corner.getZ() / corner.getW();
 
 		corner.set(nx1, ny1, nz1, 1f);
-		corner.transform(invVewMatrix);
+		corner.transform(invViewMatrix);
 
 		nx1 = corner.getX();
 		ny1 = corner.getY();
@@ -88,7 +88,7 @@ public class FastFrustum extends CanvasFrustum {
 		float fz0 = corner.getZ() / corner.getW();
 
 		corner.set(fx0, fy0, fz0, 1f);
-		corner.transform(invVewMatrix);
+		corner.transform(invViewMatrix);
 
 		fx0 = corner.getX();
 		fy0 = corner.getY();
@@ -103,7 +103,7 @@ public class FastFrustum extends CanvasFrustum {
 		float fz1 = corner.getZ() / corner.getW();
 
 		corner.set(fx1, fy1, fz1, 1f);
-		corner.transform(invVewMatrix);
+		corner.transform(invViewMatrix);
 
 		fx1 = corner.getX();
 		fy1 = corner.getY();
@@ -143,9 +143,9 @@ public class FastFrustum extends CanvasFrustum {
 
 	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, Matrix4f projectionMatrix) {
 		final Vec3d vec = camera.getPos();
-		lastViewXf = (float) vec.x;
-		lastViewYf = (float) vec.y;
-		lastViewZf = (float) vec.z;
+		lastViewX = vec.x;
+		lastViewY = vec.y;
+		lastViewZ = vec.z;
 
 		modelMatrixExt.set(modelMatrix);
 		projectionMatrixExt.set(projectionMatrix);

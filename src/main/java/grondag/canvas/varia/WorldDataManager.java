@@ -43,7 +43,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
-import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectInput;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 import grondag.fermion.bits.BitPacker32;
@@ -359,7 +358,7 @@ public class WorldDataManager {
 	 * @param projectionMatrix
 	 * @param entry
 	 */
-	public static void update(Entry entry, Matrix4f projectionMatrix, Camera camera, TerrainBounds bounds) {
+	public static void update(Entry entry, Matrix4f projectionMatrix, Camera camera) {
 		final MinecraftClient client = MinecraftClient.getInstance();
 		final Entity cameraEntity = camera.getFocusedEntity();
 		final float tickDelta = client.getTickDelta();
@@ -395,7 +394,7 @@ public class WorldDataManager {
 		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
 		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch, null);
 
-		MatrixState.update(entry, projectionMatrix, camera, tickDelta, bounds);
+		MatrixState.update(entry, projectionMatrix, camera, tickDelta);
 
 		DATA.put(VIEW_WIDTH, PipelineManager.width());
 		DATA.put(VIEW_HEIGHT, PipelineManager.height());
@@ -434,7 +433,7 @@ public class WorldDataManager {
 				}
 
 				// Note this computes the value of skyLightVector - quantizing to align to shadow map pixels
-				MatrixState.updateShadow(camera, tickDelta, bounds, skyOutput);
+				MatrixState.updateShadow(camera, tickDelta, skyOutput);
 				DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
 				DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());
 				DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.getZ());

@@ -1,4 +1,18 @@
 {
+  options: [
+    {
+      includeToken: "canvas:shadow_debug",
+      categoryKey: "config.canvas.category.debug",
+      options: {
+        shadow_debug: {
+          default: false,
+          nameKey: "config.canvas.value.shadow_debug",
+          descriptionKey: "config.canvas.help.shadow_debug"
+        }
+      }
+    }
+  ],
+
   skyShadows: {
 		framebuffer: "shadow",
 		allowEntities: true,
@@ -16,7 +30,7 @@
     // depth attachment for shadow map - must be an array texture
     {
       name: "shadow_depth",
-      size: 4096,
+      size: 1024,
       depth: 4,
       internalFormat: "DEPTH_COMPONENT32",
       pixelFormat: "DEPTH_COMPONENT",

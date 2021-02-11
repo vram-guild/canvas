@@ -38,7 +38,6 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.FastFrustum;
-import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 
 /**
@@ -112,7 +111,7 @@ public enum MatrixState {
 		return (float) Math.toDegrees(Math.atan2(csin, ccos));
 	}
 
-	private static void computeShadowMatrices(Camera camera, float tickDelta, TerrainBounds bounds, CelestialObjectOutput skyOutput) {
+	private static void computeShadowMatrices(Camera camera, float tickDelta, CelestialObjectOutput skyOutput) {
 		// We need to keep the skylight projection consistently aligned to
 		// pixels in the shadowmap texture.  The alignment must be to world
 		// coordinates in the x/y axis of the skylight projection.
@@ -137,7 +136,13 @@ public enum MatrixState {
 		// Was previously using half the distance from the camera to the far plane, but that
 		// isn't an accurate enough center position of a view frustum when the field of view is wide.
 		// PERF: could be a little tighter by accounting for view distance - far corners aren't actually visible
-		final int radius = Math.round(cleanFrustum.circumRadius());
+
+		@SuppressWarnings("resource")
+		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
+		final float halfDist = viewDist * 0.5f;
+		final int radius = (int) Math.ceil(Math.sqrt(halfDist * halfDist + viewDist * viewDist));
+
+		//final int radius = Math.round(cleanFrustum.circumRadius());
 
 		// Compute sky light vector transform - points towards the sun
 		shadowViewMatrix.loadIdentity();
@@ -186,13 +191,16 @@ public enum MatrixState {
 			dy = 0f;
 		}
 
-		// Find the center of our projection.
-		// WIP: should not need bounds if using fixed positions within frustum
-		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
+		testVec.set(0, 0, 0, 1.0f);
+		testVec.transform(shadowViewMatrix);
 
-		float cx = (bounds.minViewX() + bounds.maxViewX()) * 0.5f;
-		float cy = (bounds.minViewY() + bounds.maxViewY()) * 0.5f;
-		float cz = (bounds.minViewZ() + bounds.maxViewZ()) * 0.5f;
+		// Find the center of our projection.
+		testVec.set(WorldDataManager.cameraVector.getX() * halfDist, WorldDataManager.cameraVector.getY() * halfDist, WorldDataManager.cameraVector.getZ() * halfDist, 1.0f);
+		testVec.transform(shadowViewMatrix);
+
+		float cx = testVec.getX();
+		float cy = testVec.getY();
+		float cz = testVec.getZ();
 
 		cx = (float) (Math.floor(cx / worldPerPixel) * worldPerPixel) - dx;
 		cy = (float) (Math.floor(cy / worldPerPixel) * worldPerPixel) - dy;
@@ -216,7 +224,7 @@ public enum MatrixState {
 		lastCameraZ = cameraZd;
 	}
 
-	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta, TerrainBounds bounds) {
+	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
 		// write values for prior frame before updating
 		viewMatrixExt.writeToBuffer(VIEW_LAST * 16, DATA);
 		projMatrixExt.writeToBuffer(PROJ_LAST * 16, DATA);
@@ -264,8 +272,8 @@ public enum MatrixState {
 		cleanFrustum.computeCircumCenter(viewMatrixInv, cleanProjMatrixInv);
 	}
 
-	static void updateShadow(Camera camera, float tickDelta, TerrainBounds bounds, CelestialObjectOutput skyoutput) {
-		computeShadowMatrices(camera, tickDelta, bounds, skyoutput);
+	static void updateShadow(Camera camera, float tickDelta, CelestialObjectOutput skyoutput) {
+		computeShadowMatrices(camera, tickDelta, skyoutput);
 
 		// shadow perspective were computed earlier
 		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, DATA);
