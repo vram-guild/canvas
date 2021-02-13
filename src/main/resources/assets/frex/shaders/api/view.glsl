@@ -243,6 +243,13 @@ mat4 frx_inverseShadowViewProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ_INVERSE];
 }
 
+/**
+ * Center and radius of each cascade projection in light space.
+ */
+vec4 frx_shadowCenter(int index) {
+	return _cvu_world[_CV_SHADOW_CENTER + index];
+}
+
 /*
  * True when rendering to GUI.
  */

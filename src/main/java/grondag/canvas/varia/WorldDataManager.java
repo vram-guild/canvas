@@ -49,7 +49,7 @@ import grondag.fermion.bits.BitPacker32;
 import grondag.frex.api.light.ItemLight;
 
 public class WorldDataManager {
-	public static final int VECTOR_COUNT = 16;
+	public static final int VECTOR_COUNT = 32;
 	private static final int LENGTH = VECTOR_COUNT * 4;
 
 	private static final int VEC_WORLD_TIME = 4 * 0;
@@ -121,6 +121,9 @@ public class WorldDataManager {
 
 	private static final int SKYLIGHT_COLOR = 4 * 14;
 	private static final int SKYLIGHT_ILLUMINANCE = SKYLIGHT_COLOR + 3;
+
+	// 15-18 reserved for cascades 0-3
+	static final int SHADOW_CENTER = 4 * 15;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();

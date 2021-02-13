@@ -16,6 +16,8 @@
 
 package grondag.canvas.varia;
 
+import static grondag.canvas.varia.WorldDataManager.SHADOW_CENTER;
+import static grondag.canvas.varia.WorldDataManager.cameraVector;
 import static grondag.canvas.varia.WorldDataManager.cameraXd;
 import static grondag.canvas.varia.WorldDataManager.cameraYd;
 import static grondag.canvas.varia.WorldDataManager.cameraZd;
@@ -92,25 +94,6 @@ public enum MatrixState {
 	private static float lastDx, lastDy;
 	private static double lastCameraX, lastCameraY, lastCameraZ;
 
-	// Clamps the angle to align to an integer pixel boundary on both axes.
-	// Not entirely confident this works in three dimensions when transforms
-	// are multiplied but does seem to help.
-	private static float clampAngle(float angle) {
-		final int pixelRadius = Pipeline.skyShadowSize / 2;
-
-		if (pixelRadius == 0) {
-			return angle;
-		}
-
-		final double sin = Math.sin(Math.toRadians(angle));
-		final double cos = Math.cos(Math.toRadians(angle));
-
-		final double csin = Math.round(sin * pixelRadius) / (double) pixelRadius;
-		final double ccos = Math.round(cos * pixelRadius) / (double) pixelRadius;
-
-		return (float) Math.toDegrees(Math.atan2(csin, ccos));
-	}
-
 	private static void computeShadowMatrices(Camera camera, float tickDelta, CelestialObjectOutput skyOutput) {
 		// We need to keep the skylight projection consistently aligned to
 		// pixels in the shadowmap texture.  The alignment must be to world
@@ -133,6 +116,7 @@ public enum MatrixState {
 		// number of pixels in the projected radius. Without this, there is constant
 		// movement of pixel boundaries for shadows away from the camera.
 
+		// WIP: correct these docs
 		// Was previously using half the distance from the camera to the far plane, but that
 		// isn't an accurate enough center position of a view frustum when the field of view is wide.
 		// PERF: could be a little tighter by accounting for view distance - far corners aren't actually visible
@@ -148,8 +132,8 @@ public enum MatrixState {
 		shadowViewMatrix.loadIdentity();
 		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
 		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(clampAngle(skyOutput.zenithAngle)));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(clampAngle(skyOutput.hourAngle)));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(skyOutput.zenithAngle));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(skyOutput.hourAngle));
 		testVec.set(0, 1, 0, 0);
 		testVec.transform(shadowViewMatrix);
 		skyLightVector.set(testVec.getX(), testVec.getY(), testVec.getZ());
@@ -158,7 +142,7 @@ public enum MatrixState {
 		// Distance here isn't too picky, we need to ensure it is far enough away to contain any shadow-casting
 		// geometry but not far enough to lose much precision in the depth (Z) dimension.
 		shadowViewMatrixExt.lookAt(
-			skyLightVector.getX() * radius * 2, skyLightVector.getY() * radius * 2, skyLightVector.getZ() * radius * 2,
+			skyLightVector.getX() * radius, skyLightVector.getY() * radius, skyLightVector.getZ() * radius,
 			0, 0, 0,
 			0.0f, 0.0f, 1.0f);
 
@@ -166,6 +150,10 @@ public enum MatrixState {
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		shadowViewMatrixInv.invert();
 
+		updateCascadeInfo(radius, halfDist);
+	}
+
+	static void updateCascadeInfo(int radius, float halfDist) {
 		// Compute how much camera has moved in projected x/y space.
 		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
 		testVec.transform(shadowViewMatrix);
@@ -191,11 +179,8 @@ public enum MatrixState {
 			dy = 0f;
 		}
 
-		testVec.set(0, 0, 0, 1.0f);
-		testVec.transform(shadowViewMatrix);
-
 		// Find the center of our projection.
-		testVec.set(WorldDataManager.cameraVector.getX() * halfDist, WorldDataManager.cameraVector.getY() * halfDist, WorldDataManager.cameraVector.getZ() * halfDist, 1.0f);
+		testVec.set(cameraVector.getX() * halfDist, cameraVector.getY() * halfDist, cameraVector.getZ() * halfDist, 1.0f);
 		testVec.transform(shadowViewMatrix);
 
 		float cx = testVec.getX();
@@ -204,18 +189,24 @@ public enum MatrixState {
 
 		cx = (float) (Math.floor(cx / worldPerPixel) * worldPerPixel) - dx;
 		cy = (float) (Math.floor(cy / worldPerPixel) * worldPerPixel) - dy;
-		cz = (float) -(Math.floor(cz / worldPerPixel) * worldPerPixel);
+		cz = (float) (Math.ceil(cz / worldPerPixel) * worldPerPixel);
 
 		// We previously use actual geometry depth to give better precision on Z.
 		// However, scenes are so variable that this causes problems for optimizing polygonOffset
-		// Z axis inverted to match depth axis in OpenGL
+		// Z axis bounds are inverted because Z axis points towards negative end in OpenGL
+		// This maps the near depth bound (center + radius) to -1 and the far depth bound (center - radius) to +1.
 
 		// Construct ortho matrix using bounding sphere/box computed above.
 		// Should give us a consistent size each frame, which helps prevent shimmering.
 		shadowProjMatrixExt.setOrtho(
 			cx - radius, cx + radius,
 			cy - radius, cy + radius,
-			cz - radius, cz + radius);
+			-(cz + radius), -(cz - radius));
+
+		WorldDataManager.DATA.put(SHADOW_CENTER, cx);
+		WorldDataManager.DATA.put(SHADOW_CENTER, cy);
+		WorldDataManager.DATA.put(SHADOW_CENTER, cz);
+		WorldDataManager.DATA.put(SHADOW_CENTER, radius);
 
 		lastDx = dx;
 		lastDy = dy;

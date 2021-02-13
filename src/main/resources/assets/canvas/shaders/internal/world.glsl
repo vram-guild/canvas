@@ -57,6 +57,9 @@
 // a: skylight illuminance in lux
 #define _CV_SKYLIGHT_COLOR 14
 
+// 15 - 18 reserved for cascades 0-3
+#define _CV_SHADOW_CENTER 15
+
 #define _CV_FLAG_HAS_SKYLIGHT 0
 #define _CV_FLAG_IS_OVERWORLD 1
 #define _CV_FLAG_IS_NETHER 2
@@ -70,7 +73,7 @@
 #define _CV_CONDITION_FLAGS_START 2
 
 // update each frame
-uniform vec4[16] _cvu_world;
+uniform vec4[32] _cvu_world;
 uniform uint[4] _cvu_flags;
 
 #define _CV_MODEL_TO_WORLD 0

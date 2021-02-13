@@ -203,14 +203,30 @@ public interface Matrix4fExt {
 
 	void writeToBuffer(int baseIndex, FloatBuffer floatBuffer);
 
+	/**
+	 * Maps view space (with camera pointing towards negative Z) to -1/+1 NDC
+	 * coordinates expected by OpenGL.
+	 *
+	 * <P>Note comments on near and far distance! These are depth along z axis,
+	 * or in other words, you must negate the view space z-axis bounds when passing them.
+	 *
+	 * @param left bound towards negative x axis
+	 * @param right bound towards positive x axis
+	 * @param bottom bound towards negative y axis
+	 * @param top bound towards positive y axis
+	 * @param near distance of near plane from camera (POSITIVE!)
+	 * @param far distance of far plane from camera (POSITIVE!)
+	 */
 	default void setOrtho(float left, float right, float bottom, float top, float near, float far) {
 		loadIdentity();
 		a00(2.0f / (right - left));
+		a03(-(right + left) / (right - left));
+
 		a11(2.0f / (top - bottom));
+		a13(-(top + bottom) / (top - bottom));
+
 		a22(2.0f / (near - far));
-		a03((right + left) / (left - right));
-		a13((top + bottom) / (bottom - top));
-		a23((far + near) / (near - far));
+		a23(-(far + near) / (far - near));
 	}
 
 	// best explanation seen so far:  http://www.songho.ca/opengl/gl_camera.html#lookat
