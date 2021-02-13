@@ -91,7 +91,9 @@ public enum MatrixState {
 	}
 
 	private static final Vector4f testVec = new Vector4f();
-	private static float lastDx, lastDy;
+	public static final int CASCADE_COUNT = 4;
+	private static float[] lastDx = new float[CASCADE_COUNT];
+	private static float[] lastDy = new float[CASCADE_COUNT];
 	private static double lastCameraX, lastCameraY, lastCameraZ;
 
 	private static void computeShadowMatrices(Camera camera, float tickDelta, CelestialObjectOutput skyOutput) {
@@ -150,17 +152,24 @@ public enum MatrixState {
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		shadowViewMatrixInv.invert();
 
-		updateCascadeInfo(radius, halfDist);
+		updateCascadeInfo(0, radius, halfDist);
+		updateCascadeInfo(1, radius, halfDist);
+		updateCascadeInfo(2, radius, halfDist);
+		updateCascadeInfo(3, radius, halfDist);
+
+		lastCameraX = cameraXd;
+		lastCameraY = cameraYd;
+		lastCameraZ = cameraZd;
 	}
 
-	static void updateCascadeInfo(int radius, float halfDist) {
+	static void updateCascadeInfo(int cascade, int radius, float halfDist) {
 		// Compute how much camera has moved in projected x/y space.
 		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
 		testVec.transform(shadowViewMatrix);
 
 		// Accumulate camera adjustment
-		float dx = lastDx + testVec.getX();
-		float dy = lastDy + testVec.getY();
+		float dx = lastDx[cascade] + testVec.getX();
+		float dy = lastDy[cascade] + testVec.getY();
 
 		// Clamp accumulated camera adjustment to pixel boundary.
 		// This keep the projection center near the camera position.
@@ -198,21 +207,20 @@ public enum MatrixState {
 
 		// Construct ortho matrix using bounding sphere/box computed above.
 		// Should give us a consistent size each frame, which helps prevent shimmering.
-		shadowProjMatrixExt.setOrtho(
+		shadowProjMatrixExt[cascade].setOrtho(
 			cx - radius, cx + radius,
 			cy - radius, cy + radius,
 			-(cz + radius), -(cz - radius));
 
-		WorldDataManager.DATA.put(SHADOW_CENTER, cx);
-		WorldDataManager.DATA.put(SHADOW_CENTER, cy);
-		WorldDataManager.DATA.put(SHADOW_CENTER, cz);
-		WorldDataManager.DATA.put(SHADOW_CENTER, radius);
+		final int offset = SHADOW_CENTER + cascade * 4;
 
-		lastDx = dx;
-		lastDy = dy;
-		lastCameraX = cameraXd;
-		lastCameraY = cameraYd;
-		lastCameraZ = cameraZd;
+		WorldDataManager.DATA.put(offset, cx);
+		WorldDataManager.DATA.put(offset + 1, cy);
+		WorldDataManager.DATA.put(offset + 2, cz);
+		WorldDataManager.DATA.put(offset + 3, radius);
+
+		lastDx[cascade] = dx;
+		lastDy[cascade] = dy;
 	}
 
 	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
@@ -268,24 +276,19 @@ public enum MatrixState {
 
 		// shadow perspective were computed earlier
 		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, DATA);
-		shadowProjMatrixExt.writeToBuffer(SHADOW_PROJ * 16, DATA);
 
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		// reliable inversion of rotation matrix
 		shadowViewMatrixInv.transpose();
 		shadowViewMatrixInvExt.writeToBuffer(SHADOW_VIEW_INVERSE * 16, DATA);
 
-		shadowProjMatrixInvExt.set(shadowProjMatrixExt);
-		shadowProjMatrixInv.invert();
-		shadowProjMatrixInvExt.writeToBuffer(SHADOW_PROJ_INVERSE * 16, DATA);
+		for (int i = 0; i < CASCADE_COUNT; ++i) {
+			shadowProjMatrixExt[i].writeToBuffer((SHADOW_PROJ_0 + i) * 16, DATA);
 
-		shadowViewProjMatrixExt.set(shadowProjMatrixExt);
-		shadowViewProjMatrixExt.multiply(shadowViewMatrixExt);
-		shadowViewProjMatrixExt.writeToBuffer(SHADOW_VIEW_PROJ * 16, DATA);
-
-		shadowViewProjMatrixInvExt.set(shadowViewMatrixInvExt);
-		shadowViewProjMatrixInvExt.multiply(shadowProjMatrixInvExt);
-		shadowViewProjMatrixInvExt.writeToBuffer(SHADOW_VIEW_PROJ_INVERSE * 16, DATA);
+			shadowViewProjMatrixExt[i].set(shadowProjMatrixExt[i]);
+			shadowViewProjMatrixExt[i].multiply(shadowViewMatrixExt);
+			shadowViewProjMatrixExt[i].writeToBuffer((SHADOW_VIEW_PROJ_0 + i) * 16, DATA);
+		}
 	}
 
 	/**
@@ -339,15 +342,20 @@ public enum MatrixState {
 	private static final Matrix4f shadowViewMatrixInv = new Matrix4f();
 	private static final Matrix4fExt shadowViewMatrixInvExt = (Matrix4fExt) (Object) shadowViewMatrixInv;
 
-	public static final Matrix4f shadowProjMatrix = new Matrix4f();
-	public static final Matrix4fExt shadowProjMatrixExt = (Matrix4fExt) (Object) shadowProjMatrix;
-	private static final Matrix4f shadowProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt shadowProjMatrixInvExt = (Matrix4fExt) (Object) shadowProjMatrixInv;
+	public static final Matrix4f[] shadowProjMatrix = new Matrix4f[CASCADE_COUNT];
+	public static final Matrix4fExt[] shadowProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
+	public static final Matrix4f[] shadowViewProjMatrix = new Matrix4f[CASCADE_COUNT];
+	public static final Matrix4fExt[] shadowViewProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
 
-	public static final Matrix4f shadowViewProjMatrix = new Matrix4f();
-	public static final Matrix4fExt shadowViewProjMatrixExt = (Matrix4fExt) (Object) shadowViewProjMatrix;
-	private static final Matrix4f shadowViewProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt shadowViewProjMatrixInvExt = (Matrix4fExt) (Object) shadowViewProjMatrixInv;
+	static {
+		for (int i = 0; i < CASCADE_COUNT; ++i) {
+			shadowProjMatrix[i] = new Matrix4f();
+			shadowProjMatrixExt[i] = (Matrix4fExt) (Object) shadowProjMatrix[i];
+
+			shadowViewProjMatrix[i] = new Matrix4f();
+			shadowViewProjMatrixExt[i] = (Matrix4fExt) (Object) shadowViewProjMatrix[i];
+		}
+	}
 
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
 
@@ -366,18 +374,18 @@ public enum MatrixState {
 
 	private static final int SHADOW_VIEW = 9;
 	private static final int SHADOW_VIEW_INVERSE = 10;
-	private static final int SHADOW_PROJ = 11;
-	private static final int SHADOW_PROJ_INVERSE = 12;
-	private static final int SHADOW_VIEW_PROJ = 13;
-	private static final int SHADOW_VIEW_PROJ_INVERSE = 14;
+	// base index of cascades 0-3
+	private static final int SHADOW_PROJ_0 = 11;
+	// base index of cascades 0-3
+	private static final int SHADOW_VIEW_PROJ_0 = 15;
 
-	private static final int CLEAN_PROJ = 15;
-	private static final int CLEAN_PROJ_INVERSE = 16;
-	private static final int CLEAN_PROJ_LAST = 17;
-	private static final int CLEAN_VP = 18;
-	private static final int CLEAN_VP_INVERSE = 19;
-	private static final int CLEAN_VP_LAST = 20;
+	private static final int CLEAN_PROJ = 19;
+	private static final int CLEAN_PROJ_INVERSE = 20;
+	private static final int CLEAN_PROJ_LAST = 21;
+	private static final int CLEAN_VP = 22;
+	private static final int CLEAN_VP_INVERSE = 23;
+	private static final int CLEAN_VP_LAST = 24;
 
-	public static final int COUNT = 24;
+	public static final int COUNT = 25;
 	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(COUNT * 16);
 }

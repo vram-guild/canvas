@@ -227,24 +227,22 @@ mat4 frx_inverseShadowViewMatrix() {
 	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_INVERSE];
 }
 
-mat4 frx_shadowProjectionMatrix() {
-	return _cvu_matrix[_CV_MAT_SHADOW_PROJ];
-}
-
-mat4 frx_inverseShadowProjectionMatrix() {
-	return _cvu_matrix[_CV_MAT_SHADOW_PROJ_INVERSE];
-}
-
-mat4 frx_shadowViewProjectionMatrix() {
-	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ];
-}
-
-mat4 frx_inverseShadowViewProjectionMatrix() {
-	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ_INVERSE];
+/**
+ * Orthogonal projection matrix on light space for given cascade index 0-3.
+ */
+mat4 frx_shadowProjectionMatrix(int index) {
+	return _cvu_matrix[_CV_MAT_SHADOW_PROJ_0 + index];
 }
 
 /**
- * Center and radius of each cascade projection in light space.
+ * Combined lightspace view and orthogonal projection for given cascade index 0-3.
+ */
+mat4 frx_shadowViewProjectionMatrix(int index) {
+	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ_0 + index];
+}
+
+/**
+ * Center and radius of other projection in light space for given cascade index 0-3.
  */
 vec4 frx_shadowCenter(int index) {
 	return _cvu_world[_CV_SHADOW_CENTER + index];

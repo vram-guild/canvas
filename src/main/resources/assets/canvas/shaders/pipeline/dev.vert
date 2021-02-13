@@ -31,7 +31,7 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 		gl_Position = frx_projectionMatrix() * viewCoord;
 	}
 
-	shadowPos  = frx_shadowViewProjectionMatrix() * data.vertex;
+	shadowPos  = frx_shadowViewProjectionMatrix(0) * data.vertex;
 
 	pv_lightcoord = data.light;
 	pv_ao = data.aoShade;
