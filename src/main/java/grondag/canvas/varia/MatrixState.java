@@ -125,10 +125,26 @@ public enum MatrixState {
 
 		@SuppressWarnings("resource")
 		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
-		final float halfDist = viewDist * 0.5f;
-		final int radius = (int) Math.ceil(Math.sqrt(halfDist * halfDist + viewDist * viewDist));
 
-		//final int radius = Math.round(cleanFrustum.circumRadius());
+		// Half-way to view distance isn't the true center of the view frustum, but because
+		// the far corners aren't actually visible it is close enough for now.
+		final float halfDist = viewDist * 0.5f;
+
+		// Bounding sphere/box distance for the largest cascade.  Relies on assumption the frustum
+		// will be wider than it is long, and if not then view distance should be adequate.
+		// We find the point that is halfDist deep and at our view distance.  Note this is a right
+		// triangle with view distance as hypotenuse and half dist as on of the legs.
+		//
+		//		    ------ far plane (view distance)
+		//             |
+		//             |
+		//  half vd    *---- r
+		//             |  /
+		//             | /
+		//  camera     c
+		//
+
+		final int radius = (int) Math.ceil(Math.sqrt(viewDist * viewDist - halfDist * halfDist));
 
 		// Compute sky light vector transform - points towards the sun
 		shadowViewMatrix.loadIdentity();
@@ -152,24 +168,35 @@ public enum MatrixState {
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		shadowViewMatrixInv.invert();
 
-		updateCascadeInfo(0, radius, halfDist);
-		updateCascadeInfo(1, radius, halfDist);
-		updateCascadeInfo(2, radius, halfDist);
-		updateCascadeInfo(3, radius, halfDist);
+		// // Compute how much camera has moved in view x/y space.
+		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
+		testVec.transform(shadowViewMatrix);
+
+		final float cdx = testVec.getX();
+		final float cdy = testVec.getY();
+
+		updateCascadeInfo(0, radius, halfDist, cdx, cdy);
+		updateCascadeInfo(1, 32, 32, cdx, cdy);
+		updateCascadeInfo(2, 16, 16, cdx, cdy);
+		updateCascadeInfo(3, 8, 8, cdx, cdy);
 
 		lastCameraX = cameraXd;
 		lastCameraY = cameraYd;
 		lastCameraZ = cameraZd;
 	}
 
-	static void updateCascadeInfo(int cascade, int radius, float halfDist) {
-		// Compute how much camera has moved in projected x/y space.
-		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
-		testVec.transform(shadowViewMatrix);
-
+	/**
+	 *
+	 * @param cascade  cascade index, 0 is largest (least detail) and 3 is smalled (most detail)
+	 * @param radius   radius of bounding box / sphere - same as half distance for all but largest
+	 * @param halfDist distance from camera to center of of bounding box / sphere - same as radius for all but largest
+	 * @param cdx	   movement of camera on X axis of light view since last frame
+	 * @param cdy	   movement of camera on Y axis of light view since last frame
+	 */
+	static void updateCascadeInfo(int cascade, int radius, float halfDist, float cdx, float cdy) {
 		// Accumulate camera adjustment
-		float dx = lastDx[cascade] + testVec.getX();
-		float dy = lastDy[cascade] + testVec.getY();
+		float dx = lastDx[cascade] + cdx;
+		float dy = lastDy[cascade] + cdy;
 
 		// Clamp accumulated camera adjustment to pixel boundary.
 		// This keep the projection center near the camera position.
