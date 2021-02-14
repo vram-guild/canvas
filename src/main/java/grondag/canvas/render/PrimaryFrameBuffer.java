@@ -21,7 +21,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gl.Framebuffer;
 
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 
 public class PrimaryFrameBuffer extends Framebuffer {

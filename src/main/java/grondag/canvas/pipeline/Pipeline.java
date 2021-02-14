@@ -17,7 +17,6 @@
 package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.render.PrimaryFrameBuffer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -34,6 +33,7 @@ import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.ProgramConfig;
 import grondag.canvas.pipeline.config.SkyShadowConfig;
 import grondag.canvas.pipeline.pass.Pass;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.ProcessShader;
 
 public class Pipeline {

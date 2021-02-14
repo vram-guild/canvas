@@ -18,7 +18,6 @@ package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.render.PrimaryFrameBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
@@ -37,6 +36,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.varia.CanvasGlHelper;
