@@ -31,7 +31,9 @@ import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.ProgramConfig;
+import grondag.canvas.pipeline.config.SkyShadowConfig;
 import grondag.canvas.pipeline.pass.Pass;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.ProcessShader;
 
 public class Pipeline {
@@ -65,6 +67,13 @@ public class Pipeline {
 	public static int shadowMapDepth = -1;
 
 	public static PipelineFramebuffer skyShadowFbo;
+	public static int skyShadowSize;
+	public static int skyShadowDepth;
+	public static float shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
+	public static float shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
+
+	public static float defaultZenithAngle = 0f;
+
 	public static PipelineFramebuffer solidTerrainFbo;
 	public static PipelineFramebuffer translucentTerrainFbo;
 	public static PipelineFramebuffer translucentEntityFbo;
@@ -140,7 +149,7 @@ public class Pipeline {
 		}
 	}
 
-	static void activate(int width, int height) {
+	static void activate(PrimaryFrameBuffer primary, int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
 		if (reload || lastWidth != width || lastHeight != height) {
@@ -148,11 +157,11 @@ public class Pipeline {
 			lastWidth = width;
 			lastHeight = height;
 			closeInner();
-			activateInner(width, height);
+			activateInner(primary, width, height);
 		}
 	}
 
-	private static void activateInner(int width, int height) {
+	private static void activateInner(PrimaryFrameBuffer primary, int width, int height) {
 		final PipelineConfig config = PipelineConfigBuilder.build(new Identifier(Configurator.pipelineId));
 		Pipeline.config = config;
 
@@ -162,7 +171,7 @@ public class Pipeline {
 				continue;
 			}
 
-			IMAGES.put(img.name, new Image(img, width, height));
+			IMAGES.put(img.name, new Image(img, img.width > 0 ? img.width : width, img.height > 0 ? img.height : height));
 		}
 
 		for (final ProgramConfig program : config.programs) {
@@ -188,6 +197,10 @@ public class Pipeline {
 		defaultColor = getImage(b.config.colorAttachments[0].image.name).glId();
 		defaultDepth = getImage(b.config.depthAttachment.image.name).glId();
 
+		primary.fbo = defaultFbo.glId();
+		primary.colorAttachment = defaultColor;
+		primary.depthAttachment = defaultDepth;
+
 		solidTerrainFbo = getFramebuffer(config.drawTargets.solidTerrain.name);
 		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain.name);
 		translucentEntityFbo = getFramebuffer(config.drawTargets.translucentEntity.name);
@@ -197,37 +210,50 @@ public class Pipeline {
 
 		if (config.skyShadow != null) {
 			skyShadowFbo = getFramebuffer(config.skyShadow.framebuffer.name);
-			shadowMapDepth = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name).glId();
+			final Image sd = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name);
+			shadowMapDepth = sd.glId();
+			skyShadowSize = sd.config.width;
+			shadowSlopeFactor = config.skyShadow.offsetSlopeFactor;
+			shadowBiasUnits = config.skyShadow.offsetBiasUnits;
 		} else {
 			skyShadowFbo = null;
 			shadowMapDepth = -1;
+			skyShadowSize = 0;
+			shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
+			shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
+		}
+
+		if (config.sky != null) {
+			defaultZenithAngle = config.sky.defaultZenithAngle;
+		} else {
+			defaultZenithAngle = 0f;
 		}
 
 		isFabulous = config.fabulosity != null;
 
 		if (isFabulous) {
 			final FabulousConfig fc = config.fabulosity;
-			b = getFramebuffer(fc.entityFrambuffer.name);
+			b = getFramebuffer(fc.entityFramebuffer.name);
 			fabEntityFbo = b.glId();
 			fabEntityColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabEntityDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			b = getFramebuffer(fc.particleFrambuffer.name);
+			b = getFramebuffer(fc.particleFramebuffer.name);
 			fabParticleFbo = b.glId();
 			fabParticleColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabParticleDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			b = getFramebuffer(fc.weatherFrambuffer.name);
+			b = getFramebuffer(fc.weatherFramebuffer.name);
 			fabWeatherFbo = b.glId();
 			fabWeatherColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabWeatherDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			b = getFramebuffer(fc.cloudsFrambuffer.name);
+			b = getFramebuffer(fc.cloudsFramebuffer.name);
 			fabCloudsFbo = b.glId();
 			fabCloudsColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabCloudsDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			b = getFramebuffer(fc.translucentFrambuffer.name);
+			b = getFramebuffer(fc.translucentFramebuffer.name);
 			fabTranslucentFbo = b.glId();
 			fabTranslucentColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabTranslucentDepth = getImage(b.config.depthAttachment.image.name).glId();

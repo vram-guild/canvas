@@ -19,7 +19,6 @@ package grondag.canvas.pipeline;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_NONE;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glDrawBuffer;
 import static org.lwjgl.opengl.GL11.glReadBuffer;
 import static org.lwjgl.opengl.GL20.glDrawBuffers;
@@ -28,6 +27,7 @@ import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
 
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 
@@ -99,15 +99,21 @@ public class PipelineFramebuffer {
 
 		assert CanvasGlHelper.checkError();
 
+		// TODO: needs better handling of arrays, 3D and other target type
+		// and attachments need a way to specify level
+
 		for (int i = 0; i < config.colorAttachments.length; ++i) {
 			final AttachmentConfig ac = config.colorAttachments[i];
 			final Image img = Pipeline.getImage(ac.image.name);
 
 			if (img == null) {
-				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because color attachment %s was not found",
+				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because color attachment %s was not found",
 						config.name, ac.image.name));
-			} else {
-				GlStateManager.framebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, GL_TEXTURE_2D, img.glId(), ac.lod);
+			} else if (img.config.target == GL46.GL_TEXTURE_2D) {
+				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, img.config.target, img.glId(), ac.lod);
+				assert CanvasGlHelper.checkError();
+			} else if (img.config.target == GL46.GL_TEXTURE_2D_ARRAY || img.config.target == GL46.GL_TEXTURE_3D) {
+				GL46.glFramebufferTextureLayer(GL_FRAMEBUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, img.glId(), ac.lod, 0);
 				assert CanvasGlHelper.checkError();
 			}
 		}
@@ -116,10 +122,13 @@ public class PipelineFramebuffer {
 			final Image img = Pipeline.getImage(config.depthAttachment.image.name);
 
 			if (img == null) {
-				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because depth attachment %s was not found",
+				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because depth attachment %s was not found",
 						config.name, config.depthAttachment.image.name));
-			} else {
-				GlStateManager.framebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, GL_TEXTURE_2D, img.glId, 0);
+			} else if (img.config.target == GL46.GL_TEXTURE_2D) {
+				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, img.config.target, img.glId(), 0);
+				assert CanvasGlHelper.checkError();
+			} else if (img.config.target == GL46.GL_TEXTURE_2D_ARRAY || img.config.target == GL46.GL_TEXTURE_3D) {
+				GL46.glFramebufferTextureLayer(GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, img.glId(), 0, 0);
 				assert CanvasGlHelper.checkError();
 			}
 		}

@@ -1,8 +1,13 @@
 {
 	nameKey: "pipeline.canvas_dev.name",
 	descriptionKey: "pipeline.canvas_dev.desc",
-	materialVertexShader: "canvas:shaders/pipeline/standard.vert",
-	materialFragmentShader: "canvas:shaders/pipeline/standard.frag",
+	materialVertexShader: "canvas:shaders/pipeline/dev.vert",
+	materialFragmentShader: "canvas:shaders/pipeline/dev.frag",
+
+	sky: {
+		// Used when dimension/celestial object does not specify
+		defaultZenithAngle: 15
+	},
 
 	drawTargets: {
 		solidTerrain: "solid",

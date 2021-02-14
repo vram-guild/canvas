@@ -1,4 +1,5 @@
 #include frex:shaders/api/header.glsl
+#define DEPTH_PASS
 #include frex:shaders/api/context.glsl
 #include frex:shaders/api/vertex.glsl
 #include frex:shaders/api/sampler.glsl
@@ -19,23 +20,12 @@ void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 }
 
 void main() {
-#ifdef VANILLA_LIGHTING
-	frx_VertexData data = frx_VertexData(
-		gl_Vertex,
-		in_uv,
-		in_color,
-		(in_normal_flags.xyz - 127.0) / 127.0,
-		in_lightmap.rg * 0.00390625 + 0.03125,
-		in_lightmap.b / 255.0
-	);
-#else
 	frx_VertexData data = frx_VertexData(
 		gl_Vertex,
 		in_uv,
 		in_color,
 		(in_normal_flags.xyz - 127.0) / 127.0
 	);
-#endif
 
 	// Adding +0.5 prevents striping or other strangeness in flag-dependent rendering
 	// due to FP error on some cards/drivers.  Also made varying attribute invariant (rolls eyes at OpenGL)
@@ -69,10 +59,7 @@ void main() {
 	}
 
 	frx_texcoord = frx_mapNormalizedUV(data.spriteUV);
-
-	// WIP: remove these?  maybe undefine in shadow pass?
 	frx_color = data.color;
-	frx_normal = data.normal;
 	frx_vertex = data.vertex;
 
 	// pipeline shader handles additional writes/out variables

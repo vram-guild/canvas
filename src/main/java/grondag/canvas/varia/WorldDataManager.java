@@ -24,6 +24,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack.Entry;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -32,6 +33,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
@@ -41,11 +43,13 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectInput;
+import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 import grondag.fermion.bits.BitPacker32;
 import grondag.frex.api.light.ItemLight;
 
 public class WorldDataManager {
-	public static final int VECTOR_COUNT = 16;
+	public static final int VECTOR_COUNT = 32;
 	private static final int LENGTH = VECTOR_COUNT * 4;
 
 	private static final int VEC_WORLD_TIME = 4 * 0;
@@ -108,9 +112,18 @@ public class WorldDataManager {
 	private static final int SKYLIGHT_VECTOR = 4 * 11;
 	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
 
-	// WIP: rename to cameraToSkylight and make w always zero
-	private static final int SKYLIGHT_POSITION = 4 * 12;
-	private static final int SKYLIGHT_STRENGTH = SKYLIGHT_POSITION + 3;
+	// was previously skylight position
+	@SuppressWarnings("unused")
+	private static final int RESERVED = 4 * 12;
+
+	private static final int ATMOSPHERIC_COLOR = 4 * 13;
+	private static final int SKYLIGHT_TRANSITION_FACTOR = ATMOSPHERIC_COLOR + 3;
+
+	private static final int SKYLIGHT_COLOR = 4 * 14;
+	private static final int SKYLIGHT_ILLUMINANCE = SKYLIGHT_COLOR + 3;
+
+	// 15-18 reserved for cascades 0-3
+	static final int SHADOW_CENTER = 4 * 15;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -178,14 +191,47 @@ public class WorldDataManager {
 	static double smoothedEyeLightSky = 0;
 	static double smoothedRainStrength = 0;
 
-	private static final Vector3f skylightPosition = new Vector3f();
-	public static final Vector3f skyShadowVector = new Vector3f();
-	public static float skyShadowRotationRadiansZ;
+	/** Camera view vector in world space - normalized. */
+	public static final Vector3f cameraVector = new Vector3f();
+
+	/** Points towards the light - normalized. */
+	public static final Vector3f skyLightVector = new Vector3f();
 
 	public static float cameraX, cameraY, cameraZ = 0f;
 
 	// keep extra precision for terrain
 	public static double cameraXd, cameraYd, cameraZd = 0;
+	private static float tickDelta;
+	private static ClientWorld world;
+
+	private static final CelestialObjectOutput skyOutput = new CelestialObjectOutput();
+
+	private static final CelestialObjectInput skyInput = new CelestialObjectInput() {
+		@Override
+		public ClientWorld world() {
+			return world;
+		}
+
+		@Override
+		public float tickDelta() {
+			return tickDelta;
+		}
+
+		@Override
+		public double cameraX() {
+			return cameraXd;
+		}
+
+		@Override
+		public double cameraY() {
+			return cameraYd;
+		}
+
+		@Override
+		public double cameraZ() {
+			return cameraZd;
+		}
+	};
 
 	static {
 		if (Configurator.enableLifeCycleDebug) {
@@ -305,15 +351,17 @@ public class WorldDataManager {
 			}
 		}
 
-		DATA.put(SKYLIGHT_STRENGTH, factor);
+		DATA.put(SKYLIGHT_TRANSITION_FACTOR, factor);
 		return result;
 	}
 
 	/**
 	 * Called just before terrain setup each frame after camera, fog and projection
 	 * matrix are set up.
+	 * @param projectionMatrix
+	 * @param entry
 	 */
-	public static void update(Camera camera) {
+	public static void update(Entry entry, Matrix4f projectionMatrix, Camera camera) {
 		final MinecraftClient client = MinecraftClient.getInstance();
 		final Entity cameraEntity = camera.getFocusedEntity();
 		final float tickDelta = client.getTickDelta();
@@ -346,8 +394,10 @@ public class WorldDataManager {
 		DATA.put(VEC_CAMERA_POS + 1, cameraY);
 		DATA.put(VEC_CAMERA_POS + 2, cameraZ);
 
-		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch());
-		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch);
+		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
+		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch, null);
+
+		MatrixState.update(entry, projectionMatrix, camera, tickDelta);
 
 		DATA.put(VIEW_WIDTH, PipelineManager.width());
 		DATA.put(VIEW_HEIGHT, PipelineManager.height());
@@ -366,39 +416,53 @@ public class WorldDataManager {
 			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
 
-			final boolean moonLight = computeSkylightFactor(tickTime);
-
 			if (skyLight) {
+				final boolean moonLight = computeSkylightFactor(tickTime);
+
 				final float skyAngle = world.getSkyAngleRadians(tickDelta);
-				final float moonFactor = moonLight ? -1f : 1f;
-				// WIP: flip if moon, probably don't need the half pi
-				skyShadowRotationRadiansZ = skyAngle + (float) (0.5 * Math.PI);
 
-				final float sx = moonFactor * (float) Math.sin(-skyAngle);
-				final float sy = moonFactor * (float) Math.cos(skyAngle);
-				skyShadowVector.set(-sx, -sy, 0);
+				// WIP: fully implement celestial object model
+				// should compute all objects and choose brightest as the skylight
+				// and also apply dimension/pack settings
+				WorldDataManager.world = world;
+				WorldDataManager.tickDelta = tickDelta;
 
-				DATA.put(SKYLIGHT_VECTOR + 0, sx);
-				DATA.put(SKYLIGHT_VECTOR + 1, sy);
-				DATA.put(SKYLIGHT_VECTOR + 2, 0);
+				skyOutput.zenithAngle = Pipeline.defaultZenithAngle;
+
+				if (moonLight) {
+					CelestialObjectFunction.VANILLA_MOON.compute(skyInput, skyOutput);
+				} else {
+					CelestialObjectFunction.VANILLA_SUN.compute(skyInput, skyOutput);
+				}
+
+				// Note this computes the value of skyLightVector - quantizing to align to shadow map pixels
+				MatrixState.updateShadow(camera, tickDelta, skyOutput);
+				DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
+				DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());
+				DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.getZ());
 				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
 
-				final float vd = -client.gameRenderer.getViewDistance() * 0.5f;
-
-				// point being viewed is middle of camera frustum
-				final float px = DATA.get(VEC_CAMERA_VIEW) * vd;
-				final float py = DATA.get(VEC_CAMERA_VIEW + 1) * vd;
-				final float pz = 0.5f * DATA.get(VEC_CAMERA_VIEW + 2) * vd;
-
-				//vd *= 0.5f;
-
-				DATA.put(SKYLIGHT_POSITION + 0, px + sx * vd);
-				DATA.put(SKYLIGHT_POSITION + 1, py + sy * vd);
-				DATA.put(SKYLIGHT_POSITION + 2, pz + vd);
+				worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
+				DATA.put(ATMOSPHERIC_COLOR + 0, skyOutput.atmosphericColorModifier.getX());
+				DATA.put(ATMOSPHERIC_COLOR + 1, skyOutput.atmosphericColorModifier.getY());
+				DATA.put(ATMOSPHERIC_COLOR + 2, skyOutput.atmosphericColorModifier.getZ());
+				DATA.put(SKYLIGHT_COLOR + 0, skyOutput.lightColor.getX());
+				DATA.put(SKYLIGHT_COLOR + 1, skyOutput.lightColor.getY());
+				DATA.put(SKYLIGHT_COLOR + 2, skyOutput.lightColor.getZ());
+				DATA.put(SKYLIGHT_ILLUMINANCE, skyOutput.illuminance);
+			} else {
+				DATA.put(SKYLIGHT_TRANSITION_FACTOR, 1);
+				worldFlags = FLAG_MOONLIT.setValue(false, worldFlags);
+				DATA.put(ATMOSPHERIC_COLOR + 0, 1);
+				DATA.put(ATMOSPHERIC_COLOR + 1, 1);
+				DATA.put(ATMOSPHERIC_COLOR + 2, 1);
+				DATA.put(SKYLIGHT_COLOR + 0, 1);
+				DATA.put(SKYLIGHT_COLOR + 1, 1);
+				DATA.put(SKYLIGHT_COLOR + 2, 1);
+				DATA.put(SKYLIGHT_ILLUMINANCE, 0);
 			}
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);
-			worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
 			worldFlags = FLAG_SNEAKING.setValue(player.isInSneakingPose(), worldFlags);
 			worldFlags = FLAG_SNEAKING_POSE.setValue(player.isSneaking(), worldFlags);
 			worldFlags = FLAG_SWIMMING.setValue(player.isSwimming(), worldFlags);
@@ -501,16 +565,18 @@ public class WorldDataManager {
 		DATA.put(EMISSIVE_COLOR_BLUE, (color & 0xFF) / 255f);
 	}
 
-	private static void putViewVector(int index, float yaw, float pitch) {
-		//final float y = (float) Math.toRadians(yaw);
-		//final float p = (float) Math.toRadians(pitch);
-
+	private static void putViewVector(int index, float yaw, float pitch, Vector3f storeTo) {
 		final Vec3d vec = Vec3d.fromPolar(pitch, yaw);
-		DATA.put(index, (float) vec.x);
-		DATA.put(index + 1, (float) vec.y);
-		DATA.put(index + 2, (float) vec.z);
-		//DATA.put(index, -MathHelper.sin(y) * MathHelper.cos(p));
-		//DATA.put(index + 1, -MathHelper.sin(p));
-		//DATA.put(index + 2, MathHelper.cos(y) * MathHelper.cos(p));
+		final float x = (float) vec.x;
+		final float y = (float) vec.y;
+		final float z = (float) vec.z;
+
+		DATA.put(index, x);
+		DATA.put(index + 1, y);
+		DATA.put(index + 2, z);
+
+		if (storeTo != null) {
+			storeTo.set(x, y, z);
+		}
 	}
 }

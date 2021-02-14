@@ -28,8 +28,8 @@
   fabulousTargets: {
     entity: "fab_entity",
     particles: "fab_particles",
-    weather: "fab_weather",
-    clouds: "fab_clouds",
+    weather: "weather",
+    clouds: "clouds",
     translucent: "fab_translucent"
   },
 
@@ -295,14 +295,6 @@
 			depthAttachment: {image: "particles_depth"},
 			colorAttachments: [{image: "particles_main"}]
 		}, {
-			name: "fab_weather",
-			depthAttachment: {image: "weather_depth"},
-			colorAttachments: [{image: "weather_main"}]
-		}, {
-			name: "fab_clouds",
-			depthAttachment: {image: "clouds_depth"},
-			colorAttachments: [{image: "clouds_main"}]
-		}, {
 			name: "fab_translucent",
 			depthAttachment: {image: "translucent_depth"},
 			colorAttachments: [{image: "translucent_main"}]
@@ -331,17 +323,15 @@
 			]
 		}, {
 			name: "weather",
-			depthAttachment: {image: "weather_depth"},
+			depthAttachment: {image: "weather_depth", clearDepth: 1.0},
 			colorAttachments: [
-				{image: "weather_main", clearColor: 0x00000000},
-				{image: "emissive"}
+				{image: "weather_main", clearColor: 0x00000000}
 			]
 		}, {
 			name: "clouds",
-			depthAttachment: {image: "clouds_depth"},
+			depthAttachment: {image: "clouds_depth", clearDepth: 1.0},
 			colorAttachments: [
-				{image: "clouds_main", clearColor: 0x00000000},
-				{image: "emissive"}
+				{image: "clouds_main", clearColor: 0x00000000}
 			]
 		}, {
 			name: "translucent",

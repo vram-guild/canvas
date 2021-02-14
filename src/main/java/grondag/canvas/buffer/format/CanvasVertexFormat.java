@@ -33,15 +33,15 @@ public class CanvasVertexFormat {
 	 */
 	public final int vertexStrideBytes;
 	public final int vertexStrideInts;
-	private final CanvasVertextFormatElement[] elements;
+	private final CanvasVertexFormatElement[] elements;
 
-	public CanvasVertexFormat(CanvasVertextFormatElement... elementsIn) {
+	public CanvasVertexFormat(CanvasVertexFormatElement... elementsIn) {
 		elements = elementsIn;
 
 		int bytes = 0;
 		int count = 0;
 
-		for (final CanvasVertextFormatElement e : elements) {
+		for (final CanvasVertexFormatElement e : elements) {
 			bytes += e.byteSize;
 
 			if (e.attributeName != null) {
@@ -75,7 +75,7 @@ public class CanvasVertexFormat {
 		final int limit = elements.length;
 
 		for (int i = 0; i < limit; i++) {
-			final CanvasVertextFormatElement e = elements[i];
+			final CanvasVertexFormatElement e = elements[i];
 
 			if (e.attributeName == null) {
 				assert i == 0 : "position element must be first";
@@ -116,7 +116,7 @@ public class CanvasVertexFormat {
 		// NB: <= because element 0 is vertex
 		for (int i = 0; i <= attributeCount; i++) {
 			if (i < limit) {
-				final CanvasVertextFormatElement e = elements[i];
+				final CanvasVertexFormatElement e = elements[i];
 
 				if (e.attributeName != null) {
 					if (Configurator.logGlStateChanges) {
@@ -137,7 +137,7 @@ public class CanvasVertexFormat {
 	public void bindProgramAttributes(int programID) {
 		int index = 1;
 
-		for (final CanvasVertextFormatElement e : elements) {
+		for (final CanvasVertexFormatElement e : elements) {
 			if (e.attributeName != null) {
 				GL20.glBindAttribLocation(programID, index++, e.attributeName);
 			}

@@ -4,13 +4,11 @@
   frex:shaders/api/fragment.glsl
 ******************************************************/
 
-/*
- * Varying variables for generic use. See comments in vertex.glsl.
+/**
+ * Interpolated vertex position in camera space.
+ * Set by renderer after material shader runs. Do not modify.
  */
-varying vec4 frx_var0;
-varying vec4 frx_var1;
-varying vec4 frx_var2;
-varying vec4 frx_var3;
+varying vec4 frx_vertex;
 
 /**
  * Interpolated texture coordinate in mapped (non-normalized) coordinates.
@@ -24,17 +22,27 @@ varying vec2 frx_texcoord;
  */
 varying vec4 frx_color;
 
+#ifndef DEPTH_PASS
+
 /**
  * Interpolated vertex normal in world/camera space.
  * Set by renderer after material shader runs. Do not modify.
+ *
+ * Not available in depth pass.
  */
 varying vec3 frx_normal;
 
-/**
- * Interpolated vertex position in camera space.
- * Set by renderer after material shader runs. Do not modify.
+/*
+ * Varying variables for generic use. See comments in vertex.glsl.
+ *
+ * Not available in depth pass.
  */
-varying vec4 frx_vertex;
+varying vec4 frx_var0;
+varying vec4 frx_var1;
+varying vec4 frx_var2;
+varying vec4 frx_var3;
+
+#endif
 
 /*
  * Usage in API for material shaders:
@@ -87,11 +95,15 @@ struct frx_FragmentData {
 	 */
 	vec4 vertexColor;
 
+#ifndef DEPTH_PASS
+
 	/*
 	 * Emissivity of this fragment is emissive. Currently this will be 1.0
 	 * if the model material is marked emissive before buffering and zero otherwise.
 	 *
 	 * Future enhancements will allow for emissive texture maps also.
+	 *
+	 * Not available in depth pass.
 	 */
 	float emissivity;
 
@@ -100,6 +112,8 @@ struct frx_FragmentData {
 	 * Typical use is to disable directional shading on emissve surfaces.
 	 *
 	 * Note this may be ignored with non-vanilla lighting models and settings.
+	 *
+	 * Not available in depth pass.
 	 */
 	bool diffuse;
 
@@ -108,6 +122,8 @@ struct frx_FragmentData {
 	 * Typical use is to disable ao shading on emissve surfaces.
 	 *
 	 * Note this may be ignored with non-vanilla lighting models and settings.
+	 *
+	 * Not available in depth pass.
 	 */
 	bool ao;
 
@@ -116,6 +132,8 @@ struct frx_FragmentData {
 	 * Renderer will use this to compute lighting.
 	 *
 	 * Future enhancements will allow for normal texture maps also.
+	 *
+	 * Not available in depth pass.
 	 */
 	vec3 vertexNormal;
 
@@ -132,6 +150,8 @@ struct frx_FragmentData {
 	 * Will not be available unless VANILLA_LIGHTING is defined.
 	 *
 	 * The emissive flag is generally a better alternative.
+	 *
+	 * Not available in depth pass.
 	 */
 	vec2 light;
 
@@ -142,7 +162,10 @@ struct frx_FragmentData {
 	 * this may not be populated or used.
 	 *
 	 * Avoid using or modifying this value unless VANILLA_LIGHTING is defined.
+	 *
+	 * Not available in depth pass.
 	 */
 	float aoShade;
+#endif
 #endif
 };

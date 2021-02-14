@@ -24,6 +24,8 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.texture.TextureUtil;
 
+import grondag.canvas.render.CanvasTextureState;
+
 /**
  * Leaner adaptation of Minecraft NativeImageBackedTexture suitable for our needs.
  */
@@ -58,7 +60,7 @@ public class SimpleTexture implements AutoCloseable {
 	}
 
 	public void bindTexture() {
-		GlStateManager.bindTexture(getGlId());
+		CanvasTextureState.bindTexture(getGlId());
 	}
 
 	public void upload() {

@@ -20,6 +20,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.options.GraphicsMode;
@@ -34,6 +35,8 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.pass.Pass;
+import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -47,6 +50,8 @@ public class PipelineManager {
 	}
 
 	static ProcessShader debugShader;
+	static ProcessShader debugDepthShader;
+	static ProcessShader debugDepthArrayShader;
 
 	static VboBuffer drawBuffer;
 	static int h;
@@ -66,7 +71,7 @@ public class PipelineManager {
 
 	public static void reloadIfNeeded() {
 		if (Pipeline.needsReload()) {
-			init(w, h);
+			init((PrimaryFrameBuffer) MinecraftClient.getInstance().getFramebuffer(), w, h);
 		}
 
 		handleRecompile();
@@ -102,11 +107,12 @@ public class PipelineManager {
 	}
 
 	static void beginFullFrameRender() {
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		oldTex1 = GlStateManager.getActiveBoundTexture();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
+		// UGLY: put state preservation into texture manager
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE1);
+		oldTex1 = CanvasTextureState.getActiveBoundTexture();
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
 		GlStateManager.enableTexture();
-		oldTex0 = GlStateManager.getActiveBoundTexture();
+		oldTex0 = CanvasTextureState.getActiveBoundTexture();
 
 		RenderSystem.depthMask(false);
 		RenderSystem.disableBlend();
@@ -124,11 +130,11 @@ public class PipelineManager {
 
 	static void endFullFrameRender() {
 		VboBuffer.unbind();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE1);
-		GlStateManager.bindTexture(oldTex1);
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE1);
+		CanvasTextureState.bindTexture(oldTex1);
 		GlStateManager.disableTexture();
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-		GlStateManager.bindTexture(oldTex0);
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
+		CanvasTextureState.bindTexture(oldTex0);
 		GlProgram.deactivate();
 		RenderSystem.popMatrix();
 		GlStateManager.matrixMode(GL11.GL_MODELVIEW);
@@ -162,24 +168,40 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	static void renderDebug(int glId, int lod) {
+	static void renderDebug(int glId, int lod, int layer, boolean depth, boolean array) {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
 		RenderSystem.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
 		PipelineManager.setProjection(w, h);
-		GlStateManager.activeTexture(GL21.GL_TEXTURE0);
-		GlStateManager.enableTexture();
-		GlStateManager.bindTexture(glId);
+		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
+		GlStateManager.disableTexture();
+
+		if (array) {
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, glId);
+		} else {
+			CanvasTextureState.bindTexture(glId);
+		}
+
 		setProjection(w, h);
-		debugShader.activate().size(w, h).lod(lod);
+
+		if (depth) {
+			if (array) {
+				debugDepthArrayShader.activate().size(w, h).lod(lod).layer(layer);
+			} else {
+				debugDepthShader.activate().size(w, h).lod(0);
+			}
+		} else {
+			debugShader.activate().size(w, h).lod(lod);
+		}
+
 		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endFullFrameRender();
 	}
 
-	public static void init(int width, int height) {
+	public static void init(PrimaryFrameBuffer primary, int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
 		assert CanvasGlHelper.checkError();
@@ -191,7 +213,7 @@ public class PipelineManager {
 		w = width;
 		h = height;
 
-		Pipeline.activate(w, h);
+		Pipeline.activate(primary, w, h);
 		assert CanvasGlHelper.checkError();
 
 		final MinecraftClient mc = MinecraftClient.getInstance();
@@ -204,8 +226,10 @@ public class PipelineManager {
 		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsMode.FABULOUS : GraphicsMode.FANCY;
 
 		debugShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
+		debugDepthShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
+		debugDepthArrayShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
-		GlStateManager.bindTexture(0);
+		CanvasTextureState.bindTexture(0);
 		assert CanvasGlHelper.checkError();
 
 		final VertexCollectorImpl collector = new VertexCollectorImpl();
@@ -222,9 +246,9 @@ public class PipelineManager {
 	}
 
 	private static void tearDown() {
-		if (debugShader != null) {
-			debugShader.unload();
-		}
+		debugShader = ProcessShader.unload(debugShader);
+		debugDepthShader = ProcessShader.unload(debugDepthShader);
+		debugDepthArrayShader = ProcessShader.unload(debugDepthArrayShader);
 
 		if (drawBuffer != null) {
 			drawBuffer.close();

@@ -21,3 +21,6 @@
 
 // present only when pipeline support the feature and it is enabled
 #define SHADOW_MAP_PRESENT
+
+// present when material shaders are being run to generate a shadow map or depth math
+//#define DEPTH_PASS

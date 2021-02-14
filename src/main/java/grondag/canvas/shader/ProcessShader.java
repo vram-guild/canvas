@@ -30,6 +30,7 @@ public class ProcessShader {
 	private GlProgram program;
 	private Uniform2iImpl size;
 	private Uniform1iImpl lod;
+	private Uniform1iImpl layer;
 
 	public ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
 		this.fragmentId = fragmentId;
@@ -48,6 +49,15 @@ public class ProcessShader {
 		}
 	}
 
+	/** Unloads if non-null and always returns null. */
+	public static ProcessShader unload(ProcessShader shader) {
+		if (shader != null) {
+			shader.unload();
+		}
+
+		return null;
+	}
+
 	public ProcessShader activate() {
 		if (program == null) {
 			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ProgramType.PROCESS);
@@ -55,12 +65,19 @@ public class ProcessShader {
 			program = new GlProgram(vs, fs, CanvasVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
 			size = (Uniform2iImpl) program.uniform2i("frxu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
 			lod = (Uniform1iImpl) program.uniform1i("frxu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			layer = (Uniform1iImpl) program.uniform1i("frxu_layer", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
 			int tex = 0;
 
 			for (final String samplerName : samplers) {
 				final int n = tex++;
-				program.uniformSampler2d(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+
+				// PERF: should probably match on any sampler uniform type - names must be unique anyway
+				if (program.containsUniformSpec("sampler2DArray", samplerName)) {
+					program.uniformSampler("sampler2DArray", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				} else if (program.containsUniformSpec("sampler2D", samplerName)) {
+					program.uniformSampler("sampler2D", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				}
 			}
 
 			program.load();
@@ -84,6 +101,15 @@ public class ProcessShader {
 		if (program != null && GlProgram.activeProgram() == program) {
 			this.lod.set(lod);
 			this.lod.upload();
+		}
+
+		return this;
+	}
+
+	public ProcessShader layer(int layer) {
+		if (program != null && GlProgram.activeProgram() == program) {
+			this.layer.set(layer);
+			this.layer.upload();
 		}
 
 		return this;

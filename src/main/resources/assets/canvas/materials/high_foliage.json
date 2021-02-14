@@ -1,6 +1,6 @@
 {
   "vertexSource": "canvas:shaders/material/high_foliage.vert",
-  "fragmentSource": "canvas:shaders/material/default.frag",
+  "depthVertexSource": "canvas:shaders/material/high_foliage.vert",
   "disableAo": true,
   "disableDiffuse": true
 }

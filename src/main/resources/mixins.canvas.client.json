@@ -21,6 +21,7 @@
 	"MixinFogState",
 	"MixinFrameBuffer",
 	"MixinGameRenderer",
+	"MixinGlStateManager",
 	"MixinInGameHud",
 	"MixinItemFrameEntityRenderer",
 	"MixinItemRenderer",

@@ -46,6 +46,7 @@ public class PipelineConfig {
 	@Nullable public final FabulousConfig fabulosity;
 	@Nullable public final DrawTargetsConfig drawTargets;
 	@Nullable public final SkyShadowConfig skyShadow;
+	@Nullable public final SkyConfig sky;
 
 	public final NamedDependency<FramebufferConfig> defaultFramebuffer;
 
@@ -65,6 +66,7 @@ public class PipelineConfig {
 		options = new OptionConfig[0];
 		fabulosity = null;
 		skyShadow = null;
+		sky = null;
 		drawTargets = DrawTargetsConfig.makeDefault(context);
 		defaultFramebuffer = context.frameBuffers.dependOn("default");
 		materialVertexShader = new Identifier("canvas:shaders/pipeline/standard.vert");
@@ -78,6 +80,7 @@ public class PipelineConfig {
 		fabulosity = builder.fabulosity;
 		drawTargets = builder.drawTargets;
 		skyShadow = builder.skyShadow;
+		sky = builder.sky;
 
 		for (final OptionConfig opt : builder.options) {
 			optionMap.put(opt.includeToken, opt);

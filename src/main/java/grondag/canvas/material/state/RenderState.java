@@ -16,12 +16,11 @@
 
 package grondag.canvas.material.state;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 
@@ -35,6 +34,7 @@ import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProgramType;
@@ -68,15 +68,16 @@ public final class RenderState extends AbstractRenderState {
 
 	public void enable(int x, int y, int z) {
 		if (SkyShadowRenderer.isActive()) {
-			enableShadow(x, y, z);
+			enableDepthPass(x, y, z, SkyShadowRenderer.cascade());
 		} else {
 			enableMaterial(x, y, z);
 		}
 	}
 
-	private void enableShadow(int x, int y, int z) {
+	private void enableDepthPass(int x, int y, int z, int cascade) {
 		if (shadowActive == this) {
-			shadowShader.setModelOrigin(x, y, z);
+			depthShader.setModelOrigin(x, y, z);
+			depthShader.setCascade(cascade);
 			return;
 		}
 
@@ -105,15 +106,21 @@ public final class RenderState extends AbstractRenderState {
 		depthTest.enable();
 		writeMask.enable();
 		fog.enable();
+		// WIP: disable decal renders in depth pass
 		decal.enable();
 
 		CULL_STATE.setEnabled(cull);
 		LIGHTMAP_STATE.setEnabled(enableLightmap);
 		LINE_STATE.setEnabled(lines);
 
-		shadowShader.activate(this);
-		shadowShader.setContextInfo(texture.atlasInfo(), target.index);
-		shadowShader.setModelOrigin(x, y, z);
+		depthShader.activate(this);
+		depthShader.setContextInfo(texture.atlasInfo(), target.index);
+		depthShader.setModelOrigin(x, y, z);
+		depthShader.setCascade(cascade);
+
+		GL46.glEnable(GL46.GL_POLYGON_OFFSET_FILL);
+		GL46.glPolygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
+		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 
 	private void enableMaterial(int x, int y, int z) {
@@ -151,15 +158,19 @@ public final class RenderState extends AbstractRenderState {
 
 		// controlled in shader
 		RenderSystem.disableAlphaTest();
-
-		if (Pipeline.shadowMapDepth != -1) {
-			GlStateManager.activeTexture(TextureData.SHADOWMAP);
-			GlStateManager.bindTexture(Pipeline.shadowMapDepth);
-		}
-
 		assert CanvasGlHelper.checkError();
 
+		if (Pipeline.shadowMapDepth != -1) {
+			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			assert CanvasGlHelper.checkError();
+			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
+			// Was seeing stray invalid operations errors in GL without.
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		}
+
 		texture.enable(blur);
+		assert CanvasGlHelper.checkError();
 
 		transparency.enable();
 		assert CanvasGlHelper.checkError();
@@ -204,6 +215,9 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		shadowActive = null;
 
+		GL46.glDisable(GL46.GL_POLYGON_OFFSET_FILL);
+		GL46.glCullFace(GL46.GL_BACK);
+
 		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();
 		RenderSystem.shadeModel(GL11.GL_FLAT);
@@ -221,12 +235,12 @@ public final class RenderState extends AbstractRenderState {
 		MaterialInfoTexture.INSTANCE.disable();
 
 		if (Pipeline.shadowMapDepth != -1) {
-			GlStateManager.activeTexture(TextureData.SHADOWMAP);
-			GlStateManager.bindTexture(0);
+			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, 0);
 		}
 
 		MaterialTarget.disable();
-		RenderSystem.activeTexture(GL21.GL_TEXTURE0);
+		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 
 		assert CanvasGlHelper.checkError();
 		//		if (enablePrint) {

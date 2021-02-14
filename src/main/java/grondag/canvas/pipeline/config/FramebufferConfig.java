@@ -29,7 +29,6 @@ public class FramebufferConfig extends NamedConfig<FramebufferConfig> {
 
 	FramebufferConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx, config.get(String.class, "name"));
-
 		colorAttachments = AttachmentConfig.deserialize(ctx, config);
 
 		if (config.containsKey("depthAttachment")) {

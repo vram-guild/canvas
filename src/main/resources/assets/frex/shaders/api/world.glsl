@@ -80,17 +80,89 @@ vec3 frx_skyLightVector() {
 }
 
 /*
+ * Linear RGB color of the most prevalent sky light - the one that is
+ * used for shadow map and intended for directional lighting.
+ *
+ * Does not vary by time of day or for atmospheric effects but can vary
+ * based on season or other celestial variables for modded dimensions
+ * or if configured for vanilla dimensions.
+ *
+ * Not adjusted for night vision or any player effect. Does not account
+ * for underwater or any other occlusion.
+ * Not adjusted for rain, thunder, cloud cover, or lightning.
+ *
+ * Use the FRX_WORLD_IS_MOONLIT flag to query if this is sun or moonlight.
+ * Will be unit vector if the world has no skylight.
+ */
+vec3 frx_skyLightColor() {
+	return _cvu_world[_CV_SKYLIGHT_COLOR].xyz;
+}
+
+/*
+ * Measures intensity of direct sky light in lumens/square meter. (lux)
+ * Does not vary by time of day or for atmospheric effects but can vary
+ * based on season or other celestial variables for modded dimensions
+ * or if configured for vanilla dimensions. Also varies by moon phase
+ * for moonlight if that feature is enabled.
+ *
+ * Not adjusted for night vision or any player effect. Does not account
+ * for underwater or any other occlusion.
+ * Not adjusted for rain, thunder, cloud cover, or lightning.
+ *
+ * FREX pegs vanilla sunlight illuminace at 32,000 lux.  Value could be
+ * different for modded dimensions or if configured via resource pack.
+ *
+ * Moonlight in Vanilla appears to be more intense than in the real world.
+ * If configured to mimic vanilla, moonlight will be ~100lux but
+ * can be very small or zero (or perhaps higher) in other configurations.
+ *
+ * Values assume an idealized, non-specific reference white light.
+ * When multiplied by frx_skyLightColor() the effective luminance
+ * will be somewhat less, but shaders are not expected to compensate
+ * for this. Most celestial light sources are some flavor of white,
+ * and stongly-colored lights can be handled by adjusting the illuminance
+ * in the mod/pack configuration if needed.
+ *
+ * Effective illuminance will also be reduced if light is multiplied by
+ * frx_skyLightAtmosphericColor() but that should not require any
+ * compensation because it mimics the scattering of light. Pipelines
+ * that strive for physical realism will not use that factor anyway.
+ *
+ * Use the FRX_WORLD_IS_MOONLIT flag to query if this is sun or moonlight.
+ * Will be zero if the world has no skylight.
+ */
+float frx_skyLightIlluminance() {
+	return _cvu_world[_CV_SKYLIGHT_COLOR].w;
+}
+
+/*
+ * Linear RGB color modifier for the most prevalent sky light - the one
+ * that is used for shadow map and intended for directional lighting.
+ *
+ * Also adjusted by time of day to account for atmospheric effects.
+ * Pipelines that model atmospheric scattering will not want this.
+ *
+ * Not adjusted for weather, lightning, night vision or any player effect.
+ * Does not account for underwater or any other occlusion.
+ *
+ * Use the FRX_WORLD_IS_MOONLIT flag to query if this is sun or moonlight.
+ * Will be unit vector if the world has no skylight.
+ */
+vec3 frx_skyLightAtmosphericColor() {
+	return _cvu_world[_CV_ATMOSPEHRIC_COLOR].xyz;
+}
+
+/*
  * Smoothing factor to help with the transition from sun to/from moon light.
  *
- * This is useful when the vanilla lightmap is the source for brightness
- * values because it ramps to zero down as the moon set and then back up to
+ * Ramps down to zero down as the moon set and then back up to
  * one as the sun rises. In future, will be configurable by dimension.
  *
  * Use the FRX_WORLD_IS_MOONLIT flag to query if this is sun or moonlight.
- * Will be undefined / meaningless if the world has no skylight.
+ * Will be 1.0 (and mean nothing) if the world has no skylight.
  */
-float frx_skyLightStrength() {
-	return _cvu_world[_CV_SKYLIGHT_POSITION].w;
+float frx_skyLightTransitionFactor() {
+	return _cvu_world[_CV_ATMOSPEHRIC_COLOR].w;
 }
 
 /*

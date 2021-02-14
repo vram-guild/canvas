@@ -38,6 +38,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
+import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.CanvasGlHelper;
 
 @Environment(EnvType.CLIENT)
@@ -95,8 +96,8 @@ public class SpriteInfoTexture {
 		try (SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
 			glId = TextureUtil.generateId();
 
-			GlStateManager.activeTexture(TextureData.SPRITE_INFO);
-			GlStateManager.bindTexture(glId);
+			CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
+			CanvasTextureState.bindTexture(GL21.GL_TEXTURE_2D, glId);
 
 			// Bragging rights and eternal gratitude to Wyn Price (https://github.com/Wyn-Price)
 			// for reminding me pixelStore exists, thus fixing #92 and preserving a tattered
@@ -125,13 +126,13 @@ public class SpriteInfoTexture {
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_REPEAT);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_REPEAT);
-			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 
 			assert CanvasGlHelper.checkError();
 
-			GlStateManager.bindTexture(0);
+			CanvasTextureState.bindTexture(GL21.GL_TEXTURE_2D, 0);
 			GlStateManager.disableTexture();
-			GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
 			CanvasMod.LOG.warn("Unable to create sprite info texture due to error:", e);
 
@@ -143,16 +144,16 @@ public class SpriteInfoTexture {
 	}
 
 	public static void disable() {
-		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
-		GlStateManager.bindTexture(0);
+		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
+		CanvasTextureState.bindTexture(0);
 		GlStateManager.disableTexture();
-		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public void enable() {
 		createImageIfNeeded();
-		GlStateManager.activeTexture(TextureData.SPRITE_INFO);
-		GlStateManager.bindTexture(glId);
+		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
+		CanvasTextureState.bindTexture(glId);
 		assert CanvasGlHelper.checkError();
 	}
 

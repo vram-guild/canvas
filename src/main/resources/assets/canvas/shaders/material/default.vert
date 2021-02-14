@@ -7,7 +7,3 @@
 void frx_startVertex(inout frx_VertexData data) {
 	// NOOP
 }
-
-void frx_endVertex(inout frx_VertexData data) {
-	// NOOP
-}

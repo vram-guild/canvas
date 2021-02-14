@@ -39,13 +39,16 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 @Environment(EnvType.CLIENT)
 public abstract class CanvasFrustum extends Frustum {
 	protected static final float MIN_GAP = 0.0001f;
-	protected final Matrix4fExt mvpMatrix = (Matrix4fExt) (Object) new Matrix4f();
-	protected final Matrix4fExt lastProjectionMatrix = (Matrix4fExt) (Object) new Matrix4f();
-	protected final Matrix4fExt lastModelMatrix = (Matrix4fExt) (Object) new Matrix4f();
+	protected final Matrix4f mvpMatrix = new Matrix4f();
+	protected final Matrix4fExt mvpMatrixExt = (Matrix4fExt) (Object) mvpMatrix;
+	protected final Matrix4f projectionMatrix = new Matrix4f();
+	protected final Matrix4fExt projectionMatrixExt = (Matrix4fExt) (Object) projectionMatrix;
+	protected final Matrix4f modelMatrix = new Matrix4f();
+	protected final Matrix4fExt modelMatrixExt = (Matrix4fExt) (Object) modelMatrix;
 
-	protected float lastViewXf = Float.MAX_VALUE;
-	protected float lastViewYf = Float.MAX_VALUE;
-	protected float lastViewZf = Float.MAX_VALUE;
+	protected double lastViewX = Double.MAX_VALUE;
+	protected double lastViewY = Double.MAX_VALUE;
+	protected double lastViewZ = Double.MAX_VALUE;
 
 	// NB: distance (w) and subtraction are baked into region extents but must be done for other box tests
 	protected float leftX, leftY, leftZ, leftW, leftXe, leftYe, leftZe, leftRegionExtent;
@@ -65,11 +68,11 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	public final Matrix4fExt projectionMatrix() {
-		return lastProjectionMatrix;
+		return projectionMatrixExt;
 	}
 
 	public final Matrix4fExt modelMatrix() {
-		return lastModelMatrix;
+		return modelMatrixExt;
 	}
 
 	@Override
@@ -78,17 +81,17 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	public final boolean isVisible(double x0, double y0, double z0, double x1, double y1, double z1) {
-		final float hdx = (float) (0.5 * (x1 - x0));
-		final float hdy = (float) (0.5 * (y1 - y0));
-		final float hdz = (float) (0.5 * (z1 - z0));
+		final double hdx = 0.5 * (x1 - x0);
+		final double hdy = 0.5 * (y1 - y0);
+		final double hdz = 0.5 * (z1 - z0);
 
 		assert hdx > 0;
 		assert hdy > 0;
 		assert hdz > 0;
 
-		final float cx = (float) x0 + hdx - lastViewXf;
-		final float cy = (float) y0 + hdy - lastViewYf;
-		final float cz = (float) z0 + hdz - lastViewZf;
+		final float cx = (float) (x0 + hdx - lastViewX);
+		final float cy = (float) (y0 + hdy - lastViewY);
+		final float cz = (float) (z0 + hdz - lastViewZ);
 
 		if (cx * leftX + cy * leftY + cz * leftZ + leftW - (hdx * leftXe + hdy * leftYe + hdz * leftZe) > 0) {
 			return false;
@@ -110,7 +113,7 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	protected final void extractPlanes() {
-		final Matrix4fExt matrix = mvpMatrix;
+		final Matrix4fExt matrix = mvpMatrixExt;
 		final float a00 = matrix.a00();
 		final float a01 = matrix.a01();
 		final float a02 = matrix.a02();

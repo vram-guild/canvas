@@ -16,16 +16,20 @@
 
 package grondag.canvas.pipeline;
 
+import java.nio.ByteBuffer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.texture.TextureUtil;
 
 import grondag.canvas.pipeline.config.ImageConfig;
+import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class Image {
-	final ImageConfig config;
+	public final ImageConfig config;
 	protected int glId = -1;
 	private final int width;
 	private final int height;
@@ -46,18 +50,26 @@ public class Image {
 			glId = TextureUtil.generateId();
 			assert CanvasGlHelper.checkError();
 
-			GlStateManager.bindTexture(glId);
+			CanvasTextureState.bindTexture(config.target, glId);
 			assert CanvasGlHelper.checkError();
 
 			final int[] params = config.texParamPairs;
 			final int limit = params.length;
 
 			for (int i = 0; i < limit; ++i) {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, params[i], params[++i]);
+				GlStateManager.texParameter(config.target, params[i], params[++i]);
 				assert CanvasGlHelper.checkError();
 			}
 
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, config.internalFormat, width, height, 0, config.pixelFormat, config.pixelDataType, null);
+			if (config.target == GL46.GL_TEXTURE_2D_ARRAY || config.target == GL46.GL_TEXTURE_3D) {
+				GL46.glTexImage3D(config.target, 0, config.internalFormat, width, height, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				assert CanvasGlHelper.checkError();
+			} else {
+				assert config.target == GL46.GL_TEXTURE_2D;
+				GL46.glTexImage2D(config.target, 0, config.internalFormat, width, height, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				assert CanvasGlHelper.checkError();
+			}
+
 			assert CanvasGlHelper.checkError();
 
 			if (config.lod > 0) {
@@ -69,15 +81,22 @@ public class Image {
 	}
 
 	private void setupLod() {
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, config.lod);
+		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MAX_LEVEL, config.lod);
 		assert CanvasGlHelper.checkError();
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, config.lod);
+		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MIN_LOD, 0);
+		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MAX_LOD, config.lod);
 		assert CanvasGlHelper.checkError();
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
+		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
 
 		for (int i = 1; i <= config.lod; ++i) {
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, i, GL21.GL_RGBA8, width >> i, height >> i, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
+			if (config.target == GL46.GL_TEXTURE_3D) {
+				GL46.glTexImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			} else if (config.target == GL46.GL_TEXTURE_2D_ARRAY) {
+				GL46.glTexImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			} else {
+				GL46.glTexImage2D(config.target, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			}
+
 			assert CanvasGlHelper.checkError();
 		}
 	}

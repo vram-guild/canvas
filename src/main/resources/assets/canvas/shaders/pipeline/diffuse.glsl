@@ -33,7 +33,7 @@ float p_diffuseBaked(vec3 normal) {
 float p_diffuseSky(vec3 normal) {
 	float f = dot(frx_skyLightVector(), normal);
 	f = f > 0.0 ? 0.4 * f : 0.2 * f;
-	return 0.6 + frx_skyLightStrength() * f;
+	return 0.6 + frx_skyLightTransitionFactor() * f;
 }
 
 /**

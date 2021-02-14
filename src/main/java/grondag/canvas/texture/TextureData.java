@@ -29,5 +29,6 @@ public class TextureData {
 	public static final int DITHER = GL21.GL_TEXTURE5;
 	public static final int SPRITE_INFO = GL21.GL_TEXTURE6;
 	public static final int MATERIAL_INFO = GL21.GL_TEXTURE7;
-	public static final int SHADOWMAP = GL21.GL_TEXTURE8;
+	// want this outside of the range managed by Mojang's damn GlStateManager
+	public static final int SHADOWMAP = GL21.GL_TEXTURE12;
 }

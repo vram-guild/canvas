@@ -24,6 +24,8 @@ import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.Sets;
+import com.mojang.blaze3d.platform.FramebufferInfo;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -89,11 +91,11 @@ import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.BindStateManager;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
+import grondag.canvas.buffer.encoding.DrawableBuffer;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.property.MatrixState;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.BufferBuilderStorageExt;
@@ -113,6 +115,7 @@ import grondag.canvas.terrain.region.RenderRegionPruner;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.frex.api.event.WorldRenderEvent;
@@ -132,7 +135,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
-	 * Distinct from occluder state, which indiciates if/when occluder must be reset or redrawn.
+	 * Distinct from occluder state, which indicates if/when occluder must be reset or redrawn.
 	 */
 	private final AtomicInteger regionDataVersion = new AtomicInteger();
 	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
@@ -250,7 +253,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 * The raster must be redrawn whenever the frustum view changes but prior visibility
 	 * checks remain valid until the player location changes more than 1 block
 	 * (regions are fuzzed one block to allow this) or a region that was already drawn into
-	 * the raster is updated with different visibility informaiton.  New occluders can
+	 * the raster is updated with different visibility information.  New occluders can
 	 * also  be added to the existing raster.
 	 * or
 	 */
@@ -412,8 +415,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("culling");
 
 		final TerrainFrustum frustum = terrainFrustum;
-		frustum.prepare(MatrixState.viewMatrix, tickDelta, camera);
-		particleRenderer.frustum.prepare(MatrixState.viewMatrix, tickDelta, camera, projectionMatrix);
 
 		mc.getProfiler().swap("regions");
 
@@ -436,12 +437,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (mc.options.viewDistance >= 4) {
 			// NB: fog / sky renderer really wants it this way
-			RenderSystem.popMatrix();
+			RenderSystem.pushMatrix();
+			RenderSystem.loadIdentity();
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
 			profiler.swap("sky");
 			((WorldRenderer) wr).renderSky(viewMatrixStack, tickDelta);
-			RenderSystem.pushMatrix();
-			RenderSystem.multMatrix(MatrixState.viewMatrix);
+			RenderSystem.popMatrix();
 		}
 
 		profiler.swap("fog");
@@ -477,17 +478,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		//LightmapHdTexture.instance().onRenderTick();
 
-		profiler.swap("terrain");
-		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
-
-		MatrixState.set(MatrixState.REGION);
-		// WIP: move this to a prepass - or more accurately defer terrain until after solid entity prepass
-		SkyShadowRenderer.begin();
-		renderTerrainLayer(false, cameraX, cameraY, cameraZ);
-		SkyShadowRenderer.end();
-
-		renderTerrainLayer(false, cameraX, cameraY, cameraZ);
-		MatrixState.set(MatrixState.CAMERA);
+		// WIP: have a way to render terrain here if deferred?
+		//profiler.swap("terrain");
+		//Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
+		//
+		//MatrixState.set(MatrixState.REGION);
+		//SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ);
+		//
+		//renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+		//MatrixState.set(MatrixState.CAMERA);
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
@@ -537,6 +536,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		blockContext.collectors = immediate.collectors;
 
 		// PERF: find way to reduce allocation for this and MatrixStack generally
+		SkyShadowRenderer.beforeEntityRender(mc);
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
@@ -577,6 +577,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		contextState.setCurrentEntity(null);
+		SkyShadowRenderer.afterEntityRender(mc);
 
 		profiler.swap("blockentities");
 
@@ -635,7 +636,18 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		contextState.setCurrentBlockEntity(null);
 
-		immediate.drawCollectors(MaterialTarget.MAIN);
+		profiler.swap("terrain");
+		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
+
+		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
+			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
+
+			MatrixState.set(MatrixState.REGION);
+			renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+			MatrixState.set(MatrixState.CAMERA);
+			entityBuffer.draw();
+			entityBuffer.close();
+		}
 
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
 
@@ -701,7 +713,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		}
 
-		// NB: view matrix is already applied to GL state before renderWorkd is called
+		// NB: view matrix is already applied to GL state before renderWorld is called
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().beforeDebugRender(eventContext);
 		// We still pass in the transformed stack because that is what debug renderer normally gets
 		mc.debugRenderer.render(viewMatrixStack, immediate, cameraX, cameraY, cameraZ);
@@ -792,27 +804,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		Configurator.lagFinder.swap("WorldRenderer-PostTransluent");
-
-		profiler.swap("clouds");
-
 		RenderState.disable();
 		GlProgram.deactivate();
 
+		renderClouds(mc, profiler, viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
+
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
-
-		// NB: important to clear the cloud FB even when clouds are off - prevents leftover clouds
-		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-			if (advancedTranslucency && getCloudsFramebuffer() != null) {
-				getCloudsFramebuffer().clear(MinecraftClient.IS_SYSTEM_MAC);
-			}
-
-			RenderPhase.CLOUDS_TARGET.startDrawing();
-			// NB: vanilla cloud renderer wants/needs the transformed stack even though it is already applied
-			renderClouds(viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
-			RenderPhase.CLOUDS_TARGET.endDrawing();
-		}
-
 		profiler.swap("weather");
 
 		if (advancedTranslucency) {
@@ -850,6 +848,23 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		assert CanvasGlHelper.checkError();
 
 		Configurator.lagFinder.complete();
+	}
+
+	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack viewMatrixStack, float tickDelta, double cameraX, double cameraY, double cameraZ) {
+		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
+			profiler.swap("clouds");
+
+			if (Pipeline.fabCloudsFbo > 0) {
+				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, Pipeline.fabCloudsFbo);
+			}
+
+			// NB: vanilla cloud renderer wants/needs the transformed stack even though it is already applied
+			renderClouds(viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
+
+			if (Pipeline.fabCloudsFbo > 0) {
+				Pipeline.defaultFbo.bind();
+			}
+		}
 	}
 
 	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();
@@ -1004,7 +1019,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().pop();
 	}
 
-	private void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
+	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final int visibleRegionCount = this.visibleRegionCount;
 
@@ -1120,6 +1135,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			z1 = box.maxZ;
 		}
 
+		// PERF: should probably use same frustum as for particles - don't need the padding
 		if (!terrainFrustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
 			return false;
 		}
@@ -1203,8 +1219,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// and managed draws will correctly have no rotation applies.  Direct draws may attempt to transform
 		// the GL state to the view matrix but it will have no effect - it is already applied.
 
-		WorldDataManager.update(camera);
-		MatrixState.update(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix, camera);
+		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
+		terrainFrustum.prepare(viewMatrix, tickDelta, camera);
+		particleRenderer.frustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
+		WorldDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
+		MatrixState.set(MatrixState.CAMERA);
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(MatrixState.viewMatrix);
 

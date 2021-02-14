@@ -53,11 +53,18 @@ public enum MaterialShaderManager {
 		final MaterialShaderImpl result = new MaterialShaderImpl(shaders.size(), vertexShaderIndex, fragmentShaderIndex, programType);
 		shaders.add(result);
 
-		final boolean newVert = VERTEX_INDEXES.add(vertexShaderIndex);
-		final boolean newFrag = FRAGMENT_INDEXES.add(fragmentShaderIndex);
+		boolean isNew;
+
+		if (programType.isDepth) {
+			isNew = DEPTH_VERTEX_INDEXES.add(vertexShaderIndex);
+			isNew |= DEPTH_FRAGMENT_INDEXES.add(fragmentShaderIndex);
+		} else {
+			isNew = VERTEX_INDEXES.add(vertexShaderIndex);
+			isNew |= FRAGMENT_INDEXES.add(fragmentShaderIndex);
+		}
 
 		// ensure shaders are recompiled when new sub-shader source referenced
-		if (newVert || newFrag) {
+		if (isNew) {
 			GlProgramManager.INSTANCE.reload();
 		}
 
@@ -69,10 +76,16 @@ public enum MaterialShaderManager {
 	}
 
 	/** Tracks which vertex sub-shaders are in use by materials. */
-	public static final IntOpenHashSet VERTEX_INDEXES = new IntOpenHashSet();
+	private static final IntOpenHashSet VERTEX_INDEXES = new IntOpenHashSet();
 
-	/** Tracks which fragmet sub-shaders are in use by materials. */
-	public static final IntOpenHashSet FRAGMENT_INDEXES = new IntOpenHashSet();
+	/** Tracks which fragment sub-shaders are in use by materials. */
+	private static final IntOpenHashSet FRAGMENT_INDEXES = new IntOpenHashSet();
+
+	/** Tracks which vertex depth sub-shaders are in use by materials. */
+	private static final IntOpenHashSet DEPTH_VERTEX_INDEXES = new IntOpenHashSet();
+
+	/** Tracks which fragment depth sub-shaders are in use by materials. */
+	private static final IntOpenHashSet DEPTH_FRAGMENT_INDEXES = new IntOpenHashSet();
 
 	public static final IndexedInterner<Identifier> VERTEX_INDEXER = new IndexedInterner<>(Identifier.class);
 	public static final IndexedInterner<Identifier> FRAGMENT_INDEXER = new IndexedInterner<>(Identifier.class);
@@ -85,4 +98,12 @@ public enum MaterialShaderManager {
 
 	public static final int DEFAULT_VERTEX_INDEX = VERTEX_INDEXER.toHandle(ShaderData.DEFAULT_VERTEX_SOURCE);
 	public static final int DEFAULT_FRAGMENT_INDEX = FRAGMENT_INDEXER.toHandle(ShaderData.DEFAULT_FRAGMENT_SOURCE);
+
+	static int[] vertexIds(ProgramType programType) {
+		return programType.isDepth ? DEPTH_VERTEX_INDEXES.toIntArray() : VERTEX_INDEXES.toIntArray();
+	}
+
+	static int[] fragmentIds(ProgramType programType) {
+		return programType.isDepth ? DEPTH_FRAGMENT_INDEXES.toIntArray() : FRAGMENT_INDEXES.toIntArray();
+	}
 }

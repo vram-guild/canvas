@@ -26,6 +26,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.shader.MaterialShaderId;
+import grondag.canvas.shader.ShaderData;
 import grondag.frex.api.material.MaterialCondition;
 import grondag.frex.api.material.RenderMaterial;
 
@@ -121,9 +122,29 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T shader(Identifier vertexSource, Identifier fragmentSource) {
-		bits = SHADER_ID.setValue(MaterialShaderId.find(vertexSource, fragmentSource).index, bits);
+	public T shader(Identifier vertexSource, Identifier fragmentSource, Identifier depthVertexSouce, Identifier depthFragmentSouce) {
+		if (vertexSource == null) {
+			vertexSource = ShaderData.DEFAULT_VERTEX_SOURCE;
+		}
+
+		if (fragmentSource == null) {
+			fragmentSource = ShaderData.DEFAULT_FRAGMENT_SOURCE;
+		}
+
+		if (depthVertexSouce == null) {
+			depthVertexSouce = ShaderData.DEFAULT_VERTEX_SOURCE;
+		}
+
+		if (depthFragmentSouce == null) {
+			depthFragmentSouce = ShaderData.DEFAULT_FRAGMENT_SOURCE;
+		}
+
+		bits = SHADER_ID.setValue(MaterialShaderId.find(vertexSource, fragmentSource, depthVertexSouce, depthFragmentSouce).index, bits);
 		return (T) this;
+	}
+
+	public T shader(Identifier vertexSource, Identifier fragmentSource) {
+		return shader(vertexSource, fragmentSource, ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE);
 	}
 
 	public T emissive(boolean emissive) {

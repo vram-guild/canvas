@@ -17,10 +17,10 @@
 package grondag.canvas.shader;
 
 import grondag.canvas.material.property.MaterialFog;
-import grondag.canvas.material.property.MatrixState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.MatrixState;
 
 public final class MaterialShaderImpl {
 	public final int index;
@@ -68,6 +68,12 @@ public final class MaterialShaderImpl {
 	public void setModelOrigin(int x, int y, int z) {
 		getOrCreate().activate();
 		program.setModelOrigin(x, y, z);
+	}
+
+	public void setCascade(int cascade) {
+		getOrCreate().activate();
+		program.cascade.set(cascade);
+		program.cascade.upload();
 	}
 
 	public void activate(RenderState renderState) {
