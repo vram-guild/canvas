@@ -167,7 +167,7 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	static void renderDebug(int glId, int lod, boolean depth, boolean array) {
+	static void renderDebug(int glId, int lod, int layer, boolean depth, boolean array) {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
@@ -187,7 +187,7 @@ public class PipelineManager {
 
 		if (depth) {
 			if (array) {
-				debugDepthArrayShader.activate().size(w, h).lod(lod);
+				debugDepthArrayShader.activate().size(w, h).lod(lod).layer(layer);
 			} else {
 				debugDepthShader.activate().size(w, h).lod(0);
 			}

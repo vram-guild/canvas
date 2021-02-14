@@ -30,6 +30,7 @@ public class ProcessShader {
 	private GlProgram program;
 	private Uniform2iImpl size;
 	private Uniform1iImpl lod;
+	private Uniform1iImpl layer;
 
 	public ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
 		this.fragmentId = fragmentId;
@@ -64,6 +65,7 @@ public class ProcessShader {
 			program = new GlProgram(vs, fs, CanvasVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
 			size = (Uniform2iImpl) program.uniform2i("frxu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
 			lod = (Uniform1iImpl) program.uniform1i("frxu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			layer = (Uniform1iImpl) program.uniform1i("frxu_layer", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
 			int tex = 0;
 
@@ -99,6 +101,15 @@ public class ProcessShader {
 		if (program != null && GlProgram.activeProgram() == program) {
 			this.lod.set(lod);
 			this.lod.upload();
+		}
+
+		return this;
+	}
+
+	public ProcessShader layer(int layer) {
+		if (program != null && GlProgram.activeProgram() == program) {
+			this.layer.set(layer);
+			this.layer.upload();
 		}
 
 		return this;

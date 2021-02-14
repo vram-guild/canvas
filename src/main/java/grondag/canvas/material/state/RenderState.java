@@ -68,13 +68,13 @@ public final class RenderState extends AbstractRenderState {
 
 	public void enable(int x, int y, int z) {
 		if (SkyShadowRenderer.isActive()) {
-			enableDepthPass(x, y, z);
+			enableDepthPass(x, y, z, SkyShadowRenderer.cascade());
 		} else {
 			enableMaterial(x, y, z);
 		}
 	}
 
-	private void enableDepthPass(int x, int y, int z) {
+	private void enableDepthPass(int x, int y, int z, int cascade) {
 		if (shadowActive == this) {
 			depthShader.setModelOrigin(x, y, z);
 			return;
