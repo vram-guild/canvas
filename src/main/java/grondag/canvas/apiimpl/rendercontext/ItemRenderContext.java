@@ -283,7 +283,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				// This makes it important that
 				//   1) geometry is the same
 				//   2) cutout is enabled for generated models so depth buffer isn't updated
-				// 1 is easily solved by renderin twice with same vertex data
+				// 1 is easily solved by rendering twice with same vertex data
 				// 2 has to be finessed because blend mode = TRANSLUCENT doesn't make it clear cutout is needed.
 				// The code below is an ugly hack - need a better way
 

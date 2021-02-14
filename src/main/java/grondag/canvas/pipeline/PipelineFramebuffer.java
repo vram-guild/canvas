@@ -107,7 +107,7 @@ public class PipelineFramebuffer {
 			final Image img = Pipeline.getImage(ac.image.name);
 
 			if (img == null) {
-				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because color attachment %s was not found",
+				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because color attachment %s was not found",
 						config.name, ac.image.name));
 			} else if (img.config.target == GL46.GL_TEXTURE_2D) {
 				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, img.config.target, img.glId(), ac.lod);
@@ -122,7 +122,7 @@ public class PipelineFramebuffer {
 			final Image img = Pipeline.getImage(config.depthAttachment.image.name);
 
 			if (img == null) {
-				CanvasMod.LOG.warn(String.format("Frambuffer %s cannot be completetly configured because depth attachment %s was not found",
+				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because depth attachment %s was not found",
 						config.name, config.depthAttachment.image.name));
 			} else if (img.config.target == GL46.GL_TEXTURE_2D) {
 				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, img.config.target, img.glId(), 0);

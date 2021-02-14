@@ -372,7 +372,7 @@ public abstract class AoCalculator {
 				final float n = x * x;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
+				final int b = fd.weightedBlockLight(w);
 				ao += n * a;
 				sky += n * s;
 				block += n * b;
@@ -390,7 +390,7 @@ public abstract class AoCalculator {
 				final float n = y * y;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
+				final int b = fd.weightedBlockLight(w);
 				ao += n * a;
 				sky += n * s;
 				block += n * b;
@@ -408,7 +408,7 @@ public abstract class AoCalculator {
 				final float n = z * z;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
+				final int b = fd.weightedBlockLight(w);
 				ao += n * a;
 				sky += n * s;
 				block += n * b;
@@ -424,7 +424,7 @@ public abstract class AoCalculator {
 	}
 
 	private void irregularFaceFlat(MutableQuadViewImpl quad) {
-		// use center light - interpolatino too expensive given how often this happen for foliage, etc.
+		// use center light - interpolation too expensive given how often this happen for foliage, etc.
 		final int brightness = brightness(regionRelativeCacheIndex);
 		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
 		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));

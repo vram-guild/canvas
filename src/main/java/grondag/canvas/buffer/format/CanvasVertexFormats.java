@@ -16,13 +16,13 @@
 
 package grondag.canvas.buffer.format;
 
-import static grondag.canvas.buffer.format.CanvasVertextFormatElement.BASE_RGBA_4UB;
-import static grondag.canvas.buffer.format.CanvasVertextFormatElement.BASE_TEX_2F;
-import static grondag.canvas.buffer.format.CanvasVertextFormatElement.BASE_TEX_2US;
-import static grondag.canvas.buffer.format.CanvasVertextFormatElement.LIGHTMAPS_4UB;
-import static grondag.canvas.buffer.format.CanvasVertextFormatElement.MATERIAL_2US;
-import static grondag.canvas.buffer.format.CanvasVertextFormatElement.NORMAL_FLAGS_4UB;
-import static grondag.canvas.buffer.format.CanvasVertextFormatElement.POSITION_3F;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_4UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2F;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2US;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_4UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_2US;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_FLAGS_4UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;

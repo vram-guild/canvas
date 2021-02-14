@@ -233,27 +233,27 @@ public class Pipeline {
 
 		if (isFabulous) {
 			final FabulousConfig fc = config.fabulosity;
-			b = getFramebuffer(fc.entityFrambuffer.name);
+			b = getFramebuffer(fc.entityFramebuffer.name);
 			fabEntityFbo = b.glId();
 			fabEntityColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabEntityDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			b = getFramebuffer(fc.particleFrambuffer.name);
+			b = getFramebuffer(fc.particleFramebuffer.name);
 			fabParticleFbo = b.glId();
 			fabParticleColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabParticleDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			b = getFramebuffer(fc.weatherFrambuffer.name);
+			b = getFramebuffer(fc.weatherFramebuffer.name);
 			fabWeatherFbo = b.glId();
 			fabWeatherColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabWeatherDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			b = getFramebuffer(fc.cloudsFrambuffer.name);
+			b = getFramebuffer(fc.cloudsFramebuffer.name);
 			fabCloudsFbo = b.glId();
 			fabCloudsColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabCloudsDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-			b = getFramebuffer(fc.translucentFrambuffer.name);
+			b = getFramebuffer(fc.translucentFramebuffer.name);
 			fabTranslucentFbo = b.glId();
 			fabTranslucentColor = getImage(b.config.colorAttachments[0].image.name).glId();
 			fabTranslucentDepth = getImage(b.config.depthAttachment.image.name).glId();

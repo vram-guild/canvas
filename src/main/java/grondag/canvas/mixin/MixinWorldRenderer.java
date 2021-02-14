@@ -102,7 +102,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Inject(at = @At("HEAD"), method = "setupTerrain", cancellable = true)
 	private void onSetupTerrain(Camera camera, Frustum frustum, boolean bl, int i, boolean bl2, CallbackInfo ci) {
 		if (shouldWarnOnSetupTerrain) {
-			CanvasMod.LOG.warn("[Canvas] WorldRendererer.setupTerrain() called unexpectedly. This probably indicates a mod incompatibility.");
+			CanvasMod.LOG.warn("[Canvas] WorldRenderer.setupTerrain() called unexpectedly. This probably indicates a mod incompatibility.");
 			ci.cancel();
 			shouldWarnOnSetupTerrain = false;
 		}
@@ -128,7 +128,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Inject(at = @At("HEAD"), method = "renderLayer", cancellable = true)
 	private void onRenderLayer(CallbackInfo ci) {
 		if (shouldWarnOnRenderLayer) {
-			CanvasMod.LOG.warn("[Canvas] WorldRendererer.renderLayer() called unexpectedly. This probably indicates a mod incompatibility.");
+			CanvasMod.LOG.warn("[Canvas] WorldRenderer.renderLayer() called unexpectedly. This probably indicates a mod incompatibility.");
 			ci.cancel();
 			shouldWarnOnRenderLayer = false;
 		}
@@ -139,7 +139,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Inject(at = @At("HEAD"), method = "getAdjacentChunk", cancellable = true)
 	private void onGetAdjacentChunk(CallbackInfoReturnable<BuiltChunk> ci) {
 		if (shouldWarnGetAdjacentChunk) {
-			CanvasMod.LOG.warn("[Canvas] WorldRendererer.getAdjacentChunk() called unexpectedly. This probably indicates a mod incompatibility.");
+			CanvasMod.LOG.warn("[Canvas] WorldRenderer.getAdjacentChunk() called unexpectedly. This probably indicates a mod incompatibility.");
 			ci.setReturnValue(null);
 			shouldWarnGetAdjacentChunk = false;
 		}
@@ -150,7 +150,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Inject(at = @At("HEAD"), method = "updateChunks", cancellable = true)
 	private void onUpdateChunks(CallbackInfo ci) {
 		if (shouldWarnOnUpdateChunks) {
-			CanvasMod.LOG.warn("[Canvas] WorldRendererer.udpateChunks() called unexpectedly. This probably indicates a mod incompatibility.");
+			CanvasMod.LOG.warn("[Canvas] WorldRenderer.updateChunks() called unexpectedly. This probably indicates a mod incompatibility.");
 			ci.cancel();
 			shouldWarnOnUpdateChunks = false;
 		}
@@ -171,7 +171,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	 */
 	@Overwrite
 	private void loadTransparencyShader() {
-		// Will be called by Worldrenderer.apply() during resource load (and ignored)
+		// Will be called by WorldRenderer.apply() during resource load (and ignored)
 		// NOOP
 	}
 

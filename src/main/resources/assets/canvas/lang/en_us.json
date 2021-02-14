@@ -20,7 +20,7 @@
   "config.canvas.value.fog_mode": "Fog",
   "config.canvas.help.fog_mode": "Makes terrain fog a little less foggy or turns it off.",
   "config.canvas.value.blend_fluid_colors": "Blend Fluid Colors",
-  "config.canvas.help.blend_fluid_colors": "Fluid biome colors are blended at block corners to avoid patchy; appearance. Slight peformance impact to chunk loading.",
+  "config.canvas.help.blend_fluid_colors": "Fluid biome colors are blended at block corners to avoid patchy; appearance. Slight performance impact to chunk loading.",
 
 
   "config.canvas.value.bloom_intensity": "Bloom Intensity",
@@ -119,7 +119,7 @@
   "config.canvas.value.static_frustum_padding": "Static Frustum Padding",
   "config.canvas.help.static_frustum_padding": "Padding at edges of screen to reduce how often terrain visibility;is computed. In degrees. Zero disables.",
   "config.canvas.value.dynamic_frustum_padding": "Dynamic Frustum Padding",
-  "config.canvas.help.dynamic_frustum_padding": "Extra padding at edges of screen to reduce missing chunks when;view roates and Parallel Terrain Setup is on.;In degrees. Zero disables.",
+  "config.canvas.help.dynamic_frustum_padding": "Extra padding at edges of screen to reduce missing chunks when;view rotates and Parallel Terrain Setup is on.;In degrees. Zero disables.",
   "config.canvas.value.cull_particles": "Particle Culling",
   "config.canvas.help.cull_particles": "Culls particles that are not in view.;Should always be faster.",
   "config.canvas.value.log_render_lag_spikes": "Log Render Lag Spikes",

@@ -78,13 +78,13 @@ public enum MaterialShaderManager {
 	/** Tracks which vertex sub-shaders are in use by materials. */
 	private static final IntOpenHashSet VERTEX_INDEXES = new IntOpenHashSet();
 
-	/** Tracks which fragmet sub-shaders are in use by materials. */
+	/** Tracks which fragment sub-shaders are in use by materials. */
 	private static final IntOpenHashSet FRAGMENT_INDEXES = new IntOpenHashSet();
 
 	/** Tracks which vertex depth sub-shaders are in use by materials. */
 	private static final IntOpenHashSet DEPTH_VERTEX_INDEXES = new IntOpenHashSet();
 
-	/** Tracks which fragmet depth sub-shaders are in use by materials. */
+	/** Tracks which fragment depth sub-shaders are in use by materials. */
 	private static final IntOpenHashSet DEPTH_FRAGMENT_INDEXES = new IntOpenHashSet();
 
 	public static final IndexedInterner<Identifier> VERTEX_INDEXER = new IndexedInterner<>(Identifier.class);

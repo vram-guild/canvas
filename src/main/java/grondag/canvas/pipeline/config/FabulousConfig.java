@@ -23,29 +23,29 @@ import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class FabulousConfig extends AbstractConfig {
-	public final NamedDependency<FramebufferConfig> entityFrambuffer;
-	public final NamedDependency<FramebufferConfig> particleFrambuffer;
-	public final NamedDependency<FramebufferConfig> weatherFrambuffer;
-	public final NamedDependency<FramebufferConfig> cloudsFrambuffer;
-	public final NamedDependency<FramebufferConfig> translucentFrambuffer;
+	public final NamedDependency<FramebufferConfig> entityFramebuffer;
+	public final NamedDependency<FramebufferConfig> particleFramebuffer;
+	public final NamedDependency<FramebufferConfig> weatherFramebuffer;
+	public final NamedDependency<FramebufferConfig> cloudsFramebuffer;
+	public final NamedDependency<FramebufferConfig> translucentFramebuffer;
 
 	FabulousConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
-		entityFrambuffer = ctx.frameBuffers.dependOn(config, "entity");
-		particleFrambuffer = ctx.frameBuffers.dependOn(config, "particles");
-		weatherFrambuffer = ctx.frameBuffers.dependOn(config, "weather");
-		cloudsFrambuffer = ctx.frameBuffers.dependOn(config, "clouds");
-		translucentFrambuffer = ctx.frameBuffers.dependOn(config, "translucent");
+		entityFramebuffer = ctx.frameBuffers.dependOn(config, "entity");
+		particleFramebuffer = ctx.frameBuffers.dependOn(config, "particles");
+		weatherFramebuffer = ctx.frameBuffers.dependOn(config, "weather");
+		cloudsFramebuffer = ctx.frameBuffers.dependOn(config, "clouds");
+		translucentFramebuffer = ctx.frameBuffers.dependOn(config, "translucent");
 	}
 
 	@Override
 	public boolean validate() {
 		boolean valid = true;
-		valid &= entityFrambuffer.validate("Invalid pipeline config - fabulousTarget 'entity' missing or invalid.");
-		valid &= particleFrambuffer.validate("Invalid pipeline config - fabulousTarget 'particles' missing or invalid.");
-		valid &= weatherFrambuffer.validate("Invalid pipeline config - fabulousTarget 'weather' missing or invalid.");
-		valid &= cloudsFrambuffer.validate("Invalid pipeline config - fabulousTarget 'clouds' missing or invalid.");
-		valid &= translucentFrambuffer.validate("Invalid pipeline config - fabulousTarget 'translucent' missing or invalid.");
+		valid &= entityFramebuffer.validate("Invalid pipeline config - fabulousTarget 'entity' missing or invalid.");
+		valid &= particleFramebuffer.validate("Invalid pipeline config - fabulousTarget 'particles' missing or invalid.");
+		valid &= weatherFramebuffer.validate("Invalid pipeline config - fabulousTarget 'weather' missing or invalid.");
+		valid &= cloudsFramebuffer.validate("Invalid pipeline config - fabulousTarget 'clouds' missing or invalid.");
+		valid &= translucentFramebuffer.validate("Invalid pipeline config - fabulousTarget 'translucent' missing or invalid.");
 		return valid;
 	}
 }

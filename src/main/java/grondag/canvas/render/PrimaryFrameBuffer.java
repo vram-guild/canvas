@@ -57,6 +57,6 @@ public class PrimaryFrameBuffer extends Framebuffer {
 	@Override
 	public void clear(boolean getError) {
 		// NOOP - should be done in pipeline buffers
-		assert false : "Unmanaged frambuffer clear";
+		assert false : "Unmanaged framebuffer clear";
 	}
 }

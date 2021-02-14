@@ -29,9 +29,9 @@ class ConfigData {
 	public boolean enableBufferDebug = false;
 	@Comment("Output load/reload trace data to log. Will have performance impact.")
 	public boolean enableLifeCycleDebug = false;
-	@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight peformance impact to chunk loading.")
+	@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight performance impact to chunk loading.")
 	boolean blendFluidColors = true;
-	//@Comment("Truly smoothh lighting. Some impact to memory use, chunk loading and frame rate.")
+	//@Comment("Truly smooth lighting. Some impact to memory use, chunk loading and frame rate.")
 	//boolean hdLightmaps = false;
 	//@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
 	//boolean lightmapNoise = false;
@@ -69,7 +69,7 @@ class ConfigData {
 	boolean vertexControlMode = false;
 	@Comment("Padding at edges of screen to reduce how often terrain visibility is computed. In degrees. Values 0 to 20. Zero disables.")
 	int staticFrustumPadding = 10;
-	@Comment("Extra padding at edges of screen to reduce missing chunks when view roates and terrainSetupOffThread is on. In degrees. Values 0 to 30. Zero disables.")
+	@Comment("Extra padding at edges of screen to reduce missing chunks when view rotates and terrainSetupOffThread is on. In degrees. Values 0 to 30. Zero disables.")
 	int dynamicFrustumPadding = 20;
 	@Comment("Culls particles that are not in view. Should always be faster.")
 	boolean cullParticles = true;

@@ -24,7 +24,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.pipeline.Pipeline;
 
-// PERF: emit switch statments on non-Mac
+// PERF: emit switch statements on non-Mac
 public class GlMaterialShader extends GlShader {
 	GlMaterialShader(Identifier shaderSource, int shaderType, ProgramType programType) {
 		super(shaderSource, shaderType, programType);
