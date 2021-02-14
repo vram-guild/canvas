@@ -70,6 +70,12 @@ public final class MaterialShaderImpl {
 		program.setModelOrigin(x, y, z);
 	}
 
+	public void setCascade(int cascade) {
+		getOrCreate().activate();
+		program.cascade.set(cascade);
+		program.cascade.upload();
+	}
+
 	public void activate(RenderState renderState) {
 		assert CanvasGlHelper.checkError();
 		getOrCreate().activate();

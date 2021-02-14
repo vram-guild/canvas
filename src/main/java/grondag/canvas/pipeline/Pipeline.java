@@ -31,7 +31,9 @@ import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.ProgramConfig;
+import grondag.canvas.pipeline.config.SkyShadowConfig;
 import grondag.canvas.pipeline.pass.Pass;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.ProcessShader;
 
 public class Pipeline {
@@ -67,6 +69,10 @@ public class Pipeline {
 	public static PipelineFramebuffer skyShadowFbo;
 	public static int skyShadowSize;
 	public static int skyShadowDepth;
+	public static float shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
+	public static float shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
+
+	public static float defaultZenithAngle = 0f;
 
 	public static PipelineFramebuffer solidTerrainFbo;
 	public static PipelineFramebuffer translucentTerrainFbo;
@@ -143,7 +149,7 @@ public class Pipeline {
 		}
 	}
 
-	static void activate(int width, int height) {
+	static void activate(PrimaryFrameBuffer primary, int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
 		if (reload || lastWidth != width || lastHeight != height) {
@@ -151,11 +157,11 @@ public class Pipeline {
 			lastWidth = width;
 			lastHeight = height;
 			closeInner();
-			activateInner(width, height);
+			activateInner(primary, width, height);
 		}
 	}
 
-	private static void activateInner(int width, int height) {
+	private static void activateInner(PrimaryFrameBuffer primary, int width, int height) {
 		final PipelineConfig config = PipelineConfigBuilder.build(new Identifier(Configurator.pipelineId));
 		Pipeline.config = config;
 
@@ -191,6 +197,10 @@ public class Pipeline {
 		defaultColor = getImage(b.config.colorAttachments[0].image.name).glId();
 		defaultDepth = getImage(b.config.depthAttachment.image.name).glId();
 
+		primary.fbo = defaultFbo.glId();
+		primary.colorAttachment = defaultColor;
+		primary.depthAttachment = defaultDepth;
+
 		solidTerrainFbo = getFramebuffer(config.drawTargets.solidTerrain.name);
 		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain.name);
 		translucentEntityFbo = getFramebuffer(config.drawTargets.translucentEntity.name);
@@ -203,10 +213,20 @@ public class Pipeline {
 			final Image sd = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name);
 			shadowMapDepth = sd.glId();
 			skyShadowSize = sd.config.width;
+			shadowSlopeFactor = config.skyShadow.offsetSlopeFactor;
+			shadowBiasUnits = config.skyShadow.offsetBiasUnits;
 		} else {
 			skyShadowFbo = null;
 			shadowMapDepth = -1;
 			skyShadowSize = 0;
+			shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
+			shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
+		}
+
+		if (config.sky != null) {
+			defaultZenithAngle = config.sky.defaultZenithAngle;
+		} else {
+			defaultZenithAngle = 0f;
 		}
 
 		isFabulous = config.fabulosity != null;

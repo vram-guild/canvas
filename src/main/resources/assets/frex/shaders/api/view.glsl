@@ -189,6 +189,36 @@ mat4 frx_inverseViewProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_VIEW_PROJ_LAST];
 }
 
+// No view bobbing or other effects that alter projection
+mat4 frx_cleanProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_CLEAN_PROJ];
+}
+
+// No view bobbing or other effects that alter projection
+mat4 frx_lastCleanProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_CLEAN_PROJ_LAST];
+}
+
+// No view bobbing or other effects that alter projection
+mat4 frx_inverseCleanProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_CLEAN_PROJ_INVERSE];
+}
+
+// No view bobbing or other effects that alter projection
+mat4 frx_cleanViewProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_CLEAN_VIEW_PROJ];
+}
+
+// No view bobbing or other effects that alter projection
+mat4 frx_lastCleanViewProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_CLEAN_VIEW_PROJ_INVERSE];
+}
+
+// No view bobbing or other effects that alter projection
+mat4 frx_inverseCleanViewProjectionMatrix() {
+	return _cvu_matrix[_CV_MAT_CLEAN_VIEW_PROJ_LAST];
+}
+
 mat4 frx_shadowViewMatrix() {
 	return _cvu_matrix[_CV_MAT_SHADOW_VIEW];
 }
@@ -197,24 +227,25 @@ mat4 frx_inverseShadowViewMatrix() {
 	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_INVERSE];
 }
 
-mat4 frx_shadowProjectionMatrix() {
-	return _cvu_matrix[_CV_MAT_SHADOW_PROJ];
+/**
+ * Orthogonal projection matrix on light space for given cascade index 0-3.
+ */
+mat4 frx_shadowProjectionMatrix(int index) {
+	return _cvu_matrix[_CV_MAT_SHADOW_PROJ_0 + index];
 }
 
-mat4 frx_inverseShadowProjectionMatrix() {
-	return _cvu_matrix[_CV_MAT_SHADOW_PROJ_INVERSE];
+/**
+ * Combined lightspace view and orthogonal projection for given cascade index 0-3.
+ */
+mat4 frx_shadowViewProjectionMatrix(int index) {
+	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ_0 + index];
 }
 
-mat4 frx_shadowViewProjectionMatrix() {
-	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ];
-}
-
-mat4 frx_inverseShadowViewProjectionMatrix() {
-	return _cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ_INVERSE];
-}
-
-vec4 frx_cameraToSkylight() {
-	return _cvu_world[_CV_CAMERA_TO_SKYLIGHT];
+/**
+ * Center and radius of other projection in light space for given cascade index 0-3.
+ */
+vec4 frx_shadowCenter(int index) {
+	return _cvu_world[_CV_SHADOW_CENTER + index];
 }
 
 /*

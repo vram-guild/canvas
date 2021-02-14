@@ -16,6 +16,13 @@
 
 package grondag.canvas.varia;
 
+import static grondag.canvas.varia.WorldDataManager.SHADOW_CENTER;
+import static grondag.canvas.varia.WorldDataManager.cameraVector;
+import static grondag.canvas.varia.WorldDataManager.cameraXd;
+import static grondag.canvas.varia.WorldDataManager.cameraYd;
+import static grondag.canvas.varia.WorldDataManager.cameraZd;
+import static grondag.canvas.varia.WorldDataManager.skyLightVector;
+
 import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
@@ -24,13 +31,16 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 
+import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
+import grondag.canvas.render.FastFrustum;
+import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.
@@ -80,151 +90,176 @@ public enum MatrixState {
 		current = val;
 	}
 
-	static int i = 0;
-	@SuppressWarnings("resource")
-	private static void computeShadowMatrices(Camera camera, TerrainBounds bounds) {
-		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
+	private static final Vector4f testVec = new Vector4f();
+	public static final int CASCADE_COUNT = 4;
+	private static float[] lastDx = new float[CASCADE_COUNT];
+	private static float[] lastDy = new float[CASCADE_COUNT];
+	private static double lastCameraX, lastCameraY, lastCameraZ;
 
-		// Look from skylight towards center of the view frustum
-		shadowViewMatrixExt.lookAt(
-				WorldDataManager.skyLightPosition.getX(),
-				WorldDataManager.skyLightPosition.getY(),
-				WorldDataManager.skyLightPosition.getZ(),
-				WorldDataManager.frustumCenter.getX(),
-				WorldDataManager.frustumCenter.getY(),
-				WorldDataManager.frustumCenter.getZ(),
-				0.0f, 0.0f, 1.0f);
-
-		// Frustum center is at most half view distance away from each frustum plane
-		// Expanding in each direction by that much should enclose the visible scene
-		// (Approximate because view frustum isn't a simple box.)
-		// Note the Y-axis offset is inverted because MC Y is inverted relative to OpenGL/matrix transform
-		computeBounds(viewDist);
-
+	private static void computeShadowMatrices(Camera camera, float tickDelta, CelestialObjectOutput skyOutput) {
 		// We need to keep the skylight projection consistently aligned to
 		// pixels in the shadowmap texture.  The alignment must be to world
-		// coordinates in the x/y axis of the skylight perspective.
-		// Both the frustum center and light position move as the camera moves,
+		// coordinates in the x/y axis of the skylight projection.
+		// Both the frustum center and relative light position move as the camera moves,
 		// which causes shimmering if we don't adjust for this movement.
 
 		// Because all of our coordinates and matrices at this point are relative to camera,
-		// we can't test use them for the alignment to world coordinates.
-		// So we compute the position of the frustum center in world space in a
-		// projection centered on world origin. Depth doesn't matter here.
-		// As the camera moves, the x/y distance of its position from the origin
-		// indicate how much we need to translate the shadowmap projection to maintain alignment.
+		// we can't use them directly to test for alignment to world coordinates.
+		// To correct for this, each frame we compute the X/Y movement of the
+		// camera in projected light space and adjust an offset that snaps the camera
+		// to a nearby pixel boundary.
 
-		final float hvd = viewDist * 0.5f;
+		// As the sun moves, the shape and size of individual pixels changes.  This
+		// can also cause aliasing and shimmering and cannot be fully countered.
+		// To minimize the effect, we do two things:
+		// 1) Keep pixel center near the camera.  This reduces the apparent warping
+		// of pixel size on surfaces nearest the viewer.
+		// 2) Clamp the angles of sun position to angles that result in an integer
+		// number of pixels in the projected radius. Without this, there is constant
+		// movement of pixel boundaries for shadows away from the camera.
 
-		worldShadowViewExt.lookAt(
-				WorldDataManager.skyLightVector.getX() * hvd,
-				WorldDataManager.skyLightVector.getY() * hvd,
-				WorldDataManager.skyLightVector.getZ() * hvd,
-				0,
-				0,
-				0,
-				0.0f, 0.0f, 1.0f);
+		// WIP: correct these docs
+		// Was previously using half the distance from the camera to the far plane, but that
+		// isn't an accurate enough center position of a view frustum when the field of view is wide.
+		// PERF: could be a little tighter by accounting for view distance - far corners aren't actually visible
 
-		// To avoid precision issues at the edge of the world, use a world boundary
-		// that is relatively close - keeping them at regular intervals.
-		final int ox = (int) Math.floor(WorldDataManager.cameraXd) & 0xFFFFFF00;
-		final int oy = (int) Math.floor(WorldDataManager.cameraYd) & 0xFFFFFF00;
-		final int oz = (int) Math.floor(WorldDataManager.cameraZd) & 0xFFFFFF00;
+		@SuppressWarnings("resource")
+		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
 
-		texelAlignmentPos.set(
-				(float) (WorldDataManager.cameraXd - ox + WorldDataManager.frustumCenter.getX()),
-				(float) (WorldDataManager.cameraYd - oy + WorldDataManager.frustumCenter.getY()),
-				(float) (WorldDataManager.cameraZd - oz + WorldDataManager.frustumCenter.getZ()));
-		worldShadowViewExt.fastTransform(texelAlignmentPos);
+		// Half-way to view distance isn't the true center of the view frustum, but because
+		// the far corners aren't actually visible it is close enough for now.
+		final float halfDist = viewDist * 0.5f;
 
-		final float xSpan = x1 - x0;
-		final float ySpan = y1 - y0;
-		final float xWorldUnitsPerTexel = xSpan / Pipeline.skyShadowSize;
-		final float yWorldUnitsPerTexel = ySpan / Pipeline.skyShadowSize;
+		// Bounding sphere/box distance for the largest cascade.  Relies on assumption the frustum
+		// will be wider than it is long, and if not then view distance should be adequate.
+		// We find the point that is halfDist deep and at our view distance.  Note this is a right
+		// triangle with view distance as hypotenuse and half dist as on of the legs.
+		//
+		//		    ------ far plane (view distance)
+		//             |
+		//             |
+		//  half vd    *---- r
+		//             |  /
+		//             | /
+		//  camera     c
+		//
 
-		final float clampedX = Math.round((texelAlignmentPos.getX()) / xWorldUnitsPerTexel) * xWorldUnitsPerTexel;
-		final float clampedY = Math.round((texelAlignmentPos.getY()) / yWorldUnitsPerTexel) * yWorldUnitsPerTexel;
-		final float dx = texelAlignmentPos.getX() - clampedX;
-		final float dy = texelAlignmentPos.getY() - clampedY;
+		final int radius = (int) Math.ceil(Math.sqrt(viewDist * viewDist - halfDist * halfDist));
 
-		bounds.computeViewBounds(shadowViewMatrixExt, WorldDataManager.cameraX, WorldDataManager.cameraY, WorldDataManager.cameraZ);
+		// Compute sky light vector transform - points towards the sun
+		shadowViewMatrix.loadIdentity();
+		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(skyOutput.zenithAngle));
+		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(skyOutput.hourAngle));
+		testVec.set(0, 1, 0, 0);
+		testVec.transform(shadowViewMatrix);
+		skyLightVector.set(testVec.getX(), testVec.getY(), testVec.getZ());
 
-		// Construct ortho matrix using bounding sphere box computed above
-		// Should give us a consistent size each frame until the sun moves.
-		// We use actual geometry depth to give better precision on Z.
-		// Z axis inverted to match depth axis in OpenGL
-		shadowProjMatrixExt.setOrtho(
-			x0 - dx, x1 - dx,
-			y0 - dy, y1 - dy,
-			-bounds.maxViewZ(), -bounds.minViewZ());
+		// Use the unit vector we just computed to create a view matrix from perspective of the sky light.
+		// Distance here isn't too picky, we need to ensure it is far enough away to contain any shadow-casting
+		// geometry but not far enough to lose much precision in the depth (Z) dimension.
+		shadowViewMatrixExt.lookAt(
+			skyLightVector.getX() * radius, skyLightVector.getY() * radius, skyLightVector.getZ() * radius,
+			0, 0, 0,
+			0.0f, 0.0f, 1.0f);
 
-		shadowDepth = Math.abs(bounds.maxViewZ() - bounds.minViewZ());
-	}
+		// Compute inverse while we're here
+		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
+		shadowViewMatrixInv.invert();
 
-	private static void computeBounds(float viewDistance) {
-		final float hvd = viewDistance * 0.5f;
-		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() - hvd);
-		shadowViewMatrixExt.fastTransform(boundsPos);
+		// // Compute how much camera has moved in view x/y space.
+		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
+		testVec.transform(shadowViewMatrix);
 
-		x0 = boundsPos.getX();
-		x1 = x0;
-		y0 = boundsPos.getY();
-		y1 = x0;
+		final float cdx = testVec.getX();
+		final float cdy = testVec.getY();
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
-		computeBoundsInner();
+		final int[] radii = Pipeline.config().skyShadow.cascadeRadii;
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() - hvd);
-		computeBoundsInner();
+		updateCascadeInfo(0, radius, halfDist, radius, cdx, cdy);
+		updateCascadeInfo(1, radii[0], radii[0], radius, cdx, cdy);
+		updateCascadeInfo(2, radii[1], radii[1], radius, cdx, cdy);
+		updateCascadeInfo(3, radii[2], radii[2], radius, cdx, cdy);
 
-		boundsPos.set(WorldDataManager.frustumCenter.getX() - hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() + hvd);
-		computeBoundsInner();
-
-		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() - hvd);
-		computeBoundsInner();
-
-		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() - hvd, WorldDataManager.frustumCenter.getZ() + hvd);
-		computeBoundsInner();
-
-		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() - hvd);
-		computeBoundsInner();
-
-		boundsPos.set(WorldDataManager.frustumCenter.getX() + hvd, WorldDataManager.frustumCenter.getY() + hvd, WorldDataManager.frustumCenter.getZ() + hvd);
-		computeBoundsInner();
-	}
-
-	private static void computeBoundsInner() {
-		shadowViewMatrixExt.fastTransform(boundsPos);
-
-		final float x = boundsPos.getX();
-
-		if (x < x0) {
-			x0 = x;
-		} else if (x > x1) {
-			x1 = x;
-		}
-
-		final float y = boundsPos.getY();
-
-		if (y < y0) {
-			y0 = y;
-		} else if (y > y1) {
-			y1 = y;
-		}
+		lastCameraX = cameraXd;
+		lastCameraY = cameraYd;
+		lastCameraZ = cameraZd;
 	}
 
 	/**
-	 * Depends on WorldDataManager and should be called after it updates.
-	 * @param bounds
+	 *
+	 * @param cascade  cascade index, 0 is largest (least detail) and 3 is smalled (most detail)
+	 * @param radius   radius of bounding box / sphere - same as half distance for all but largest
+	 * @param halfDist distance from camera to center of of bounding box / sphere - same as radius for all but largest
+	 * @param depthRadius depth radius to use for depth projection - must always encompass entire scene depth
+	 * @param cdx	   movement of camera on X axis of light view since last frame
+	 * @param cdy	   movement of camera on Y axis of light view since last frame
 	 */
-	public static void update(MatrixState val, MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, TerrainBounds bounds) {
-		assert val != null;
-		current = val;
+	static void updateCascadeInfo(int cascade, int radius, float halfDist, int depthRadius, float cdx, float cdy) {
+		// Accumulate camera adjustment
+		float dx = lastDx[cascade] + cdx;
+		float dy = lastDy[cascade] + cdy;
 
+		// Clamp accumulated camera adjustment to pixel boundary.
+		// This keep the projection center near the camera position.
+		final double worldPerPixel = 2.0 * radius / Pipeline.skyShadowSize;
+		dx = (float) (dx - Math.floor(dx / worldPerPixel) * worldPerPixel);
+		dy = (float) (dy - Math.floor(dy / worldPerPixel) * worldPerPixel);
+
+		// NaN values sometime crop up in edge cases, esp during initialization.
+		// If we don't correct for them then the accumulated adjustment becomes Nan
+		// and never recovers.
+		if (Float.isNaN(dx)) {
+			dx = 0f;
+		}
+
+		if (Float.isNaN(dy)) {
+			dy = 0f;
+		}
+
+		// Find the center of our projection.
+		testVec.set(cameraVector.getX() * halfDist, cameraVector.getY() * halfDist, cameraVector.getZ() * halfDist, 1.0f);
+		testVec.transform(shadowViewMatrix);
+
+		float cx = testVec.getX();
+		float cy = testVec.getY();
+		float cz = testVec.getZ();
+
+		cx = (float) (Math.floor(cx / worldPerPixel) * worldPerPixel) - dx;
+		cy = (float) (Math.floor(cy / worldPerPixel) * worldPerPixel) - dy;
+		cz = (float) (Math.ceil(cz / worldPerPixel) * worldPerPixel);
+
+		// We previously use actual geometry depth to give better precision on Z.
+		// However, scenes are so variable that this causes problems for optimizing polygonOffset
+		// Z axis bounds are inverted because Z axis points towards negative end in OpenGL
+		// This maps the near depth bound (center + radius) to -1 and the far depth bound (center - radius) to +1.
+
+		// Construct ortho matrix using bounding sphere/box computed above.
+		// Should give us a consistent size each frame, which helps prevent shimmering.
+		shadowProjMatrixExt[cascade].setOrtho(
+			cx - radius, cx + radius,
+			cy - radius, cy + radius,
+			-(cz + depthRadius), -(cz - depthRadius));
+
+		final int offset = SHADOW_CENTER + cascade * 4;
+
+		WorldDataManager.DATA.put(offset, cx);
+		WorldDataManager.DATA.put(offset + 1, cy);
+		WorldDataManager.DATA.put(offset + 2, cz);
+		WorldDataManager.DATA.put(offset + 3, radius);
+
+		lastDx[cascade] = dx;
+		lastDy[cascade] = dy;
+	}
+
+	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
 		// write values for prior frame before updating
 		viewMatrixExt.writeToBuffer(VIEW_LAST * 16, DATA);
 		projMatrixExt.writeToBuffer(PROJ_LAST * 16, DATA);
 		viewProjMatrixExt.writeToBuffer(VP_LAST * 16, DATA);
+		cleanProjMatrixExt.writeToBuffer(CLEAN_PROJ_LAST * 16, DATA);
+		cleanViewProjMatrixExt.writeToBuffer(CLEAN_VP_LAST * 16, DATA);
 
 		((Matrix3fExt) (Object) viewNormalMatrix).set((Matrix3fExt) (Object) view.getNormal());
 
@@ -240,7 +275,6 @@ public enum MatrixState {
 
 		projMatrixInvExt.set(projMatrixExt);
 		projMatrixInv.invert();
-		//projMatrixInvExt.invertProjection();
 		projMatrixInvExt.writeToBuffer(PROJ_INVERSE * 16, DATA);
 
 		viewProjMatrixExt.set(projMatrixExt);
@@ -251,33 +285,61 @@ public enum MatrixState {
 		viewProjMatrixInvExt.multiply(projMatrixInvExt);
 		viewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, DATA);
 
-		// shadow perspective
-		computeShadowMatrices(camera, bounds);
+		computeCleanProjection(camera, tickDelta);
+		cleanProjMatrixExt.writeToBuffer(CLEAN_PROJ * 16, DATA);
+		cleanProjMatrixInvExt.writeToBuffer(CLEAN_PROJ_INVERSE * 16, DATA);
+
+		cleanViewProjMatrixExt.set(cleanProjMatrixExt);
+		cleanViewProjMatrixExt.multiply(viewMatrixExt);
+		cleanViewProjMatrixExt.writeToBuffer(CLEAN_VP * 16, DATA);
+
+		cleanViewProjMatrixInvExt.set(viewMatrixInvExt);
+		cleanViewProjMatrixInvExt.multiply(cleanProjMatrixInvExt);
+		cleanViewProjMatrixInvExt.writeToBuffer(CLEAN_VP_INVERSE * 16, DATA);
+
+		cleanFrustum.prepare(viewMatrix, tickDelta, camera, cleanProjMatrix);
+		cleanFrustum.computeCircumCenter(viewMatrixInv, cleanProjMatrixInv);
+	}
+
+	static void updateShadow(Camera camera, float tickDelta, CelestialObjectOutput skyoutput) {
+		computeShadowMatrices(camera, tickDelta, skyoutput);
+
+		// shadow perspective were computed earlier
 		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, DATA);
-		shadowProjMatrixExt.writeToBuffer(SHADOW_PROJ * 16, DATA);
 
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		// reliable inversion of rotation matrix
 		shadowViewMatrixInv.transpose();
 		shadowViewMatrixInvExt.writeToBuffer(SHADOW_VIEW_INVERSE * 16, DATA);
 
-		shadowProjMatrixInvExt.set(shadowProjMatrixExt);
-		shadowProjMatrixInv.invert();
-		//shadowProjMatrixInvExt.invertProjection();
-		shadowProjMatrixInvExt.writeToBuffer(SHADOW_PROJ_INVERSE * 16, DATA);
+		for (int i = 0; i < CASCADE_COUNT; ++i) {
+			shadowProjMatrixExt[i].writeToBuffer((SHADOW_PROJ_0 + i) * 16, DATA);
 
-		shadowViewProjMatrixExt.set(shadowProjMatrixExt);
-		shadowViewProjMatrixExt.multiply(shadowViewMatrixExt);
-		shadowViewProjMatrixExt.writeToBuffer(SHADOW_VIEW_PROJ * 16, DATA);
-
-		shadowViewProjMatrixInvExt.set(shadowViewMatrixInvExt);
-		shadowViewProjMatrixInvExt.multiply(shadowProjMatrixInvExt);
-		shadowViewProjMatrixInvExt.writeToBuffer(SHADOW_VIEW_PROJ_INVERSE * 16, DATA);
+			shadowViewProjMatrixExt[i].set(shadowProjMatrixExt[i]);
+			shadowViewProjMatrixExt[i].multiply(shadowViewMatrixExt);
+			shadowViewProjMatrixExt[i].writeToBuffer((SHADOW_VIEW_PROJ_0 + i) * 16, DATA);
+		}
 	}
 
-	/** Depth of the shadow map projection.  Lower values require less offset to avoid artifacts. */
-	public static float shadowDepth() {
-		return shadowDepth;
+	/**
+	 * Computes projection that doesn't include nausea or view bob and doesn't have 4X depth like vanilla.
+	 */
+	public static void computeCleanProjection(Camera camera, float tickDelta) {
+		final MinecraftClient mc = MinecraftClient.getInstance();
+		final GameRendererExt gx = (GameRendererExt) mc.gameRenderer;
+		final float zoom = gx.canvas_zoom();
+
+		cleanProjMatrix.loadIdentity();
+
+		if (zoom != 1.0F) {
+			cleanProjMatrixExt.translate(gx.canvas_zoomX(), -gx.canvas_zoomY(), 0.0f);
+			cleanProjMatrixExt.scale(zoom, zoom, 1.0F);
+		}
+
+		cleanProjMatrix.multiply(Matrix4f.viewboxMatrix(gx.canvas_getFov(camera, tickDelta, true), mc.getWindow().getFramebufferWidth() / mc.getWindow().getFramebufferHeight(), 0.05F, mc.gameRenderer.getViewDistance()));
+
+		cleanProjMatrixInvExt.set(cleanProjMatrixExt);
+		cleanProjMatrixInv.invert();
 	}
 
 	public static final Matrix4f viewMatrix = new Matrix4f();
@@ -295,30 +357,40 @@ public enum MatrixState {
 	private static final Matrix4f viewProjMatrixInv = new Matrix4f();
 	private static final Matrix4fExt viewProjMatrixInvExt = (Matrix4fExt) (Object) viewProjMatrixInv;
 
+	public static final Matrix4f cleanProjMatrix = new Matrix4f();
+	public static final Matrix4fExt cleanProjMatrixExt = (Matrix4fExt) (Object) cleanProjMatrix;
+	private static final Matrix4f cleanProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt cleanProjMatrixInvExt = (Matrix4fExt) (Object) cleanProjMatrixInv;
+
+	private static final Matrix4f cleanViewProjMatrix = new Matrix4f();
+	private static final Matrix4fExt cleanViewProjMatrixExt = (Matrix4fExt) (Object) cleanViewProjMatrix;
+	private static final Matrix4f cleanViewProjMatrixInv = new Matrix4f();
+	private static final Matrix4fExt cleanViewProjMatrixInvExt = (Matrix4fExt) (Object) cleanViewProjMatrixInv;
+
 	public static final Matrix4f shadowViewMatrix = new Matrix4f();
 	public static final Matrix4fExt shadowViewMatrixExt = (Matrix4fExt) (Object) shadowViewMatrix;
 	private static final Matrix4f shadowViewMatrixInv = new Matrix4f();
 	private static final Matrix4fExt shadowViewMatrixInvExt = (Matrix4fExt) (Object) shadowViewMatrixInv;
 
-	public static final Matrix4f shadowProjMatrix = new Matrix4f();
-	public static final Matrix4fExt shadowProjMatrixExt = (Matrix4fExt) (Object) shadowProjMatrix;
-	private static final Matrix4f shadowProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt shadowProjMatrixInvExt = (Matrix4fExt) (Object) shadowProjMatrixInv;
+	public static final Matrix4f[] shadowProjMatrix = new Matrix4f[CASCADE_COUNT];
+	public static final Matrix4fExt[] shadowProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
+	public static final Matrix4f[] shadowViewProjMatrix = new Matrix4f[CASCADE_COUNT];
+	public static final Matrix4fExt[] shadowViewProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
 
-	public static final Matrix4f shadowViewProjMatrix = new Matrix4f();
-	public static final Matrix4fExt shadowViewProjMatrixExt = (Matrix4fExt) (Object) shadowViewProjMatrix;
-	private static final Matrix4f shadowViewProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt shadowViewProjMatrixInvExt = (Matrix4fExt) (Object) shadowViewProjMatrixInv;
+	static {
+		for (int i = 0; i < CASCADE_COUNT; ++i) {
+			shadowProjMatrix[i] = new Matrix4f();
+			shadowProjMatrixExt[i] = (Matrix4fExt) (Object) shadowProjMatrix[i];
+
+			shadowViewProjMatrix[i] = new Matrix4f();
+			shadowViewProjMatrixExt[i] = (Matrix4fExt) (Object) shadowViewProjMatrix[i];
+		}
+	}
 
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
 
-	private static final Matrix4f worldShadowView = new Matrix4f();
-	private static final Matrix4fExt worldShadowViewExt = (Matrix4fExt) (Object) worldShadowView;
-
-	private static final Vector3f texelAlignmentPos = new Vector3f();
-	private static final Vector3f boundsPos = new Vector3f();
-	private static float x0, y0, x1, y1;
-	private static float shadowDepth;
+	// frustum without nausea or view bob
+	public static final FastFrustum cleanFrustum = new FastFrustum();
 
 	private static final int VIEW = 0;
 	private static final int VIEW_INVERSE = 1;
@@ -329,13 +401,21 @@ public enum MatrixState {
 	private static final int VP = 6;
 	private static final int VP_INVERSE = 7;
 	private static final int VP_LAST = 8;
+
 	private static final int SHADOW_VIEW = 9;
 	private static final int SHADOW_VIEW_INVERSE = 10;
-	private static final int SHADOW_PROJ = 11;
-	private static final int SHADOW_PROJ_INVERSE = 12;
-	private static final int SHADOW_VIEW_PROJ = 13;
-	private static final int SHADOW_VIEW_PROJ_INVERSE = 14;
+	// base index of cascades 0-3
+	private static final int SHADOW_PROJ_0 = 11;
+	// base index of cascades 0-3
+	private static final int SHADOW_VIEW_PROJ_0 = 15;
 
-	public static final int COUNT = 15;
+	private static final int CLEAN_PROJ = 19;
+	private static final int CLEAN_PROJ_INVERSE = 20;
+	private static final int CLEAN_PROJ_LAST = 21;
+	private static final int CLEAN_VP = 22;
+	private static final int CLEAN_VP_INVERSE = 23;
+	private static final int CLEAN_VP_LAST = 24;
+
+	public static final int COUNT = 25;
 	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(COUNT * 16);
 }

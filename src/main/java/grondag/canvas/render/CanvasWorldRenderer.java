@@ -109,7 +109,6 @@ import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
-import grondag.canvas.terrain.occlusion.geometry.TerrainBounds;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionPruner;
@@ -133,7 +132,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder, distanceSorter);
 	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
-	public final TerrainBounds bounds = new TerrainBounds();
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
@@ -300,7 +298,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				final int size = terrainIterator.visibleRegionCount;
 				visibleRegionCount = size;
 				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
-				bounds.set(terrainIterator.bounds);
 				assert size == 0 || visibleRegions[0] != null;
 				scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
@@ -328,7 +325,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				lastViewVersion = terrainFrustum.viewVersion();
 				visibleRegionCount = size;
 				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
-				bounds.set(terrainIterator.bounds);
 				scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 			}
@@ -419,8 +415,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profiler.swap("culling");
 
 		final TerrainFrustum frustum = terrainFrustum;
-		frustum.prepare(MatrixState.viewMatrix, tickDelta, camera);
-		particleRenderer.frustum.prepare(MatrixState.viewMatrix, tickDelta, camera, projectionMatrix);
 
 		mc.getProfiler().swap("regions");
 
@@ -443,12 +437,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (mc.options.viewDistance >= 4) {
 			// NB: fog / sky renderer really wants it this way
-			RenderSystem.popMatrix();
+			RenderSystem.pushMatrix();
+			RenderSystem.loadIdentity();
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
 			profiler.swap("sky");
 			((WorldRenderer) wr).renderSky(viewMatrixStack, tickDelta);
-			RenderSystem.pushMatrix();
-			RenderSystem.multMatrix(MatrixState.viewMatrix);
+			RenderSystem.popMatrix();
 		}
 
 		profiler.swap("fog");
@@ -647,6 +641,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
 			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
+
 			MatrixState.set(MatrixState.REGION);
 			renderTerrainLayer(false, cameraX, cameraY, cameraZ);
 			MatrixState.set(MatrixState.CAMERA);
@@ -861,13 +856,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			if (Pipeline.fabCloudsFbo > 0) {
 				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, Pipeline.fabCloudsFbo);
-				//Pipeline.cloudsFbo.bind();
 			}
 
 			// NB: vanilla cloud renderer wants/needs the transformed stack even though it is already applied
 			renderClouds(viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
 
-			if (Pipeline.cloudsFbo != null) {
+			if (Pipeline.fabCloudsFbo > 0) {
 				Pipeline.defaultFbo.bind();
 			}
 		}
@@ -1141,6 +1135,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			z1 = box.maxZ;
 		}
 
+		// PERF: should probably use same frustum as for particles - don't need the padding
 		if (!terrainFrustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
 			return false;
 		}
@@ -1224,8 +1219,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// and managed draws will correctly have no rotation applies.  Direct draws may attempt to transform
 		// the GL state to the view matrix but it will have no effect - it is already applied.
 
-		WorldDataManager.update(camera);
-		MatrixState.update(MatrixState.CAMERA, viewMatrixStack.peek(), projectionMatrix, camera, bounds);
+		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
+		terrainFrustum.prepare(viewMatrix, tickDelta, camera);
+		particleRenderer.frustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
+		WorldDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
+		MatrixState.set(MatrixState.CAMERA);
 		RenderSystem.pushMatrix();
 		RenderSystem.multMatrix(MatrixState.viewMatrix);
 

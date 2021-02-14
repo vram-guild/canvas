@@ -24,6 +24,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack.Entry;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
@@ -48,7 +49,7 @@ import grondag.fermion.bits.BitPacker32;
 import grondag.frex.api.light.ItemLight;
 
 public class WorldDataManager {
-	public static final int VECTOR_COUNT = 16;
+	public static final int VECTOR_COUNT = 32;
 	private static final int LENGTH = VECTOR_COUNT * 4;
 
 	private static final int VEC_WORLD_TIME = 4 * 0;
@@ -111,14 +112,18 @@ public class WorldDataManager {
 	private static final int SKYLIGHT_VECTOR = 4 * 11;
 	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
 
-	// w is always zero
-	private static final int CAMERA_TO_SKYLIGHT = 4 * 12;
+	// was previously skylight position
+	@SuppressWarnings("unused")
+	private static final int RESERVED = 4 * 12;
 
 	private static final int ATMOSPHERIC_COLOR = 4 * 13;
 	private static final int SKYLIGHT_TRANSITION_FACTOR = ATMOSPHERIC_COLOR + 3;
 
 	private static final int SKYLIGHT_COLOR = 4 * 14;
 	private static final int SKYLIGHT_ILLUMINANCE = SKYLIGHT_COLOR + 3;
+
+	// 15-18 reserved for cascades 0-3
+	static final int SHADOW_CENTER = 4 * 15;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -188,12 +193,9 @@ public class WorldDataManager {
 
 	/** Camera view vector in world space - normalized. */
 	public static final Vector3f cameraVector = new Vector3f();
-	/** Middle of view frustum in camera space - skylight points towards this. */
-	public static final Vector3f frustumCenter = new Vector3f();
+
 	/** Points towards the light - normalized. */
 	public static final Vector3f skyLightVector = new Vector3f();
-	/** Position of the sky light in camera space. Inverse of camera-to-skylight offset. */
-	public static final Vector3f skyLightPosition = new Vector3f();
 
 	public static float cameraX, cameraY, cameraZ = 0f;
 
@@ -205,8 +207,6 @@ public class WorldDataManager {
 	private static final CelestialObjectOutput skyOutput = new CelestialObjectOutput();
 
 	private static final CelestialObjectInput skyInput = new CelestialObjectInput() {
-		private final Matrix4f workingMatrix = new Matrix4f();
-
 		@Override
 		public ClientWorld world() {
 			return world;
@@ -230,11 +230,6 @@ public class WorldDataManager {
 		@Override
 		public double cameraZ() {
 			return cameraZd;
-		}
-
-		@Override
-		public Matrix4f workingMatrix() {
-			return workingMatrix;
 		}
 	};
 
@@ -363,8 +358,10 @@ public class WorldDataManager {
 	/**
 	 * Called just before terrain setup each frame after camera, fog and projection
 	 * matrix are set up.
+	 * @param projectionMatrix
+	 * @param entry
 	 */
-	public static void update(Camera camera) {
+	public static void update(Entry entry, Matrix4f projectionMatrix, Camera camera) {
 		final MinecraftClient client = MinecraftClient.getInstance();
 		final Entity cameraEntity = camera.getFocusedEntity();
 		final float tickDelta = client.getTickDelta();
@@ -400,6 +397,8 @@ public class WorldDataManager {
 		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
 		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch, null);
 
+		MatrixState.update(entry, projectionMatrix, camera, tickDelta);
+
 		DATA.put(VIEW_WIDTH, PipelineManager.width());
 		DATA.put(VIEW_HEIGHT, PipelineManager.height());
 		DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
@@ -417,11 +416,6 @@ public class WorldDataManager {
 			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
 
-			final float hvd = client.gameRenderer.getViewDistance() * 0.5f;
-
-			// point being viewed is middle of camera frustum
-			frustumCenter.set(cameraVector.getX() * hvd, cameraVector.getY() * hvd, cameraVector.getZ() * hvd);
-
 			if (skyLight) {
 				final boolean moonLight = computeSkylightFactor(tickTime);
 
@@ -433,27 +427,20 @@ public class WorldDataManager {
 				WorldDataManager.world = world;
 				WorldDataManager.tickDelta = tickDelta;
 
+				skyOutput.zenithAngle = Pipeline.defaultZenithAngle;
+
 				if (moonLight) {
 					CelestialObjectFunction.VANILLA_MOON.compute(skyInput, skyOutput);
 				} else {
 					CelestialObjectFunction.VANILLA_SUN.compute(skyInput, skyOutput);
 				}
 
-				skyLightVector.set(skyOutput.cameraToObject.getX(), skyOutput.cameraToObject.getY(), skyOutput.cameraToObject.getZ());
-				DATA.put(SKYLIGHT_VECTOR + 0, skyOutput.cameraToObject.getX());
-				DATA.put(SKYLIGHT_VECTOR + 1, skyOutput.cameraToObject.getY());
-				DATA.put(SKYLIGHT_VECTOR + 2, skyOutput.cameraToObject.getZ());
+				// Note this computes the value of skyLightVector - quantizing to align to shadow map pixels
+				MatrixState.updateShadow(camera, tickDelta, skyOutput);
+				DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
+				DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());
+				DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.getZ());
 				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
-
-				// sky light is half view distance from that
-				skyLightPosition.set(
-						frustumCenter.getX() + skyLightVector.getX() * hvd,
-						frustumCenter.getY() + skyLightVector.getY() * hvd,
-						frustumCenter.getZ() + skyLightVector.getZ() * hvd);
-
-				DATA.put(CAMERA_TO_SKYLIGHT + 0, -skyLightPosition.getX());
-				DATA.put(CAMERA_TO_SKYLIGHT + 1, -skyLightPosition.getY());
-				DATA.put(CAMERA_TO_SKYLIGHT + 2, -skyLightPosition.getZ());
 
 				worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
 				DATA.put(ATMOSPHERIC_COLOR + 0, skyOutput.atmosphericColorModifier.getX());

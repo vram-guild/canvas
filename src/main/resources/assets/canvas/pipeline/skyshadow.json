@@ -1,4 +1,18 @@
 {
+  options: [
+    {
+      includeToken: "canvas:shadow_debug",
+      categoryKey: "config.canvas.category.debug",
+      options: {
+        shadow_debug: {
+          default: false,
+          nameKey: "config.canvas.value.shadow_debug",
+          descriptionKey: "config.canvas.help.shadow_debug"
+        }
+      }
+    }
+  ],
+
   skyShadows: {
 		framebuffer: "shadow",
 		allowEntities: true,
@@ -6,18 +20,30 @@
 		supportForwardRender: true,
 		vertexShader: "canvas:shaders/pipeline/shadow.vert",
 		fragmentShader: "canvas:shaders/pipeline/shadow.frag",
+    // first parameter to glPolygonOffset - variable slope factor
+    offsetSlopeFactor: 1.1,
+    // second parameter to glPolygonOffset - constant offset bias
+    offsetBiasUnits: 4.0,
+    // In-world radii of next-to-lowest to highest detail cascades.
+    // Each number is the distance from the camera to the center of
+    // the bounding box of the rendered volume and also the radius.
+    // These are automatically calculated for the largest (least-detail)
+    // cascade to contain the entire visible scene. These correspond
+    // to cascade indices 1, 2 and 3 in shader.
+    cascadeRadius: [32, 16, 8]
   },
 
   images: [
-    // depth attachment for shadow map - must be an array texture
+    // depth attachment for shadow map - must be an array texture with depth = 4
     {
       name: "shadow_depth",
       size: 1024,
-      depth: 4,
+      // DO NOT CHANGE ANY SETTINGS BELOW
       internalFormat: "DEPTH_COMPONENT32",
       pixelFormat: "DEPTH_COMPONENT",
       pixelDataType: "FLOAT",
       target: "TEXTURE_2D_ARRAY",
+      depth: 4,
       texParams: [
         {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
         {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},

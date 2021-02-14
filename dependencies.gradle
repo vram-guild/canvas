@@ -18,6 +18,8 @@ repositories {
 		name = "CurseForge"
 		url = "https://minecraft.curseforge.com/api/maven"
 	}
+	
+	maven { url "https://maven.terraformersmc.com/releases/"}
 }
 
 dependencies {
@@ -66,7 +68,7 @@ dependencies {
 		exclude group: "net.fabricmc.fabric-loader"
 	}
 
-	modImplementation("io.github.prospector:modmenu:${project.modmenu_version}") {
+	modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}") {
 		exclude group: "net.fabricmc.fabric-api"
 		exclude group: "net.fabricmc.fabric-loader"
 	}

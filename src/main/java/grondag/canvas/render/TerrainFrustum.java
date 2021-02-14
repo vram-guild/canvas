@@ -49,9 +49,6 @@ public class TerrainFrustum extends CanvasFrustum {
 	private int viewDistanceSquared;
 	private int viewVersion;
 	private int positionVersion;
-	private double lastViewX = Float.MAX_VALUE;
-	private double lastViewY = Float.MAX_VALUE;
-	private double lastViewZ = Float.MAX_VALUE;
 	private double lastPositionX = Double.MAX_VALUE;
 	private double lastPositionY = Double.MAX_VALUE;
 	private double lastPositionZ = Double.MAX_VALUE;
@@ -61,12 +58,9 @@ public class TerrainFrustum extends CanvasFrustum {
 	private double fov;
 
 	void reload() {
-		lastViewX = Float.MAX_VALUE;
-		lastViewY = Float.MAX_VALUE;
-		lastViewZ = Float.MAX_VALUE;
-		lastViewXf = Float.MAX_VALUE;
-		lastViewYf = Float.MAX_VALUE;
-		lastViewZf = Float.MAX_VALUE;
+		lastViewX = Double.MAX_VALUE;
+		lastViewY = Double.MAX_VALUE;
+		lastViewZ = Double.MAX_VALUE;
 		lastPositionX = Double.MAX_VALUE;
 		lastPositionY = Double.MAX_VALUE;
 		lastPositionZ = Double.MAX_VALUE;
@@ -98,9 +92,9 @@ public class TerrainFrustum extends CanvasFrustum {
 		lastViewY = src.lastViewY;
 		lastViewZ = src.lastViewZ;
 
-		lastViewXf = src.lastViewXf;
-		lastViewYf = src.lastViewYf;
-		lastViewZf = src.lastViewZf;
+		lastViewX = src.lastViewX;
+		lastViewY = src.lastViewY;
+		lastViewZ = src.lastViewZ;
 
 		lastPositionX = src.lastPositionX;
 		lastPositionY = src.lastPositionY;
@@ -112,9 +106,9 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		viewDistanceSquared = src.viewDistanceSquared;
 
-		lastModelMatrix.set(src.lastModelMatrix);
-		lastProjectionMatrix.set(src.lastProjectionMatrix);
-		mvpMatrix.set(src.mvpMatrix);
+		modelMatrixExt.set(src.modelMatrixExt);
+		projectionMatrixExt.set(src.projectionMatrixExt);
+		mvpMatrixExt.set(src.mvpMatrixExt);
 
 		leftX = src.leftX;
 		leftY = src.leftY;
@@ -207,26 +201,22 @@ public class TerrainFrustum extends CanvasFrustum {
 			modelMatrixUpdate = dPitch * dPitch + dYaw * dYaw >= paddingFov * paddingFov;
 		}
 
-		if (movedOneBlock || modelMatrixUpdate || !lastProjectionMatrix.matches(occlusionProjMat)) {
+		if (movedOneBlock || modelMatrixUpdate || !projectionMatrixExt.matches(occlusionProjMat)) {
 			++viewVersion;
 
 			lastViewX = x;
 			lastViewY = y;
 			lastViewZ = z;
 
-			lastViewXf = (float) x;
-			lastViewYf = (float) y;
-			lastViewZf = (float) z;
-
 			lastCameraPitch = cameraPitch;
 			lastCameraYaw = cameraYaw;
 
-			lastModelMatrix.set(modelMatrix);
-			lastProjectionMatrix.set(occlusionProjMat);
+			modelMatrixExt.set(modelMatrix);
+			projectionMatrixExt.set(occlusionProjMat);
 
-			mvpMatrix.loadIdentity();
-			mvpMatrix.multiply(lastProjectionMatrix);
-			mvpMatrix.multiply(lastModelMatrix);
+			mvpMatrixExt.loadIdentity();
+			mvpMatrixExt.multiply(projectionMatrixExt);
+			mvpMatrixExt.multiply(modelMatrixExt);
 
 			// depends on mvpMatrix being complete
 			extractPlanes();
@@ -281,6 +271,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			occlusionProjMatEx.scale(zoom, zoom, 1.0F);
 		}
 
+		// PERF: WHY 4X ON FAR CLIPPING PLANE MOJANG?
 		occlusionProjMat.multiply(Matrix4f.viewboxMatrix(fov + padding, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
 	}
 

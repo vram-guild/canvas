@@ -148,5 +148,7 @@
   "config.canvas.value.bloom_cutoff": "Cutoff Threshold",
   "config.canvas.help.bloom_cutoff": "Clamps low-intensity bloom edges to reduce halos and banding.",
   "pipeline.canvas_dev.name": "Canvas Dev",
-  "pipeline.canvas_dev.desc": "Work-in progress features. May break, unsupported."
+  "pipeline.canvas_dev.desc": "Work-in progess features. May break, unsupported.",
+  "config.canvas.value.shadow_debug": "Render Shadowmap Debug",
+  "config.canvas.help.shadow_debug": "Renders a colorized grid to indicate;shadowmap cascade and resolution."
 }

@@ -16,11 +16,13 @@
 
 package grondag.canvas.pipeline.config;
 
+import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
@@ -33,6 +35,9 @@ public class SkyShadowConfig extends AbstractConfig {
 	public final boolean supportForwardRender;
 	public final Identifier vertexShader;
 	public final Identifier fragmentShader;
+	public final float offsetSlopeFactor;
+	public final float offsetBiasUnits;
+	public final int[] cascadeRadii = {32, 16, 8};
 
 	SkyShadowConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
@@ -42,6 +47,27 @@ public class SkyShadowConfig extends AbstractConfig {
 		allowEntities = config.getBoolean("allowEntities", true);
 		allowParticles = config.getBoolean("allowParticles", true);
 		supportForwardRender = config.getBoolean("supportForwardRender", true);
+		offsetSlopeFactor = config.getFloat("offsetSlopeFactor", DEFAULT_SHADOW_SLOPE_FACTOR);
+		offsetBiasUnits = config.getFloat("offsetBiasUnits", DEFAULT_SHADOW_BIAS_UNITS);
+
+		final JsonArray radii = JanksonHelper.getJsonArrayOrNull(config, "cascadeRadius", "Invalid pipeline skyShadow config: cascadeRadius must be an array.");
+
+		if (radii != null) {
+			if (radii.size() != 3) {
+				CanvasMod.LOG.warn("Invalid pipeline skyShadow config: cascadeRadius array must have length 3.");
+			}
+
+			for (int i = 0; i < 3; ++i) {
+				final int r = radii.getInt(i, -1);
+
+				if (r <= 0) {
+					CanvasMod.LOG.warn("Invalid pipeline skyShadow config: cascadeRadius array must contain integers > 0.");
+					break;
+				}
+
+				cascadeRadii[i] = r;
+			}
+		}
 	}
 
 	@Override
@@ -58,4 +84,7 @@ public class SkyShadowConfig extends AbstractConfig {
 
 		return valid;
 	}
+
+	public static final float DEFAULT_SHADOW_BIAS_UNITS = 4.0f;
+	public static final float DEFAULT_SHADOW_SLOPE_FACTOR = 1.1f;
 }

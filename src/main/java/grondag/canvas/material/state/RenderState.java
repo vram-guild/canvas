@@ -23,7 +23,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
@@ -43,7 +42,6 @@ import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.CanvasGlHelper;
-import grondag.canvas.varia.MatrixState;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -70,15 +68,16 @@ public final class RenderState extends AbstractRenderState {
 
 	public void enable(int x, int y, int z) {
 		if (SkyShadowRenderer.isActive()) {
-			enableDepthPass(x, y, z);
+			enableDepthPass(x, y, z, SkyShadowRenderer.cascade());
 		} else {
 			enableMaterial(x, y, z);
 		}
 	}
 
-	private void enableDepthPass(int x, int y, int z) {
+	private void enableDepthPass(int x, int y, int z, int cascade) {
 		if (shadowActive == this) {
 			depthShader.setModelOrigin(x, y, z);
+			depthShader.setCascade(cascade);
 			return;
 		}
 
@@ -117,15 +116,10 @@ public final class RenderState extends AbstractRenderState {
 		depthShader.activate(this);
 		depthShader.setContextInfo(texture.atlasInfo(), target.index);
 		depthShader.setModelOrigin(x, y, z);
+		depthShader.setCascade(cascade);
 
-		// Try to select appopriate slope offset scale.
-		// Per NVidia some years back, 1.1 and 4.0 work well, but...
-		// 	More precision requires less bias and...
-		// 	When the shadowmap is being magnified requires larger scale
-		// What seems to actually work is adjusting scale for depth
 		GL46.glEnable(GL46.GL_POLYGON_OFFSET_FILL);
-		final float bias = MathHelper.clamp(MatrixState.shadowDepth() * 0.01f, 0.5f, 1.5f);
-		GL46.glPolygonOffset(bias, 4.0f);
+		GL46.glPolygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
 		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 
@@ -164,15 +158,19 @@ public final class RenderState extends AbstractRenderState {
 
 		// controlled in shader
 		RenderSystem.disableAlphaTest();
+		assert CanvasGlHelper.checkError();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
 			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			assert CanvasGlHelper.checkError();
+			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
+			// Was seeing stray invalid operations errors in GL without.
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 
-		assert CanvasGlHelper.checkError();
-
 		texture.enable(blur);
+		assert CanvasGlHelper.checkError();
 
 		transparency.enable();
 		assert CanvasGlHelper.checkError();
@@ -218,7 +216,7 @@ public final class RenderState extends AbstractRenderState {
 		shadowActive = null;
 
 		GL46.glDisable(GL46.GL_POLYGON_OFFSET_FILL);
-		//GL46.glCullFace(GL46.GL_BACK);
+		GL46.glCullFace(GL46.GL_BACK);
 
 		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();

@@ -7,6 +7,7 @@
 #include frex:shaders/api/material.glsl
 #include canvas:basic_light_config
 #include canvas:handheld_light_config
+#include canvas:shadow_debug
 
 /******************************************************
   canvas:shaders/pipeline/dev.frag
@@ -95,6 +96,41 @@ frx_FragmentData frx_createPipelineFragment() {
 
 vec3 skyLight = frx_skyLightAtmosphericColor() * frx_skyLightColor() * (frx_skyLightTransitionFactor() * frx_skyLightIlluminance() / 32000.0);
 
+vec3 shadowDist(int cascade) {
+	vec4 c = frx_shadowCenter(cascade);
+
+	return abs((c.xyz - shadowPos.xyz) / c.w);
+}
+
+int selectShadowCascade() {
+	vec3 d3 = shadowDist(3);
+	vec3 d2 = shadowDist(2);
+	vec3 d1 = shadowDist(1);
+
+	int cascade = 0;
+
+	if (d3.x < 1.0 && d3.y < 1.0 && d3.z < 1.0) {
+		cascade = 3;
+	} else if (d2.x < 1.0 && d2.y < 1.0 && d2.z < 1.0) {
+		cascade = 2;
+	} else if (d1.x < 1.0 && d1.y < 1.0 && d1.z < 1.0) {
+		cascade = 1;
+	}
+
+	return cascade;
+}
+
+#ifdef SHADOW_DEBUG
+
+const vec4[] cascadeColors = vec4[4](
+	vec4(1.0, 0.5, 0.5, 1.0),
+	vec4(1.0, 1.0, 0.5, 1.0),
+	vec4(0.5, 1.0, 0.5, 1.0),
+	vec4(0.5, 1.0, 1.0, 1.0)
+);
+
+#endif
+
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 
@@ -129,16 +165,26 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 			light += held;
 		}
 	#endif
+		int cascade = selectShadowCascade();
 
-		vec3 shadowCoords = shadowPos.xyz / shadowPos.w;
+		// NB: perspective division should not be needed because ortho projection
+		vec4 shadowCoords = frx_shadowProjectionMatrix(cascade) * shadowPos;
 
 		// Transform from screen coordinates to texture coordinates
-		shadowCoords = shadowCoords * 0.5 + 0.5;
-		float shadowDepth = texture2DArray(frxs_shadowMap, vec3(shadowCoords.xy, 0)).x;
+		vec3 shadowTexCoords = shadowCoords.xyz * 0.5 + 0.5;
 
-		if (shadowDepth >= shadowCoords.z) {
+		if (texture2DArray(frxs_shadowMap, vec3(shadowTexCoords.xy, float(cascade))).x >= shadowTexCoords.z) {
 			light += vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
 		}
+
+	#ifdef SHADOW_DEBUG
+		shadowCoords = abs(fract(shadowCoords * 1024.0));
+
+		if (!(shadowCoords.x > 0.05 && shadowCoords.x < 0.95 && shadowCoords.y > 0.05 && shadowCoords.y < 0.95)) {
+			light = vec4(1.0);
+			a = cascadeColors[cascade];
+		}
+	#endif
 
 		if (fragData.ao) {
 			light *= aoFactor(fragData.light, fragData.aoShade);

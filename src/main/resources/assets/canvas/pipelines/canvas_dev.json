@@ -4,6 +4,11 @@
 	materialVertexShader: "canvas:shaders/pipeline/dev.vert",
 	materialFragmentShader: "canvas:shaders/pipeline/dev.frag",
 
+	sky: {
+		// Used when dimension/celestial object does not specify
+		defaultZenithAngle: 15
+	},
+
 	drawTargets: {
 		solidTerrain: "solid",
 		translucentTerrain: "translucent",
