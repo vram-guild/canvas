@@ -96,6 +96,11 @@ frx_FragmentData frx_createPipelineFragment() {
 
 vec3 skyLight = frx_skyLightAtmosphericColor() * frx_skyLightColor() * (frx_skyLightTransitionFactor() * frx_skyLightIlluminance() / 32000.0);
 
+vec4 selectShadowCoords() {
+	// NB: perspective division should not be needed because ortho projection
+	return frx_shadowProjectionMatrix(0) * shadowPos;
+}
+
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 
@@ -131,14 +136,12 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		}
 	#endif
 
-		vec3 shadowCoords = shadowPos.xyz / shadowPos.w;
+		vec4 shadowCoords = selectShadowCoords();
 
 		// Transform from screen coordinates to texture coordinates
-		vec3 shadowTexCoords = shadowCoords * 0.5 + 0.5;
+		vec3 shadowTexCoords = shadowCoords.xyz * 0.5 + 0.5;
 
-		float shadowDepth = texture2DArray(frxs_shadowMap, vec3(shadowTexCoords.xy, 0.0)).x;
-
-		if (shadowDepth >= shadowTexCoords.z) {
+		if (texture2DArray(frxs_shadowMap, vec3(shadowTexCoords.xy, 0.0)).x >= shadowTexCoords.z) {
 			light += vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
 		}
 
