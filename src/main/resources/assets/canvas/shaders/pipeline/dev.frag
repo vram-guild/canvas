@@ -120,6 +120,17 @@ int selectShadowCascade() {
 	return cascade;
 }
 
+#ifdef SHADOW_DEBUG
+
+const vec4[] cascadeColors = vec4[4](
+	vec4(1.0, 0.5, 0.5, 1.0),
+	vec4(1.0, 1.0, 0.5, 1.0),
+	vec4(0.5, 1.0, 0.5, 1.0),
+	vec4(0.5, 1.0, 1.0, 1.0)
+);
+
+#endif
+
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 
@@ -171,7 +182,7 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 
 		if (!(shadowCoords.x > 0.05 && shadowCoords.x < 0.95 && shadowCoords.y > 0.05 && shadowCoords.y < 0.95)) {
 			light = vec4(1.0);
-			a = vec4(0.0, 1.0, 1.0, 1.0);
+			a = cascadeColors[cascade];
 		}
 	#endif
 
