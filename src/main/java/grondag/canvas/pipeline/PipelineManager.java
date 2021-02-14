@@ -18,6 +18,7 @@ package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
@@ -70,7 +71,7 @@ public class PipelineManager {
 
 	public static void reloadIfNeeded() {
 		if (Pipeline.needsReload()) {
-			init(w, h);
+			init((PrimaryFrameBuffer) MinecraftClient.getInstance().getFramebuffer(), w, h);
 		}
 
 		handleRecompile();
@@ -200,7 +201,7 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	public static void init(int width, int height) {
+	public static void init(PrimaryFrameBuffer primary, int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
 		assert CanvasGlHelper.checkError();
@@ -212,7 +213,7 @@ public class PipelineManager {
 		w = width;
 		h = height;
 
-		Pipeline.activate(w, h);
+		Pipeline.activate(primary, w, h);
 		assert CanvasGlHelper.checkError();
 
 		final MinecraftClient mc = MinecraftClient.getInstance();

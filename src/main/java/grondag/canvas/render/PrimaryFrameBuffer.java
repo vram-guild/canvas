@@ -49,11 +49,7 @@ public class PrimaryFrameBuffer extends Framebuffer {
 		// UGLY - throwing away what seems to be a spurious INVALID_VALUE error here
 		GlStateManager.getError();
 
-		PipelineManager.init(width, height);
-
-		fbo = Pipeline.defaultFbo.glId();
-		colorAttachment = Pipeline.defaultColor;
-		depthAttachment = Pipeline.defaultDepth;
+		PipelineManager.init(this, width, height);
 
 		checkFramebufferStatus();
 		endRead();
