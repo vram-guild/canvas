@@ -36,6 +36,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -70,7 +71,7 @@ public class PipelineManager {
 
 	public static void reloadIfNeeded() {
 		if (Pipeline.needsReload()) {
-			init(w, h);
+			init((PrimaryFrameBuffer) MinecraftClient.getInstance().getFramebuffer(), w, h);
 		}
 
 		handleRecompile();
@@ -200,7 +201,7 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	public static void init(int width, int height) {
+	public static void init(PrimaryFrameBuffer primary, int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
 		assert CanvasGlHelper.checkError();
@@ -212,7 +213,7 @@ public class PipelineManager {
 		w = width;
 		h = height;
 
-		Pipeline.activate(w, h);
+		Pipeline.activate(primary, w, h);
 		assert CanvasGlHelper.checkError();
 
 		final MinecraftClient mc = MinecraftClient.getInstance();

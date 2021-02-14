@@ -21,7 +21,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.gl.Framebuffer;
 
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 
 public class PrimaryFrameBuffer extends Framebuffer {
@@ -49,11 +48,7 @@ public class PrimaryFrameBuffer extends Framebuffer {
 		// UGLY - throwing away what seems to be a spurious INVALID_VALUE error here
 		GlStateManager.getError();
 
-		PipelineManager.init(width, height);
-
-		fbo = Pipeline.defaultFbo.glId();
-		colorAttachment = Pipeline.defaultColor;
-		depthAttachment = Pipeline.defaultDepth;
+		PipelineManager.init(this, width, height);
 
 		checkFramebufferStatus();
 		endRead();

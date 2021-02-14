@@ -33,6 +33,7 @@ import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.ProgramConfig;
 import grondag.canvas.pipeline.config.SkyShadowConfig;
 import grondag.canvas.pipeline.pass.Pass;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.ProcessShader;
 
 public class Pipeline {
@@ -148,7 +149,7 @@ public class Pipeline {
 		}
 	}
 
-	static void activate(int width, int height) {
+	static void activate(PrimaryFrameBuffer primary, int width, int height) {
 		assert RenderSystem.isOnRenderThread();
 
 		if (reload || lastWidth != width || lastHeight != height) {
@@ -156,11 +157,11 @@ public class Pipeline {
 			lastWidth = width;
 			lastHeight = height;
 			closeInner();
-			activateInner(width, height);
+			activateInner(primary, width, height);
 		}
 	}
 
-	private static void activateInner(int width, int height) {
+	private static void activateInner(PrimaryFrameBuffer primary, int width, int height) {
 		final PipelineConfig config = PipelineConfigBuilder.build(new Identifier(Configurator.pipelineId));
 		Pipeline.config = config;
 
@@ -195,6 +196,10 @@ public class Pipeline {
 		defaultFbo = b;
 		defaultColor = getImage(b.config.colorAttachments[0].image.name).glId();
 		defaultDepth = getImage(b.config.depthAttachment.image.name).glId();
+
+		primary.fbo = defaultFbo.glId();
+		primary.colorAttachment = defaultColor;
+		primary.depthAttachment = defaultDepth;
 
 		solidTerrainFbo = getFramebuffer(config.drawTargets.solidTerrain.name);
 		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain.name);
