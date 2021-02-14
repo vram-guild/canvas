@@ -177,10 +177,10 @@ public enum MatrixState {
 
 		final int[] radii = Pipeline.config().skyShadow.cascadeRadii;
 
-		updateCascadeInfo(0, radius, halfDist, cdx, cdy);
-		updateCascadeInfo(1, radii[0], radii[0], cdx, cdy);
-		updateCascadeInfo(2, radii[1], radii[1], cdx, cdy);
-		updateCascadeInfo(3, radii[2], radii[2], cdx, cdy);
+		updateCascadeInfo(0, radius, halfDist, radius, cdx, cdy);
+		updateCascadeInfo(1, radii[0], radii[0], radius, cdx, cdy);
+		updateCascadeInfo(2, radii[1], radii[1], radius, cdx, cdy);
+		updateCascadeInfo(3, radii[2], radii[2], radius, cdx, cdy);
 
 		lastCameraX = cameraXd;
 		lastCameraY = cameraYd;
@@ -192,10 +192,11 @@ public enum MatrixState {
 	 * @param cascade  cascade index, 0 is largest (least detail) and 3 is smalled (most detail)
 	 * @param radius   radius of bounding box / sphere - same as half distance for all but largest
 	 * @param halfDist distance from camera to center of of bounding box / sphere - same as radius for all but largest
+	 * @param depthRadius depth radius to use for depth projection - must always encompass entire scene depth
 	 * @param cdx	   movement of camera on X axis of light view since last frame
 	 * @param cdy	   movement of camera on Y axis of light view since last frame
 	 */
-	static void updateCascadeInfo(int cascade, int radius, float halfDist, float cdx, float cdy) {
+	static void updateCascadeInfo(int cascade, int radius, float halfDist, int depthRadius, float cdx, float cdy) {
 		// Accumulate camera adjustment
 		float dx = lastDx[cascade] + cdx;
 		float dy = lastDy[cascade] + cdy;
@@ -239,7 +240,7 @@ public enum MatrixState {
 		shadowProjMatrixExt[cascade].setOrtho(
 			cx - radius, cx + radius,
 			cy - radius, cy + radius,
-			-(cz + radius), -(cz - radius));
+			-(cz + depthRadius), -(cz - depthRadius));
 
 		final int offset = SHADOW_CENTER + cascade * 4;
 
