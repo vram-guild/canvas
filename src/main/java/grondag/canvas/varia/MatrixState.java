@@ -175,10 +175,12 @@ public enum MatrixState {
 		final float cdx = testVec.getX();
 		final float cdy = testVec.getY();
 
+		final int[] radii = Pipeline.config().skyShadow.cascadeRadii;
+
 		updateCascadeInfo(0, radius, halfDist, cdx, cdy);
-		updateCascadeInfo(1, 32, 32, cdx, cdy);
-		updateCascadeInfo(2, 16, 16, cdx, cdy);
-		updateCascadeInfo(3, 8, 8, cdx, cdy);
+		updateCascadeInfo(1, radii[0], radii[0], cdx, cdy);
+		updateCascadeInfo(2, radii[1], radii[1], cdx, cdy);
+		updateCascadeInfo(3, radii[2], radii[2], cdx, cdy);
 
 		lastCameraX = cameraXd;
 		lastCameraY = cameraYd;
