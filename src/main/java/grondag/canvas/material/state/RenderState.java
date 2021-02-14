@@ -77,6 +77,7 @@ public final class RenderState extends AbstractRenderState {
 	private void enableDepthPass(int x, int y, int z, int cascade) {
 		if (shadowActive == this) {
 			depthShader.setModelOrigin(x, y, z);
+			depthShader.setCascade(cascade);
 			return;
 		}
 
@@ -115,6 +116,7 @@ public final class RenderState extends AbstractRenderState {
 		depthShader.activate(this);
 		depthShader.setContextInfo(texture.atlasInfo(), target.index);
 		depthShader.setModelOrigin(x, y, z);
+		depthShader.setCascade(cascade);
 
 		GL46.glEnable(GL46.GL_POLYGON_OFFSET_FILL);
 		GL46.glPolygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
