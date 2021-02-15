@@ -435,7 +435,7 @@ public class WorldDataManager {
 					CelestialObjectFunction.VANILLA_SUN.compute(skyInput, skyOutput);
 				}
 
-				// Note this computes the value of skyLightVector - quantizing to align to shadow map pixels
+				// Note this computes the value of skyLightVector
 				MatrixState.updateShadow(camera, tickDelta, skyOutput);
 				DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
 				DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());

@@ -168,19 +168,21 @@ public enum MatrixState {
 		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
 		shadowViewMatrixInv.invert();
 
-		// // Compute how much camera has moved in view x/y space.
-		testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
-		testVec.transform(shadowViewMatrix);
+		if (Pipeline.config().skyShadow != null) {
+			// // Compute how much camera has moved in view x/y space.
+			testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
+			testVec.transform(shadowViewMatrix);
 
-		final float cdx = testVec.getX();
-		final float cdy = testVec.getY();
+			final float cdx = testVec.getX();
+			final float cdy = testVec.getY();
 
-		final int[] radii = Pipeline.config().skyShadow.cascadeRadii;
+			final int[] radii = Pipeline.config().skyShadow.cascadeRadii;
 
-		updateCascadeInfo(0, radius, halfDist, radius, cdx, cdy);
-		updateCascadeInfo(1, radii[0], radii[0], radius, cdx, cdy);
-		updateCascadeInfo(2, radii[1], radii[1], radius, cdx, cdy);
-		updateCascadeInfo(3, radii[2], radii[2], radius, cdx, cdy);
+			updateCascadeInfo(0, radius, halfDist, radius, cdx, cdy);
+			updateCascadeInfo(1, radii[0], radii[0], radius, cdx, cdy);
+			updateCascadeInfo(2, radii[1], radii[1], radius, cdx, cdy);
+			updateCascadeInfo(3, radii[2], radii[2], radius, cdx, cdy);
+		}
 
 		lastCameraX = cameraXd;
 		lastCameraY = cameraYd;
