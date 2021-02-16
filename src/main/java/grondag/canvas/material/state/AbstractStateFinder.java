@@ -117,8 +117,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T disableShadows(boolean disableShadows) {
-		bits = DISABLE_SHADOWS.setValue(disableShadows, bits);
+	public T castShadows(boolean castShadows) {
+		bits = DISABLE_SHADOWS.setValue(!castShadows, bits);
 		return (T) this;
 	}
 

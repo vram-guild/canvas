@@ -96,6 +96,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean translucentCutout;
 	public final boolean hurtOverlay;
 	public final boolean flashOverlay;
+	public final boolean castShadows;
 	public final boolean primaryTargetTransparency;
 	// PERF: use this to avoid overhead of animated textures
 	public final boolean discardsTexture;
@@ -149,6 +150,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		translucentCutout = transparentCutout();
 		hurtOverlay = hurtOverlay();
 		flashOverlay = flashOverlay();
+		castShadows = castShadows();
 		discardsTexture = discardsTexture();
 	}
 }

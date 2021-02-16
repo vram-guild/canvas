@@ -71,16 +71,20 @@ public class DrawableBuffer implements AutoCloseable {
 		states = null;
 	}
 
-	public void draw() {
+	public void draw(boolean isShadow) {
 		if (buffer != null) {
 			CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
 			int startIndex = 0;
 
 			for (int i = 0; i < limit; ++i) {
-				//final VertexCollectorImpl collector = drawList.get(i);
+				final RenderState state = states[i];
 				final int vertexCount = counts[i];
-				states[i].enable();
-				GlStateManager.drawArrays(states[i].primitive, startIndex, vertexCount);
+
+				if (state.castShadows || !isShadow) {
+					state.enable();
+					GlStateManager.drawArrays(state.primitive, startIndex, vertexCount);
+				}
+
 				startIndex += vertexCount;
 			}
 

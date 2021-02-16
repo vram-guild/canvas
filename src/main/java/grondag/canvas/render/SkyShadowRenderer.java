@@ -81,7 +81,7 @@ public class SkyShadowRenderer {
 		MatrixState.set(MatrixState.CAMERA);
 
 		if (Pipeline.config().skyShadow.allowEntities && MinecraftClient.getInstance().options.entityShadows) {
-			entityBuffer.draw();
+			entityBuffer.draw(true);
 		}
 	}
 

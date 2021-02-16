@@ -144,8 +144,8 @@ abstract class AbstractRenderStateView {
 		return FOG.getValue(bits);
 	}
 
-	public boolean disableShadows() {
-		return DISABLE_SHADOWS.getValue(bits);
+	public boolean castShadows() {
+		return !DISABLE_SHADOWS.getValue(bits);
 	}
 
 	public BlendMode blendMode() {

@@ -645,7 +645,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			MatrixState.set(MatrixState.REGION);
 			renderTerrainLayer(false, cameraX, cameraY, cameraZ);
 			MatrixState.set(MatrixState.CAMERA);
-			entityBuffer.draw();
+			entityBuffer.draw(false);
 			entityBuffer.close();
 		}
 

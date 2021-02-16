@@ -237,7 +237,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	 */
 	public static void draw(ObjectArrayList<VertexCollectorImpl> drawList) {
 		final DrawableBuffer buffer = new DrawableBuffer(drawList);
-		buffer.draw();
+		buffer.draw(false);
 		buffer.close();
 	}
 

@@ -6,7 +6,7 @@
 	  				"renderLayerName": "beacon_beam"
 	  			}
 	  		},
-		  	"material": "canvas:emissive_transform"
+		  	"material": "canvas:emissive_transform_no_shadow"
 		}
   	]
 }
