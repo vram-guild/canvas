@@ -81,7 +81,7 @@ public enum MatrixState {
 		IDENTITY.loadIdentity();
 	}
 
-	public static MatrixState getModelOrigin() {
+	public static MatrixState get() {
 		return current;
 	}
 

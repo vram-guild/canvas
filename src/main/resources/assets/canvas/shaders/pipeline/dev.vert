@@ -1,4 +1,5 @@
 #include canvas:shaders/pipeline/varying.glsl
+#include frex:shaders/api/view.glsl
 
 /******************************************************
   canvas:shaders/pipeline/dev.vert

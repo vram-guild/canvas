@@ -43,13 +43,13 @@ public class GlMaterialProgram extends GlProgram {
 		modelOrigin = (UniformArray4fImpl) uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.setExternal(null), 2);
 		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
 		programInfo = (Uniform3iImpl) uniform3i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> { });
-		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.getModelOrigin().ordinal()));
+		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		fogMode = (Uniform1iImpl) uniform1i("_cvu_fog_mode", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 	}
 
 	public void setModelOrigin(int x, int y, int z) {
-		switch (MatrixState.getModelOrigin()) {
+		switch (MatrixState.get()) {
 			case CAMERA:
 				setCameraOrigin();
 				break;

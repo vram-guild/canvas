@@ -37,11 +37,13 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.MatrixState;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -125,6 +127,8 @@ public final class RenderState extends AbstractRenderState {
 
 	private void enableMaterial(int x, int y, int z) {
 		assert CanvasGlHelper.checkError();
+
+		final MaterialShaderImpl shader = MatrixState.get() == MatrixState.SCREEN ? guiShader : this.shader;
 
 		if (active == this) {
 			shader.setModelOrigin(x, y, z);

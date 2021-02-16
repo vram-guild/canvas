@@ -3,6 +3,7 @@
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
 #include frex:shaders/api/world.glsl
+#include frex:shaders/api/view.glsl
 #include frex:shaders/api/player.glsl
 #include frex:shaders/api/material.glsl
 #include canvas:basic_light_config

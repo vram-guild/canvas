@@ -40,7 +40,7 @@ public class RenderContextState {
 	private final Function<RenderMaterialImpl, RenderMaterialImpl> blockEntityFunc = m -> (RenderMaterialImpl) blockEntityMap.getMapped(m, blockState, finder);
 
 	private Function<RenderMaterialImpl, RenderMaterialImpl> activeFunc = defaultFunc;
-	private BiFunction<MaterialFinderImpl, RenderMaterialImpl, RenderMaterialImpl> guiFunc = GuiMode.NONE.func;
+	private BiFunction<MaterialFinderImpl, RenderMaterialImpl, RenderMaterialImpl> guiFunc = GuiMode.NORMAL.func;
 
 	public void setCurrentEntity(@Nullable Entity entity) {
 		if (entity == null) {
@@ -72,9 +72,8 @@ public class RenderContextState {
 	}
 
 	public enum GuiMode {
-		NONE((f, m) -> m),
-		GUI((f, m) -> f.copyFrom(m).gui(true).find()),
-		GUI_FRONT_LIT((f, m) -> f.copyFrom(m).gui(true).disableDiffuse(true).find());
+		NORMAL((f, m) -> m),
+		GUI_FRONT_LIT((f, m) -> f.copyFrom(m).disableDiffuse(true).find());
 
 		private final BiFunction<MaterialFinderImpl, RenderMaterialImpl, RenderMaterialImpl> func;
 

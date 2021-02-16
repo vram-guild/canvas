@@ -61,7 +61,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final MaterialTarget target;
 	public final boolean lines;
 	public final MaterialFog fog;
-	public final boolean gui;
 	public final MaterialShaderId shaderId;
 
 	public final int vertexShaderIndex;
@@ -71,6 +70,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final Identifier fragmentShaderId;
 	public final String fragmentShader;
 	public final MaterialShaderImpl shader;
+	public final MaterialShaderImpl guiShader;
 
 	public final int depthVertexShaderIndex;
 	public final Identifier depthVertexShaderId;
@@ -116,7 +116,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		target = MaterialTarget.fromIndex(target());
 		lines = lines();
 		fog = MaterialFog.fromIndex(fog());
-		gui = gui();
 		condition = condition();
 		transparency = MaterialTransparency.fromIndex(transparency());
 		sorted = sorted();
@@ -136,8 +135,9 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		depthFragmentShader = depthFragmentShaderId.toString();
 
 		primaryTargetTransparency = primaryTargetTransparency();
-		programType = ((VERTEX_CONTROL_MODE && !gui && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
+		programType = ((VERTEX_CONTROL_MODE && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
+		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_UNIFORM_LOGIC);
 		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.shadowType(programType));
 		blendMode = blendMode();
 		emissive = emissive();

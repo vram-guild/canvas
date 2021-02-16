@@ -189,9 +189,9 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		if (model.isBuiltin() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
 			if (isGui && vertexConsumers instanceof CanvasImmediate) {
 				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
-				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.GUI);
+				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
 				BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
-				context.guiMode(GuiMode.NONE);
+				context.guiMode(GuiMode.NORMAL);
 			} else {
 				BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
 			}
