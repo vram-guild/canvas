@@ -120,8 +120,8 @@ abstract class AbstractRenderStateView {
 		return WRITE_MASK.getValue(bits);
 	}
 
-	public boolean enableLightmap() {
-		return ENABLE_LIGHTMAP.getValue(bits);
+	public boolean enableGlint() {
+		return ENABLE_GLINT.getValue(bits);
 	}
 
 	public boolean discardsTexture() {
@@ -190,12 +190,11 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
 	static final BitPacker64<Void>.BooleanElement CULL = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement WRITE_MASK = PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
-	// PERF: could probably handle this entirely shader-side and avoid some state changes
-	static final BitPacker64<Void>.BooleanElement ENABLE_LIGHTMAP = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
 	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement FOG = PACKER.createIntElement(MaterialFog.FOG_COUNT);
 	static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
+	static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
 
 	// These don't affect GL state but must be collected and drawn separately
 	// They also generally won't change within a render state for any given context
@@ -254,7 +253,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = BLENDMODE.setValue(BlendMode.DEFAULT, defaultBits);
 		defaultBits = CULL.setValue(true, defaultBits);
 		defaultBits = DEPTH_TEST.setValue(MaterialFinder.DEPTH_TEST_LEQUAL, defaultBits);
-		defaultBits = ENABLE_LIGHTMAP.setValue(true, defaultBits);
+		defaultBits = ENABLE_GLINT.setValue(false, defaultBits);
 		defaultBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, defaultBits);
 		defaultBits = TARGET.setValue(MaterialFinder.TARGET_MAIN, defaultBits);
 		defaultBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, defaultBits);
@@ -271,7 +270,7 @@ abstract class AbstractRenderStateView {
 		translucentBits = DEPTH_TEST.setValue(MaterialFinder.DEPTH_TEST_LEQUAL, translucentBits);
 		translucentBits = CULL.setValue(true, translucentBits);
 		translucentBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, translucentBits);
-		translucentBits = ENABLE_LIGHTMAP.setValue(true, translucentBits);
+		translucentBits = ENABLE_GLINT.setValue(false, translucentBits);
 		translucentBits = DECAL.setValue(MaterialDecal.NONE.index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialFinder.TARGET_TRANSLUCENT, translucentBits);
 		translucentBits = LINES.setValue(false, translucentBits);

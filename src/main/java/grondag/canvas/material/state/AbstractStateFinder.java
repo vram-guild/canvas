@@ -82,8 +82,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T enableLightmap(boolean enableLightmap) {
-		bits = ENABLE_LIGHTMAP.setValue(enableLightmap, bits);
+	public T enableGlint(boolean enableGlint) {
+		bits = ENABLE_GLINT.setValue(enableGlint, bits);
 		return (T) this;
 	}
 

@@ -55,7 +55,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final MaterialDepthTest depthTest;
 	public final boolean cull;
 	public final MaterialWriteMask writeMask;
-	public final boolean enableLightmap;
+	public final boolean enableGlint;
 	public final MaterialDecal decal;
 	public final boolean sorted;
 	public final MaterialTarget target;
@@ -112,7 +112,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		depthTest = MaterialDepthTest.fromIndex(depthTest());
 		cull = cull();
 		writeMask = MaterialWriteMask.fromIndex(writeMask());
-		enableLightmap = enableLightmap();
+		enableGlint = enableGlint();
 		decal = MaterialDecal.fromIndex(decal());
 		target = MaterialTarget.fromIndex(target());
 		lines = lines();

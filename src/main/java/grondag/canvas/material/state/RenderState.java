@@ -112,7 +112,7 @@ public final class RenderState extends AbstractRenderState {
 		decal.enable();
 
 		CULL_STATE.setEnabled(cull);
-		LIGHTMAP_STATE.setEnabled(enableLightmap);
+		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
 		depthShader.activate(this);
@@ -189,7 +189,7 @@ public final class RenderState extends AbstractRenderState {
 		assert CanvasGlHelper.checkError();
 
 		CULL_STATE.setEnabled(cull);
-		LIGHTMAP_STATE.setEnabled(enableLightmap);
+		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
 		assert CanvasGlHelper.checkError();

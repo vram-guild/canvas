@@ -47,7 +47,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.IntElement SORT_FOG = SORT_PACKER.createIntElement(MaterialFog.FOG_COUNT);
-	private static final BitPacker64<Void>.BooleanElement SORT_ENABLE_LIGHTMAP = SORT_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement SORT_ENABLE_GLINT = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.IntElement SORT_SHADER_ID = SORT_PACKER.createIntElement(4096);
 
 	// decal should be drawn after non-decal
@@ -124,7 +124,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("depthTest: ").append(depthTest.name).append("\n");
 		sb.append("cull: ").append(cull).append("\n");
 		sb.append("writeMask: ").append(writeMask.name).append("\n");
-		sb.append("enableLightmap: ").append(enableLightmap).append("\n");
+		sb.append("enableGlint: ").append(enableGlint).append("\n");
 		sb.append("decal: ").append(decal.name).append("\n");
 		sb.append("lines: ").append(lines).append("\n");
 		sb.append("fog: ").append(fog.name).append("\n");
@@ -169,7 +169,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		result = SORT_CULL.setValue(cull, result);
 		result = SORT_LINES.setValue(lines, result);
 		result = SORT_FOG.setValue(fog.index, result);
-		result = SORT_ENABLE_LIGHTMAP.setValue(enableLightmap, result);
+		result = SORT_ENABLE_GLINT.setValue(enableGlint, result);
 		result = SORT_SHADER_ID.setValue(shader.index, result);
 		result = SORT_DECAL.setValue(decal.drawPriority, result);
 		// inverted because higher goes first
