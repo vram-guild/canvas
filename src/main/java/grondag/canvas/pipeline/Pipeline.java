@@ -263,6 +263,28 @@ public class Pipeline {
 			for (int i = 0; i < config.fabulous.length; ++i) {
 				fabulous[i] = Pass.create(config.fabulous[i]);
 			}
+		} else {
+			fabEntityFbo = 0;
+			fabEntityColor = 0;
+			fabEntityDepth = 0;
+
+			fabParticleFbo = 0;
+			fabParticleColor = 0;
+			fabParticleDepth = 0;
+
+			fabWeatherFbo = 0;
+			fabWeatherColor = 0;
+			fabWeatherDepth = 0;
+
+			fabCloudsFbo = 0;
+			fabCloudsColor = 0;
+			fabCloudsDepth = 0;
+
+			fabTranslucentFbo = 0;
+			fabTranslucentColor = 0;
+			fabTranslucentDepth = 0;
+
+			fabulous = new Pass[0];
 		}
 
 		BufferDebug.init(config);
