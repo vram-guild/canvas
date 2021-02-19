@@ -55,8 +55,7 @@ public final class MaterialShaderImpl {
 	// WIP: all of this activation stuff is trash code
 	// these should probably happen before program activation - change detection should upload as needed
 	private void updateCommonUniforms(RenderState renderState) {
-		// WIP: redundant of model origin state
-		program.programInfo.set(vertexShaderIndex, fragmentShaderIndex, MatrixState.get() == MatrixState.SCREEN ? 1 : 0);
+		program.programInfo.set(vertexShaderIndex, fragmentShaderIndex, 0);
 		program.programInfo.upload();
 
 		program.modelOriginType.set(MatrixState.get().ordinal());

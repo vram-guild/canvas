@@ -143,6 +143,13 @@ int frx_modelOriginType() {
 	return _cvu_model_origin_type;
 }
 
+/*
+ * True when rendering to GUI.
+ */
+bool frx_isGui() {
+	return _cvu_model_origin_type == MODEL_ORIGIN_SCREEN;
+}
+
 /**
  * Converts world space normals to coordinate space of incoming vertex data.
  * Entity render, for example, has camera rotation already baked in to
@@ -246,13 +253,6 @@ mat4 frx_shadowViewProjectionMatrix(int index) {
  */
 vec4 frx_shadowCenter(int index) {
 	return _cvu_world[_CV_SHADOW_CENTER + index];
-}
-
-/*
- * True when rendering to GUI.
- */
-bool frx_isGui() {
-	return _cv_isGui() == 1.0;
 }
 
 /*

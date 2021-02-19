@@ -33,6 +33,8 @@ int _cv_fragmentProgramId() {
 }
 
 bool _cv_programDiscard() {
+	// When using uniform control/separate draws the draw call
+	// is skipped when draw condition is false so no need to check.
 	return false;
 }
 
@@ -56,10 +58,10 @@ bool _cv_programDiscard() {
 
 #endif
 
-#define PROGRAM_FLAG_GUI 0
+#define PROGRAM_FLAG_GLINT 0
 
-float _cv_isGui() {
-	return frx_bitValue(uint(_cvu_program.z), PROGRAM_FLAG_GUI);
+float _cv_isGlint() {
+	return frx_bitValue(uint(_cvu_program.z), PROGRAM_FLAG_GLINT);
 }
 
 #ifdef VERTEX_SHADER
