@@ -436,13 +436,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final boolean thickFog = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
 
 		if (mc.options.viewDistance >= 4) {
-			// NB: fog / sky renderer really wants it this way
-			RenderSystem.pushMatrix();
-			RenderSystem.loadIdentity();
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
 			profiler.swap("sky");
-			((WorldRenderer) wr).renderSky(viewMatrixStack, tickDelta);
-			RenderSystem.popMatrix();
+			// NB: fog / sky renderer normalcy get viewMatrixStack but we apply camera rotation in VertexBuffer mixin
+			((WorldRenderer) wr).renderSky(identityStack, tickDelta);
 		}
 
 		profiler.swap("fog");
@@ -807,7 +804,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderState.disable();
 		GlProgram.deactivate();
 
-		renderClouds(mc, profiler, viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
+		renderClouds(mc, profiler, identityStack, tickDelta, cameraX, cameraY, cameraZ);
 
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
@@ -850,7 +847,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.complete();
 	}
 
-	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack viewMatrixStack, float tickDelta, double cameraX, double cameraY, double cameraZ) {
+	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack identityStack, float tickDelta, double cameraX, double cameraY, double cameraZ) {
 		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
 			profiler.swap("clouds");
 
@@ -858,8 +855,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, Pipeline.fabCloudsFbo);
 			}
 
-			// NB: vanilla cloud renderer wants/needs the transformed stack even though it is already applied
-			renderClouds(viewMatrixStack, tickDelta, cameraX, cameraY, cameraZ);
+			// NB: cloud renderer normally gets stack with view rotation but we apply that in VertexBuffer mixin
+			renderClouds(identityStack, tickDelta, cameraX, cameraY, cameraZ);
 
 			if (Pipeline.fabCloudsFbo > 0) {
 				Pipeline.defaultFbo.bind();
