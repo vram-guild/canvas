@@ -720,7 +720,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// Should generally not have anything here but draw in case content injected in hooks
 		immediate.drawCollectors(MaterialTarget.MAIN);
 
-		// WIP: glint not working again?
+		// These should be empty and probably won't work, but prevent them from accumulating if somehow used.
 		immediate.draw(RenderLayer.getArmorGlint());
 		immediate.draw(RenderLayer.getArmorEntityGlint());
 		immediate.draw(RenderLayer.getGlint());
@@ -728,6 +728,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.method_30676());
 		immediate.draw(RenderLayer.getEntityGlint());
 		immediate.draw(RenderLayer.getDirectEntityGlint());
+
 		// draw order is important and our sorting mechanism doesn't cover
 		immediate.draw(RenderLayer.getWaterMask());
 

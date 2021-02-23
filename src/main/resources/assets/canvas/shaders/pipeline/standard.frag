@@ -1,11 +1,14 @@
 #include canvas:shaders/pipeline/fog.glsl
 #include canvas:shaders/pipeline/diffuse.glsl
 #include canvas:shaders/pipeline/varying.glsl
+#include canvas:shaders/pipeline/glint.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
 #include frex:shaders/api/world.glsl
+#include frex:shaders/api/view.glsl
 #include frex:shaders/api/player.glsl
 #include frex:shaders/api/material.glsl
+#include frex:shaders/api/fragment.glsl
 #include canvas:basic_light_config
 #include canvas:handheld_light_config
 
@@ -124,6 +127,8 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	} else if (frx_matHurt()) {
 		a = vec4(0.25 + a.r * 0.75, a.g * 0.75, a.b * 0.75, a.a);
 	}
+
+	glintify(a, frx_matGlint());
 
 	// WIP: remove - various api tests
 	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_smoothedEyeBrightness().y));

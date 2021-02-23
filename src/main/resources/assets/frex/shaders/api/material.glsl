@@ -1,4 +1,5 @@
 #include canvas:shaders/internal/flags.glsl
+#include canvas:shaders/internal/program.glsl
 
 /******************************************************
   frex:shaders/api/material.glsl
@@ -74,6 +75,13 @@ bool frx_matHurt() {
  */
 bool frx_matFlash() {
 	return _cv_getFlag(_CV_FLAG_FLASH_OVERLAY) == 1.0;
+}
+
+/**
+ * Returns 1.0 if material has enchantment glint, 0.0 otherwise.
+ */
+float frx_matGlint() {
+	return _cv_isGlint();
 }
 
 /**
