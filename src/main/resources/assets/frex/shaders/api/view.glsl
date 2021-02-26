@@ -307,3 +307,16 @@ int frx_renderTarget() {
 float frx_viewDistance() {
 	return _cvu_world[_CV_CLEAR_COLOR].w;
 }
+
+// Tokens accepted in frx_viewFlag
+#define FRX_CAMERA_IN_FLUID 22
+#define FRX_CAMERA_IN_WATER 23
+#define FRX_CAMERA_IN_LAVA 24
+
+/*
+ * Accepts one of the tokens defined above.  Note that different implementations
+ * could define different numeric token values - always use the preprocessor token.
+ */
+bool frx_viewFlag(int flag) {
+	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1;
+}

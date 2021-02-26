@@ -148,6 +148,9 @@ public class WorldDataManager {
 	private static final BitPacker32<Void>.BooleanElement FLAG_SPRINTING = WORLD_FLAGS.createBooleanElement();
 	private static final BitPacker32<Void>.BooleanElement FLAG_WET = WORLD_FLAGS.createBooleanElement();
 	private static final BitPacker32<Void>.BooleanElement FLAG_MOONLIT = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_CAMERA_IN_FLUID = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_CAMERA_IN_WATER = WORLD_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void>.BooleanElement FLAG_CAMERA_IN_LAVA = WORLD_FLAGS.createBooleanElement();
 
 	private static final BitPacker32<Void> PLAYER_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_SPEED = PLAYER_FLAGS.createBooleanElement();
@@ -265,6 +268,10 @@ public class WorldDataManager {
 					block = lighter.get(LightType.BLOCK).getLightLevel(eyePos);
 					sky = Math.max(0, lighter.get(LightType.SKY).getLightLevel(eyePos) - world.getAmbientDarkness());
 				}
+			} else {
+				worldFlags = FLAG_EYE_IN_FLUID.setValue(false, worldFlags);
+				worldFlags = FLAG_EYE_IN_WATER.setValue(false, worldFlags);
+				worldFlags = FLAG_EYE_IN_LAVA.setValue(false, worldFlags);
 			}
 		}
 
@@ -304,6 +311,32 @@ public class WorldDataManager {
 					worldFlags = FLAG_EYE_IN_LAVA.setValue(true, worldFlags);
 				}
 			}
+		}
+	}
+
+	private static void computeCameraFlags(ClientWorld world, Camera camera) {
+		final BlockPos cameraBlockPos = camera.getBlockPos();
+
+		if (World.isInBuildLimit(cameraBlockPos) && world.isChunkLoaded(cameraBlockPos)) {
+			final FluidState fluidState = world.getFluidState(cameraBlockPos);
+
+			if (!fluidState.isEmpty()) {
+				final double fluidHeight = cameraBlockPos.getY() + fluidState.getHeight(world, cameraBlockPos);
+
+				if (fluidHeight >= camera.getPos().getY()) {
+					worldFlags = FLAG_CAMERA_IN_FLUID.setValue(true, worldFlags);
+
+					if (fluidState.getFluid().isIn(FluidTags.WATER)) {
+						worldFlags = FLAG_CAMERA_IN_WATER.setValue(true, worldFlags);
+					} else if (fluidState.getFluid().isIn(FluidTags.LAVA)) {
+						worldFlags = FLAG_CAMERA_IN_LAVA.setValue(true, worldFlags);
+					}
+				}
+			}
+		} else {
+			worldFlags = FLAG_CAMERA_IN_FLUID.setValue(false, worldFlags);
+			worldFlags = FLAG_CAMERA_IN_WATER.setValue(false, worldFlags);
+			worldFlags = FLAG_CAMERA_IN_LAVA.setValue(false, worldFlags);
 		}
 	}
 
@@ -415,6 +448,7 @@ public class WorldDataManager {
 			final ClientPlayerEntity player = client.player;
 			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
+			computeCameraFlags(world, camera);
 
 			if (skyLight) {
 				final boolean moonLight = computeSkylightFactor(tickTime);
