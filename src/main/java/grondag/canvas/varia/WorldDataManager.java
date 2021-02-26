@@ -567,7 +567,7 @@ public class WorldDataManager {
 					light = ItemLight.get(player.getOffHandStack());
 				}
 
-				if (!light.worksInFluid() && player.isInsideWaterOrBubbleColumn()) {
+				if (!light.worksInFluid() && player.isSubmergedInWater()) {
 					light = ItemLight.NONE;
 				}
 			}
