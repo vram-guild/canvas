@@ -45,11 +45,12 @@
       target: "TEXTURE_2D_ARRAY",
       depth: 4,
       texParams: [
-        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
-        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
         {name: "TEXTURE_WRAP_S", val: "CLAMP"},
         {name: "TEXTURE_WRAP_T", val: "CLAMP"},
-        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+        {name: "TEXTURE_COMPARE_MODE", val: "COMPARE_REF_TO_TEXTURE"},
+        {name: "TEXTURE_COMPARE_FUNC", val: "LEQUAL"}
       ]
     }
   ],

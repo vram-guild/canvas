@@ -35,6 +35,6 @@ uniform sampler2D frxs_lightmap;
 
 #ifdef SHADOW_MAP_PRESENT
 #ifdef FRAGMENT_SHADER
-uniform sampler2DArray frxs_shadowMap;
+uniform sampler2DArrayShadow frxs_shadowMap;
 #endif
 #endif

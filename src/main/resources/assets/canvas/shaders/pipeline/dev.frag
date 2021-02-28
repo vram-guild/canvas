@@ -177,9 +177,8 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		// Transform from screen coordinates to texture coordinates
 		vec3 shadowTexCoords = shadowCoords.xyz * 0.5 + 0.5;
 
-		if (texture2DArray(frxs_shadowMap, vec3(shadowTexCoords.xy, float(cascade))).x >= shadowTexCoords.z) {
-			light += vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
-		}
+		float shadow = shadow2DArray(frxs_shadowMap, vec4(shadowTexCoords.xy, float(cascade), shadowTexCoords.z)).x;
+		light += shadow * vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
 
 	#ifdef SHADOW_DEBUG
 		shadowCoords = abs(fract(shadowCoords * 1024.0));
