@@ -267,6 +267,9 @@ public class GlShader implements Shader {
 
 			if (Pipeline.skyShadowFbo == null) {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_PRESENT", "//#define SHADOW_MAP_PRESENT");
+				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "//#define SHADOW_MAP_SIZE 1024");
+			} else {
+				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "#define SHADOW_MAP_SIZE " + Pipeline.skyShadowSize);
 			}
 
 			result = StringUtils.replace(result, "#define _CV_MATERIAL_INFO_TEXTURE_SIZE 0", "#define _CV_MATERIAL_INFO_TEXTURE_SIZE " + MaterialInfoTexture.INSTANCE.squareSizePixels());

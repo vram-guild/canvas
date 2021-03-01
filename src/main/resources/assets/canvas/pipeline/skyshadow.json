@@ -10,6 +10,20 @@
           descriptionKey: "config.canvas.help.shadow_debug"
         }
       }
+    },
+    {
+      includeToken: "canvas:shadow_options",
+      categoryKey: "config.canvas.category.shadows",
+      options: {
+        shadow_filter_size: {
+          default: "medium",
+          choices: ["small", "medium", "large", "extra"],
+          enum: true,
+          prefix: "PCF_SIZE_",
+          nameKey: "config.canvas.value.shadow_filter_size",
+          descriptionKey: "config.canvas.help.shadow_filter_size"
+        }
+      }
     }
   ],
 

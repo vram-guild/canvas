@@ -12,6 +12,7 @@
 #include canvas:basic_light_config
 #include canvas:handheld_light_config
 #include canvas:shadow_debug
+#include canvas:shaders/pipeline/shadow.glsl
 
 /******************************************************
   canvas:shaders/pipeline/dev.frag
@@ -177,11 +178,11 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		// Transform from screen coordinates to texture coordinates
 		vec3 shadowTexCoords = shadowCoords.xyz * 0.5 + 0.5;
 
-		float shadow = shadow2DArray(frxs_shadowMap, vec4(shadowTexCoords.xy, float(cascade), shadowTexCoords.z)).x;
+		float shadow = sampleShadowPCF(shadowTexCoords, float(cascade));
 		light += shadow * vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
 
 	#ifdef SHADOW_DEBUG
-		shadowCoords = abs(fract(shadowCoords * 1024.0));
+		shadowCoords = abs(fract(shadowCoords * SHADOW_MAP_RESOLUTION));
 
 		if (!(shadowCoords.x > 0.05 && shadowCoords.x < 0.95 && shadowCoords.y > 0.05 && shadowCoords.y < 0.95)) {
 			light = vec4(1.0);

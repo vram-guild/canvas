@@ -19,8 +19,11 @@
 // Will define VERTEX_SHADER or FRAGMENT_SHADER - useful for checks in common libraries
 // #define VERTEX_SHADER
 
-// present only when pipeline support the feature and it is enabled
+// present only when pipeline supports the feature and it is enabled
 #define SHADOW_MAP_PRESENT
+
+// present only when shadow map enabled
+#define SHADOW_MAP_SIZE 1024
 
 // present when material shaders are being run to generate a shadow map or depth math
 //#define DEPTH_PASS

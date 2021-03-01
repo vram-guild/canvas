@@ -404,7 +404,11 @@ public class GlProgram {
 
 			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD) {
 				uploadInner();
-				assert CanvasGlHelper.checkError();
+
+				if (!CanvasGlHelper.checkError()) {
+					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
+					unifID = -1;
+				}
 			}
 
 			flags = 0;
