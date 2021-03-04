@@ -31,8 +31,8 @@ import grondag.canvas.varia.CanvasGlHelper;
 public class Image {
 	public final ImageConfig config;
 	protected int glId = -1;
-	private final int width;
-	private final int height;
+	public final int width;
+	public final int height;
 
 	Image(ImageConfig config, int width, int height) {
 		this.config = config;

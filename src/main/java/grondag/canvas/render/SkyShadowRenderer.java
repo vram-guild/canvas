@@ -86,7 +86,7 @@ public class SkyShadowRenderer {
 	}
 
 	/** Preserves entityShadows option state, overwriting it temporarily if needed to prevent vanilla from rendering shadows. */
-	public static void beforeEntityRender(MinecraftClient mc) {
+	public static void suppressEntityShadows(MinecraftClient mc) {
 		if (Pipeline.skyShadowFbo != null) {
 			renderEntityShadows = mc.options.entityShadows;
 			mc.options.entityShadows = false;
@@ -94,7 +94,7 @@ public class SkyShadowRenderer {
 	}
 
 	/** Restores entityShadows option state. */
-	public static void afterEntityRender(MinecraftClient mc) {
+	public static void restoreEntityShadows(MinecraftClient mc) {
 		if (Pipeline.skyShadowFbo != null) {
 			mc.options.entityShadows = renderEntityShadows;
 		}

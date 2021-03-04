@@ -532,9 +532,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		entityBlockContext.collectors = immediate.collectors;
 		blockContext.collectors = immediate.collectors;
 
-		// PERF: find way to reduce allocation for this and MatrixStack generally
-		SkyShadowRenderer.beforeEntityRender(mc);
+		SkyShadowRenderer.suppressEntityShadows(mc);
 
+		// PERF: find way to reduce allocation for this and MatrixStack generally
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			if ((!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player))
@@ -574,7 +574,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		contextState.setCurrentEntity(null);
-		SkyShadowRenderer.afterEntityRender(mc);
+		SkyShadowRenderer.restoreEntityShadows(mc);
 
 		profiler.swap("blockentities");
 
@@ -637,6 +637,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
+			WorldRenderPasses.current().render(this, cameraX, cameraY, cameraZ, entityBuffer);
 			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
 
 			MatrixState.set(MatrixState.REGION);
@@ -739,9 +740,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (advancedTranslucency) {
 			profiler.swap("translucent");
 
-			Framebuffer fb = mcwr.getTranslucentFramebuffer();
-			fb.copyDepthFrom(mcfb);
-
+			Pipeline.translucentTerrainFbo.copyDepthFrom(Pipeline.defaultFbo);
 			Pipeline.translucentTerrainFbo.bind();
 
 			// in fabulous mode, the only thing that renders to terrain translucency
@@ -762,8 +761,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			// NB: vanilla renders tripwire here but we combine into translucent
 
-			fb = mcwr.getParticlesFramebuffer();
-			fb.copyDepthFrom(mcfb);
+			Pipeline.translucentParticlesFbo.copyDepthFrom(Pipeline.defaultFbo);
 			Pipeline.translucentParticlesFbo.bind();
 
 			profiler.swap("particles");

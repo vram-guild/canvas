@@ -27,6 +27,7 @@ import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
 
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
@@ -191,5 +192,29 @@ public class PipelineFramebuffer {
 			GlStateManager.deleteFramebuffers(fboGlId);
 			fboGlId = -1;
 		}
+	}
+
+	public void copyDepthFrom(PipelineFramebuffer source) {
+		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
+		final Image srcImg = Pipeline.getImage(source.config.depthAttachment.image.name);
+		final Image myImg = Pipeline.getImage(config.depthAttachment.image.name);
+
+		if (GlStateManager.supportsGl30()) {
+			GlStateManager.bindFramebuffer(GL46.GL_READ_FRAMEBUFFER, source.fboGlId);
+			GlStateManager.bindFramebuffer(GL46.GL_DRAW_FRAMEBUFFER, fboGlId);
+			GlStateManager.blitFramebuffer(0, 0, srcImg.width, srcImg.height, 0, 0, myImg.width, myImg.height, GL46.GL_DEPTH_BUFFER_BIT, GL46.GL_NEAREST);
+		} else {
+			if (myImg.glId() != 0) {
+				final int saveImg = GlStateManager.getActiveBoundTexture();
+				GlStateManager.bindTexture(srcImg.glId());
+				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
+				GlStateManager.copyTexSubImage2d(GL46.GL_TEXTURE_2D, 0, 0, 0, 0, 0,
+						Math.min(srcImg.width, myImg.width),
+						Math.min(srcImg.height, myImg.height));
+				GlStateManager.bindTexture(saveImg);
+			}
+		}
+
+		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, 0);
 	}
 }
