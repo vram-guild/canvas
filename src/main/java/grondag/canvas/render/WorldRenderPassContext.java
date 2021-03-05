@@ -16,12 +16,35 @@
 
 package grondag.canvas.render;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.profiler.Profiler;
+
 import grondag.canvas.buffer.encoding.DrawableBuffer;
+import grondag.canvas.mixinterface.WorldRendererExt;
 
 class WorldRenderPassContext {
-	CanvasWorldRenderer canvasWorldRenderer;
-	double cameraX;
-	double cameraY;
-	double cameraZ;
-	DrawableBuffer entityBuffer;
+	public static final WorldRenderPassContext INSTANCE = new WorldRenderPassContext();
+
+	public CanvasWorldRenderer canvasWorldRenderer;
+	public Camera camera;
+	public Vec3d cameraPos;
+	public double cameraX;
+	public double cameraY;
+	public double cameraZ;
+	public DrawableBuffer entityBuffer;
+	public ClientWorld world;
+	public Profiler profiler;
+	public WorldRendererExt wr;
+	public MinecraftClient mc;
+
+	public void setCamera(Camera camera) {
+		this.camera = camera;
+		cameraPos = camera.getPos();
+		cameraX = cameraPos.getX();
+		cameraY = cameraPos.getY();
+		cameraZ = cameraPos.getZ();
+	}
 }

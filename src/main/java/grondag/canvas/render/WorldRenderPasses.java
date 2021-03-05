@@ -18,23 +18,17 @@ package grondag.canvas.render;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.buffer.encoding.DrawableBuffer;
-
-public class WorldRenderPasses {
+public class WorldRenderPasses implements WorldRenderPass {
 	private final ObjectArrayList<WorldRenderPass> passes = new ObjectArrayList<>();
-	private final WorldRenderPassContext context = new WorldRenderPassContext();
 
 	public WorldRenderPasses() {
-		//WIP
+		passes.add(WorldRenderPass.materialFog(true));
+		passes.add(WorldRenderPass.profilerSwap("light_updates"));
+		passes.add(WorldRenderPass.lightUpdates());
 	}
 
-	public void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer) {
-		context.canvasWorldRenderer = canvasWorldRenderer;
-		context.cameraX = cameraX;
-		context.cameraY = cameraY;
-		context.cameraZ = cameraZ;
-		context.entityBuffer = entityBuffer;
-
+	@Override
+	public void render(WorldRenderPassContext context) {
 		final int limit = passes.size();
 
 		for (int i = 0; i < limit; ++i) {

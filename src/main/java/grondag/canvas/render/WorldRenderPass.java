@@ -16,6 +16,8 @@
 
 package grondag.canvas.render;
 
+import grondag.canvas.config.Configurator;
+import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.pipeline.PipelineFramebuffer;
 
 @FunctionalInterface
@@ -24,5 +26,20 @@ interface WorldRenderPass {
 
 	static WorldRenderPass copyDepth(PipelineFramebuffer source, PipelineFramebuffer dest) {
 		return ctx -> source.copyDepthFrom(dest);
+	}
+
+	static WorldRenderPass profilerSwap(String token) {
+		return ctx -> {
+			Configurator.lagFinder.swap(token);
+			ctx.profiler.swap(token);
+		};
+	}
+
+	static WorldRenderPass materialFog(boolean enable) {
+		return ctx -> MaterialFog.allow(enable);
+	}
+
+	static WorldRenderPass lightUpdates() {
+		return ctx -> ctx.mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
 	}
 }

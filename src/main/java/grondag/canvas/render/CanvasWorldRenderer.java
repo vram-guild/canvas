@@ -141,7 +141,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
 	private final WorldRendererExt wr;
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
-	private int playerLightmap = 0;
 	private RenderRegionBuilder regionBuilder;
 	private int translucentSortPositionVersion;
 	private ClientWorld world;
@@ -178,10 +177,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	// PERF: render leaves as solid at distance - omit interior faces
 	// PERF: get VAO working again
 	// PERF: consider trying backface culling again but at draw time w/ glMultiDrawArrays
-
-	public static int playerLightmap() {
-		return instance == null ? 0 : instance.playerLightmap;
-	}
 
 	private static int rangeColor(int range) {
 		switch (range) {
@@ -364,10 +359,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 	}
 
-	private void updatePlayerLightmap(MinecraftClient mc, float f) {
-		playerLightmap = mc.getEntityRenderDispatcher().getLight(mc.player, f);
-	}
-
 	@SuppressWarnings("resource")
 	private boolean shouldCullChunks(BlockPos pos) {
 		final MinecraftClient mc = wr.canvas_mc();
@@ -381,44 +372,39 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	public void renderWorld(MatrixStack viewMatrixStack, MatrixStack identityStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
-		Configurator.lagFinder.swap("WorldRenderer-Setup");
-
-		final WorldRendererExt wr = this.wr;
-		final MinecraftClient mc = wr.canvas_mc();
-		final WorldRenderer mcwr = mc.worldRenderer;
-		final Framebuffer mcfb = mc.getFramebuffer();
-		final BlockRenderContext blockContext = BlockRenderContext.get();
-		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
-		MaterialFog.allow(true);
-		updatePlayerLightmap(mc, tickDelta);
-
-		final ClientWorld world = this.world;
-		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
-		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
-		final boolean advancedTranslucency = Pipeline.isFabulous();
-
-		BlockEntityRenderDispatcher.INSTANCE.configure(world, mc.getTextureManager(), mc.textRenderer, camera, mc.crosshairTarget);
-		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
-		final Profiler profiler = world.getProfiler();
-		profiler.swap("light_updates");
-
-		Configurator.lagFinder.swap("WorldRenderer-LightUpdates");
-		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
-
-		Configurator.lagFinder.swap("WorldRenderer-Culling");
+		WorldRenderPassContext.INSTANCE.canvasWorldRenderer = this;
+		WorldRenderPassContext.INSTANCE.setCamera(camera);
 		final Vec3d cameraVec3d = camera.getPos();
 		cameraPos = cameraVec3d;
 		final double cameraX = cameraVec3d.getX();
 		final double cameraY = cameraVec3d.getY();
 		final double cameraZ = cameraVec3d.getZ();
+		final ClientWorld world = this.world;
+		WorldRenderPassContext.INSTANCE.world = world;
+		final Profiler profiler = world.getProfiler();
+		WorldRenderPassContext.INSTANCE.profiler = profiler;
 
-		profiler.swap("culling");
+		final WorldRendererExt wr = this.wr;
+		WorldRenderPassContext.INSTANCE.wr = wr;
 
+		final MinecraftClient mc = wr.canvas_mc();
+		WorldRenderPassContext.INSTANCE.mc = mc;
+
+		final WorldRenderer mcwr = mc.worldRenderer;
+		final Framebuffer mcfb = mc.getFramebuffer();
+		final BlockRenderContext blockContext = BlockRenderContext.get();
+		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
+		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
+		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
+		final boolean advancedTranslucency = Pipeline.isFabulous();
 		final TerrainFrustum frustum = terrainFrustum;
 
-		mc.getProfiler().swap("regions");
+		BlockEntityRenderDispatcher.INSTANCE.configure(world, mc.getTextureManager(), mc.textRenderer, camera, mc.crosshairTarget);
+		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
 
-		Configurator.lagFinder.swap("WorldRenderer-Background");
+		WorldRenderPasses.current().render(WorldRenderPassContext.INSTANCE);
+
+		////
 
 		Pipeline.defaultFbo.bind();
 
@@ -637,7 +623,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
-			WorldRenderPasses.current().render(this, cameraX, cameraY, cameraZ, entityBuffer);
 			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
 
 			MatrixState.set(MatrixState.REGION);
