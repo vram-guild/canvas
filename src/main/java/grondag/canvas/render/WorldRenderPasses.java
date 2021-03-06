@@ -25,6 +25,20 @@ public class WorldRenderPasses implements WorldRenderPass {
 		passes.add(WorldRenderPass.materialFog(true));
 		passes.add(WorldRenderPass.profilerSwap("light_updates"));
 		passes.add(WorldRenderPass.lightUpdates());
+
+		passes.add(WorldRenderPass.profilerSwap("clear"));
+		passes.add(WorldRenderPass.bindFramebuffer("default"));
+		passes.add(WorldRenderPass.setVanillaClearColor());
+		passes.add(WorldRenderPass.clearColorDepth());
+
+		passes.add(WorldRenderPass.conditional(
+			ctx -> ctx.mc.options.viewDistance >= 4,
+			WorldRenderPass.chain(
+				WorldRenderPass.profilerSwap("sky"),
+				WorldRenderPass.setupVanillaSkyFog(),
+				WorldRenderPass.renderVanillaSky()
+			)
+		));
 	}
 
 	@Override

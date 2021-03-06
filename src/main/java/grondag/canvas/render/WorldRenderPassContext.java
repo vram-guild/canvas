@@ -18,6 +18,8 @@ package grondag.canvas.render;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
@@ -39,6 +41,12 @@ class WorldRenderPassContext {
 	public Profiler profiler;
 	public WorldRendererExt wr;
 	public MinecraftClient mc;
+	public float tickDelta;
+	public GameRenderer gameRenderer;
+	public float viewDistance;
+	public boolean thickFog;
+	MatrixStack viewMatrixStack;
+	MatrixStack identityStack;
 
 	public void setCamera(Camera camera) {
 		this.camera = camera;
