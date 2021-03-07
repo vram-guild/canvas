@@ -141,7 +141,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
 	private final WorldRendererExt wr;
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
-	private int playerLightmap = 0;
 	private RenderRegionBuilder regionBuilder;
 	private int translucentSortPositionVersion;
 	private ClientWorld world;
@@ -178,10 +177,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	// PERF: render leaves as solid at distance - omit interior faces
 	// PERF: get VAO working again
 	// PERF: consider trying backface culling again but at draw time w/ glMultiDrawArrays
-
-	public static int playerLightmap() {
-		return instance == null ? 0 : instance.playerLightmap;
-	}
 
 	private static int rangeColor(int range) {
 		switch (range) {
@@ -364,10 +359,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 	}
 
-	private void updatePlayerLightmap(MinecraftClient mc, float f) {
-		playerLightmap = mc.getEntityRenderDispatcher().getLight(mc.player, f);
-	}
-
 	@SuppressWarnings("resource")
 	private boolean shouldCullChunks(BlockPos pos) {
 		final MinecraftClient mc = wr.canvas_mc();
@@ -390,7 +381,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final BlockRenderContext blockContext = BlockRenderContext.get();
 		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
 		MaterialFog.allow(true);
-		updatePlayerLightmap(mc, tickDelta);
 
 		final ClientWorld world = this.world;
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
