@@ -637,7 +637,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
-			WorldRenderPasses.current().render(this, cameraX, cameraY, cameraZ, entityBuffer);
 			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
 
 			MatrixState.set(MatrixState.REGION);
