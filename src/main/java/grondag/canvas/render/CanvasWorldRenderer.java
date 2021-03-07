@@ -252,8 +252,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 * also  be added to the existing raster.
 	 * or
 	 */
-	public void setupTerrain(Camera camera) {
-		final boolean shouldCullChunks = shouldCullChunks(camera.getBlockPos());
+	public void setupTerrain(Camera camera, int frameCounter, boolean shouldCullChunks) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final int renderDistance = wr.canvas_renderDistance();
@@ -263,6 +262,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		regionStorage.closeRegionsOnRenderThread();
 
 		mc.getProfiler().push("camera");
+		MaterialConditionImpl.update();
+		GlProgramManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
@@ -406,22 +407,26 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final boolean thickFog = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
 		WorldRenderPassContext.INSTANCE.thickFog = thickFog;
 
-		wr.canvas_getAndIncrementFrameIndex();
-		MaterialConditionImpl.update();
-		GlProgramManager.INSTANCE.onRenderTick();
-
 		BlockEntityRenderDispatcher.INSTANCE.configure(world, mc.getTextureManager(), mc.textRenderer, camera, mc.crosshairTarget);
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
 
-		WorldRenderPassContext.INSTANCE.profilerSwap("light_updates");
-		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
+		WorldRenderPasses.current().render(WorldRenderPassContext.INSTANCE);
 
-		WorldRenderPassContext.INSTANCE.profilerSwap("terrain_setup");
-		setupTerrain(camera);
+		////
+
+		profiler.swap("fog");
+		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
+		profiler.swap("terrain_setup");
+
+		Configurator.lagFinder.swap("WorldRenderer-TerrainSetup");
+
+		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
 		eventContext.setFrustum(frustum);
 		WorldRenderEvents.AFTER_SETUP.invoker().afterSetup(eventContext);
 
-		WorldRenderPassContext.INSTANCE.profilerSwap("updatechunks");
+		Configurator.lagFinder.swap("WorldRenderer-TerrainUpdate");
+
+		profiler.swap("updatechunks");
 		final int maxFps = mc.options.maxFps;
 		long maxFpsLimit;
 
@@ -440,6 +445,18 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		updateRegions(frameStartNanos + clampedBudget);
 
+		//LightmapHdTexture.instance().onRenderTick();
+
+		// WIP: have a way to render terrain here if deferred?
+		//profiler.swap("terrain");
+		//Configurator.lagFinder.swap("WorldRenderer-TerrainRenderSolid");
+		//
+		//MatrixState.set(MatrixState.REGION);
+		//SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ);
+		//
+		//renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+		//MatrixState.set(MatrixState.CAMERA);
+
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
 		if (this.world.getSkyProperties().isDarkened()) {
@@ -449,10 +466,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		} else {
 			DiffuseLighting.method_27869(MatrixState.viewMatrix);
 		}
-
-		WorldRenderPasses.current().render(WorldRenderPassContext.INSTANCE);
-
-		////
 
 		Configurator.lagFinder.swap("WorldRenderer-EntityRender");
 
