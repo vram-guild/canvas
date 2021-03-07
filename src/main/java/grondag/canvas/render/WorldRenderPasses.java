@@ -23,9 +23,6 @@ public class WorldRenderPasses implements WorldRenderPass {
 
 	public WorldRenderPasses() {
 		passes.add(WorldRenderPass.materialFog(true));
-		passes.add(WorldRenderPass.profilerSwap("light_updates"));
-		passes.add(WorldRenderPass.lightUpdates());
-
 		passes.add(WorldRenderPass.profilerSwap("clear"));
 		passes.add(WorldRenderPass.bindFramebuffer("default"));
 		passes.add(WorldRenderPass.setVanillaClearColor());
@@ -39,6 +36,9 @@ public class WorldRenderPasses implements WorldRenderPass {
 				WorldRenderPass.renderVanillaSky()
 			)
 		));
+
+		passes.add(WorldRenderPass.profilerSwap("fog"));
+		passes.add(WorldRenderPass.setupVanillaTerrainFog());
 	}
 
 	@Override

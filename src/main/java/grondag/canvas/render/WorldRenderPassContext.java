@@ -25,6 +25,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.buffer.encoding.DrawableBuffer;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.WorldRendererExt;
 
 class WorldRenderPassContext {
@@ -54,5 +55,10 @@ class WorldRenderPassContext {
 		cameraX = cameraPos.getX();
 		cameraY = cameraPos.getY();
 		cameraZ = cameraPos.getZ();
+	}
+
+	public void profilerSwap(String token) {
+		Configurator.lagFinder.swap(token);
+		profiler.swap(token);
 	}
 }

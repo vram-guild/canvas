@@ -48,10 +48,6 @@ interface WorldRenderPass {
 		return ctx -> MaterialFog.allow(enable);
 	}
 
-	static WorldRenderPass lightUpdates() {
-		return ctx -> ctx.mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
-	}
-
 	static WorldRenderPass bindFramebuffer(String name) {
 		final PipelineFramebuffer fb = Pipeline.getFramebuffer(name);
 		return ctx -> fb.bind();
@@ -76,6 +72,10 @@ interface WorldRenderPass {
 
 	static WorldRenderPass setupVanillaSkyFog() {
 		return ctx -> BackgroundRenderer.applyFog(ctx.camera, BackgroundRenderer.FogType.FOG_SKY, ctx.viewDistance, ctx.thickFog);
+	}
+
+	static WorldRenderPass setupVanillaTerrainFog() {
+		return ctx -> BackgroundRenderer.applyFog(ctx.camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(ctx.viewDistance - 16.0F, 32.0F), ctx.thickFog);
 	}
 
 	static WorldRenderPass renderVanillaSky() {
