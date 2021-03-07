@@ -373,11 +373,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public void renderWorld(MatrixStack viewMatrixStack, MatrixStack identityStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		WorldRenderPassContext.INSTANCE.canvasWorldRenderer = this;
-		WorldRenderPassContext.INSTANCE.viewMatrixStack = viewMatrixStack;
-		WorldRenderPassContext.INSTANCE.identityStack = identityStack;
-		WorldRenderPassContext.INSTANCE.tickDelta = tickDelta;
 		WorldRenderPassContext.INSTANCE.setCamera(camera);
-		WorldRenderPassContext.INSTANCE.gameRenderer = gameRenderer;
 		final Vec3d cameraVec3d = camera.getPos();
 		cameraPos = cameraVec3d;
 		final double cameraX = cameraVec3d.getX();
@@ -402,10 +398,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
 		final boolean advancedTranslucency = Pipeline.isFabulous();
 		final TerrainFrustum frustum = terrainFrustum;
-		final float viewDistance = gameRenderer.getViewDistance();
-		WorldRenderPassContext.INSTANCE.viewDistance = viewDistance;
-		final boolean thickFog = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
-		WorldRenderPassContext.INSTANCE.thickFog = thickFog;
 
 		BlockEntityRenderDispatcher.INSTANCE.configure(world, mc.getTextureManager(), mc.textRenderer, camera, mc.crosshairTarget);
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
@@ -413,6 +405,28 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		WorldRenderPasses.current().render(WorldRenderPassContext.INSTANCE);
 
 		////
+
+		Pipeline.defaultFbo.bind();
+
+		profiler.swap("clear");
+
+		// This does not actually render anything - what it does do is set the current clear color
+		// Color is captured via a mixin for use in shaders
+		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
+
+		if (Pipeline.config().runVanillaClear) {
+			RenderSystem.clear(16640, MinecraftClient.IS_SYSTEM_MAC);
+		}
+
+		final float viewDistance = gameRenderer.getViewDistance();
+		final boolean thickFog = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
+
+		if (mc.options.viewDistance >= 4) {
+			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
+			profiler.swap("sky");
+			// NB: fog / sky renderer normalcy get viewMatrixStack but we apply camera rotation in VertexBuffer mixin
+			((WorldRenderer) wr).renderSky(identityStack, tickDelta);
+		}
 
 		profiler.swap("fog");
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
