@@ -50,8 +50,7 @@ public class PipelineConfig {
 
 	public final NamedDependency<FramebufferConfig> defaultFramebuffer;
 
-	public final Identifier materialVertexShader;
-	public final Identifier materialFragmentShader;
+	public final MaterialProgramConfig materialProgram;
 
 	private final Object2ObjectOpenHashMap<Identifier, OptionConfig> optionMap = new Object2ObjectOpenHashMap<>();
 
@@ -69,13 +68,13 @@ public class PipelineConfig {
 		sky = null;
 		drawTargets = DrawTargetsConfig.makeDefault(context);
 		defaultFramebuffer = context.frameBuffers.dependOn("default");
-		materialVertexShader = new Identifier("canvas:shaders/pipeline/standard.vert");
-		materialFragmentShader = new Identifier("canvas:shaders/pipeline/standard.frag");
+		materialProgram = new MaterialProgramConfig(context);
 	}
 
 	PipelineConfig (PipelineConfigBuilder builder) {
 		context = builder.context;
 
+		materialProgram = builder.materialProgram;
 		defaultFramebuffer = builder.defaultFramebuffer;
 		fabulosity = builder.fabulosity;
 		drawTargets = builder.drawTargets;
@@ -94,8 +93,6 @@ public class PipelineConfig {
 		framebuffers = builder.framebuffers.toArray(new FramebufferConfig[builder.framebuffers.size()]);
 		onWorldStart = builder.onWorldStart.toArray(new PassConfig[builder.onWorldStart.size()]);
 		afterRenderHand = builder.afterRenderHand.toArray(new PassConfig[builder.afterRenderHand.size()]);
-		materialVertexShader = new Identifier(builder.materialVertexShader);
-		materialFragmentShader = new Identifier(builder.materialFragmentShader);
 
 		ConfigManager.initPipelineOptions(options);
 	}

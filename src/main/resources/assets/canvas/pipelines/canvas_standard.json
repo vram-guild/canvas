@@ -20,8 +20,15 @@
 
 	nameKey: "pipeline.canvas_standard.name",
 	descriptionKey: "pipeline.canvas_standard.desc",
-	materialVertexShader: "canvas:shaders/pipeline/standard.vert",
-	materialFragmentShader: "canvas:shaders/pipeline/standard.frag",
+
+	materialProgram: {
+		vertexSource: "canvas:shaders/pipeline/standard.vert",
+		fragmentSource: "canvas:shaders/pipeline/standard.frag",
+		// glsl names for samplers additive to the FREX pre-defined samplers
+		samplers: [],
+		// image names for samplers additive to the FREX pre-defined samplers
+		samplerImages: []
+	},
 
 	drawTargets: {
 		solidTerrain: "solid",

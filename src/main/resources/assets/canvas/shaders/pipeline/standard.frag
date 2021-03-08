@@ -83,7 +83,7 @@ vec4 light(frx_FragmentData fragData) {
 frx_FragmentData frx_createPipelineFragment() {
 #ifdef VANILLA_LIGHTING
 	return frx_FragmentData (
-		texture2D(frxs_spriteAltas, frx_texcoord, frx_matUnmippedFactor() * -4.0),
+		texture2D(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
 		frx_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),
@@ -94,7 +94,7 @@ frx_FragmentData frx_createPipelineFragment() {
 	);
 #else
 	return frx_FragmentData (
-		texture2D(frxs_spriteAltas, frx_texcoord, frx_matUnmippedFactor() * -4.0),
+		texture2D(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
 		frx_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),

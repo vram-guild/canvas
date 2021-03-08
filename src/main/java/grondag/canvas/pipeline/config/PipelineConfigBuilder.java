@@ -58,10 +58,17 @@ public class PipelineConfigBuilder {
 
 	public NamedDependency<FramebufferConfig> defaultFramebuffer;
 
-	public String materialVertexShader;
-	public String materialFragmentShader;
+	public MaterialProgramConfig materialProgram;
 
 	public void load(JsonObject configJson) {
+		if (configJson.containsKey("materialProgram")) {
+			if (materialProgram == null) {
+				materialProgram = LoadHelper.loadObject(context, configJson, "materialProgram", MaterialProgramConfig::new);
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialProgram' ignored.");
+			}
+		}
+
 		if (configJson.containsKey("defaultFramebuffer")) {
 			if (defaultFramebuffer == null) {
 				defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
@@ -95,19 +102,11 @@ public class PipelineConfigBuilder {
 		}
 
 		if (configJson.containsKey("materialVertexShader")) {
-			if (materialVertexShader == null) {
-				materialVertexShader = JanksonHelper.asString(configJson.get("materialVertexShader"));
-			} else {
-				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialVertexShader' ignored.");
-			}
+			CanvasMod.LOG.warn("Invalid pipeline config - obsolete 'materialVertexShader' attribute found - use 'materialProgram' instead.");
 		}
 
 		if (configJson.containsKey("materialFragmentShader")) {
-			if (materialFragmentShader == null) {
-				materialFragmentShader = JanksonHelper.asString(configJson.get("materialFragmentShader"));
-			} else {
-				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'materialFragmentShader' ignored.");
-			}
+			CanvasMod.LOG.warn("Invalid pipeline config - obsolete 'materialFragmentShader' attribute found - use 'materialProgram' instead.");
 		}
 
 		if (configJson.containsKey("drawTargets")) {
@@ -133,8 +132,7 @@ public class PipelineConfigBuilder {
 
 		valid &= AbstractConfig.assertAndWarn(drawTargets != null && drawTargets.validate(), "Invalid pipeline config - missing or invalid drawTargets config.");
 
-		valid &= AbstractConfig.assertAndWarn(materialVertexShader != null && !materialVertexShader.isEmpty(), "Invalid pipeline config - missing materialVertexShader.");
-		valid &= AbstractConfig.assertAndWarn(materialFragmentShader != null && !materialFragmentShader.isEmpty(), "Invalid pipeline config - missing materialFragmentShader.");
+		valid &= AbstractConfig.assertAndWarn(materialProgram != null && materialProgram.validate(), "Invalid pipeline config - missing or invalid materialProgram.");
 
 		valid &= (fabulosity == null || fabulosity.validate());
 		valid &= (skyShadow == null || skyShadow.validate());

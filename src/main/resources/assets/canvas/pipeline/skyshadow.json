@@ -32,8 +32,8 @@
 		allowEntities: true,
 		allowParticles: true,
 		supportForwardRender: true,
-		vertexShader: "canvas:shaders/pipeline/shadow.vert",
-		fragmentShader: "canvas:shaders/pipeline/shadow.frag",
+		vertexSource: "canvas:shaders/pipeline/shadow.vert",
+		fragmentSource: "canvas:shaders/pipeline/shadow.frag",
     // first parameter to glPolygonOffset - variable slope factor
     offsetSlopeFactor: 1.1,
     // second parameter to glPolygonOffset - constant offset bias
@@ -44,7 +44,11 @@
     // These are automatically calculated for the largest (least-detail)
     // cascade to contain the entire visible scene. These correspond
     // to cascade indices 1, 2 and 3 in shader.
-    cascadeRadius: [32, 16, 8]
+    cascadeRadius: [32, 16, 8],
+    // glsl names for samplers additive to the FREX pre-defined samplers
+    samplers: [],
+    // image names for samplers additive to the FREX pre-defined samplers
+    samplerImages: []
   },
 
   images: [

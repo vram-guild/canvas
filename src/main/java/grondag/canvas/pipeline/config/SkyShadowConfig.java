@@ -18,6 +18,7 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
+import org.apache.commons.lang3.ObjectUtils;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.util.Identifier;
@@ -33,22 +34,24 @@ public class SkyShadowConfig extends AbstractConfig {
 	public final boolean allowEntities;
 	public final boolean allowParticles;
 	public final boolean supportForwardRender;
-	public final Identifier vertexShader;
-	public final Identifier fragmentShader;
+	public final Identifier vertexSource;
+	public final Identifier fragmentSource;
 	public final float offsetSlopeFactor;
 	public final float offsetBiasUnits;
 	public final int[] cascadeRadii = {32, 16, 8};
+	public final String[] samplerNames;
 
 	SkyShadowConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
 		framebuffer = ctx.frameBuffers.dependOn(config, "framebuffer");
-		vertexShader = JanksonHelper.asIdentifier(config.get("vertexShader"));
-		fragmentShader = JanksonHelper.asIdentifier(config.get("fragmentShader"));
+		vertexSource = JanksonHelper.asIdentifier(ObjectUtils.defaultIfNull(config.get("vertexSource"), config.get("vertexShader")));
+		fragmentSource = JanksonHelper.asIdentifier(ObjectUtils.defaultIfNull(config.get("fragmentSource"), config.get("fragmentShader")));
 		allowEntities = config.getBoolean("allowEntities", true);
 		allowParticles = config.getBoolean("allowParticles", true);
 		supportForwardRender = config.getBoolean("supportForwardRender", true);
 		offsetSlopeFactor = config.getFloat("offsetSlopeFactor", DEFAULT_SHADOW_SLOPE_FACTOR);
 		offsetBiasUnits = config.getFloat("offsetBiasUnits", DEFAULT_SHADOW_BIAS_UNITS);
+		samplerNames = readerSamplerNames(ctx, config, "shy shadows");
 
 		final JsonArray radii = JanksonHelper.getJsonArrayOrNull(config, "cascadeRadius", "Invalid pipeline skyShadow config: cascadeRadius must be an array.");
 
@@ -74,8 +77,8 @@ public class SkyShadowConfig extends AbstractConfig {
 	public boolean validate() {
 		boolean valid = true;
 		valid &= framebuffer.validate("Invalid pipeline config - skyShadows framebuffer missing or invalid.");
-		valid &= assertAndWarn(vertexShader != null, "Invalid pipeline config - skyShadows 'vertexShader' missing or invalid.");
-		valid &= assertAndWarn(fragmentShader != null, "Invalid pipeline config - skyShadows 'fragmentShader' missing or invalid.");
+		valid &= assertAndWarn(vertexSource != null, "Invalid pipeline config - skyShadows 'vertexSource' missing or invalid.");
+		valid &= assertAndWarn(fragmentSource != null, "Invalid pipeline config - skyShadows 'fragmentSource' missing or invalid.");
 
 		if (valid) {
 			valid &= assertAndWarn(framebuffer.value().depthAttachment.image.value().target == GL46.GL_TEXTURE_2D_ARRAY,

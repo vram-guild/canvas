@@ -100,8 +100,8 @@ public class GlMaterialShader extends GlShader {
 		}
 
 		final Identifier sourceId = programType.isDepth && Pipeline.config().skyShadow != null
-			? Pipeline.config().skyShadow.fragmentShader
-			: Pipeline.config().materialFragmentShader;
+			? Pipeline.config().skyShadow.fragmentSource
+			: Pipeline.config().materialProgram.fragmentSource;
 
 		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
 		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);
@@ -165,8 +165,8 @@ public class GlMaterialShader extends GlShader {
 		}
 
 		final Identifier sourceId = programType.isDepth && Pipeline.config().skyShadow != null
-				? Pipeline.config().skyShadow.vertexShader
-				: Pipeline.config().materialVertexShader;
+				? Pipeline.config().skyShadow.vertexSource
+				: Pipeline.config().materialProgram.vertexSource;
 
 		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
 		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);

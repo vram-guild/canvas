@@ -16,6 +16,9 @@
 
 package grondag.canvas.pipeline.config.util;
 
+import blue.endless.jankson.JsonArray;
+import blue.endless.jankson.JsonObject;
+
 import grondag.canvas.CanvasMod;
 
 public abstract class AbstractConfig {
@@ -37,5 +40,28 @@ public abstract class AbstractConfig {
 
 	public static boolean assertAndWarn(boolean isOK, String msg, Object... args) {
 		return assertAndWarn(isOK, String.format(msg, args));
+	}
+
+	protected static String[] readerSamplerNames(ConfigContext ctx, JsonObject config, String programName) {
+		if (!config.containsKey("samplers")) {
+			return new String[0];
+		} else {
+			final JsonArray names = config.get(JsonArray.class, "samplers");
+			final int limit = names.size();
+			final String[] samplerNames = new String[limit];
+
+			for (int i = 0; i < limit; ++i) {
+				final String s = JanksonHelper.asString(names.get(i));
+
+				if (s == null) {
+					CanvasMod.LOG.warn(String.format("Sampler name %s (%d of %d) for %s is not a valid string and was skipped.",
+							names.get(i).toString(), i, limit, programName));
+				} else {
+					samplerNames[i] = s;
+				}
+			}
+
+			return samplerNames;
+		}
 	}
 }

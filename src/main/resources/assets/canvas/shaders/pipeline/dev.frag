@@ -88,7 +88,7 @@ vec4 ambientLight(frx_FragmentData fragData, float exposure) {
 
 frx_FragmentData frx_createPipelineFragment() {
 	return frx_FragmentData (
-		texture2D(frxs_spriteAltas, frx_texcoord, frx_matUnmippedFactor() * -4.0),
+		texture2D(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
 		frx_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),

@@ -16,14 +16,11 @@
 
 package grondag.canvas.pipeline.config;
 
-import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
-import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedConfig;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
@@ -49,31 +46,16 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 	public final String[] samplerNames;
 	public final boolean isBuiltIn;
 
-	ProgramConfig(ConfigContext ctx, JsonObject config) {
-		super(ctx, config.get(String.class, "name"));
+	ProgramConfig(ConfigContext ctx, JsonObject config, String name) {
+		super(ctx, name);
 		vertexSource = new Identifier(config.get(String.class, "vertexSource"));
 		fragmentSource = new Identifier(config.get(String.class, "fragmentSource"));
-
-		if (!config.containsKey("samplers")) {
-			samplerNames = new String[0];
-		} else {
-			final JsonArray names = config.get(JsonArray.class, "samplers");
-			final int limit = names.size();
-			samplerNames = new String[limit];
-
-			for (int i = 0; i < limit; ++i) {
-				final String s = JanksonHelper.asString(names.get(i));
-
-				if (s == null) {
-					CanvasMod.LOG.warn(String.format("Sampler name %s (%d of %d) for pipeline shader %s is not a valid string and was skipped.",
-							names.get(i).toString(), i, limit, name));
-				} else {
-					samplerNames[i] = s;
-				}
-			}
-		}
-
+		samplerNames = readerSamplerNames(ctx, config, "program " + name);
 		isBuiltIn = false;
+	}
+
+	ProgramConfig(ConfigContext ctx, JsonObject config) {
+		this(ctx, config, config.get(String.class, "name"));
 	}
 
 	public ProgramConfig(ConfigContext ctx, String name) {
@@ -82,6 +64,14 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 		fragmentSource = null;
 		samplerNames = null;
 		isBuiltIn = true;
+	}
+
+	protected ProgramConfig(ConfigContext ctx, String name, String vertexSource, String fragmentSource) {
+		super(ctx, name);
+		this.vertexSource = new Identifier(vertexSource);
+		this.fragmentSource = new Identifier(fragmentSource);
+		samplerNames = new String[0];
+		isBuiltIn = false;
 	}
 
 	public static ProgramConfig builtIn(ConfigContext ctx, String name) {

@@ -5,7 +5,7 @@
   frex:shaders/api/sampler.glsl
 ******************************************************/
 
-uniform sampler2D frxs_spriteAltas;
+uniform sampler2D frxs_baseColor;
 
 /**
  * When a texture atlas is in use, the renderer will automatically

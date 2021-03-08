@@ -1,8 +1,15 @@
 {
 	nameKey: "pipeline.canvas_dev.name",
 	descriptionKey: "pipeline.canvas_dev.desc",
-	materialVertexShader: "canvas:shaders/pipeline/dev.vert",
-	materialFragmentShader: "canvas:shaders/pipeline/dev.frag",
+
+	materialProgram: {
+		vertexSource: "canvas:shaders/pipeline/dev.vert",
+		fragmentSource: "canvas:shaders/pipeline/dev.frag",
+		// glsl names for samplers additive to the FREX pre-defined samplers
+    samplers: [],
+    // image names for samplers additive to the FREX pre-defined samplers
+    samplerImages: []
+	},
 
 	sky: {
 		// Used when dimension/celestial object does not specify
