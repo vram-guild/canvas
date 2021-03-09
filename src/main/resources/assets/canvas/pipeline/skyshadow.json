@@ -52,11 +52,23 @@
   },
 
   images: [
-    // depth attachment for shadow map - must be an array texture with depth = 4
+    // depth attachment for shadow map - an array texture with depth = 4
     {
-      name: "shadow_depth",
       size: 1024,
       // DO NOT CHANGE ANY SETTINGS BELOW
+
+      // You can bind the shadow map image array in process shaders - needed for deferred
+      // pipeline shadows. The binding target will always be TEXTURE_2D_ARRAY but you
+      // can control the sampler type in the shader code:
+      //
+      //   Use sampler2DArrayShadow for final map testing
+      //   to exploit hardware accumulation of shadow test results.
+      //
+      //   Use sampler2DArray for probing depth at specific points for PCSS
+      //   or Contact-Hardening Shadows.
+      //
+      // The same program can bind both types.
+      name: "shadow_map",
       internalFormat: "DEPTH_COMPONENT32",
       pixelFormat: "DEPTH_COMPONENT",
       pixelDataType: "FLOAT",
@@ -76,7 +88,7 @@
   framebuffers: [
     {
 			name: "shadow",
-			depthAttachment: {image: "shadow_depth", clearDepth: 1.0}
+			depthAttachment: {image: "shadow_map", clearDepth: 1.0}
 		}
 	]
 }

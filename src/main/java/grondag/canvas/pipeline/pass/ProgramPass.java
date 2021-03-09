@@ -20,6 +20,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
@@ -34,6 +35,8 @@ import grondag.canvas.shader.ProcessShader;
 
 class ProgramPass extends Pass {
 	final int[] binds;
+	final int[] bindTargets;
+
 	ProcessShader shader;
 
 	ProgramPass(PassConfig config) {
@@ -42,11 +45,13 @@ class ProgramPass extends Pass {
 		shader = Pipeline.getShader(config.program.name);
 
 		binds = new int[config.samplerImages.length];
+		bindTargets = new int[config.samplerImages.length];
 
 		for (int i = 0; i < config.samplerImages.length; ++i) {
 			final String imageName = config.samplerImages[i].name;
 
 			int imageBind = 0;
+			int bindTarget = GL46.GL_TEXTURE_2D;
 
 			if (imageName.contains(":")) {
 				final AbstractTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(imageName));
@@ -59,10 +64,12 @@ class ProgramPass extends Pass {
 
 				if (img != null) {
 					imageBind = img.glId();
+					bindTarget = img.config.target;
 				}
 			}
 
 			binds[i] = imageBind;
+			bindTargets[i] = bindTarget;
 		}
 	}
 
@@ -88,8 +95,7 @@ class ProgramPass extends Pass {
 
 		for (int i = 0; i < slimit; ++i) {
 			CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0 + i);
-			// TODO: support targets other than 2D
-			CanvasTextureState.bindTexture(binds[i]);
+			CanvasTextureState.bindTexture(bindTargets[i], binds[i]);
 		}
 
 		shader.activate().lod(config.lod).size(width, height);

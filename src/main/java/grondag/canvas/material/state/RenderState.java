@@ -168,6 +168,10 @@ public final class RenderState extends AbstractRenderState {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
 			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 			assert CanvasGlHelper.checkError();
+
+			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP_TEXTURE);
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			assert CanvasGlHelper.checkError();
 			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
 			// Was seeing stray invalid operations errors in GL without.
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);

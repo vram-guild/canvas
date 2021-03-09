@@ -35,6 +35,14 @@ uniform sampler2D frxs_lightmap;
 
 #ifdef SHADOW_MAP_PRESENT
 #ifdef FRAGMENT_SHADER
+// These sample the same underlying image array but have different sampler types.
+
+// The shadow sampler type is useful for final map testing
+// and exploits hardware accumulation of shadow test results.
 uniform sampler2DArrayShadow frxs_shadowMap;
+
+// The regular sampler type is useful for
+// probing depth at specific points for PCSS or Contact-Hardening Shadows.
+uniform sampler2DArray frxs_shadowMapTexture;
 #endif
 #endif
