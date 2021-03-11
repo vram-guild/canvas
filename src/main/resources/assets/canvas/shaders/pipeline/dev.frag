@@ -172,13 +172,19 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	#endif
 		int cascade = selectShadowCascade();
 
+
 		// NB: perspective division should not be needed because ortho projection
 		vec4 shadowCoords = frx_shadowProjectionMatrix(cascade) * shadowPos;
 
 		// Transform from screen coordinates to texture coordinates
 		vec3 shadowTexCoords = shadowCoords.xyz * 0.5 + 0.5;
-
 		float shadow = sampleShadowPCF(shadowTexCoords, float(cascade));
+
+		// WIP: contact shadows
+		//float gradientNoise = TAU * InterleavedGradientNoise(gl_FragCoord.xy);
+		//float spread = 3.0; //Penumbra(gradientNoise, shadowTexCoords, float(cascade));
+		//float shadow = sampleVogelShadowPCF(shadowTexCoords, float(cascade), gradientNoise, spread);
+
 		light += shadow * vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
 
 	#ifdef SHADOW_DEBUG

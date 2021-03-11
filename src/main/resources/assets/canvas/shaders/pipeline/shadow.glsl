@@ -163,3 +163,116 @@ float sampleShadowPCF(in vec3 shadowPos, in float cascade) {
 
     #endif
 }
+
+vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi) {
+  float GoldenAngle = 2.4;
+  float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
+  float theta = sampleIndex * GoldenAngle + phi;
+  return vec2(r * cos(theta), r * sin(theta));
+}
+
+float InterleavedGradientNoise(vec2 position_screen) {
+  vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
+  return fract(magic.z * fract(dot(position_screen, magic.xy)));
+}
+
+float AvgBlockersDepthToPenumbra(float z_shadowMapView, float avgBlockersDepth) {
+  float penumbra = (z_shadowMapView - avgBlockersDepth) / avgBlockersDepth;
+  penumbra *= penumbra;
+  return clamp(80.0 * penumbra, 0.0, 1.0);
+}
+
+#define penumbraFilterMaxSize 32.0
+
+float Penumbra(float gradientNoise, vec3 shadowMapCoords, float cascade) {
+  float avgBlockersDepth = 0.0;
+  float blockersCount = 0.0;
+
+  for(int i = 0; i < 16; i ++) {
+	vec2 sampleUV = VogelDiskSample(i, 16, gradientNoise);
+    sampleUV = shadowMapCoords.xy + penumbraFilterMaxSize * sampleUV;
+
+    float sampleDepth = texture2DArray(frxs_shadowMapTexture, vec3(sampleUV, cascade)).x;
+
+    // WIP: Here and below need work, may be related to diff Z-sign in OGL vs DX
+    if(sampleDepth < shadowMapCoords.z) {
+      avgBlockersDepth += sampleDepth;
+      blockersCount += 1.0;
+    }
+  }
+
+  if(blockersCount > 0.0) {
+    avgBlockersDepth /= blockersCount;
+    return abs(shadowMapCoords.z - avgBlockersDepth) * 10.0;
+    //return clamp(abs(shadowMapCoords.z - avgBlockersDepth), 0.0, 1.0) * 7.0;
+    //return AvgBlockersDepthToPenumbra(shadowMapCoords.z, avgBlockersDepth);
+  }
+  else {
+    return 0.0;
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+// Helper function for pcfSampleOptimizedPCF
+// Adapted from https://github.com/TheRealMJP/Shadows - MIT License
+//-------------------------------------------------------------------------------------------------
+float pcfSampleVogel(in vec2 base_uv, in int sample, float gradientNoise, in vec2 shadowMapSizeInv, in float cascade,  in float depth, in vec2 receiverPlaneDepthBias, float spread) {
+	vec2 offset = VogelDiskSample(sample, 16, gradientNoise) * spread;
+
+    vec2 uv = base_uv + offset * shadowMapSizeInv;
+    float z = depth + dot(offset * shadowMapSizeInv, receiverPlaneDepthBias);
+
+	return shadow2DArray(frxs_shadowMap, vec4(uv, cascade, z)).x;
+}
+
+float sampleVogelShadowPCF(in vec3 shadowPos, in float cascade, float gradientNoise, float spread) {
+	vec3 shadowPosDX = dFdx(shadowPos);
+	vec3 shadowPosDY = dFdy(shadowPos);
+
+	float lightDepth = shadowPos.z;
+
+	vec2 texelSize = 1.0f / shadowMapSize;
+	vec2 receiverPlaneDepthBias = computeReceiverPlaneDepthBias(shadowPosDX, shadowPosDY);
+
+	// Static depth biasing to make up for incorrect fractional sampling on the shadow map grid
+	float fractionalSamplingError = 2 * dot(vec2(1.0f, 1.0f) * texelSize, abs(receiverPlaneDepthBias));
+	lightDepth -= min(fractionalSamplingError, 0.01f);
+
+	vec2 uv = shadowPos.xy * shadowMapSize; // 1 unit - 1 texel
+
+	vec2 shadowMapSizeInv = 1.0 / shadowMapSize;
+
+	vec2 base_uv;
+	base_uv.x = floor(uv.x + 0.5);
+	base_uv.y = floor(uv.y + 0.5);
+
+	float s = (uv.x + 0.5 - base_uv.x);
+	float t = (uv.y + 0.5 - base_uv.y);
+
+	base_uv -= vec2(0.5, 0.5);
+	base_uv *= shadowMapSizeInv;
+
+	float sum = 0;
+
+	sum += pcfSampleVogel(base_uv, 0, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 1, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 2, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 3, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+
+	sum += pcfSampleVogel(base_uv, 4, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 5, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 6, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 7, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+
+	sum += pcfSampleVogel(base_uv, 8, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 9, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 10, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 11, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+
+	sum += pcfSampleVogel(base_uv, 12, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 13, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 14, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+	sum += pcfSampleVogel(base_uv, 15, gradientNoise, shadowMapSizeInv, cascade, lightDepth, receiverPlaneDepthBias, spread);
+
+	return sum / 16.0;
+}
