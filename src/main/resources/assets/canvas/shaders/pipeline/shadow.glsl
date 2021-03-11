@@ -164,6 +164,10 @@ float sampleShadowPCF(in vec3 shadowPos, in float cascade) {
     #endif
 }
 
+// Below adapted from Contact-hardening Soft Shadows Made Fast
+// Wojciech Sterna, 2018 - MIT License
+// http://maxest.gct-game.net/content/chss.pdf
+
 vec2 VogelDiskSample(int sampleIndex, int samplesCount, float phi) {
   float GoldenAngle = 2.4;
   float r = sqrt(sampleIndex + 0.5) / sqrt(samplesCount);
