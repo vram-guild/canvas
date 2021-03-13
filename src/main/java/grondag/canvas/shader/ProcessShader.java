@@ -75,6 +75,8 @@ public class ProcessShader {
 				// PERF: should probably match on any sampler uniform type - names must be unique anyway
 				if (program.containsUniformSpec("sampler2DArray", samplerName)) {
 					program.uniformSampler("sampler2DArray", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				} else if (program.containsUniformSpec("sampler2DArrayShadow", samplerName)) {
+					program.uniformSampler("sampler2DArrayShadow", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
 				} else if (program.containsUniformSpec("sampler2D", samplerName)) {
 					program.uniformSampler("sampler2D", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
 				}
