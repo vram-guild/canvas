@@ -18,6 +18,7 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
+import grondag.canvas.varia.WorldDataManager;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
@@ -114,6 +115,7 @@ public class Canvas implements Renderer {
 		// LightmapHd.reload();
 		TerrainModelSpace.reload();
 		MaterialTextureState.reload();
+		WorldDataManager.reload();
 	}
 
 	@Override
