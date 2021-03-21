@@ -190,9 +190,9 @@ public class WorldDataManager {
 	private static final BitPacker32<Void>.BooleanElement FLAG_HERO_OF_THE_VILLAGE = PLAYER_FLAGS.createBooleanElement();
 
 	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(LENGTH);
-	private static final long baseRenderTime = System.currentTimeMillis();
 	private static int worldFlags;
 	private static int playerFlags;
+	static long baseRenderTime = System.currentTimeMillis();
 	static int renderFrames = 0;
 	static double smoothedEyeLightBlock = 0;
 	static double smoothedEyeLightSky = 0;
@@ -396,6 +396,7 @@ public class WorldDataManager {
 	 * Called during render reload
 	 */
 	public static void reload() {
+		baseRenderTime = System.currentTimeMillis();
 		renderFrames = 0;
 	}
 
