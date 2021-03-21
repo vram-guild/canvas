@@ -23,6 +23,16 @@ float frx_renderSeconds() {
 }
 
 /*
+ * The number of frames this world has been rendering since the last render
+ * reload.
+ *
+ * Use this for effects that need a discrete increasing counter.
+ */
+int frx_renderFrames() {
+    return int(_cvu_world[_CV_RENDER_INFO].x);
+}
+
+/*
  * Day of the currently rendering world - integer portion only.
  * This is the apparent day, not the elapsed play time, which can
  * be different due to sleeping, /set time, etc.
