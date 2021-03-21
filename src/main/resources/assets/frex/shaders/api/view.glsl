@@ -188,11 +188,11 @@ mat4 frx_viewProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_VIEW_PROJ];
 }
 
-mat4 frx_lastViewProjectionMatrix() {
+mat4 frx_inverseViewProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_VIEW_PROJ_INVERSE];
 }
 
-mat4 frx_inverseViewProjectionMatrix() {
+mat4 frx_lastViewProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_VIEW_PROJ_LAST];
 }
 
@@ -217,12 +217,12 @@ mat4 frx_cleanViewProjectionMatrix() {
 }
 
 // No view bobbing or other effects that alter projection
-mat4 frx_lastCleanViewProjectionMatrix() {
+mat4 frx_inverseCleanViewProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_CLEAN_VIEW_PROJ_INVERSE];
 }
 
 // No view bobbing or other effects that alter projection
-mat4 frx_inverseCleanViewProjectionMatrix() {
+mat4 frx_lastCleanViewProjectionMatrix() {
 	return _cvu_matrix[_CV_MAT_CLEAN_VIEW_PROJ_LAST];
 }
 
