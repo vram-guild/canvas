@@ -60,6 +60,10 @@
 // 15 - 18 reserved for cascades 0-3
 #define _CV_SHADOW_CENTER 15
 
+// render frame count
+// unused x3
+#define _CV_RENDER_INFO 19
+
 #define _CV_FLAG_HAS_SKYLIGHT 0
 #define _CV_FLAG_IS_OVERWORLD 1
 #define _CV_FLAG_IS_NETHER 2

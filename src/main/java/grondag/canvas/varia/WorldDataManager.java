@@ -125,6 +125,9 @@ public class WorldDataManager {
 	// 15-18 reserved for cascades 0-3
 	static final int SHADOW_CENTER = 4 * 15;
 
+	private static final int VEC_RENDER_INFO = 4 * 19;
+	private static final int RENDER_FRAMES = VEC_RENDER_INFO;
+
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
 	private static final BitPacker32<Void>.BooleanElement FLAG_IS_OVERWORLD = WORLD_FLAGS.createBooleanElement();
@@ -187,9 +190,10 @@ public class WorldDataManager {
 	private static final BitPacker32<Void>.BooleanElement FLAG_HERO_OF_THE_VILLAGE = PLAYER_FLAGS.createBooleanElement();
 
 	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(LENGTH);
-	private static final long baseRenderTime = System.currentTimeMillis();
 	private static int worldFlags;
 	private static int playerFlags;
+	static long baseRenderTime = System.currentTimeMillis();
+	static int renderFrames = 0;
 	static double smoothedEyeLightBlock = 0;
 	static double smoothedEyeLightSky = 0;
 	static double smoothedRainStrength = 0;
@@ -386,6 +390,14 @@ public class WorldDataManager {
 
 		DATA.put(SKYLIGHT_TRANSITION_FACTOR, factor);
 		return result;
+	}
+
+	/**
+	 * Called during render reload
+	 */
+	public static void reload() {
+		baseRenderTime = System.currentTimeMillis();
+		renderFrames = 0;
 	}
 
 	/**
@@ -591,6 +603,8 @@ public class WorldDataManager {
 
 		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
+
+		DATA.put(RENDER_FRAMES, renderFrames++);
 	}
 
 	public static void updateEmissiveColor(int color) {
