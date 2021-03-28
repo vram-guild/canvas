@@ -4,18 +4,34 @@
   frex:shaders/api/fog.glsl
 ******************************************************/
 
-#define  FOG_LINEAR  0
-#define  FOG_EXP     1
-#define  FOG_EXP2    2
-#define  FOG_DISABLE 3
-
 /**
- * Indicates the OpenGL fixed-function fog type game currently expects
- * Pipelines will likely want these to control fog effects but aren't
- * required to duplicate fixed-function fog exactly.
- *
- * Returns one of the FOG_ constants defined above.
+ * True if current material should have fog.
  */
-int frx_fogMode() {
-	return _cvu_fog_mode;
+bool frx_fogEnabled() {
+	return _cvu_fog_info.x >= 0.0;
 }
+
+float frx_fogStart() {
+	return _cvu_fog_info.x;
+}
+
+float frx_fogEnd() {
+	return _cvu_fog_info.y;
+}
+
+vec4 frx_fogColor() {
+	return _cvu_world[_CV_FOG_COLOR];
+}
+
+
+// vec4
+#define frxFogColor _cvu_world[_CV_FOG_COLOR]
+
+// float
+#define frxFogStart _cvu_fog_info.x
+
+// float
+#define frxFogEnd _cvu_fog_info.y
+
+// bool
+#define frxFogEnabled (_cvu_fog_info.x >= 0.0)

@@ -32,11 +32,13 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -217,6 +219,10 @@ public class GlProgram {
 
 	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix3f> initializer) {
 		return new UniformMatrix3fImpl(name, initializer, frequency);
+	}
+
+	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fImpl> initializer) {
+		return new UniformMatrix4fImpl(name, frequency, initializer);
 	}
 
 	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix3f> initializer) {
@@ -1084,6 +1090,36 @@ public class GlProgram {
 		@Override
 		public String searchString() {
 			return "mat4\\s*\\[\\s*[0-9]+\\s*]";
+		}
+	}
+
+	public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4fImpl> implements Uniform {
+		protected FloatBuffer uniformFloatBuffer = BufferUtils.createFloatBuffer(16);
+
+		protected UniformMatrix4fImpl(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fImpl> initializer) {
+			super(name, initializer, frequency);
+		}
+
+		public final void set(Matrix4f matrix) {
+			if (unifID == -1) {
+				return;
+			}
+
+			((Matrix4fExt) (Object) matrix).writeToBuffer(0, uniformFloatBuffer);
+
+			setDirty();
+		}
+
+		@Override
+		protected void uploadInner() {
+			if (uniformFloatBuffer != null) {
+				GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+			}
+		}
+
+		@Override
+		public String searchString() {
+			return "mat4";
 		}
 	}
 

@@ -36,8 +36,8 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3f;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
@@ -54,7 +54,7 @@ import grondag.frex.api.mesh.QuadView;
  * of maintaining and encoding the quad state.
  */
 public class QuadViewImpl implements QuadView {
-	protected final Vector3f faceNormal = new Vector3f();
+	protected final Vec3f faceNormal = new Vec3f();
 	protected int nominalFaceId = ModelHelper.NULL_FACE_ID;
 	protected boolean isGeometryInvalid = true;
 	protected int packedFaceNormal = -1;
@@ -218,7 +218,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public final Vector3f faceNormal() {
+	public final Vec3f faceNormal() {
 		computeGeometry();
 		return faceNormal;
 	}
@@ -256,9 +256,9 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public Vector3f copyPos(int vertexIndex, Vector3f target) {
+	public Vec3f copyPos(int vertexIndex, Vec3f target) {
 		if (target == null) {
-			target = new Vector3f();
+			target = new Vec3f();
 		}
 
 		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
@@ -296,10 +296,10 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public Vector3f copyNormal(int vertexIndex, Vector3f target) {
+	public Vec3f copyNormal(int vertexIndex, Vec3f target) {
 		if (hasNormal(vertexIndex)) {
 			if (target == null) {
-				target = new Vector3f();
+				target = new Vec3f();
 			}
 
 			final int normal = data[normalIndex(vertexIndex)];

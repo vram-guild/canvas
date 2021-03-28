@@ -18,12 +18,12 @@ package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
+import org.lwjgl.opengl.GL46C;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.options.GraphicsMode;
+import net.minecraft.client.option.GraphicsMode;
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
@@ -107,37 +107,30 @@ public class PipelineManager {
 	}
 
 	static void beginFullFrameRender() {
+		assert CanvasGlHelper.checkError();
 		// UGLY: put state preservation into texture manager
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE1);
+		CanvasTextureState.activeTextureUnit(GL46C.GL_TEXTURE1);
 		oldTex1 = CanvasTextureState.getActiveBoundTexture();
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
-		GlStateManager.enableTexture();
+		CanvasTextureState.activeTextureUnit(GL46C.GL_TEXTURE0);
 		oldTex0 = CanvasTextureState.getActiveBoundTexture();
 
 		RenderSystem.depthMask(false);
 		RenderSystem.disableBlend();
 		RenderSystem.disableCull();
-		RenderSystem.disableAlphaTest();
 		RenderSystem.disableDepthTest();
-		GlStateManager.matrixMode(GL11.GL_PROJECTION);
-		RenderSystem.pushMatrix();
-	}
-
-	public static void setProjection(int pixelWidth, int pixelHeight) {
-		RenderSystem.loadIdentity();
-		GlStateManager.ortho(0.0D, pixelWidth, pixelHeight, 0.0D, 1000.0, 3000.0);
+		RenderSystem.backupProjectionMatrix();
+		assert CanvasGlHelper.checkError();
 	}
 
 	static void endFullFrameRender() {
 		VboBuffer.unbind();
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE1);
+		CanvasTextureState.activeTextureUnit(GL46C.GL_TEXTURE1);
 		CanvasTextureState.bindTexture(oldTex1);
 		GlStateManager.disableTexture();
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
+		CanvasTextureState.activeTextureUnit(GL46C.GL_TEXTURE0);
 		CanvasTextureState.bindTexture(oldTex0);
 		GlProgram.deactivate();
-		RenderSystem.popMatrix();
-		GlStateManager.matrixMode(GL11.GL_MODELVIEW);
+		RenderSystem.restoreProjectionMatrix();
 		RenderSystem.depthMask(true);
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableCull();
@@ -174,8 +167,7 @@ public class PipelineManager {
 		drawBuffer.bind();
 		RenderSystem.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
-		PipelineManager.setProjection(w, h);
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
+		CanvasTextureState.activeTextureUnit(GL46C.GL_TEXTURE0);
 		GlStateManager.disableTexture();
 
 		if (array) {
@@ -183,8 +175,6 @@ public class PipelineManager {
 		} else {
 			CanvasTextureState.bindTexture(glId);
 		}
-
-		setProjection(w, h);
 
 		if (depth) {
 			if (array) {
@@ -196,14 +186,17 @@ public class PipelineManager {
 			debugShader.activate().size(w, h).lod(lod);
 		}
 
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		// WIP2: draw tris directly here
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, 4 / 4 * 6);
+		final int elementCount = indexBuffer.getVertexFormat().field_27374;
+		GlStateManager.drawElements(DrawMode.QUADS.mode, 0, elementCount, 0L);
+		//GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 
 		endFullFrameRender();
 	}
 
 	public static void init(PrimaryFrameBuffer primary, int width, int height) {
 		assert RenderSystem.isOnRenderThread();
-
 		assert CanvasGlHelper.checkError();
 
 		Pipeline.close();

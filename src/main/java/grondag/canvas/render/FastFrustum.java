@@ -17,9 +17,9 @@
 package grondag.canvas.render;
 
 import net.minecraft.client.render.Camera;
-import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vector4f;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

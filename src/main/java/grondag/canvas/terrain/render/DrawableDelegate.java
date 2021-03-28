@@ -20,7 +20,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
 
@@ -63,7 +62,10 @@ public class DrawableDelegate {
 	public void draw() {
 		assert !isReleased;
 
-		GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(materialState.primitive, vertexCount / 4 * 6);
+		final int elementCount = indexBuffer.getVertexFormat().field_27374;
+		GlStateManager.drawElements(materialState.primitive.mode, vertexOffset, elementCount, 0L);
+		//GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
 	}
 
 	public void release() {

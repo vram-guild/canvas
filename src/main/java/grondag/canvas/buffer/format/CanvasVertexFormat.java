@@ -16,18 +16,14 @@
 
 package grondag.canvas.buffer.format;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46C;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class CanvasVertexFormat {
-	public final int attributeCount;
-
 	/**
 	 * Vertex stride in bytes.
 	 */
@@ -39,17 +35,11 @@ public class CanvasVertexFormat {
 		elements = elementsIn;
 
 		int bytes = 0;
-		int count = 0;
 
 		for (final CanvasVertexFormatElement e : elements) {
 			bytes += e.byteSize;
-
-			if (e.attributeName != null) {
-				count++;
-			}
 		}
 
-		attributeCount = count;
 		vertexStrideBytes = bytes;
 		vertexStrideInts = bytes / 4;
 	}
@@ -59,7 +49,7 @@ public class CanvasVertexFormat {
 	 * For use with non-VAO VBOs.
 	 */
 	public void enableAndBindAttributes(long bufferOffset) {
-		CanvasGlHelper.enableAttributes(attributeCount);
+		CanvasGlHelper.enableAttributes(elements.length);
 		bindAttributeLocations(bufferOffset);
 	}
 
@@ -68,29 +58,20 @@ public class CanvasVertexFormat {
 	 * For use with non-VBO buffers.
 	 */
 	public void enableDirect(long memPointer) {
-		final int attributeCount = this.attributeCount;
-		CanvasGlHelper.enableAttributes(attributeCount);
-		int offset = 0;
-		int index = 1;
 		final int limit = elements.length;
+		CanvasGlHelper.enableAttributes(limit);
+		int offset = 0;
+		int index = 0;
 
 		for (int i = 0; i < limit; i++) {
 			final CanvasVertexFormatElement e = elements[i];
 
-			if (e.attributeName == null) {
-				assert i == 0 : "position element must be first";
-				GlStateManager.vertexPointer(3, GL21.GL_FLOAT, vertexStrideBytes, memPointer);
-				assert CanvasGlHelper.checkError();
-				GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-				assert CanvasGlHelper.checkError();
-			} else {
-				if (Configurator.logGlStateChanges) {
-					CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d) [direct non-VBO]", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes));
-				}
-
-				GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, memPointer + offset);
-				assert CanvasGlHelper.checkError();
+			if (Configurator.logGlStateChanges) {
+				CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d) [direct non-VBO]", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes));
 			}
+
+			GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, memPointer + offset);
+			assert CanvasGlHelper.checkError();
 
 			offset += e.byteSize;
 		}
@@ -98,7 +79,7 @@ public class CanvasVertexFormat {
 
 	public static void disableDirect() {
 		CanvasGlHelper.enableAttributes(0);
-		GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+		//GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
 	}
 
 	/**
@@ -109,21 +90,20 @@ public class CanvasVertexFormat {
 	 */
 	public void bindAttributeLocations(long bufferOffset) {
 		int offset = 0;
-		int index = 1;
 		final int limit = elements.length;
-		final int attributeCount = this.attributeCount;
 
 		// NB: <= because element 0 is vertex
-		for (int i = 0; i <= attributeCount; i++) {
+		for (int i = 0; i < limit; i++) {
 			if (i < limit) {
 				final CanvasVertexFormatElement e = elements[i];
 
 				if (e.attributeName != null) {
 					if (Configurator.logGlStateChanges) {
-						CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %d)", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset));
+						CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d, %d)", i, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset));
 					}
 
-					GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
+					GL46C.glVertexAttribPointer(i, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
+					assert CanvasGlHelper.checkError();
 				}
 
 				offset += e.byteSize;
@@ -142,5 +122,9 @@ public class CanvasVertexFormat {
 				GL20.glBindAttribLocation(programID, index++, e.attributeName);
 			}
 		}
+	}
+
+	public int attributeCount() {
+		return elements.length;
 	}
 }

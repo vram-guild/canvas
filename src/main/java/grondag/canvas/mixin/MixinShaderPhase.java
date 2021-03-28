@@ -16,18 +16,24 @@
 
 package grondag.canvas.mixin;
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.client.gl.VertexBuffer;
+import net.minecraft.client.render.RenderPhase.class_5942;
+import net.minecraft.client.render.Shader;
 
-@Mixin(VertexBuffer.class)
-public class MixinVertexBuffer {
-	// WIP2: put this back or remove it
+import grondag.canvas.material.state.MojangShaderData;
+import grondag.canvas.mixinterface.ShaderExt;
 
-	// Unmanaged draws during world rendering expect the view matrix to include
-	// camera rotation but we apply that to the GL state directly - it's not part of the matrix.
-	//@Inject(method = "draw", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;multMatrix(Lnet/minecraft/util/math/Matrix4f;)V"), cancellable = false)
-	//private void onDraw(Matrix4f matrix, int mode, CallbackInfo ci) {
-	//	MatrixState.applyViewIfNeeded();
-	//}
+@Mixin(class_5942.class)
+public class MixinShaderPhase implements ShaderExt {
+	@Shadow private Optional<Supplier<Shader>> field_29455;
+
+	@Override
+	public MojangShaderData canvas_shaderData() {
+		return field_29455.isPresent() ? ((ShaderExt) (field_29455.get().get())).canvas_shaderData() : MojangShaderData.MISSING;
+	}
 }

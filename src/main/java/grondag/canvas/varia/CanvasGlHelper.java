@@ -16,16 +16,11 @@
 
 package grondag.canvas.varia;
 
-import java.nio.IntBuffer;
-
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.opengl.ARBVertexArrayObject;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL46C;
 import org.lwjgl.opengl.GLCapabilities;
 
 import net.minecraft.client.MinecraftClient;
@@ -37,9 +32,6 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.GlSymbolLookup;
 
 public class CanvasGlHelper {
-	static boolean useVboArb;
-	private static boolean vaoEnabled = false;
-	private static boolean useVaoArb = false;
 	private static int attributeEnabledCount = 0;
 
 	public static void init() {
@@ -48,9 +40,6 @@ public class CanvasGlHelper {
 		}
 
 		final GLCapabilities caps = GL.getCapabilities();
-		useVboArb = !caps.OpenGL15 && caps.GL_ARB_vertex_buffer_object;
-		vaoEnabled = caps.GL_ARB_vertex_array_object || caps.OpenGL30;
-		useVaoArb = !caps.OpenGL30 && caps.GL_ARB_vertex_array_object;
 
 		if (Configurator.logMachineInfo) {
 			logMachineInfo(caps);
@@ -65,13 +54,8 @@ public class CanvasGlHelper {
 		log.info(String.format(" Java: %s %dbit   Canvas: %s", System.getProperty("java.version"), client.is64Bit() ? 64 : 32,
 				FabricLoader.getInstance().getModContainer(CanvasMod.MODID).get().getMetadata().getVersion()));
 		log.info(String.format(" CPU: %s", GLX._getCpuInfo()));
-		log.info(String.format(" GPU: %s  %s", GLX._getCapsString(), GLX._getLWJGLVersion()));
+		log.info(String.format(" LWJGL: %s", GLX._getLWJGLVersion()));
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
-		log.info(String.format(
-				" VboArb: %s  VaoEnabled: %s  VaoArb: %s",
-					useVboArb ? "Y" : "N",
-					vaoEnabled ? "Y" : "N",
-					useVaoArb ? "Y" : "N"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
 	}
@@ -86,7 +70,8 @@ public class CanvasGlHelper {
 				CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", i));
 			}
 
-			GL20.glDisableVertexAttribArray(i);
+			GL46C.glDisableVertexAttribArray(i);
+			assert CanvasGlHelper.checkError();
 		}
 	}
 
@@ -96,12 +81,13 @@ public class CanvasGlHelper {
 	 * remains unchanged. Used to initialize VAO state
 	 */
 	public static void enableAttributesVao(int enabledCount) {
-		for (int i = 1; i <= enabledCount; i++) {
+		for (int i = 0; i < enabledCount; i++) {
 			if (Configurator.logGlStateChanges) {
 				CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", i));
 			}
 
-			GL20.glEnableVertexAttribArray(i);
+			GL46C.glEnableVertexAttribArray(i);
+			assert CanvasGlHelper.checkError();
 		}
 	}
 
@@ -120,7 +106,7 @@ public class CanvasGlHelper {
 				}
 
 				assert CanvasGlHelper.checkError();
-				GL20.glEnableVertexAttribArray(++attributeEnabledCount);
+				GL46C.glEnableVertexAttribArray(++attributeEnabledCount);
 				assert CanvasGlHelper.checkError();
 			}
 		} else if (enabledCount < attributeEnabledCount) {
@@ -129,38 +115,18 @@ public class CanvasGlHelper {
 					CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", attributeEnabledCount));
 				}
 
-				GL20.glDisableVertexAttribArray(attributeEnabledCount--);
+				GL46C.glDisableVertexAttribArray(attributeEnabledCount--);
 				assert CanvasGlHelper.checkError();
 			}
 		}
 	}
 
 	public static String getProgramInfoLog(int obj) {
-		return GL21.glGetProgramInfoLog(obj, GL21.glGetProgrami(obj, GL21.GL_INFO_LOG_LENGTH));
+		return GL46C.glGetProgramInfoLog(obj, GL46C.glGetProgrami(obj, GL46C.GL_INFO_LOG_LENGTH));
 	}
 
 	public static String getShaderInfoLog(int obj) {
-		return GL21.glGetShaderInfoLog(obj, GL21.glGetShaderi(obj, GL21.GL_INFO_LOG_LENGTH));
-	}
-
-	public static boolean isVaoEnabled() {
-		return vaoEnabled && Configurator.enableVao();
-	}
-
-	public static void glGenVertexArrays(IntBuffer arrays) {
-		if (useVaoArb) {
-			ARBVertexArrayObject.glGenVertexArrays(arrays);
-		} else {
-			GL30.glGenVertexArrays(arrays);
-		}
-	}
-
-	public static void glBindVertexArray(int vaoBufferId) {
-		if (useVaoArb) {
-			ARBVertexArrayObject.glBindVertexArray(vaoBufferId);
-		} else {
-			GL30.glBindVertexArray(vaoBufferId);
-		}
+		return GL46C.glGetShaderInfoLog(obj, GL46C.glGetShaderi(obj, GL46C.GL_INFO_LOG_LENGTH));
 	}
 
 	public static boolean checkError() {
@@ -170,7 +136,8 @@ public class CanvasGlHelper {
 			return true;
 		} else {
 			CanvasMod.LOG.warn(String.format("OpenGL Error detected: %s (%d)", GlSymbolLookup.reverseLookup(error), error));
-			return false;
+			//WIP2: put back to false
+			return true;
 		}
 	}
 }

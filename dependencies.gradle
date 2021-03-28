@@ -1,6 +1,6 @@
 repositories {
 	mavenLocal()
-	mavenLocal()
+	maven { url "https://maven.shedaniel.me/"}
 	jcenter();
 	maven {
 		name = "Fabric"
@@ -62,7 +62,7 @@ dependencies {
 		transitive(false)
 	}
 
-	modImplementation("me.shedaniel.cloth:config-2:${clothconfig_version}") {
+	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}") {
 		exclude group: "io.github.prospector.modmenu"
 		exclude group: "net.fabricmc.fabric-api"
 		exclude group: "net.fabricmc.fabric-loader"

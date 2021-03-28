@@ -114,10 +114,6 @@ public class SpriteInfoTexture {
 
 			image.close();
 
-			GlStateManager.enableTexture();
-			RenderSystem.matrixMode(GL21.GL_TEXTURE);
-			RenderSystem.loadIdentity();
-			RenderSystem.matrixMode(GL21.GL_MODELVIEW);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, 0);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 0);

@@ -6,8 +6,9 @@
 ******************************************************/
 uniform sampler2D _cvu_input;
 
-varying vec2 _cvv_texcoord;
+in vec2 _cvv_texcoord;
+out vec4 fragColor;
 
 void main() {
-	gl_FragData[0] = texture2D(_cvu_input, _cvv_texcoord);
+	fragColor = texture(_cvu_input, _cvv_texcoord);
 }

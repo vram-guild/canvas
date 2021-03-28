@@ -22,6 +22,7 @@ import java.nio.IntBuffer;
 import com.mojang.blaze3d.platform.GlStateManager;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46C;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.util.Untracker;
@@ -62,18 +63,18 @@ public final class SimpleImage implements AutoCloseable {
 	}
 
 	private static void setTextureClamp(boolean clamp) {
-		final int wrap = clamp ? GL11.GL_CLAMP : GL11.GL_REPEAT;
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, wrap);
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, wrap);
+		final int wrap = clamp ? GL46C.GL_CLAMP_TO_EDGE : GL46C.GL_REPEAT;
+		GlStateManager.texParameter(GL46C.GL_TEXTURE_2D, GL46C.GL_TEXTURE_WRAP_S, wrap);
+		GlStateManager.texParameter(GL46C.GL_TEXTURE_2D, GL46C.GL_TEXTURE_WRAP_T, wrap);
 	}
 
 	private static void setTextureFilter(boolean interpolate, boolean mipmap) {
 		if (interpolate) {
-			GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mipmap ? GL11.GL_LINEAR_MIPMAP_LINEAR : GL11.GL_LINEAR);
-			GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+			GlStateManager.texParameter(GL46C.GL_TEXTURE_2D, GL46C.GL_TEXTURE_MIN_FILTER, mipmap ? GL46C.GL_LINEAR_MIPMAP_LINEAR : GL11.GL_LINEAR);
+			GlStateManager.texParameter(GL46C.GL_TEXTURE_2D, GL46C.GL_TEXTURE_MAG_FILTER, GL46C.GL_LINEAR);
 		} else {
-			GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mipmap ? GL11.GL_NEAREST_MIPMAP_LINEAR : GL11.GL_NEAREST);
-			GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+			GlStateManager.texParameter(GL46C.GL_TEXTURE_2D, GL46C.GL_TEXTURE_MIN_FILTER, mipmap ? GL46C.GL_NEAREST_MIPMAP_LINEAR : GL11.GL_NEAREST);
+			GlStateManager.texParameter(GL46C.GL_TEXTURE_2D, GL46C.GL_TEXTURE_MAG_FILTER, GL46C.GL_NEAREST);
 		}
 	}
 

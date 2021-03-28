@@ -16,8 +16,8 @@
 
 package grondag.canvas.varia;
 
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.Vec3f;
 
 @FunctionalInterface
 public interface CelestialObjectFunction {
@@ -75,9 +75,9 @@ public interface CelestialObjectFunction {
 		public float zenithAngle = 0;
 		public float hourAngle = 0;
 
-		public final Vector3f lightColor = new Vector3f();
+		public final Vec3f lightColor = new Vec3f();
 
-		public final Vector3f atmosphericColorModifier = new Vector3f();
+		public final Vec3f atmosphericColorModifier = new Vec3f();
 
 		public float illuminance;
 	}

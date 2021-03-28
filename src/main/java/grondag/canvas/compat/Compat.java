@@ -38,19 +38,19 @@ public class Compat {
 
 		WorldRenderEvents.BEFORE_ENTITIES.register(ctx -> {
 			LitematicaHolder.litematicaRenderSolids.accept(ctx.matrixStack());
-			SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
+			//SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 		});
 
 		WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
 			GOMLHolder.HANDLER.render(ctx);
 			CampanionHolder.HANDLER.render(ctx);
-			SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
+			//SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 			LitematicaHolder.litematicaEntityHandler.handle(ctx.matrixStack(), ctx.tickDelta());
 			DynocapsHolder.handler.render(ctx.profiler(), ctx.matrixStack(), (Immediate) ctx.consumers(), ctx.camera().getPos());
 		});
 
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
-			ClothHolder.clothDebugPreEvent.run();
+			//ClothHolder.clothDebugPreEvent.run();
 			BborHolder.render(ctx);
 		});
 
@@ -71,7 +71,7 @@ public class Compat {
 
 		WorldRenderEvents.LAST.register(ctx -> {
 			BborHolder.deferred();
-			SatinHolder.onWorldRenderedEvent.onWorldRendered(ctx.matrixStack(), ctx.camera(), ctx.tickDelta(), ctx.limitTime());
+			//SatinHolder.onWorldRenderedEvent.onWorldRendered(ctx.matrixStack(), ctx.camera(), ctx.tickDelta(), ctx.limitTime());
 
 			// litematica overlay expects to render on top of translucency when fabulous is off
 			if (!ctx.advancedTranslucency()) {

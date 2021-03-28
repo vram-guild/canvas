@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -224,7 +225,10 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 
 		CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
 
-		GlStateManager.drawArrays(materialState.primitive, 0, vertexCount());
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(materialState.primitive, vertexCount() / 4 * 6);
+		final int elementCount = indexBuffer.getVertexFormat().field_27374;
+		GlStateManager.drawElements(materialState.primitive.mode, 0, elementCount, 0L);
+		//GlStateManager.drawArrays(materialState.primitive, 0, vertexCount());
 
 		TransferBufferAllocator.release(buffer);
 

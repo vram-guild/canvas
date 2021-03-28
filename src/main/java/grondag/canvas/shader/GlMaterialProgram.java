@@ -33,7 +33,7 @@ public class GlMaterialProgram extends GlProgram {
 	public final UniformArrayiImpl contextInfo;
 	public final Uniform3iImpl programInfo;
 	public final Uniform1iImpl modelOriginType;
-	public final Uniform1iImpl fogMode;
+	public final Uniform2fImpl fogInfo;
 	public final Uniform1iImpl cascade;
 
 	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
@@ -45,7 +45,7 @@ public class GlMaterialProgram extends GlProgram {
 		programInfo = (Uniform3iImpl) uniform3i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> { });
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-		fogMode = (Uniform1iImpl) uniform1i("_cvu_fog_mode", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		fogInfo = (Uniform2fImpl) uniform2f("_cvu_fog_info", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0));
 	}
 
 	public void setModelOrigin(int x, int y, int z) {

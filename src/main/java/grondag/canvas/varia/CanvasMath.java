@@ -16,8 +16,8 @@
 
 package grondag.canvas.varia;
 
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Quaternion;
+import net.minecraft.util.math.Vec3f;
 
 public class CanvasMath {
 	private CanvasMath() { }
@@ -25,7 +25,7 @@ public class CanvasMath {
 	/**
 	 * Non-allocating substitute for {@link Vector3f#rotate(Quaternion)}.
 	 */
-	public static void applyRotation(Vector3f vec, Quaternion rotation) {
+	public static void applyRotation(Vec3f vec, Quaternion rotation) {
 		final float rx = rotation.getX();
 		final float ry = rotation.getY();
 		final float rz = rotation.getZ();
@@ -49,7 +49,7 @@ public class CanvasMath {
 	/**
 	 * Non-allocating substitute for {@link Vector3f#rotate(Quaternion)} that assumes vec.z == 0.
 	 */
-	public static void applyBillboardRotation(Vector3f vec, Quaternion rotation) {
+	public static void applyBillboardRotation(Vec3f vec, Quaternion rotation) {
 		final float rx = rotation.getX();
 		final float ry = rotation.getY();
 		final float rz = rotation.getZ();
@@ -69,7 +69,7 @@ public class CanvasMath {
 			qw * -rz - qx * ry + qy * rx + qz * rw);
 	}
 
-	public static void setRadialRotation(Quaternion target, Vector3f axis, float radians) {
+	public static void setRadialRotation(Quaternion target, Vec3f axis, float radians) {
 		final float f = (float) Math.sin(radians / 2.0F);
 
 		target.set(

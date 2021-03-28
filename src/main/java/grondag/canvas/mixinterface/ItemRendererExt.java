@@ -14,24 +14,10 @@
  *  the License.
  */
 
-package grondag.canvas.compat;
+package grondag.canvas.mixinterface;
 
-// TODO: restore when ModMenu available on 1.17
+import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 
-//import io.github.prospector.modmenu.api.ConfigScreenFactory;
-//import io.github.prospector.modmenu.api.ModMenuApi;
-//
-//import grondag.canvas.CanvasMod;
-//import grondag.canvas.config.ConfigGui;
-//
-//public class ModMenuHelper implements ModMenuApi {
-//	@Override
-//	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-//		return ConfigGui::display;
-//	}
-//
-//	@Override
-//	public String getModId() {
-//		return CanvasMod.MODID;
-//	}
-//}
+public interface ItemRendererExt {
+	BuiltinModelItemRenderer canvas_builtinModelItemRenderer();
+}

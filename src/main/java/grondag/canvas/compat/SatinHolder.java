@@ -16,47 +16,47 @@
 
 package grondag.canvas.compat;
 
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.util.math.MatrixStack;
-
-import net.fabricmc.loader.api.FabricLoader;
-
-import grondag.canvas.CanvasMod;
-
-class SatinHolder {
-	static SatinOnWorldRendered onWorldRenderedEvent;
-	static SatinOnEntitiesRendered onEntitiesRenderedEvent;
-	static SatinBeforeEntitiesRendered beforeEntitiesRenderEvent;
-
-	static {
-		if (FabricLoader.getInstance().isModLoaded("satin")) {
-			CanvasMod.LOG.info("Found Satin - compatibility hook enabled");
-			onWorldRenderedEvent = SatinHelper.onWorldRenderedEvent();
-			onEntitiesRenderedEvent = SatinHelper.onEntitiesRenderedEvent();
-			beforeEntitiesRenderEvent = SatinHelper.beforeEntitiesRenderEvent();
-		} else {
-			onWorldRenderedEvent = (m, c, t, n) -> {
-			};
-			onEntitiesRenderedEvent = (c, f, t) -> {
-			};
-			beforeEntitiesRenderEvent = (c, f, t) -> {
-			};
-		}
-	}
-
-	@FunctionalInterface
-	interface SatinOnWorldRendered {
-		void onWorldRendered(MatrixStack matrices, Camera camera, float tickDelta, long nanoTime);
-	}
-
-	@FunctionalInterface
-	interface SatinOnEntitiesRendered {
-		void onEntitiesRendered(Camera camera, Frustum frustum, float tickDelta);
-	}
-
-	@FunctionalInterface
-	interface SatinBeforeEntitiesRendered {
-		void beforeEntitiesRender(Camera camera, Frustum frustum, float tickDelta);
-	}
-}
+//import net.minecraft.client.render.Camera;
+//import net.minecraft.client.render.Frustum;
+//import net.minecraft.client.util.math.MatrixStack;
+//
+//import net.fabricmc.loader.api.FabricLoader;
+//
+//import grondag.canvas.CanvasMod;
+//
+//class SatinHolder {
+//	static SatinOnWorldRendered onWorldRenderedEvent;
+//	static SatinOnEntitiesRendered onEntitiesRenderedEvent;
+//	static SatinBeforeEntitiesRendered beforeEntitiesRenderEvent;
+//
+//	static {
+//		if (FabricLoader.getInstance().isModLoaded("satin")) {
+//			CanvasMod.LOG.info("Found Satin - compatibility hook enabled");
+//			onWorldRenderedEvent = SatinHelper.onWorldRenderedEvent();
+//			onEntitiesRenderedEvent = SatinHelper.onEntitiesRenderedEvent();
+//			beforeEntitiesRenderEvent = SatinHelper.beforeEntitiesRenderEvent();
+//		} else {
+//			onWorldRenderedEvent = (m, c, t, n) -> {
+//			};
+//			onEntitiesRenderedEvent = (c, f, t) -> {
+//			};
+//			beforeEntitiesRenderEvent = (c, f, t) -> {
+//			};
+//		}
+//	}
+//
+//	@FunctionalInterface
+//	interface SatinOnWorldRendered {
+//		void onWorldRendered(MatrixStack matrices, Camera camera, float tickDelta, long nanoTime);
+//	}
+//
+//	@FunctionalInterface
+//	interface SatinOnEntitiesRendered {
+//		void onEntitiesRendered(Camera camera, Frustum frustum, float tickDelta);
+//	}
+//
+//	@FunctionalInterface
+//	interface SatinBeforeEntitiesRendered {
+//		void beforeEntitiesRender(Camera camera, Frustum frustum, float tickDelta);
+//	}
+//}

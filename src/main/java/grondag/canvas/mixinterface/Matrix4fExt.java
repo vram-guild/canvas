@@ -18,8 +18,8 @@ package grondag.canvas.mixinterface;
 
 import java.nio.FloatBuffer;
 
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3f;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -150,7 +150,7 @@ public interface Matrix4fExt {
 		return matches((Matrix4fExt) (Object) val);
 	}
 
-	default void fastTransform(Vector3f vec) {
+	default void fastTransform(Vec3f vec) {
 		final float x = vec.getX();
 		final float y = vec.getY();
 		final float z = vec.getZ();

@@ -47,7 +47,7 @@
 // w is sky rotation in radians
 #define _CV_SKYLIGHT_VECTOR 11
 
-#define _CV_RESERVED 12
+#define _CV_FOG_COLOR 12
 
 // rgb: skylight color modified for atmospheric effects
 // a: skylight transition smoothing factor 0-1
@@ -87,7 +87,7 @@ uniform uint[4] _cvu_flags;
 uniform vec4[2] _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;
-uniform int _cvu_fog_mode;
+uniform vec2 _cvu_fog_info;
 
 #define _CV_MAT_VIEW 0
 #define _CV_MAT_VIEW_INVERSE 1

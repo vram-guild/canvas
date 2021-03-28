@@ -16,7 +16,8 @@
 
 package grondag.canvas.shader;
 
-import grondag.canvas.material.property.MaterialFog;
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
@@ -61,8 +62,13 @@ public final class MaterialShaderImpl {
 		program.modelOriginType.set(MatrixState.get().ordinal());
 		program.modelOriginType.upload();
 
-		program.fogMode.set(MaterialFog.shaderParam());
-		program.fogMode.upload();
+		if (renderState.fog) {
+			program.fogInfo.set(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd());
+		} else {
+			program.fogInfo.set(-1, -1);
+		}
+
+		program.fogInfo.upload();
 	}
 
 	public void setModelOrigin(int x, int y, int z) {

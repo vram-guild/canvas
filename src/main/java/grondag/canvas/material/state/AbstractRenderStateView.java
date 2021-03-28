@@ -16,8 +16,7 @@
 
 package grondag.canvas.material.state;
 
-import org.lwjgl.opengl.GL21;
-
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -26,7 +25,6 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
@@ -91,8 +89,8 @@ abstract class AbstractRenderStateView {
 		return DISABLE_AO.getValue(bits);
 	}
 
-	public int primitive() {
-		return GL21.GL_QUADS;
+	public DrawMode primitive() {
+		return DrawMode.QUADS;
 		//return PRIMITIVE.getValue(bits);
 	}
 
@@ -140,7 +138,7 @@ abstract class AbstractRenderStateView {
 		return LINES.getValue(bits);
 	}
 
-	public int fog() {
+	public boolean fog() {
 		return FOG.getValue(bits);
 	}
 
@@ -156,16 +154,12 @@ abstract class AbstractRenderStateView {
 		return DISABLE_COLOR_INDEX.getValue(bits);
 	}
 
-	public boolean cutout() {
+	public int cutout() {
 		return CUTOUT.getValue(bits);
 	}
 
 	public boolean unmipped() {
 		return UNMIPPED.getValue(bits);
-	}
-
-	public boolean transparentCutout() {
-		return TRANSLUCENT_CUTOUT.getValue(bits);
 	}
 
 	public boolean hurtOverlay() {
@@ -192,7 +186,8 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.IntElement WRITE_MASK = PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
 	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
 	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.IntElement FOG = PACKER.createIntElement(MaterialFog.FOG_COUNT);
+	// WIP2: does not need to be part of GL state
+	static final BitPacker64<Void>.BooleanElement FOG = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
 
@@ -229,10 +224,9 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.BooleanElement EMISSIVE = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_DIFFUSE = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_AO = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement CUTOUT = PACKER.createBooleanElement();
+	// WIP2: doesn't handle alpha type cutout - only used for ender dragon currently
+	static final BitPacker64<Void>.IntElement CUTOUT = PACKER.createIntElement(4);
 	static final BitPacker64<Void>.BooleanElement UNMIPPED = PACKER.createBooleanElement();
-	// true = 10%, false = 50%
-	static final BitPacker64<Void>.BooleanElement TRANSLUCENT_CUTOUT = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
 
@@ -258,8 +252,9 @@ abstract class AbstractRenderStateView {
 		defaultBits = TARGET.setValue(MaterialFinder.TARGET_MAIN, defaultBits);
 		defaultBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);
-		defaultBits = FOG.setValue(MaterialFinder.FOG_TINTED, defaultBits);
+		defaultBits = FOG.setValue(true, defaultBits);
 		defaultBits = DISABLE_SHADOWS.setValue(false, defaultBits);
+		defaultBits = CUTOUT.setValue(MaterialFinder.CUTOUT_NONE, defaultBits);
 
 		DEFAULT_BITS = defaultBits;
 
@@ -274,9 +269,10 @@ abstract class AbstractRenderStateView {
 		translucentBits = DECAL.setValue(MaterialDecal.NONE.index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialFinder.TARGET_TRANSLUCENT, translucentBits);
 		translucentBits = LINES.setValue(false, translucentBits);
-		translucentBits = FOG.setValue(MaterialFinder.FOG_TINTED, translucentBits);
+		translucentBits = FOG.setValue(true, translucentBits);
 		translucentBits = DISABLE_SHADOWS.setValue(false, translucentBits);
 		translucentBits = SORTED.setValue(true, translucentBits);
+		translucentBits = CUTOUT.setValue(MaterialFinder.CUTOUT_NONE, translucentBits);
 		//translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 
 		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;

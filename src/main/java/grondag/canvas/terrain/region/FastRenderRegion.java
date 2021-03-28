@@ -284,4 +284,14 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	public int originZ() {
 		return originZ;
 	}
+
+	@Override
+	public int getHeight() {
+		return world.getHeight();
+	}
+
+	@Override
+	public int getBottomY() {
+		return world.getBottomY();
+	}
 }

@@ -27,6 +27,7 @@ import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.particle.ParticleTextureSheet;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumer;
@@ -59,8 +60,10 @@ public class CanvasParticleRenderer {
 	public final FastFrustum frustum = new FastFrustum();
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
-		RenderSystem.pushMatrix();
-		RenderSystem.multMatrix(matrixStack.peek().getModel());
+		final MatrixStack renderMatrix = RenderSystem.getModelViewStack();
+		renderMatrix.push();
+		renderMatrix.method_34425(matrixStack.peek().getModel());
+		RenderSystem.applyModelViewMatrix();
 
 		this.lightmapTextureManager = lightmapTextureManager;
 		tessellator = Tessellator.getInstance();
@@ -109,29 +112,33 @@ public class CanvasParticleRenderer {
 			drawHandler.run();
 		}
 
-		RenderSystem.popMatrix();
+		renderMatrix.pop();
+		RenderSystem.applyModelViewMatrix();
 		teardownVanillaParticleRender();
 	}
 
 	private void setupVanillaParticleRender() {
 		lightmapTextureManager.enable();
-		RenderSystem.enableAlphaTest();
-		RenderSystem.defaultAlphaFunc();
+		// WIP2: cruft
+		//RenderSystem.enableAlphaTest();
+		//RenderSystem.defaultAlphaFunc();
 		RenderSystem.enableDepthTest();
-		RenderSystem.enableFog();
+		//RenderSystem.enableFog();
 	}
 
 	private void teardownVanillaParticleRender() {
 		RenderSystem.depthMask(true);
 		RenderSystem.depthFunc(515);
 		RenderSystem.disableBlend();
-		RenderSystem.defaultAlphaFunc();
+		// WIP2: cruft
+		//RenderSystem.defaultAlphaFunc();
 		lightmapTextureManager.disable();
-		RenderSystem.disableFog();
+		//RenderSystem.disableFog();
 	}
 
 	private VertexConsumer beginSheet(ParticleTextureSheet particleTextureSheet) {
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShader(GameRenderer::getParticleShader);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 		// PERF: consolidate these draws
 		if (particleTextureSheet == ParticleTextureSheet.TERRAIN_SHEET) {
@@ -174,9 +181,8 @@ public class CanvasParticleRenderer {
 				.enableGlint(false)
 				.disableAo(true)
 				.disableDiffuse(true)
-				.cutout(true)
-				.transparentCutout(true)
-				.fog(MaterialFinder.FOG_TINTED);
+				.cutout(MaterialFinder.CUTOUT_TENTH)
+				.fog(true);
 	}
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()

@@ -244,9 +244,8 @@ public abstract class AbstractRenderContext implements RenderContext {
 		switch (bm) {
 			case CUTOUT: {
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(true)
+					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(true)
-					.transparentCutout(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;
@@ -254,25 +253,22 @@ public abstract class AbstractRenderContext implements RenderContext {
 			case CUTOUT_MIPPED:
 				finder
 					.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(true)
+					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(false)
-					.transparentCutout(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;
 			case TRANSLUCENT:
 				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
-					.cutout(false)
+					.cutout(MaterialFinder.CUTOUT_NONE)
 					.unmipped(false)
-					.transparentCutout(false)
 					.target(MaterialFinder.TARGET_TRANSLUCENT)
 					.sorted(true);
 				break;
 			case SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(false)
+					.cutout(MaterialFinder.CUTOUT_NONE)
 					.unmipped(false)
-					.transparentCutout(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;

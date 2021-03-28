@@ -18,17 +18,17 @@ package grondag.canvas.pipeline.pass;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.pipeline.Image;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.ProcessShader;
@@ -88,7 +88,7 @@ class ProgramPass extends Pass {
 			height >>= lod;
 		}
 
-		PipelineManager.setProjection(width, height);
+		final Matrix4f orthoMatrix = Matrix4f.projectionMatrix(width, (-height), 1000.0F, 3000.0F);
 		RenderSystem.viewport(0, 0, width, height);
 
 		final int slimit = binds.length;
@@ -98,9 +98,13 @@ class ProgramPass extends Pass {
 			CanvasTextureState.bindTexture(bindTargets[i], binds[i]);
 		}
 
-		shader.activate().lod(config.lod).size(width, height);
+		shader.activate().lod(config.lod).size(width, height).projection(orthoMatrix);
 
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		// WIP2: draw tris directly here
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, 4 / 4 * 6);
+		final int elementCount = indexBuffer.getVertexFormat().field_27374;
+		GlStateManager.drawElements(DrawMode.QUADS.mode, 0, elementCount, 0L);
+		//GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
 	}
 
 	@Override

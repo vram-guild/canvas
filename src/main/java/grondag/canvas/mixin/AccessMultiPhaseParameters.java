@@ -27,19 +27,10 @@ import net.minecraft.client.render.RenderPhase;
 @Mixin(MultiPhaseParameters.class)
 public interface AccessMultiPhaseParameters {
 	@Accessor
-	RenderPhase.Texture getTexture();
+	RenderPhase.class_5939 getTexture();
 
 	@Accessor
 	RenderPhase.Transparency getTransparency();
-
-	@Accessor
-	RenderPhase.DiffuseLighting getDiffuseLighting();
-
-	@Accessor
-	RenderPhase.ShadeModel getShadeModel();
-
-	@Accessor
-	RenderPhase.Alpha getAlpha();
 
 	@Accessor
 	RenderPhase.DepthTest getDepthTest();
@@ -52,9 +43,6 @@ public interface AccessMultiPhaseParameters {
 
 	@Accessor
 	RenderPhase.Overlay getOverlay();
-
-	@Accessor
-	RenderPhase.Fog getFog();
 
 	@Accessor
 	RenderPhase.Layering getLayering();
@@ -76,4 +64,7 @@ public interface AccessMultiPhaseParameters {
 
 	@Accessor
 	ImmutableList<RenderPhase> getPhases();
+
+	@Accessor
+	RenderLayer.class_5942 getField_29461();
 }

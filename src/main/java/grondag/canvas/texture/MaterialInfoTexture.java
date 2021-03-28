@@ -17,7 +17,6 @@
 package grondag.canvas.texture;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.texture.TextureUtil;
@@ -101,12 +100,7 @@ public class MaterialInfoTexture {
 
 			image.upload();
 
-			GlStateManager.enableTexture();
-
 			if (isNew) {
-				RenderSystem.matrixMode(GL21.GL_TEXTURE);
-				RenderSystem.loadIdentity();
-				RenderSystem.matrixMode(GL21.GL_MODELVIEW);
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, 0);
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
 				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 0);

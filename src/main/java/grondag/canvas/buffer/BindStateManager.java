@@ -18,6 +18,8 @@ package grondag.canvas.buffer;
 
 import org.lwjgl.opengl.GL21;
 
+import grondag.canvas.varia.CanvasGlHelper;
+
 public class BindStateManager {
 	private static int boundBufferId = -1;
 
@@ -27,6 +29,7 @@ public class BindStateManager {
 		} else {
 			boundBufferId = glBufferId;
 			GL21.glBindBuffer(GL21.GL_ARRAY_BUFFER, glBufferId);
+			assert CanvasGlHelper.checkError();
 			return true;
 		}
 	}
@@ -35,6 +38,7 @@ public class BindStateManager {
 		if (boundBufferId != -1) {
 			boundBufferId = -1;
 			GL21.glBindBuffer(GL21.GL_ARRAY_BUFFER, 0);
+			assert CanvasGlHelper.checkError();
 		}
 	}
 

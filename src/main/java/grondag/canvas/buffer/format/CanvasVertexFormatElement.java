@@ -23,7 +23,7 @@ public class CanvasVertexFormatElement {
 	// via standard (GL 2.1) binding
 	// slows to a crawl otherwise
 	public static final CanvasVertexFormatElement POSITION_3F = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.FLOAT, 3, null);
+		VertexFormatElement.Format.FLOAT, 3, "in_vertex");
 
 	public static final CanvasVertexFormatElement BASE_RGBA_4UB = new CanvasVertexFormatElement(
 		VertexFormatElement.Format.UBYTE, 4, "in_color");

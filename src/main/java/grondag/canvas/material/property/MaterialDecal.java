@@ -21,6 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Layering;
+import net.minecraft.client.util.math.MatrixStack;
 
 import grondag.frex.api.material.MaterialFinder;
 
@@ -57,10 +58,15 @@ public final class MaterialDecal {
 		"view_offset",
 		2,
 		() -> {
-			RenderSystem.pushMatrix();
-			RenderSystem.scalef(0.99975586F, 0.99975586F, 0.99975586F);
+			final MatrixStack matrixStack = RenderSystem.getModelViewStack();
+			matrixStack.push();
+			matrixStack.scale(0.99975586F, 0.99975586F, 0.99975586F);
+			RenderSystem.applyModelViewMatrix();
 		},
-		RenderSystem::popMatrix);
+		() -> {
+			RenderSystem.getModelViewStack().pop();
+			RenderSystem.applyModelViewMatrix();
+		});
 
 	static {
 		VALUES[MaterialFinder.DECAL_NONE] = NONE;

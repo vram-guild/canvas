@@ -19,7 +19,6 @@ package grondag.canvas.material.state;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
@@ -28,7 +27,6 @@ import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
@@ -85,7 +83,6 @@ public final class RenderState extends AbstractRenderState {
 
 		if (shadowActive == null) {
 			// same for all, so only do 1X
-			RenderSystem.shadeModel(GL11.GL_SMOOTH);
 			Pipeline.skyShadowFbo.bind();
 		}
 
@@ -100,14 +97,10 @@ public final class RenderState extends AbstractRenderState {
 
 		// WIP: can probably remove many of these
 
-		// controlled in shader
-		RenderSystem.disableAlphaTest();
-
 		texture.enable(blur);
 		transparency.enable();
 		depthTest.enable();
 		writeMask.enable();
-		fog.enable();
 		// WIP: disable decal renders in depth pass
 		decal.enable();
 
@@ -139,11 +132,7 @@ public final class RenderState extends AbstractRenderState {
 		//			GlStateSpy.print();
 		//		}
 
-		if (active == null) {
-			// same for all, so only do 1X
-			RenderSystem.shadeModel(GL11.GL_SMOOTH);
-			target.enable();
-		} else if (active.target != target) {
+		if (active == null || active.target != target) {
 			target.enable();
 		}
 
@@ -158,10 +147,6 @@ public final class RenderState extends AbstractRenderState {
 			MaterialInfoTexture.INSTANCE.disable();
 		}
 
-		assert CanvasGlHelper.checkError();
-
-		// controlled in shader
-		RenderSystem.disableAlphaTest();
 		assert CanvasGlHelper.checkError();
 
 		if (Pipeline.shadowMapDepth != -1) {
@@ -187,7 +172,6 @@ public final class RenderState extends AbstractRenderState {
 		assert CanvasGlHelper.checkError();
 
 		writeMask.enable();
-		fog.enable();
 		decal.enable();
 
 		assert CanvasGlHelper.checkError();
@@ -228,18 +212,16 @@ public final class RenderState extends AbstractRenderState {
 
 		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();
-		RenderSystem.shadeModel(GL11.GL_FLAT);
 		SpriteInfoTexture.disable();
 		MaterialDecal.disable();
 		MaterialTransparency.disable();
 		MaterialDepthTest.disable();
 		MaterialWriteMask.disable();
-		MaterialFog.disable();
 		CULL_STATE.disable();
 		LIGHTMAP_STATE.disable();
 		LINE_STATE.disable();
 		MaterialTextureState.disable();
-		RenderSystem.color4f(1f, 1f, 1f, 1f);
+		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		MaterialInfoTexture.INSTANCE.disable();
 
 		if (Pipeline.shadowMapDepth != -1) {

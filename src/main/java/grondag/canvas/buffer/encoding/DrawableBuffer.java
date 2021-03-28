@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryUtil;
@@ -82,7 +83,9 @@ public class DrawableBuffer implements AutoCloseable {
 
 				if (state.castShadows || !isShadow) {
 					state.enable();
-					GlStateManager.drawArrays(state.primitive, startIndex, vertexCount);
+					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(state.primitive, vertexCount / 4 * 6);
+					final int elementCount = indexBuffer.getVertexFormat().field_27374;
+					GlStateManager.drawElements(state.primitive.mode, startIndex, elementCount, 0L);
 				}
 
 				startIndex += vertexCount;

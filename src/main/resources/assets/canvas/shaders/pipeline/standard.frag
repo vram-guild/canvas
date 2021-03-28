@@ -20,7 +20,7 @@
 #define TARGET_EMISSIVE  1
 
 #ifdef SHADOW_MAP_PRESENT
-varying vec4 shadowPos;
+in vec4 shadowPos;
 #endif
 
 #if AO_SHADING_MODE != AO_MODE_NONE
@@ -37,7 +37,7 @@ vec4 aoFactor(vec2 lightCoord, float ao) {
 	#if AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
 	return vec4(bao, bao, bao, 1.0);
 	#else
-	vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, lightCoord.y));
+	vec4 sky = texture(frxs_lightmap, vec2(0.03125, lightCoord.y));
 	ao = mix(bao, ao, frx_luminance(sky.rgb));
 	return vec4(ao, ao, ao, 1.0);
 	#endif
@@ -52,14 +52,14 @@ vec4 light(frx_FragmentData fragData) {
 
 #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY
 	if (fragData.diffuse) {
-		vec4 block = texture2D(frxs_lightmap, vec2(fragData.light.x, 0.03125));
-		vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
+		vec4 block = texture(frxs_lightmap, vec2(fragData.light.x, 0.03125));
+		vec4 sky = texture(frxs_lightmap, vec2(0.03125, fragData.light.y));
 		result = max(block, sky * pv_diffuse);
 	} else {
-		result = texture2D(frxs_lightmap, fragData.light);
+		result = texture(frxs_lightmap, fragData.light);
 	}
 #else
-	result = texture2D(frxs_lightmap, fragData.light);
+	result = texture(frxs_lightmap, fragData.light);
 #endif
 
 #if HANDHELD_LIGHT_RADIUS != 0
@@ -69,7 +69,7 @@ vec4 light(frx_FragmentData fragData) {
 		float d = clamp(gl_FogFragCoord / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 		d = 1.0 - d * d;
 
-		vec4 maxBlock = texture2D(frxs_lightmap, vec2(0.96875, 0.03125));
+		vec4 maxBlock = texture(frxs_lightmap, vec2(0.96875, 0.03125));
 
 		held = vec4(held.xyz, 1.0) * maxBlock * d;
 
@@ -83,7 +83,7 @@ vec4 light(frx_FragmentData fragData) {
 frx_FragmentData frx_createPipelineFragment() {
 #ifdef VANILLA_LIGHTING
 	return frx_FragmentData (
-		texture2D(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
+		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
 		frx_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),
@@ -94,7 +94,7 @@ frx_FragmentData frx_createPipelineFragment() {
 	);
 #else
 	return frx_FragmentData (
-		texture2D(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
+		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
 		frx_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),

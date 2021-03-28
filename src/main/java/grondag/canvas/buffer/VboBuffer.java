@@ -19,23 +19,17 @@ package grondag.canvas.buffer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46C;
 
-import net.minecraft.client.render.VertexFormatElement;
-
-import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class VboBuffer {
 	private static final int VAO_NONE = -1;
 	public final CanvasVertexFormat format;
 	private final int byteCount;
-	private final VertexBinder vertexBinder;
 	ByteBuffer uploadBuffer;
 	private int glBufferId = -1;
 	private boolean isClosed = false;
@@ -48,7 +42,6 @@ public class VboBuffer {
 		uploadBuffer = TransferBufferAllocator.claim(bytes);
 		this.format = format;
 		byteCount = bytes;
-		vertexBinder = CanvasGlHelper.isVaoEnabled() ? this::bindVao : this::bindVbo;
 	}
 
 	public static void unbind() {
@@ -86,52 +79,27 @@ public class VboBuffer {
 	}
 
 	public void bind() {
-		assert RenderSystem.isOnRenderThread();
-		vertexBinder.bind();
-	}
+		assert CanvasGlHelper.checkError();
 
-	private void bindVao() {
 		final CanvasVertexFormat format = this.format;
 
 		if (vaoBufferId == VAO_NONE) {
 			// Important this happens BEFORE anything that could affect vertex state
-			CanvasGlHelper.glBindVertexArray(0);
+			GL46C.glBindVertexArray(0);
+			assert CanvasGlHelper.checkError();
 
 			BindStateManager.bind(glBufferId());
 
 			vaoBufferId = VaoAllocator.claimVertexArray();
-			CanvasGlHelper.glBindVertexArray(vaoBufferId);
+			GL46C.glBindVertexArray(vaoBufferId);
+			assert CanvasGlHelper.checkError();
 
-			if (Configurator.logGlStateChanges) {
-				CanvasMod.LOG.info(String.format("GlState: GlStateManager.enableClientState(%d)", GL11.GL_VERTEX_ARRAY));
-			}
-
-			GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-
-			if (Configurator.logGlStateChanges) {
-				CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, 0));
-			}
-
-			GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, 0);
-
-			CanvasGlHelper.enableAttributesVao(format.attributeCount);
+			CanvasGlHelper.enableAttributesVao(format.attributeCount());
 			format.bindAttributeLocations(0);
 		} else {
-			CanvasGlHelper.glBindVertexArray(vaoBufferId);
+			GL46C.glBindVertexArray(vaoBufferId);
+			assert CanvasGlHelper.checkError();
 		}
-	}
-
-	private void bindVbo() {
-		final CanvasVertexFormat format = this.format;
-		BindStateManager.bind(glBufferId());
-
-		if (Configurator.logGlStateChanges) {
-			CanvasMod.LOG.info(String.format("GlState: GlStateManager.vertexPointer(%d, %d, %d, %d)", 3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, 0));
-		}
-
-		GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
-		GlStateManager.vertexPointer(3, VertexFormatElement.Format.FLOAT.getGlId(), format.vertexStrideBytes, 0);
-		format.enableAndBindAttributes(0);
 	}
 
 	public boolean isClosed() {

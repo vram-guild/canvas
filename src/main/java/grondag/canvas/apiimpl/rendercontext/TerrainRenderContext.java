@@ -30,6 +30,7 @@ import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
@@ -120,7 +121,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Canvas Renderer");
 			final CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
-			CrashReportSection.addBlockInfo(crashReportElement_1, blockPos, blockState);
+			CrashReportSection.addBlockInfo(crashReportElement_1, region, blockPos, blockState);
 			throw new CrashException(crashReport_1);
 		}
 	}
@@ -163,8 +164,9 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 		if ((cullCompletionFlags & mask) == 0) {
 			cullCompletionFlags |= mask;
+			final Direction face = ModelHelper.faceFromIndex(faceIndex);
 
-			if (Block.shouldDrawSide(blockState, region, blockPos, ModelHelper.faceFromIndex(faceIndex))) {
+			if (Block.shouldDrawSide(blockState, region, blockPos, face, internalSearchPos.set(blockPos, face))) {
 				cullResultFlags |= mask;
 				return true;
 			} else {

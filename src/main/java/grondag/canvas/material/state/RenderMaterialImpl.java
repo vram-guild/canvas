@@ -28,7 +28,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
@@ -46,7 +45,8 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
 	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.IntElement SORT_FOG = SORT_PACKER.createIntElement(MaterialFog.FOG_COUNT);
+	// WIP2: make part of non-GL state
+	private static final BitPacker64<Void>.BooleanElement SORT_FOG = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement SORT_ENABLE_GLINT = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.IntElement SORT_SHADER_ID = SORT_PACKER.createIntElement(4096);
 
@@ -127,7 +127,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("enableGlint: ").append(enableGlint).append("\n");
 		sb.append("decal: ").append(decal.name).append("\n");
 		sb.append("lines: ").append(lines).append("\n");
-		sb.append("fog: ").append(fog.name).append("\n");
+		sb.append("fog: ").append(fog).append("\n");
 
 		sb.append("sorted: ").append(sorted).append("\n");
 		sb.append("primitive: ").append(primitive).append("\n");
@@ -143,7 +143,6 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("disableAo: ").append(disableAo).append("\n");
 		sb.append("cutout: ").append(cutout).append("\n");
 		sb.append("unmipped: ").append(unmipped).append("\n");
-		sb.append("transparentCutout: ").append(translucentCutout).append("\n");
 		sb.append("hurtOverlay: ").append(hurtOverlay).append("\n");
 		sb.append("flashoverlay: ").append(flashOverlay).append("\n");
 
@@ -168,7 +167,8 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		result = SORT_DEPTH_TEST.setValue(depthTest.index, result);
 		result = SORT_CULL.setValue(cull, result);
 		result = SORT_LINES.setValue(lines, result);
-		result = SORT_FOG.setValue(fog.index, result);
+		// WIP: remove from GL state
+		result = SORT_FOG.setValue(fog, result);
 		result = SORT_ENABLE_GLINT.setValue(enableGlint, result);
 		result = SORT_SHADER_ID.setValue(shader.index, result);
 		result = SORT_DECAL.setValue(decal.drawPriority, result);

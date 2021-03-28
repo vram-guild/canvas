@@ -20,6 +20,7 @@ import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
+import org.lwjgl.opengl.GL46C;
 
 import net.minecraft.client.util.GlAllocationUtils;
 
@@ -33,7 +34,8 @@ public class VaoAllocator {
 		assert RenderSystem.isOnRenderThread();
 
 		if (queue.isEmpty()) {
-			CanvasGlHelper.glGenVertexArrays(buff);
+			GL46C.glGenVertexArrays(buff);
+			assert CanvasGlHelper.checkError();
 
 			for (int i = 0; i < 128; i++) {
 				queue.enqueue(buff.get(i));

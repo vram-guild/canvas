@@ -20,6 +20,7 @@ import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
+import org.lwjgl.opengl.GL46C;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
 import grondag.canvas.pipeline.config.util.ConfigContext;
@@ -41,7 +42,7 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 
 	private ImageConfig(ConfigContext ctx, String name, int internalFormat, int lod, int pixelFormat, int pixelDataType, boolean depth) {
 		super(ctx, name);
-		target = GL21.GL_TEXTURE_2D;
+		target = GL46C.GL_TEXTURE_2D;
 		this.internalFormat = internalFormat;
 		this.lod = lod;
 		this.pixelDataType = pixelDataType;
@@ -52,22 +53,22 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 
 		if (depth) {
 			texParamPairs = new int[10];
-			texParamPairs[1] = GL21.GL_NEAREST;
-			texParamPairs[3] = GL21.GL_NEAREST;
-			texParamPairs[8] = GL21.GL_TEXTURE_COMPARE_MODE;
-			texParamPairs[9] = GL21.GL_NONE;
+			texParamPairs[1] = GL46C.GL_NEAREST;
+			texParamPairs[3] = GL46C.GL_NEAREST;
+			texParamPairs[8] = GL46C.GL_TEXTURE_COMPARE_MODE;
+			texParamPairs[9] = GL46C.GL_NONE;
 		} else {
 			texParamPairs = new int[8];
-			texParamPairs[1] = GL21.GL_LINEAR;
-			texParamPairs[3] = GL21.GL_LINEAR;
+			texParamPairs[1] = GL46C.GL_LINEAR;
+			texParamPairs[3] = GL46C.GL_LINEAR;
 		}
 
-		texParamPairs[0] = GL21.GL_TEXTURE_MIN_FILTER;
-		texParamPairs[2] = GL21.GL_TEXTURE_MAG_FILTER;
-		texParamPairs[4] = GL21.GL_TEXTURE_WRAP_S;
-		texParamPairs[5] = GL21.GL_CLAMP;
-		texParamPairs[6] = GL21.GL_TEXTURE_WRAP_T;
-		texParamPairs[7] = GL21.GL_CLAMP;
+		texParamPairs[0] = GL46C.GL_TEXTURE_MIN_FILTER;
+		texParamPairs[2] = GL46C.GL_TEXTURE_MAG_FILTER;
+		texParamPairs[4] = GL46C.GL_TEXTURE_WRAP_S;
+		texParamPairs[5] = GL46C.GL_CLAMP_TO_EDGE;
+		texParamPairs[6] = GL46C.GL_TEXTURE_WRAP_T;
+		texParamPairs[7] = GL46C.GL_CLAMP_TO_EDGE;
 	}
 
 	ImageConfig (ConfigContext ctx, JsonObject config) {

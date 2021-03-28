@@ -24,9 +24,9 @@ import static grondag.canvas.terrain.util.RenderRegionAddressHelper.cacheIndexTo
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.fastOffsetRelativeCacheIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.offsetMainChunkBlockIndex;
 
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3f;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -73,7 +73,7 @@ public abstract class AoCalculator {
 	/**
 	 * Used exclusively in irregular face to avoid new heap allocations each call.
 	 */
-	private final Vector3f vertexNormal = new Vector3f();
+	private final Vec3f vertexNormal = new Vec3f();
 	private long blendCacheCompletionLowFlags;
 	private long blendCacheCompletionHighFlags;
 	private int regionRelativeCacheIndex;
@@ -348,8 +348,8 @@ public abstract class AoCalculator {
 	}
 
 	private void irregularFace(MutableQuadViewImpl quad) {
-		final Vector3f faceNorm = quad.faceNormal();
-		Vector3f normal;
+		final Vec3f faceNorm = quad.faceNormal();
+		Vec3f normal;
 		final float[] w = this.w;
 		final float[] aoResult = quad.ao;
 

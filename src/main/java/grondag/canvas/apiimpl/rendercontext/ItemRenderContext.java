@@ -30,6 +30,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
+import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.BuiltinModelItemRenderer;
@@ -52,9 +53,13 @@ import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
-import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.mixin.AccessMultiPhaseParameters;
+import grondag.canvas.mixin.AccessTexture;
+import grondag.canvas.mixinterface.ItemRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
+import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.mixinterface.ShaderExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
@@ -179,18 +184,20 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		normalMatrix = (Matrix3fExt) (Object) matrices.peek().getNormal();
 
 		if (model.isBuiltin() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
+			final BuiltinModelItemRenderer builtInRenderer = ((ItemRendererExt) MinecraftClient.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();
+
 			if (isGui && vertexConsumers instanceof CanvasImmediate) {
 				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
 				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
-				BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+				builtInRenderer.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
 				context.guiMode(GuiMode.NORMAL);
 			} else {
-				BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+				builtInRenderer.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
 			}
 		} else {
 			drawTranslucencyDirectToMainTarget = isGui || renderMode.isFirstPerson() || !isBlockItem;
 			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawTranslucencyDirectToMainTarget);
-			defaultBlendMode = RenderLayerHelper.blendModeFromLayer(defaultRenderLayer);
+			defaultBlendMode = inferDefaultItemBlendMode(defaultRenderLayer);
 
 			if (((vertexConsumers instanceof CanvasImmediate))) {
 				collectors = ((CanvasImmediate) vertexConsumers).collectors;
@@ -224,16 +231,14 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		switch (bm) {
 			case CUTOUT:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(true)
-					.transparentCutout(false)
+					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(true)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;
 			case CUTOUT_MIPPED:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(true)
-					.transparentCutout(false)
+					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
@@ -249,16 +254,14 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				// The code below is an ugly hack - need a better way
 
 				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
-					.cutout(!isBlockItem)
-					.transparentCutout(!isBlockItem)
+					.cutout(isBlockItem ? MaterialFinder.CUTOUT_NONE : MaterialFinder.CUTOUT_TENTH)
 					.unmipped(false)
 					.target(drawTranslucencyDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
 					.sorted(true);
 				break;
 			case SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(false)
-					.transparentCutout(false)
+					.cutout(MaterialFinder.CUTOUT_NONE)
 					.unmipped(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
@@ -297,6 +300,19 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
 			bufferQuadDirect(quad, this, collectors.get(quad.material()));
+		}
+	}
+
+	static BlendMode inferDefaultItemBlendMode(RenderLayer layer) {
+		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
+
+		if (params.getTransparency() == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
+			return BlendMode.TRANSLUCENT;
+		} else if (((ShaderExt) params.getField_29461()).canvas_shaderData().cutout != MaterialFinder.CUTOUT_NONE) {
+			final AccessTexture tex = (AccessTexture) params.getTexture();
+			return tex.getMipmap() ? BlendMode.CUTOUT_MIPPED : BlendMode.CUTOUT;
+		} else {
+			return BlendMode.SOLID;
 		}
 	}
 }

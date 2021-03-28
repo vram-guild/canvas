@@ -27,13 +27,10 @@ import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
@@ -41,6 +38,7 @@ import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.mixinterface.ShaderExt;
 import grondag.frex.api.material.MaterialFinder;
 
 // segregates render layer references from mod init
@@ -65,7 +63,7 @@ public final class RenderLayerHelper {
 		EXCLUSIONS.add(RenderLayer.getLightning());
 		// draw order is important and our sorting mechanism doesn't cover
 		EXCLUSIONS.add(RenderLayer.getWaterMask());
-		EXCLUSIONS.add(RenderLayer.getEndPortal(0));
+		EXCLUSIONS.add(RenderLayer.getEndPortal());
 
 		ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
 			EXCLUSIONS.add(renderLayer);
@@ -76,23 +74,10 @@ public final class RenderLayerHelper {
 		return EXCLUSIONS.contains(layer);
 	}
 
-	public static BlendMode blendModeFromLayer(RenderLayer layer) {
-		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
-
-		if (params.getTransparency() == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
-			return BlendMode.TRANSLUCENT;
-		} else if (params.getAlpha() != RenderPhase.ZERO_ALPHA) {
-			final AccessTexture tex = (AccessTexture) params.getTexture();
-			return tex.getMipmap() ? BlendMode.CUTOUT_MIPPED : BlendMode.CUTOUT;
-		} else {
-			return BlendMode.SOLID;
-		}
-	}
-
 	private static void copyFromLayer(MaterialFinderImpl finder, MultiPhaseExt layer) {
 		final AccessMultiPhaseParameters params = layer.canvas_phases();
 		final AccessTexture tex = (AccessTexture) params.getTexture();
-
+		final MojangShaderData sd = ((ShaderExt) params.getField_29461()).canvas_shaderData();
 		finder.sorted(layer.canvas_isTranslucent());
 		//finder.primitive(GL11.GL_QUADS);
 		finder.texture(tex.getId().orElse(null));
@@ -104,11 +89,11 @@ public final class RenderLayerHelper {
 		finder.decal(MaterialDecal.fromPhase(params.getLayering()));
 		finder.target(MaterialTarget.fromPhase(params.getTarget()));
 		finder.lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
-		finder.fog(MaterialFog.fromPhase(params.getFog()));
+		finder.fog(sd.fog);
 		finder.unmipped(!tex.getMipmap());
 		finder.blur(tex.getBilinear());
-		finder.cutout(params.getAlpha() != RenderPhase.ZERO_ALPHA);
-		finder.transparentCutout(params.getAlpha() == RenderPhase.ONE_TENTH_ALPHA);
+		finder.disableDiffuse(!sd.diffuse);
+		finder.cutout(sd.cutout);
 
 		// vanilla sets these as part of draw process but we don't want special casing
 		if (layer == RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {
@@ -117,10 +102,8 @@ public final class RenderLayerHelper {
 			finder.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH);
 			finder.enableLightmap(true);
 			finder.disableAo(false);
-			finder.disableDiffuse(false);
 		} else {
 			finder.disableAo(true);
-			finder.disableDiffuse(params.getDiffuseLighting() == RenderPhase.DISABLE_DIFFUSE_LIGHTING);
 		}
 	}
 

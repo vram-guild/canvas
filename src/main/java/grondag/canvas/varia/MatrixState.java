@@ -31,10 +31,10 @@ import org.lwjgl.BufferUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.client.util.math.Vector4f;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.math.Vector4f;
 
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -42,6 +42,8 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.FastFrustum;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
+
+// WIP2: populate modelToCamera and matricies in GUI state
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.
@@ -106,7 +108,9 @@ public enum MatrixState {
 	 */
 	public static void applyViewIfNeeded() {
 		if (current == CAMERA) {
-			RenderSystem.multMatrix(viewMatrix);
+			//WIP2: still needed?
+			RenderSystem.getModelViewStack().method_34425(viewMatrix);
+			RenderSystem.applyModelViewMatrix();
 		}
 	}
 
@@ -163,9 +167,9 @@ public enum MatrixState {
 		// Compute sky light vector transform - points towards the sun
 		shadowViewMatrix.loadIdentity();
 		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_Z.getDegreesQuaternion(skyOutput.zenithAngle));
-		shadowViewMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(skyOutput.hourAngle));
+		shadowViewMatrix.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(-90));
+		shadowViewMatrix.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(skyOutput.zenithAngle));
+		shadowViewMatrix.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(skyOutput.hourAngle));
 		testVec.set(0, 1, 0, 0);
 		testVec.transform(shadowViewMatrix);
 		skyLightVector.set(testVec.getX(), testVec.getY(), testVec.getZ());

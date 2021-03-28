@@ -21,17 +21,24 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import grondag.canvas.CanvasMod;
+import net.minecraft.client.render.Shader;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.resource.ResourceFactory;
 
-@Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask")
-abstract class MixinChunkRebuildTask {
-	private static boolean shouldWarn = true;
+import grondag.canvas.material.state.MojangShaderData;
+import grondag.canvas.mixinterface.ShaderExt;
+
+@Mixin(Shader.class)
+public class MixinShader implements ShaderExt {
+	private MojangShaderData canvas_shaderData;
 
 	@Inject(at = @At("RETURN"), method = "<init>*")
-	private void onNew(CallbackInfo ci) {
-		if (shouldWarn) {
-			CanvasMod.LOG.warn("[Canvas] ChunkBuilder.BuiltChunk.RebuildTask instantiated unexpectedly. This probably indicates a mod incompatibility.");
-			shouldWarn = false;
-		}
+	private void onNew(ResourceFactory resourceFactory, String string, VertexFormat vertexFormat, CallbackInfo ci) {
+		canvas_shaderData = MojangShaderData.get(string);
+	}
+
+	@Override
+	public MojangShaderData canvas_shaderData() {
+		return canvas_shaderData;
 	}
 }

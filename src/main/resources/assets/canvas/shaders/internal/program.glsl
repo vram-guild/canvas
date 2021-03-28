@@ -42,7 +42,11 @@ bool _cv_programDiscard() {
 
 uniform sampler2D _cvu_materialInfo;
 
-flat varying ivec4 _cvu_program;
+#ifdef VERTEX_SHADER
+	flat out ivec4 _cvu_program;
+#else
+	flat in ivec4 _cvu_program;
+#endif
 
 int _cv_vertexProgramId() {
 	return _cvu_program.x;

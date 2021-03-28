@@ -25,10 +25,10 @@ import static org.lwjgl.opengl.GL20.glDrawBuffers;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
 
-import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL46;
+import org.lwjgl.opengl.GL46C;
 
 import net.minecraft.client.MinecraftClient;
 
@@ -59,7 +59,7 @@ public class PipelineFramebuffer {
 
 		clearColor = new float[count][4];
 		attachmentPoints = new int[count];
-		int attachmentPoint = FramebufferInfo.COLOR_ATTACHMENT;
+		int attachmentPoint = GL46.GL_COLOR_ATTACHMENT0;
 		int clearFlags = 0;
 
 		for (int i = 0; i < count; ++i) {
@@ -87,7 +87,7 @@ public class PipelineFramebuffer {
 	}
 
 	void open(int width, int height) {
-		fboGlId = GlStateManager.genFramebuffers();
+		fboGlId = GlStateManager.genFramebuffer();
 
 		GlStateManager.bindFramebuffer(GL_FRAMEBUFFER, fboGlId);
 
@@ -111,10 +111,10 @@ public class PipelineFramebuffer {
 				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because color attachment %s was not found",
 						config.name, ac.image.name));
 			} else if (img.config.target == GL46.GL_TEXTURE_2D) {
-				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, img.config.target, img.glId(), ac.lod);
+				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, GL46.GL_COLOR_ATTACHMENT0 + i, img.config.target, img.glId(), ac.lod);
 				assert CanvasGlHelper.checkError();
 			} else if (img.config.target == GL46.GL_TEXTURE_2D_ARRAY || img.config.target == GL46.GL_TEXTURE_3D) {
-				GL46.glFramebufferTextureLayer(GL_FRAMEBUFFER, FramebufferInfo.COLOR_ATTACHMENT + i, img.glId(), ac.lod, 0);
+				GL46.glFramebufferTextureLayer(GL_FRAMEBUFFER, GL46.GL_COLOR_ATTACHMENT0 + i, img.glId(), ac.lod, 0);
 				assert CanvasGlHelper.checkError();
 			}
 		}
@@ -126,10 +126,10 @@ public class PipelineFramebuffer {
 				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because depth attachment %s was not found",
 						config.name, config.depthAttachment.image.name));
 			} else if (img.config.target == GL46.GL_TEXTURE_2D) {
-				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, img.config.target, img.glId(), 0);
+				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, GL46.GL_DEPTH_ATTACHMENT, img.config.target, img.glId(), 0);
 				assert CanvasGlHelper.checkError();
 			} else if (img.config.target == GL46.GL_TEXTURE_2D_ARRAY || img.config.target == GL46.GL_TEXTURE_3D) {
-				GL46.glFramebufferTextureLayer(GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, img.glId(), 0, 0);
+				GL46.glFramebufferTextureLayer(GL_FRAMEBUFFER, GL46.GL_DEPTH_ATTACHMENT, img.glId(), 0, 0);
 				assert CanvasGlHelper.checkError();
 			}
 		}
@@ -142,7 +142,7 @@ public class PipelineFramebuffer {
 	}
 
 	public void clear() {
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
+		GlStateManager.bindFramebuffer(GL46.GL_FRAMEBUFFER, fboGlId);
 
 		GlStateManager.colorMask(true, true, true, true);
 		GlStateManager.depthMask(true);
@@ -170,7 +170,7 @@ public class PipelineFramebuffer {
 
 				for (int i = 0; i < count; ++i) {
 					if ((colorClearFlags & (1 << i)) != 0) {
-						glDrawBuffer(FramebufferInfo.COLOR_ATTACHMENT + i);
+						glDrawBuffer(GL46.GL_COLOR_ATTACHMENT0 + i);
 						GlStateManager.clearColor(clearColor[i][R], clearColor[i][G], clearColor[i][B], clearColor[i][A]);
 						GlStateManager.clear(GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
 					}
@@ -183,13 +183,14 @@ public class PipelineFramebuffer {
 	}
 
 	public void bind() {
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
+		assert CanvasGlHelper.checkError();
+		GL46C.glBindFramebuffer(GL46C.GL_FRAMEBUFFER, fboGlId);
 		assert CanvasGlHelper.checkError();
 	}
 
 	void close() {
 		if (fboGlId != -1) {
-			GlStateManager.deleteFramebuffers(fboGlId);
+			GlStateManager.deleteFramebuffer(fboGlId);
 			fboGlId = -1;
 		}
 	}
@@ -198,23 +199,9 @@ public class PipelineFramebuffer {
 		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
 		final Image srcImg = Pipeline.getImage(source.config.depthAttachment.image.name);
 		final Image myImg = Pipeline.getImage(config.depthAttachment.image.name);
-
-		if (GlStateManager.supportsGl30()) {
-			GlStateManager.bindFramebuffer(GL46.GL_READ_FRAMEBUFFER, source.fboGlId);
-			GlStateManager.bindFramebuffer(GL46.GL_DRAW_FRAMEBUFFER, fboGlId);
-			GlStateManager.blitFramebuffer(0, 0, srcImg.width, srcImg.height, 0, 0, myImg.width, myImg.height, GL46.GL_DEPTH_BUFFER_BIT, GL46.GL_NEAREST);
-		} else {
-			if (myImg.glId() != 0) {
-				final int saveImg = GlStateManager.getActiveBoundTexture();
-				GlStateManager.bindTexture(srcImg.glId());
-				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, fboGlId);
-				GlStateManager.copyTexSubImage2d(GL46.GL_TEXTURE_2D, 0, 0, 0, 0, 0,
-						Math.min(srcImg.width, myImg.width),
-						Math.min(srcImg.height, myImg.height));
-				GlStateManager.bindTexture(saveImg);
-			}
-		}
-
-		GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, 0);
+		GlStateManager.bindFramebuffer(GL46.GL_READ_FRAMEBUFFER, source.fboGlId);
+		GlStateManager.bindFramebuffer(GL46.GL_DRAW_FRAMEBUFFER, fboGlId);
+		GlStateManager.blitFramebuffer(0, 0, srcImg.width, srcImg.height, 0, 0, myImg.width, myImg.height, GL46.GL_DEPTH_BUFFER_BIT, GL46.GL_NEAREST);
+		GlStateManager.bindFramebuffer(GL46.GL_FRAMEBUFFER, 0);
 	}
 }

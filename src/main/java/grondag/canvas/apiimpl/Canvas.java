@@ -18,7 +18,6 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
-import grondag.canvas.varia.WorldDataManager;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
@@ -48,6 +47,7 @@ import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.terrain.region.ProtoRenderRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.TerrainModelSpace;
+import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 

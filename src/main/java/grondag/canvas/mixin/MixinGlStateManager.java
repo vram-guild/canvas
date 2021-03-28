@@ -39,24 +39,6 @@ public abstract class MixinGlStateManager {
 	 * @reason 12 units / 2D only not enough
 	 */
 	@Overwrite
-	public static void enableTexture() {
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
-	}
-
-	/**
-	 * @author grondag
-	 * @reason 12 units / 2D only not enough
-	 */
-	@Overwrite
-	public static void disableTexture() {
-		GL11.glDisable(GL11.GL_TEXTURE_2D);
-	}
-
-	/**
-	 * @author grondag
-	 * @reason 12 units / 2D only not enough
-	 */
-	@Overwrite
 	public static void bindTexture(int texture) {
 		CanvasTextureState.bindTexture(GL11.GL_TEXTURE_2D, texture);
 	}
@@ -66,8 +48,8 @@ public abstract class MixinGlStateManager {
 	 * @reason 12 units / 2D only not enough
 	 */
 	@Overwrite
-	public static int getActiveBoundTexture() {
-		return CanvasTextureState.getActiveBoundTexture();
+	public static int method_34411() {
+		return CanvasTextureState.activeTextureUnit();
 	}
 
 	/**

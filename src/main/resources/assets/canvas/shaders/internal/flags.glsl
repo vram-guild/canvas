@@ -16,7 +16,11 @@
 
 #define _CV_TRANSLUCENT_CUTOUT_THRESHOLD 0.003921569
 
-flat varying uint _cvv_flags;
+#ifdef VERTEX_SHADER
+	flat out uint _cvv_flags;
+#else
+	flat in uint _cvv_flags;
+#endif
 
 float _cv_getFlag(int flagId) {
 	return frx_bitValue(_cvv_flags, flagId);

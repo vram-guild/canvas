@@ -30,7 +30,7 @@
 	"mixins.canvas.client.json"
   ],
   "depends": {
-	"fabricloader": "\u003e\u003d0.9.1",
+	"fabricloader": "\u003e\u003d0.11.3",
 	"fabric-api-base": "*",
 	"fabric-renderer-api-v1": "*",
 	"fabric-rendering-data-attachment-v1": "*"

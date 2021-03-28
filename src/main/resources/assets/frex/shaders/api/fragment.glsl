@@ -8,19 +8,19 @@
  * Interpolated vertex position in camera space.
  * Set by renderer after material shader runs. Do not modify.
  */
-varying vec4 frx_vertex;
+in vec4 frx_vertex;
 
 /**
  * Interpolated texture coordinate in mapped (non-normalized) coordinates.
  * Set by renderer after material shader runs. Do not modify.
  */
-varying vec2 frx_texcoord;
+in vec2 frx_texcoord;
 
 /**
  * Interpolated vertex color output.
  * Set by renderer after material shader runs. Do not modify.
  */
-varying vec4 frx_color;
+in vec4 frx_color;
 
 #ifndef DEPTH_PASS
 
@@ -30,17 +30,25 @@ varying vec4 frx_color;
  *
  * Not available in depth pass.
  */
-varying vec3 frx_normal;
+in vec3 frx_normal;
+
+/**
+ * Interpolated camera distance. Used for fog.
+ * Set by renderer after material shader runs. Do not modify.
+ *
+ * Not available in depth pass.
+ */
+in float frx_distance;
 
 /*
  * Varying variables for generic use. See comments in vertex.glsl.
  *
  * Not available in depth pass.
  */
-varying vec4 frx_var0;
-varying vec4 frx_var1;
-varying vec4 frx_var2;
-varying vec4 frx_var3;
+in vec4 frx_var0;
+in vec4 frx_var1;
+in vec4 frx_var2;
+in vec4 frx_var3;
 
 #endif
 

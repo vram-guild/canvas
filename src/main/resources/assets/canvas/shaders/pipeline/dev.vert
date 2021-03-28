@@ -5,7 +5,7 @@
   canvas:shaders/pipeline/dev.vert
 ******************************************************/
 
-varying vec4 shadowPos;
+out vec4 shadowPos;
 
 void frx_writePipelineVertex(in frx_VertexData data) {
 	// WIP: remove - various api tests
@@ -21,16 +21,10 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 	// apply transforms
 	//data.normal *= gl_NormalMatrix;
 
-	if (frx_modelOriginType() == MODEL_ORIGIN_SCREEN) {
-		vec4 viewCoord = gl_ModelViewMatrix * data.vertex;
-		gl_FogFragCoord = length(viewCoord.xyz);
-		gl_Position = gl_ProjectionMatrix * viewCoord;
-	} else {
-		data.vertex += frx_modelToCamera();
-		vec4 viewCoord = frx_viewMatrix() * data.vertex;
-		gl_FogFragCoord = length(viewCoord.xyz);
-		gl_Position = frx_projectionMatrix() * viewCoord;
-	}
+	data.vertex += frx_modelToCamera();
+	vec4 viewCoord = frx_viewMatrix() * data.vertex;
+	frx_distance = length(viewCoord.xyz);
+	gl_Position = frx_projectionMatrix() * viewCoord;
 
 	shadowPos  = frx_shadowViewMatrix() * data.vertex;
 
