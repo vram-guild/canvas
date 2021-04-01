@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL46C;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 public class CanvasVertexFormat {
 	/**
@@ -71,7 +72,7 @@ public class CanvasVertexFormat {
 			}
 
 			GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, memPointer + offset);
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			offset += e.byteSize;
 		}
@@ -103,7 +104,7 @@ public class CanvasVertexFormat {
 					}
 
 					GL46C.glVertexAttribPointer(i, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
-					assert CanvasGlHelper.checkError();
+					assert GFX.checkError();
 				}
 
 				offset += e.byteSize;

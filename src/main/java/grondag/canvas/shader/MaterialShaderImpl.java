@@ -20,7 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
 
 public final class MaterialShaderImpl {
@@ -83,9 +83,9 @@ public final class MaterialShaderImpl {
 	}
 
 	public void activate(RenderState renderState) {
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 		getOrCreate().activate();
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 		updateCommonUniforms(renderState);
 	}
 

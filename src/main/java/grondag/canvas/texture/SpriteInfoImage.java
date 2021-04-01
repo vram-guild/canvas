@@ -30,7 +30,7 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
 public final class SpriteInfoImage implements AutoCloseable {
@@ -83,7 +83,7 @@ public final class SpriteInfoImage implements AutoCloseable {
 		assert pointer != 0L : "Image not allocated.";
 		GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, size, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
 
-		if (!CanvasGlHelper.checkError()) {
+		if (!GFX.checkError()) {
 			CanvasMod.LOG.warn("Unable to upload sprite information texture due to unexpected OpenGL error. Game may crash or render incorrectly.");
 		}
 	}

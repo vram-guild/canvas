@@ -17,10 +17,8 @@
 package grondag.canvas.varia;
 
 import com.mojang.blaze3d.platform.GLX;
-import com.mojang.blaze3d.platform.GlStateManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL46C;
 import org.lwjgl.opengl.GLCapabilities;
 
 import net.minecraft.client.MinecraftClient;
@@ -29,7 +27,6 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.pipeline.GlSymbolLookup;
 
 public class CanvasGlHelper {
 	private static int attributeEnabledCount = 0;
@@ -66,12 +63,7 @@ public class CanvasGlHelper {
 	 */
 	public static void disableAttributesVao(int enabledCount) {
 		for (int i = 1; i <= enabledCount; i++) {
-			if (Configurator.logGlStateChanges) {
-				CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", i));
-			}
-
-			GL46C.glDisableVertexAttribArray(i);
-			assert CanvasGlHelper.checkError();
+			GFX.disableVertexAttribArray(i);
 		}
 	}
 
@@ -82,12 +74,7 @@ public class CanvasGlHelper {
 	 */
 	public static void enableAttributesVao(int enabledCount) {
 		for (int i = 0; i < enabledCount; i++) {
-			if (Configurator.logGlStateChanges) {
-				CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", i));
-			}
-
-			GL46C.glEnableVertexAttribArray(i);
-			assert CanvasGlHelper.checkError();
+			GFX.enableVertexAttribArray(i);
 		}
 	}
 
@@ -101,43 +88,12 @@ public class CanvasGlHelper {
 	public static void enableAttributes(int enabledCount) {
 		if (enabledCount > attributeEnabledCount) {
 			while (enabledCount > attributeEnabledCount) {
-				if (Configurator.logGlStateChanges) {
-					CanvasMod.LOG.info(String.format("GlState: glEnableVertexAttribArray(%d)", attributeEnabledCount + 1));
-				}
-
-				assert CanvasGlHelper.checkError();
-				GL46C.glEnableVertexAttribArray(++attributeEnabledCount);
-				assert CanvasGlHelper.checkError();
+				GFX.enableVertexAttribArray(++attributeEnabledCount);
 			}
 		} else if (enabledCount < attributeEnabledCount) {
 			while (enabledCount < attributeEnabledCount) {
-				if (Configurator.logGlStateChanges) {
-					CanvasMod.LOG.info(String.format("GlState: glDisableVertexAttribArray(%d)", attributeEnabledCount));
-				}
-
-				GL46C.glDisableVertexAttribArray(attributeEnabledCount--);
-				assert CanvasGlHelper.checkError();
+				GFX.disableVertexAttribArray(attributeEnabledCount--);
 			}
-		}
-	}
-
-	public static String getProgramInfoLog(int obj) {
-		return GL46C.glGetProgramInfoLog(obj, GL46C.glGetProgrami(obj, GL46C.GL_INFO_LOG_LENGTH));
-	}
-
-	public static String getShaderInfoLog(int obj) {
-		return GL46C.glGetShaderInfoLog(obj, GL46C.glGetShaderi(obj, GL46C.GL_INFO_LOG_LENGTH));
-	}
-
-	public static boolean checkError() {
-		final int error = GlStateManager.getError();
-
-		if (error == 0) {
-			return true;
-		} else {
-			CanvasMod.LOG.warn(String.format("OpenGL Error detected: %s (%d)", GlSymbolLookup.reverseLookup(error), error));
-			//WIP2: put back to false
-			return true;
 		}
 	}
 }

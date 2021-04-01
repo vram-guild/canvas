@@ -32,7 +32,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 public class MaterialTextureState {
 	public final int index;
@@ -85,18 +85,18 @@ public class MaterialTextureState {
 			if (bilinear != activeIsBilinearFilter) {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 				CanvasTextureState.bindTexture(texture().getGlId());
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 				setFilter(bilinear);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 				activeIsBilinearFilter = bilinear;
 			} else {
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			}
 		} else {
 			if (this == MaterialTextureState.NO_TEXTURE) {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 				CanvasTextureState.bindTexture(0);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			} else {
 				// Should happen before primary texture binding because resets active texture
 				if (isAtlas()) {
@@ -104,13 +104,13 @@ public class MaterialTextureState {
 				}
 
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 
 				CanvasTextureState.bindTexture(texture().getGlId());
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 
 				setFilter(bilinear);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 
 				activeIsBilinearFilter = bilinear;
 				activeState = this;

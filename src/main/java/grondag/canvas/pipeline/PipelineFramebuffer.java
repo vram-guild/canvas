@@ -35,7 +35,7 @@ import net.minecraft.client.MinecraftClient;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.AttachmentConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 // FEAT: handle clear masks
 public class PipelineFramebuffer {
@@ -98,7 +98,7 @@ public class PipelineFramebuffer {
 			glDrawBuffers(attachmentPoints);
 		}
 
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		// TODO: needs better handling of arrays, 3D and other target type
 		// and attachments need a way to specify level
@@ -112,10 +112,10 @@ public class PipelineFramebuffer {
 						config.name, ac.image.name));
 			} else if (img.config.target == GL46.GL_TEXTURE_2D) {
 				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, GL46.GL_COLOR_ATTACHMENT0 + i, img.config.target, img.glId(), ac.lod);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			} else if (img.config.target == GL46.GL_TEXTURE_2D_ARRAY || img.config.target == GL46.GL_TEXTURE_3D) {
 				GL46.glFramebufferTextureLayer(GL_FRAMEBUFFER, GL46.GL_COLOR_ATTACHMENT0 + i, img.glId(), ac.lod, 0);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			}
 		}
 
@@ -127,10 +127,10 @@ public class PipelineFramebuffer {
 						config.name, config.depthAttachment.image.name));
 			} else if (img.config.target == GL46.GL_TEXTURE_2D) {
 				GL46.glFramebufferTexture2D(GL_FRAMEBUFFER, GL46.GL_DEPTH_ATTACHMENT, img.config.target, img.glId(), 0);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			} else if (img.config.target == GL46.GL_TEXTURE_2D_ARRAY || img.config.target == GL46.GL_TEXTURE_3D) {
 				GL46.glFramebufferTextureLayer(GL_FRAMEBUFFER, GL46.GL_DEPTH_ATTACHMENT, img.glId(), 0, 0);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			}
 		}
 
@@ -177,15 +177,15 @@ public class PipelineFramebuffer {
 				}
 
 				glDrawBuffers(attachmentPoints);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			}
 		}
 	}
 
 	public void bind() {
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 		GL46C.glBindFramebuffer(GL46C.GL_FRAMEBUFFER, fboGlId);
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 	}
 
 	void close() {

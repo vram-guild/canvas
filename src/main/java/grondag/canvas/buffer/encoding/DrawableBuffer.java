@@ -16,21 +16,19 @@
 
 package grondag.canvas.buffer.encoding;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.MemoryUtil;
 
-import grondag.canvas.buffer.TransferBufferAllocator;
+import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.varia.GFX;
 
 public class DrawableBuffer implements AutoCloseable {
-	@Nullable private ByteBuffer buffer;
+	@Nullable private VboBuffer buffer;
 	private final int limit;
 	private final int[] counts;
 	private final RenderState[] states;
@@ -47,8 +45,8 @@ public class DrawableBuffer implements AutoCloseable {
 		}
 
 		// PERF: trial memory mapped here
-		buffer = TransferBufferAllocator.claim(bytes);
-		final IntBuffer intBuffer = buffer.asIntBuffer();
+		buffer = new VboBuffer(bytes, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL);
+		final IntBuffer intBuffer = buffer.intBuffer();
 		counts = new int[limit];
 		states = new RenderState[limit];
 
@@ -63,6 +61,7 @@ public class DrawableBuffer implements AutoCloseable {
 		}
 
 		drawList.clear();
+		buffer.upload();
 	}
 
 	private DrawableBuffer() {
@@ -74,7 +73,7 @@ public class DrawableBuffer implements AutoCloseable {
 
 	public void draw(boolean isShadow) {
 		if (buffer != null) {
-			CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
+			buffer.bind();
 			int startIndex = 0;
 
 			for (int i = 0; i < limit; ++i) {
@@ -83,9 +82,11 @@ public class DrawableBuffer implements AutoCloseable {
 
 				if (state.castShadows || !isShadow) {
 					state.enable();
-					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(state.primitive, vertexCount / 4 * 6);
-					final int elementCount = indexBuffer.getVertexFormat().field_27374;
-					GlStateManager.drawElements(state.primitive.mode, startIndex, elementCount, 0L);
+					final int triCount = vertexCount / 4 * 6;
+					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(state.primitive, triCount);
+					GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
+					final int elementType = indexBuffer.getVertexFormat().field_27374;
+					GFX.drawElementsBaseVertex(state.primitive.mode, triCount, elementType, 0L, startIndex);
 				}
 
 				startIndex += vertexCount;
@@ -98,7 +99,7 @@ public class DrawableBuffer implements AutoCloseable {
 	@Override
 	public void close() {
 		if (buffer != null) {
-			TransferBufferAllocator.release(buffer);
+			buffer.close();
 			buffer = null;
 		}
 	}

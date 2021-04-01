@@ -16,9 +16,7 @@
 
 package grondag.canvas.buffer;
 
-import org.lwjgl.opengl.GL21;
-
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 public class BindStateManager {
 	private static int boundBufferId = -1;
@@ -28,8 +26,7 @@ public class BindStateManager {
 			return false;
 		} else {
 			boundBufferId = glBufferId;
-			GL21.glBindBuffer(GL21.GL_ARRAY_BUFFER, glBufferId);
-			assert CanvasGlHelper.checkError();
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
 			return true;
 		}
 	}
@@ -37,8 +34,7 @@ public class BindStateManager {
 	public static void unbind() {
 		if (boundBufferId != -1) {
 			boundBufferId = -1;
-			GL21.glBindBuffer(GL21.GL_ARRAY_BUFFER, 0);
-			assert CanvasGlHelper.checkError();
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 		}
 	}
 

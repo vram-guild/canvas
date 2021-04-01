@@ -20,11 +20,10 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL46C;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 public class VboBuffer {
 	private static final int VAO_NONE = -1;
@@ -49,14 +48,12 @@ public class VboBuffer {
 	}
 
 	public void upload() {
-		assert RenderSystem.isOnRenderThread();
-
 		final ByteBuffer uploadBuffer = this.uploadBuffer;
 
 		if (uploadBuffer != null) {
 			uploadBuffer.rewind();
 			BindStateManager.bind(glBufferId());
-			GL21.glBufferData(GL21.GL_ARRAY_BUFFER, uploadBuffer, GL21.GL_STATIC_DRAW);
+			GFX.bufferData(GFX.GL_ARRAY_BUFFER, uploadBuffer, GFX.GL_STATIC_DRAW);
 			BindStateManager.unbind();
 			TransferBufferAllocator.release(uploadBuffer);
 			this.uploadBuffer = null;
@@ -67,7 +64,6 @@ public class VboBuffer {
 		int result = glBufferId;
 
 		if (result == -1) {
-			assert RenderSystem.isOnGameThread();
 			result = GlBufferAllocator.claimBuffer(byteCount);
 
 			assert result > 0;
@@ -79,26 +75,21 @@ public class VboBuffer {
 	}
 
 	public void bind() {
-		assert CanvasGlHelper.checkError();
-
 		final CanvasVertexFormat format = this.format;
 
 		if (vaoBufferId == VAO_NONE) {
 			// Important this happens BEFORE anything that could affect vertex state
-			GL46C.glBindVertexArray(0);
-			assert CanvasGlHelper.checkError();
+			GFX.bindVertexArray(0);
 
 			BindStateManager.bind(glBufferId());
 
 			vaoBufferId = VaoAllocator.claimVertexArray();
-			GL46C.glBindVertexArray(vaoBufferId);
-			assert CanvasGlHelper.checkError();
+			GFX.bindVertexArray(vaoBufferId);
 
 			CanvasGlHelper.enableAttributesVao(format.attributeCount());
 			format.bindAttributeLocations(0);
 		} else {
-			GL46C.glBindVertexArray(vaoBufferId);
-			assert CanvasGlHelper.checkError();
+			GFX.bindVertexArray(vaoBufferId);
 		}
 	}
 

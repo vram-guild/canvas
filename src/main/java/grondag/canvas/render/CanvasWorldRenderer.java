@@ -112,7 +112,7 @@ import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionPruner;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -792,7 +792,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		wr.canvas_setEntityCounts(entityCount, blockEntityCount);
 
 		//RenderState.enablePrint = true;
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		Configurator.lagFinder.complete();
 	}

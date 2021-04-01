@@ -39,7 +39,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
 import grondag.canvas.render.CanvasTextureState;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
 public class SpriteInfoTexture {
@@ -107,10 +107,10 @@ public class SpriteInfoTexture {
 			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
 			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
 			GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4);
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			image.upload();
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			image.close();
 
@@ -124,7 +124,7 @@ public class SpriteInfoTexture {
 			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_REPEAT);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			CanvasTextureState.bindTexture(GL21.GL_TEXTURE_2D, 0);
 			GlStateManager.disableTexture();
@@ -150,7 +150,7 @@ public class SpriteInfoTexture {
 		createImageIfNeeded();
 		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
 		CanvasTextureState.bindTexture(glId);
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 	}
 
 	public int coordinate(int spriteId) {

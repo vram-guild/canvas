@@ -52,7 +52,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.MaterialInfoTexture;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.config.ShaderConfig;
 
 public class GlShader implements Shader {
@@ -151,7 +151,7 @@ public class GlShader implements Shader {
 
 			if (GL21.glGetShaderi(glId, GL21.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
 				isErrored = true;
-				error = CanvasGlHelper.getShaderInfoLog(glId);
+				error = GFX.getShaderInfoLog(glId);
 
 				if (error.isEmpty()) {
 					error = "Unknown OpenGL Error.";

@@ -24,7 +24,7 @@ import org.lwjgl.opengl.GL46C;
 
 import net.minecraft.client.util.GlAllocationUtils;
 
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 public class VaoAllocator {
 	private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue();
@@ -35,7 +35,7 @@ public class VaoAllocator {
 
 		if (queue.isEmpty()) {
 			GL46C.glGenVertexArrays(buff);
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			for (int i = 0; i < 128; i++) {
 				queue.enqueue(buff.get(i));

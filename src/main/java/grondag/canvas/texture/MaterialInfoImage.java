@@ -29,7 +29,7 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.MaterialShaderImpl;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 /**
  * Texture stores information about material.
@@ -92,7 +92,7 @@ public final class MaterialInfoImage {
 			GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4);
 
 			GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, squareSizePixels, squareSizePixels, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 		}
 	}
 

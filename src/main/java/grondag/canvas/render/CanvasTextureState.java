@@ -16,9 +16,7 @@
 
 package grondag.canvas.render;
 
-import org.lwjgl.opengl.GL46C;
-
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 /**
  * Deals with Mojang's unfortunate assumptions regarding the existence of
@@ -31,20 +29,16 @@ public class CanvasTextureState {
 	public static void bindTexture(int target, int texture) {
 		if (texture != BOUND_TEXTURES[activeTextureUnit]) {
 			BOUND_TEXTURES[activeTextureUnit] = texture;
-			//WIP2: remove
-			assert CanvasGlHelper.checkError();
-			GL46C.glBindTexture(target, texture);
-			assert CanvasGlHelper.checkError();
+			GFX.bindTexture(target, texture);
 		}
 	}
 
 	public static void bindTexture(int texture) {
-		bindTexture(GL46C.GL_TEXTURE_2D, texture);
-		assert CanvasGlHelper.checkError();
+		bindTexture(GFX.GL_TEXTURE_2D, texture);
 	}
 
 	public static void deleteTexture(int texture) {
-		GL46C.glDeleteTextures(texture);
+		GFX.deleteTexture(texture);
 
 		for (int i = 0; i < 16; ++i) {
 			if (BOUND_TEXTURES[i] == texture) {
@@ -60,8 +54,7 @@ public class CanvasTextureState {
 	public static void activeTextureUnit(int textureUnit) {
 		if (activeTextureUnit != textureUnit - '蓀') {
 			activeTextureUnit = textureUnit - '蓀';
-			GL46C.glActiveTexture(textureUnit);
-			assert CanvasGlHelper.checkError();
+			GFX.activeTexture(textureUnit);
 		}
 	}
 

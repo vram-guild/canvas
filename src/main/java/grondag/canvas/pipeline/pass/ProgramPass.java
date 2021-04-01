@@ -16,13 +16,7 @@
 
 package grondag.canvas.pipeline.pass;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL46;
-
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
@@ -32,6 +26,7 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.ProcessShader;
+import grondag.canvas.varia.GFX;
 
 class ProgramPass extends Pass {
 	final int[] binds;
@@ -51,7 +46,7 @@ class ProgramPass extends Pass {
 			final String imageName = config.samplerImages[i].name;
 
 			int imageBind = 0;
-			int bindTarget = GL46.GL_TEXTURE_2D;
+			int bindTarget = GFX.GL_TEXTURE_2D;
 
 			if (imageName.contains(":")) {
 				final AbstractTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(imageName));
@@ -89,22 +84,18 @@ class ProgramPass extends Pass {
 		}
 
 		final Matrix4f orthoMatrix = Matrix4f.projectionMatrix(width, (-height), 1000.0F, 3000.0F);
-		RenderSystem.viewport(0, 0, width, height);
+		GFX.viewport(0, 0, width, height);
 
 		final int slimit = binds.length;
 
 		for (int i = 0; i < slimit; ++i) {
-			CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0 + i);
+			CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0 + i);
 			CanvasTextureState.bindTexture(bindTargets[i], binds[i]);
 		}
 
 		shader.activate().lod(config.lod).size(width, height).projection(orthoMatrix);
 
-		// WIP2: draw tris directly here
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, 4 / 4 * 6);
-		final int elementCount = indexBuffer.getVertexFormat().field_27374;
-		GlStateManager.drawElements(DrawMode.QUADS.mode, 0, elementCount, 0L);
-		//GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
 	}
 
 	@Override

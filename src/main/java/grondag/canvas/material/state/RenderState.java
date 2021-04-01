@@ -40,7 +40,7 @@ import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
 
 /**
@@ -119,7 +119,7 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	private void enableMaterial(int x, int y, int z) {
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		final MaterialShaderImpl shader = MatrixState.get() == MatrixState.SCREEN ? guiShader : this.shader;
 
@@ -136,7 +136,7 @@ public final class RenderState extends AbstractRenderState {
 			target.enable();
 		}
 
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		active = this;
 		shadowActive = null;
@@ -147,46 +147,46 @@ public final class RenderState extends AbstractRenderState {
 			MaterialInfoTexture.INSTANCE.disable();
 		}
 
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
 			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP_TEXTURE);
 			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
 			// Was seeing stray invalid operations errors in GL without.
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 
 		texture.enable(blur);
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		transparency.enable();
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		depthTest.enable();
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		writeMask.enable();
 		decal.enable();
 
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		CULL_STATE.setEnabled(cull);
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 
 		shader.activate(this);
 		shader.setContextInfo(texture.atlasInfo(), target.index);
 		shader.setModelOrigin(x, y, z);
 
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 	}
 
 	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(RenderSystem::enableCull, RenderSystem::disableCull);
@@ -232,7 +232,7 @@ public final class RenderState extends AbstractRenderState {
 		MaterialTarget.disable();
 		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 		//		if (enablePrint) {
 		//			GlStateSpy.print();
 		//			enablePrint = false;

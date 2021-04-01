@@ -26,7 +26,7 @@ import net.minecraft.client.texture.TextureUtil;
 
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.render.CanvasTextureState;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 public class Image {
 	public final ImageConfig config;
@@ -48,44 +48,44 @@ public class Image {
 	protected void open() {
 		if (glId == -1) {
 			glId = TextureUtil.generateId();
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			CanvasTextureState.bindTexture(config.target, glId);
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			final int[] params = config.texParamPairs;
 			final int limit = params.length;
 
 			for (int i = 0; i < limit; ++i) {
 				GlStateManager.texParameter(config.target, params[i], params[++i]);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			}
 
 			if (config.target == GL46.GL_TEXTURE_2D_ARRAY || config.target == GL46.GL_TEXTURE_3D) {
 				GL46.glTexImage3D(config.target, 0, config.internalFormat, width, height, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			} else {
 				assert config.target == GL46.GL_TEXTURE_2D;
 				GL46.glTexImage2D(config.target, 0, config.internalFormat, width, height, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			}
 
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 
 			if (config.lod > 0) {
 				setupLod();
 			}
 
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 		}
 	}
 
 	private void setupLod() {
 		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MAX_LEVEL, config.lod);
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MIN_LOD, 0);
 		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MAX_LOD, config.lod);
-		assert CanvasGlHelper.checkError();
+		assert GFX.checkError();
 		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
 
 		for (int i = 1; i <= config.lod; ++i) {
@@ -97,7 +97,7 @@ public class Image {
 				GL46.glTexImage2D(config.target, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 			}
 
-			assert CanvasGlHelper.checkError();
+			assert GFX.checkError();
 		}
 	}
 

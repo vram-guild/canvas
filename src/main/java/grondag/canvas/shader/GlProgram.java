@@ -23,13 +23,8 @@ import java.util.function.Consumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.EXTGPUShader4;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryUtil;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
@@ -39,7 +34,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
 import grondag.frex.api.material.Uniform.Uniform1i;
@@ -93,7 +88,7 @@ public class GlProgram {
 	public static void deactivate() {
 		if (activeProgram != null) {
 			activeProgram = null;
-			GL21.glUseProgram(0);
+			GFX.useProgram(0);
 		}
 	}
 
@@ -194,9 +189,9 @@ public class GlProgram {
 			return;
 		}
 
-		GL21.glUseProgram(progID);
+		GFX.useProgram(progID);
 
-		if (!CanvasGlHelper.checkError()) {
+		if (!GFX.checkError()) {
 			isErrored = true;
 			CanvasMod.LOG.warn(String.format("Unable to activate program with shaders %s and %s.  Program was disabled.", vertexShader.getShaderSourceId(), fragmentShader.getShaderSourceId()));
 			return;
@@ -260,15 +255,15 @@ public class GlProgram {
 
 		try {
 			if (progID > 0) {
-				GL21.glDeleteProgram(progID);
+				GFX.deleteProgram(progID);
 			}
 
-			progID = GL21.glCreateProgram();
+			progID = GFX.createProgram();
 
 			isErrored = progID > 0 && !loadInner();
 		} catch (final Exception e) {
 			if (progID > 0) {
-				GL21.glDeleteProgram(progID);
+				GFX.deleteProgram(progID);
 			}
 
 			CanvasMod.LOG.error(I18n.translate("error.canvas.program_link_failure"), e);
@@ -293,7 +288,7 @@ public class GlProgram {
 		}
 
 		if (progID > 0) {
-			GL21.glDeleteProgram(progID);
+			GFX.deleteProgram(progID);
 			progID = -1;
 			GlProgramManager.INSTANCE.remove(this);
 		}
@@ -315,10 +310,10 @@ public class GlProgram {
 
 		vertexFormat.bindProgramAttributes(programID);
 
-		GL21.glLinkProgram(programID);
+		GFX.linkProgram(programID);
 
-		if (GL21.glGetProgrami(programID, GL21.GL_LINK_STATUS) == GL11.GL_FALSE) {
-			CanvasMod.LOG.error(CanvasGlHelper.getProgramInfoLog(programID));
+		if (GFX.getProgramInfo(programID, GFX.GL_LINK_STATUS) == GFX.GL_FALSE) {
+			CanvasMod.LOG.error(GFX.getProgramInfoLog(programID));
 			return false;
 		}
 
@@ -381,8 +376,8 @@ public class GlProgram {
 		}
 
 		private void load(int programID) {
-			this.unifID = GL21.glGetUniformLocation(programID, name);
-			assert CanvasGlHelper.checkError();
+			this.unifID = GFX.getUniformLocation(programID, name);
+			assert GFX.checkError();
 
 			if (this.unifID == -1) {
 				if (Configurator.logMissingUniforms) {
@@ -405,13 +400,13 @@ public class GlProgram {
 
 			if ((flags & FLAG_NEEDS_INITIALIZATION) == FLAG_NEEDS_INITIALIZATION) {
 				initializer.accept((T) this);
-				assert CanvasGlHelper.checkError();
+				assert GFX.checkError();
 			}
 
 			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD) {
 				uploadInner();
 
-				if (!CanvasGlHelper.checkError()) {
+				if (!GFX.checkError()) {
 					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
 					unifID = -1;
 				}
@@ -453,7 +448,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform1fv(unifID, uniformFloatBuffer);
+			GFX.uniform1fv(unifID, uniformFloatBuffer);
 		}
 
 		@Override
@@ -486,7 +481,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform2fv(unifID, uniformFloatBuffer);
+			GFX.uniform2fv(unifID, uniformFloatBuffer);
 		}
 
 		@Override
@@ -524,7 +519,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform3fv(unifID, uniformFloatBuffer);
+			GFX.uniform3fv(unifID, uniformFloatBuffer);
 		}
 
 		@Override
@@ -567,7 +562,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform4fv(unifID, uniformFloatBuffer);
+			GFX.uniform4fv(unifID, uniformFloatBuffer);
 		}
 
 		@Override
@@ -608,9 +603,9 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			if (externalFloatBuffer == null) {
-				GL21.glUniform1fv(unifID, uniformFloatBuffer);
+				GFX.uniform1fv(unifID, uniformFloatBuffer);
 			} else {
-				GL21.glUniform1fv(unifID, externalFloatBuffer);
+				GFX.uniform1fv(unifID, externalFloatBuffer);
 				externalFloatBuffer = null;
 			}
 		}
@@ -639,7 +634,7 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			if (uniformFloatBuffer != null) {
-				GL21.glUniform4fv(unifID, uniformFloatBuffer);
+				GFX.uniform4fv(unifID, uniformFloatBuffer);
 				uniformFloatBuffer = null;
 			}
 		}
@@ -683,7 +678,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform1iv(unifID, uniformIntBuffer);
+			GFX.uniform1iv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -730,7 +725,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform2iv(unifID, uniformIntBuffer);
+			GFX.uniform2iv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -768,7 +763,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform3iv(unifID, uniformIntBuffer);
+			GFX.uniform3iv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -811,7 +806,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform4iv(unifID, uniformIntBuffer);
+			GFX.uniform4iv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -843,7 +838,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform1iv(unifID, uniformIntBuffer);
+			GFX.uniform1iv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -871,11 +866,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			if (MinecraftClient.IS_SYSTEM_MAC) {
-				EXTGPUShader4.glUniform1uivEXT(unifID, uniformIntBuffer);
-			} else {
-				GL30.glUniform1uiv(unifID, uniformIntBuffer);
-			}
+			GFX.uniform1uiv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -908,11 +899,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			if (MinecraftClient.IS_SYSTEM_MAC) {
-				EXTGPUShader4.glUniform2uivEXT(unifID, uniformIntBuffer);
-			} else {
-				GL30.glUniform2uiv(unifID, uniformIntBuffer);
-			}
+			GFX.uniform2uiv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -950,11 +937,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			if (MinecraftClient.IS_SYSTEM_MAC) {
-				EXTGPUShader4.glUniform3uivEXT(unifID, uniformIntBuffer);
-			} else {
-				GL30.glUniform3uiv(unifID, uniformIntBuffer);
-			}
+			GFX.uniform3uiv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -997,11 +980,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			if (MinecraftClient.IS_SYSTEM_MAC) {
-				EXTGPUShader4.glUniform4uivEXT(unifID, uniformIntBuffer);
-			} else {
-				GL30.glUniform4uiv(unifID, uniformIntBuffer);
-			}
+			GFX.uniform4uiv(unifID, uniformIntBuffer);
 		}
 
 		@Override
@@ -1037,12 +1016,7 @@ public class GlProgram {
 		protected void uploadInner() {
 			final IntBuffer source = externalBuffer == null ? uniformIntBuffer : externalBuffer;
 			externalBuffer = null;
-
-			if (MinecraftClient.IS_SYSTEM_MAC) {
-				EXTGPUShader4.glUniform1uivEXT(unifID, source);
-			} else {
-				GL30.glUniform1uiv(unifID, source);
-			}
+			GFX.uniform1uiv(unifID, source);
 		}
 
 		@Override
@@ -1083,7 +1057,7 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			if (uniformFloatBuffer != null) {
-				GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+				GFX.uniformMatrix4fv(unifID, false, uniformFloatBuffer);
 			}
 		}
 
@@ -1113,7 +1087,7 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			if (uniformFloatBuffer != null) {
-				GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+				GFX.uniformMatrix4fv(unifID, false, uniformFloatBuffer);
 			}
 		}
 
@@ -1161,7 +1135,7 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniformMatrix3fv(unifID, false, uniformFloatBuffer);
+			GFX.uniformMatrix3fv(unifID, false, uniformFloatBuffer);
 		}
 
 		@Override
