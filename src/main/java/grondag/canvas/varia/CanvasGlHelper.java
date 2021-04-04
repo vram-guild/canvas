@@ -29,8 +29,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 
 public class CanvasGlHelper {
-	private static int attributeEnabledCount = 0;
-
 	public static void init() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasGlHelper static init");
@@ -55,45 +53,5 @@ public class CanvasGlHelper {
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
-	}
-
-	/**
-	 * Disables generic vertex attributes.
-	 * Use after calling {@link #enableAttributesVao(int)}
-	 */
-	public static void disableAttributesVao(int enabledCount) {
-		for (int i = 1; i <= enabledCount; i++) {
-			GFX.disableVertexAttribArray(i);
-		}
-	}
-
-	/**
-	 * Like {@link CanvasGlHelper#enableAttributes(int)} but enables all attributes
-	 * regardless of prior state. Tracking state for {@link CanvasGlHelper#enableAttributes(int)}
-	 * remains unchanged. Used to initialize VAO state
-	 */
-	public static void enableAttributesVao(int enabledCount) {
-		for (int i = 0; i < enabledCount; i++) {
-			GFX.enableVertexAttribArray(i);
-		}
-	}
-
-	/**
-	 * Enables the given number of generic vertex attributes if not already enabled.
-	 * Using 1-based numbering for attribute slots because GL (on my machine at
-	 * least) not liking slot 0.
-	 *
-	 * @param enabledCount Number of needed attributes.
-	 */
-	public static void enableAttributes(int enabledCount) {
-		if (enabledCount > attributeEnabledCount) {
-			while (enabledCount > attributeEnabledCount) {
-				GFX.enableVertexAttribArray(++attributeEnabledCount);
-			}
-		} else if (enabledCount < attributeEnabledCount) {
-			while (enabledCount < attributeEnabledCount) {
-				GFX.disableVertexAttribArray(attributeEnabledCount--);
-			}
-		}
 	}
 }

@@ -91,7 +91,7 @@ public final class RenderLayerHelper {
 		finder.lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
 		finder.fog(sd.fog);
 		finder.unmipped(!tex.getMipmap());
-		finder.blur(tex.getBilinear());
+		finder.blur(tex.getBlur());
 		finder.disableDiffuse(!sd.diffuse);
 		finder.cutout(sd.cutout);
 

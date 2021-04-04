@@ -20,7 +20,6 @@ import java.util.Iterator;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
@@ -43,6 +42,7 @@ import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
 import grondag.frex.api.material.RenderMaterial;
@@ -171,7 +171,7 @@ public class CanvasParticleRenderer {
 
 	private static MaterialFinderImpl baseFinder() {
 		return MaterialFinderImpl.threadLocal()
-				.primitive(GL11.GL_QUADS)
+				.primitive(GFX.GL_QUADS)
 				.depthTest(MaterialFinder.DEPTH_TEST_LEQUAL)
 				.cull(false)
 				.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH)

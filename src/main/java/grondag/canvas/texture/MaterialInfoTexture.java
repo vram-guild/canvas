@@ -16,10 +16,7 @@
 
 package grondag.canvas.texture;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL21;
-
-import net.minecraft.client.texture.TextureUtil;
+import com.mojang.blaze3d.platform.TextureUtil;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -28,6 +25,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
 public class MaterialInfoTexture {
@@ -52,7 +50,7 @@ public class MaterialInfoTexture {
 
 		if (glId != -1) {
 			disable();
-			TextureUtil.deleteId(glId);
+			TextureUtil.releaseTextureId(glId);
 			glId = -1;
 		}
 	}
@@ -81,7 +79,6 @@ public class MaterialInfoTexture {
 			enabled = false;
 			CanvasTextureState.activeTextureUnit(TextureData.MATERIAL_INFO);
 			CanvasTextureState.bindTexture(0);
-			GlStateManager.disableTexture();
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 	}
@@ -91,7 +88,7 @@ public class MaterialInfoTexture {
 			boolean isNew = false;
 
 			if (glId == -1) {
-				glId = TextureUtil.generateId();
+				glId = TextureUtil.generateTextureId();
 				isNew = true;
 			}
 
@@ -101,14 +98,14 @@ public class MaterialInfoTexture {
 			image.upload();
 
 			if (isNew) {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, 0);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 0);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_REPEAT);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_REPEAT);
+				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAX_LEVEL, 0);
+				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_LOD, 0);
+				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAX_LOD, 0);
+				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
+				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_NEAREST);
+				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_NEAREST);
+				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_S, GFX.GL_REPEAT);
+				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_T, GFX.GL_REPEAT);
 			}
 
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
@@ -121,7 +118,7 @@ public class MaterialInfoTexture {
 			}
 
 			if (glId != -1) {
-				TextureUtil.deleteId(glId);
+				TextureUtil.releaseTextureId(glId);
 				glId = -1;
 			}
 		}

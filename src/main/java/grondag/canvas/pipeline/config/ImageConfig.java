@@ -18,14 +18,12 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL46;
-import org.lwjgl.opengl.GL46C;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedConfig;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
+import grondag.canvas.varia.GFX;
 
 public class ImageConfig extends NamedConfig<ImageConfig> {
 	public final int target;
@@ -42,7 +40,7 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 
 	private ImageConfig(ConfigContext ctx, String name, int internalFormat, int lod, int pixelFormat, int pixelDataType, boolean depth) {
 		super(ctx, name);
-		target = GL46C.GL_TEXTURE_2D;
+		target = GFX.GL_TEXTURE_2D;
 		this.internalFormat = internalFormat;
 		this.lod = lod;
 		this.pixelDataType = pixelDataType;
@@ -53,22 +51,22 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 
 		if (depth) {
 			texParamPairs = new int[10];
-			texParamPairs[1] = GL46C.GL_NEAREST;
-			texParamPairs[3] = GL46C.GL_NEAREST;
-			texParamPairs[8] = GL46C.GL_TEXTURE_COMPARE_MODE;
-			texParamPairs[9] = GL46C.GL_NONE;
+			texParamPairs[1] = GFX.GL_NEAREST;
+			texParamPairs[3] = GFX.GL_NEAREST;
+			texParamPairs[8] = GFX.GL_TEXTURE_COMPARE_MODE;
+			texParamPairs[9] = GFX.GL_NONE;
 		} else {
 			texParamPairs = new int[8];
-			texParamPairs[1] = GL46C.GL_LINEAR;
-			texParamPairs[3] = GL46C.GL_LINEAR;
+			texParamPairs[1] = GFX.GL_LINEAR;
+			texParamPairs[3] = GFX.GL_LINEAR;
 		}
 
-		texParamPairs[0] = GL46C.GL_TEXTURE_MIN_FILTER;
-		texParamPairs[2] = GL46C.GL_TEXTURE_MAG_FILTER;
-		texParamPairs[4] = GL46C.GL_TEXTURE_WRAP_S;
-		texParamPairs[5] = GL46C.GL_CLAMP_TO_EDGE;
-		texParamPairs[6] = GL46C.GL_TEXTURE_WRAP_T;
-		texParamPairs[7] = GL46C.GL_CLAMP_TO_EDGE;
+		texParamPairs[0] = GFX.GL_TEXTURE_MIN_FILTER;
+		texParamPairs[2] = GFX.GL_TEXTURE_MAG_FILTER;
+		texParamPairs[4] = GFX.GL_TEXTURE_WRAP_S;
+		texParamPairs[5] = GFX.GL_CLAMP_TO_EDGE;
+		texParamPairs[6] = GFX.GL_TEXTURE_WRAP_T;
+		texParamPairs[7] = GFX.GL_CLAMP_TO_EDGE;
 	}
 
 	ImageConfig (ConfigContext ctx, JsonObject config) {
@@ -100,11 +98,11 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 	}
 
 	public static ImageConfig defaultMain(ConfigContext ctx) {
-		return new ImageConfig(ctx, "default_main", GL21.GL_RGBA8, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, false);
+		return new ImageConfig(ctx, "default_main", GFX.GL_RGBA8, 0, GFX.GL_RGBA, GFX.GL_UNSIGNED_BYTE, false);
 	}
 
 	public static ImageConfig defaultDepth(ConfigContext ctx) {
-		return new ImageConfig(ctx, "default_depth", GL21.GL_DEPTH_COMPONENT, 0, GL21.GL_DEPTH_COMPONENT, GL21.GL_FLOAT, true);
+		return new ImageConfig(ctx, "default_depth", GFX.GL_DEPTH_COMPONENT, 0, GFX.GL_DEPTH_COMPONENT, GFX.GL_FLOAT, true);
 	}
 
 	@Override
@@ -116,9 +114,9 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 	public boolean validate() {
 		boolean valid = super.validate();
 
-		valid &= assertAndWarn(target == GL21.GL_TEXTURE_3D || target == GL46.GL_TEXTURE_2D_ARRAY || target == GL46.GL_TEXTURE_2D, "Invalid pipeline config for image %s. Unsupported target.", name, GlSymbolLookup.reverseLookup(target));
-		valid &= assertAndWarn(!(target == GL21.GL_TEXTURE_2D && depth > 1), "Invalid pipeline config for image %s.  2D texture has depth > 1.", name);
-		valid &= assertAndWarn(!((target == GL21.GL_TEXTURE_3D || target == GL46.GL_TEXTURE_2D_ARRAY) && depth < 1), "Invalid pipeline config for image %s.  3D texture must have depth >= 1.", name);
+		valid &= assertAndWarn(target == GFX.GL_TEXTURE_3D || target == GFX.GL_TEXTURE_2D_ARRAY || target == GFX.GL_TEXTURE_2D, "Invalid pipeline config for image %s. Unsupported target.", name, GlSymbolLookup.reverseLookup(target));
+		valid &= assertAndWarn(!(target == GFX.GL_TEXTURE_2D && depth > 1), "Invalid pipeline config for image %s.  2D texture has depth > 1.", name);
+		valid &= assertAndWarn(!((target == GFX.GL_TEXTURE_3D || target == GFX.GL_TEXTURE_2D_ARRAY) && depth < 1), "Invalid pipeline config for image %s.  3D texture must have depth >= 1.", name);
 
 		return valid;
 	}

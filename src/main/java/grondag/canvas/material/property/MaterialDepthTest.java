@@ -16,12 +16,10 @@
 
 package grondag.canvas.material.property;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
-
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.DepthTest;
 
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.MaterialFinder;
 
 public class MaterialDepthTest {
@@ -29,32 +27,32 @@ public class MaterialDepthTest {
 		MaterialFinder.DEPTH_TEST_DISABLE,
 		"disable",
 		() -> {
-			RenderSystem.disableDepthTest();
-			RenderSystem.depthFunc(GL11.GL_LEQUAL);
+			GFX.disableDepthTest();
+			GFX.depthFunc(GFX.GL_LEQUAL);
 		});
 
 	public static final MaterialDepthTest ALWAYS = new MaterialDepthTest(
 		MaterialFinder.DEPTH_TEST_ALWAYS,
 		"disable",
 		() -> {
-			RenderSystem.enableDepthTest();
-			RenderSystem.depthFunc(GL11.GL_ALWAYS);
+			GFX.enableDepthTest();
+			GFX.depthFunc(GFX.GL_ALWAYS);
 		});
 
 	public static final MaterialDepthTest EQUAL = new MaterialDepthTest(
 		MaterialFinder.DEPTH_TEST_EQUAL,
 		"disable",
 		() -> {
-			RenderSystem.enableDepthTest();
-			RenderSystem.depthFunc(GL11.GL_EQUAL);
+			GFX.enableDepthTest();
+			GFX.depthFunc(GFX.GL_EQUAL);
 		});
 
 	public static final MaterialDepthTest LEQUAL = new MaterialDepthTest(
 		MaterialFinder.DEPTH_TEST_LEQUAL,
 		"disable",
 		() -> {
-			RenderSystem.enableDepthTest();
-			RenderSystem.depthFunc(GL11.GL_LEQUAL);
+			GFX.enableDepthTest();
+			GFX.depthFunc(GFX.GL_LEQUAL);
 		});
 
 	public static final int DEPTH_TEST_COUNT = 4;

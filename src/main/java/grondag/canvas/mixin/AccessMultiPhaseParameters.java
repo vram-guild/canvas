@@ -27,7 +27,7 @@ import net.minecraft.client.render.RenderPhase;
 @Mixin(MultiPhaseParameters.class)
 public interface AccessMultiPhaseParameters {
 	@Accessor
-	RenderPhase.class_5939 getTexture();
+	RenderPhase.TextureBase getTexture();
 
 	@Accessor
 	RenderPhase.Transparency getTransparency();
@@ -66,5 +66,5 @@ public interface AccessMultiPhaseParameters {
 	ImmutableList<RenderPhase> getPhases();
 
 	@Accessor
-	RenderLayer.class_5942 getField_29461();
+	RenderPhase.Shader getField_29461();
 }

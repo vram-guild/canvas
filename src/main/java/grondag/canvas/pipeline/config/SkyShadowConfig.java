@@ -19,7 +19,6 @@ package grondag.canvas.pipeline.config;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 import org.apache.commons.lang3.ObjectUtils;
-import org.lwjgl.opengl.GL46;
 
 import net.minecraft.util.Identifier;
 
@@ -28,6 +27,7 @@ import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedDependency;
+import grondag.canvas.varia.GFX;
 
 public class SkyShadowConfig extends AbstractConfig {
 	public final NamedDependency<FramebufferConfig> framebuffer;
@@ -81,7 +81,7 @@ public class SkyShadowConfig extends AbstractConfig {
 		valid &= assertAndWarn(fragmentSource != null, "Invalid pipeline config - skyShadows 'fragmentSource' missing or invalid.");
 
 		if (valid) {
-			valid &= assertAndWarn(framebuffer.value().depthAttachment.image.value().target == GL46.GL_TEXTURE_2D_ARRAY,
+			valid &= assertAndWarn(framebuffer.value().depthAttachment.image.value().target == GFX.GL_TEXTURE_2D_ARRAY,
 					"Invalid pipeline config - skyShadows depth image must be a 2D array texture.");
 		}
 

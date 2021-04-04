@@ -19,7 +19,6 @@ package grondag.canvas.light;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL11;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -29,6 +28,7 @@ import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.SimpleImage;
 import grondag.canvas.texture.SimpleTexture;
 import grondag.canvas.texture.TextureData;
+import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
 @SuppressWarnings("unused")
@@ -40,7 +40,7 @@ class LightmapHdTexture implements AutoCloseable {
 	private int frameCounter = 0;
 
 	private LightmapHdTexture() {
-		texture = new SimpleTexture(new SimpleImage(4, GL11.GL_RGBA, LightmapSizer.texSize, LightmapSizer.texSize, false), GL11.GL_RGBA);
+		texture = new SimpleTexture(new SimpleImage(4, GFX.GL_RGBA, LightmapSizer.texSize, LightmapSizer.texSize, false), GFX.GL_RGBA);
 		image = texture.getImage();
 		clear();
 	}

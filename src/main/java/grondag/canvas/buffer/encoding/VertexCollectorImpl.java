@@ -18,22 +18,16 @@ package grondag.canvas.buffer.encoding;
 
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.material.state.RenderState;
 
 public class VertexCollectorImpl extends AbstractVertexCollector {
 	float[] perQuadDistance = new float[512];
@@ -213,26 +207,10 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 
 	/** Avoid: slow. */
 	public void drawSingle() {
-		sortIfNeeded();
-
-		materialState.renderState.enable();
-
-		final ByteBuffer buffer = TransferBufferAllocator.claim(byteSize());
-
-		final IntBuffer intBuffer = buffer.asIntBuffer();
-		intBuffer.position(0);
-		toBuffer(intBuffer);
-
-		CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
-
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(materialState.primitive, vertexCount() / 4 * 6);
-		final int elementCount = indexBuffer.getVertexFormat().field_27374;
-		GlStateManager.drawElements(materialState.primitive.mode, 0, elementCount, 0L);
-		//GlStateManager.drawArrays(materialState.primitive, 0, vertexCount());
-
-		TransferBufferAllocator.release(buffer);
-
-		RenderState.disable();
+		// PERF: allocation - or eliminate this
+		final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
+		drawList.add(this);
+		draw(drawList);
 	}
 
 	/**

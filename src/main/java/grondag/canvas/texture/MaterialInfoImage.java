@@ -18,9 +18,6 @@ package grondag.canvas.texture;
 
 import java.nio.FloatBuffer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import net.fabricmc.api.EnvType;
@@ -86,13 +83,12 @@ public final class MaterialInfoImage {
 			dirty = false;
 			assert pointer != 0L : "Image not allocated.";
 
-			GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, 0);
-			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
-			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
-			GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4);
+			GFX.pixelStore(GFX.GL_UNPACK_ROW_LENGTH, 0);
+			GFX.pixelStore(GFX.GL_UNPACK_SKIP_ROWS, 0);
+			GFX.pixelStore(GFX.GL_UNPACK_SKIP_PIXELS, 0);
+			GFX.pixelStore(GFX.GL_UNPACK_ALIGNMENT, 4);
 
-			GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, squareSizePixels, squareSizePixels, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
-			assert GFX.checkError();
+			GFX.texImage2D(GFX.GL_TEXTURE_2D, 0, GFX.GL_RGBA16, squareSizePixels, squareSizePixels, 0, GFX.GL_RGBA, GFX.GL_FLOAT, pointer);
 		}
 	}
 

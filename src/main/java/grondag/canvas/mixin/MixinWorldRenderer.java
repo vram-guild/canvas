@@ -116,7 +116,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		((CanvasWorldRenderer) (Object) this).scheduleRegionRender(x, y, z, urgent);
 	}
 
-	@Redirect(method = "reload", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;viewDistance:I", ordinal = 1))
+	@Redirect(method = "reload()V", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;viewDistance:I", ordinal = 1))
 	private int onReloadZeroChunkStorage(GameOptions options) {
 		return 0;
 	}

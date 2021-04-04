@@ -22,7 +22,6 @@ import java.nio.IntBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GFX;
 
 public class VboBuffer {
@@ -43,18 +42,14 @@ public class VboBuffer {
 		byteCount = bytes;
 	}
 
-	public static void unbind() {
-		BindStateManager.unbind();
-	}
-
 	public void upload() {
 		final ByteBuffer uploadBuffer = this.uploadBuffer;
 
 		if (uploadBuffer != null) {
 			uploadBuffer.rewind();
-			BindStateManager.bind(glBufferId());
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
 			GFX.bufferData(GFX.GL_ARRAY_BUFFER, uploadBuffer, GFX.GL_STATIC_DRAW);
-			BindStateManager.unbind();
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 			TransferBufferAllocator.release(uploadBuffer);
 			this.uploadBuffer = null;
 		}
@@ -80,13 +75,12 @@ public class VboBuffer {
 		if (vaoBufferId == VAO_NONE) {
 			// Important this happens BEFORE anything that could affect vertex state
 			GFX.bindVertexArray(0);
-
-			BindStateManager.bind(glBufferId());
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
 
 			vaoBufferId = VaoAllocator.claimVertexArray();
 			GFX.bindVertexArray(vaoBufferId);
 
-			CanvasGlHelper.enableAttributesVao(format.attributeCount());
+			format.enableAttributes();
 			format.bindAttributeLocations(0);
 		} else {
 			GFX.bindVertexArray(vaoBufferId);

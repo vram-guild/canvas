@@ -24,15 +24,12 @@ import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.Sets;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL46;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -47,6 +44,7 @@ import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.BlockBreakingInfo;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.GameRenderer;
@@ -87,8 +85,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
-import grondag.canvas.buffer.BindStateManager;
-import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.buffer.encoding.DrawableBuffer;
 import grondag.canvas.compat.FirstPersonModelHolder;
@@ -591,13 +587,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		contextState.setCurrentBlockEntity(null);
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
-			profileSwap(profiler, "shadow_map");
-			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
-
-			profileSwap(profiler, "terrain_solid");
-			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(false, cameraX, cameraY, cameraZ);
-			MatrixState.set(MatrixState.CAMERA);
+			//			profileSwap(profiler, "shadow_map");
+			//			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
+			//
+			//			profileSwap(profiler, "terrain_solid");
+			//			MatrixState.set(MatrixState.REGION);
+			//			renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+			//			MatrixState.set(MatrixState.CAMERA);
 
 			profileSwap(profiler, "entity_draw_solid");
 			entityBuffer.draw(false);
@@ -772,10 +768,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			Pipeline.defaultFbo.bind();
 		} else {
-			RenderSystem.depthMask(false);
+			GFX.depthMask(false);
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
 			wr.canvas_renderWorldBorder(camera);
-			RenderSystem.depthMask(true);
+			GFX.depthMask(true);
 		}
 
 		// doesn't make any sense with our chunk culling scheme
@@ -783,8 +779,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profileSwap(profiler, "render_last_event");
 		WorldRenderEvents.LAST.invoker().onLast(eventContext);
 
-		RenderSystem.depthMask(true);
-		RenderSystem.disableBlend();
+		GFX.depthMask(true);
+		GFX.disableBlend();
 		BackgroundRenderer.method_23792();
 		entityBlockContext.collectors = null;
 		blockContext.collectors = null;
@@ -792,7 +788,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		wr.canvas_setEntityCounts(entityCount, blockEntityCount);
 
 		//RenderState.enablePrint = true;
-		assert GFX.checkError();
 
 		Configurator.lagFinder.complete();
 	}
@@ -802,8 +797,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			profileSwap(profiler, "clouds");
 
 			if (Pipeline.fabCloudsFbo > 0) {
-				GlStateManager.bindFramebuffer(GL46.GL_FRAMEBUFFER, Pipeline.fabCloudsFbo);
+				GFX.bindFramebuffer(GFX.GL_FRAMEBUFFER, Pipeline.fabCloudsFbo);
 			}
+
+			// WIP2: remove
+			GFX.checkError("Pre Clouds");
 
 			// NB: cloud renderer normally gets stack with view rotation but we apply that in VertexBuffer mixin
 			renderClouds(identityStack, projectionMatrix, tickDelta, cameraX, cameraY, cameraZ);
@@ -852,9 +850,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			return;
 		}
 
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.disableTexture();
+		GFX.enableBlend();
+		GFX.defaultBlendFunc();
 
 		final Tessellator tessellator = Tessellator.getInstance();
 		final BufferBuilder bufferBuilder = tessellator.getBuffer();
@@ -885,7 +882,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		tessellator.draw();
-		RenderSystem.disableDepthTest();
+		GFX.disableDepthTest();
 		RenderSystem.lineWidth(3.0F);
 		bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR);
 
@@ -904,9 +901,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		tessellator.draw();
 
-		RenderSystem.enableDepthTest();
-		RenderSystem.enableTexture();
-		RenderSystem.disableBlend();
+		GFX.enableDepthTest();
+		GFX.disableBlend();
 	}
 
 	//	private static final Direction[] DIRECTIONS = Direction.values();
@@ -966,6 +962,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
+		// WIP2: where is this needed, exactly?
+		BufferRenderer.unbindAll();
+
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final int visibleRegionCount = this.visibleRegionCount;
 
@@ -982,15 +981,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderState.disable();
 
 		// Important this happens BEFORE anything that could affect vertex state
-		GL30.glBindVertexArray(0);
+		GFX.glBindVertexArray(0);
 
 		//if (Configurator.hdLightmaps()) {
 		//	LightmapHdTexture.instance().disable();
 		//	DitherTexture.instance().disable();
 		//}
 
-		VboBuffer.unbind();
-		BindStateManager.unbind();
+		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 	}
 
 	private void updateRegions(long endNanos) {

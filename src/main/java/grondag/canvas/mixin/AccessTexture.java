@@ -27,7 +27,7 @@ import net.minecraft.util.Identifier;
 @Mixin(Texture.class)
 public interface AccessTexture {
 	@Accessor
-	boolean getBilinear();
+	boolean getBlur();
 
 	@Accessor
 	boolean getMipmap();

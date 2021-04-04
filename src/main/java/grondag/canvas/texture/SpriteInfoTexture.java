@@ -16,18 +16,14 @@
 
 package grondag.canvas.texture;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.platform.TextureUtil;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture.Data;
-import net.minecraft.client.texture.TextureUtil;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 
@@ -72,7 +68,7 @@ public class SpriteInfoTexture {
 
 		if (glId != -1) {
 			disable();
-			TextureUtil.deleteId(glId);
+			TextureUtil.releaseTextureId(glId);
 			glId = -1;
 		}
 
@@ -87,53 +83,47 @@ public class SpriteInfoTexture {
 
 	private void createImageIfNeeded() {
 		if (glId == -1) {
-			assert RenderSystem.isOnRenderThread();
 			createImage();
 		}
 	}
 
 	private void createImage() {
 		try (SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
-			glId = TextureUtil.generateId();
+			glId = TextureUtil.generateTextureId();
 
 			CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
-			CanvasTextureState.bindTexture(GL21.GL_TEXTURE_2D, glId);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D, glId);
 
 			// Bragging rights and eternal gratitude to Wyn Price (https://github.com/Wyn-Price)
 			// for reminding me pixelStore exists, thus fixing #92 and preserving a tattered
 			// remnant of my sanity. I owe you a favor!
 
-			GlStateManager.pixelStore(GL11.GL_UNPACK_ROW_LENGTH, 0);
-			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
-			GlStateManager.pixelStore(GL11.GL_UNPACK_SKIP_PIXELS, 0);
-			GlStateManager.pixelStore(GL11.GL_UNPACK_ALIGNMENT, 4);
-			assert GFX.checkError();
+			GFX.pixelStore(GFX.GL_UNPACK_ROW_LENGTH, 0);
+			GFX.pixelStore(GFX.GL_UNPACK_SKIP_ROWS, 0);
+			GFX.pixelStore(GFX.GL_UNPACK_SKIP_PIXELS, 0);
+			GFX.pixelStore(GFX.GL_UNPACK_ALIGNMENT, 4);
 
 			image.upload();
-			assert GFX.checkError();
 
 			image.close();
 
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, 0);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, 0);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_REPEAT);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_REPEAT);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAX_LEVEL, 0);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_LOD, 0);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAX_LOD, 0);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_NEAREST);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_NEAREST);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_S, GFX.GL_REPEAT);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_T, GFX.GL_REPEAT);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 
-			assert GFX.checkError();
-
-			CanvasTextureState.bindTexture(GL21.GL_TEXTURE_2D, 0);
-			GlStateManager.disableTexture();
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D, 0);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
 			CanvasMod.LOG.warn("Unable to create sprite info texture due to error:", e);
 
 			if (glId != -1) {
-				TextureUtil.deleteId(glId);
+				TextureUtil.releaseTextureId(glId);
 				glId = -1;
 			}
 		}
@@ -142,7 +132,6 @@ public class SpriteInfoTexture {
 	public static void disable() {
 		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
 		CanvasTextureState.bindTexture(0);
-		GlStateManager.disableTexture();
 		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 	}
 
@@ -150,7 +139,6 @@ public class SpriteInfoTexture {
 		createImageIfNeeded();
 		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
 		CanvasTextureState.bindTexture(glId);
-		assert GFX.checkError();
 	}
 
 	public int coordinate(int spriteId) {

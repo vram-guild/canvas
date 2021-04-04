@@ -119,7 +119,7 @@ public class PipelineManager {
 	}
 
 	static void endFullFrameRender() {
-		VboBuffer.unbind();
+		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE1);
 		CanvasTextureState.bindTexture(oldTex1);
 		//GlStateManager.disableTexture();

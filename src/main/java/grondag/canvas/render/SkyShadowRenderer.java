@@ -17,13 +17,13 @@
 package grondag.canvas.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 
 import grondag.canvas.buffer.encoding.DrawableBuffer;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
 
 public class SkyShadowRenderer {
@@ -58,7 +58,7 @@ public class SkyShadowRenderer {
 
 			for (cascade = 0; cascade < MatrixState.CASCADE_COUNT; ++cascade) {
 				Pipeline.skyShadowFbo.bind();
-				GL46.glFramebufferTextureLayer(GL46.GL_FRAMEBUFFER, GL46.GL_DEPTH_ATTACHMENT, Pipeline.shadowMapDepth, 0, cascade);
+				GFX.framebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, Pipeline.shadowMapDepth, 0, cascade);
 				renderInner(canvasWorldRenderer, cameraX, cameraY, cameraZ, entityBuffer);
 			}
 

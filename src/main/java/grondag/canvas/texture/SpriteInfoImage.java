@@ -19,8 +19,6 @@ package grondag.canvas.texture;
 import java.nio.FloatBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.texture.Sprite;
@@ -81,10 +79,6 @@ public final class SpriteInfoImage implements AutoCloseable {
 
 	public void upload() {
 		assert pointer != 0L : "Image not allocated.";
-		GL21.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL21.GL_RGBA16, 4, size, 0, GL21.GL_RGBA, GL21.GL_FLOAT, pointer);
-
-		if (!GFX.checkError()) {
-			CanvasMod.LOG.warn("Unable to upload sprite information texture due to unexpected OpenGL error. Game may crash or render incorrectly.");
-		}
+		GFX.texImage2D(GFX.GL_TEXTURE_2D, 0, GFX.GL_RGBA16, 4, size, 0, GFX.GL_RGBA, GFX.GL_FLOAT, pointer);
 	}
 }

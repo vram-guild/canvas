@@ -22,18 +22,18 @@ import java.util.function.Supplier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.client.render.RenderPhase.class_5942;
+import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.Shader;
 
 import grondag.canvas.material.state.MojangShaderData;
 import grondag.canvas.mixinterface.ShaderExt;
 
-@Mixin(class_5942.class)
+@Mixin(RenderPhase.Shader.class)
 public class MixinShaderPhase implements ShaderExt {
-	@Shadow private Optional<Supplier<Shader>> field_29455;
+	@Shadow private Optional<Supplier<Shader>> supplier;
 
 	@Override
 	public MojangShaderData canvas_shaderData() {
-		return field_29455.isPresent() ? ((ShaderExt) (field_29455.get().get())).canvas_shaderData() : MojangShaderData.MISSING;
+		return supplier.isPresent() ? ((ShaderExt) (supplier.get().get())).canvas_shaderData() : MojangShaderData.MISSING;
 	}
 }

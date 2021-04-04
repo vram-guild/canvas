@@ -19,11 +19,9 @@ package grondag.canvas.material.state;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -113,14 +111,12 @@ public final class RenderState extends AbstractRenderState {
 		depthShader.setModelOrigin(x, y, z);
 		depthShader.setCascade(cascade);
 
-		GL46.glEnable(GL46.GL_POLYGON_OFFSET_FILL);
-		GL46.glPolygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
+		GFX.enable(GFX.GL_POLYGON_OFFSET_FILL);
+		GFX.polygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
 		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 
 	private void enableMaterial(int x, int y, int z) {
-		assert GFX.checkError();
-
 		final MaterialShaderImpl shader = MatrixState.get() == MatrixState.SCREEN ? guiShader : this.shader;
 
 		if (active == this) {
@@ -136,8 +132,6 @@ public final class RenderState extends AbstractRenderState {
 			target.enable();
 		}
 
-		assert GFX.checkError();
-
 		active = this;
 		shadowActive = null;
 
@@ -147,15 +141,12 @@ public final class RenderState extends AbstractRenderState {
 			MaterialInfoTexture.INSTANCE.disable();
 		}
 
-		assert GFX.checkError();
-
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
-			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
-			assert GFX.checkError();
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP_TEXTURE);
-			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 			assert GFX.checkError();
 			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
 			// Was seeing stray invalid operations errors in GL without.
@@ -163,30 +154,18 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		texture.enable(blur);
-		assert GFX.checkError();
-
 		transparency.enable();
-		assert GFX.checkError();
-
 		depthTest.enable();
-		assert GFX.checkError();
-
 		writeMask.enable();
 		decal.enable();
-
-		assert GFX.checkError();
 
 		CULL_STATE.setEnabled(cull);
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
-		assert GFX.checkError();
-
 		shader.activate(this);
 		shader.setContextInfo(texture.atlasInfo(), target.index);
 		shader.setModelOrigin(x, y, z);
-
-		assert GFX.checkError();
 	}
 
 	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(RenderSystem::enableCull, RenderSystem::disableCull);
@@ -207,10 +186,9 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		shadowActive = null;
 
-		GL46.glDisable(GL46.GL_POLYGON_OFFSET_FILL);
-		GL46.glCullFace(GL46.GL_BACK);
+		GFX.glDisable(GFX.GL_POLYGON_OFFSET_FILL);
+		GFX.glCullFace(GFX.GL_BACK);
 
-		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();
 		SpriteInfoTexture.disable();
 		MaterialDecal.disable();
@@ -226,17 +204,11 @@ public final class RenderState extends AbstractRenderState {
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
-			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, 0);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, 0);
 		}
 
 		MaterialTarget.disable();
 		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-
-		assert GFX.checkError();
-		//		if (enablePrint) {
-		//			GlStateSpy.print();
-		//			enablePrint = false;
-		//		}
 	}
 
 	public static final int MAX_COUNT = 4096;

@@ -105,7 +105,7 @@ public class Canvas implements Renderer {
 	}
 
 	public void recompile() {
-		PipelineLoader.INSTANCE.apply(MinecraftClient.getInstance().getResourceManager());
+		PipelineLoader.INSTANCE.reload(MinecraftClient.getInstance().getResourceManager());
 		Pipeline.reload();
 		GlShader.forceReloadErrors();
 		GlShaderManager.INSTANCE.reload();

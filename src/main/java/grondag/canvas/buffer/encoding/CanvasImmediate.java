@@ -24,6 +24,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
@@ -100,6 +101,9 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		}
 
 		if (!drawList.isEmpty()) {
+			// WIP2: where is this needed, exactly?
+			BufferRenderer.unbindAll();
+
 			VertexCollectorImpl.draw(drawList);
 		}
 
@@ -114,6 +118,9 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 			final VertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
 
 			if (collector != null && !collector.isEmpty()) {
+				// WIP2: where is this needed, exactly?
+				BufferRenderer.unbindAll();
+
 				collector.draw(true);
 			}
 		}

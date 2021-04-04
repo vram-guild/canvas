@@ -151,6 +151,16 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 	}
 
 	@Override
+	public void fixedColor(int i, int j, int k, int l) {
+		// WIP2: implement
+	}
+
+	@Override
+	public void method_35666() {
+		// WIP2: implement
+	}
+
+	@Override
 	public VertexCollector normal(float x, float y, float z) {
 		setNormal(x, y, z);
 		return this;

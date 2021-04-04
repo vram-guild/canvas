@@ -18,10 +18,10 @@ package grondag.canvas.terrain.render;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.varia.GFX;
 
 public class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
@@ -62,9 +62,11 @@ public class DrawableDelegate {
 	public void draw() {
 		assert !isReleased;
 
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(materialState.primitive, vertexCount / 4 * 6);
-		final int elementCount = indexBuffer.getVertexFormat().field_27374;
-		GlStateManager.drawElements(materialState.primitive.mode, vertexOffset, elementCount, 0L);
+		final int triCount = vertexCount / 4 * 6;
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(materialState.primitive, triCount);
+		final int elementType = indexBuffer.getVertexFormat().field_27374;
+		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
+		GFX.drawElementsBaseVertex(materialState.primitive.mode, triCount, elementType, 0L, vertexOffset);
 		//GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
 	}
 

@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 import com.google.common.io.CharStreams;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryStack;
@@ -135,7 +134,7 @@ public class GlShader implements Shader {
 
 		try {
 			if (glId <= 0) {
-				glId = GL21.glCreateShader(shaderType);
+				glId = GFX.glCreateShader(shaderType);
 
 				if (glId == 0) {
 					glId = -1;
@@ -147,9 +146,9 @@ public class GlShader implements Shader {
 			source = getSource();
 
 			safeShaderSource(glId, source);
-			GL21.glCompileShader(glId);
+			GFX.glCompileShader(glId);
 
-			if (GL21.glGetShaderi(glId, GL21.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
+			if (GFX.glGetShaderi(glId, GFX.GL_COMPILE_STATUS) == GFX.GL_FALSE) {
 				isErrored = true;
 				error = GFX.getShaderInfoLog(glId);
 
@@ -164,7 +163,7 @@ public class GlShader implements Shader {
 
 		if (isErrored) {
 			if (glId > 0) {
-				GL21.glDeleteShader(glId);
+				GFX.glDeleteShader(glId);
 				glId = -1;
 			}
 

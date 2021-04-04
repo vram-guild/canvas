@@ -76,7 +76,7 @@ void _cv_setupProgram() {
 	float x = materialIndex - (y * _CV_MATERIAL_INFO_TEXTURE_SIZE);
 	vec2 coord = vec2(x, y);
 
-	vec4 raw = texture2DLod(_cvu_materialInfo, (coord + 0.5) / _CV_MATERIAL_INFO_TEXTURE_SIZE, 0);
+	vec4 raw = textureLod(_cvu_materialInfo, (coord + 0.5) / _CV_MATERIAL_INFO_TEXTURE_SIZE, 0);
 	_cvu_program = ivec4(raw * vec4(_CV_MAX_SHADER_COUNT, _CV_MAX_SHADER_COUNT, 1.0, 1.0));
 	_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
 #endif

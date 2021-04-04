@@ -16,11 +16,8 @@
 
 package grondag.canvas.material.property;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
@@ -85,18 +82,13 @@ public class MaterialTextureState {
 			if (bilinear != activeIsBilinearFilter) {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 				CanvasTextureState.bindTexture(texture().getGlId());
-				assert GFX.checkError();
 				setFilter(bilinear);
-				assert GFX.checkError();
 				activeIsBilinearFilter = bilinear;
-			} else {
-				assert GFX.checkError();
 			}
 		} else {
 			if (this == MaterialTextureState.NO_TEXTURE) {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 				CanvasTextureState.bindTexture(0);
-				assert GFX.checkError();
 			} else {
 				// Should happen before primary texture binding because resets active texture
 				if (isAtlas()) {
@@ -104,13 +96,8 @@ public class MaterialTextureState {
 				}
 
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-				assert GFX.checkError();
-
 				CanvasTextureState.bindTexture(texture().getGlId());
-				assert GFX.checkError();
-
 				setFilter(bilinear);
-				assert GFX.checkError();
 
 				activeIsBilinearFilter = bilinear;
 				activeState = this;
@@ -150,11 +137,11 @@ public class MaterialTextureState {
 	 */
 	private static void setFilter(boolean bilinear) {
 		if (bilinear) {
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR_MIPMAP_LINEAR);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_LINEAR_MIPMAP_LINEAR);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_LINEAR);
 		} else {
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST_MIPMAP_LINEAR);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_NEAREST_MIPMAP_LINEAR);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_NEAREST);
 		}
 	}
 
@@ -167,7 +154,6 @@ public class MaterialTextureState {
 		@Override
 		public void enable(boolean bilinear) {
 			if (activeState != this) {
-				RenderSystem.disableTexture();
 				activeState = this;
 			}
 		}
@@ -180,7 +166,6 @@ public class MaterialTextureState {
 
 	public static void disable() {
 		if (activeState != null) {
-			RenderSystem.enableTexture();
 			activeState = null;
 		}
 	}

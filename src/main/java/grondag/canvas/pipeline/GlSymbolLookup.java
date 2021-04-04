@@ -21,7 +21,7 @@ import java.lang.reflect.Field;
 import blue.endless.jankson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.lwjgl.opengl.GL46;
+import org.lwjgl.opengl.GL46C;
 
 import grondag.canvas.CanvasMod;
 
@@ -30,7 +30,7 @@ public class GlSymbolLookup {
 	private static final Int2ObjectOpenHashMap<String> REVERSE_MAP = new Int2ObjectOpenHashMap<>();
 
 	static {
-		for (final Field f : GL46.class.getFields()) {
+		for (final Field f : GL46C.class.getFields()) {
 			try {
 				final int i = f.getInt(null);
 				final String s = f.getName();

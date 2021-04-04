@@ -23,6 +23,8 @@
 in vec4 shadowPos;
 #endif
 
+out vec4[2] fragColor;
+
 #if AO_SHADING_MODE != AO_MODE_NONE
 vec4 aoFactor(vec2 lightCoord, float ao) {
 
@@ -66,7 +68,7 @@ vec4 light(frx_FragmentData fragData) {
 	vec4 held = frx_heldLight();
 
 	if (held.w > 0.0 && !frx_isGui()) {
-		float d = clamp(gl_FogFragCoord / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
+		float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 		d = 1.0 - d * d;
 
 		vec4 maxBlock = texture(frxs_lightmap, vec2(0.96875, 0.03125));
@@ -143,7 +145,7 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	//}
 	//a = vec4(frx_vanillaClearColor(), a.a);
 
-	gl_FragData[TARGET_BASECOLOR] = p_fog(a);
+	fragColor[TARGET_BASECOLOR] = p_fog(a);
 	gl_FragDepth = gl_FragCoord.z;
-	gl_FragData[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
+	fragColor[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
 }

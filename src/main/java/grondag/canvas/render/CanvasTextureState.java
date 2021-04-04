@@ -23,7 +23,8 @@ import grondag.canvas.varia.GFX;
  * anything that is not GL_TEXTURE_2D or more than 12 texture units.
  */
 public class CanvasTextureState {
-	private static final int[] BOUND_TEXTURES = new int[16];
+	private static final int MAX_TEXTURES = 16;
+	private static final int[] BOUND_TEXTURES = new int[MAX_TEXTURES];
 	private static int activeTextureUnit = 0;
 
 	public static void bindTexture(int target, int texture) {
@@ -40,7 +41,7 @@ public class CanvasTextureState {
 	public static void deleteTexture(int texture) {
 		GFX.deleteTexture(texture);
 
-		for (int i = 0; i < 16; ++i) {
+		for (int i = 0; i < MAX_TEXTURES; ++i) {
 			if (BOUND_TEXTURES[i] == texture) {
 				BOUND_TEXTURES[i] = 0;
 			}
@@ -60,5 +61,15 @@ public class CanvasTextureState {
 
 	public static int activeTextureUnit() {
 		return activeTextureUnit + '蓀';
+	}
+
+	public static void deleteTextures(int[] textures) {
+		for (final int t : textures) {
+			deleteTexture(t);
+		}
+	}
+
+	public static int getTextureId(int i) {
+		return (i < 0 || i >= MAX_TEXTURES) ? 0 : BOUND_TEXTURES[i];
 	}
 }
