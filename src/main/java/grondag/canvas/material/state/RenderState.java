@@ -147,7 +147,6 @@ public final class RenderState extends AbstractRenderState {
 
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP_TEXTURE);
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
-			assert GFX.checkError();
 			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
 			// Was seeing stray invalid operations errors in GL without.
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
@@ -168,11 +167,20 @@ public final class RenderState extends AbstractRenderState {
 		shader.setModelOrigin(x, y, z);
 	}
 
-	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(RenderSystem::enableCull, RenderSystem::disableCull);
+	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(GFX::enableCull, GFX::disableCull);
 
+	@SuppressWarnings("resource")
 	private static final BinaryMaterialState LIGHTMAP_STATE = new BinaryMaterialState(
-		() -> MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable(),
-		() -> MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable());
+		//UGLY: vanilla handles binding before uniform upload but we need to do it here
+		//so that we don't bind the lightmap texture to some random texture unit
+		() -> {
+			CanvasTextureState.activeTextureUnit(TextureData.MC_LIGHTMAP);
+			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
+		},
+		() -> {
+			CanvasTextureState.activeTextureUnit(TextureData.MC_LIGHTMAP);
+			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
+		});
 
 	private static final BinaryMaterialState LINE_STATE = new BinaryMaterialState(
 		() -> RenderSystem.lineWidth(Math.max(2.5F, MinecraftClient.getInstance().getWindow().getFramebufferWidth() / 1920.0F * 2.5F)),

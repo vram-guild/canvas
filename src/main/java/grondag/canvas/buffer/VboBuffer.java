@@ -73,15 +73,12 @@ public class VboBuffer {
 		final CanvasVertexFormat format = this.format;
 
 		if (vaoBufferId == VAO_NONE) {
-			// Important this happens BEFORE anything that could affect vertex state
-			GFX.bindVertexArray(0);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-
-			vaoBufferId = VaoAllocator.claimVertexArray();
+			vaoBufferId = GFX.genVertexArray();
 			GFX.bindVertexArray(vaoBufferId);
-
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
 			format.enableAttributes();
 			format.bindAttributeLocations(0);
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 		} else {
 			GFX.bindVertexArray(vaoBufferId);
 		}
@@ -103,6 +100,11 @@ public class VboBuffer {
 		if (!isClosed) {
 			isClosed = true;
 
+			if (vaoBufferId > 0) {
+				GFX.deleteVertexArray(vaoBufferId);
+				vaoBufferId = VAO_NONE;
+			}
+
 			final int glBufferId = this.glBufferId;
 
 			if (glBufferId != -1) {
@@ -115,11 +117,6 @@ public class VboBuffer {
 			if (uploadBuffer != null) {
 				TransferBufferAllocator.release(uploadBuffer);
 				this.uploadBuffer = null;
-			}
-
-			if (vaoBufferId > 0) {
-				VaoAllocator.releaseVertexArray(vaoBufferId);
-				vaoBufferId = VAO_NONE;
 			}
 		}
 	}

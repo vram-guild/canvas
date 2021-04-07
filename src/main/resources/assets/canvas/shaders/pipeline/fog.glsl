@@ -15,15 +15,13 @@ vec4 p_fogInner(vec4 diffuseColor) {
 	}
 #endif
 
-	float fogFactor = smoothstep(frxFogStart, frxFogEnd, frx_distance);
+	float fogFactor = 1.0 - smoothstep(frxFogStart, frxFogEnd, frx_distance);
 
 #if _CV_FOG_CONFIG == _CV_FOG_CONFIG_SUBTLE
-	float f = 1.0 - fogFactor;
-	f *= f;
-	return vec4(mix(frxFogColor.rgb, diffuseColor.rgb, 1.0 - f), diffuseColor.a);
-#else
-	return vec4(mix(frxFogColor.rgb, diffuseColor.rgb, fogFactor * frxFogColor.a), diffuseColor.a);
+	fogFactor *= fogFactor;
 #endif
+
+	return vec4(mix(frxFogColor.rgb, diffuseColor.rgb, fogFactor * frxFogColor.a), diffuseColor.a);
 }
 
 vec4 p_fog(vec4 diffuseColor) {

@@ -82,17 +82,18 @@ public class DrawableBuffer implements AutoCloseable {
 
 				if (state.castShadows || !isShadow) {
 					state.enable();
-					final int triCount = vertexCount / 4 * 6;
-					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(state.primitive, triCount);
+					final int elementCount = vertexCount / 4 * 6;
+					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(state.primitive, elementCount);
 					GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
 					final int elementType = indexBuffer.getVertexFormat().field_27374;
-					GFX.drawElementsBaseVertex(state.primitive.mode, triCount, elementType, 0L, startIndex);
+					GFX.drawElementsBaseVertex(state.primitive.mode, elementCount, elementType, 0L, startIndex);
 				}
 
 				startIndex += vertexCount;
 			}
 
 			RenderState.disable();
+			GFX.bindVertexArray(0);
 		}
 	}
 

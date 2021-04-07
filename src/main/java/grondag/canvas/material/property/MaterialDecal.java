@@ -23,6 +23,7 @@ import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Layering;
 import net.minecraft.client.util.math.MatrixStack;
 
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.MaterialFinder;
 
 public final class MaterialDecal {
@@ -45,12 +46,12 @@ public final class MaterialDecal {
 		"polygon_offset",
 		1,
 		() -> {
-			RenderSystem.polygonOffset(-1.0F, -10.0F);
-			RenderSystem.enablePolygonOffset();
+			GFX.polygonOffset(-1.0F, -10.0F);
+			GFX.enablePolygonOffset();
 		},
 		() -> {
-			RenderSystem.polygonOffset(0.0F, 0.0F);
-			RenderSystem.disablePolygonOffset();
+			GFX.polygonOffset(0.0F, 0.0F);
+			GFX.disablePolygonOffset();
 		});
 
 	public static final MaterialDecal VIEW_OFFSET = new MaterialDecal(

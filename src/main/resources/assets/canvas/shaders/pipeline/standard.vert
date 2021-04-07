@@ -20,10 +20,14 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 	// apply transforms
 	//data.normal *= gl_NormalMatrix;
 
-	data.vertex += frx_modelToCamera();
-	vec4 viewCoord = frx_viewMatrix() * data.vertex;
-	frx_distance = length(viewCoord.xyz);
-	gl_Position = frx_projectionMatrix() * viewCoord;
+	if (frx_isGui()) {
+		gl_Position = frx_guiViewProjectionMatrix() * data.vertex;
+	} else {
+		data.vertex += frx_modelToCamera();
+		vec4 viewCoord = frx_viewMatrix() * data.vertex;
+		frx_distance = length(viewCoord.xyz);
+		gl_Position = frx_projectionMatrix() * viewCoord;
+	}
 
 #ifdef VANILLA_LIGHTING
 	pv_lightcoord = data.light;

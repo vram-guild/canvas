@@ -113,6 +113,8 @@ uniform vec2 _cvu_fog_info;
 
 uniform mat4[25] _cvu_matrix;
 
+uniform mat4 _cvu_guiViewProjMatrix;
+
 bool _cv_testCondition(int conditionIndex) {
 	return frx_bitValue(_cvu_flags[_CV_CONDITION_FLAGS_START + (conditionIndex >> 5)], conditionIndex & 31) == 1.0;
 }

@@ -150,6 +150,10 @@ bool frx_isGui() {
 	return _cvu_model_origin_type == MODEL_ORIGIN_SCREEN;
 }
 
+mat4 frx_guiViewProjectionMatrix() {
+	return _cvu_guiViewProjMatrix;
+}
+
 /**
  * Converts camera/world space normals to view space.
  * Incoming vertex normals are always in camera/world space.

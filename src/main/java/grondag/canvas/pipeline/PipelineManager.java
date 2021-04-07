@@ -16,14 +16,11 @@
 
 package grondag.canvas.pipeline;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.systems.RenderSystem.IndexBuffer;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GraphicsMode;
-import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
@@ -119,7 +116,7 @@ public class PipelineManager {
 	}
 
 	static void endFullFrameRender() {
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
+		GFX.bindVertexArray(0);
 		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE1);
 		CanvasTextureState.bindTexture(oldTex1);
 		//GlStateManager.disableTexture();
@@ -161,6 +158,7 @@ public class PipelineManager {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
+		final Matrix4f orthoMatrix = Matrix4f.projectionMatrix(w, -h, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);
@@ -174,19 +172,15 @@ public class PipelineManager {
 
 		if (depth) {
 			if (array) {
-				debugDepthArrayShader.activate().size(w, h).lod(lod).layer(layer);
+				debugDepthArrayShader.activate().size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
 			} else {
-				debugDepthShader.activate().size(w, h).lod(0);
+				debugDepthShader.activate().size(w, h).lod(0).projection(orthoMatrix);
 			}
 		} else {
-			debugShader.activate().size(w, h).lod(lod);
+			debugShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
 		}
 
-		// WIP2: draw tris directly here
-		final IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, 4 / 4 * 6);
-		final int elementCount = indexBuffer.getVertexFormat().field_27374;
-		GFX.drawElements(DrawMode.QUADS.mode, 0, elementCount, 0L);
-		//GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
 
 		endFullFrameRender();
 	}

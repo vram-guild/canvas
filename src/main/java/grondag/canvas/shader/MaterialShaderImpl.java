@@ -18,9 +18,11 @@ package grondag.canvas.shader;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.minecraft.util.math.Matrix4f;
+
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
 
 public final class MaterialShaderImpl {
@@ -53,14 +55,26 @@ public final class MaterialShaderImpl {
 		return result;
 	}
 
+	private static final Matrix4f guiMatrix = new Matrix4f();
+	private static final Matrix4fExt guiMatrixExt = (Matrix4fExt) (Object) guiMatrix;
+
 	// WIP: all of this activation stuff is trash code
 	// these should probably happen before program activation - change detection should upload as needed
 	private void updateCommonUniforms(RenderState renderState) {
 		program.programInfo.set(vertexShaderIndex, fragmentShaderIndex, renderState.enableGlint ? 1 : 0);
 		program.programInfo.upload();
 
-		program.modelOriginType.set(MatrixState.get().ordinal());
+		final MatrixState ms = MatrixState.get();
+
+		program.modelOriginType.set(ms.ordinal());
 		program.modelOriginType.upload();
+
+		if (ms == MatrixState.SCREEN) {
+			guiMatrixExt.set(RenderSystem.getModelViewMatrix());
+			guiMatrix.multiply(RenderSystem.getProjectionMatrix());
+			program.guiViewProjMatrix.set(guiMatrix);
+			program.guiViewProjMatrix.upload();
+		}
 
 		if (renderState.fog) {
 			program.fogInfo.set(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd());
@@ -83,9 +97,7 @@ public final class MaterialShaderImpl {
 	}
 
 	public void activate(RenderState renderState) {
-		assert GFX.checkError();
 		getOrCreate().activate();
-		assert GFX.checkError();
 		updateCommonUniforms(renderState);
 	}
 

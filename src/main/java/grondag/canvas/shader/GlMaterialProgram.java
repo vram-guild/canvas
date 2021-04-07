@@ -35,6 +35,7 @@ public class GlMaterialProgram extends GlProgram {
 	public final Uniform1iImpl modelOriginType;
 	public final Uniform2fImpl fogInfo;
 	public final Uniform1iImpl cascade;
+	public final UniformMatrix4fImpl guiViewProjMatrix;
 
 	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
 
@@ -45,7 +46,9 @@ public class GlMaterialProgram extends GlProgram {
 		programInfo = (Uniform3iImpl) uniform3i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> { });
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		//WIP2: make fog info available in process shaders
 		fogInfo = (Uniform2fImpl) uniform2f("_cvu_fog_info", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0));
+		guiViewProjMatrix = uniformMatrix4f("_cvu_guiViewProjMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 	}
 
 	public void setModelOrigin(int x, int y, int z) {

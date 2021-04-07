@@ -62,11 +62,12 @@ public class DrawableDelegate {
 	public void draw() {
 		assert !isReleased;
 
-		final int triCount = vertexCount / 4 * 6;
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(materialState.primitive, triCount);
+		final int triVertexCount = vertexCount / 4 * 6;
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(materialState.primitive, triVertexCount);
 		final int elementType = indexBuffer.getVertexFormat().field_27374;
 		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-		GFX.drawElementsBaseVertex(materialState.primitive.mode, triCount, elementType, 0L, vertexOffset);
+		//GFX.drawElements(materialState.primitive.mode, triVertexCount, elementType, 0);
+		GFX.drawElementsBaseVertex(materialState.primitive.mode, triVertexCount, elementType, 0L, vertexOffset);
 		//GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
 	}
 

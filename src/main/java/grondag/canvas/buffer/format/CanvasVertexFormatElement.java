@@ -19,9 +19,6 @@ package grondag.canvas.buffer.format;
 import net.minecraft.client.render.VertexFormatElement;
 
 public class CanvasVertexFormatElement {
-	// openGL implementation on my dev laptop *really* wants to get vertex positions
-	// via standard (GL 2.1) binding
-	// slows to a crawl otherwise
 	public static final CanvasVertexFormatElement POSITION_3F = new CanvasVertexFormatElement(
 		VertexFormatElement.Format.FLOAT, 3, "in_vertex");
 

@@ -59,11 +59,13 @@ public class GFX extends GL46C {
 	}
 
 	public static void disableVertexAttribArray(int index) {
+		VaoTracker.disable(index);
 		glDisableVertexAttribArray(index);
 		assert checkError(String.format("glDisableVertexAttribArray(%d)", index));
 	}
 
 	public static void enableVertexAttribArray(int index) {
+		VaoTracker.enable(index);
 		glEnableVertexAttribArray(index);
 		assert checkError(String.format("glEnableVertexAttribArray(%d)", index));
 	}
@@ -146,7 +148,25 @@ public class GFX extends GL46C {
 		assert checkError(String.format("glEnable(%s)", GlSymbolLookup.reverseLookup(target)));
 	}
 
+	private static int currentArrayBuffer = 0;
+	private static int currentElementBuffer = 0;
+
+	// WIP2: put back or remove change detection
 	public static void bindBuffer(int target, int buffer) {
+		if (target == GL_ARRAY_BUFFER) {
+			//if (buffer == currentArrayBuffer) {
+			//	return;
+			//} else {
+			currentArrayBuffer = buffer;
+			//}
+		} else if (target == GL_ELEMENT_ARRAY_BUFFER) {
+			//if (buffer == currentElementBuffer) {
+			//	return;
+			//} else {
+			currentElementBuffer = buffer;
+			//}
+		}
+
 		glBindBuffer(target, buffer);
 		assert checkError(String.format("glBindBuffer(%s, %d)", GlSymbolLookup.reverseLookup(target), buffer));
 	}
@@ -221,16 +241,13 @@ public class GFX extends GL46C {
 
 	public static int genVertexArray() {
 		final int result = glGenVertexArrays();
+		VaoTracker.gen(result);
 		assert checkError("glGenVertexArrays");
 		return result;
 	}
 
-	public static void genVertexArrays(IntBuffer buff) {
-		glGenVertexArrays(buff);
-		assert checkError("glGenVertexArrays");
-	}
-
 	public static void deleteVertexArray(int array) {
+		VaoTracker.del(array);
 		glDeleteVertexArrays(array);
 		assert checkError(String.format("glDeleteVertexArrays(%d)", array));
 	}
@@ -250,7 +267,16 @@ public class GFX extends GL46C {
 		assert checkError(String.format("glBufferData(%s, %d, %d)", GlSymbolLookup.reverseLookup(target), size, usage));
 	}
 
+	private static int currentVertexArray = 0;
+
+	// WIP2: put back or remove change detection
 	public static void bindVertexArray(int array) {
+		//if (array == currentVertexArray) {
+		//	return;
+		//}
+
+		currentVertexArray = array;
+		VaoTracker.bind(array);
 		glBindVertexArray(array);
 		assert checkError(String.format("glBindVertexArray(%d)", array));
 	}
@@ -462,7 +488,7 @@ public class GFX extends GL46C {
 
 	public static void useProgram(int program) {
 		glUseProgram(program);
-		assert checkError(String.format("glUseProgram(%d)", program));
+		//assert checkError(String.format("glUseProgram(%d)", program));
 	}
 
 	public static void linkProgram(int program) {

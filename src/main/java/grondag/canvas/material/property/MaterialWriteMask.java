@@ -16,11 +16,10 @@
 
 package grondag.canvas.material.property;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.WriteMaskState;
 
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.MaterialFinder;
 
 public class MaterialWriteMask {
@@ -29,8 +28,8 @@ public class MaterialWriteMask {
 		"color",
 		0,
 		() -> {
-			RenderSystem.depthMask(false);
-			RenderSystem.colorMask(true, true, true, true);
+			GFX.depthMask(false);
+			GFX.colorMask(true, true, true, true);
 		}
 	);
 
@@ -39,8 +38,8 @@ public class MaterialWriteMask {
 		"depth",
 		2,
 		() -> {
-			RenderSystem.depthMask(true);
-			RenderSystem.colorMask(false, false, false, false);
+			GFX.depthMask(true);
+			GFX.colorMask(false, false, false, false);
 		}
 	);
 
@@ -49,8 +48,8 @@ public class MaterialWriteMask {
 		"color_depth",
 		1,
 		() -> {
-			RenderSystem.depthMask(true);
-			RenderSystem.colorMask(true, true, true, true);
+			GFX.depthMask(true);
+			GFX.colorMask(true, true, true, true);
 		}
 	);
 

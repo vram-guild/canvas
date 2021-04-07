@@ -28,6 +28,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.util.TerrainModelSpace;
+import grondag.canvas.varia.GFX;
 
 public class TerrainLayerRenderer {
 	private final String profileString;
@@ -111,6 +112,8 @@ public class TerrainLayerRenderer {
 							}
 						}
 					}
+
+					GFX.bindVertexArray(0);
 				}
 			}
 		}
