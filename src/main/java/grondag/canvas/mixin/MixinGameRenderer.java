@@ -36,8 +36,6 @@ import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.CanvasWorldRenderer;
 
-import java.sql.Time;
-
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer implements GameRendererExt {
 	@Shadow float zoom;

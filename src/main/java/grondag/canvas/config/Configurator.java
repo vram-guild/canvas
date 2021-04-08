@@ -136,7 +136,7 @@ public class Configurator {
 		logMissingUniforms = config.logMissingUniforms;
 		logMaterials = config.logMaterials;
 		logRenderLagSpikes = config.logRenderLagSpikes;
-		renderLagSpikeFps = config.renderLagSpikeFps;
+		renderLagSpikeFps = MathHelper.clamp(config.renderLagSpikeFps, 30, 120);
 		displayRenderProfiler = config.displayRenderProfiler;
 		profilerOverlayScale = config.profilerOverlayScale;
 	}
