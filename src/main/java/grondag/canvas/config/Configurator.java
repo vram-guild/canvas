@@ -66,6 +66,8 @@ public class Configurator {
 	public static boolean logMaterials = DEFAULTS.logMaterials;
 	public static boolean logRenderLagSpikes = DEFAULTS.logRenderLagSpikes;
 	public static int renderLagSpikeFps = DEFAULTS.renderLagSpikeFps;
+	public static boolean displayRenderProfiler = DEFAULTS.displayRenderProfiler;
+	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -181,5 +183,7 @@ public class Configurator {
 		config.logMaterials = logMaterials;
 		config.logRenderLagSpikes = logRenderLagSpikes;
 		config.renderLagSpikeFps = renderLagSpikeFps;
+		config.displayRenderProfiler = displayRenderProfiler;
+		config.profilerOverlayScale = profilerOverlayScale;
 	}
 }

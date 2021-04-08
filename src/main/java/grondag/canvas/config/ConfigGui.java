@@ -27,6 +27,7 @@ import static grondag.canvas.config.Configurator.cullParticles;
 import static grondag.canvas.config.Configurator.debugNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
+import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
@@ -42,6 +43,7 @@ import static grondag.canvas.config.Configurator.logMissingUniforms;
 import static grondag.canvas.config.Configurator.logRenderLagSpikes;
 import static grondag.canvas.config.Configurator.pipelineId;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
+import static grondag.canvas.config.Configurator.profilerOverlayScale;
 import static grondag.canvas.config.Configurator.reduceResolutionOnMac;
 import static grondag.canvas.config.Configurator.reload;
 import static grondag.canvas.config.Configurator.renderLagSpikeFps;
@@ -461,6 +463,20 @@ public class ConfigGui {
 				.setTooltip(parse("config.canvas.help.render_lag_spike_fps"))
 				.setSaveConsumer(b -> renderLagSpikeFps = b)
 				.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.display_render_profiler"), displayRenderProfiler)
+			.setDefaultValue(DEFAULTS.displayRenderProfiler)
+			.setTooltip(parse("config.canvas.help.display_render_profiler"))
+			.setSaveConsumer(b -> displayRenderProfiler = b)
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startFloatField(new TranslatableText("config.canvas.value.profiler_overlay_scale"), profilerOverlayScale)
+			.setDefaultValue(DEFAULTS.profilerOverlayScale)
+			.setTooltip(parse("config.canvas.help.profiler_overlay_scale"))
+			.setSaveConsumer(b -> profilerOverlayScale = b)
+			.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 

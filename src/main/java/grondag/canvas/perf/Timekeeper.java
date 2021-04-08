@@ -10,30 +10,24 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Util;
 
 public class Timekeeper {
-	// TODO: these should be configurable
-	private static boolean enabled = true;
-	private static float overlayScale = 0.5f;
-//	private static long overlayUpdatePeriod = 1000;
-
-	private static long lastOverlayUpdate;
 	private static long start;
 	private static String currentStep;
 	private static Object2LongOpenHashMap<String> stepElapsed;
 	private static ObjectArrayList<String> steps;
 
-	private static int frameSinceReload;
+	private static int frameSincePipelineReload;
 	private static final int CONFIG_FRAMES = 1;
 
-	public static void reload() {
+	public static void pipelineReload() {
 		stepElapsed = new Object2LongOpenHashMap<>();
 		steps = new ObjectArrayList<>();
-		frameSinceReload = -1;
+		frameSincePipelineReload = -1;
 	}
 
 	public static void startFrame() {
 		currentStep = null;
-		if(frameSinceReload < CONFIG_FRAMES) {
-			frameSinceReload++;
+		if(frameSincePipelineReload < CONFIG_FRAMES) {
+			frameSincePipelineReload++;
 		}
 	}
 
@@ -41,7 +35,7 @@ public class Timekeeper {
 		if (currentStep != null) {
 			stepElapsed.put(currentStep, Util.getMeasuringTimeNano() - start);
 		}
-		if (frameSinceReload == 0 && token != null) {
+		if (frameSincePipelineReload == 0 && token != null) {
 			steps.add(token);
 		}
 		currentStep = token;
@@ -66,7 +60,8 @@ public class Timekeeper {
 	}
 
 	public static void renderOverlay(MatrixStack matrices, TextRenderer fontRenderer) {
-		if(!enabled) return;
+		if(!Configurator.displayRenderProfiler) return;
+		final float overlayScale = Configurator.profilerOverlayScale;
 		matrices.push();
 		matrices.scale(overlayScale, overlayScale, overlayScale);
 

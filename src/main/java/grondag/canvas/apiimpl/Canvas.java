@@ -117,7 +117,7 @@ public class Canvas implements Renderer {
 		TerrainModelSpace.reload();
 		MaterialTextureState.reload();
 		WorldDataManager.reload();
-		Timekeeper.reload();
+		Timekeeper.pipelineReload();
 	}
 
 	@Override
