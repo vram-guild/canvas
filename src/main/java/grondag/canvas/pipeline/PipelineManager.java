@@ -86,7 +86,7 @@ public class PipelineManager {
 		drawBuffer.bind();
 
 		for (final Pass pass : Pipeline.onWorldRenderStart) {
-			Timekeeper.instance.swap("[before world] "+pass.getName());
+			Timekeeper.instance.swap(Timekeeper.ProfilerGroup.BeforeWorld, pass.getName());
 			pass.run(w, h);
 		}
 		Timekeeper.instance.completePass();
@@ -153,7 +153,7 @@ public class PipelineManager {
 		drawBuffer.bind();
 
 		for (final Pass pass : Pipeline.afterRenderHand) {
-			Timekeeper.instance.swap("[after hand] "+pass.getName());
+			Timekeeper.instance.swap(Timekeeper.ProfilerGroup.AfterHand, pass.getName());
 			pass.run(w, h);
 		}
 		Timekeeper.instance.completePass();
@@ -167,7 +167,7 @@ public class PipelineManager {
 		drawBuffer.bind();
 
 		for (final Pass pass : Pipeline.fabulous) {
-			Timekeeper.instance.swap("[fabulous] "+pass.getName());
+			Timekeeper.instance.swap(Timekeeper.ProfilerGroup.Fabulous, pass.getName());
 			pass.run(w, h);
 		}
 		Timekeeper.instance.completePass();

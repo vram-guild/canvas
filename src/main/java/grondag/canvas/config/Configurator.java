@@ -67,6 +67,7 @@ public class Configurator {
 	public static boolean logRenderLagSpikes = DEFAULTS.logRenderLagSpikes;
 	public static int renderLagSpikeFps = DEFAULTS.renderLagSpikeFps;
 	public static boolean displayRenderProfiler = DEFAULTS.displayRenderProfiler;
+	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 
 	//    @LangKey("config.acuity_fancy_fluids")
@@ -138,6 +139,7 @@ public class Configurator {
 		logRenderLagSpikes = config.logRenderLagSpikes;
 		renderLagSpikeFps = MathHelper.clamp(config.renderLagSpikeFps, 30, 120);
 		displayRenderProfiler = config.displayRenderProfiler;
+		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
 	}
 
@@ -188,6 +190,7 @@ public class Configurator {
 		config.logRenderLagSpikes = logRenderLagSpikes;
 		config.renderLagSpikeFps = renderLagSpikeFps;
 		config.displayRenderProfiler = displayRenderProfiler;
+		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
 	}
 }
