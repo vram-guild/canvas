@@ -102,15 +102,14 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		this.originZ = originZ;
 
 		final int chunkBaseX = (originX >> 4) - 1;
-		final int chunkBaseY = (originY >> 4) - 1;
 		final int chunkBaseZ = (originZ >> 4) - 1;
 
 		this.chunkBaseX = chunkBaseX;
-		this.chunkBaseY = chunkBaseY;
+		baseSectionIndex = ((originY - world.getBottomY()) >> 4) - 1;
 		this.chunkBaseZ = chunkBaseZ;
 
 		final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
-		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, 1 + chunkBaseY);
+		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, originY);
 
 		final ProtoRenderRegion result;
 

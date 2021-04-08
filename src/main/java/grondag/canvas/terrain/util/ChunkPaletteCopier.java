@@ -32,8 +32,14 @@ public class ChunkPaletteCopier {
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
 	public static final PaletteCopy AIR_COPY = i -> AIR;
 
-	public static PaletteCopy captureCopy(WorldChunk chunk, int sectionIndex) {
-		if (chunk == null || sectionIndex < 0) {
+	public static PaletteCopy captureCopy(WorldChunk chunk, int y) {
+		if (chunk == null) {
+			return AIR_COPY;
+		}
+
+		final int sectionIndex = (y - chunk.getBottomY()) >> 4;
+
+		if (sectionIndex < 0) {
 			return AIR_COPY;
 		}
 
