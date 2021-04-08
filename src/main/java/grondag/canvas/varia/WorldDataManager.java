@@ -18,7 +18,6 @@ package grondag.canvas.varia;
 
 import java.nio.FloatBuffer;
 
-import org.apache.logging.log4j.Level;
 import org.lwjgl.BufferUtils;
 
 import net.minecraft.client.MinecraftClient;
@@ -604,12 +603,8 @@ public class WorldDataManager {
 
 		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
-//		renderFrames *= 9;
 
-//		int backConvert = (int)((float)renderFrames);
-//		CanvasMod.LOG.log(Level.WARN, "renderFrames="+renderFrames+", int(float(renderFrames))="+backConvert+(renderFrames!=backConvert?" [MISMATCH]":""));
 		DATA.put(RENDER_FRAMES, renderFrames++);
-
 	}
 
 	public static void updateEmissiveColor(int color) {
