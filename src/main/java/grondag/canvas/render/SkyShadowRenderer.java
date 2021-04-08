@@ -18,6 +18,7 @@ package grondag.canvas.render;
 
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.perf.Timekeeper;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
@@ -53,6 +54,7 @@ public class SkyShadowRenderer {
 
 	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer) {
 		if (Pipeline.skyShadowFbo != null) {
+			Timekeeper.startShadow();
 			// Viewport call (or something else) seems to be messing up fixed-function matrix state
 			RenderSystem.pushMatrix();
 
@@ -69,6 +71,9 @@ public class SkyShadowRenderer {
 			end();
 
 			RenderSystem.popMatrix();
+			Timekeeper.endShadow();
+		} else {
+			Timekeeper.clearShadow();
 		}
 	}
 

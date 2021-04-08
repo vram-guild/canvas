@@ -16,6 +16,7 @@
 
 package grondag.canvas.mixin;
 
+import grondag.canvas.perf.Timekeeper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -31,5 +32,6 @@ public class MixinInGameHud {
 	@Inject(method = "render", at = @At("RETURN"), cancellable = false, require = 1)
 	private void afterRender(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
 		BufferDebug.renderOverlay(matrices, ((InGameHud) (Object) this).getFontRenderer());
+		Timekeeper.renderOverlay(matrices, ((InGameHud) (Object) this).getFontRenderer());
 	}
 }
