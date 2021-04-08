@@ -16,6 +16,7 @@
 
 package grondag.canvas.mixin;
 
+import grondag.canvas.perf.Timekeeper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,6 +35,8 @@ import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.CanvasWorldRenderer;
+
+import java.sql.Time;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer implements GameRendererExt {
@@ -67,7 +70,8 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
 	private void onRenderWorld(CallbackInfo ci) {
-		Configurator.lagFinder.start("GameRenderer Setup");
+		Timekeeper.startFrame();
+		Timekeeper.swap("GameRenderer_setup");
 	}
 
 	@Override

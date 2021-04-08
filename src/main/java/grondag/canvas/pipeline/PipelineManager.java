@@ -85,12 +85,10 @@ public class PipelineManager {
 
 		drawBuffer.bind();
 
-		Timekeeper.prepareBeforeWorld(Pipeline.onWorldRenderStart.length);
 		for (final Pass pass : Pipeline.onWorldRenderStart) {
-			Timekeeper.timeBeforeWorld(pass.getName());
+			Timekeeper.swap("[before world] "+pass.getName());
 			pass.run(w, h);
 		}
-		Timekeeper.endBeforeWorld();
 
 		endFullFrameRender();
 
@@ -153,12 +151,11 @@ public class PipelineManager {
 
 		drawBuffer.bind();
 
-		Timekeeper.prepareAfterHand(Pipeline.afterRenderHand.length);
 		for (final Pass pass : Pipeline.afterRenderHand) {
-			Timekeeper.timeAfterHand(pass.getName());
+			Timekeeper.swap("[after hand] "+pass.getName());
 			pass.run(w, h);
 		}
-		Timekeeper.endAfterHand();
+		Timekeeper.complete();
 
 		endFullFrameRender();
 	}
@@ -168,12 +165,10 @@ public class PipelineManager {
 
 		drawBuffer.bind();
 
-		Timekeeper.prepareFabulous(Pipeline.fabulous.length);
 		for (final Pass pass : Pipeline.fabulous) {
-			Timekeeper.timeFabulous(pass.getName());
+			Timekeeper.swap("[fabulous] "+pass.getName());
 			pass.run(w, h);
 		}
-		Timekeeper.endFabulous();
 
 		endFullFrameRender();
 	}

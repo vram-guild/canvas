@@ -16,6 +16,7 @@
 
 package grondag.canvas.render;
 
+import java.sql.Time;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -374,11 +375,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private static void profileSwap(Profiler profiler, String token) {
 		profiler.swap(token);
-		Configurator.lagFinder.swap(token);
+		Timekeeper.swap(token);
 	}
 
 	public void renderWorld(MatrixStack viewMatrixStack, MatrixStack identityStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
-		Timekeeper.startWorld();
+		Timekeeper.swap("start_world");
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final WorldRenderer mcwr = mc.worldRenderer;
@@ -802,9 +803,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		//RenderState.enablePrint = true;
 		assert CanvasGlHelper.checkError();
-
-		Configurator.lagFinder.complete();
-		Timekeeper.endWorld();
+		Timekeeper.swap("end renderWorld");
 	}
 
 	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack identityStack, float tickDelta, double cameraX, double cameraY, double cameraZ) {

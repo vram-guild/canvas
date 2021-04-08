@@ -22,7 +22,6 @@ import static grondag.canvas.config.Configurator.batchedChunkRender;
 import static grondag.canvas.config.Configurator.blendFluidColors;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
 import static grondag.canvas.config.Configurator.conciseErrors;
-import static grondag.canvas.config.Configurator.createLagFinder;
 import static grondag.canvas.config.Configurator.cullEntityRender;
 import static grondag.canvas.config.Configurator.cullParticles;
 import static grondag.canvas.config.Configurator.debugNativeMemoryAllocation;
@@ -35,7 +34,6 @@ import static grondag.canvas.config.Configurator.enableVao;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
-import static grondag.canvas.config.Configurator.lagFinder;
 import static grondag.canvas.config.Configurator.lightSmoothing;
 import static grondag.canvas.config.Configurator.logGlStateChanges;
 import static grondag.canvas.config.Configurator.logMachineInfo;
@@ -454,20 +452,14 @@ public class ConfigGui {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.log_render_lag_spikes"), logRenderLagSpikes)
 				.setDefaultValue(DEFAULTS.logRenderLagSpikes)
 				.setTooltip(parse("config.canvas.help.log_render_lag_spikes"))
-				.setSaveConsumer(b -> {
-					logRenderLagSpikes = b;
-					lagFinder = createLagFinder();
-				})
+				.setSaveConsumer(b -> logRenderLagSpikes = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
 				.startIntSlider(new TranslatableText("config.canvas.value.render_lag_spike_fps"), renderLagSpikeFps, 30, 120)
 				.setDefaultValue(DEFAULTS.renderLagSpikeFps)
 				.setTooltip(parse("config.canvas.help.render_lag_spike_fps"))
-				.setSaveConsumer(b -> {
-					renderLagSpikeFps = b;
-					lagFinder = createLagFinder();
-				})
+				.setSaveConsumer(b -> renderLagSpikeFps = b)
 				.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);

@@ -54,7 +54,6 @@ public class SkyShadowRenderer {
 
 	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer) {
 		if (Pipeline.skyShadowFbo != null) {
-			Timekeeper.startShadow();
 			// Viewport call (or something else) seems to be messing up fixed-function matrix state
 			RenderSystem.pushMatrix();
 
@@ -71,9 +70,6 @@ public class SkyShadowRenderer {
 			end();
 
 			RenderSystem.popMatrix();
-			Timekeeper.endShadow();
-		} else {
-			Timekeeper.clearShadow();
 		}
 	}
 

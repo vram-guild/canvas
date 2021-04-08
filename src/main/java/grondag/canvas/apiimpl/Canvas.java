@@ -18,6 +18,7 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.varia.WorldDataManager;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -116,6 +117,7 @@ public class Canvas implements Renderer {
 		TerrainModelSpace.reload();
 		MaterialTextureState.reload();
 		WorldDataManager.reload();
+		Timekeeper.reload();
 	}
 
 	@Override
