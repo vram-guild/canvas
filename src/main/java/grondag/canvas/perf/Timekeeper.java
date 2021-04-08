@@ -53,7 +53,6 @@ public abstract class Timekeeper {
 		private long start;
 		private String currentStep;
 		private Object2LongOpenHashMap<String> stepElapsed;
-		private Object2IntOpenHashMap<ProfilerGroup> groupIndex;
 		private Group[] groups;
 		private int currentGroup;
 
@@ -78,10 +77,8 @@ public abstract class Timekeeper {
 				stepElapsed = new Object2LongOpenHashMap<>();
 				ProfilerGroup[] enumVals = ProfilerGroup.values();
 				groups = new Group[enumVals.length];
-				groupIndex = new Object2IntOpenHashMap<>();
 				for (int i = 0; i < enumVals.length; i++) {
 					groups[i] = new Group(enumVals[i]);
-					groupIndex.put(enumVals[i], i);
 				}
 			}
 
@@ -98,7 +95,7 @@ public abstract class Timekeeper {
 			}
 
 			if (frameSinceReload == 0 && token != null && group != null) {
-				groups[groupIndex.getInt(group)].steps.add(token);
+				groups[group.ordinal()].steps.add(token);
 			}
 			currentStep = token;
 
