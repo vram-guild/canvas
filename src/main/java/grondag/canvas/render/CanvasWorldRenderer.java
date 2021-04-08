@@ -375,11 +375,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private static void profileSwap(Profiler profiler, String token) {
 		profiler.swap(token);
-		Timekeeper.swap(token);
+		Timekeeper.instance.swap(token);
 	}
 
 	public void renderWorld(MatrixStack viewMatrixStack, MatrixStack identityStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
-		Timekeeper.swap("start_world");
+		Timekeeper.instance.swap("start_world");
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final WorldRenderer mcwr = mc.worldRenderer;
@@ -803,7 +803,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		//RenderState.enablePrint = true;
 		assert CanvasGlHelper.checkError();
-		Timekeeper.swap("end renderWorld");
+		Timekeeper.instance.swap("end renderWorld");
 	}
 
 	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack identityStack, float tickDelta, double cameraX, double cameraY, double cameraZ) {

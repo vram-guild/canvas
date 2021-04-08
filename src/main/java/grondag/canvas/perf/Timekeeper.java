@@ -9,65 +9,103 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Util;
 
-public class Timekeeper {
-	private static long start;
-	private static String currentStep;
-	private static Object2LongOpenHashMap<String> stepElapsed;
-	private static ObjectArrayList<String> steps;
+public abstract class Timekeeper {
 
-	private static int frameSincePipelineReload;
-	private static final int CONFIG_FRAMES = 1;
+	public abstract void startFrame();
+	public abstract void swap(String token);
+	public abstract void complete();
 
-	public static void pipelineReload() {
-		stepElapsed = new Object2LongOpenHashMap<>();
-		steps = new ObjectArrayList<>();
-		frameSincePipelineReload = -1;
-	}
+	private static class Active extends Timekeeper {
+		private long start;
+		private String currentStep;
+		private Object2LongOpenHashMap<String> stepElapsed;
+		private ObjectArrayList<String> steps;
 
-	public static void startFrame() {
-		currentStep = null;
-		if(frameSincePipelineReload < CONFIG_FRAMES) {
-			frameSincePipelineReload++;
+		private int frameSinceReload;
+		// Setup is done in all steps over single frames for every reload
+		// Frame 0: setup data container and list of steps
+		private final int SETUP_FRAMES = 1;
+
+		private void reload() {
+			frameSinceReload = -1;
 		}
-	}
 
-	public static void swap(String token) {
-		if (currentStep != null) {
-			stepElapsed.put(currentStep, Util.getMeasuringTimeNano() - start);
+		public void startFrame() {
+			currentStep = null;
+			if (frameSinceReload < SETUP_FRAMES) {
+				frameSinceReload++;
+			}
+			// Setting up container is done in start of frame 0
+			// This prevents multiple setup calls from config reload with multiple config vars
+			if (frameSinceReload == 0) {
+				stepElapsed = new Object2LongOpenHashMap<>();
+				steps = new ObjectArrayList<>();
+			}
 		}
-		if (frameSincePipelineReload == 0 && token != null) {
-			steps.add(token);
-		}
-		currentStep = token;
-		start = Util.getMeasuringTimeNano();
-	}
 
-	public static void complete() {
-		swap(null);
-		if (Configurator.logRenderLagSpikes) {
-			logRenderLagSpikes();
+		public void swap(String token) {
+			if (currentStep != null) {
+				stepElapsed.put(currentStep, Util.getMeasuringTimeNano() - start);
+			}
+			if (frameSinceReload == 0 && token != null) {
+				steps.add(token);
+			}
+			currentStep = token;
+			start = Util.getMeasuringTimeNano();
 		}
-	}
 
-	private static void logRenderLagSpikes() {
-		final long threshold = 1000000000L / Configurator.renderLagSpikeFps;
-		for (String step:steps) {
-			final long elapsed = stepElapsed.getLong(step);
-			if(elapsed > threshold) {
-				CanvasMod.LOG.info(String.format("Lag spike at %s - %,dns, threshold is %,dns", step, elapsed, threshold));
+		public void complete() {
+			swap(null);
+			if (Configurator.logRenderLagSpikes) {
+				logRenderLagSpikes();
+			}
+		}
+
+		private void logRenderLagSpikes() {
+			final long threshold = 1000000000L / Configurator.renderLagSpikeFps;
+			for (String step:steps) {
+				final long elapsed = stepElapsed.getLong(step);
+				if(elapsed > threshold) {
+					CanvasMod.LOG.info(String.format("Lag spike at %s - %,dns, threshold is %,dns", step, elapsed, threshold));
+				}
 			}
 		}
 	}
 
+	private static class Deactivated extends Timekeeper{
+		public void startFrame() { }
+		public void swap(String token) { }
+		public void complete() { }
+	}
+
+	private static final Timekeeper DEACTIVATED = new Deactivated();
+	public static Timekeeper instance = DEACTIVATED;
+
+	public static void configOrPipelineReload() {
+		final boolean enabled = Configurator.displayRenderProfiler || Configurator.logRenderLagSpikes;
+		if (!enabled) {
+			instance = DEACTIVATED;
+		} else {
+			if (instance == DEACTIVATED) {
+				instance = new Active();
+			}
+			final Active active = (Active)instance;
+			active.reload();
+		}
+	}
+
 	public static void renderOverlay(MatrixStack matrices, TextRenderer fontRenderer) {
-		if(!Configurator.displayRenderProfiler) return;
+		if (instance == DEACTIVATED) return;
+		if (!Configurator.displayRenderProfiler) return;
+
+		final Active active = (Active)instance;
 		final float overlayScale = Configurator.profilerOverlayScale;
 		matrices.push();
 		matrices.scale(overlayScale, overlayScale, overlayScale);
 
 		int i = 0;
-		for (String step:steps) {
-			renderTime(step, stepElapsed.getLong(step), i++, matrices, fontRenderer);
+		for (String step:active.steps) {
+			renderTime(step, active.stepElapsed.getLong(step), i++, matrices, fontRenderer);
 		}
 
 		matrices.pop();

@@ -60,6 +60,7 @@ import static grondag.canvas.config.Configurator.wavyGrass;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 
+import grondag.canvas.perf.Timekeeper;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
@@ -454,7 +455,10 @@ public class ConfigGui {
 				.startBooleanToggle(new TranslatableText("config.canvas.value.log_render_lag_spikes"), logRenderLagSpikes)
 				.setDefaultValue(DEFAULTS.logRenderLagSpikes)
 				.setTooltip(parse("config.canvas.help.log_render_lag_spikes"))
-				.setSaveConsumer(b -> logRenderLagSpikes = b)
+				.setSaveConsumer(b -> {
+					logRenderLagSpikes = b;
+					Timekeeper.configOrPipelineReload();
+				})
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
@@ -468,7 +472,10 @@ public class ConfigGui {
 			.startBooleanToggle(new TranslatableText("config.canvas.value.display_render_profiler"), displayRenderProfiler)
 			.setDefaultValue(DEFAULTS.displayRenderProfiler)
 			.setTooltip(parse("config.canvas.help.display_render_profiler"))
-			.setSaveConsumer(b -> displayRenderProfiler = b)
+			.setSaveConsumer(b -> {
+				displayRenderProfiler = b;
+				Timekeeper.configOrPipelineReload();
+			})
 			.build());
 
 		debug.addEntry(ENTRY_BUILDER
