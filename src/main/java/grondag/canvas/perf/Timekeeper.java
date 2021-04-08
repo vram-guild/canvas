@@ -15,7 +15,7 @@ public abstract class Timekeeper {
 
 	public abstract void startFrame(String token);
 	public abstract void swap(String token);
-	public abstract void complete();
+	public abstract void completePass();
 
 	private static class Active extends Timekeeper {
 		private long start;
@@ -62,7 +62,7 @@ public abstract class Timekeeper {
 			start = Util.getMeasuringTimeNano();
 		}
 
-		public void complete() {
+		public void completePass() {
 			swap(null);
 		}
 	}
@@ -70,7 +70,7 @@ public abstract class Timekeeper {
 	private static class Deactivated extends Timekeeper{
 		public void startFrame(String token) { }
 		public void swap(String token) { }
-		public void complete() { }
+		public void completePass() { }
 	}
 
 	private static final Timekeeper DEACTIVATED = new Deactivated();

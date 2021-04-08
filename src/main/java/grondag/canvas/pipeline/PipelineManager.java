@@ -89,6 +89,7 @@ public class PipelineManager {
 			Timekeeper.instance.swap("[before world] "+pass.getName());
 			pass.run(w, h);
 		}
+		Timekeeper.instance.completePass();
 
 		endFullFrameRender();
 
@@ -155,7 +156,7 @@ public class PipelineManager {
 			Timekeeper.instance.swap("[after hand] "+pass.getName());
 			pass.run(w, h);
 		}
-		Timekeeper.instance.complete();
+		Timekeeper.instance.completePass();
 
 		endFullFrameRender();
 	}
@@ -169,6 +170,7 @@ public class PipelineManager {
 			Timekeeper.instance.swap("[fabulous] "+pass.getName());
 			pass.run(w, h);
 		}
+		Timekeeper.instance.completePass();
 
 		endFullFrameRender();
 	}
