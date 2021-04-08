@@ -135,6 +135,10 @@ public class Configurator {
 		enableLifeCycleDebug = config.enableLifeCycleDebug;
 		logMissingUniforms = config.logMissingUniforms;
 		logMaterials = config.logMaterials;
+		logRenderLagSpikes = config.logRenderLagSpikes;
+		renderLagSpikeFps = config.renderLagSpikeFps;
+		displayRenderProfiler = config.displayRenderProfiler;
+		profilerOverlayScale = config.profilerOverlayScale;
 	}
 
 	static void writeToConfig(ConfigData config) {
