@@ -113,7 +113,7 @@ import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class CanvasWorldRenderer extends WorldRenderer {
-	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 16;
+	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 24;
 	private static CanvasWorldRenderer instance;
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
@@ -257,7 +257,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		MaterialConditionImpl.update();
 		GlProgramManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
-		final BuiltRenderRegion cameraRegion = cameraBlockPos.getY() < 0 || cameraBlockPos.getY() > 255 ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
+		final BuiltRenderRegion cameraRegion = world == null || world.isOutOfHeightLimit(cameraBlockPos) ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
 		mc.getProfiler().swap("buildnear");
 

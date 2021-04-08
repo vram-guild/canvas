@@ -28,6 +28,7 @@ import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.config.Configurator;
 
+// WIP2: still worth having?  Is 256x256 still the right size?
 public class TerrainModelSpace {
 	private static int CUBE_MASK = Configurator.batchedChunkRender ? 0xFFFFFF00 : 0xFFFFFFF0;
 

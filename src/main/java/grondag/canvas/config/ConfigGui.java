@@ -18,7 +18,6 @@ package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 import static grondag.canvas.config.ConfigManager.parse;
-import static grondag.canvas.config.Configurator.batchedChunkRender;
 import static grondag.canvas.config.Configurator.blendFluidColors;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
 import static grondag.canvas.config.Configurator.conciseErrors;
@@ -207,12 +206,13 @@ public class ConfigGui {
 		// TWEAKS
 		final ConfigCategory tweaks = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.tweaks"));
 
-		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.batch_chunk_render"), batchedChunkRender)
-				.setDefaultValue(DEFAULTS.batchedChunkRender)
-				.setTooltip(parse("config.canvas.help.batch_chunk_render"))
-				.setSaveConsumer(b -> batchedChunkRender = b)
-				.build());
+		// WIP2: remove or restore function
+		//		tweaks.addEntry(ENTRY_BUILDER
+		//				.startBooleanToggle(new TranslatableText("config.canvas.value.batch_chunk_render"), batchedChunkRender)
+		//				.setDefaultValue(DEFAULTS.batchedChunkRender)
+		//				.setTooltip(parse("config.canvas.help.batch_chunk_render"))
+		//				.setSaveConsumer(b -> batchedChunkRender = b)
+		//				.build());
 
 		//        tweaks.addOption(new BooleanListEntry("config.canvas.value.vanilla_chunk_matrix", disableVanillaChunkMatrix, "config.canvas.reset",
 		//                () -> DEFAULTS.disableVanillaChunkMatrix, b -> disableVanillaChunkMatrix = b,

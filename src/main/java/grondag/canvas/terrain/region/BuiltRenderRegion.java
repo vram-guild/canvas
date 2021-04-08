@@ -123,8 +123,8 @@ public class BuiltRenderRegion {
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
 		chunkY = origin.getY() >> 4;
-		isBottom = origin.getY() == 0;
-		isTop = origin.getY() == 240;
+		isBottom = origin.getY() == cwr.getWorld().getBottomY();
+		isTop = origin.getY() == cwr.getWorld().getTopY() - 16;
 	}
 
 	@Override

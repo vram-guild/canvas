@@ -36,7 +36,8 @@ public class Configurator {
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
-	public static boolean batchedChunkRender = DEFAULTS.batchedChunkRender;
+	// WIP2: remove or restore function
+	public static final boolean batchedChunkRender = false; //DEFAULTS.batchedChunkRender;
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
@@ -109,7 +110,8 @@ public class Configurator {
 		lightSmoothing = config.lightSmoothing;
 		semiFlatLighting = config.semiFlatLighting;
 
-		batchedChunkRender = config.batchedChunkRender;
+		// WIP2: remove or restore function
+		//batchedChunkRender = config.batchedChunkRender;
 		//        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
 		preventDepthFighting = config.preventDepthFighting;
 		clampExteriorVertices = config.clampExteriorVertices;
