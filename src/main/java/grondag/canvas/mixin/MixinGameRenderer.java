@@ -70,8 +70,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
 	private void onRenderWorld(CallbackInfo ci) {
-		Timekeeper.instance.startFrame();
-		Timekeeper.instance.swap("GameRenderer_setup");
+		Timekeeper.instance.startFrame("GameRenderer_setup");
 	}
 
 	@Override

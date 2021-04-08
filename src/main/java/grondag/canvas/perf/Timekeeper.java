@@ -11,12 +11,13 @@ import net.minecraft.util.Util;
 
 public abstract class Timekeeper {
 
-	public abstract void startFrame();
+	public abstract void startFrame(String token);
 	public abstract void swap(String token);
 	public abstract void complete();
 
 	private static class Active extends Timekeeper {
 		private long start;
+		private long threshold;
 		private String currentStep;
 		private Object2LongOpenHashMap<String> stepElapsed;
 		private ObjectArrayList<String> steps;
@@ -30,7 +31,7 @@ public abstract class Timekeeper {
 			frameSinceReload = -1;
 		}
 
-		public void startFrame() {
+		public void startFrame(String token) {
 			currentStep = null;
 			if (frameSinceReload < SETUP_FRAMES) {
 				frameSinceReload++;
@@ -38,14 +39,21 @@ public abstract class Timekeeper {
 			// Setting up container is done in start of frame 0
 			// This prevents multiple setup calls from config reload with multiple config vars
 			if (frameSinceReload == 0) {
+				threshold = 1000000000L / Configurator.renderLagSpikeFps;
 				stepElapsed = new Object2LongOpenHashMap<>();
 				steps = new ObjectArrayList<>();
 			}
+
+			swap(token);
 		}
 
 		public void swap(String token) {
 			if (currentStep != null) {
-				stepElapsed.put(currentStep, Util.getMeasuringTimeNano() - start);
+				final long elapsed = Util.getMeasuringTimeNano() - start;
+				stepElapsed.put(currentStep, elapsed);
+				if(Configurator.logRenderLagSpikes && elapsed > threshold) {
+					CanvasMod.LOG.info(String.format("Lag spike at %s - %,dns, threshold is %,dns", currentStep, elapsed, threshold));
+				}
 			}
 			if (frameSinceReload == 0 && token != null) {
 				steps.add(token);
@@ -56,24 +64,11 @@ public abstract class Timekeeper {
 
 		public void complete() {
 			swap(null);
-			if (Configurator.logRenderLagSpikes) {
-				logRenderLagSpikes();
-			}
-		}
-
-		private void logRenderLagSpikes() {
-			final long threshold = 1000000000L / Configurator.renderLagSpikeFps;
-			for (String step:steps) {
-				final long elapsed = stepElapsed.getLong(step);
-				if(elapsed > threshold) {
-					CanvasMod.LOG.info(String.format("Lag spike at %s - %,dns, threshold is %,dns", step, elapsed, threshold));
-				}
-			}
 		}
 	}
 
 	private static class Deactivated extends Timekeeper{
-		public void startFrame() { }
+		public void startFrame(String token) { }
 		public void swap(String token) { }
 		public void complete() { }
 	}
