@@ -107,4 +107,10 @@ class ConfigData {
 	boolean logRenderLagSpikes = false;
 	@Comment("Approximate target FPS when logRenderLagSpikes is enabled. If elapsed time exceeds an entire frame, a spike is logged. 30-120")
 	int renderLagSpikeFps = 30;
+	@Comment("Enable and display render profiler data.")
+	boolean displayRenderProfiler = false;
+	@Comment("Profiler level of detail. 0=Collapse all, 1=Expand program passes, 2=Expand all")
+	int profilerDetailLevel = 0;
+	@Comment("Size of the profiler overlay relative to GUI scale.")
+	float profilerOverlayScale = 0.5f;
 }

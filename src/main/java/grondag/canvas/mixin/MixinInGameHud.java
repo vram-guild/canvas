@@ -24,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.util.math.MatrixStack;
 
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
 
 @Mixin(InGameHud.class)
@@ -31,5 +32,6 @@ public class MixinInGameHud {
 	@Inject(method = "render", at = @At("RETURN"), cancellable = false, require = 1)
 	private void afterRender(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
 		BufferDebug.renderOverlay(matrices, ((InGameHud) (Object) this).getFontRenderer());
+		Timekeeper.renderOverlay(matrices, ((InGameHud) (Object) this).getFontRenderer());
 	}
 }

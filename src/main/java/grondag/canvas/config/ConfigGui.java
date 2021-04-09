@@ -21,12 +21,12 @@ import static grondag.canvas.config.ConfigManager.parse;
 import static grondag.canvas.config.Configurator.blendFluidColors;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
 import static grondag.canvas.config.Configurator.conciseErrors;
-import static grondag.canvas.config.Configurator.createLagFinder;
 import static grondag.canvas.config.Configurator.cullEntityRender;
 import static grondag.canvas.config.Configurator.cullParticles;
 import static grondag.canvas.config.Configurator.debugNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
+import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
@@ -34,7 +34,6 @@ import static grondag.canvas.config.Configurator.enableVao;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
-import static grondag.canvas.config.Configurator.lagFinder;
 import static grondag.canvas.config.Configurator.lightSmoothing;
 import static grondag.canvas.config.Configurator.logGlStateChanges;
 import static grondag.canvas.config.Configurator.logMachineInfo;
@@ -43,6 +42,8 @@ import static grondag.canvas.config.Configurator.logMissingUniforms;
 import static grondag.canvas.config.Configurator.logRenderLagSpikes;
 import static grondag.canvas.config.Configurator.pipelineId;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
+import static grondag.canvas.config.Configurator.profilerDetailLevel;
+import static grondag.canvas.config.Configurator.profilerOverlayScale;
 import static grondag.canvas.config.Configurator.reduceResolutionOnMac;
 import static grondag.canvas.config.Configurator.reload;
 import static grondag.canvas.config.Configurator.renderLagSpikeFps;
@@ -69,6 +70,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineDescription;
@@ -456,7 +458,7 @@ public class ConfigGui {
 				.setTooltip(parse("config.canvas.help.log_render_lag_spikes"))
 				.setSaveConsumer(b -> {
 					logRenderLagSpikes = b;
-					lagFinder = createLagFinder();
+					Timekeeper.configOrPipelineReload();
 				})
 				.build());
 
@@ -464,11 +466,32 @@ public class ConfigGui {
 				.startIntSlider(new TranslatableText("config.canvas.value.render_lag_spike_fps"), renderLagSpikeFps, 30, 120)
 				.setDefaultValue(DEFAULTS.renderLagSpikeFps)
 				.setTooltip(parse("config.canvas.help.render_lag_spike_fps"))
-				.setSaveConsumer(b -> {
-					renderLagSpikeFps = b;
-					lagFinder = createLagFinder();
-				})
+				.setSaveConsumer(b -> renderLagSpikeFps = b)
 				.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.display_render_profiler"), displayRenderProfiler)
+			.setDefaultValue(DEFAULTS.displayRenderProfiler)
+			.setTooltip(parse("config.canvas.help.display_render_profiler"))
+			.setSaveConsumer(b -> {
+				displayRenderProfiler = b;
+				Timekeeper.configOrPipelineReload();
+			})
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startIntSlider(new TranslatableText("config.canvas.value.profiler_detail_level"), profilerDetailLevel, 0, 2)
+			.setDefaultValue(DEFAULTS.profilerDetailLevel)
+			.setTooltip(parse("config.canvas.help.profiler_detail_level"))
+			.setSaveConsumer(b -> profilerDetailLevel = b)
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startFloatField(new TranslatableText("config.canvas.value.profiler_overlay_scale"), profilerOverlayScale)
+			.setDefaultValue(DEFAULTS.profilerOverlayScale)
+			.setTooltip(parse("config.canvas.help.profiler_overlay_scale"))
+			.setSaveConsumer(b -> profilerOverlayScale = b)
+			.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 

@@ -35,6 +35,7 @@ import net.minecraft.world.GameMode;
 
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.CanvasWorldRenderer;
@@ -118,7 +119,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
 	private void onRenderWorld(CallbackInfo ci) {
-		Configurator.lagFinder.start("GameRenderer Setup");
+		Timekeeper.instance.startFrame(Timekeeper.ProfilerGroup.GameRendererSetup, "GameRenderer_setup");
 	}
 
 	@Override
