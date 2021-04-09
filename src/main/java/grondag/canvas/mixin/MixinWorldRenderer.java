@@ -63,7 +63,7 @@ import grondag.canvas.render.FabulousFrameBuffer;
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private MinecraftClient client;
-	@Shadow private int renderDistance;
+	@Shadow private int viewDistance;
 	@Shadow private ClientWorld world;
 	@Shadow private int frame;
 	@Shadow private boolean cloudsDirty;
@@ -180,7 +180,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Override
 	public int canvas_renderDistance() {
-		return renderDistance;
+		return viewDistance;
 	}
 
 	@Override
@@ -213,7 +213,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 		cloudsDirty = true;
 		RenderLayers.setFancyGraphicsOrBetter(true);
-		renderDistance = client.options.viewDistance;
+		viewDistance = client.options.viewDistance;
 
 		synchronized (noCullingBlockEntities) {
 			noCullingBlockEntities.clear();

@@ -33,91 +33,10 @@ import grondag.canvas.varia.GFX;
 public abstract class MixinGlStateManager {
 	/**
 	 * @author grondag
-	 * @reason 12 units / 2D only not enough
-	 */
-	@Overwrite
-	public static void activeTexture(int textureUnit) {
-		CanvasTextureState.activeTextureUnit(textureUnit);
-	}
-
-	/**
-	 * @author grondag
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void activeTextureUntracked(int textureUnit) {
-		CanvasTextureState.activeTextureUnit(textureUnit);
-	}
-
-	/**
-	 * @author grondag
-	 * @reason nukem from space - it's only way to be sure
-	 */
-	@Overwrite
-	public static void _enableTexture() {
-		// NOOP
-	}
-
-	/**
-	 * @author grondag
-	 * @reason nukem from space - it's only way to be sure
-	 */
-	@Overwrite
-	public static void disableTexture() {
-		// NOOP
-	}
-
-	/**
-	 * @author grondag
-	 * @reason nukem from space - it's only way to be sure
-	 */
-	@Overwrite
-	public static void deleteTextures(int[] is) {
-		CanvasTextureState.deleteTextures(is);
-	}
-
-	/**
-	 * @author grondag
-	 * @reason nukem from space - it's only way to be sure
-	 */
-	@Overwrite
-	public static int _getTextureId(int i) {
-		return CanvasTextureState.getTextureId(i);
-	}
-
-	/**
-	 * @author grondag
-	 * @reason 12 units / 2D only not enough
-	 */
-	@Overwrite
-	public static void bindTexture(int texture) {
-		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D, texture);
-	}
-
-	/**
-	 * @author grondag
-	 * @reason 12 units / 2D only not enough
-	 */
-	@Overwrite
-	public static int _getActiveTexture() {
-		return CanvasTextureState.activeTextureUnit();
-	}
-
-	/**
-	 * @author grondag
-	 * @reason 12 units / 2D only not enough
-	 */
-	@Overwrite
-	public static void deleteTexture(int texture) {
-		CanvasTextureState.deleteTexture(texture);
-	}
-
-	/**
-	 * @author grondag
-	 * @reason nukem from space - it's only way to be sure
-	 */
-	@Overwrite
-	public static void disableScissorTest() {
+	public static void _disableScissorTest() {
 		GFX.disableScissorTest();
 	}
 
@@ -126,7 +45,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void enableScissorTest() {
+	public static void _enableScissorTest() {
 		GFX.enableScissorTest();
 	}
 
@@ -135,7 +54,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void scissor(int x, int y, int width, int height) {
+	public static void _scissorBox(int x, int y, int width, int height) {
 		GFX.scissor(x, y, width, height);
 	}
 
@@ -144,7 +63,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void disableDepthTest() {
+	public static void _disableDepthTest() {
 		GFX.disableDepthTest();
 	}
 
@@ -153,7 +72,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void enableDepthTest() {
+	public static void _enableDepthTest() {
 		GFX.enableDepthTest();
 	}
 
@@ -162,7 +81,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void depthFunc(int func) {
+	public static void _depthFunc(int func) {
 		GFX.depthFunc(func);
 	}
 
@@ -171,7 +90,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void depthMask(boolean mask) {
+	public static void _depthMask(boolean mask) {
 		GFX.depthMask(mask);
 	}
 
@@ -180,7 +99,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void disableBlend() {
+	public static void _disableBlend() {
 		GFX.disableBlend();
 	}
 
@@ -189,7 +108,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void enableBlend() {
+	public static void _enableBlend() {
 		GFX.enableBlend();
 	}
 
@@ -198,7 +117,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void blendFunc(int srcFactor, int dstFactor) {
+	public static void _blendFunc(int srcFactor, int dstFactor) {
 		GFX.blendFunc(srcFactor, dstFactor);
 	}
 
@@ -207,7 +126,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void blendFuncSeparate(int srcFactorRGB, int dstFactorRGB, int srcFactorAlpha, int dstFactorAlpha) {
+	public static void _blendFuncSeparate(int srcFactorRGB, int dstFactorRGB, int srcFactorAlpha, int dstFactorAlpha) {
 		GFX.blendFuncSeparate(srcFactorRGB, dstFactorRGB, srcFactorAlpha, dstFactorAlpha);
 	}
 
@@ -216,7 +135,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void blendEquation(int mode) {
+	public static void _blendEquation(int mode) {
 		GFX.blendEquation(mode);
 	}
 
@@ -225,7 +144,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int getProgram(int program, int pname) {
+	public static int glGetProgrami(int program, int pname) {
 		return GFX.getProgrami(program, pname);
 	}
 
@@ -234,7 +153,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void attachShader(int program, int shader) {
+	public static void glAttachShader(int program, int shader) {
 		GFX.attachShader(program, shader);
 	}
 
@@ -243,7 +162,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void deleteShader(int shader) {
+	public static void glDeleteShader(int shader) {
 		GFX.deleteShader(shader);
 	}
 
@@ -252,7 +171,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int createShader(int type) {
+	public static int glCreateShader(int type) {
 		return GFX.createShader(type);
 	}
 
@@ -261,7 +180,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void shaderSource(int shader, List<String> strings) {
+	public static void glShaderSource(int shader, List<String> strings) {
 		GFX.shaderSource(shader, strings.toArray(new CharSequence[0]));
 	}
 
@@ -270,7 +189,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void compileShader(int shader) {
+	public static void glCompileShader(int shader) {
 		GFX.compileShader(shader);
 	}
 
@@ -279,7 +198,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int getShader(int shader, int pname) {
+	public static int glGetShaderi(int shader, int pname) {
 		return GFX.getShader(shader, pname);
 	}
 
@@ -288,7 +207,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void useProgram(int program) {
+	public static void _glUseProgram(int program) {
 		GFX.useProgram(program);
 	}
 
@@ -297,7 +216,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int createProgram() {
+	public static int glCreateProgram() {
 		return GFX.createProgram();
 	}
 
@@ -306,7 +225,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void deleteProgram(int program) {
+	public static void glDeleteProgram(int program) {
 		GFX.deleteProgram(program);
 	}
 
@@ -315,7 +234,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void linkProgram(int program) {
+	public static void glLinkProgram(int program) {
 		GFX.linkProgram(program);
 	}
 
@@ -324,7 +243,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int getUniformLocation(int program, CharSequence name) {
+	public static int _glGetUniformLocation(int program, CharSequence name) {
 		return GFX.getUniformLocation(program, name);
 	}
 
@@ -333,7 +252,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform1(int location, IntBuffer value) {
+	public static void _glUniform1(int location, IntBuffer value) {
 		GFX.uniform1iv(location, value);
 	}
 
@@ -342,7 +261,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform1(int location, int value) {
+	public static void _glUniform1i(int location, int value) {
 		GFX.uniform1i(location, value);
 	}
 
@@ -351,7 +270,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform1(int location, FloatBuffer value) {
+	public static void _glUniform1(int location, FloatBuffer value) {
 		GFX.uniform1fv(location, value);
 	}
 
@@ -360,7 +279,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform2(int location, IntBuffer value) {
+	public static void _glUniform2(int location, IntBuffer value) {
 		GFX.uniform2iv(location, value);
 	}
 
@@ -369,7 +288,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform2(int location, FloatBuffer value) {
+	public static void _glUniform2(int location, FloatBuffer value) {
 		GFX.uniform2fv(location, value);
 	}
 
@@ -378,7 +297,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform3(int location, IntBuffer value) {
+	public static void _glUniform3(int location, IntBuffer value) {
 		GFX.uniform3iv(location, value);
 	}
 
@@ -387,7 +306,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform3(int location, FloatBuffer value) {
+	public static void _glUniform3(int location, FloatBuffer value) {
 		GFX.uniform3fv(location, value);
 	}
 
@@ -396,7 +315,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform4(int location, IntBuffer value) {
+	public static void _glUniform4(int location, IntBuffer value) {
 		GFX.uniform4iv(location, value);
 	}
 
@@ -405,7 +324,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniform4(int location, FloatBuffer value) {
+	public static void _glUniform4(int location, FloatBuffer value) {
 		GFX.uniform4fv(location, value);
 	}
 
@@ -414,7 +333,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniformMatrix2(int location, boolean transpose, FloatBuffer value) {
+	public static void _glUniformMatrix2(int location, boolean transpose, FloatBuffer value) {
 		GFX.uniformMatrix2fv(location, transpose, value);
 	}
 
@@ -423,7 +342,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniformMatrix3(int location, boolean transpose, FloatBuffer value) {
+	public static void _glUniformMatrix3(int location, boolean transpose, FloatBuffer value) {
 		GFX.uniformMatrix3fv(location, transpose, value);
 	}
 
@@ -432,7 +351,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void uniformMatrix4(int location, boolean transpose, FloatBuffer value) {
+	public static void _glUniformMatrix4(int location, boolean transpose, FloatBuffer value) {
 		GFX.uniformMatrix4fv(location, transpose, value);
 	}
 
@@ -441,7 +360,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int getAttribLocation(int program, CharSequence name) {
+	public static int _glGetAttribLocation(int program, CharSequence name) {
 		return GFX.getAttribLocation(program, name);
 	}
 
@@ -450,7 +369,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void bindAttribLocation(int program, int index, CharSequence name) {
+	public static void _glBindAttribLocation(int program, int index, CharSequence name) {
 		GFX.bindAttribLocation(program, index, name);
 	}
 
@@ -459,7 +378,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int genBuffer() {
+	public static int _glGenBuffers() {
 		return GFX.genBuffer();
 	}
 
@@ -468,7 +387,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int genVertexArray() {
+	public static int _glGenVertexArrays() {
 		return GFX.genVertexArray();
 	}
 
@@ -477,7 +396,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void bindBuffer(int target, int buffer) {
+	public static void _glBindBuffer(int target, int buffer) {
 		GFX.bindBuffer(target, buffer);
 	}
 
@@ -486,7 +405,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void bindVertexArray(int array) {
+	public static void _glBindVertexArray(int array) {
 		GFX.bindVertexArray(array);
 	}
 
@@ -495,7 +414,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void bufferData(int target, ByteBuffer data, int usage) {
+	public static void _glBufferData(int target, ByteBuffer data, int usage) {
 		GFX.bufferData(target, data, usage);
 	}
 
@@ -504,7 +423,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void bufferData(int target, long size, int usage) {
+	public static void _glBufferData(int target, long size, int usage) {
 		GFX.bufferData(target, size, usage);
 	}
 
@@ -523,7 +442,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void unmapBuffer(int target) {
+	public static void _glUnmapBuffer(int target) {
 		GFX.unmapBuffer(target);
 	}
 
@@ -532,7 +451,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void deleteBuffer(int buffer) {
+	public static void _glDeleteBuffers(int buffer) {
 		GFX.deleteBuffers(buffer);
 	}
 
@@ -550,7 +469,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void deleteVertexArray(int array) {
+	public static void _glDeleteVertexArrays(int array) {
 		GFX.deleteVertexArray(array);
 	}
 
@@ -559,7 +478,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void bindFramebuffer(int target, int framebuffer) {
+	public static void _glBindFramebuffer(int target, int framebuffer) {
 		GFX.bindFramebuffer(target, framebuffer);
 	}
 
@@ -568,7 +487,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, int filter) {
+	public static void _glBlitFrameBuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, int filter) {
 		GFX.blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 	}
 
@@ -595,7 +514,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void deleteFramebuffer(int framebuffer) {
+	public static void _glDeleteFramebuffers(int framebuffer) {
 		GFX.deleteFramebuffer(framebuffer);
 	}
 
@@ -604,7 +523,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int genFramebuffer() {
+	public static int glGenFramebuffers() {
 		return GFX.genFramebuffer();
 	}
 
@@ -640,7 +559,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int checkFramebufferStatus(int target) {
+	public static int glCheckFramebufferStatus(int target) {
 		return GFX.checkFramebufferStatus(target);
 	}
 
@@ -649,7 +568,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void framebufferTexture2D(int target, int attachment, int textureTarget, int texture, int level) {
+	public static void _glFramebufferTexture2D(int target, int attachment, int textureTarget, int texture, int level) {
 		GFX.framebufferTexture2D(target, attachment, textureTarget, texture, level);
 	}
 
@@ -664,10 +583,19 @@ public abstract class MixinGlStateManager {
 
 	/**
 	 * @author grondag
+	 * @reason 12 units / 2D only not enough
+	 */
+	@Overwrite
+	public static void glActiveTexture(int textureUnit) {
+		CanvasTextureState.activeTextureUnit(textureUnit);
+	}
+
+	/**
+	 * @author grondag
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void blendFuncSeparateUntracked(int srcFactorRGB, int dstFactorRGB, int srcFactorAlpha, int dstFactorAlpha) {
+	public static void glBlendFuncSeparate(int srcFactorRGB, int dstFactorRGB, int srcFactorAlpha, int dstFactorAlpha) {
 		GFX.blendFuncSeparate(srcFactorRGB, dstFactorRGB, srcFactorAlpha, dstFactorAlpha);
 	}
 
@@ -676,7 +604,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static String getShaderInfoLog(int shader, int maxLength) {
+	public static String glGetShaderInfoLog(int shader, int maxLength) {
 		return GFX.getShaderInfoLog(shader, maxLength);
 	}
 
@@ -685,7 +613,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static String getProgramInfoLog(int program, int maxLength) {
+	public static String glGetProgramInfoLog(int program, int maxLength) {
 		return GFX.getProgramInfoLog(program, maxLength);
 	}
 
@@ -695,7 +623,7 @@ public abstract class MixinGlStateManager {
 	 */
 	@Overwrite
 
-	public static void enableCull() {
+	public static void _enableCull() {
 		GFX.enableCull();
 	}
 
@@ -704,7 +632,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void disableCull() {
+	public static void _disableCull() {
 		GFX.disableCull();
 	}
 
@@ -713,7 +641,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void polygonMode(int face, int mode) {
+	public static void _polygonMode(int face, int mode) {
 		GFX.polygonMode(face, mode);
 	}
 
@@ -722,7 +650,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void enablePolygonOffset() {
+	public static void _enablePolygonOffset() {
 		GFX.enablePolygonOffset();
 	}
 
@@ -731,7 +659,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void disablePolygonOffset() {
+	public static void _disablePolygonOffset() {
 		GFX.disablePolygonOffset();
 	}
 
@@ -740,7 +668,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void polygonOffset(float factor, float units) {
+	public static void _polygonOffset(float factor, float units) {
 		GFX.polygonOffset(factor, units);
 	}
 
@@ -749,7 +677,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void enableColorLogicOp() {
+	public static void _enableColorLogicOp() {
 		GFX.enableColorLogicOp();
 	}
 
@@ -758,7 +686,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void disableColorLogicOp() {
+	public static void _disableColorLogicOp() {
 		GFX.disableColorLogicOp();
 	}
 
@@ -767,7 +695,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void logicOp(int op) {
+	public static void _logicOp(int op) {
 		GFX.logicOp(op);
 	}
 
@@ -776,7 +704,34 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void texParameter(int target, int pname, float param) {
+	public static void _activeTexture(int textureUnit) {
+		CanvasTextureState.activeTextureUnit(textureUnit);
+	}
+
+	/**
+	 * @author grondag
+	 * @reason nukem from space - it's only way to be sure
+	 */
+	@Overwrite
+	public static void _enableTexture() {
+		// NOOP
+	}
+
+	/**
+	 * @author grondag
+	 * @reason nukem from space - it's only way to be sure
+	 */
+	@Overwrite
+	public static void _disableTexture() {
+		// NOOP
+	}
+
+	/**
+	 * @author grondag
+	 * @reason nukem from space - it's only way to be sure
+	 */
+	@Overwrite
+	public static void _texParameter(int target, int pname, float param) {
 		GFX.texParameter(target, pname, param);
 	}
 
@@ -785,7 +740,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void texParameter(int target, int pname, int param) {
+	public static void _texParameter(int target, int pname, int param) {
 		GFX.texParameter(target, pname, param);
 	}
 
@@ -794,7 +749,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int getTexLevelParameter(int target, int level, int pname) {
+	public static int _getTexLevelParameter(int target, int level, int pname) {
 		return GFX.getTexLevelParameter(target, level, pname);
 	}
 
@@ -803,7 +758,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int genTextures() {
+	public static int _genTexture() {
 		return GFX.genTexture();
 	}
 
@@ -812,8 +767,17 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void genTextures(int[] is) {
+	public static void _genTextures(int[] is) {
 		GFX.genTextures(is);
+	}
+
+	/**
+	 * @author grondag
+	 * @reason 12 units / 2D only not enough
+	 */
+	@Overwrite
+	public static void _deleteTexture(int texture) {
+		CanvasTextureState.deleteTexture(texture);
 	}
 
 	/**
@@ -821,7 +785,43 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void texImage2D(int target, int level, int internalFormat, int width, int height, int border, int format, int type, @Nullable IntBuffer pixels) {
+	public static void _deleteTextures(int[] is) {
+		CanvasTextureState.deleteTextures(is);
+	}
+
+	/**
+	 * @author grondag
+	 * @reason 12 units / 2D only not enough
+	 */
+	@Overwrite
+	public static void _bindTexture(int texture) {
+		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D, texture);
+	}
+
+	/**
+	 * @author grondag
+	 * @reason nukem from space - it's only way to be sure
+	 */
+	@Overwrite
+	public static int _getTextureId(int i) {
+		return CanvasTextureState.getTextureId(i);
+	}
+
+	/**
+	 * @author grondag
+	 * @reason 12 units / 2D only not enough
+	 */
+	@Overwrite
+	public static int _getActiveTexture() {
+		return CanvasTextureState.activeTextureUnit();
+	}
+
+	/**
+	 * @author grondag
+	 * @reason nukem from space - it's only way to be sure
+	 */
+	@Overwrite
+	public static void _texImage2D(int target, int level, int internalFormat, int width, int height, int border, int format, int type, @Nullable IntBuffer pixels) {
 		GFX.texImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
 	}
 
@@ -830,7 +830,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void texSubImage2D(int target, int level, int offsetX, int offsetY, int width, int height, int format, int type, long pixels) {
+	public static void _texSubImage2D(int target, int level, int offsetX, int offsetY, int width, int height, int format, int type, long pixels) {
 		GFX.texSubImage2D(target, level, offsetX, offsetY, width, height, format, type, pixels);
 	}
 
@@ -839,7 +839,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void getTexImage(int target, int level, int format, int type, long pixels) {
+	public static void _getTexImage(int target, int level, int format, int type, long pixels) {
 		GFX.getTexImage(target, level, format, type, pixels);
 	}
 
@@ -848,7 +848,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void viewport(int x, int y, int width, int height) {
+	public static void _viewport(int x, int y, int width, int height) {
 		GFX.viewport(x, y, width, height);
 	}
 
@@ -857,7 +857,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void colorMask(boolean red, boolean green, boolean blue, boolean alpha) {
+	public static void _colorMask(boolean red, boolean green, boolean blue, boolean alpha) {
 		GFX.colorMask(red, green, blue, alpha);
 	}
 
@@ -866,7 +866,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void stencilFunc(int func, int ref, int mask) {
+	public static void _stencilFunc(int func, int ref, int mask) {
 		GFX.stencilFunc(func, ref, mask);
 	}
 
@@ -875,7 +875,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void stencilMask(int mask) {
+	public static void _stencilMask(int mask) {
 		GFX.stencilMask(mask);
 	}
 
@@ -884,7 +884,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void stencilOp(int sfail, int dpfail, int dppass) {
+	public static void _stencilOp(int sfail, int dpfail, int dppass) {
 		GFX.stencilOp(sfail, dpfail, dppass);
 	}
 
@@ -893,7 +893,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void clearDepth(double depth) {
+	public static void _clearDepth(double depth) {
 		GFX.clearDepth(depth);
 	}
 
@@ -902,7 +902,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void clearColor(float red, float green, float blue, float alpha) {
+	public static void _clearColor(float red, float green, float blue, float alpha) {
 		GFX.clearColor(red, green, blue, alpha);
 	}
 
@@ -911,7 +911,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void clearStencil(int stencil) {
+	public static void _clearStencil(int stencil) {
 		GFX.clearStencil(stencil);
 	}
 
@@ -920,7 +920,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void clear(int mask, boolean getError) {
+	public static void _clear(int mask, boolean getError) {
 		GFX.clear(mask, getError);
 	}
 
@@ -938,7 +938,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void vertexAttribPointer(int index, int size, int type, boolean normalized, int stride, long pointer) {
+	public static void _vertexAttribPointer(int index, int size, int type, boolean normalized, int stride, long pointer) {
 		GFX.vertexAttribPointer(index, size, type, normalized, stride, pointer);
 	}
 
@@ -947,7 +947,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void vertexAttribIPointer(int index, int size, int type, int stride, long pointer) {
+	public static void _vertexAttribIPointer(int index, int size, int type, int stride, long pointer) {
 		GFX.vertexAttribIPointer(index, size, type, stride, pointer);
 	}
 
@@ -956,7 +956,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void enableVertexAttribArray(int index) {
+	public static void _enableVertexAttribArray(int index) {
 		GFX.enableVertexAttribArray(index);
 	}
 
@@ -965,7 +965,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void disableVertexAttribArray(int index) {
+	public static void _disableVertexAttribArray(int index) {
 		GFX.disableVertexAttribArray(index);
 	}
 
@@ -974,7 +974,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void drawElements(int mode, int first, int type, long indices) {
+	public static void _drawElements(int mode, int first, int type, long indices) {
 		GFX.drawElements(mode, first, type, indices);
 	}
 
@@ -983,7 +983,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void pixelStore(int pname, int param) {
+	public static void _pixelStore(int pname, int param) {
 		GFX.pixelStore(pname, param);
 	}
 
@@ -992,7 +992,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static void readPixels(int x, int y, int width, int height, int format, int type, ByteBuffer pixels) {
+	public static void _readPixels(int x, int y, int width, int height, int format, int type, ByteBuffer pixels) {
 		GFX.readPixels(x, y, width, height, format, type, pixels);
 	}
 
@@ -1010,7 +1010,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int getError() {
+	public static int _getError() {
 		return GFX.getError();
 	}
 
@@ -1019,7 +1019,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static String getString(int name) {
+	public static String _getString(int name) {
 		return GFX.getString(name);
 	}
 
@@ -1028,7 +1028,7 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite
-	public static int getInteger(int pname) {
+	public static int _getInteger(int pname) {
 		return GFX.getInteger(pname);
 	}
 }

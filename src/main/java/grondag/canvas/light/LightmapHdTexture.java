@@ -97,7 +97,7 @@ class LightmapHdTexture implements AutoCloseable {
 
 		// UGLY: should not be needed - enable doesn't affect shaders
 		CanvasTextureState.activeTextureUnit(TextureData.HD_LIGHTMAP);
-		GlStateManager.disableTexture();
+		GlStateManager._disableTexture();
 		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 	}
 

@@ -46,7 +46,7 @@ public class PrimaryFrameBuffer extends Framebuffer {
 		textureHeight = height;
 
 		// UGLY - throwing away what seems to be a spurious INVALID_VALUE error here
-		GlStateManager.getError();
+		GlStateManager._getError();
 
 		PipelineManager.init(this, width, height);
 
