@@ -598,9 +598,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderState.disable();
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
-			//			profileSwap(profiler, "shadow_map");
-			//			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
-			//
+			profileSwap(profiler, "shadow_map");
+			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
+
 			profileSwap(profiler, "terrain_solid");
 			MatrixState.set(MatrixState.REGION);
 			renderTerrainLayer(false, cameraX, cameraY, cameraZ);

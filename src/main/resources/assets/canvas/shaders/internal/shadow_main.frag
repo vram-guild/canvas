@@ -10,7 +10,7 @@
 #include canvas:apitarget
 
 /******************************************************
-  canvas:shaders/internal/material_main.frag
+  canvas:shaders/internal/shadow_main.frag
 ******************************************************/
 
 void _cv_startFragment(inout frx_FragmentData data) {
@@ -29,13 +29,8 @@ void main() {
 
 	_cv_startFragment(fragData);
 
-	// PERF: varyings better here?
-	if (_cv_getFlag(_CV_FLAG_CUTOUT) == 1.0) {
-		float t = _cv_getFlag(_CV_FLAG_TRANSLUCENT_CUTOUT) == 1.0 ? _CV_TRANSLUCENT_CUTOUT_THRESHOLD : 0.5;
-
-		if (fragData.spriteColor.a * fragData.vertexColor.a < t) {
-			discard;
-		}
+	if (fragData.spriteColor.a * fragData.vertexColor.a <= _cv_cutoutThreshold()) {
+		discard;
 	}
 
 	frx_writePipelineFragment(fragData);

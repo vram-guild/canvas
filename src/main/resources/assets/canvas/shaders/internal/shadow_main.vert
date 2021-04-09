@@ -21,7 +21,7 @@ void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 
 void main() {
 	frx_VertexData data = frx_VertexData(
-		gl_Vertex,
+		vec4(in_vertex, 1.0),
 		in_uv,
 		in_color,
 		(in_normal_flags.xyz - 127.0) / 127.0
@@ -45,7 +45,7 @@ void main() {
 	} else {
 		float spriteIndex = in_material.x;
 		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
-		vec4 spriteBounds = texture2DLod(_cvu_spriteInfo, vec2(0, spriteIndex / _cvu_context[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
+		vec4 spriteBounds = textureLod(_cvu_spriteInfo, vec2(0, spriteIndex / _cvu_context[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
 
 		float atlasHeight = _cvu_context[_CV_ATLAS_HEIGHT];
 		float atlasWidth = _cvu_context[_CV_ATLAS_WIDTH];
