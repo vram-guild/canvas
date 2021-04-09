@@ -18,7 +18,6 @@ package grondag.canvas.pipeline;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.perf.Timekeeper;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
@@ -35,6 +34,7 @@ import grondag.canvas.buffer.encoding.VertexCollectorImpl;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.PrimaryFrameBuffer;
@@ -89,6 +89,7 @@ public class PipelineManager {
 			Timekeeper.instance.swap(Timekeeper.ProfilerGroup.BeforeWorld, pass.getName());
 			pass.run(w, h);
 		}
+
 		Timekeeper.instance.completePass();
 
 		endFullFrameRender();
@@ -156,6 +157,7 @@ public class PipelineManager {
 			Timekeeper.instance.swap(Timekeeper.ProfilerGroup.AfterHand, pass.getName());
 			pass.run(w, h);
 		}
+
 		Timekeeper.instance.completePass();
 
 		endFullFrameRender();
@@ -170,6 +172,7 @@ public class PipelineManager {
 			Timekeeper.instance.swap(Timekeeper.ProfilerGroup.Fabulous, pass.getName());
 			pass.run(w, h);
 		}
+
 		Timekeeper.instance.completePass();
 
 		endFullFrameRender();

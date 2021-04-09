@@ -16,7 +16,6 @@
 
 package grondag.canvas.mixin;
 
-import grondag.canvas.perf.Timekeeper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -25,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.util.math.MatrixStack;
 
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
 
 @Mixin(InGameHud.class)

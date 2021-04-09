@@ -16,7 +16,6 @@
 
 package grondag.canvas.render;
 
-import java.sql.Time;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -28,8 +27,6 @@ import com.google.common.collect.Sets;
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.perf.Timekeeper;
-import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -103,6 +100,8 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.BufferBuilderStorageExt;
 import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.perf.Timekeeper;
+import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.GlProgram;
@@ -402,7 +401,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
 		final Profiler profiler = world.getProfiler();
 
-		profileSwap(profiler, ProfilerGroup.StartWorld,"light_updates");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "light_updates");
 		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "clear");
@@ -808,7 +807,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack identityStack, float tickDelta, double cameraX, double cameraY, double cameraZ) {
 		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-			profileSwap(profiler, ProfilerGroup.EndWorld,"clouds");
+			profileSwap(profiler, ProfilerGroup.EndWorld, "clouds");
 
 			if (Pipeline.fabCloudsFbo > 0) {
 				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, Pipeline.fabCloudsFbo);

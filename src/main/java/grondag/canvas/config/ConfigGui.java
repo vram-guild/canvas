@@ -61,7 +61,6 @@ import static grondag.canvas.config.Configurator.wavyGrass;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 
-import grondag.canvas.perf.Timekeeper;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
@@ -72,6 +71,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineDescription;

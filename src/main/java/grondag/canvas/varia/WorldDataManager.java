@@ -393,7 +393,7 @@ public class WorldDataManager {
 	}
 
 	/**
-	 * Called during render reload
+	 * Called during render reload.
 	 */
 	public static void reload() {
 		baseRenderTime = System.currentTimeMillis();

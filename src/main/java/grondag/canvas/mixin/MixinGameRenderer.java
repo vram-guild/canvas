@@ -16,7 +16,6 @@
 
 package grondag.canvas.mixin;
 
-import grondag.canvas.perf.Timekeeper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,6 +31,7 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.CanvasWorldRenderer;

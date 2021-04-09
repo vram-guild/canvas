@@ -18,7 +18,6 @@ package grondag.canvas.render;
 
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.perf.Timekeeper;
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;

@@ -18,8 +18,6 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
-import grondag.canvas.perf.Timekeeper;
-import grondag.canvas.varia.WorldDataManager;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
@@ -40,6 +38,7 @@ import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.shader.GlProgramManager;
@@ -49,6 +48,7 @@ import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.terrain.region.ProtoRenderRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.TerrainModelSpace;
+import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 
