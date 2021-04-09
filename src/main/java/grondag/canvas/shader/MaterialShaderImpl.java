@@ -70,8 +70,8 @@ public final class MaterialShaderImpl {
 		program.modelOriginType.upload();
 
 		if (ms == MatrixState.SCREEN) {
-			guiMatrixExt.set(RenderSystem.getModelViewMatrix());
-			guiMatrix.multiply(RenderSystem.getProjectionMatrix());
+			guiMatrixExt.set(RenderSystem.getProjectionMatrix());
+			guiMatrix.multiply(RenderSystem.getModelViewMatrix());
 			program.guiViewProjMatrix.set(guiMatrix);
 			program.guiViewProjMatrix.upload();
 		}

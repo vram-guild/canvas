@@ -225,7 +225,12 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	//}
 	//a = vec4(frx_vanillaClearColor(), a.a);
 
-	fragColor[TARGET_BASECOLOR] = p_fog(a);
+	if (frx_isGui()) {
+		fragColor[TARGET_BASECOLOR] = a;
+	} else {
+		fragColor[TARGET_BASECOLOR] = p_fog(a);
+		fragColor[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
+	}
+
 	gl_FragDepth = gl_FragCoord.z;
-	fragColor[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
 }
