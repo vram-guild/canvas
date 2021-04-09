@@ -158,6 +158,6 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	fragColor[TARGET_BASECOLOR] = p_fog(a);
 
 	gl_FragDepth = gl_FragCoord.z;
-	// TODO: put back - make conditional?
-	//fragColor[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
+	// TODO: make conditional?
+	fragColor[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
 }
