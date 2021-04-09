@@ -23,7 +23,6 @@ import net.minecraft.util.math.MathHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.perf.LagFinder;
 import grondag.canvas.pipeline.config.PipelineConfig;
 
 @Environment(EnvType.CLIENT)
@@ -65,14 +64,11 @@ public class Configurator {
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
 	public static boolean logMissingUniforms = DEFAULTS.logMissingUniforms;
 	public static boolean logMaterials = DEFAULTS.logMaterials;
-	static boolean logRenderLagSpikes = DEFAULTS.logRenderLagSpikes;
-	static int renderLagSpikeFps = DEFAULTS.renderLagSpikeFps;
-
-	public static LagFinder lagFinder = createLagFinder();
-
-	static LagFinder createLagFinder() {
-		return logRenderLagSpikes ? LagFinder.create(() -> 1000000000 / renderLagSpikeFps) : LagFinder.DUMMMY;
-	}
+	public static boolean logRenderLagSpikes = DEFAULTS.logRenderLagSpikes;
+	public static int renderLagSpikeFps = DEFAULTS.renderLagSpikeFps;
+	public static boolean displayRenderProfiler = DEFAULTS.displayRenderProfiler;
+	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
+	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -142,7 +138,9 @@ public class Configurator {
 		logMaterials = config.logMaterials;
 		logRenderLagSpikes = config.logRenderLagSpikes;
 		renderLagSpikeFps = MathHelper.clamp(config.renderLagSpikeFps, 30, 120);
-		lagFinder = createLagFinder();
+		displayRenderProfiler = config.displayRenderProfiler;
+		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
+		profilerOverlayScale = config.profilerOverlayScale;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -191,5 +189,8 @@ public class Configurator {
 		config.logMaterials = logMaterials;
 		config.logRenderLagSpikes = logRenderLagSpikes;
 		config.renderLagSpikeFps = renderLagSpikeFps;
+		config.displayRenderProfiler = displayRenderProfiler;
+		config.profilerDetailLevel = profilerDetailLevel;
+		config.profilerOverlayScale = profilerOverlayScale;
 	}
 }

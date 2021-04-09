@@ -16,6 +16,7 @@
 
 package grondag.canvas.render;
 
+import java.sql.Time;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +28,8 @@ import com.google.common.collect.Sets;
 import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.canvas.perf.Timekeeper;
+import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -371,9 +374,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		return result;
 	}
 
-	private static void profileSwap(Profiler profiler, String token) {
+	private static void profileSwap(Profiler profiler, ProfilerGroup profilerGroup, String token) {
 		profiler.swap(token);
-		Configurator.lagFinder.swap(token);
+		Timekeeper.instance.swap(profilerGroup, token);
 	}
 
 	public void renderWorld(MatrixStack viewMatrixStack, MatrixStack identityStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
@@ -399,10 +402,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
 		final Profiler profiler = world.getProfiler();
 
-		profileSwap(profiler, "light_updates");
+		profileSwap(profiler, ProfilerGroup.StartWorld,"light_updates");
 		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
 
-		profileSwap(profiler, "clear");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "clear");
 		Pipeline.defaultFbo.bind();
 
 		// This does not actually render anything - what it does do is set the current clear color
@@ -418,22 +421,22 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (mc.options.viewDistance >= 4) {
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
-			profileSwap(profiler, "sky");
+			profileSwap(profiler, ProfilerGroup.StartWorld, "sky");
 			// NB: fog / sky renderer normalcy get viewMatrixStack but we apply camera rotation in VertexBuffer mixin
 			((WorldRenderer) wr).renderSky(identityStack, tickDelta);
 		}
 
-		profileSwap(profiler, "fog");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
 
-		profileSwap(profiler, "terrain_setup");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
 		eventContext.setFrustum(frustum);
 
-		profileSwap(profiler, "after_setup_event");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "after_setup_event");
 		WorldRenderEvents.AFTER_SETUP.invoker().afterSetup(eventContext);
 
-		profileSwap(profiler, "updatechunks");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "updatechunks");
 		final int maxFps = mc.options.maxFps;
 		long maxFpsLimit;
 
@@ -462,10 +465,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			DiffuseLighting.method_27869(MatrixState.viewMatrix);
 		}
 
-		profileSwap(profiler, "before_entities_event");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
 		WorldRenderEvents.BEFORE_ENTITIES.invoker().beforeEntities(eventContext);
 
-		profileSwap(profiler, "entities");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "entities");
 		int entityCount = 0;
 		int blockEntityCount = 0;
 
@@ -535,7 +538,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		contextState.setCurrentEntity(null);
 		SkyShadowRenderer.restoreEntityShadows(mc);
 
-		profileSwap(profiler, "blockentities");
+		profileSwap(profiler, ProfilerGroup.StartWorld, "blockentities");
 		final int visibleRegionCount = this.visibleRegionCount;
 		final Set<BlockEntity> noCullingBlockEntities = wr.canvas_noCullingBlockEntities();
 
@@ -594,20 +597,20 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		contextState.setCurrentBlockEntity(null);
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN)) {
-			profileSwap(profiler, "shadow_map");
+			profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer);
 
-			profileSwap(profiler, "terrain_solid");
+			profileSwap(profiler, ProfilerGroup.EndWorld, "terrain_solid");
 			MatrixState.set(MatrixState.REGION);
 			renderTerrainLayer(false, cameraX, cameraY, cameraZ);
 			MatrixState.set(MatrixState.CAMERA);
 
-			profileSwap(profiler, "entity_draw_solid");
+			profileSwap(profiler, ProfilerGroup.EndWorld, "entity_draw_solid");
 			entityBuffer.draw(false);
 			entityBuffer.close();
 		}
 
-		profileSwap(profiler, "after_entities_event");
+		profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
@@ -617,7 +620,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			Pipeline.defaultFbo.bind();
 		}
 
-		profileSwap(profiler, "destroyProgress");
+		profileSwap(profiler, ProfilerGroup.EndWorld, "destroyProgress");
 
 		// honor damage render layer irrespective of model material
 		blockContext.collectors = null;
@@ -648,7 +651,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		blockContext.collectors = immediate.collectors;
 
-		profileSwap(profiler, "outline");
+		profileSwap(profiler, ProfilerGroup.EndWorld, "outline");
 		final HitResult hitResult = mc.crosshairTarget;
 
 		if (WorldRenderEvents.BEFORE_BLOCK_OUTLINE.invoker().beforeBlockOutline(eventContext, hitResult)) {
@@ -670,12 +673,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		// NB: view matrix is already applied to GL state before renderWorld is called
-		profileSwap(profiler, "before_debug_event");
+		profileSwap(profiler, ProfilerGroup.EndWorld, "before_debug_event");
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().beforeDebugRender(eventContext);
 		// We still pass in the transformed stack because that is what debug renderer normally gets
 		mc.debugRenderer.render(viewMatrixStack, immediate, cameraX, cameraY, cameraZ);
 
-		profileSwap(profiler, "draw_solid");
+		profileSwap(profiler, ProfilerGroup.EndWorld, "draw_solid");
 
 		// Should generally not have anything here but draw in case content injected in hooks
 		immediate.drawCollectors(MaterialTarget.MAIN);
@@ -695,7 +698,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		bufferBuilders.getEffectVertexConsumers().draw();
 
 		if (advancedTranslucency) {
-			profileSwap(profiler, "translucent");
+			profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
 
 			Pipeline.translucentTerrainFbo.copyDepthFrom(Pipeline.defaultFbo);
 			Pipeline.translucentTerrainFbo.bind();
@@ -721,12 +724,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			Pipeline.translucentParticlesFbo.copyDepthFrom(Pipeline.defaultFbo);
 			Pipeline.translucentParticlesFbo.bind();
 
-			profileSwap(profiler, "particles");
+			profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
 			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate, lightmapTextureManager, camera, tickDelta);
 
 			Pipeline.defaultFbo.bind();
 		} else {
-			profileSwap(profiler, "translucent");
+			profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
 			MatrixState.set(MatrixState.REGION);
 			renderTerrainLayer(true, cameraX, cameraY, cameraZ);
 			MatrixState.set(MatrixState.CAMERA);
@@ -741,13 +744,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
 
-			profileSwap(profiler, "particles");
+			profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
 			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate, lightmapTextureManager, camera, tickDelta);
 		}
 
 		RenderState.disable();
 
-		profileSwap(profiler, "after_translucent_event");
+		profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
 		WorldRenderEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(eventContext);
 
 		// TODO: need a new event here for weather/cloud targets that has matrix applies to render state
@@ -764,7 +767,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
-		profileSwap(profiler, "weather");
+		profileSwap(profiler, ProfilerGroup.EndWorld, "weather");
 
 		if (advancedTranslucency) {
 			RenderPhase.WEATHER_TARGET.startDrawing();
@@ -783,7 +786,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// doesn't make any sense with our chunk culling scheme
 		// this.renderChunkDebugInfo(camera);
-		profileSwap(profiler, "render_last_event");
+		profileSwap(profiler, ProfilerGroup.AfterFabulous, "render_last_event");
 		WorldRenderEvents.LAST.invoker().onLast(eventContext);
 
 		RenderSystem.shadeModel(7424);
@@ -800,13 +803,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		//RenderState.enablePrint = true;
 		assert CanvasGlHelper.checkError();
-
-		Configurator.lagFinder.complete();
+		Timekeeper.instance.swap(ProfilerGroup.AfterFabulous, "after world");
 	}
 
 	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack identityStack, float tickDelta, double cameraX, double cameraY, double cameraZ) {
 		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-			profileSwap(profiler, "clouds");
+			profileSwap(profiler, ProfilerGroup.EndWorld,"clouds");
 
 			if (Pipeline.fabCloudsFbo > 0) {
 				GlStateManager.bindFramebuffer(FramebufferInfo.FRAME_BUFFER, Pipeline.fabCloudsFbo);

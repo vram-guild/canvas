@@ -31,6 +31,10 @@ public abstract class Pass {
 		fbo = Pipeline.getFramebuffer(config.framebuffer.name);
 	}
 
+	public String getName() {
+		return this.config.name;
+	}
+
 	public abstract void run(int width, int height);
 
 	public abstract void close();

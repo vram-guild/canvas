@@ -16,6 +16,7 @@
 
 package grondag.canvas.mixin;
 
+import grondag.canvas.perf.Timekeeper;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -67,7 +68,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
 	private void onRenderWorld(CallbackInfo ci) {
-		Configurator.lagFinder.start("GameRenderer Setup");
+		Timekeeper.instance.startFrame(Timekeeper.ProfilerGroup.GameRendererSetup, "GameRenderer_setup");
 	}
 
 	@Override
