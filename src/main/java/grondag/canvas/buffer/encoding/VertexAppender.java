@@ -17,7 +17,61 @@
 package grondag.canvas.buffer.encoding;
 
 public interface VertexAppender {
-	void add(int[] appendData, int length);
+	void append(int val);
 
-	void add(float... val);
+	default void append(int v0, int v1) {
+		append(v0);
+		append(v1);
+	}
+
+	default void append(int v0, int v1, int v2) {
+		append(v0);
+		append(v1);
+		append(v2);
+	}
+
+	default void append(int v0, int v1, int v2, int v3) {
+		append(v0);
+		append(v1);
+		append(v2);
+		append(v3);
+	}
+
+	default void append(int v0, int v1, int v2, int v3, int v4) {
+		append(v0);
+		append(v1);
+		append(v2);
+		append(v3);
+		append(v4);
+	}
+
+	default void append(float val) {
+		append(Float.floatToRawIntBits(val));
+	}
+
+	default void append(float v0, float v1) {
+		append(Float.floatToRawIntBits(v0));
+		append(Float.floatToRawIntBits(v1));
+	}
+
+	default void append(float v0, float v1, float v2) {
+		append(Float.floatToRawIntBits(v0));
+		append(Float.floatToRawIntBits(v1));
+		append(Float.floatToRawIntBits(v2));
+	}
+
+	default void append(float v0, float v1, float v2, float v3) {
+		append(Float.floatToRawIntBits(v0));
+		append(Float.floatToRawIntBits(v1));
+		append(Float.floatToRawIntBits(v2));
+		append(Float.floatToRawIntBits(v3));
+	}
+
+	default void append(float v0, float v1, float v2, float v3, float v4) {
+		append(Float.floatToRawIntBits(v0));
+		append(Float.floatToRawIntBits(v1));
+		append(Float.floatToRawIntBits(v2));
+		append(Float.floatToRawIntBits(v3));
+		append(Float.floatToRawIntBits(v4));
+	}
 }

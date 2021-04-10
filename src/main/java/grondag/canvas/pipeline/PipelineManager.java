@@ -219,12 +219,12 @@ public class PipelineManager {
 		CanvasTextureState.bindTexture(0);
 
 		final VertexCollectorImpl collector = new VertexCollectorImpl();
-		collector.add(0f, 0f, 0.2f, 0, 1f);
-		collector.add(1f, 0f, 0.2f, 1f, 1f);
-		collector.add(1f, 1f, 0.2f, 1f, 0f);
-		collector.add(1f, 1f, 0.2f, 1f, 0f);
-		collector.add(0f, 1f, 0.2f, 0f, 0f);
-		collector.add(0f, 0f, 0.2f, 0, 1f);
+		collector.append(0f, 0f, 0.2f, 0f, 1f);
+		collector.append(1f, 0f, 0.2f, 1f, 1f);
+		collector.append(1f, 1f, 0.2f, 1f, 0f);
+		collector.append(1f, 1f, 0.2f, 1f, 0f);
+		collector.append(0f, 1f, 0.2f, 0f, 0f);
+		collector.append(0f, 0f, 0.2f, 0f, 1f);
 
 		drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
 		collector.toBuffer(drawBuffer.intBuffer());

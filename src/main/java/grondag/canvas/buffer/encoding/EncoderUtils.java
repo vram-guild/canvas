@@ -55,7 +55,7 @@ public abstract class EncoderUtils {
 		final boolean emissive = quad.material().emissive();
 
 		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppend(i, matrix, buff);
+			quad.transformAndAppendVertex(i, matrix, buff);
 
 			final int color = quad.spriteColor(i, 0);
 			buff.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
@@ -102,12 +102,11 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexCollectorImpl buff) {
+	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexAppender buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl mat = quad.material();
-		final int[] appendData = context.appendData;
 
 		assert mat.blendMode != BlendMode.DEFAULT;
 
@@ -130,21 +129,18 @@ public abstract class EncoderUtils {
 
 		spriteIdCoord |= (mat.index << 16);
 
-		int k = 0;
-
 		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppend(i, matrix, appendData, k);
-			k += 3;
+			quad.transformAndAppendVertex(i, matrix, buff);
 
-			appendData[k++] = quad.vertexColor(i);
-			appendData[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
-			appendData[k++] = spriteIdCoord;
+			buff.append(quad.vertexColor(i));
+			buff.append(quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16));
+			buff.append(spriteIdCoord);
 
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFF);
 			final int skyLight = ((packedLight >> 16) & 0xFF);
 			final int ao = aoData == null ? 255 : (Math.round(aoData[i] * 255));
-			appendData[k++] = blockLight | (skyLight << 8) | (ao << 16);
+			buff.append(blockLight | (skyLight << 8) | (ao << 16));
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -155,10 +151,8 @@ public abstract class EncoderUtils {
 				}
 			}
 
-			appendData[k++] = transformedNormal | shaderFlags;
+			buff.append(transformedNormal | shaderFlags);
 		}
-
-		buff.add(appendData, k);
 	}
 
 	public static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {

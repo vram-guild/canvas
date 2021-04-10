@@ -177,7 +177,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		integerSize = 0;
 
 		if (newSize > 0) {
-			ensureCapacity(newSize);
+			grow(newSize);
 			integerSize = newSize;
 			System.arraycopy(stateData, 0, vertexData, 0, newSize);
 		}
@@ -227,7 +227,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	protected void emitQuad() {
 		if (conditionActive) {
 			final int newSize = integerSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
-			ensureCapacity(newSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
+			grow(newSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
 			currentVertexIndex = newSize;
 			integerSize = newSize;
 		} else {
@@ -236,28 +236,15 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	}
 
 	@Override
-	public final void add(int[] appendData, int length) {
+	public void append(int val) {
 		final int oldSize = integerSize;
-		final int newSize = integerSize + length;
-		ensureCapacity(newSize);
-		System.arraycopy(appendData, 0, vertexData, oldSize, length);
-		integerSize = newSize;
-		currentVertexIndex = newSize;
-	}
+		vertexData[oldSize] = val;
 
-	@Override
-	public void add(float... val) {
-		final int length = val.length;
-		final int oldSize = integerSize;
-		final int newSize = integerSize + length;
-		final int[] data = vertexData;
-		ensureCapacity(newSize);
-
-		for (int i = 0; i < length; ++i) {
-			data[i + oldSize] = Float.floatToRawIntBits(val[i]);
+		if ((oldSize & FULL_BLOCK_MASK) == FULL_BLOCK_MASK) {
+			grow();
 		}
 
-		integerSize = newSize;
+		integerSize = oldSize + 1;
 	}
 
 	public static String debugReport() {

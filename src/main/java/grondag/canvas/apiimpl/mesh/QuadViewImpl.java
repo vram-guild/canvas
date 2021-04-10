@@ -44,6 +44,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.buffer.encoding.VertexAppender;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -405,23 +406,7 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + HEADER_SPRITE];
 	}
 
-	public void transformAndAppend(final int vertexIndex, final Matrix4fExt matrix, final int[] appendData, final int targetIndex) {
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		final float x = Float.intBitsToFloat(data[index]);
-		final float y = Float.intBitsToFloat(data[index + 1]);
-		final float z = Float.intBitsToFloat(data[index + 2]);
-
-		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
-
-		appendData[targetIndex] = Float.floatToRawIntBits(xOut);
-		appendData[targetIndex + 1] = Float.floatToRawIntBits(yOut);
-		appendData[targetIndex + 2] = Float.floatToRawIntBits(zOut);
-	}
-
-	public void transformAndAppend(final int vertexIndex, final Matrix4fExt matrix, final VertexConsumer buff) {
+	public void transformAndAppendVertex(final int vertexIndex, final Matrix4fExt matrix, final VertexConsumer buff) {
 		final int[] data = this.data;
 		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
 		final float x = Float.intBitsToFloat(data[index]);
@@ -435,15 +420,17 @@ public class QuadViewImpl implements QuadView {
 		buff.vertex(xOut, yOut, zOut);
 	}
 
-	public void transformAndAppend(final int vertexIndex, final Matrix4fExt matrix, final float[] out) {
+	public void transformAndAppendVertex(final int vertexIndex, final Matrix4fExt matrix, final VertexAppender buff) {
 		final int[] data = this.data;
 		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
 		final float x = Float.intBitsToFloat(data[index]);
 		final float y = Float.intBitsToFloat(data[index + 1]);
 		final float z = Float.intBitsToFloat(data[index + 2]);
 
-		out[0] = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		out[1] = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		out[2] = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
+		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
+		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
+		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
+
+		buff.append(xOut, yOut, zOut);
 	}
 }

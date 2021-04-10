@@ -27,7 +27,6 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_VERTEX_S
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
@@ -37,10 +36,12 @@ import grondag.canvas.mixinterface.SpriteExt;
 
 public abstract class AbstractVertexCollector implements VertexCollector {
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
+	private static final int BLOCK_SIZE = 1024;
+	protected static final int FULL_BLOCK_MASK = BLOCK_SIZE - 1;
 
 	protected RenderMaterialImpl materialState;
 
-	protected int capacity = 256;
+	protected int capacity = BLOCK_SIZE;
 	protected int[] vertexData = new int[capacity];
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	protected int integerSize = 0;
@@ -56,9 +57,18 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 		collectorBytes.addAndGet(capacity);
 	}
 
-	protected void ensureCapacity(int intSize) {
-		if (intSize > capacity) {
-			final int newCapacity = MathHelper.smallestEncompassingPowerOfTwo(intSize);
+	protected void grow() {
+		final int newCapacity = capacity + BLOCK_SIZE;
+		final int[] newData = new int[newCapacity];
+		System.arraycopy(vertexData, 0, newData, 0, capacity);
+		collectorBytes.addAndGet(newCapacity - capacity);
+		capacity = newCapacity;
+		vertexData = newData;
+	}
+
+	protected void grow(int newSize) {
+		if (newSize > capacity) {
+			final int newCapacity = ((newSize + BLOCK_SIZE - 1) / BLOCK_SIZE) * BLOCK_SIZE;
 			final int[] newData = new int[newCapacity];
 			System.arraycopy(vertexData, 0, newData, 0, capacity);
 			collectorBytes.addAndGet(newCapacity - capacity);
