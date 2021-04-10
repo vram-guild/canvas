@@ -333,6 +333,11 @@ public class GFX extends GL46C {
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));
 	}
 
+	public static void texBuffer(int format, int buffer) {
+		glTexBuffer(GFX.GL_TEXTURE_BUFFER, format, buffer);
+		assert logError(String.format("glTexBuffer(GL_TEXTURE_BUFFER, %s, %d)", GlSymbolLookup.reverseLookup(format), buffer));
+	}
+
 	private static boolean maskRed = true, maskGreen = true, maskBlue = true, maskAlpha = true;
 
 	public static void colorMask(boolean red, boolean green, boolean blue, boolean alpha) {

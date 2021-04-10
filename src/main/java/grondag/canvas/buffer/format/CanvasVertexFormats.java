@@ -42,7 +42,6 @@ public final class CanvasVertexFormats {
 	 *
 	 * <p>Texture is always normalized. For atlas textures, sprite ID is
 	 * carried in most significant bytes of normal.
-	 * Normal only contains packed x and y values, z is derived in shader.
 	 * Most significant byte of lightmap holds vertex state flags.
 	 */
 	public static final CanvasVertexFormat POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, MATERIAL_2US, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
@@ -55,4 +54,13 @@ public final class CanvasVertexFormats {
 
 	public static final int MATERIAL_VERTEX_STRIDE = POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
 	public static final int MATERIAL_QUAD_STRIDE = MATERIAL_VERTEX_STRIDE * 4;
+
+	// WIP2: new compact format
+	// Position 3F
+	// Color    4UB
+	// Texture	2US
+	// Mat/Norm 2US -> material includes sprite atlas info if needed
+	// Lightmap is optional addition
+
+	// 6 words / 24 bytes w/o lightmap
 }
