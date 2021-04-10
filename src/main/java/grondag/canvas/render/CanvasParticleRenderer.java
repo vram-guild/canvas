@@ -119,21 +119,14 @@ public class CanvasParticleRenderer {
 
 	private void setupVanillaParticleRender() {
 		lightmapTextureManager.enable();
-		// WIP2: cruft
-		//RenderSystem.enableAlphaTest();
-		//RenderSystem.defaultAlphaFunc();
 		RenderSystem.enableDepthTest();
-		//RenderSystem.enableFog();
 	}
 
 	private void teardownVanillaParticleRender() {
 		RenderSystem.depthMask(true);
 		RenderSystem.depthFunc(515);
 		RenderSystem.disableBlend();
-		// WIP2: cruft
-		//RenderSystem.defaultAlphaFunc();
 		lightmapTextureManager.disable();
-		//RenderSystem.disableFog();
 	}
 
 	private VertexConsumer beginSheet(ParticleTextureSheet particleTextureSheet) {
