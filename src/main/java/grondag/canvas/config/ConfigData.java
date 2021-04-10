@@ -45,8 +45,6 @@ class ConfigData {
 	boolean semiFlatLighting = true;
 
 	// TWEAKS
-	@Comment("Draws multiple chunks with same view transformation. Much faster, but try without if you see visual defects.")
-	boolean batchedChunkRender = true;
 	@Comment("Adjusts quads on some vanilla models (like iron bars) to avoid z-fighting with neighbor blocks.")
 	boolean preventDepthFighting = true;
 	@Comment("Treats model geometry outside of block boundaries as on the block for lighting purposes. Helps prevent bad lighting outcomes.")
