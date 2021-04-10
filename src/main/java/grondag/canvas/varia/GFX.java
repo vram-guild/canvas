@@ -31,10 +31,11 @@ import grondag.canvas.pipeline.GlSymbolLookup;
 
 public class GFX extends GL46C {
 	public static boolean checkError() {
-		return checkError(null);
+		return glGetError() == 0;
 	}
 
-	public static boolean checkError(String message) {
+	/** Always returns true with intention of using only when assertions are enabled. */
+	public static boolean logError(String message) {
 		if (!RenderSystem.isOnRenderThread()) {
 			throw new IllegalStateException("GFX called outside render thread.");
 		}
@@ -45,68 +46,66 @@ public class GFX extends GL46C {
 			CanvasMod.LOG.info("GFX: " + message);
 		}
 
-		if (error == 0) {
-			return true;
-		} else {
+		if (error != 0) {
 			if (message == null) {
 				message = "unknown";
 			}
 
 			CanvasMod.LOG.warn(String.format("OpenGL Error: %s (%d) in %s", GlSymbolLookup.reverseLookup(error), error, message));
-			// WIP2: put back to false?
-			return true;
 		}
+
+		return true;
 	}
 
 	public static void disableVertexAttribArray(int index) {
 		VaoTracker.disable(index);
 		glDisableVertexAttribArray(index);
-		assert checkError(String.format("glDisableVertexAttribArray(%d)", index));
+		assert logError(String.format("glDisableVertexAttribArray(%d)", index));
 	}
 
 	public static void enableVertexAttribArray(int index) {
 		VaoTracker.enable(index);
 		glEnableVertexAttribArray(index);
-		assert checkError(String.format("glEnableVertexAttribArray(%d)", index));
+		assert logError(String.format("glEnableVertexAttribArray(%d)", index));
 	}
 
 	public static void vertexAttribPointer(int index, int size, int type, boolean normalized, int stride, long pointer) {
 		glVertexAttribPointer(index, size, type, normalized, stride, pointer);
-		assert checkError("glVertexAttribPointer");
+		assert logError("glVertexAttribPointer");
 	}
 
 	public static void bindAttribLocation(int program, int index, CharSequence name) {
 		glBindAttribLocation(program, index, name);
-		assert checkError(String.format("glBindAttribLocation(%d, %d, %s)", program, index, name));
+		assert logError(String.format("glBindAttribLocation(%d, %d, %s)", program, index, name));
 	}
 
 	public static int getAttribLocation(int program, CharSequence name) {
 		final int result = glGetAttribLocation(program, name);
-		assert checkError(String.format("glGetAttribLocation(%d, %s)", program, name));
+		assert logError(String.format("glGetAttribLocation(%d, %s)", program, name));
 		return result;
 	}
 
 	public static String getProgramInfoLog(int program) {
 		final String result = glGetProgramInfoLog(program, glGetProgrami(program, GL_INFO_LOG_LENGTH));
-		assert checkError(String.format("glGetProgramInfoLog(%d)", program));
+		assert logError(String.format("glGetProgramInfoLog(%d)", program));
 		return result;
 	}
 
 	public static String getShaderInfoLog(int shader) {
 		final String result = glGetShaderInfoLog(shader, glGetShaderi(shader, GL_INFO_LOG_LENGTH));
-		assert checkError(String.format("glGetShaderInfoLog(%d)", shader));
+		assert logError(String.format("glGetShaderInfoLog(%d)", shader));
 		return result;
 	}
 
 	public static int getProgramInfo(int program, int paramName) {
 		final int result = glGetProgrami(program, paramName);
-		assert checkError(String.format("glGetProgrami(%d, %s)", program, GlSymbolLookup.reverseLookup(paramName)));
+		assert logError(String.format("glGetProgrami(%d, %s)", program, GlSymbolLookup.reverseLookup(paramName)));
 		return result;
 	}
 
 	public static void clearDepth(double depth) {
 		glClearDepth(depth);
-		assert checkError("clearDepth");
+		assert logError("clearDepth");
 	}
 
 	public static void clear(int mask, boolean getError) {
@@ -119,33 +118,33 @@ public class GFX extends GL46C {
 
 	public static void clearColor(float red, float green, float blue, float alpha) {
 		glClearColor(red, green, blue, alpha);
-		assert checkError("clearColor");
+		assert logError("clearColor");
 	}
 
 	public static int getUniformLocation(int program, CharSequence name) {
 		final int result = glGetUniformLocation(program, name);
-		assert checkError(String.format("glGetUniformLocation(%d, %s)", program, name));
+		assert logError(String.format("glGetUniformLocation(%d, %s)", program, name));
 		return result;
 	}
 
 	public static void cullFace(int mode) {
 		glCullFace(mode);
-		assert checkError(String.format("glCullFace(%s)", GlSymbolLookup.reverseLookup(mode)));
+		assert logError(String.format("glCullFace(%s)", GlSymbolLookup.reverseLookup(mode)));
 	}
 
 	public static void polygonOffset(float factor, float units) {
 		glPolygonOffset(factor, units);
-		assert checkError(String.format("glPolygonOffset(%f, %f)", factor, units));
+		assert logError(String.format("glPolygonOffset(%f, %f)", factor, units));
 	}
 
 	public static void disable(int target) {
 		glDisable(target);
-		assert checkError(String.format("glDisable(%s)", GlSymbolLookup.reverseLookup(target)));
+		assert logError(String.format("glDisable(%s)", GlSymbolLookup.reverseLookup(target)));
 	}
 
 	public static void enable(int target) {
 		glEnable(target);
-		assert checkError(String.format("glEnable(%s)", GlSymbolLookup.reverseLookup(target)));
+		assert logError(String.format("glEnable(%s)", GlSymbolLookup.reverseLookup(target)));
 	}
 
 	private static int currentArrayBuffer = 0;
@@ -168,34 +167,34 @@ public class GFX extends GL46C {
 		}
 
 		glBindBuffer(target, buffer);
-		assert checkError(String.format("glBindBuffer(%s, %d)", GlSymbolLookup.reverseLookup(target), buffer));
+		assert logError(String.format("glBindBuffer(%s, %d)", GlSymbolLookup.reverseLookup(target), buffer));
 	}
 
 	public static int genFramebuffer() {
 		final int result = glGenFramebuffers();
-		assert checkError("genFramebuffer");
+		assert logError("genFramebuffer");
 		return result;
 	}
 
 	public static int checkFramebufferStatus(int target) {
 		final int result = glCheckFramebufferStatus(target);
-		assert checkError(String.format("glCheckFramebufferStatus(%s)", GlSymbolLookup.reverseLookup(target)));
+		assert logError(String.format("glCheckFramebufferStatus(%s)", GlSymbolLookup.reverseLookup(target)));
 		return result;
 	}
 
 	public static void bindFramebuffer(int target, int buffer) {
 		glBindFramebuffer(target, buffer);
-		assert checkError(String.format("glBindFramebuffer(%s, %d)", GlSymbolLookup.reverseLookup(target), buffer));
+		assert logError(String.format("glBindFramebuffer(%s, %d)", GlSymbolLookup.reverseLookup(target), buffer));
 	}
 
 	public static void deleteFramebuffer(int buffer) {
 		glDeleteFramebuffers(buffer);
-		assert checkError(String.format("glDeleteFramebuffers(%d)", buffer));
+		assert logError(String.format("glDeleteFramebuffers(%d)", buffer));
 	}
 
 	public static void framebufferTexture2D(int target, int attachment, int textarget, int texture, int level) {
 		glFramebufferTexture2D(target, attachment, textarget, texture, level);
-		assert checkError(String.format("glFramebufferTexture2D(%s, %s, %s, %d, %d)",
+		assert logError(String.format("glFramebufferTexture2D(%s, %s, %s, %d, %d)",
 				GlSymbolLookup.reverseLookup(target),
 				GlSymbolLookup.reverseLookup(attachment),
 				GlSymbolLookup.reverseLookup(textarget), texture, level));
@@ -203,68 +202,68 @@ public class GFX extends GL46C {
 
 	public static void framebufferTextureLayer(int target, int attachment, int texture, int level, int layer) {
 		glFramebufferTextureLayer(target, attachment, texture, level, layer);
-		assert checkError(String.format("glFramebufferTextureLayer(%s, %s, %d, %d, %d)",
+		assert logError(String.format("glFramebufferTextureLayer(%s, %s, %d, %d, %d)",
 				GlSymbolLookup.reverseLookup(target), GlSymbolLookup.reverseLookup(attachment),
 				texture, level, layer));
 	}
 
 	public static void drawBuffer(int buffer) {
 		glDrawBuffer(buffer);
-		assert checkError(String.format("glDrawBuffer(%s)", GlSymbolLookup.reverseLookup(buffer)));
+		assert logError(String.format("glDrawBuffer(%s)", GlSymbolLookup.reverseLookup(buffer)));
 	}
 
 	public static void readBuffer(int buffer) {
 		glReadBuffer(buffer);
-		assert checkError(String.format("glReadBuffer(%s)", GlSymbolLookup.reverseLookup(buffer)));
+		assert logError(String.format("glReadBuffer(%s)", GlSymbolLookup.reverseLookup(buffer)));
 	}
 
 	public static void drawBuffers(int buffer) {
 		glDrawBuffers(buffer);
-		assert checkError(String.format("glDrawBuffers(%s)", GlSymbolLookup.reverseLookup(buffer)));
+		assert logError(String.format("glDrawBuffers(%s)", GlSymbolLookup.reverseLookup(buffer)));
 	}
 
 	public static void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, int filter) {
 		glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
-		assert checkError(String.format("glBlitFramebuffer(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d)", srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter));
+		assert logError(String.format("glBlitFramebuffer(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d)", srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter));
 	}
 
 	public static void genBuffers(IntBuffer buffers) {
 		glGenBuffers(buffers);
-		assert checkError("glGenBuffers");
+		assert logError("glGenBuffers");
 	}
 
 	public static int genBuffer() {
 		final int result = glGenBuffers();
-		assert checkError("glGenBuffers");
+		assert logError("glGenBuffers");
 		return result;
 	}
 
 	public static int genVertexArray() {
 		final int result = glGenVertexArrays();
 		VaoTracker.gen(result);
-		assert checkError("glGenVertexArrays");
+		assert logError("glGenVertexArrays");
 		return result;
 	}
 
 	public static void deleteVertexArray(int array) {
 		VaoTracker.del(array);
 		glDeleteVertexArrays(array);
-		assert checkError(String.format("glDeleteVertexArrays(%d)", array));
+		assert logError(String.format("glDeleteVertexArrays(%d)", array));
 	}
 
 	public static void deleteBuffers(int buffer) {
 		glDeleteBuffers(buffer);
-		assert checkError(String.format("glDeleteBuffers(%d)", buffer));
+		assert logError(String.format("glDeleteBuffers(%d)", buffer));
 	}
 
 	public static void bufferData(int target, ByteBuffer buffer, int usage) {
 		glBufferData(target, buffer, usage);
-		assert checkError(String.format("glBufferData(%s, %d)", GlSymbolLookup.reverseLookup(target), usage));
+		assert logError(String.format("glBufferData(%s, %d)", GlSymbolLookup.reverseLookup(target), usage));
 	}
 
 	public static void bufferData(int target, long size, int usage) {
 		glBufferData(target, size, usage);
-		assert checkError(String.format("glBufferData(%s, %d, %d)", GlSymbolLookup.reverseLookup(target), size, usage));
+		assert logError(String.format("glBufferData(%s, %d, %d)", GlSymbolLookup.reverseLookup(target), size, usage));
 	}
 
 	private static int currentVertexArray = 0;
@@ -278,45 +277,45 @@ public class GFX extends GL46C {
 		currentVertexArray = array;
 		VaoTracker.bind(array);
 		glBindVertexArray(array);
-		assert checkError(String.format("glBindVertexArray(%d)", array));
+		assert logError(String.format("glBindVertexArray(%d)", array));
 	}
 
 	public static void bindTexture(int target, int texture) {
 		glBindTexture(target, texture);
-		assert checkError(String.format("glBindTexture(%s, %d)", GlSymbolLookup.reverseLookup(target), texture));
+		assert logError(String.format("glBindTexture(%s, %d)", GlSymbolLookup.reverseLookup(target), texture));
 	}
 
 	public static void deleteTexture(int texture) {
 		glDeleteTextures(texture);
-		assert checkError(String.format("glDeleteTextures(%d)", texture));
+		assert logError(String.format("glDeleteTextures(%d)", texture));
 	}
 
 	public static void activeTexture(int texture) {
 		glActiveTexture(texture);
-		assert checkError(String.format("glActiveTexture(%d)", texture));
+		assert logError(String.format("glActiveTexture(%d)", texture));
 	}
 
 	public static void texParameter(int target, int pname, int param) {
 		glTexParameteri(target, pname, param);
-		assert checkError(String.format("glTexParameteri(%s, %s, %s)",
+		assert logError(String.format("glTexParameteri(%s, %s, %s)",
 				GlSymbolLookup.reverseLookup(target), GlSymbolLookup.reverseLookup(pname), GlSymbolLookup.reverseLookup(param)));
 	}
 
 	public static void texParameter(int target, int pname, float param) {
 		glTexParameterf(target, pname, param);
-		assert checkError(String.format("glTexParameteri(%s, %s, %f)",
+		assert logError(String.format("glTexParameteri(%s, %s, %f)",
 				GlSymbolLookup.reverseLookup(target), GlSymbolLookup.reverseLookup(pname), param));
 	}
 
 	public static void pixelStore(int pname, int param) {
 		glPixelStorei(pname, param);
-		assert checkError(String.format("glPixelStorei(%s, %d)",
+		assert logError(String.format("glPixelStorei(%s, %d)",
 				GlSymbolLookup.reverseLookup(pname), param));
 	}
 
 	public static void texImage2D(int target, int level, int internalFormat, int width, int height, int border, int format, int type, @Nullable IntBuffer pixels) {
 		glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
-		assert checkError(String.format("glTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s)",
+		assert logError(String.format("glTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s)",
 				GlSymbolLookup.reverseLookup(target), level,
 				GlSymbolLookup.reverseLookup(internalFormat), width, height, border,
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));
@@ -324,7 +323,7 @@ public class GFX extends GL46C {
 
 	public static void texImage2D(int target, int level, int internalFormat, int width, int height, int border, int format, int type, @Nullable ByteBuffer pixels) {
 		glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
-		assert checkError(String.format("glTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s)",
+		assert logError(String.format("glTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s)",
 				GlSymbolLookup.reverseLookup(target), level,
 				GlSymbolLookup.reverseLookup(internalFormat), width, height, border,
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));
@@ -332,7 +331,7 @@ public class GFX extends GL46C {
 
 	public static void texImage3D(int target, int level, int internalFormat, int width, int height, int depth, int border, int format, int type, @Nullable ByteBuffer pixels) {
 		glTexImage3D(target, level, internalFormat, width, height, depth, border, format, type, pixels);
-		assert checkError(String.format("glTexImage3D(%s, %d, %s, %d, %d, %d, %d, %s, %s)",
+		assert logError(String.format("glTexImage3D(%s, %d, %s, %d, %d, %d, %d, %s, %s)",
 				GlSymbolLookup.reverseLookup(target), level,
 				GlSymbolLookup.reverseLookup(internalFormat), width, height, depth, border,
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));
@@ -340,7 +339,7 @@ public class GFX extends GL46C {
 
 	public static void texImage2D(int target, int level, int internalFormat, int width, int height, int border, int format, int type, long pixels) {
 		glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
-		assert checkError(String.format("glTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s)",
+		assert logError(String.format("glTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s)",
 				GlSymbolLookup.reverseLookup(target), level,
 				GlSymbolLookup.reverseLookup(internalFormat), width, height, border,
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));
@@ -348,7 +347,7 @@ public class GFX extends GL46C {
 
 	public static void texSubImage2D(int target, int level, int offsetX, int offsetY, int width, int height, int format, int type, long pixels) {
 		glTexSubImage2D(target, level, offsetX, offsetY, width, height, format, type, pixels);
-		assert checkError(String.format("glTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s)",
+		assert logError(String.format("glTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s)",
 				GlSymbolLookup.reverseLookup(target), level, offsetX, offsetY, width, height,
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));
 	}
@@ -362,7 +361,7 @@ public class GFX extends GL46C {
 			maskBlue = blue;
 			maskAlpha = alpha;
 			glColorMask(red, green, blue, alpha);
-			assert checkError("glColorMask");
+			assert logError("glColorMask");
 		}
 	}
 
@@ -388,7 +387,7 @@ public class GFX extends GL46C {
 		if (func != depthFunc) {
 			depthFunc = func;
 			glDepthFunc(func);
-			assert checkError("glDepthFunc");
+			assert logError("glDepthFunc");
 		}
 	}
 
@@ -398,7 +397,7 @@ public class GFX extends GL46C {
 		if (mask != depthMask) {
 			depthMask = mask;
 			glDepthMask(mask);
-			assert checkError("glDepthMask");
+			assert logError("glDepthMask");
 		}
 	}
 
@@ -433,7 +432,7 @@ public class GFX extends GL46C {
 			glBlendFuncSeparate(srcFactorRGB, dstFactorRGB, srcFactorAlpha, dstFactorAlpha);
 		}
 
-		assert checkError("glBlendFuncSeparate");
+		assert logError("glBlendFuncSeparate");
 	}
 
 	public static void blendFunc(int srcFactor, int dstFactor) {
@@ -443,7 +442,7 @@ public class GFX extends GL46C {
 			glBlendFunc(srcFactor, dstFactor);
 		}
 
-		assert checkError("glBlendFunc");
+		assert logError("glBlendFunc");
 	}
 
 	private static boolean cull = false;
@@ -472,124 +471,127 @@ public class GFX extends GL46C {
 
 	public static void viewport(int x, int y, int width, int height) {
 		glViewport(x, y, width, height);
-		assert checkError(String.format("glViewport(%d, %d, %d, %d)", x, y, width, height));
+		assert logError(String.format("glViewport(%d, %d, %d, %d)", x, y, width, height));
 	}
 
 	public static void deleteProgram(int program) {
 		glDeleteProgram(program);
-		assert checkError(String.format("glDeleteProgram(%d)", program));
+		assert logError(String.format("glDeleteProgram(%d)", program));
 	}
 
 	public static int createProgram() {
 		final int result = glCreateProgram();
-		assert checkError("glCreateProgram");
+		assert logError("glCreateProgram");
 		return result;
 	}
 
+	/**
+	 * Clears error state prior to run and does not clear it after.
+	 */
 	public static void useProgram(int program) {
+		glGetError();
 		glUseProgram(program);
-		//assert checkError(String.format("glUseProgram(%d)", program));
 	}
 
 	public static void linkProgram(int program) {
 		glLinkProgram(program);
-		assert checkError(String.format("glLinkProgram(%d)", program));
+		assert logError(String.format("glLinkProgram(%d)", program));
 	}
 
 	public static void uniform1fv(int location, FloatBuffer value) {
 		glUniform1fv(location, value);
-		assert checkError(String.format("glUniform1fv(%d)", location));
+		assert logError(String.format("glUniform1fv(%d)", location));
 	}
 
 	public static void uniform2fv(int location, FloatBuffer value) {
 		glUniform2fv(location, value);
-		assert checkError(String.format("glUniform2fv(%d)", location));
+		assert logError(String.format("glUniform2fv(%d)", location));
 	}
 
 	public static void uniform3fv(int location, FloatBuffer value) {
 		glUniform3fv(location, value);
-		assert checkError(String.format("glUniform3fv(%d)", location));
+		assert logError(String.format("glUniform3fv(%d)", location));
 	}
 
 	public static void uniform4fv(int location, FloatBuffer value) {
 		glUniform4fv(location, value);
-		assert checkError(String.format("glUniform4fv(%d)", location));
+		assert logError(String.format("glUniform4fv(%d)", location));
 	}
 
 	public static void uniform1iv(int location, IntBuffer value) {
 		glUniform1iv(location, value);
-		assert checkError(String.format("glUniform1iv(%d)", location));
+		assert logError(String.format("glUniform1iv(%d)", location));
 	}
 
 	public static void uniform1i(int location, int value) {
 		glUniform1i(location, value);
-		assert checkError(String.format("glUniform1i(%d)", location));
+		assert logError(String.format("glUniform1i(%d)", location));
 	}
 
 	public static void uniform2iv(int location, IntBuffer value) {
 		glUniform2iv(location, value);
-		assert checkError(String.format("glUniform2iv(%d)", location));
+		assert logError(String.format("glUniform2iv(%d)", location));
 	}
 
 	public static void uniform3iv(int location, IntBuffer value) {
 		glUniform3iv(location, value);
-		assert checkError(String.format("glUniform3iv(%d)", location));
+		assert logError(String.format("glUniform3iv(%d)", location));
 	}
 
 	public static void uniform4iv(int location, IntBuffer value) {
 		glUniform4iv(location, value);
-		assert checkError(String.format("glUniform4iv(%d)", location));
+		assert logError(String.format("glUniform4iv(%d)", location));
 	}
 
 	public static void uniform1uiv(int location, IntBuffer value) {
 		glUniform1uiv(location, value);
-		assert checkError(String.format("glUniform1uiv(%d)", location));
+		assert logError(String.format("glUniform1uiv(%d)", location));
 	}
 
 	public static void uniform2uiv(int location, IntBuffer value) {
 		glUniform2uiv(location, value);
-		assert checkError(String.format("glUniform2uiv(%d)", location));
+		assert logError(String.format("glUniform2uiv(%d)", location));
 	}
 
 	public static void uniform3uiv(int location, IntBuffer value) {
 		glUniform3uiv(location, value);
-		assert checkError(String.format("glUniform3uiv(%d)", location));
+		assert logError(String.format("glUniform3uiv(%d)", location));
 	}
 
 	public static void uniform4uiv(int location, IntBuffer value) {
 		glUniform4uiv(location, value);
-		assert checkError(String.format("glUniform4uiv(%d)", location));
+		assert logError(String.format("glUniform4uiv(%d)", location));
 	}
 
 	public static void uniformMatrix4fv(int location, boolean transpose, FloatBuffer value) {
 		glUniformMatrix4fv(location, transpose, value);
-		assert checkError(String.format("glUniformMatrix4fv(%d)", location));
+		assert logError(String.format("glUniformMatrix4fv(%d)", location));
 	}
 
 	public static void uniformMatrix2fv(int location, boolean transpose, FloatBuffer value) {
 		glUniformMatrix2fv(location, transpose, value);
-		assert checkError(String.format("glUniformMatrix2fv(%d)", location));
+		assert logError(String.format("glUniformMatrix2fv(%d)", location));
 	}
 
 	public static void uniformMatrix3fv(int location, boolean transpose, FloatBuffer value) {
 		glUniformMatrix3fv(location, transpose, value);
-		assert checkError(String.format("glUniformMatrix3fv(%d)", location));
+		assert logError(String.format("glUniformMatrix3fv(%d)", location));
 	}
 
 	public static void drawArrays(int mode, int first, int count) {
 		glDrawArrays(mode, first, count);
-		assert checkError(String.format("glDrawArrays(%s, %d, %d)", GlSymbolLookup.reverseLookup(mode), first, count));
+		assert logError(String.format("glDrawArrays(%s, %d, %d)", GlSymbolLookup.reverseLookup(mode), first, count));
 	}
 
 	public static void drawElements(int mode, int count, int type, long indices) {
 		glDrawElements(mode, count, type, indices);
-		assert checkError(String.format("glDrawElements(%s, %d, %s, %d)",
+		assert logError(String.format("glDrawElements(%s, %d, %s, %d)",
 				GlSymbolLookup.reverseLookup(mode), count, GlSymbolLookup.reverseLookup(type), indices));
 	}
 
 	public static void drawElementsBaseVertex(int mode, int count, int type, long indices, int baseVertex) {
 		glDrawElementsBaseVertex(mode, count, type, indices, baseVertex);
-		assert checkError(String.format("glDrawElementsBaseVertex(%s, %d, %s, %d, %d)",
+		assert logError(String.format("glDrawElementsBaseVertex(%s, %d, %s, %d, %d)",
 				GlSymbolLookup.reverseLookup(mode), count, GlSymbolLookup.reverseLookup(type), indices, baseVertex));
 	}
 
@@ -610,115 +612,115 @@ public class GFX extends GL46C {
 
 	public static void scissor(int x, int y, int width, int height) {
 		glScissor(x, y, width, height);
-		assert checkError("glScissor");
+		assert logError("glScissor");
 	}
 
 	public static void blendEquation(int mode) {
 		glBlendEquation(mode);
-		assert checkError(String.format("glDeleteProgram(%s)", GlSymbolLookup.reverseLookup(mode)));
+		assert logError(String.format("glDeleteProgram(%s)", GlSymbolLookup.reverseLookup(mode)));
 	}
 
 	public static int getProgrami(int program, int pname) {
 		final int result = glGetProgrami(program, pname);
-		assert checkError("glGetProgrami");
+		assert logError("glGetProgrami");
 		return result;
 	}
 
 	public static void attachShader(int program, int shader) {
 		glAttachShader(program, shader);
-		assert checkError("glAttachShader");
+		assert logError("glAttachShader");
 	}
 
 	public static void deleteShader(int shader) {
 		glDeleteShader(shader);
-		assert checkError("glDeleteShader");
+		assert logError("glDeleteShader");
 	}
 
 	public static int createShader(int type) {
 		final int result = glCreateShader(type);
-		assert checkError("glCreateShader");
+		assert logError("glCreateShader");
 		return result;
 	}
 
 	public static void shaderSource(int shader, CharSequence[] source) {
 		glShaderSource(shader, source);
-		assert checkError("glShaderSource");
+		assert logError("glShaderSource");
 	}
 
 	public static void compileShader(int shader) {
 		glCompileShader(shader);
-		assert checkError("glCompileShader");
+		assert logError("glCompileShader");
 	}
 
 	public static int getShader(int shader, int pname) {
 		final int result = glGetShaderi(shader, pname);
-		assert checkError("glGetShaderi");
+		assert logError("glGetShaderi");
 		return result;
 	}
 
 	public static @Nullable ByteBuffer mapBuffer(int target, int access) {
 		final ByteBuffer result = glMapBuffer(target, access);
-		assert checkError("glMapBuffer");
+		assert logError("glMapBuffer");
 		return result;
 	}
 
 	public static void unmapBuffer(int target) {
 		glUnmapBuffer(target);
-		assert checkError("unmapBuffer");
+		assert logError("unmapBuffer");
 	}
 
 	public static void copyTexSubImage2D(int i, int j, int k, int l, int m, int n, int o, int p) {
 		glCopyTexSubImage2D(i, j, k, l, m, n, o, p);
-		assert checkError("glCopyTexSubImage2D");
+		assert logError("glCopyTexSubImage2D");
 	}
 
 	public static void bindRenderbuffer(int target, int renderBuffer) {
 		glBindRenderbuffer(target, renderBuffer);
-		assert checkError("glBindRenderbuffer");
+		assert logError("glBindRenderbuffer");
 	}
 
 	public static void deleteRenderbuffer(int buffer) {
 		glDeleteRenderbuffers(buffer);
-		assert checkError("glDeleteRenderbuffers");
+		assert logError("glDeleteRenderbuffers");
 	}
 
 	public static int genRenderbuffer() {
 		final int result = glGenRenderbuffers();
-		assert checkError("glGenRenderbuffers");
+		assert logError("glGenRenderbuffers");
 		return result;
 	}
 
 	public static void renderbufferStorage(int target, int internalformat, int width, int height) {
 		glRenderbufferStorage(target, internalformat, width, height);
-		assert checkError("glRenderbufferStorage");
+		assert logError("glRenderbufferStorage");
 	}
 
 	public static void framebufferRenderbuffer(int i, int j, int k, int l) {
 		glFramebufferRenderbuffer(i, j, k, l);
-		assert checkError("glFramebufferRenderbuffer");
+		assert logError("glFramebufferRenderbuffer");
 	}
 
 	public static int getInteger(int pname) {
 		final int result = glGetInteger(pname);
-		assert checkError("glGetInteger");
+		assert logError("glGetInteger");
 		return result;
 	}
 
 	public static String getShaderInfoLog(int shader, int maxLength) {
 		final String result = glGetShaderInfoLog(shader, maxLength);
-		assert checkError("glGetShaderInfoLog");
+		assert logError("glGetShaderInfoLog");
 		return result;
 	}
 
 	public static String getProgramInfoLog(int program, int maxLength) {
 		final String result = glGetProgramInfoLog(program, maxLength);
-		assert checkError("glGetProgramInfoLog");
+		assert logError("glGetProgramInfoLog");
 		return result;
 	}
 
 	public static void polygonMode(int face, int mode) {
 		glPolygonMode(face, mode);
-		assert checkError("glPolygonMode");
+		assert logError("glPolygonMode");
 	}
 
 	private static boolean polygonOffset = false;
@@ -759,30 +761,30 @@ public class GFX extends GL46C {
 		if (op != logicOp) {
 			logicOp = op;
 			glLogicOp(op);
-			assert checkError("glLogicOp");
+			assert logError("glLogicOp");
 		}
 	}
 
 	public static int getTexLevelParameter(int target, int level, int pname) {
 		final int result = glGetTexLevelParameteri(target, level, pname);
-		assert checkError("glGetTexLevelParameteri");
+		assert logError("glGetTexLevelParameteri");
 		return result;
 	}
 
 	public static int genTexture() {
 		final int result = glGenTextures();
-		assert checkError("glGenTextures");
+		assert logError("glGenTextures");
 		return result;
 	}
 
 	public static void genTextures(int[] is) {
 		glGenTextures(is);
-		checkError("glGenTextures");
+		logError("glGenTextures");
 	}
 
 	public static void getTexImage(int target, int level, int format, int type, long pixels) {
 		glGetTexImage(target, level, format, type, pixels);
-		checkError("glGetTexImage");
+		logError("glGetTexImage");
 	}
 
 	private static int stencilFunc, stencilRef, stencilMask;
@@ -793,7 +795,7 @@ public class GFX extends GL46C {
 			stencilRef = ref;
 			stencilMask = mask;
 			glStencilFunc(func, ref, mask);
-			checkError("glStencilFunc");
+			logError("glStencilFunc");
 		}
 	}
 
@@ -801,7 +803,7 @@ public class GFX extends GL46C {
 		if (mask != stencilMask) {
 			stencilMask = mask;
 			glStencilMask(mask);
-			checkError("glStencilMask");
+			logError("glStencilMask");
 		}
 	}
 
@@ -813,34 +815,34 @@ public class GFX extends GL46C {
 			stencil_dpfail = dpfail;
 			stencil_dppass = dppass;
 			glStencilOp(sfail, dpfail, dppass);
-			checkError("glStencilOp");
+			logError("glStencilOp");
 		}
 	}
 
 	public static void clearStencil(int stencil) {
 		glClearStencil(stencil);
-		checkError("glClearStencil");
+		logError("glClearStencil");
 	}
 
 	public static void drawPixels(int i, int j, int k, int l, long m) {
 		// NON-CORE???
 		GL11.glDrawPixels(i, j, k, l, m);
-		checkError("glDrawPixels");
+		logError("glDrawPixels");
 	}
 
 	public static void vertexAttribIPointer(int index, int size, int type, int stride, long pointer) {
 		glVertexAttribIPointer(index, size, type, stride, pointer);
-		checkError("vertexAttribIPointer");
+		logError("vertexAttribIPointer");
 	}
 
 	public static void readPixels(int x, int y, int width, int height, int format, int type, ByteBuffer pixels) {
 		glReadPixels(x, y, width, height, format, type, pixels);
-		checkError("glReadPixels");
+		logError("glReadPixels");
 	}
 
 	public static void readPixels(int i, int j, int k, int l, int m, int n, long o) {
 		glReadPixels(i, j, k, l, m, n, o);
-		checkError("glReadPixels");
+		logError("glReadPixels");
 	}
 
 	public static int getError() {
@@ -849,7 +851,7 @@ public class GFX extends GL46C {
 
 	public static String getString(int name) {
 		final String result = glGetString(name);
-		checkError("glGetString");
+		logError("glGetString");
 		return result;
 	}
 }

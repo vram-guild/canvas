@@ -377,7 +377,6 @@ public class GlProgram {
 
 		private void load(int programID) {
 			this.unifID = GFX.getUniformLocation(programID, name);
-			assert GFX.checkError();
 
 			if (this.unifID == -1) {
 				if (Configurator.logMissingUniforms) {
@@ -400,10 +399,11 @@ public class GlProgram {
 
 			if ((flags & FLAG_NEEDS_INITIALIZATION) == FLAG_NEEDS_INITIALIZATION) {
 				initializer.accept((T) this);
-				assert GFX.checkError();
 			}
 
 			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD) {
+				// make sure any error is ours
+				GFX.getError();
 				uploadInner();
 
 				if (!GFX.checkError()) {

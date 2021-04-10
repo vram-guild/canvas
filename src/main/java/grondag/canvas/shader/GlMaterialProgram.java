@@ -22,7 +22,6 @@ import org.lwjgl.BufferUtils;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -67,7 +66,6 @@ public class GlMaterialProgram extends GlProgram {
 
 		modelOrigin.setExternal(MODEL_ORIGIN);
 		modelOrigin.upload();
-		assert GFX.checkError();
 	}
 
 	private void setRegionOrigin(int x, int y, int z) {
