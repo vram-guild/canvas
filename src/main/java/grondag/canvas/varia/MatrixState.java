@@ -25,7 +25,6 @@ import static grondag.canvas.varia.WorldDataManager.skyLightVector;
 
 import java.nio.FloatBuffer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.BufferUtils;
 
 import net.minecraft.client.MinecraftClient;
@@ -98,21 +97,6 @@ public enum MatrixState {
 	private static float[] lastDx = new float[CASCADE_COUNT];
 	private static float[] lastDy = new float[CASCADE_COUNT];
 	private static double lastCameraX, lastCameraY, lastCameraZ;
-
-	/**
-	 * Called by VertexBuffer mixin to apply view matrix during world rendering
-	 * when it would normally be part of the viewMatrixStack. We change the stack
-	 * to be an identity transformation so that managed draws are all in (unrotated) world space.
-	 *
-	 * <p>Areas where this matter include sky and cloud rendering, and Litematica schematic renders.
-	 */
-	public static void applyViewIfNeeded() {
-		if (current == CAMERA) {
-			//WIP2: still needed?
-			RenderSystem.getModelViewStack().method_34425(viewMatrix);
-			RenderSystem.applyModelViewMatrix();
-		}
-	}
 
 	private static void computeShadowMatrices(Camera camera, float tickDelta, CelestialObjectOutput skyOutput) {
 		// We need to keep the skylight projection consistently aligned to
