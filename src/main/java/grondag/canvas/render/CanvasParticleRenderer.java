@@ -96,7 +96,7 @@ public class CanvasParticleRenderer {
 					if (baseMat != null) {
 						// FEAT: enhanced material maps for particles - shaders for animation in particular
 						final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
-						collector.vertexState(mat == null || !mat.emissive() ? baseMat : emissiveMat);
+						collector.material(mat == null || !mat.emissive() ? baseMat : emissiveMat);
 					}
 
 					particle.buildGeometry(consumer, camera, tickDelta);

@@ -40,7 +40,9 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
+import grondag.canvas.buffer.encoding.VertexCollector;
 import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.mesh.QuadEmitter;
@@ -49,14 +51,15 @@ import grondag.frex.api.mesh.QuadEmitter;
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
-public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter {
+public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter, VertexCollector {
 	// PERF: pack into one array for LOR?
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
 	// vanilla light outputs
 	public final float[] ao = new float[4];
-	// UGLY - need a lighting result class?
-	//public LightmapHd hdLight = null;
+	protected int overlayFlags;
+
+	private int vertexIndex = 0;
 
 	public final void begin(int[] data, int baseIndex) {
 		this.data = data;
@@ -69,7 +72,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	 */
 	public final void complete() {
 		computeGeometry();
-		unmapSpritesIfNeeded();
+		normalizeSpritesIfNeeded();
+		vertexIndex = 0;
 	}
 
 	public void clear() {
@@ -82,7 +86,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		colorIndex(-1);
 		cullFace(null);
 		material(Canvas.MATERIAL_STANDARD);
-		spriteMappedFlag = false;
+		isSpriteInterpolated = false;
+		vertexIndex = 0;
+		overlayFlags = 0;
 	}
 
 	@Override
@@ -149,8 +155,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
 		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
 		convertVanillaUvPrecision();
-		unmapSprite();
-		spriteMappedFlag = false;
+		normalizeSprite();
+		isSpriteInterpolated = false;
 
 		isGeometryInvalid = true;
 		packedFaceNormal = -1;
@@ -165,8 +171,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
 		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
 		convertVanillaUvPrecision();
-		unmapSprite();
-		spriteMappedFlag = false;
+		normalizeSprite();
+		isSpriteInterpolated = false;
 		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.cullFace(0, cullFaceId);
 		nominalFaceId = ModelHelper.toFaceIndex(quad.getFace());
 		data[baseIndex + HEADER_COLOR_INDEX] = quad.getColorIndex();
@@ -232,11 +238,11 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		return this;
 	}
 
-	public final void setSpriteUnmapped(boolean isNormalized) {
+	public final void setSpriteNormalized(boolean isNormalized) {
 		if (isNormalized) {
-			spriteMappedFlag = false;
-		} else {
-			spriteMappedFlag = true;
+			isSpriteInterpolated = false;
+		} else if (material().texture.isAtlas()) {
+			isSpriteInterpolated = true;
 		}
 	}
 
@@ -254,30 +260,34 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		final int i = baseIndex + colorOffset(vertexIndex) + 1;
 		data[i] = u;
 		data[i + 1] = v;
-		assert isSpriteUnmapped();
+		assert isSpriteNormalized();
 		return this;
 	}
 
-	public void unmapSpritesIfNeeded() {
-		if (spriteMappedFlag) {
-			unmapSprite();
-			spriteMappedFlag = false;
+	public void normalizeSpritesIfNeeded() {
+		if (isSpriteInterpolated) {
+			normalizeSprite();
+			isSpriteInterpolated = false;
 		}
 	}
 
-	private void unmapSprite() {
-		final Sprite sprite = findSprite();
-		final int spriteId = ((SpriteExt) sprite).canvas_id();
-		final float u0 = sprite.getMinU();
-		final float v0 = sprite.getMinV();
-		final float uSpanInv = 1f / (sprite.getMaxU() - u0);
-		final float vSpanInv = 1f / (sprite.getMaxV() - v0);
+	private void normalizeSprite() {
+		if (material().texture.isAtlas()) {
+			final Sprite sprite = findSprite();
+			final int spriteId = ((SpriteExt) sprite).canvas_id();
+			final float u0 = sprite.getMinU();
+			final float v0 = sprite.getMinV();
+			final float uSpanInv = 1f / (sprite.getMaxU() - u0);
+			final float vSpanInv = 1f / (sprite.getMaxV() - v0);
 
-		spriteFloat(0, (spriteFloatU(0) - u0) * uSpanInv, (spriteFloatV(0) - v0) * vSpanInv);
-		spriteFloat(1, (spriteFloatU(1) - u0) * uSpanInv, (spriteFloatV(1) - v0) * vSpanInv);
-		spriteFloat(2, (spriteFloatU(2) - u0) * uSpanInv, (spriteFloatV(2) - v0) * vSpanInv);
-		spriteFloat(3, (spriteFloatU(3) - u0) * uSpanInv, (spriteFloatV(3) - v0) * vSpanInv);
-		spriteId(spriteId);
+			spriteFloat(0, (spriteFloatU(0) - u0) * uSpanInv, (spriteFloatV(0) - v0) * vSpanInv);
+			spriteFloat(1, (spriteFloatU(1) - u0) * uSpanInv, (spriteFloatV(1) - v0) * vSpanInv);
+			spriteFloat(2, (spriteFloatU(2) - u0) * uSpanInv, (spriteFloatV(2) - v0) * vSpanInv);
+			spriteFloat(3, (spriteFloatU(3) - u0) * uSpanInv, (spriteFloatV(3) - v0) * vSpanInv);
+			spriteId(spriteId);
+		} else {
+			assert false : "Attempt to normalize non-atlas sprite coordinates.";
+		}
 	}
 
 	/**
@@ -301,9 +311,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 		// true for whole quad so only need for one vertex
 		if (vertexIndex == 0) {
-			setSpriteUnmapped(false);
+			setSpriteNormalized(false);
 		} else {
-			assert !isSpriteUnmapped();
+			assert !isSpriteNormalized();
 		}
 
 		return this;
@@ -317,6 +327,92 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	public MutableQuadViewImpl spriteId(int spriteId) {
 		data[baseIndex + HEADER_SPRITE] = spriteId;
+		return this;
+	}
+
+	@Override
+	public void next() {
+		// TODO: handle Triangles
+
+		// Auto-emit when we finish a quad.
+		// NB: emit will call complete which will set vertex index to zero
+		if (vertexIndex == 3) {
+			emit();
+		} else {
+			++vertexIndex;
+		}
+	}
+
+	@Override
+	public void fixedColor(int i, int j, int k, int l) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void method_35666() {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public VertexCollector vertex(float x, float y, float z) {
+		pos(vertexIndex, x, y, z);
+		return this;
+	}
+
+	@Override
+	public VertexCollector color(int color) {
+		vertexColor(vertexIndex, color);
+		return this;
+	}
+
+	@Override
+	public VertexCollector texture(float u, float v) {
+		sprite(vertexIndex, u, v);
+		return this;
+	}
+
+	@Override
+	public VertexCollector overlay(int u, int v) {
+		setOverlay(u, v);
+		return this;
+	}
+
+	@Override
+	public VertexCollector overlay(int uv) {
+		setOverlay(uv);
+		return this;
+	}
+
+	protected void setOverlay(int uv) {
+		setOverlay(uv & '\uffff', uv >> 16 & '\uffff');
+	}
+
+	protected void setOverlay (int u, int v) {
+		if (v == 3) {
+			// NB: these are pre-shifted to msb
+			overlayFlags = RenderStateData.HURT_OVERLAY_FLAG;
+		} else if (v == 10) {
+			overlayFlags = u > 7 ? RenderStateData.FLASH_OVERLAY_FLAG : 0;
+		} else {
+			overlayFlags = 0;
+		}
+	}
+
+	@Override
+	public VertexCollector light(int block, int sky) {
+		this.lightmap(vertexIndex, (block & 0xFF) | ((sky & 0xFF) << 8));
+		return this;
+	}
+
+	@Override
+	public VertexCollector light(int lightmap) {
+		this.lightmap(vertexIndex, lightmap);
+		return this;
+	}
+
+	@Override
+	public VertexCollector normal(float x, float y, float z) {
+		this.normal(vertexIndex, x, y, z);
 		return this;
 	}
 }

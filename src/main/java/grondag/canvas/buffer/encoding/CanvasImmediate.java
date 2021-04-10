@@ -61,7 +61,7 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 			return super.getBuffer(renderLayer);
 		} else {
 			final VertexCollector result = collectors.get(mat);
-			result.vertexState(mat);
+			result.material(mat);
 			return result;
 		}
 	}

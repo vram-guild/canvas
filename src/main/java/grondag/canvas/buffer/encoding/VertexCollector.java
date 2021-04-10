@@ -36,8 +36,9 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
@@ -49,7 +50,7 @@ public interface VertexCollector extends VertexConsumer {
 	 *
 	 * <p>Material collector key must match that of this collector.
 	 */
-	VertexCollector vertexState(RenderMaterialImpl material);
+	VertexCollector material(RenderMaterial material);
 
 	VertexCollector vertex(float x, float y, float z);
 
@@ -57,14 +58,6 @@ public interface VertexCollector extends VertexConsumer {
 	 * @param color rgba - alpha is high byte, red and blue pre-swapped if needed
 	 */
 	VertexCollector color(int color);
-
-	/**
-	 *
-	 * @param packedLight standard packed lightmap
-	 * @param ao 0-255
-	 * @return
-	 */
-	VertexCollector packedLightWithAo(int packedLight, int ao);
 
 	@Override
 	default VertexCollector vertex(double x, double y, double z) {

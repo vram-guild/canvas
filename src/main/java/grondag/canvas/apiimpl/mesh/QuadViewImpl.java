@@ -63,7 +63,7 @@ public class QuadViewImpl implements QuadView {
 	/**
 	 * Flag true when sprite is assumed to be interpolated and need normalization.
 	 */
-	protected boolean spriteMappedFlag = false;
+	protected boolean isSpriteInterpolated = false;
 
 	/**
 	 * Size and where it comes from will vary in subtypes. But in all cases quad is fully encoded to array.
@@ -177,6 +177,7 @@ public class QuadViewImpl implements QuadView {
 		}
 	}
 
+	// PERF: cache this
 	@Override
 	public final RenderMaterialImpl material() {
 		return RenderMaterialImpl.fromIndex(data[baseIndex + HEADER_MATERIAL]);
@@ -249,7 +250,7 @@ public class QuadViewImpl implements QuadView {
 
 		// copy everything except the material
 		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, len - 1);
-		quad.spriteMappedFlag = spriteMappedFlag;
+		quad.isSpriteInterpolated = isSpriteInterpolated;
 		quad.faceNormal.set(faceNormal.getX(), faceNormal.getY(), faceNormal.getZ());
 		quad.packedFaceNormal = packedNormal;
 		quad.nominalFaceId = nominalFaceId;
@@ -344,8 +345,8 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + colorOffset(vertexIndex)];
 	}
 
-	protected final boolean isSpriteUnmapped() {
-		return !spriteMappedFlag;
+	protected final boolean isSpriteNormalized() {
+		return !isSpriteInterpolated;
 	}
 
 	protected final float spriteFloatU(int vertexIndex) {
@@ -358,14 +359,14 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public float spriteU(int vertexIndex) {
-		return isSpriteUnmapped()
+		return isSpriteNormalized() && material().texture.isAtlas()
 			? SpriteInfoTexture.BLOCKS.mapU(spriteId(), spriteFloatU(vertexIndex))
 			: spriteFloatU(vertexIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex) {
-		return isSpriteUnmapped()
+		return isSpriteNormalized() && material().texture.isAtlas()
 			? SpriteInfoTexture.BLOCKS.mapV(spriteId(), spriteFloatV(vertexIndex))
 			: spriteFloatV(vertexIndex);
 	}
@@ -374,7 +375,7 @@ public class QuadViewImpl implements QuadView {
 	 * Fixed precision value suitable for transformations.
 	 */
 	public int spritePreciseU(int vertexIndex) {
-		assert isSpriteUnmapped();
+		assert isSpriteNormalized();
 		return data[baseIndex + colorOffset(vertexIndex) + 1];
 	}
 
@@ -382,7 +383,7 @@ public class QuadViewImpl implements QuadView {
 	 * Fixed precision value suitable for transformations.
 	 */
 	public int spritePreciseV(int vertexIndex) {
-		assert isSpriteUnmapped();
+		assert isSpriteNormalized();
 		return data[baseIndex + colorOffset(vertexIndex) + 2];
 	}
 
@@ -390,7 +391,7 @@ public class QuadViewImpl implements QuadView {
 	 * Rounded, unsigned short value suitable for vertex buffer.
 	 */
 	public int spriteBufferU(int vertexIndex) {
-		assert isSpriteUnmapped();
+		assert isSpriteNormalized();
 		return (data[baseIndex + colorOffset(vertexIndex) + 1] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}
 
@@ -398,7 +399,7 @@ public class QuadViewImpl implements QuadView {
 	 * Rounded, unsigned short value suitable for vertex buffer.
 	 */
 	public int spriteBufferV(int vertexIndex) {
-		assert isSpriteUnmapped();
+		assert isSpriteNormalized();
 		return (data[baseIndex + colorOffset(vertexIndex) + 2] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}
 

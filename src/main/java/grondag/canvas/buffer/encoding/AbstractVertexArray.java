@@ -19,7 +19,7 @@ package grondag.canvas.buffer.encoding;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractVertexArray implements VertexAppender {
-	private static final int BLOCK_SIZE = 1024;
+	private static final int BLOCK_SIZE = 4096;
 	//WIP2: should all be private
 	protected static final int FULL_BLOCK_MASK = BLOCK_SIZE - 1;
 
@@ -61,6 +61,8 @@ public abstract class AbstractVertexArray implements VertexAppender {
 		vertexData[oldSize] = val;
 
 		if ((oldSize & FULL_BLOCK_MASK) == FULL_BLOCK_MASK) {
+			//WIP2: remove
+			System.out.println("Boop! " + toString() + " " + oldSize);
 			grow();
 		}
 

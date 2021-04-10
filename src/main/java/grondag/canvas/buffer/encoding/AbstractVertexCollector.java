@@ -26,6 +26,8 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_VERTEX_S
 
 import net.minecraft.client.texture.Sprite;
 
+import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
+
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -98,16 +100,11 @@ public abstract class AbstractVertexCollector extends AbstractVertexArray implem
 	}
 
 	@Override
-	public VertexCollector packedLightWithAo(int packedLight, int ao) {
-		vertexData[currentVertexIndex + MATERIAL_LIGHT_INDEX] = (packedLight & 0xFF) | ((packedLight >> 8) & 0xFF00) | (ao << 16);
-		return this;
-	}
-
-	@Override
-	public VertexCollector vertexState(RenderMaterialImpl material) {
-		assert material.collectorIndex == materialState.collectorIndex;
-		normalBase = (material.shaderFlags << 24);
-		conditionActive = material.condition().compute();
+	public VertexCollector material(RenderMaterial material) {
+		final RenderMaterialImpl mat = (RenderMaterialImpl) material;
+		assert mat.collectorIndex == materialState.collectorIndex;
+		normalBase = (mat.shaderFlags << 24);
+		conditionActive = mat.condition().compute();
 		return this;
 	}
 

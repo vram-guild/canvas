@@ -213,7 +213,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 			}
 
 			quad.geometryFlags();
-			quad.unmapSpritesIfNeeded();
+			quad.normalizeSpritesIfNeeded();
 		}
 
 		if (cullTest(quad)) {

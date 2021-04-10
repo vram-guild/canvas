@@ -29,7 +29,7 @@ import grondag.canvas.terrain.render.UploadableChunk;
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
  */
 public class VertexCollectorList {
-	private final ObjectArrayList<VertexCollectorImpl> pool = new ObjectArrayList<>();
+	private final ObjectArrayList<VertexCollectorImpl> active = new ObjectArrayList<>();
 	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[RenderState.MAX_COUNT];
 	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
 
@@ -37,10 +37,10 @@ public class VertexCollectorList {
 	 * Clears all vertex collectors.
 	 */
 	public void clear() {
-		final int limit = pool.size();
+		final int limit = active.size();
 
 		for (int i = 0; i < limit; i++) {
-			pool.get(i).clear();
+			active.get(i).clear();
 		}
 	}
 
@@ -65,7 +65,7 @@ public class VertexCollectorList {
 		if (result == null) {
 			result = new VertexCollectorImpl().prepare(materialState);
 			collectors[index] = result;
-			pool.add(result);
+			active.add(result);
 		}
 
 		return result;
@@ -76,39 +76,21 @@ public class VertexCollectorList {
 		return index < collectors.length && collectors[index] != null;
 	}
 
-	//	public int totalBytes() {
-	//		final int size = this.size;
-	//		final ObjectArrayList<WipVertexCollectorImpl> pool = this.pool;
-	//
-	//		int intSize = 0;
-	//
-	//		for (int i = 0; i < size; i++) {
-	//			intSize += pool.get(i).integerSize();
-	//		}
-	//
-	//		return intSize * 4;
-	//	}
-
-	//	public UploadableChunk toUploadableChunk(EncodingContext context, boolean isTranslucent) {
-	//		final int bytes = totalBytes(isTranslucent);
-	//		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.get(context, isTranslucent), isTranslucent, bytes);
-	//	}
-
 	public int size() {
-		return pool.size();
+		return active.size();
 	}
 
 	public VertexCollectorImpl get(int index) {
-		return pool.get(index);
+		return active.get(index);
 	}
 
 	public int totalBytes(boolean sorted) {
-		final int limit = pool.size();
-		final ObjectArrayList<VertexCollectorImpl> pool = this.pool;
+		final int limit = active.size();
+		final ObjectArrayList<VertexCollectorImpl> active = this.active;
 		int intSize = 0;
 
 		for (int i = 0; i < limit; i++) {
-			final VertexCollectorImpl collector = pool.get(i);
+			final VertexCollectorImpl collector = active.get(i);
 
 			if (!collector.isEmpty() && collector.materialState.sorted == sorted) {
 				intSize += collector.integerSize();

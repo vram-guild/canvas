@@ -56,7 +56,7 @@ public class TextureHelper {
 	 * rotation, interpolation, etc. Textures must not be already baked.
 	 */
 	public static void bakeSprite(MutableQuadViewImpl quad, Sprite sprite, int bakeFlags) {
-		quad.setSpriteUnmapped(true);
+		quad.setSpriteNormalized(true);
 		quad.spriteId(((SpriteExt) sprite).canvas_id());
 
 		if (quad.nominalFace() != null && (MutableQuadView.BAKE_LOCK_UV & bakeFlags) != 0) {

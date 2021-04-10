@@ -35,7 +35,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	public VertexCollectorImpl prepare(RenderMaterialImpl materialState) {
 		clear();
 		this.materialState = materialState;
-		vertexState(materialState);
+		material(materialState);
 		return this;
 	}
 
