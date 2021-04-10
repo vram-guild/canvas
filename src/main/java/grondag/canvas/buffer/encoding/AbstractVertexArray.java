@@ -18,12 +18,10 @@ package grondag.canvas.buffer.encoding;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class AbstractVertexArray implements VertexAppender {
-	private static final int BLOCK_SIZE = 4096;
-	//WIP2: should all be private
-	protected static final int FULL_BLOCK_MASK = BLOCK_SIZE - 1;
+import net.minecraft.util.math.MathHelper;
 
-	protected int capacity = BLOCK_SIZE;
+public abstract class AbstractVertexArray implements VertexBufferAccess {
+	protected int capacity = 1024;
 	protected int[] vertexData = new int[capacity];
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	protected int integerSize = 0;
@@ -34,39 +32,15 @@ public abstract class AbstractVertexArray implements VertexAppender {
 		arryBytes.addAndGet(capacity);
 	}
 
-	private void grow() {
-		final int newCapacity = capacity + BLOCK_SIZE;
-		final int[] newData = new int[newCapacity];
-		System.arraycopy(vertexData, 0, newData, 0, capacity);
-		arryBytes.addAndGet(newCapacity - capacity);
-		capacity = newCapacity;
-		vertexData = newData;
-	}
-
-	//WIP2: should be private
 	protected void grow(int newSize) {
 		if (newSize > capacity) {
-			final int newCapacity = ((newSize + BLOCK_SIZE - 1) / BLOCK_SIZE) * BLOCK_SIZE;
+			final int newCapacity = MathHelper.smallestEncompassingPowerOfTwo(newSize);
 			final int[] newData = new int[newCapacity];
 			System.arraycopy(vertexData, 0, newData, 0, capacity);
 			arryBytes.addAndGet(newCapacity - capacity);
 			capacity = newCapacity;
 			vertexData = newData;
 		}
-	}
-
-	@Override
-	public void append(int val) {
-		final int oldSize = integerSize;
-		vertexData[oldSize] = val;
-
-		if ((oldSize & FULL_BLOCK_MASK) == FULL_BLOCK_MASK) {
-			//WIP2: remove
-			System.out.println("Boop! " + toString() + " " + oldSize);
-			grow();
-		}
-
-		integerSize = oldSize + 1;
 	}
 
 	public int integerSize() {
@@ -86,5 +60,19 @@ public abstract class AbstractVertexArray implements VertexAppender {
 
 	public static String debugReport() {
 		return String.format("CPU Vertex Arrays - count;%d,   MB allocated:%f", arrayCount.get(), arryBytes.get() / 1048576f);
+	}
+
+	@Override
+	public int[] data() {
+		return vertexData;
+	}
+
+	@Override
+	public int allocate(int size) {
+		final int result = integerSize;
+		final int newSize = result + size;
+		grow(newSize);
+		integerSize = newSize;
+		return result;
 	}
 }

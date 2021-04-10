@@ -23,6 +23,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.RenderPhase.TextureBase;
 import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.SpriteAtlasTexture;
@@ -76,11 +77,19 @@ public final class RenderLayerHelper {
 
 	private static void copyFromLayer(MaterialFinderImpl finder, MultiPhaseExt layer) {
 		final AccessMultiPhaseParameters params = layer.canvas_phases();
-		final AccessTexture tex = (AccessTexture) params.getTexture();
+		final TextureBase texBase = params.getTexture();
+
 		final MojangShaderData sd = ((ShaderExt) params.getField_29461()).canvas_shaderData();
 		finder.sorted(layer.canvas_isTranslucent());
 		//finder.primitive(GL11.GL_QUADS);
-		finder.texture(tex.getId().orElse(null));
+
+		if (texBase != null && texBase instanceof AccessTexture) {
+			final AccessTexture tex = (AccessTexture) params.getTexture();
+			finder.texture(tex.getId().orElse(null));
+			finder.unmipped(!tex.getMipmap());
+			finder.blur(tex.getBlur());
+		}
+
 		finder.transparency(MaterialTransparency.fromPhase(params.getTransparency()));
 		finder.depthTest(MaterialDepthTest.fromPhase(params.getDepthTest()));
 		finder.cull(params.getCull() == RenderPhase.ENABLE_CULLING);
@@ -90,8 +99,6 @@ public final class RenderLayerHelper {
 		finder.target(MaterialTarget.fromPhase(params.getTarget()));
 		finder.lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
 		finder.fog(sd.fog);
-		finder.unmipped(!tex.getMipmap());
-		finder.blur(tex.getBlur());
 		finder.disableDiffuse(!sd.diffuse);
 		finder.cutout(sd.cutout);
 

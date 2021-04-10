@@ -44,7 +44,6 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.buffer.encoding.VertexAppender;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -421,7 +420,7 @@ public class QuadViewImpl implements QuadView {
 		buff.vertex(xOut, yOut, zOut);
 	}
 
-	public void transformAndAppendVertex(final int vertexIndex, final Matrix4fExt matrix, final VertexAppender buff) {
+	public void transformAndAppendVertex(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex) {
 		final int[] data = this.data;
 		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
 		final float x = Float.intBitsToFloat(data[index]);
@@ -432,6 +431,8 @@ public class QuadViewImpl implements QuadView {
 		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
 		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
 
-		buff.append(xOut, yOut, zOut);
+		target[targetIndex] = Float.floatToRawIntBits(xOut);
+		target[targetIndex + 1] = Float.floatToRawIntBits(yOut);
+		target[targetIndex + 2] = Float.floatToRawIntBits(zOut);
 	}
 }

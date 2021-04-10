@@ -219,18 +219,28 @@ public class PipelineManager {
 		CanvasTextureState.bindTexture(0);
 
 		final VertexCollectorImpl collector = new VertexCollectorImpl();
-		collector.append(0f, 0f, 0.2f, 0f, 1f);
-		collector.append(1f, 0f, 0.2f, 1f, 1f);
-		collector.append(1f, 1f, 0.2f, 1f, 0f);
-		collector.append(1f, 1f, 0.2f, 1f, 0f);
-		collector.append(0f, 1f, 0.2f, 0f, 0f);
-		collector.append(0f, 0f, 0.2f, 0f, 1f);
+		final int k = collector.allocate(30);
+		final int[] v = collector.data();
+		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k);
+		addVertex(1f, 0f, 0.2f, 1f, 1f, v, k + 5);
+		addVertex(1f, 1f, 0.2f, 1f, 0f, v, k + 10);
+		addVertex(1f, 1f, 0.2f, 1f, 0f, v, k + 15);
+		addVertex(0f, 1f, 0.2f, 0f, 0f, v, k + 20);
+		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k + 25);
 
 		drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
 		collector.toBuffer(drawBuffer.intBuffer());
 		drawBuffer.upload();
 
 		collector.clear(); // releases storage
+	}
+
+	private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {
+		target[index] = Float.floatToRawIntBits(x);
+		target[++index] = Float.floatToRawIntBits(y);
+		target[++index] = Float.floatToRawIntBits(z);
+		target[++index] = Float.floatToRawIntBits(u);
+		target[++index] = Float.floatToRawIntBits(v);
 	}
 
 	private static void tearDown() {

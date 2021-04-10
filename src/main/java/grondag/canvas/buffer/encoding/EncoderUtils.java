@@ -25,6 +25,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -102,7 +103,7 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexAppender buff) {
+	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexBufferAccess buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;
@@ -129,18 +130,22 @@ public abstract class EncoderUtils {
 
 		spriteIdCoord |= (mat.index << 16);
 
-		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppendVertex(i, matrix, buff);
+		int k = buff.allocate(CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
+		final int[] target = buff.data();
 
-			buff.append(quad.vertexColor(i));
-			buff.append(quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16));
-			buff.append(spriteIdCoord);
+		for (int i = 0; i < 4; i++) {
+			quad.transformAndAppendVertex(i, matrix, target, k);
+			k += 3;
+
+			target[k++] = quad.vertexColor(i);
+			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
+			target[k++] = spriteIdCoord;
 
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFF);
 			final int skyLight = ((packedLight >> 16) & 0xFF);
 			final int ao = aoData == null ? 255 : (Math.round(aoData[i] * 255));
-			buff.append(blockLight | (skyLight << 8) | (ao << 16));
+			target[k++] = blockLight | (skyLight << 8) | (ao << 16);
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -151,7 +156,7 @@ public abstract class EncoderUtils {
 				}
 			}
 
-			buff.append(transformedNormal | shaderFlags);
+			target[k++] = transformedNormal | shaderFlags;
 		}
 	}
 
