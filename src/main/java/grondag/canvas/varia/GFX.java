@@ -147,25 +147,7 @@ public class GFX extends GL46C {
 		assert logError(String.format("glEnable(%s)", GlSymbolLookup.reverseLookup(target)));
 	}
 
-	private static int currentArrayBuffer = 0;
-	private static int currentElementBuffer = 0;
-
-	// WIP2: put back or remove change detection
 	public static void bindBuffer(int target, int buffer) {
-		if (target == GL_ARRAY_BUFFER) {
-			//if (buffer == currentArrayBuffer) {
-			//	return;
-			//} else {
-			currentArrayBuffer = buffer;
-			//}
-		} else if (target == GL_ELEMENT_ARRAY_BUFFER) {
-			//if (buffer == currentElementBuffer) {
-			//	return;
-			//} else {
-			currentElementBuffer = buffer;
-			//}
-		}
-
 		glBindBuffer(target, buffer);
 		assert logError(String.format("glBindBuffer(%s, %d)", GlSymbolLookup.reverseLookup(target), buffer));
 	}
@@ -268,11 +250,10 @@ public class GFX extends GL46C {
 
 	private static int currentVertexArray = 0;
 
-	// WIP2: put back or remove change detection
 	public static void bindVertexArray(int array) {
-		//if (array == currentVertexArray) {
-		//	return;
-		//}
+		if (array == currentVertexArray) {
+			return;
+		}
 
 		currentVertexArray = array;
 		VaoTracker.bind(array);

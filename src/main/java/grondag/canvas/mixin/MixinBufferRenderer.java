@@ -29,7 +29,8 @@ import grondag.canvas.varia.GFX;
 
 /**
  * BufferRenderer tends to assume nothing else has touched bindings
- * so we restore them at the beginning of methods that rely on this.
+ * and implements bind state caching.
+ * We change state elsewhere so we save and restore this as needed.
  */
 @Mixin(BufferRenderer.class)
 public class MixinBufferRenderer {
