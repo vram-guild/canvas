@@ -127,6 +127,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder, distanceSorter);
 	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
 
+	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
+	private final MatrixStack identityStack = new MatrixStack();
+
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
 	 * Distinct from occluder state, which indicates if/when occluder must be reset or redrawn.
@@ -370,7 +373,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		Timekeeper.instance.swap(profilerGroup, token);
 	}
 
-	public void renderWorld(MatrixStack viewMatrixStack, MatrixStack identityStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
+	public void renderWorld(MatrixStack viewMatrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		final WorldRendererExt wr = this.wr;
 		final MinecraftClient mc = wr.canvas_mc();
 		final WorldRenderer mcwr = mc.worldRenderer;
@@ -387,6 +390,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final double cameraY = cameraVec3d.getY();
 		final double cameraZ = cameraVec3d.getZ();
 		final TerrainFrustum frustum = terrainFrustum;
+		final MatrixStack identityStack = this.identityStack;
 
 		RenderSystem.setShaderGameTime(this.world.getTime(), tickDelta);
 		MinecraftClient.getInstance().getBlockEntityRenderDispatcher().configure(world, camera, mc.crosshairTarget);
@@ -1165,41 +1169,27 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
 
-		// WIP2: remove or update
-		// All managed draws - including anything targeting vertex consumer - will be transformed in shader
-		// Unmanaged draws that do direct drawing will expect the stack to have the view matrix in it and may
-		// use it either to transform the GL state or to transform vertices.
-		// Transforming vertices would break managed draws, so we use an identity stack and set the
-		// GL state to include the view transform by default.  The GL state will be ignored by managed draws
-		// and managed draws will correctly have no rotation applies.  Direct draws may attempt to transform
-		// the GL state to the view matrix but it will have no effect - it is already applied.
+		// All managed draws - including anything targeting vertex consumer - will have camera rotation applied
+		// in shader - this gives better consistency with terrain rendering and may be more intuitive for lighting.
+		// Unmanaged draws that do direct drawing will expect the matrix stack to have camera rotation in it and may
+		// use it either to transform the render state or to transform vertices.
+		// For this reason we have two different stacks.
+		identityStack.peek().getModel().loadIdentity();
+		identityStack.peek().getNormal().loadIdentity();
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
 		terrainFrustum.prepare(viewMatrix, tickDelta, camera);
 		particleRenderer.frustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		WorldDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
-		//		final MatrixStack renderStack = RenderSystem.getModelViewStack();
-		//		renderStack.push();
-		//		renderStack.method_34425(MatrixState.viewMatrix);
-		//		RenderSystem.applyModelViewMatrix();
-		//
-
-		// PERF: don't allocate
-		final MatrixStack identityStack = new MatrixStack();
-		identityStack.peek().getModel().loadIdentity();
-		identityStack.peek().getNormal().loadIdentity();
 
 		eventContext.prepare(this, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, wr.canvas_mc().getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), world);
 
 		WorldRenderEvents.START.invoker().onStart(eventContext);
 		PipelineManager.beforeWorldRender();
-		//WorldRenderEvent.BEFORE_WORLD_RENDER.invoker().beforeWorldRender(viewMatrixStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
-		renderWorld(viewMatrixStack, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
-		//WorldRenderEvent.AFTER_WORLD_RENDER.invoker().afterWorldRender(viewMatrixStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
+		renderWorld(viewMatrixStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
 		WorldRenderEvents.END.invoker().onEnd(eventContext);
 
-		//		renderStack.push();
 		RenderSystem.applyModelViewMatrix();
 		MatrixState.set(MatrixState.SCREEN);
 	}
