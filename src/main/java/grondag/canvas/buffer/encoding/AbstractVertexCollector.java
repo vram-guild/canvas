@@ -24,8 +24,6 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STR
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_TEXTURE_INDEX;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import net.minecraft.client.texture.Sprite;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
@@ -34,48 +32,15 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
 
-public abstract class AbstractVertexCollector implements VertexCollector {
+public abstract class AbstractVertexCollector extends AbstractVertexArray implements VertexCollector {
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
-	private static final int BLOCK_SIZE = 1024;
-	protected static final int FULL_BLOCK_MASK = BLOCK_SIZE - 1;
 
 	protected RenderMaterialImpl materialState;
-
-	protected int capacity = BLOCK_SIZE;
-	protected int[] vertexData = new int[capacity];
-	/** also the index of the first vertex when used in VertexConsumer mode. */
-	protected int integerSize = 0;
-	protected int currentVertexIndex = 0;
 
 	protected int normalBase;
 	protected int overlayFlags;
 	protected boolean conditionActive = true;
 	protected boolean didPopulateNormal = false;
-
-	public AbstractVertexCollector() {
-		collectorCount.incrementAndGet();
-		collectorBytes.addAndGet(capacity);
-	}
-
-	protected void grow() {
-		final int newCapacity = capacity + BLOCK_SIZE;
-		final int[] newData = new int[newCapacity];
-		System.arraycopy(vertexData, 0, newData, 0, capacity);
-		collectorBytes.addAndGet(newCapacity - capacity);
-		capacity = newCapacity;
-		vertexData = newData;
-	}
-
-	protected void grow(int newSize) {
-		if (newSize > capacity) {
-			final int newCapacity = ((newSize + BLOCK_SIZE - 1) / BLOCK_SIZE) * BLOCK_SIZE;
-			final int[] newData = new int[newCapacity];
-			System.arraycopy(vertexData, 0, newData, 0, capacity);
-			collectorBytes.addAndGet(newCapacity - capacity);
-			capacity = newCapacity;
-			vertexData = newData;
-		}
-	}
 
 	@Override
 	public VertexCollector texture(float u, float v) {
@@ -275,7 +240,4 @@ public abstract class AbstractVertexCollector implements VertexCollector {
 	}
 
 	protected abstract void emitQuad();
-
-	static AtomicInteger collectorCount = new AtomicInteger();
-	static AtomicInteger collectorBytes = new AtomicInteger();
 }

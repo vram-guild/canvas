@@ -16,6 +16,10 @@
 
 package grondag.canvas.buffer.encoding;
 
+/**
+ * Thin access layer to vertex buffer/mapped memory range.
+ * Caller must know vertex format, boundaries, etc.
+ */
 public interface VertexAppender {
 	void append(int val);
 

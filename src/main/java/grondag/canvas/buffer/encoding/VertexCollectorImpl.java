@@ -45,24 +45,12 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		didPopulateNormal = false;
 	}
 
-	public int integerSize() {
-		return integerSize;
-	}
-
-	public int byteSize() {
-		return integerSize * 4;
-	}
-
-	public boolean isEmpty() {
-		return integerSize == 0;
-	}
-
 	public RenderMaterialImpl materialState() {
 		return materialState;
 	}
 
 	public int vertexCount() {
-		return integerSize / CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
+		return integerSize() / CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
 	}
 
 	public int quadCount() {
@@ -233,21 +221,5 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		} else {
 			currentVertexIndex = integerSize;
 		}
-	}
-
-	@Override
-	public void append(int val) {
-		final int oldSize = integerSize;
-		vertexData[oldSize] = val;
-
-		if ((oldSize & FULL_BLOCK_MASK) == FULL_BLOCK_MASK) {
-			grow();
-		}
-
-		integerSize = oldSize + 1;
-	}
-
-	public static String debugReport() {
-		return String.format("Vertex Collectors - count;%d,   MB allocated:%f", collectorCount.get(), collectorBytes.get() / 1048576f);
 	}
 }

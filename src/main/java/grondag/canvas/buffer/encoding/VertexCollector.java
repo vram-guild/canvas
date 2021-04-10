@@ -41,7 +41,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
-public interface VertexCollector extends VertexConsumer, VertexAppender {
+public interface VertexCollector extends VertexConsumer {
 	/**
 	 * Sets state to be included with normals and material if they are included.  Call once
 	 * whenever material changes, including default state or revert
