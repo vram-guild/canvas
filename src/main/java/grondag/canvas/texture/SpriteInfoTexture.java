@@ -45,8 +45,6 @@ public class SpriteInfoTexture {
 		return MAP.computeIfAbsent(id, SpriteInfoTexture::new);
 	}
 
-	public static final SpriteInfoTexture BLOCKS = getOrCreate(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
-
 	private ObjectArrayList<Sprite> spriteIndex = null;
 	private SpriteAtlasTexture atlas;
 	private SpriteFinder spriteFinder;
@@ -139,10 +137,6 @@ public class SpriteInfoTexture {
 		createImageIfNeeded();
 		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
 		CanvasTextureState.bindTexture(glId);
-	}
-
-	public int coordinate(int spriteId) {
-		return spriteId;
 	}
 
 	public Sprite fromId(int spriteId) {

@@ -29,7 +29,6 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.texture.SpriteInfoTexture;
 
 public abstract class EncoderUtils {
 	public static final int FULL_BRIGHTNESS = 0xF000F0;
@@ -103,6 +102,48 @@ public abstract class EncoderUtils {
 		}
 	}
 
+	public static void bufferQuadDirect(MutableQuadViewImpl quad, VertexCollector buff) {
+		final RenderMaterialImpl mat = quad.material();
+
+		assert mat.blendMode != BlendMode.DEFAULT;
+
+		final int shaderFlags = mat.shaderFlags << 24;
+
+		int packedNormal = 0;
+		final boolean useNormals = quad.hasVertexNormals();
+
+		if (useNormals) {
+			quad.populateMissingNormals();
+		} else {
+			packedNormal = quad.packedFaceNormal();
+		}
+
+		final int spriteIdCoord = quad.spriteId() | (mat.index << 16);
+
+		int k = buff.allocate(CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
+		final int[] target = buff.data();
+
+		for (int i = 0; i < 4; i++) {
+			quad.appendVertex(i, target, k);
+			k += 3;
+
+			target[k++] = quad.vertexColor(i);
+			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
+			target[k++] = spriteIdCoord;
+
+			final int packedLight = quad.lightmap(i);
+			final int blockLight = (packedLight & 0xFF);
+			final int skyLight = ((packedLight >> 16) & 0xFF);
+			target[k++] = blockLight | (skyLight << 8) | 0xFF0000;
+
+			if (useNormals) {
+				packedNormal = quad.packedNormal(i);
+			}
+
+			target[k++] = packedNormal | shaderFlags;
+		}
+	}
+
 	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexCollector buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
@@ -124,11 +165,7 @@ public abstract class EncoderUtils {
 			transformedNormal = normalMatrix.canvas_transform(packedNormal);
 		}
 
-		int spriteIdCoord = SpriteInfoTexture.BLOCKS.coordinate(quad.spriteId());
-
-		assert spriteIdCoord <= 0xFFFF;
-
-		spriteIdCoord |= (mat.index << 16);
+		final int spriteIdCoord = quad.spriteId() | (mat.index << 16);
 
 		int k = buff.allocate(CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
 		final int[] target = buff.data();

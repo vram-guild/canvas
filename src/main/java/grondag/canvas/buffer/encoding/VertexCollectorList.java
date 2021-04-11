@@ -21,6 +21,11 @@ import java.util.function.Predicate;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import net.minecraft.client.render.VertexConsumer;
+
+import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.terrain.render.UploadableChunk;
@@ -33,7 +38,37 @@ public class VertexCollectorList {
 	private final ArrayVertexCollector[] collectors = new ArrayVertexCollector[RenderState.MAX_COUNT];
 	private final ObjectArrayList<ArrayVertexCollector> drawList = new ObjectArrayList<>();
 
-	public final FrexVertexConsumerImpl consumer = new FrexVertexConsumerImpl(this);
+	/**
+	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
+	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
+	 */
+	public class Consumer extends MutableQuadViewImpl {
+		{
+			data = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
+			material(Canvas.MATERIAL_STANDARD);
+		}
+
+		@Override
+		public Consumer emit() {
+			final RenderMaterialImpl mat = material();
+
+			if (mat.condition.compute()) {
+				complete();
+				EncoderUtils.bufferQuadDirect(this, get(mat));
+			}
+
+			clear();
+			return this;
+		}
+
+		public VertexConsumer prepare(RenderMaterialImpl mat) {
+			defaultMaterial(mat);
+			clear();
+			return this;
+		}
+	}
+
+	public final Consumer consumer = new Consumer();
 
 	/**
 	 * Clears all storage arrays.

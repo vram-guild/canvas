@@ -40,7 +40,6 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
 
@@ -105,7 +104,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 			return;
 		}
 
-		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.BLOCKS.fromId(quad.spriteId()) : null;
+		final Sprite sprite = materialMap.needsSprite() ? quad.material().texture.atlasInfo().fromId(quad.spriteId()) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {

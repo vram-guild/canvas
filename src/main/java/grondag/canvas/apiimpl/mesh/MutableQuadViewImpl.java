@@ -44,7 +44,6 @@ import grondag.canvas.buffer.encoding.FrexVertexConsumer;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.mesh.QuadEmitter;
 
 /**
@@ -58,6 +57,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	// vanilla light outputs
 	public final float[] ao = new float[4];
 	protected int overlayFlags;
+	protected RenderMaterialImpl defaultMaterial = Canvas.MATERIAL_STANDARD;
 
 	private int vertexIndex = 0;
 
@@ -65,6 +65,12 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		this.data = data;
 		this.baseIndex = baseIndex;
 		clear();
+	}
+
+	@Override
+	public MutableQuadViewImpl defaultMaterial(RenderMaterial defaultMaterial) {
+		this.defaultMaterial = (RenderMaterialImpl) defaultMaterial;
+		return this;
 	}
 
 	/**
@@ -85,7 +91,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		// tag(0); seems redundant - handled by array copy
 		colorIndex(-1);
 		cullFace(null);
-		material(Canvas.MATERIAL_STANDARD);
+		material(defaultMaterial);
 		isSpriteInterpolated = false;
 		vertexIndex = 0;
 		overlayFlags = 0;
@@ -94,7 +100,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public final MutableQuadViewImpl material(RenderMaterial material) {
 		if (material == null) {
-			material = Canvas.MATERIAL_STANDARD;
+			material = defaultMaterial;
 		}
 
 		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl) material).index;
@@ -302,7 +308,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			v += spriteFloatV(i);
 		}
 
-		return SpriteInfoTexture.BLOCKS.spriteFinder().find(u * 0.25f, v * 0.25f);
+		return material().texture.atlasInfo().spriteFinder().find(u * 0.25f, v * 0.25f);
 	}
 
 	@Override

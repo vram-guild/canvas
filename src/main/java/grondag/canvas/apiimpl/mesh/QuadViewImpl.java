@@ -46,7 +46,6 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.mesh.QuadView;
 
 /**
@@ -359,14 +358,14 @@ public class QuadViewImpl implements QuadView {
 	@Override
 	public float spriteU(int vertexIndex) {
 		return isSpriteNormalized() && material().texture.isAtlas()
-			? SpriteInfoTexture.BLOCKS.mapU(spriteId(), spriteFloatU(vertexIndex))
+			? material().texture.atlasInfo().mapU(spriteId(), spriteFloatU(vertexIndex))
 			: spriteFloatU(vertexIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex) {
 		return isSpriteNormalized() && material().texture.isAtlas()
-			? SpriteInfoTexture.BLOCKS.mapV(spriteId(), spriteFloatV(vertexIndex))
+			? material().texture.atlasInfo().mapV(spriteId(), spriteFloatV(vertexIndex))
 			: spriteFloatV(vertexIndex);
 	}
 
@@ -434,5 +433,13 @@ public class QuadViewImpl implements QuadView {
 		target[targetIndex] = Float.floatToRawIntBits(xOut);
 		target[targetIndex + 1] = Float.floatToRawIntBits(yOut);
 		target[targetIndex + 2] = Float.floatToRawIntBits(zOut);
+	}
+
+	public void appendVertex(final int vertexIndex, int[] target, int targetIndex) {
+		final int[] data = this.data;
+		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+		target[targetIndex] = data[index];
+		target[targetIndex + 1] = data[index + 1];
+		target[targetIndex + 2] = data[index + 2];
 	}
 }

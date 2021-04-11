@@ -36,7 +36,6 @@ import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 
-import grondag.canvas.buffer.encoding.FrexVertexConsumer;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -82,7 +81,6 @@ public class CanvasParticleRenderer {
 			if (!particles.hasNext()) continue;
 
 			final VertexConsumer consumer = beginSheet(particleTextureSheet, collectors);
-			final FrexVertexConsumer collector = collectors.consumer;
 
 			while (particles.hasNext()) {
 				final Particle particle = particles.next();
@@ -95,7 +93,7 @@ public class CanvasParticleRenderer {
 					if (baseMat != null) {
 						// FEAT: enhanced material maps for particles - shaders for animation in particular
 						final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
-						collector.material(mat == null || !mat.emissive() ? baseMat : emissiveMat);
+						collectors.consumer.defaultMaterial(mat == null || !mat.emissive() ? baseMat : emissiveMat);
 					}
 
 					particle.buildGeometry(consumer, camera, tickDelta);

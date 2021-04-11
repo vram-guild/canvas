@@ -42,6 +42,7 @@ import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
+// WIP2: move this to FREX
 public interface FrexVertexConsumer extends VertexConsumer {
 	/**
 	 * Sets state to be included with normals and material if they are included.  Call once
@@ -49,6 +50,8 @@ public interface FrexVertexConsumer extends VertexConsumer {
 	 * to default state of the render state.
 	 */
 	FrexVertexConsumer material(RenderMaterial material);
+
+	FrexVertexConsumer defaultMaterial(RenderMaterial material);
 
 	FrexVertexConsumer vertex(float x, float y, float z);
 
