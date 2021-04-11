@@ -26,45 +26,17 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.property.MaterialDecal;
-import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialTransparency;
-import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.texture.MaterialInfoTexture;
-import grondag.fermion.bits.BitPacker64;
 import grondag.frex.api.material.RenderMaterial;
 
 public final class RenderMaterialImpl extends AbstractRenderState implements RenderMaterial {
-	// packs render order sorting weights - higher (later) weights are drawn first
-	// assumes draws are for a single target and primitive type, so those are not included
-	private static final BitPacker64<Void> SORT_PACKER = new BitPacker64<> (null, null);
-
-	// these aren't order-dependent, they are included in sort to minimize state changes
-	private static final BitPacker64<Void>.BooleanElement SORT_BLUR = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
-	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
-	// WIP2: make part of non-GL state
-	private static final BitPacker64<Void>.BooleanElement SORT_FOG = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.BooleanElement SORT_ENABLE_GLINT = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.IntElement SORT_SHADER_ID = SORT_PACKER.createIntElement(4096);
-
-	// decal should be drawn after non-decal
-	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
-	// primary sorted layer drawn first
-	private static final BitPacker64<Void>.BooleanElement SORT_TPP = SORT_PACKER.createBooleanElement();
-	// draw solid first, then various translucent layers
-	private static final BitPacker64<Void>.IntElement SORT_TRANSPARENCY = SORT_PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
-	// draw things that update depth buffer first
-	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
-
 	public static final int MAX_MATERIAL_COUNT = RenderState.MAX_COUNT * 4;
 
 	public final int collectorIndex;
 	public final RenderState renderState;
 	public final int shaderFlags;
-	public final long drawPriority;
+
 	/** Vanilla render layer name if we derived from a vanilla render layer. */
 	public final String renderLayerName;
 
@@ -73,7 +45,6 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey());
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
 		shaderFlags = shaderFlags();
-		drawPriority = drawPriority();
 		this.renderLayerName = renderLayerName;
 
 		// WIP: gui parameter is useless now and should be removed
@@ -148,7 +119,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 
 		sb.append("shaderFlags: ").append(Integer.toBinaryString(shaderFlags)).append("\n");
 		sb.append("blendMode: ").append(blendMode == null ? "null" : blendMode.name()).append("\n");
-		sb.append("drawPriority: ").append(drawPriority).append("\n");
+		sb.append("drawPriority: ").append(renderState.drawPriority).append("\n");
 		return sb.toString();
 	}
 
@@ -160,24 +131,6 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	@Override
 	public Identifier fragmentShaderId() {
 		return fragmentShaderId;
-	}
-
-	private long drawPriority() {
-		long result = SORT_BLUR.setValue(blur, 0);
-		result = SORT_DEPTH_TEST.setValue(depthTest.index, result);
-		result = SORT_CULL.setValue(cull, result);
-		result = SORT_LINES.setValue(lines, result);
-		// WIP: remove from GL state
-		result = SORT_FOG.setValue(fog, result);
-		result = SORT_ENABLE_GLINT.setValue(enableGlint, result);
-		result = SORT_SHADER_ID.setValue(shader.index, result);
-		result = SORT_DECAL.setValue(decal.drawPriority, result);
-		// inverted because higher goes first
-		result = SORT_TPP.setValue(!primaryTargetTransparency, result);
-		result = SORT_TRANSPARENCY.setValue(transparency.drawPriority, result);
-		result = SORT_WRITE_MASK.setValue(writeMask.drawPriority, result);
-
-		return result;
 	}
 
 	@Override

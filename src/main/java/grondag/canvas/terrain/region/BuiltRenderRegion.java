@@ -50,7 +50,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -426,11 +426,11 @@ public class BuiltRenderRegion {
 				final Vec3d cameraPos = cwr.cameraPos();
 				final VertexCollectorList collectors = context.collectors;
 				final RenderMaterialImpl translucentState = RenderLayerHelper.TRANSLUCENT_TERRAIN;
-				final VertexCollectorImpl collector = collectors.get(translucentState);
+				final ArrayVertexCollector collector = collectors.get(translucentState);
 
-				collector.loadState(translucentState, state);
+				collector.loadState(state);
 
-				collector.vertexArray.sortQuads(
+				collector.sortQuads(
 					(float) (cameraPos.x - origin.getX()),
 					(float) (cameraPos.y - origin.getY()),
 					(float) (cameraPos.z - origin.getZ()));

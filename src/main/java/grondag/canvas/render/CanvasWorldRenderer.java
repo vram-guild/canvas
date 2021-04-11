@@ -734,7 +734,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			Pipeline.translucentParticlesFbo.bind();
 
 			profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
-			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate, lightmapTextureManager, camera, tickDelta);
+			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate.collectors, lightmapTextureManager, camera, tickDelta);
 
 			Pipeline.defaultFbo.bind();
 		} else {
@@ -754,7 +754,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			immediate.draw();
 
 			profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
-			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate, lightmapTextureManager, camera, tickDelta);
+			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate.collectors, lightmapTextureManager, camera, tickDelta);
 		}
 
 		matrixStack.pop();

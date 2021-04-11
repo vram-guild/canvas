@@ -103,7 +103,7 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexBufferAccess buff) {
+	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexCollector buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final float[] aoData = quad.ao;

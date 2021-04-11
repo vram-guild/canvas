@@ -182,6 +182,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		bufferQuadDirect(quad, this, collectors.get(quad.material()).vertexArray);
+		bufferQuadDirect(quad, this, collectors.get(quad.material()));
 	}
 }

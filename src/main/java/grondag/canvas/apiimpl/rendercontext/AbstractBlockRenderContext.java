@@ -40,7 +40,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.buffer.encoding.VertexCollector;
+import grondag.canvas.buffer.encoding.FrexVertexConsumer;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
 
@@ -156,7 +156,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		 * That logic only applies in flat lighting.
 		 */
 		if (blockState.hasEmissiveLighting(region, blockPos)) {
-			return VertexCollector.VANILLA_FULL_BRIGHTNESS;
+			return FrexVertexConsumer.VANILLA_FULL_BRIGHTNESS;
 		}
 
 		internalSearchPos.set(blockPos);
@@ -184,7 +184,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			bufferQuadDirect(quad, this, collectors.get(quad.material()).vertexArray);
+			bufferQuadDirect(quad, this, collectors.get(quad.material()));
 		}
 	}
 }

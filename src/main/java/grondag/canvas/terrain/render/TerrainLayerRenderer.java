@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.varia.GFX;
@@ -86,11 +86,11 @@ public class TerrainLayerRenderer {
 
 					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
-						final RenderMaterialImpl mat = d.materialState();
+						final RenderState mat = d.renderState();
 
 						if (mat.programType.isVertexLogic || !mat.condition.affectBlocks || mat.condition.compute()) {
 							if (notShadowPass || mat.castShadows) {
-								d.materialState().renderState.enable(ox, oy, oz);
+								mat.enable(ox, oy, oz);
 								d.draw();
 							}
 						}

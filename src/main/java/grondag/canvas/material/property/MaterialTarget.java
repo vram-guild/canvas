@@ -22,12 +22,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Target;
 
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.frex.api.material.MaterialFinder;
 
 @SuppressWarnings("resource")
-public class MaterialTarget implements Predicate<RenderMaterialImpl> {
+public class MaterialTarget implements Predicate<RenderState> {
 	public static final MaterialTarget MAIN = new MaterialTarget(
 		MaterialFinder.TARGET_MAIN,
 		"main",
@@ -172,7 +172,7 @@ public class MaterialTarget implements Predicate<RenderMaterialImpl> {
 	}
 
 	@Override
-	public boolean test(RenderMaterialImpl mat) {
+	public boolean test(RenderState mat) {
 		return mat.target == this;
 	}
 }

@@ -40,7 +40,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
-import grondag.canvas.buffer.encoding.VertexCollector;
+import grondag.canvas.buffer.encoding.FrexVertexConsumer;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -51,7 +51,7 @@ import grondag.frex.api.mesh.QuadEmitter;
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
-public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter, VertexCollector {
+public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter, FrexVertexConsumer {
 	// PERF: pack into one array for LOR?
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
@@ -356,7 +356,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
 		vertex(x, y, z);
-		color(VertexCollector.packColor(red, green, blue, alpha));
+		color(FrexVertexConsumer.packColor(red, green, blue, alpha));
 		texture(u, v);
 		setOverlay(overlay);
 		light(light);
@@ -365,31 +365,31 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public VertexCollector vertex(float x, float y, float z) {
+	public FrexVertexConsumer vertex(float x, float y, float z) {
 		pos(vertexIndex, x, y, z);
 		return this;
 	}
 
 	@Override
-	public VertexCollector color(int color) {
+	public FrexVertexConsumer color(int color) {
 		vertexColor(vertexIndex, color);
 		return this;
 	}
 
 	@Override
-	public VertexCollector texture(float u, float v) {
+	public FrexVertexConsumer texture(float u, float v) {
 		sprite(vertexIndex, u, v);
 		return this;
 	}
 
 	@Override
-	public VertexCollector overlay(int u, int v) {
+	public FrexVertexConsumer overlay(int u, int v) {
 		setOverlay(u, v);
 		return this;
 	}
 
 	@Override
-	public VertexCollector overlay(int uv) {
+	public FrexVertexConsumer overlay(int uv) {
 		setOverlay(uv);
 		return this;
 	}
@@ -410,19 +410,19 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public VertexCollector light(int block, int sky) {
+	public FrexVertexConsumer light(int block, int sky) {
 		this.lightmap(vertexIndex, (block & 0xFF) | ((sky & 0xFF) << 8));
 		return this;
 	}
 
 	@Override
-	public VertexCollector light(int lightmap) {
+	public FrexVertexConsumer light(int lightmap) {
 		this.lightmap(vertexIndex, lightmap);
 		return this;
 	}
 
 	@Override
-	public VertexCollector normal(float x, float y, float z) {
+	public FrexVertexConsumer normal(float x, float y, float z) {
 		this.normal(vertexIndex, x, y, z);
 		return this;
 	}

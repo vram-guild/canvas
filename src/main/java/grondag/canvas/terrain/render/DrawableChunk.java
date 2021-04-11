@@ -22,10 +22,10 @@ import java.util.function.Predicate;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderState;
 
 public class DrawableChunk {
 	public static DrawableChunk EMPTY_DRAWABLE = new DrawableChunk.Dummy();
@@ -98,24 +98,24 @@ public class DrawableChunk {
 		}
 	}
 
-	private static final Predicate<RenderMaterialImpl> TRANSLUCENT = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
-	private static final Predicate<RenderMaterialImpl> SOLID = m -> !TRANSLUCENT.test(m);
+	private static final Predicate<RenderState> TRANSLUCENT = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
+	private static final Predicate<RenderState> SOLID = m -> !TRANSLUCENT.test(m);
 
 	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
 		final IntBuffer intBuffer = vboBuffer.intBuffer();
 		intBuffer.position(0);
-		final ObjectArrayList<VertexCollectorImpl> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
+		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 		final int limit = drawList.size();
 		int position = 0;
 		final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
 
 		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = drawList.get(i);
+			final ArrayVertexCollector collector = drawList.get(i);
 
-			if (collector.materialState().sorted == translucent) {
-				final int vertexCount = collector.vertexArray.vertexCount();
-				collector.vertexArray.toBuffer(intBuffer);
-				delegates.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
+			if (collector.renderState.sorted == translucent) {
+				final int vertexCount = collector.vertexCount();
+				collector.toBuffer(intBuffer);
+				delegates.add(DrawableDelegate.claim(collector.renderState, position, vertexCount));
 				position += vertexCount;
 			}
 		}

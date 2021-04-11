@@ -25,9 +25,10 @@ import net.minecraft.util.math.Matrix4f;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.buffer.encoding.ClientVertexBuffer;
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.pass.Pass;
@@ -218,7 +219,7 @@ public class PipelineManager {
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 
-		final ClientVertexBuffer collector = new ClientVertexBuffer();
+		final ArrayVertexCollector collector = new ArrayVertexCollector(RenderState.MISSING);
 		final int k = collector.allocate(30);
 		final int[] v = collector.data();
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k);

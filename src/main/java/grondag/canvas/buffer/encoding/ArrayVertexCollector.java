@@ -23,19 +23,24 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.material.state.RenderState;
 
-public class ClientVertexBuffer implements VertexBufferAccess {
+public class ArrayVertexCollector implements VertexCollector {
 	private int capacity = 1024;
 	private int[] vertexData = new int[capacity];
 	private float[] perQuadDistance = new float[512];
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	private int integerSize = 0;
 
-	public ClientVertexBuffer() {
+	public final RenderState renderState;
+
+	public ArrayVertexCollector(RenderState renderState) {
+		this.renderState = renderState;
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
 	}
@@ -172,5 +177,73 @@ public class ClientVertexBuffer implements VertexBufferAccess {
 		final float dz = (z0 + z1 + z2 + z3) * 0.25f - z;
 
 		return dx * dx + dy * dy + dz * dz;
+	}
+
+	public int[] saveState(int[] priorState) {
+		final int integerSize = this.integerSize;
+
+		if (integerSize == 0) {
+			return null;
+		}
+
+		int[] result = priorState;
+
+		if (result == null || result.length != integerSize) {
+			result = new int[integerSize];
+		}
+
+		if (integerSize > 0) {
+			System.arraycopy(vertexData, 0, result, 0, integerSize);
+		}
+
+		return result;
+	}
+
+	public void loadState(int[] stateData) {
+		clear();
+
+		if (stateData != null) {
+			final int size = stateData.length;
+			allocate(size);
+			System.arraycopy(stateData, 0, vertexData, 0, size);
+		}
+	}
+
+	public RenderState renderState() {
+		return renderState;
+	}
+
+	public void draw(boolean clear) {
+		if (!isEmpty()) {
+			drawSingle();
+
+			if (clear) {
+				clear();
+			}
+		}
+	}
+
+	void sortIfNeeded() {
+		if (renderState.sorted) {
+			sortQuads(0, 0, 0);
+		}
+	}
+
+	/** Avoid: slow. */
+	public void drawSingle() {
+		// PERF: allocation - or eliminate this
+		final ObjectArrayList<ArrayVertexCollector> drawList = new ObjectArrayList<>();
+		drawList.add(this);
+		draw(drawList);
+	}
+
+	/**
+	 * Single-buffer draw, minimizes state changes.
+	 * Assumes all collectors are non-empty.
+	 */
+	public static void draw(ObjectArrayList<ArrayVertexCollector> drawList) {
+		final DrawableBuffer buffer = new DrawableBuffer(drawList);
+		buffer.draw(false);
+		buffer.close();
 	}
 }

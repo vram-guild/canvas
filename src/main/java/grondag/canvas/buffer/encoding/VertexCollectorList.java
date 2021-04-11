@@ -29,12 +29,14 @@ import grondag.canvas.terrain.render.UploadableChunk;
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
  */
 public class VertexCollectorList {
-	private final ObjectArrayList<VertexCollectorImpl> active = new ObjectArrayList<>();
-	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[RenderState.MAX_COUNT];
-	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
+	private final ObjectArrayList<ArrayVertexCollector> active = new ObjectArrayList<>();
+	private final ArrayVertexCollector[] collectors = new ArrayVertexCollector[RenderState.MAX_COUNT];
+	private final ObjectArrayList<ArrayVertexCollector> drawList = new ObjectArrayList<>();
+
+	public final FrexVertexConsumerImpl consumer = new FrexVertexConsumerImpl(this);
 
 	/**
-	 * Clears all vertex collectors.
+	 * Clears all storage arrays.
 	 */
 	public void clear() {
 		final int limit = active.size();
@@ -44,26 +46,26 @@ public class VertexCollectorList {
 		}
 	}
 
-	public final VertexCollectorImpl getIfExists(RenderMaterialImpl materialState) {
+	public final ArrayVertexCollector getIfExists(RenderMaterialImpl materialState) {
 		return materialState == RenderMaterialImpl.MISSING ? null : collectors[materialState.collectorIndex];
 	}
 
-	public final VertexCollectorImpl get(RenderMaterialImpl materialState) {
+	public final ArrayVertexCollector get(RenderMaterialImpl materialState) {
 		if (materialState == RenderMaterialImpl.MISSING) {
 			return null;
 		}
 
 		final int index = materialState.collectorIndex;
-		final VertexCollectorImpl[] collectors = this.collectors;
+		final ArrayVertexCollector[] collectors = this.collectors;
 
-		VertexCollectorImpl result = null;
+		ArrayVertexCollector result = null;
 
 		if (index < collectors.length) {
 			result = collectors[index];
 		}
 
 		if (result == null) {
-			result = new VertexCollectorImpl().prepare(materialState);
+			result = new ArrayVertexCollector(materialState.renderState);
 			collectors[index] = result;
 			active.add(result);
 		}
@@ -80,20 +82,20 @@ public class VertexCollectorList {
 		return active.size();
 	}
 
-	public VertexCollectorImpl get(int index) {
+	public ArrayVertexCollector get(int index) {
 		return active.get(index);
 	}
 
 	public int totalBytes(boolean sorted) {
 		final int limit = active.size();
-		final ObjectArrayList<VertexCollectorImpl> active = this.active;
+		final ObjectArrayList<ArrayVertexCollector> active = this.active;
 		int intSize = 0;
 
 		for (int i = 0; i < limit; i++) {
-			final VertexCollectorImpl collector = active.get(i);
+			final ArrayVertexCollector collector = active.get(i);
 
-			if (!collector.vertexArray.isEmpty() && collector.materialState.sorted == sorted) {
-				intSize += collector.vertexArray.integerSize();
+			if (!collector.isEmpty() && collector.renderState.sorted == sorted) {
+				intSize += collector.integerSize();
 			}
 		}
 
@@ -109,17 +111,17 @@ public class VertexCollectorList {
 	 * Gives populated collectors in the order they should be drawn.
 	 * DO NOT RETAIN A REFERENCE
 	 */
-	public ObjectArrayList<VertexCollectorImpl> sortedDrawList(Predicate<RenderMaterialImpl> predicate) {
-		final ObjectArrayList<VertexCollectorImpl> drawList = this.drawList;
+	public ObjectArrayList<ArrayVertexCollector> sortedDrawList(Predicate<RenderState> predicate) {
+		final ObjectArrayList<ArrayVertexCollector> drawList = this.drawList;
 		drawList.clear();
 
 		final int limit = size();
 
 		if (limit != 0) {
 			for (int i = 0; i < limit; ++i) {
-				final VertexCollectorImpl collector = get(i);
+				final ArrayVertexCollector collector = get(i);
 
-				if (!collector.vertexArray.isEmpty() && predicate.test(collector.materialState)) {
+				if (!collector.isEmpty() && predicate.test(collector.renderState)) {
 					drawList.add(collector);
 				}
 			}
@@ -132,8 +134,8 @@ public class VertexCollectorList {
 		return drawList;
 	}
 
-	private static final Comparator<VertexCollectorImpl> DRAW_SORT = (a, b) -> {
+	private static final Comparator<ArrayVertexCollector> DRAW_SORT = (a, b) -> {
 		// note reverse argument order - higher priority wins
-		return Long.compare(b.materialState.drawPriority, a.materialState.drawPriority);
+		return Long.compare(b.renderState.drawPriority, a.renderState.drawPriority);
 	};
 }

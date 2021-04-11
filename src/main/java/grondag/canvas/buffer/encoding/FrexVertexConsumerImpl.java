@@ -24,8 +24,6 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STR
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_TEXTURE_INDEX;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import net.minecraft.client.texture.Sprite;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
@@ -37,9 +35,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
 
-public class VertexCollectorImpl implements VertexCollector {
-	public final ClientVertexBuffer vertexArray = new ClientVertexBuffer();
-
+public class FrexVertexConsumerImpl implements FrexVertexConsumer {
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
 
 	protected RenderMaterialImpl materialState;
@@ -50,8 +46,13 @@ public class VertexCollectorImpl implements VertexCollector {
 	protected boolean didPopulateNormal = false;
 	protected int currentVertexIndex = 0;
 	protected final int[] vertexData = new int[CanvasVertexFormats.MATERIAL_QUAD_STRIDE];
+	private final VertexCollectorList storage;
 
-	public VertexCollectorImpl prepare(RenderMaterialImpl materialState) {
+	public FrexVertexConsumerImpl(VertexCollectorList storage) {
+		this.storage = storage;
+	}
+
+	public FrexVertexConsumerImpl prepare(RenderMaterialImpl materialState) {
 		clear();
 		this.materialState = materialState;
 		material(materialState);
@@ -60,7 +61,6 @@ public class VertexCollectorImpl implements VertexCollector {
 
 	public void clear() {
 		currentVertexIndex = 0;
-		vertexArray.clear();
 		didPopulateNormal = false;
 	}
 
@@ -68,80 +68,9 @@ public class VertexCollectorImpl implements VertexCollector {
 		return materialState;
 	}
 
-	@Override
-	public VertexCollectorImpl clone() {
-		throw new UnsupportedOperationException();
-	}
-
-	public int[] saveState(int[] priorState) {
-		final int integerSize = vertexArray.integerSize();
-
-		if (integerSize == 0) {
-			return null;
-		}
-
-		int[] result = priorState;
-
-		if (result == null || result.length != integerSize) {
-			result = new int[integerSize];
-		}
-
-		if (integerSize > 0) {
-			System.arraycopy(vertexArray.data(), 0, result, 0, integerSize);
-		}
-
-		return result;
-	}
-
-	public VertexCollectorImpl loadState(RenderMaterialImpl state, int[] stateData) {
-		clear();
-		materialState = state;
-
-		if (stateData != null) {
-			final int size = stateData.length;
-			vertexArray.allocate(size);
-			System.arraycopy(stateData, 0, vertexArray.data(), 0, size);
-		}
-
-		return this;
-	}
-
-	public void draw(boolean clear) {
-		if (!vertexArray.isEmpty()) {
-			drawSingle();
-
-			if (clear) {
-				clear();
-			}
-		}
-	}
-
-	void sortIfNeeded() {
-		if (materialState.sorted) {
-			vertexArray.sortQuads(0, 0, 0);
-		}
-	}
-
-	/** Avoid: slow. */
-	public void drawSingle() {
-		// PERF: allocation - or eliminate this
-		final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
-		drawList.add(this);
-		draw(drawList);
-	}
-
-	/**
-	 * Single-buffer draw, minimizes state changes.
-	 * Assumes all collectors are non-empty.
-	 */
-	public static void draw(ObjectArrayList<VertexCollectorImpl> drawList) {
-		final DrawableBuffer buffer = new DrawableBuffer(drawList);
-		buffer.draw(false);
-		buffer.close();
-	}
-
 	protected void emitQuad() {
 		if (conditionActive) {
+			final ArrayVertexCollector vertexArray = storage.get(materialState);
 			final int idx = vertexArray.allocate(CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
 			System.arraycopy(vertexData, 0, vertexArray.data(), idx, CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
 		}
@@ -150,20 +79,20 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	@Override
-	public VertexCollector texture(float u, float v) {
+	public FrexVertexConsumer texture(float u, float v) {
 		vertexData[currentVertexIndex + MATERIAL_TEXTURE_INDEX] = Float.floatToRawIntBits(u);
 		vertexData[currentVertexIndex + MATERIAL_MATERIAL_INDEX] = Float.floatToRawIntBits(v);
 		return this;
 	}
 
 	@Override
-	public VertexCollector overlay(int u, int v) {
+	public FrexVertexConsumer overlay(int u, int v) {
 		setOverlay(u, v);
 		return this;
 	}
 
 	@Override
-	public VertexCollector overlay(int uv) {
+	public FrexVertexConsumer overlay(int uv) {
 		setOverlay(uv);
 		return this;
 	}
@@ -185,13 +114,13 @@ public class VertexCollectorImpl implements VertexCollector {
 
 	// low to high: block, sky, ao, flags
 	@Override
-	public VertexCollector light(int block, int sky) {
+	public FrexVertexConsumer light(int block, int sky) {
 		setLight(block, sky);
 		return this;
 	}
 
 	@Override
-	public VertexCollector light(int uv) {
+	public FrexVertexConsumer light(int uv) {
 		setLight(uv);
 		return this;
 	}
@@ -205,7 +134,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	@Override
-	public VertexCollector material(RenderMaterial material) {
+	public FrexVertexConsumer material(RenderMaterial material) {
 		final RenderMaterialImpl mat = (RenderMaterialImpl) material;
 		assert mat.collectorIndex == materialState.collectorIndex;
 		normalBase = (mat.shaderFlags << 24);
@@ -214,7 +143,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	@Override
-	public VertexCollector vertex(float x, float y, float z) {
+	public FrexVertexConsumer vertex(float x, float y, float z) {
 		vertexData[currentVertexIndex + 0] = Float.floatToRawIntBits(x);
 		vertexData[currentVertexIndex + 1] = Float.floatToRawIntBits(y);
 		vertexData[currentVertexIndex + 2] = Float.floatToRawIntBits(z);
@@ -222,7 +151,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	@Override
-	public VertexCollector color(int color) {
+	public FrexVertexConsumer color(int color) {
 		vertexData[currentVertexIndex + MATERIAL_COLOR_INDEX] = color;
 		return this;
 	}
@@ -238,7 +167,7 @@ public class VertexCollectorImpl implements VertexCollector {
 	}
 
 	@Override
-	public VertexCollector normal(float x, float y, float z) {
+	public FrexVertexConsumer normal(float x, float y, float z) {
 		setNormal(x, y, z);
 		return this;
 	}
@@ -254,7 +183,7 @@ public class VertexCollectorImpl implements VertexCollector {
 		vertexData[currentVertexIndex + 0] = Float.floatToRawIntBits(x);
 		vertexData[currentVertexIndex + 1] = Float.floatToRawIntBits(y);
 		vertexData[currentVertexIndex + 2] = Float.floatToRawIntBits(z);
-		vertexData[currentVertexIndex + MATERIAL_COLOR_INDEX] = VertexCollector.packColor(red, green, blue, alpha);
+		vertexData[currentVertexIndex + MATERIAL_COLOR_INDEX] = FrexVertexConsumer.packColor(red, green, blue, alpha);
 		vertexData[currentVertexIndex + MATERIAL_TEXTURE_INDEX] = Float.floatToRawIntBits(u);
 		vertexData[currentVertexIndex + MATERIAL_MATERIAL_INDEX] = Float.floatToRawIntBits(v);
 		setOverlay(overlay);

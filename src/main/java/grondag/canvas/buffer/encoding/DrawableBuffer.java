@@ -33,15 +33,15 @@ public class DrawableBuffer implements AutoCloseable {
 	private final int[] counts;
 	private final RenderState[] states;
 
-	public DrawableBuffer(ObjectArrayList<VertexCollectorImpl> drawList) {
+	public DrawableBuffer(ObjectArrayList<ArrayVertexCollector> drawList) {
 		limit = drawList.size();
 
 		int bytes = 0;
 
 		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = drawList.get(i);
+			final ArrayVertexCollector collector = drawList.get(i);
 			collector.sortIfNeeded();
-			bytes += collector.vertexArray.byteSize();
+			bytes += collector.byteSize();
 		}
 
 		// PERF: trial memory mapped here
@@ -53,10 +53,10 @@ public class DrawableBuffer implements AutoCloseable {
 		intBuffer.position(0);
 
 		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = drawList.get(i);
-			collector.vertexArray.toBuffer(intBuffer);
-			counts[i] = collector.vertexArray.vertexCount();
-			states[i] = collector.materialState.renderState;
+			final ArrayVertexCollector collector = drawList.get(i);
+			collector.toBuffer(intBuffer);
+			counts[i] = collector.vertexCount();
+			states[i] = collector.renderState;
 			collector.clear();
 		}
 
