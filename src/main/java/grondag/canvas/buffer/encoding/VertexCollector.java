@@ -47,8 +47,6 @@ public interface VertexCollector extends VertexConsumer {
 	 * Sets state to be included with normals and material if they are included.  Call once
 	 * whenever material changes, including default state or revert
 	 * to default state of the render state.
-	 *
-	 * <p>Material collector key must match that of this collector.
 	 */
 	VertexCollector material(RenderMaterial material);
 

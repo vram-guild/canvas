@@ -430,7 +430,7 @@ public class BuiltRenderRegion {
 
 				collector.loadState(translucentState, state);
 
-				collector.sortQuads(
+				collector.vertexArray.sortQuads(
 					(float) (cameraPos.x - origin.getX()),
 					(float) (cameraPos.y - origin.getY()),
 					(float) (cameraPos.z - origin.getZ()));

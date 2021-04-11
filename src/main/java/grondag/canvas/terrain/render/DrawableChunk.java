@@ -113,8 +113,8 @@ public class DrawableChunk {
 			final VertexCollectorImpl collector = drawList.get(i);
 
 			if (collector.materialState().sorted == translucent) {
-				final int vertexCount = collector.vertexCount();
-				collector.toBuffer(intBuffer);
+				final int vertexCount = collector.vertexArray.vertexCount();
+				collector.vertexArray.toBuffer(intBuffer);
 				delegates.add(DrawableDelegate.claim(collector.materialState(), position, vertexCount));
 				position += vertexCount;
 			}

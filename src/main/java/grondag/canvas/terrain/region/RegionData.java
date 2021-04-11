@@ -49,8 +49,8 @@ public class RegionData {
 	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
 		final VertexCollectorImpl buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
 
-		if (buffer != null && !buffer.isEmpty()) {
-			buffer.sortQuads(x, y, z);
+		if (buffer != null && !buffer.vertexArray.isEmpty()) {
+			buffer.vertexArray.sortQuads(x, y, z);
 			translucentState = buffer.saveState(translucentState);
 		}
 	}

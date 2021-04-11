@@ -27,7 +27,7 @@ import net.minecraft.client.gui.hud.DebugHud;
 
 import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.buffer.TransferBufferAllocator;
-import grondag.canvas.buffer.encoding.AbstractVertexArray;
+import grondag.canvas.buffer.encoding.ClientVertexBuffer;
 
 @Mixin(DebugHud.class)
 public class MixinDebugHud {
@@ -41,6 +41,6 @@ public class MixinDebugHud {
 
 		list.add(TransferBufferAllocator.debugString());
 		list.add(GlBufferAllocator.debugString());
-		list.add(AbstractVertexArray.debugReport());
+		list.add(ClientVertexBuffer.debugReport());
 	}
 }

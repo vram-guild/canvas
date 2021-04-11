@@ -30,11 +30,14 @@ import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.SpriteExt;
 
-public abstract class AbstractVertexCollector extends AbstractVertexArray implements VertexCollector {
+public abstract class AbstractVertexCollector implements VertexCollector {
+	public final ClientVertexBuffer vertexArray = new ClientVertexBuffer();
+
 	private static final int LAST_VERTEX_BASE_INDEX = MATERIAL_QUAD_STRIDE - MATERIAL_VERTEX_STRIDE;
 
 	protected RenderMaterialImpl materialState;
@@ -43,6 +46,8 @@ public abstract class AbstractVertexCollector extends AbstractVertexArray implem
 	protected int overlayFlags;
 	protected boolean conditionActive = true;
 	protected boolean didPopulateNormal = false;
+	protected int currentVertexIndex = 0;
+	protected final int[] vertexData = new int[CanvasVertexFormats.MATERIAL_QUAD_STRIDE];
 
 	@Override
 	public VertexCollector texture(float u, float v) {
@@ -165,39 +170,39 @@ public abstract class AbstractVertexCollector extends AbstractVertexArray implem
 		if (materialState.texture.isAtlas()) {
 			normalizeAtlasSprites();
 		} else {
-			final float u0 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX]);
-			final float v0 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX]);
-			vertexData[integerSize + MATERIAL_TEXTURE_INDEX] = Math.round(u0 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v0 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
-			vertexData[integerSize + MATERIAL_MATERIAL_INDEX] = 0;
+			final float u0 = Float.intBitsToFloat(vertexData[MATERIAL_TEXTURE_INDEX]);
+			final float v0 = Float.intBitsToFloat(vertexData[MATERIAL_MATERIAL_INDEX]);
+			vertexData[MATERIAL_TEXTURE_INDEX] = Math.round(u0 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v0 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[MATERIAL_MATERIAL_INDEX] = 0;
 
-			final float u1 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE]);
-			final float v1 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE]);
-			vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE] = Math.round(u1 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v1 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
-			vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE] = 0;
+			final float u1 = Float.intBitsToFloat(vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE]);
+			final float v1 = Float.intBitsToFloat(vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE]);
+			vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE] = Math.round(u1 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v1 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE] = 0;
 
-			final float u2 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
-			final float v2 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
-			vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2] = Math.round(u2 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v2 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
-			vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2] = 0;
+			final float u2 = Float.intBitsToFloat(vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
+			final float v2 = Float.intBitsToFloat(vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
+			vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2] = Math.round(u2 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v2 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2] = 0;
 
-			final float u3 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
-			final float v3 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
-			vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] = Math.round(u3 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v3 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
-			vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = 0;
+			final float u3 = Float.intBitsToFloat(vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
+			final float v3 = Float.intBitsToFloat(vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
+			vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] = Math.round(u3 * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v3 * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+			vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = 0;
 		}
 	}
 
 	private static final float ONE_THIRD = 1f / 3f;
 
 	private void normalizeAtlasSprites() {
-		final float u0 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX]);
-		final float v0 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX]);
-		final float u1 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE]);
-		final float v1 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE]);
-		final float u2 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
-		final float v2 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
-		final float u3 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
-		final float v3 = Float.intBitsToFloat(vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
+		final float u0 = Float.intBitsToFloat(vertexData[MATERIAL_TEXTURE_INDEX]);
+		final float v0 = Float.intBitsToFloat(vertexData[MATERIAL_MATERIAL_INDEX]);
+		final float u1 = Float.intBitsToFloat(vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE]);
+		final float v1 = Float.intBitsToFloat(vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE]);
+		final float u2 = Float.intBitsToFloat(vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
+		final float v2 = Float.intBitsToFloat(vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2]);
+		final float u3 = Float.intBitsToFloat(vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
+		final float v3 = Float.intBitsToFloat(vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3]);
 
 		final Sprite sprite = materialState.texture.atlasInfo().spriteFinder().find((u0 + u1 + u2) * ONE_THIRD, (v0 + v1 + v2) * ONE_THIRD);
 		final int spriteId = ((SpriteExt) sprite).canvas_id();
@@ -207,15 +212,15 @@ public abstract class AbstractVertexCollector extends AbstractVertexArray implem
 		final float vSpanInv = 1f / (sprite.getMaxV() - vMin);
 		final int stateVec = spriteId | (materialState.index << 16);
 
-		vertexData[integerSize + MATERIAL_TEXTURE_INDEX] = Math.round((u0 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v0 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
-		vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE] = Math.round((u1 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v1 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
-		vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2] = Math.round((u2 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v2 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
-		vertexData[integerSize + MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] = Math.round((u3 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v3 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		vertexData[MATERIAL_TEXTURE_INDEX] = Math.round((u0 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v0 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE] = Math.round((u1 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v1 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 2] = Math.round((u2 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v2 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+		vertexData[MATERIAL_TEXTURE_INDEX + MATERIAL_VERTEX_STRIDE * 3] = Math.round((u3 - uMin) * uSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round((v3 - vMin) * vSpanInv * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
 
-		vertexData[integerSize + MATERIAL_MATERIAL_INDEX] = stateVec;
-		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE] = stateVec;
-		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2] = stateVec;
-		vertexData[integerSize + MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = stateVec;
+		vertexData[MATERIAL_MATERIAL_INDEX] = stateVec;
+		vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE] = stateVec;
+		vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 2] = stateVec;
+		vertexData[MATERIAL_MATERIAL_INDEX + MATERIAL_VERTEX_STRIDE * 3] = stateVec;
 	}
 
 	@Override
@@ -226,7 +231,7 @@ public abstract class AbstractVertexCollector extends AbstractVertexArray implem
 
 		final int base = currentVertexIndex;
 
-		if ((base - integerSize) >= LAST_VERTEX_BASE_INDEX) {
+		if (base >= LAST_VERTEX_BASE_INDEX) {
 			normalizeSprites();
 			emitQuad();
 		} else {

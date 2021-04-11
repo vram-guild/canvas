@@ -299,7 +299,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			bufferQuadDirect(quad, this, collectors.get(quad.material()));
+			bufferQuadDirect(quad, this, collectors.get(quad.material()).vertexArray);
 		}
 	}
 

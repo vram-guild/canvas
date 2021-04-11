@@ -104,7 +104,7 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		} else {
 			final VertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
 
-			if (collector != null && !collector.isEmpty()) {
+			if (collector != null && !collector.vertexArray.isEmpty()) {
 				collector.draw(true);
 			}
 		}

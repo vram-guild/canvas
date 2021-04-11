@@ -92,8 +92,8 @@ public class VertexCollectorList {
 		for (int i = 0; i < limit; i++) {
 			final VertexCollectorImpl collector = active.get(i);
 
-			if (!collector.isEmpty() && collector.materialState.sorted == sorted) {
-				intSize += collector.integerSize();
+			if (!collector.vertexArray.isEmpty() && collector.materialState.sorted == sorted) {
+				intSize += collector.vertexArray.integerSize();
 			}
 		}
 
@@ -119,7 +119,7 @@ public class VertexCollectorList {
 			for (int i = 0; i < limit; ++i) {
 				final VertexCollectorImpl collector = get(i);
 
-				if (!collector.isEmpty() && predicate.test(collector.materialState)) {
+				if (!collector.vertexArray.isEmpty() && predicate.test(collector.materialState)) {
 					drawList.add(collector);
 				}
 			}

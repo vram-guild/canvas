@@ -184,7 +184,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			bufferQuadDirect(quad, this, collectors.get(quad.material()));
+			bufferQuadDirect(quad, this, collectors.get(quad.material()).vertexArray);
 		}
 	}
 }

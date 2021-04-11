@@ -354,6 +354,17 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
+	public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
+		vertex(x, y, z);
+		color(VertexCollector.packColor(red, green, blue, alpha));
+		texture(u, v);
+		setOverlay(overlay);
+		light(light);
+		normal(normalX, normalY, normalZ);
+		next();
+	}
+
+	@Override
 	public VertexCollector vertex(float x, float y, float z) {
 		pos(vertexIndex, x, y, z);
 		return this;
