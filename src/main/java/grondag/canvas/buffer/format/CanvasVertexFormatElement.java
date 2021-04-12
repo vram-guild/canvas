@@ -20,51 +20,49 @@ import net.minecraft.client.render.VertexFormatElement;
 
 public class CanvasVertexFormatElement {
 	public static final CanvasVertexFormatElement POSITION_3F = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.FLOAT, 3, "in_vertex");
+		VertexFormatElement.Format.FLOAT, 3, "in_vertex", true, false);
 
 	public static final CanvasVertexFormatElement BASE_RGBA_4UB = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.UBYTE, 4, "in_color");
+		VertexFormatElement.Format.UBYTE, 4, "in_color", true, false);
 
 	public static final CanvasVertexFormatElement BASE_TEX_2F = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.FLOAT, 2, "in_uv");
+		VertexFormatElement.Format.FLOAT, 2, "in_uv", true, false);
 
 	public static final CanvasVertexFormatElement BASE_TEX_2US = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.USHORT, 2, "in_uv", true);
+		VertexFormatElement.Format.USHORT, 2, "in_uv", true, false);
 
 	/**
 	 * In vanilla lighting model, Bytes 1-2 are sky and block lightmap
 	 * coordinates. 3rd and 4th bytes are control flags.
 	 */
 	public static final CanvasVertexFormatElement LIGHTMAPS_4UB = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.UBYTE, 4, "in_lightmap", false);
+		VertexFormatElement.Format.UBYTE, 4, "in_lightmap", false, false);
 
 	public static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
-			VertexFormatElement.Format.UBYTE, 2, "in_lightmap", false);
+			VertexFormatElement.Format.UBYTE, 2, "in_lightmap", false, false);
 
 	public static final CanvasVertexFormatElement NORMAL_PLUS_4UB = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.UBYTE, 4, "in_normal_flags", false);
+		VertexFormatElement.Format.UBYTE, 4, "in_normal_flags", false, false);
 
 	public static final CanvasVertexFormatElement SPRITE_1US = new CanvasVertexFormatElement(
-			VertexFormatElement.Format.USHORT, 1, "in_sprite", false);
+			VertexFormatElement.Format.USHORT, 1, "in_sprite", false, true);
 
 	public static final CanvasVertexFormatElement MATERIAL_1US = new CanvasVertexFormatElement(
-			VertexFormatElement.Format.USHORT, 1, "in_material", false);
+			VertexFormatElement.Format.USHORT, 1, "in_material", false, true);
 
 	public final String attributeName;
 	public final int elementCount;
 	public final int glConstant;
 	public final boolean isNormalized;
+	public final boolean isInteger;
 	public final int byteSize;
 
-	private CanvasVertexFormatElement(VertexFormatElement.Format formatIn, int count, String attributeName) {
-		this(formatIn, count, attributeName, true);
-	}
-
-	private CanvasVertexFormatElement(VertexFormatElement.Format formatIn, int count, String attributeName, boolean isNormalized) {
+	private CanvasVertexFormatElement(VertexFormatElement.Format formatIn, int count, String attributeName, boolean isNormalized, boolean isInteger) {
 		this.attributeName = attributeName;
 		elementCount = count;
 		glConstant = formatIn.getGlId();
 		byteSize = formatIn.getSize() * count;
 		this.isNormalized = isNormalized;
+		this.isInteger = isInteger;
 	}
 }

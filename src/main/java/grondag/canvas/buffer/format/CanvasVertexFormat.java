@@ -64,7 +64,13 @@ public class CanvasVertexFormat {
 
 		for (int i = 0; i < limit; i++) {
 			final CanvasVertexFormatElement e = elements[i];
-			GFX.vertexAttribPointer(i, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
+
+			if (e.isInteger) {
+				GFX.nglVertexAttribIPointer(i, e.elementCount, e.glConstant, vertexStrideBytes, bufferOffset + offset);
+			} else {
+				GFX.vertexAttribPointer(i, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
+			}
+
 			offset += e.byteSize;
 		}
 	}
