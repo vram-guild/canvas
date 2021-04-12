@@ -62,6 +62,8 @@ public class ShaderData {
 	public static final Consumer<GlProgram> COMMON_UNIFORM_SETUP = program -> {
 		program.uniformArray4f("_cvu_world", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(WorldDataManager.DATA), WorldDataManager.VECTOR_COUNT);
 
+		program.uniformArrayui("_cvu_world_uint", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(WorldDataManager.UINT_DATA), WorldDataManager.UINT_COUNT);
+
 		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(FlagData.DATA), FlagData.LENGTH);
 
 		program.uniformMatrix4fArray("_cvu_matrix", UniformRefreshFrequency.PER_FRAME, u -> u.set(MatrixState.DATA));
