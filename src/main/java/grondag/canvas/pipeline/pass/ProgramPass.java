@@ -18,6 +18,8 @@ package grondag.canvas.pipeline.pass;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.client.texture.TextureManager;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL46;
@@ -32,6 +34,8 @@ import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.ProcessShader;
+
+import java.io.IOException;
 
 class ProgramPass extends Pass {
 	final int[] binds;
@@ -54,10 +58,26 @@ class ProgramPass extends Pass {
 			int bindTarget = GL46.GL_TEXTURE_2D;
 
 			if (imageName.contains(":")) {
-				final AbstractTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(imageName));
+				final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+				final Identifier identifier = new Identifier(imageName);
+				final AbstractTexture tex = textureManager.getTexture(identifier);
 
-				if (tex != null) {
-					imageBind = tex.getGlId();
+				AbstractTexture usedTex;
+				if (tex == null) {
+					ResourceTexture resourceTexture = new ResourceTexture(identifier);
+					try {
+						resourceTexture.load(MinecraftClient.getInstance().getResourceManager());
+						textureManager.registerTexture(identifier, resourceTexture);
+						usedTex = textureManager.getTexture(identifier);
+					} catch (IOException e) {
+						usedTex = null;
+					}
+				} else {
+					usedTex = tex;
+				}
+
+				if (usedTex != null) {
+					imageBind = usedTex.getGlId();
 				}
 			} else {
 				final Image img = Pipeline.getImage(imageName);
