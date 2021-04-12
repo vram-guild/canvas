@@ -44,8 +44,8 @@ public class CanvasVertexFormatElement {
 	public static final CanvasVertexFormatElement NORMAL_PLUS_4UB = new CanvasVertexFormatElement(
 		VertexFormatElement.Format.UBYTE, 4, "in_normal_flags", false);
 
-	public static final CanvasVertexFormatElement MATERIAL_2US = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.USHORT, 2, "in_material", false);
+	public static final CanvasVertexFormatElement SPRITE_1US = new CanvasVertexFormatElement(
+			VertexFormatElement.Format.USHORT, 1, "in_sprite", false);
 
 	public static final CanvasVertexFormatElement MATERIAL_1US = new CanvasVertexFormatElement(
 			VertexFormatElement.Format.USHORT, 1, "in_material", false);

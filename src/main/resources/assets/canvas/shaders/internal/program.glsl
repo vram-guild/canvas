@@ -71,7 +71,7 @@ float _cv_isGlint() {
 #ifdef VERTEX_SHADER
 void _cv_setupProgram() {
 #ifndef PROGRAM_BY_UNIFORM
-	float materialIndex = in_material.y;
+	float materialIndex = in_material;
 	float y = floor((materialIndex + 0.1) / _CV_MATERIAL_INFO_TEXTURE_SIZE);
 	float x = materialIndex - (y * _CV_MATERIAL_INFO_TEXTURE_SIZE);
 	vec2 coord = vec2(x, y);

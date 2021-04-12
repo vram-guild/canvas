@@ -22,9 +22,9 @@ import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2U
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_4UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_2US;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_PLUS_4UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.SPRITE_1US;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -54,7 +54,7 @@ public final class CanvasVertexFormats {
 	 * carried in most significant bytes of normal.
 	 * Most significant byte of lightmap holds vertex state flags.
 	 */
-	private static final CanvasVertexFormat FAT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, MATERIAL_2US, LIGHTMAPS_4UB, NORMAL_PLUS_4UB);
+	private static final CanvasVertexFormat FAT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, SPRITE_1US, MATERIAL_1US, LIGHTMAPS_4UB, NORMAL_PLUS_4UB);
 
 	private static final int FAT_QUAD_STRIDE = FAT_MATERIAL.quadStrideInts;
 

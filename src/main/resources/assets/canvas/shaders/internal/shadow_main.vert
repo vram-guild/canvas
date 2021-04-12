@@ -43,7 +43,7 @@ void main() {
 		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);
 
 	} else {
-		float spriteIndex = in_material.x;
+		float spriteIndex = in_sprite;
 		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
 		vec4 spriteBounds = textureLod(_cvu_spriteInfo, vec2(0, spriteIndex / _cvu_context[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
 
