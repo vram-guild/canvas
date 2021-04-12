@@ -31,7 +31,7 @@ public class UploadableChunk {
 	protected final DrawableChunk drawable;
 
 	public UploadableChunk(VertexCollectorList collectorList, boolean sorted, int bytes) {
-		vboBuffer = new VboBuffer(bytes, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL);
+		vboBuffer = new VboBuffer(bytes, CanvasVertexFormats.MATERIAL_FORMAT);
 		drawable = DrawableChunk.pack(collectorList, vboBuffer, sorted);
 	}
 

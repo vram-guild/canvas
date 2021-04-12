@@ -16,7 +16,8 @@
 
 package grondag.canvas.buffer.encoding;
 
-import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_INT_QUAD_STRIDE;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_INT_VERTEX_STRIDE;
 
 import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,7 +28,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderState;
 
 public class ArrayVertexCollector implements VertexCollector {
@@ -65,7 +65,7 @@ public class ArrayVertexCollector implements VertexCollector {
 	}
 
 	public int vertexCount() {
-		return integerSize / CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
+		return integerSize / MATERIAL_INT_VERTEX_STRIDE;
 	}
 
 	public int quadCount() {
@@ -113,7 +113,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		}
 
 		for (int j = 0; j < quadCount; ++j) {
-			perQuadDistance[j] = getDistanceSq(x, y, z, CanvasVertexFormats.MATERIAL_VERTEX_STRIDE, j);
+			perQuadDistance[j] = getDistanceSq(x, y, z, MATERIAL_INT_VERTEX_STRIDE, j);
 		}
 
 		// sort the indexes by distance - farthest first
@@ -130,7 +130,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		}
 	};
 
-	private final int[] swapData = new int[MATERIAL_QUAD_STRIDE * 2];
+	private final int[] swapData = new int[MATERIAL_INT_QUAD_STRIDE * 2];
 
 	private final Swapper swapper = new Swapper() {
 		@Override
@@ -139,13 +139,13 @@ public class ArrayVertexCollector implements VertexCollector {
 			perQuadDistance[a] = perQuadDistance[b];
 			perQuadDistance[b] = distSwap;
 
-			final int aIndex = a * MATERIAL_QUAD_STRIDE;
-			final int bIndex = b * MATERIAL_QUAD_STRIDE;
+			final int aIndex = a * MATERIAL_INT_QUAD_STRIDE;
+			final int bIndex = b * MATERIAL_INT_QUAD_STRIDE;
 
-			System.arraycopy(vertexData, aIndex, swapData, 0, MATERIAL_QUAD_STRIDE);
-			System.arraycopy(vertexData, bIndex, swapData, MATERIAL_QUAD_STRIDE, MATERIAL_QUAD_STRIDE);
-			System.arraycopy(swapData, 0, vertexData, bIndex, MATERIAL_QUAD_STRIDE);
-			System.arraycopy(swapData, MATERIAL_QUAD_STRIDE, vertexData, aIndex, MATERIAL_QUAD_STRIDE);
+			System.arraycopy(vertexData, aIndex, swapData, 0, MATERIAL_INT_QUAD_STRIDE);
+			System.arraycopy(vertexData, bIndex, swapData, MATERIAL_INT_QUAD_STRIDE, MATERIAL_INT_QUAD_STRIDE);
+			System.arraycopy(swapData, 0, vertexData, bIndex, MATERIAL_INT_QUAD_STRIDE);
+			System.arraycopy(swapData, MATERIAL_INT_QUAD_STRIDE, vertexData, aIndex, MATERIAL_INT_QUAD_STRIDE);
 		}
 	};
 

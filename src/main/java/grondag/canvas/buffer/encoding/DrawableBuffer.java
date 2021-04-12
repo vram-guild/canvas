@@ -45,7 +45,7 @@ public class DrawableBuffer implements AutoCloseable {
 		}
 
 		// PERF: trial memory mapped here
-		buffer = new VboBuffer(bytes, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL);
+		buffer = new VboBuffer(bytes, CanvasVertexFormats.MATERIAL_FORMAT);
 		final IntBuffer intBuffer = buffer.intBuffer();
 		counts = new int[limit];
 		states = new RenderState[limit];

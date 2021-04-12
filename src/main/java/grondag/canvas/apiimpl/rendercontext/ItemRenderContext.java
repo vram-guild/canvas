@@ -16,10 +16,9 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.buffer.encoding.EncoderUtils.applyItemLighting;
-import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
-import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
-import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
+import static grondag.canvas.buffer.format.EncoderUtils.applyItemLighting;
+import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
+import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
 import java.util.Random;
 import java.util.function.Supplier;
@@ -50,6 +49,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
@@ -299,7 +299,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			bufferQuadDirect(quad, this, collectors.get(quad.material()));
+			CanvasVertexFormats.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
 		}
 	}
 

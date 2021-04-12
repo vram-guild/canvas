@@ -33,6 +33,8 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
@@ -40,10 +42,12 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
-import grondag.canvas.buffer.encoding.FrexVertexConsumer;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderStateData;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.frex.api.mesh.FrexVertexConsumer;
 import grondag.frex.api.mesh.QuadEmitter;
 
 /**
@@ -362,7 +366,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
 		vertex(x, y, z);
-		color(FrexVertexConsumer.packColor(red, green, blue, alpha));
+		color(MeshEncodingHelper.packColor(red, green, blue, alpha));
 		texture(u, v);
 		setOverlay(overlay);
 		light(light);
@@ -431,5 +435,32 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public FrexVertexConsumer normal(float x, float y, float z) {
 		this.normal(vertexIndex, x, y, z);
 		return this;
+	}
+
+	@Override
+	public FrexVertexConsumer color(int red, int green, int blue, int alpha) {
+		return color(MeshEncodingHelper.packColor(red, green, blue, alpha));
+	}
+
+	@Override
+	public FrexVertexConsumer vertex(Matrix4f matrix, float x, float y, float z) {
+		final Matrix4fExt mat = (Matrix4fExt) (Object) matrix;
+
+		final float tx = mat.a00() * x + mat.a01() * y + mat.a02() * z + mat.a03();
+		final float ty = mat.a10() * x + mat.a11() * y + mat.a12() * z + mat.a13();
+		final float tz = mat.a20() * x + mat.a21() * y + mat.a22() * z + mat.a23();
+
+		return this.vertex(tx, ty, tz);
+	}
+
+	@Override
+	public FrexVertexConsumer normal(Matrix3f matrix, float x, float y, float z) {
+		final Matrix3fExt mat = (Matrix3fExt) (Object) matrix;
+
+		final float tx = mat.a00() * x + mat.a01() * y + mat.a02() * z;
+		final float ty = mat.a10() * x + mat.a11() * y + mat.a12() * z;
+		final float tz = mat.a20() * x + mat.a21() * y + mat.a22() * z;
+
+		return this.normal(tx, ty, tz);
 	}
 }

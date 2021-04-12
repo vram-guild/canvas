@@ -24,6 +24,8 @@ public class CanvasVertexFormat {
 	 */
 	public final int vertexStrideBytes;
 	public final int vertexStrideInts;
+	public final int quadStrideInts;
+
 	private final CanvasVertexFormatElement[] elements;
 
 	public CanvasVertexFormat(CanvasVertexFormatElement... elementsIn) {
@@ -37,6 +39,7 @@ public class CanvasVertexFormat {
 
 		vertexStrideBytes = bytes;
 		vertexStrideInts = bytes / 4;
+		quadStrideInts = vertexStrideInts * 4;
 	}
 
 	public void enableAttributes() {

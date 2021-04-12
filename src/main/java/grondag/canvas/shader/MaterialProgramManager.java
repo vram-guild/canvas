@@ -40,7 +40,7 @@ public enum MaterialProgramManager {
 		if (result == null) {
 			final Shader vs = new GlMaterialShader(programType.vertexSource, GFX.GL_VERTEX_SHADER, programType);
 			final Shader fs = new GlMaterialShader(programType.fragmentSource, GFX.GL_FRAGMENT_SHADER, programType);
-			result = new GlMaterialProgram(vs, fs, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType);
+			result = new GlMaterialProgram(vs, fs, CanvasVertexFormats.MATERIAL_FORMAT, programType);
 			ShaderData.MATERIAL_UNIFORM_SETUP.accept(result);
 			materialPrograms[key] = result;
 		}
