@@ -19,7 +19,7 @@ package grondag.canvas.texture;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import org.lwjgl.system.MemoryUtil;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -42,32 +42,18 @@ import grondag.canvas.varia.GFX;
  */
 @Environment(EnvType.CLIENT)
 public final class MaterialIndexImage {
-	private long pointer;
 	private int bufferId;
-	private ByteBuffer byteBuffer;
-	private IntBuffer intBuffer;
-	private boolean dirty = true;
-
-	//WIP2: use mapped buffer/texture with incremental update
+	private final IntArrayList data = new IntArrayList();
+	private int head = 0;
+	private int tail = 0;
 
 	public MaterialIndexImage() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialInfoImage init");
 		}
-
-		pointer = MemoryUtil.nmemAlloc(MaterialIndexTexture.BUFFER_SIZE_BYTES);
-		byteBuffer = MemoryUtil.memByteBuffer(pointer, MaterialIndexTexture.BUFFER_SIZE_BYTES);
-		intBuffer = byteBuffer.asIntBuffer();
 	}
 
 	public void close() {
-		if (pointer != 0L) {
-			intBuffer = null;
-			byteBuffer = null;
-			MemoryUtil.nmemFree(pointer);
-			pointer = 0L;
-		}
-
 		if (bufferId != 0) {
 			GFX.deleteBuffers(bufferId);
 			bufferId = 0;
@@ -75,27 +61,42 @@ public final class MaterialIndexImage {
 	}
 
 	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId) {
-		assert pointer != 0L : "Image not allocated.";
-		materialIndex *= 2;
-		intBuffer.put(materialIndex, vertexId | (fragmentId << 16));
-		intBuffer.put(materialIndex + 1, programFlags | (conditionId << 16));
-		dirty = true;
+		data.add(vertexId | (fragmentId << 16));
+		data.add(programFlags | (conditionId << 16));
+
+		final int bufferIndex = materialIndex * MaterialIndexTexture.BYTES_PER_MATERIAL;
+		assert bufferIndex >= head;
+		assert bufferIndex == tail;
+		tail = bufferIndex + MaterialIndexTexture.BYTES_PER_MATERIAL;
 	}
 
 	public void upload() {
-		if (dirty) {
-			dirty = false;
-			assert pointer != 0L : "Image not allocated.";
+		final int len = tail - head;
+		assert len / 4 == data.size();
 
+		if (len != 0) {
 			if (bufferId == 0) {
 				bufferId = GFX.genBuffer();
+				GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
+				GFX.bufferData(GFX.GL_TEXTURE_BUFFER, MaterialIndexTexture.BUFFER_SIZE_BYTES, GFX.GL_STATIC_DRAW);
+				GFX.texBuffer(GFX.GL_RGBA16UI, bufferId);
+			} else {
+				GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 			}
 
-			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
-			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, byteBuffer, GFX.GL_DYNAMIC_DRAW);
-			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
+			final ByteBuffer bBuff = GFX.mapBufferRange(GFX.GL_TEXTURE_BUFFER, head, len, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT);
 
-			GFX.texBuffer(GFX.GL_RGBA16UI, bufferId);
+			if (bBuff != null) {
+				final IntBuffer iBuff = bBuff.asIntBuffer();
+				iBuff.put(data.elements(), head / 4, len / 4);
+				data.clear();
+				head = tail;
+			}
+
+			GFX.flushMappedBufferRange(GFX.GL_TEXTURE_BUFFER, 0, len);
+			GFX.unmapBuffer(GFX.GL_TEXTURE_BUFFER);
+
+			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
 		}
 	}
 }

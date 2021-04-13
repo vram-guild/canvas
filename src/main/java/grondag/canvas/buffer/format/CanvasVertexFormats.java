@@ -61,7 +61,8 @@ public final class CanvasVertexFormats {
 	private static final QuadEncoder FAT_ENCODER = (quad, buff) -> {
 		final RenderMaterialImpl mat = quad.material();
 
-		assert mat.blendMode != BlendMode.DEFAULT;
+		// WIP2: still appropriate now being used with vertexconsumer?
+		//assert mat.blendMode != BlendMode.DEFAULT;
 
 		final int shaderFlags = mat.shaderFlags << 24;
 

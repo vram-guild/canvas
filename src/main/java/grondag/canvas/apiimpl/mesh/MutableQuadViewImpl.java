@@ -323,7 +323,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		if (vertexIndex == 0) {
 			setSpriteNormalized(false);
 		} else {
-			assert !isSpriteNormalized();
+			//WIP2: still appropriate now being used with non-atlas consumers?
+			// assert !isSpriteNormalized();
 		}
 
 		return this;

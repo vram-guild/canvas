@@ -765,12 +765,12 @@ public class GFX extends GL46C {
 
 	public static void genTextures(int[] is) {
 		glGenTextures(is);
-		logError("glGenTextures");
+		assert logError("glGenTextures");
 	}
 
 	public static void getTexImage(int target, int level, int format, int type, long pixels) {
 		glGetTexImage(target, level, format, type, pixels);
-		logError("glGetTexImage");
+		assert logError("glGetTexImage");
 	}
 
 	private static int stencilFunc, stencilRef, stencilMask;
@@ -781,7 +781,7 @@ public class GFX extends GL46C {
 			stencilRef = ref;
 			stencilMask = mask;
 			glStencilFunc(func, ref, mask);
-			logError("glStencilFunc");
+			assert logError("glStencilFunc");
 		}
 	}
 
@@ -789,7 +789,7 @@ public class GFX extends GL46C {
 		if (mask != stencilMask) {
 			stencilMask = mask;
 			glStencilMask(mask);
-			logError("glStencilMask");
+			assert logError("glStencilMask");
 		}
 	}
 
@@ -801,34 +801,34 @@ public class GFX extends GL46C {
 			stencil_dpfail = dpfail;
 			stencil_dppass = dppass;
 			glStencilOp(sfail, dpfail, dppass);
-			logError("glStencilOp");
+			assert logError("glStencilOp");
 		}
 	}
 
 	public static void clearStencil(int stencil) {
 		glClearStencil(stencil);
-		logError("glClearStencil");
+		assert logError("glClearStencil");
 	}
 
 	public static void drawPixels(int i, int j, int k, int l, long m) {
 		// NON-CORE???
 		GL11.glDrawPixels(i, j, k, l, m);
-		logError("glDrawPixels");
+		assert logError("glDrawPixels");
 	}
 
 	public static void vertexAttribIPointer(int index, int size, int type, int stride, long pointer) {
 		glVertexAttribIPointer(index, size, type, stride, pointer);
-		logError("vertexAttribIPointer");
+		assert logError("vertexAttribIPointer");
 	}
 
 	public static void readPixels(int x, int y, int width, int height, int format, int type, ByteBuffer pixels) {
 		glReadPixels(x, y, width, height, format, type, pixels);
-		logError("glReadPixels");
+		assert logError("glReadPixels");
 	}
 
 	public static void readPixels(int i, int j, int k, int l, int m, int n, long o) {
 		glReadPixels(i, j, k, l, m, n, o);
-		logError("glReadPixels");
+		assert logError("glReadPixels");
 	}
 
 	public static int getError() {
@@ -837,7 +837,18 @@ public class GFX extends GL46C {
 
 	public static String getString(int name) {
 		final String result = glGetString(name);
-		logError("glGetString");
+		assert logError("glGetString");
 		return result;
+	}
+
+	public static @Nullable ByteBuffer mapBufferRange(int target, long offset, long length, int access) {
+		final ByteBuffer result = glMapBufferRange(target, offset, length, access);
+		assert logError("glMapBufferRange");
+		return result;
+	}
+
+	public static void flushMappedBufferRange(int target, long offset, long length) {
+		glFlushMappedBufferRange(target, offset, length);
+		assert logError("glFlushMappedBufferRange");
 	}
 }
