@@ -27,6 +27,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.texture.MaterialIndexProvider;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
@@ -38,6 +39,7 @@ public class MaterialTextureState {
 	private AbstractTexture texture;
 	private boolean isAtlas;
 	private SpriteInfoTexture atlasInfo;
+	private MaterialIndexProvider donglenator;
 
 	private MaterialTextureState(int index, Identifier id) {
 		this.index = index;
@@ -54,10 +56,17 @@ public class MaterialTextureState {
 
 			if (isAtlas) {
 				atlasInfo = SpriteInfoTexture.getOrCreate(id);
+				donglenator = MaterialIndexProvider.getOrCreateForAtlas(id);
 			} else {
 				atlasInfo = null;
+				donglenator = MaterialIndexProvider.GENERIC;
 			}
 		}
+	}
+
+	public MaterialIndexProvider donglenator() {
+		retreiveTexture();
+		return donglenator;
 	}
 
 	public AbstractTexture texture() {

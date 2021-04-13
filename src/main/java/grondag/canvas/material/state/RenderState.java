@@ -34,8 +34,7 @@ import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderImpl;
-import grondag.canvas.shader.ProgramType;
-import grondag.canvas.texture.MaterialInfoTexture;
+import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
@@ -131,12 +130,7 @@ public final class RenderState extends AbstractRenderState {
 
 		shadowActive = this;
 		active = null;
-
-		if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
-			MaterialInfoTexture.INSTANCE.enable();
-		} else {
-			MaterialInfoTexture.INSTANCE.disable();
-		}
+		texture.donglenator().tex.enable();
 
 		// WIP: can probably remove many of these
 
@@ -179,12 +173,7 @@ public final class RenderState extends AbstractRenderState {
 
 		active = this;
 		shadowActive = null;
-
-		if (programType.isVertexLogic) {
-			MaterialInfoTexture.INSTANCE.enable();
-		} else {
-			MaterialInfoTexture.INSTANCE.disable();
-		}
+		texture.donglenator().tex.enable();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
@@ -253,7 +242,7 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.disable();
 		MaterialTextureState.disable();
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-		MaterialInfoTexture.INSTANCE.disable();
+		MaterialIndexTexture.disable();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);

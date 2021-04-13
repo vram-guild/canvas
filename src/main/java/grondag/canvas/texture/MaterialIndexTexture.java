@@ -25,16 +25,17 @@ import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public class MaterialInfoTexture {
-	public static final int MAX_MATERIAL_COUNT = 0x10000;
+public class MaterialIndexTexture {
+	public static final int MAX_INDEX_COUNT = 0x10000;
 	public static final int BYTES_PER_MATERIAL = 2 * 4;
-	public static final int BUFFER_SIZE_BYTES = BYTES_PER_MATERIAL * MAX_MATERIAL_COUNT;
+	public static final int BUFFER_SIZE_BYTES = BYTES_PER_MATERIAL * MAX_INDEX_COUNT;
 
 	private int glId = 0;
-	private MaterialInfoImage image = null;
-	private boolean enabled = false;
+	private MaterialIndexImage image = null;
 
-	private MaterialInfoTexture() { }
+	private static MaterialIndexTexture active = null;
+
+	MaterialIndexTexture() { }
 
 	public void reset() {
 		if (Configurator.enableLifeCycleDebug) {
@@ -66,7 +67,7 @@ public class MaterialInfoTexture {
 	private void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new MaterialInfoImage();
+				image = new MaterialIndexImage();
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create material info texture due to error:", e);
 				image = null;
@@ -74,9 +75,9 @@ public class MaterialInfoTexture {
 		}
 	}
 
-	public void disable() {
-		if (enabled) {
-			enabled = false;
+	public static void disable() {
+		if (active != null) {
+			active = null;
 			CanvasTextureState.activeTextureUnit(TextureData.MATERIAL_INFO);
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
@@ -111,12 +112,10 @@ public class MaterialInfoTexture {
 	}
 
 	public void enable() {
-		if (!enabled) {
-			enabled = true;
+		if (active != this) {
+			active = this;
 			createImageIfNeeded();
 			uploadAndActivate();
 		}
 	}
-
-	public static final MaterialInfoTexture INSTANCE = new MaterialInfoTexture();
 }

@@ -27,7 +27,7 @@ import net.minecraft.util.Identifier;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.MaterialShaderId;
-import grondag.canvas.texture.MaterialInfoTexture;
+import grondag.canvas.texture.MaterialIndexer;
 import grondag.frex.api.material.RenderMaterial;
 
 public final class RenderMaterialImpl extends AbstractRenderState implements RenderMaterial {
@@ -36,6 +36,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	public final int collectorIndex;
 	public final RenderState renderState;
 	public final int shaderFlags;
+	private MaterialIndexer dongle;
 
 	/** Vanilla render layer name if we derived from a vanilla render layer. */
 	public final String renderLayerName;
@@ -47,8 +48,8 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		shaderFlags = shaderFlags();
 		this.renderLayerName = renderLayerName;
 
-		// WIP: gui parameter is useless now and should be removed
-		MaterialInfoTexture.INSTANCE.set(index, vertexShaderIndex, fragmentShaderIndex, 0, condition.index);
+		// WIP2: remove
+		//MaterialInfoTexture.INSTANCE.set(index, vertexShaderIndex, fragmentShaderIndex, 0, condition.index);
 
 		if (Configurator.logMaterials) {
 			CanvasMod.LOG.info("New RenderMaterial" + "\n" + toString() + "\n");
@@ -121,6 +122,17 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("blendMode: ").append(blendMode == null ? "null" : blendMode.name()).append("\n");
 		sb.append("drawPriority: ").append(renderState.drawPriority).append("\n");
 		return sb.toString();
+	}
+
+	public MaterialIndexer dongle() {
+		MaterialIndexer result = dongle;
+
+		if (result == null) {
+			result = texture.donglenator().getIndexer(this);
+			dongle = result;
+		}
+
+		return result;
 	}
 
 	@Override

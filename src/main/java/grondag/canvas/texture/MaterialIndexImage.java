@@ -41,20 +41,22 @@ import grondag.canvas.varia.GFX;
  * A: reserved B
  */
 @Environment(EnvType.CLIENT)
-public final class MaterialInfoImage {
+public final class MaterialIndexImage {
 	private long pointer;
 	private int bufferId;
 	private ByteBuffer byteBuffer;
 	private IntBuffer intBuffer;
 	private boolean dirty = true;
 
-	public MaterialInfoImage() {
+	//WIP2: use mapped buffer/texture with incremental update
+
+	public MaterialIndexImage() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialInfoImage init");
 		}
 
-		pointer = MemoryUtil.nmemAlloc(MaterialInfoTexture.BUFFER_SIZE_BYTES);
-		byteBuffer = MemoryUtil.memByteBuffer(pointer, MaterialInfoTexture.BUFFER_SIZE_BYTES);
+		pointer = MemoryUtil.nmemAlloc(MaterialIndexTexture.BUFFER_SIZE_BYTES);
+		byteBuffer = MemoryUtil.memByteBuffer(pointer, MaterialIndexTexture.BUFFER_SIZE_BYTES);
 		intBuffer = byteBuffer.asIntBuffer();
 	}
 

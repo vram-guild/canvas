@@ -74,7 +74,7 @@ public final class CanvasVertexFormats {
 			packedNormal = quad.packedFaceNormal();
 		}
 
-		final int spriteIdCoord = quad.spriteId() | (mat.index << 16);
+		final int spriteIdCoord = quad.spriteId() | (mat.dongle().index(quad.spriteId()) << 16);
 
 		int k = buff.allocate(FAT_QUAD_STRIDE);
 		final int[] target = buff.data();
@@ -121,7 +121,7 @@ public final class CanvasVertexFormats {
 			transformedNormal = normalMatrix.canvas_transform(packedNormal);
 		}
 
-		final int spriteIdCoord = quad.spriteId() | (mat.index << 16);
+		final int spriteIdCoord = quad.spriteId() | (mat.dongle().index(quad.spriteId()) << 16);
 
 		int k = buff.allocate(FAT_QUAD_STRIDE);
 		final int[] target = buff.data();
@@ -181,7 +181,7 @@ public final class CanvasVertexFormats {
 			packedNormal = quad.packedFaceNormal();
 		}
 
-		final int spriteIdCoord = quad.spriteId() | (mat.index << 16);
+		final int spriteIdCoord = quad.spriteId() | (mat.dongle().index(quad.spriteId()) << 16);
 
 		int k = buff.allocate(COMPACT_QUAD_STRIDE);
 		final int[] target = buff.data();
@@ -228,7 +228,7 @@ public final class CanvasVertexFormats {
 			transformedNormal = normalMatrix.canvas_transform(packedNormal);
 		}
 
-		final int spriteIdCoord = quad.spriteId() | (mat.index << 16);
+		final int spriteIdCoord = quad.spriteId() | (mat.dongle().index(quad.spriteId()) << 16);
 
 		int k = buff.allocate(COMPACT_QUAD_STRIDE);
 		final int[] target = buff.data();
