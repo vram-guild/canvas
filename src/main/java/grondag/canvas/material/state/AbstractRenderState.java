@@ -99,7 +99,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean primaryTargetTransparency;
 	// PERF: use this to avoid overhead of animated textures
 	public final boolean discardsTexture;
-	public final ProgramType programType;
 
 	protected AbstractRenderState(int index, long bits) {
 		super(bits);
@@ -135,10 +134,9 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		depthFragmentShader = depthFragmentShaderId.toString();
 
 		primaryTargetTransparency = primaryTargetTransparency();
-		programType = ((VERTEX_CONTROL_MODE && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
-		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
-		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_UNIFORM_LOGIC);
-		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.shadowType(programType));
+		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
 		blendMode = blendMode();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();

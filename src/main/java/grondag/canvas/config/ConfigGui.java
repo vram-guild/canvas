@@ -30,7 +30,6 @@ import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
-import static grondag.canvas.config.Configurator.enableVao;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
@@ -54,7 +53,6 @@ import static grondag.canvas.config.Configurator.staticFrustumPadding;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
 import static grondag.canvas.config.Configurator.traceOcclusionOutcomes;
-import static grondag.canvas.config.Configurator.vertexControlMode;
 import static grondag.canvas.config.Configurator.wavyGrass;
 
 import java.lang.ref.WeakReference;
@@ -260,16 +258,6 @@ public class ConfigGui {
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_vao"), enableVao)
-				.setDefaultValue(DEFAULTS.enableVao)
-				.setTooltip(parse("config.canvas.help.enable_vao"))
-				.setSaveConsumer(b -> {
-					reload |= enableVao != b;
-					enableVao = b;
-				})
-				.build());
-
-		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_entity_render"), cullEntityRender)
 				.setDefaultValue(DEFAULTS.cullEntityRender)
 				.setTooltip(parse("config.canvas.help.cull_entity_render"))
@@ -302,16 +290,6 @@ public class ConfigGui {
 				.setTooltip(parse("config.canvas.help.reduce_resolution_on_mac"))
 				.setSaveConsumer(b -> {
 					reduceResolutionOnMac = b;
-				})
-				.build());
-
-		tweaks.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.vertex_control_mode"), vertexControlMode)
-				.setDefaultValue(DEFAULTS.vertexControlMode)
-				.setTooltip(parse("config.canvas.help.vertex_control_mode"))
-				.requireRestart()
-				.setSaveConsumer(b -> {
-					vertexControlMode = b;
 				})
 				.build());
 

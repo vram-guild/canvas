@@ -88,7 +88,7 @@ public class TerrainLayerRenderer {
 						final DrawableDelegate d = delegates.get(i);
 						final RenderState mat = d.renderState();
 
-						if (mat.programType.isVertexLogic || !mat.condition.affectBlocks || mat.condition.compute()) {
+						if (!mat.condition.affectBlocks || mat.condition.compute()) {
 							if (notShadowPass || mat.castShadows) {
 								mat.enable(ox, oy, oz);
 								d.draw();

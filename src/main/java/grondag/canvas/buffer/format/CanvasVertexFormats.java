@@ -64,8 +64,6 @@ public final class CanvasVertexFormats {
 		// WIP2: still appropriate now being used with vertexconsumer?
 		//assert mat.blendMode != BlendMode.DEFAULT;
 
-		final int shaderFlags = mat.shaderFlags << 24;
-
 		int packedNormal = 0;
 		final boolean useNormals = quad.hasVertexNormals();
 
@@ -97,7 +95,7 @@ public final class CanvasVertexFormats {
 				packedNormal = quad.packedNormal(i);
 			}
 
-			target[k++] = packedNormal | shaderFlags;
+			target[k++] = packedNormal;
 		}
 	};
 
@@ -108,8 +106,6 @@ public final class CanvasVertexFormats {
 		final RenderMaterialImpl mat = quad.material();
 
 		assert mat.blendMode != BlendMode.DEFAULT;
-
-		final int shaderFlags = mat.shaderFlags << 24;
 
 		int packedNormal = 0;
 		int transformedNormal = 0;
@@ -150,7 +146,7 @@ public final class CanvasVertexFormats {
 				}
 			}
 
-			target[k++] = transformedNormal | shaderFlags;
+			target[k++] = transformedNormal;
 		}
 	};
 
@@ -171,8 +167,6 @@ public final class CanvasVertexFormats {
 
 		assert mat.blendMode != BlendMode.DEFAULT;
 
-		final int shaderFlags = mat.shaderFlags << 24;
-
 		int packedNormal = 0;
 		final boolean useNormals = quad.hasVertexNormals();
 
@@ -204,7 +198,7 @@ public final class CanvasVertexFormats {
 				packedNormal = quad.packedNormal(i);
 			}
 
-			target[k++] = packedNormal | shaderFlags;
+			target[k++] = packedNormal;
 		}
 	};
 
@@ -215,8 +209,6 @@ public final class CanvasVertexFormats {
 		final RenderMaterialImpl mat = quad.material();
 
 		assert mat.blendMode != BlendMode.DEFAULT;
-
-		final int shaderFlags = mat.shaderFlags << 24;
 
 		int packedNormal = 0;
 		int transformedNormal = 0;
@@ -257,7 +249,7 @@ public final class CanvasVertexFormats {
 				}
 			}
 
-			target[k++] = transformedNormal | shaderFlags;
+			target[k++] = transformedNormal;
 		}
 	};
 

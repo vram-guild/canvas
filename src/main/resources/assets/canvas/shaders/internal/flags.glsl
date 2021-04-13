@@ -13,6 +13,7 @@
 #define _CV_FLAG_UNMIPPED           5// 1 if LOD disabled - only set in conjunction with cutout
 #define _CV_FLAG_HURT_OVERLAY       6// 1 if should render red hurt overlay
 #define _CV_FLAG_FLASH_OVERLAY      7// 1 if should render white flash overlay
+#define _CV_FLAG_GLINT				8
 
 #define _CV_CUTOUT_SHIFT 3u
 #define _CV_CUTOUT_MASK 3u
@@ -28,6 +29,10 @@
 #else
 	flat in uint _cvv_flags;
 #endif
+
+float _cv_isGlint() {
+	return frx_bitValue(uint(_cvv_flags), _CV_FLAG_GLINT);
+}
 
 float _cv_getFlag(int flagId) {
 	return frx_bitValue(_cvv_flags, flagId);

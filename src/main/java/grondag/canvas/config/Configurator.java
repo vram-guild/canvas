@@ -43,7 +43,6 @@ public class Configurator {
 	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
 	public static boolean forceJmxModelLoading = DEFAULTS.forceJmxModelLoading;
 	public static boolean reduceResolutionOnMac = DEFAULTS.reduceResolutionOnMac;
-	public static boolean vertexControlMode = DEFAULTS.vertexControlMode;
 	public static int staticFrustumPadding = DEFAULTS.staticFrustumPadding;
 	public static int dynamicFrustumPadding = DEFAULTS.dynamicFrustumPadding;
 	public static boolean cullParticles = DEFAULTS.cullParticles;
@@ -75,7 +74,6 @@ public class Configurator {
 	public static boolean fancyFluids = false;
 	static boolean reload = false;
 	// static boolean hdLightmaps = DEFAULTS.hdLightmaps;
-	static boolean enableVao = DEFAULTS.enableVao;
 
 	public static boolean hdLightmaps() {
 		return false;
@@ -110,12 +108,10 @@ public class Configurator {
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
 		terrainSetupOffThread = config.terrainSetupOffThread;
 		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
-		enableVao = config.enableVao;
 		cullEntityRender = config.cullEntityRender;
 		greedyRenderThread = config.greedyRenderThread;
 		forceJmxModelLoading = config.forceJmxModelLoading;
 		reduceResolutionOnMac = config.reduceResolutionOnMac;
-		vertexControlMode = config.vertexControlMode;
 		dynamicFrustumPadding = MathHelper.clamp(config.dynamicFrustumPadding, 0, 20);
 		staticFrustumPadding = MathHelper.clamp(config.staticFrustumPadding, 0, 30);
 		cullParticles = config.cullParticles;
@@ -160,12 +156,10 @@ public class Configurator {
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
 		config.terrainSetupOffThread = terrainSetupOffThread;
 		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
-		config.enableVao = enableVao;
 		config.cullEntityRender = cullEntityRender;
 		config.greedyRenderThread = greedyRenderThread;
 		config.forceJmxModelLoading = forceJmxModelLoading;
 		config.reduceResolutionOnMac = reduceResolutionOnMac;
-		config.vertexControlMode = vertexControlMode;
 		config.staticFrustumPadding = staticFrustumPadding;
 		config.dynamicFrustumPadding = dynamicFrustumPadding;
 		config.cullParticles = cullParticles;

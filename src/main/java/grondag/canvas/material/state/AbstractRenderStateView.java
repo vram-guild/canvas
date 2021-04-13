@@ -22,7 +22,6 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialTarget;
@@ -43,7 +42,7 @@ abstract class AbstractRenderStateView {
 	}
 
 	public long collectorKey() {
-		return ((VERTEX_CONTROL_MODE && textureState().id.toString().contains("/atlas/")) || primaryTargetTransparency()) ? (bits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK) : (bits & COLLECTOR_KEY_MASK);
+		return bits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 	}
 
 	public MaterialShaderId shaderId() {
@@ -171,7 +170,13 @@ abstract class AbstractRenderStateView {
 	}
 
 	public int shaderFlags() {
-		return (int) (bits >>> FLAG_SHIFT) & 0xFF;
+		int result = (int) (bits >>> FLAG_SHIFT) & 0xFF;
+
+		if (enableGlint()) {
+			result |= 0x100;
+		}
+
+		return result;
 	}
 
 	static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);
@@ -210,8 +215,6 @@ abstract class AbstractRenderStateView {
 
 	// Can't be part of PTT collector key
 	static final BitPacker64<Void>.IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
-
-	public static final long COLLECTOR_KEY_MASK = PACKER.bitMask();
 
 	// here and below only used in material - holds vertex state - does not affect buffering or gl State
 	static final BitPacker64<Void>.BooleanElement DISABLE_COLOR_INDEX = PACKER.createBooleanElement();
@@ -283,6 +286,4 @@ abstract class AbstractRenderStateView {
 		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
 		TRANSLUCENT_ENTITY_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
 	}
-
-	static final boolean VERTEX_CONTROL_MODE = Configurator.vertexControlMode;
 }

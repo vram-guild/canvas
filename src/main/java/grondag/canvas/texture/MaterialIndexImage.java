@@ -88,7 +88,7 @@ public final class MaterialIndexImage {
 
 			if (bBuff != null) {
 				final IntBuffer iBuff = bBuff.asIntBuffer();
-				iBuff.put(data.elements(), head / 4, len / 4);
+				iBuff.put(data.elements(), 0, len / 4);
 				data.clear();
 				head = tail;
 			}

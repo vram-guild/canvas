@@ -61,6 +61,7 @@ public final class MaterialShaderImpl {
 	// WIP: all of this activation stuff is trash code
 	// these should probably happen before program activation - change detection should upload as needed
 	private void updateCommonUniforms(RenderState renderState) {
+		// WIP2: remove glint thingy
 		program.programInfo.set(vertexShaderIndex, fragmentShaderIndex, renderState.enableGlint ? 1 : 0);
 		program.programInfo.upload();
 

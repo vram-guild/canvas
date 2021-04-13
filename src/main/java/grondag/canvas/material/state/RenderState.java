@@ -61,6 +61,7 @@ public final class RenderState extends AbstractRenderState {
 	private static final BitPacker64<Void> SORT_PACKER = new BitPacker64<> (null, null);
 
 	// these aren't order-dependent, they are included in sort to minimize state changes
+	// WIP2: is blur still part of GL-state?
 	private static final BitPacker64<Void>.BooleanElement SORT_BLUR = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
 	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();

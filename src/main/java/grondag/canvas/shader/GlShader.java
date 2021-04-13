@@ -251,7 +251,7 @@ public class GlShader implements Shader {
 		if (result == null) {
 			result = getCombinedShaderSource();
 
-			if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
+			if (programType == ProgramType.MATERIAL_COLOR) {
 				result = StringUtils.replace(result, "#define PROGRAM_BY_UNIFORM", "//#define PROGRAM_BY_UNIFORM");
 			}
 
