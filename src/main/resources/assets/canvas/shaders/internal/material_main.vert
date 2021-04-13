@@ -12,7 +12,7 @@
 /******************************************************
   canvas:shaders/internal/material_main.vert
 ******************************************************/
-uniform samplerBuffer _cvu_spriteInfo;
+uniform usamplerBuffer _cvu_spriteInfo;
 
 void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:startvertex
@@ -48,7 +48,7 @@ void main() {
 		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);
 
 	} else {
-		_cvv_spriteBounds = texelFetch(_cvu_spriteInfo, in_sprite);
+		_cvv_spriteBounds = vec4(texelFetch(_cvu_spriteInfo, in_sprite)) / 32768.0;
 	}
 
 	// material shaders go first

@@ -17,7 +17,7 @@
 package grondag.canvas.texture;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.system.MemoryUtil;
@@ -37,7 +37,7 @@ public final class SpriteInfoImage implements AutoCloseable {
 	private final int sizeBytes;
 	private long pointer;
 	private ByteBuffer byteBuffer;
-	private FloatBuffer floatBuffer;
+	private IntBuffer intBuffer;
 
 	// FIX: make texture square to reduce chance of overrun/driver strangeness
 
@@ -47,35 +47,34 @@ public final class SpriteInfoImage implements AutoCloseable {
 		}
 
 		this.spriteCount = spriteCount;
-		sizeBytes = spriteCount * 16;
+		sizeBytes = spriteCount * 8;
 		pointer = MemoryUtil.nmemAlloc(sizeBytes);
 		byteBuffer = MemoryUtil.memByteBuffer(pointer, sizeBytes);
-		floatBuffer = byteBuffer.asFloatBuffer();
+		intBuffer = byteBuffer.asIntBuffer();
 
 		for (int i = 0; i < spriteCount; ++i) {
 			final Sprite s = spriteIndex.get(i);
-			setPixel(i, s.getMinU(), s.getMinV(), s.getMaxU() - s.getMinU(), s.getMaxV() - s.getMinV());
+			setPixel(i, Math.round(s.getMinU() * 0x8000), Math.round(s.getMinV() * 0x8000),
+					Math.round((s.getMaxU() - s.getMinU()) * 0x8000), Math.round((s.getMaxV() - s.getMinV()) * 0x8000));
 		}
 	}
 
 	@Override
 	public void close() {
 		if (pointer != 0L) {
-			floatBuffer = null;
+			intBuffer = null;
 			byteBuffer = null;
 			MemoryUtil.nmemFree(pointer);
 			pointer = 0L;
 		}
 	}
 
-	private void setPixel(int n, float minU, float minV, float spanU, float spanV) {
+	private void setPixel(int n, int minU, int minV, int spanU, int spanV) {
 		assert n <= spriteCount;
 		assert pointer != 0L : "Image not allocated.";
-		n *= 4;
-		floatBuffer.put(n, minU);
-		floatBuffer.put(n + 1, minV);
-		floatBuffer.put(n + 2, spanU);
-		floatBuffer.put(n + 3, spanV);
+		n *= 2;
+		intBuffer.put(n, minU | (minV << 16));
+		intBuffer.put(n + 1, spanU | (spanV << 16));
 	}
 
 	public void upload(int bufferId) {
@@ -85,6 +84,6 @@ public final class SpriteInfoImage implements AutoCloseable {
 		GFX.bufferData(GFX.GL_TEXTURE_BUFFER, byteBuffer, GFX.GL_STATIC_DRAW);
 		GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
 
-		GFX.texBuffer(GFX.GL_RGBA32F, bufferId);
+		GFX.texBuffer(GFX.GL_RGBA16UI, bufferId);
 	}
 }
