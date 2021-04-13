@@ -43,6 +43,7 @@ import grondag.canvas.varia.GFX;
 @Environment(EnvType.CLIENT)
 public final class MaterialInfoImage {
 	private long pointer;
+	private int bufferId;
 	private ByteBuffer byteBuffer;
 	private IntBuffer intBuffer;
 	private boolean dirty = true;
@@ -64,6 +65,11 @@ public final class MaterialInfoImage {
 			MemoryUtil.nmemFree(pointer);
 			pointer = 0L;
 		}
+
+		if (bufferId != 0) {
+			GFX.deleteBuffers(bufferId);
+			bufferId = 0;
+		}
 	}
 
 	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId) {
@@ -74,18 +80,20 @@ public final class MaterialInfoImage {
 		dirty = true;
 	}
 
-	public void upload(int textureId) {
+	public void upload() {
 		if (dirty) {
 			dirty = false;
 			assert pointer != 0L : "Image not allocated.";
 
-			final int buff = GFX.genBuffer();
-			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, buff);
+			if (bufferId == 0) {
+				bufferId = GFX.genBuffer();
+			}
+
+			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, byteBuffer, GFX.GL_DYNAMIC_DRAW);
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
 
-			GFX.bindTexture(GFX.GL_TEXTURE_BUFFER, textureId);
-			GFX.texBuffer(GFX.GL_RGBA16UI, buff);
+			GFX.texBuffer(GFX.GL_RGBA16UI, bufferId);
 		}
 	}
 }

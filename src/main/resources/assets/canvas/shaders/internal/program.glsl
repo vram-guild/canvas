@@ -7,12 +7,11 @@
   canvas:shaders/internal/program.glsl
 ******************************************************/
 
-#define _CV_SPRITE_INFO_TEXTURE_SIZE 0
-#define _CV_ATLAS_WIDTH 1
-#define _CV_ATLAS_HEIGHT 2
-#define _CV_TARGET_INDEX 3
+#define _CV_ATLAS_WIDTH 0
+#define _CV_ATLAS_HEIGHT 1
+#define _CV_TARGET_INDEX 2
 
-uniform int[4] _cvu_context;
+uniform int[3] _cvu_context;
 
 #define _CV_MAX_SHADER_COUNT 0
 

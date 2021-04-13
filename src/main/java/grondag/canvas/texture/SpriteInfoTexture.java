@@ -25,7 +25,6 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.SpriteAtlasTexture.Data;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -51,8 +50,8 @@ public class SpriteInfoTexture {
 	private int atlasWidth;
 	private int atlasHeight;
 	private int spriteCount = -1;
-	private int textureSize = -1;
-	private int glId = -1;
+	private int glId = 0;
+	private int bufferId;
 	public final Identifier id;
 
 	private SpriteInfoTexture(Identifier id) {
@@ -64,79 +63,63 @@ public class SpriteInfoTexture {
 			CanvasMod.LOG.info("Lifecycle Event: SpriteInfoTexture init");
 		}
 
-		if (glId != -1) {
+		if (glId != 0) {
 			disable();
 			TextureUtil.releaseTextureId(glId);
-			glId = -1;
+			glId = 0;
+		}
+
+		if (bufferId != 0) {
+			GFX.deleteBuffers(bufferId);
+			bufferId = 0;
 		}
 
 		atlas = atlasIn;
 		spriteFinder = SpriteFinder.get(atlas);
 		spriteIndex = spriteIndexIn;
 		spriteCount = spriteIndex.size();
-		textureSize = MathHelper.smallestEncompassingPowerOfTwo(spriteCount);
 		atlasWidth = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasWidth();
 		atlasHeight = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasHeight();
 	}
 
 	private void createImageIfNeeded() {
-		if (glId == -1) {
+		if (glId == 0) {
 			createImage();
 		}
 	}
 
 	private void createImage() {
-		try (SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount, textureSize)) {
-			glId = TextureUtil.generateTextureId();
+		try (SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount)) {
+			glId = GFX.genTexture();
+			bufferId = GFX.genBuffer();
 
 			CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D, glId);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
 
-			// Bragging rights and eternal gratitude to Wyn Price (https://github.com/Wyn-Price)
-			// for reminding me pixelStore exists, thus fixing #92 and preserving a tattered
-			// remnant of my sanity. I owe you a favor!
+			image.upload(bufferId);
 
-			GFX.pixelStore(GFX.GL_UNPACK_ROW_LENGTH, 0);
-			GFX.pixelStore(GFX.GL_UNPACK_SKIP_ROWS, 0);
-			GFX.pixelStore(GFX.GL_UNPACK_SKIP_PIXELS, 0);
-			GFX.pixelStore(GFX.GL_UNPACK_ALIGNMENT, 4);
-
-			image.upload();
-
-			image.close();
-
-			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAX_LEVEL, 0);
-			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_LOD, 0);
-			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAX_LOD, 0);
-			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
-			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_NEAREST);
-			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_NEAREST);
-			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_S, GFX.GL_REPEAT);
-			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_T, GFX.GL_REPEAT);
-			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D, 0);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
 			CanvasMod.LOG.warn("Unable to create sprite info texture due to error:", e);
 
-			if (glId != -1) {
-				TextureUtil.releaseTextureId(glId);
-				glId = -1;
+			if (glId != 0) {
+				GFX.deleteTexture(glId);
+				glId = 0;
 			}
 		}
 	}
 
 	public static void disable() {
 		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
-		CanvasTextureState.bindTexture(0);
+		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
 		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public void enable() {
 		createImageIfNeeded();
 		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
-		CanvasTextureState.bindTexture(glId);
+		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
 	}
 
 	public Sprite fromId(int spriteId) {
@@ -153,10 +136,6 @@ public class SpriteInfoTexture {
 		final Sprite sprite = spriteIndex.get(spriteId);
 		final float v0 = sprite.getMinV();
 		return v0 + unmappedV * (sprite.getMaxV() - v0);
-	}
-
-	public int textureSize() {
-		return textureSize;
 	}
 
 	public int atlasWidth() {

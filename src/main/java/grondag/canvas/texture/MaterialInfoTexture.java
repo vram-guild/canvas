@@ -30,7 +30,7 @@ public class MaterialInfoTexture {
 	public static final int BYTES_PER_MATERIAL = 2 * 4;
 	public static final int BUFFER_SIZE_BYTES = BYTES_PER_MATERIAL * MAX_MATERIAL_COUNT;
 
-	private int glId = -1;
+	private int glId = 0;
 	private MaterialInfoImage image = null;
 	private boolean enabled = false;
 
@@ -48,10 +48,10 @@ public class MaterialInfoTexture {
 			image = null;
 		}
 
-		if (glId != -1) {
+		if (glId != 0) {
 			disable();
 			GFX.deleteTexture(glId);
-			glId = -1;
+			glId = 0;
 		}
 	}
 
@@ -85,14 +85,14 @@ public class MaterialInfoTexture {
 
 	private void uploadAndActivate() {
 		try {
-			if (glId == -1) {
+			if (glId == 0) {
 				glId = GFX.genTexture();
 			}
 
 			CanvasTextureState.activeTextureUnit(TextureData.MATERIAL_INFO);
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
 
-			image.upload(glId);
+			image.upload();
 
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
@@ -103,9 +103,9 @@ public class MaterialInfoTexture {
 				image = null;
 			}
 
-			if (glId != -1) {
+			if (glId != 0) {
 				GFX.deleteTexture(glId);
-				glId = -1;
+				glId = 0;
 			}
 		}
 	}

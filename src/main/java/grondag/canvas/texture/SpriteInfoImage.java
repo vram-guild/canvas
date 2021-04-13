@@ -16,6 +16,7 @@
 
 package grondag.canvas.texture;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -32,24 +33,24 @@ import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
 public final class SpriteInfoImage implements AutoCloseable {
-	public final int size;
+	public final int spriteCount;
 	private final int sizeBytes;
 	private long pointer;
+	private ByteBuffer byteBuffer;
 	private FloatBuffer floatBuffer;
 
 	// FIX: make texture square to reduce chance of overrun/driver strangeness
 
-	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex, int spriteCount, int size) {
+	public SpriteInfoImage(ObjectArrayList<Sprite> spriteIndex, int spriteCount) {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: SpriteInfoImage init");
 		}
 
-		this.size = size;
-
-		// 16 because 4 floats per vector, 4 because 4 samples per sprite
-		sizeBytes = size * 16 * 4;
+		this.spriteCount = spriteCount;
+		sizeBytes = spriteCount * 16;
 		pointer = MemoryUtil.nmemAlloc(sizeBytes);
-		floatBuffer = MemoryUtil.memFloatBuffer(pointer, sizeBytes / 4);
+		byteBuffer = MemoryUtil.memByteBuffer(pointer, sizeBytes);
+		floatBuffer = byteBuffer.asFloatBuffer();
 
 		for (int i = 0; i < spriteCount; ++i) {
 			final Sprite s = spriteIndex.get(i);
@@ -61,24 +62,29 @@ public final class SpriteInfoImage implements AutoCloseable {
 	public void close() {
 		if (pointer != 0L) {
 			floatBuffer = null;
+			byteBuffer = null;
 			MemoryUtil.nmemFree(pointer);
+			pointer = 0L;
 		}
-
-		pointer = 0L;
 	}
 
-	private void setPixel(int n, float x, float y, float z, float w) {
-		assert n <= size;
+	private void setPixel(int n, float minU, float minV, float spanU, float spanV) {
+		assert n <= spriteCount;
 		assert pointer != 0L : "Image not allocated.";
-		n *= 16;
-		floatBuffer.put(n, x);
-		floatBuffer.put(n + 1, y);
-		floatBuffer.put(n + 2, z);
-		floatBuffer.put(n + 3, w);
+		n *= 4;
+		floatBuffer.put(n, minU);
+		floatBuffer.put(n + 1, minV);
+		floatBuffer.put(n + 2, spanU);
+		floatBuffer.put(n + 3, spanV);
 	}
 
-	public void upload() {
+	public void upload(int bufferId) {
 		assert pointer != 0L : "Image not allocated.";
-		GFX.texImage2D(GFX.GL_TEXTURE_2D, 0, GFX.GL_RGBA16, 4, size, 0, GFX.GL_RGBA, GFX.GL_FLOAT, pointer);
+
+		GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
+		GFX.bufferData(GFX.GL_TEXTURE_BUFFER, byteBuffer, GFX.GL_STATIC_DRAW);
+		GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
+
+		GFX.texBuffer(GFX.GL_RGBA32F, bufferId);
 	}
 }
