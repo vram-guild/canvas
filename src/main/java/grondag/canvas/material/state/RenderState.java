@@ -66,10 +66,6 @@ public final class RenderState extends AbstractRenderState {
 	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
 	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
-	// WIP2: make part of non-GL state
-	private static final BitPacker64<Void>.BooleanElement SORT_FOG = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.BooleanElement SORT_ENABLE_GLINT = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.IntElement SORT_SHADER_ID = SORT_PACKER.createIntElement(4096);
 
 	// decal should be drawn after non-decal
 	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
@@ -92,10 +88,6 @@ public final class RenderState extends AbstractRenderState {
 		result = SORT_DEPTH_TEST.setValue(depthTest.index, result);
 		result = SORT_CULL.setValue(cull, result);
 		result = SORT_LINES.setValue(lines, result);
-		// WIP: remove from GL state
-		result = SORT_FOG.setValue(fog, result);
-		result = SORT_ENABLE_GLINT.setValue(enableGlint, result);
-		result = SORT_SHADER_ID.setValue(shader.index, result);
 		result = SORT_DECAL.setValue(decal.drawPriority, result);
 		// inverted because higher goes first
 		result = SORT_TPP.setValue(!primaryTargetTransparency, result);

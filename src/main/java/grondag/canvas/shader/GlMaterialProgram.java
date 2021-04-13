@@ -30,7 +30,6 @@ public class GlMaterialProgram extends GlProgram {
 	// UGLY: special casing, public
 	public final UniformArray4fImpl modelOrigin;
 	public final UniformArrayiImpl contextInfo;
-	public final Uniform3iImpl programInfo;
 	public final Uniform1iImpl modelOriginType;
 	public final Uniform2fImpl fogInfo;
 	public final Uniform1iImpl cascade;
@@ -42,7 +41,6 @@ public class GlMaterialProgram extends GlProgram {
 		super(vertexShader, fragmentShader, format, programType);
 		modelOrigin = (UniformArray4fImpl) uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.setExternal(null), 2);
 		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 3);
-		programInfo = (Uniform3iImpl) uniform3i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> { });
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		//WIP2: make fog info available in process shaders

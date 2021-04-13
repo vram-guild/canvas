@@ -13,7 +13,9 @@
 #define _CV_FLAG_UNMIPPED           5// 1 if LOD disabled - only set in conjunction with cutout
 #define _CV_FLAG_HURT_OVERLAY       6// 1 if should render red hurt overlay
 #define _CV_FLAG_FLASH_OVERLAY      7// 1 if should render white flash overlay
-#define _CV_FLAG_GLINT				8
+#define _CV_FLAG_ENABLE_FOG         8
+#define _CV_FLAG_DISABLE_SHADOW	    9
+#define _CV_FLAG_GLINT			   10
 
 #define _CV_CUTOUT_SHIFT 3u
 #define _CV_CUTOUT_MASK 3u

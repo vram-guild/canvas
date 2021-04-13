@@ -1,4 +1,5 @@
 #include canvas:shaders/internal/world.glsl
+#include canvas:shaders/internal/flags.glsl
 
 /******************************************************
   frex:shaders/api/fog.glsl
@@ -8,7 +9,7 @@
  * True if current material should have fog.
  */
 bool frx_fogEnabled() {
-	return _cvu_fog_info.x >= 0.0;
+	return frx_bitValue(uint(_cvv_flags), _CV_FLAG_ENABLE_FOG) == 1.0;
 }
 
 float frx_fogStart() {

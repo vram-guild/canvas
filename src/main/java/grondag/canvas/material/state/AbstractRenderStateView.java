@@ -42,7 +42,7 @@ abstract class AbstractRenderStateView {
 	}
 
 	public long collectorKey() {
-		return bits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
+		return bits & COLLECTOR_AND_STATE_MASK;
 	}
 
 	public MaterialShaderId shaderId() {
@@ -66,7 +66,7 @@ abstract class AbstractRenderStateView {
 			return false;
 		}
 
-		final long masked = bits & AbstractRenderState.VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
+		final long masked = bits & AbstractRenderState.COLLECTOR_AND_STATE_MASK;
 
 		return (masked == TRANSLUCENT_TERRAIN_COLLECTOR_KEY && target() == MaterialFinder.TARGET_TRANSLUCENT)
 			|| (masked == TRANSLUCENT_ENTITY_COLLECTOR_KEY && target() == MaterialFinder.TARGET_ENTITIES);
@@ -170,13 +170,7 @@ abstract class AbstractRenderStateView {
 	}
 
 	public int shaderFlags() {
-		int result = (int) (bits >>> FLAG_SHIFT) & 0xFF;
-
-		if (enableGlint()) {
-			result |= 0x100;
-		}
-
-		return result;
+		return (int) (bits >>> FLAG_SHIFT) & 0xFFFF;
 	}
 
 	static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);
@@ -184,6 +178,7 @@ abstract class AbstractRenderStateView {
 	// GL State comes first for sorting
 	static final BitPacker64<Void>.IntElement TARGET = PACKER.createIntElement(MaterialTarget.TARGET_COUNT);
 	static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(MaterialTextureState.MAX_TEXTURE_STATES);
+	// WIP2: is blur still part of GL-state?
 	static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
 	static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
@@ -191,10 +186,6 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.IntElement WRITE_MASK = PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
 	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
 	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
-	// WIP2: does not need to be part of GL state
-	static final BitPacker64<Void>.BooleanElement FOG = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
 
 	// These don't affect GL state but must be collected and drawn separately
 	// They also generally won't change within a render state for any given context
@@ -206,7 +197,7 @@ abstract class AbstractRenderStateView {
 	// for a given target. Also used to render mixed-material atlas quads as a performance optimization.
 	// Quads outside of this buffer, if any, will be rendered after primary and may not sort correctly.
 	// Must not be GUI render
-	public static final long VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
+	public static final long COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
 
 	// Part of render state and collection key for non-sorted, not included in either for sorted
 	static final BitPacker64<Void>.IntElement SHADER_ID = PACKER.createIntElement(MaterialShaderImpl.MAX_SHADERS);
@@ -223,7 +214,7 @@ abstract class AbstractRenderStateView {
 
 	static final int FLAG_SHIFT = PACKER.bitLength();
 
-	// last 8 bits correspond to shader flag bits
+	// remaining bits correspond to shader flag bits
 	static final BitPacker64<Void>.BooleanElement EMISSIVE = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_DIFFUSE = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_AO = PACKER.createBooleanElement();
@@ -232,6 +223,9 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.BooleanElement UNMIPPED = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
+	static final BitPacker64<Void>.BooleanElement FOG = PACKER.createBooleanElement();
+	static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
+	static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
 
 	public static final long HURT_OVERLAY_FLAG = HURT_OVERLAY.comparisonMask() >>> FLAG_SHIFT;
 	public static final long FLASH_OVERLAY_FLAG = FLASH_OVERLAY.comparisonMask() >>> FLAG_SHIFT;
@@ -278,12 +272,12 @@ abstract class AbstractRenderStateView {
 		translucentBits = CUTOUT.setValue(MaterialFinder.CUTOUT_NONE, translucentBits);
 		//translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 
-		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
+		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & COLLECTOR_AND_STATE_MASK;
 
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialFinder.TARGET_ENTITIES, translucentBits);
 
 		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-		TRANSLUCENT_ENTITY_COLLECTOR_KEY = translucentBits & VERTEX_CONTROL_COLLECTOR_AND_STATE_MASK;
+		TRANSLUCENT_ENTITY_COLLECTOR_KEY = translucentBits & COLLECTOR_AND_STATE_MASK;
 	}
 }
