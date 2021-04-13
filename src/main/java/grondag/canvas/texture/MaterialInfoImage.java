@@ -16,7 +16,8 @@
 
 package grondag.canvas.texture;
 
-import java.nio.FloatBuffer;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import org.lwjgl.system.MemoryUtil;
 
@@ -25,7 +26,6 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.varia.GFX;
 
 /**
@@ -42,56 +42,50 @@ import grondag.canvas.varia.GFX;
  */
 @Environment(EnvType.CLIENT)
 public final class MaterialInfoImage {
-	public final int squareSizePixels;
-	private final int bufferSizeBytes;
 	private long pointer;
-	private FloatBuffer floatBuffer;
+	private ByteBuffer byteBuffer;
+	private IntBuffer intBuffer;
 	private boolean dirty = true;
 
-	public MaterialInfoImage(int squareSizePixels) {
+	public MaterialInfoImage() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialInfoImage init");
 		}
 
-		this.squareSizePixels = squareSizePixels;
-		bufferSizeBytes = squareSizePixels * squareSizePixels * BUFFER_BYTES_PER_SPRITE;
-		pointer = MemoryUtil.nmemAlloc(bufferSizeBytes);
-		floatBuffer = MemoryUtil.memFloatBuffer(pointer, bufferSizeBytes / 4);
+		pointer = MemoryUtil.nmemAlloc(MaterialInfoTexture.BUFFER_SIZE_BYTES);
+		byteBuffer = MemoryUtil.memByteBuffer(pointer, MaterialInfoTexture.BUFFER_SIZE_BYTES);
+		intBuffer = byteBuffer.asIntBuffer();
 	}
 
 	public void close() {
 		if (pointer != 0L) {
-			floatBuffer = null;
+			intBuffer = null;
+			byteBuffer = null;
 			MemoryUtil.nmemFree(pointer);
+			pointer = 0L;
 		}
-
-		pointer = 0L;
 	}
 
-	void set(int materialIndex, float vertexId, float fragmentId, float programFlags, float conditionId) {
+	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId) {
 		assert pointer != 0L : "Image not allocated.";
-		materialIndex *= 4;
-		floatBuffer.put(materialIndex, vertexId / MaterialShaderImpl.MAX_SHADERS);
-		floatBuffer.put(materialIndex + 1, fragmentId / MaterialShaderImpl.MAX_SHADERS);
-		floatBuffer.put(materialIndex + 2, programFlags / 255f);
-		floatBuffer.put(materialIndex + 3, conditionId);
+		materialIndex *= 2;
+		intBuffer.put(materialIndex, vertexId | (fragmentId << 16));
+		intBuffer.put(materialIndex + 1, programFlags | (conditionId << 16));
 		dirty = true;
 	}
 
-	public void upload() {
+	public void upload(int textureId) {
 		if (dirty) {
 			dirty = false;
 			assert pointer != 0L : "Image not allocated.";
 
-			GFX.pixelStore(GFX.GL_UNPACK_ROW_LENGTH, 0);
-			GFX.pixelStore(GFX.GL_UNPACK_SKIP_ROWS, 0);
-			GFX.pixelStore(GFX.GL_UNPACK_SKIP_PIXELS, 0);
-			GFX.pixelStore(GFX.GL_UNPACK_ALIGNMENT, 4);
+			final int buff = GFX.genBuffer();
+			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, buff);
+			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, byteBuffer, GFX.GL_DYNAMIC_DRAW);
+			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
 
-			GFX.texImage2D(GFX.GL_TEXTURE_2D, 0, GFX.GL_RGBA16, squareSizePixels, squareSizePixels, 0, GFX.GL_RGBA, GFX.GL_FLOAT, pointer);
+			GFX.bindTexture(GFX.GL_TEXTURE_BUFFER, textureId);
+			GFX.texBuffer(GFX.GL_RGBA16UI, buff);
 		}
 	}
-
-	// Four components per material, and four bytes per float
-	private static final int BUFFER_BYTES_PER_SPRITE = 4 * 4;
 }

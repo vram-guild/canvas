@@ -8,8 +8,8 @@
 in vec3 in_vertex;
 in vec4 in_color;
 in vec2 in_uv;
-in uint in_sprite;
-in uint in_material;
+in int in_sprite;
+in int in_material;
 	#ifdef VANILLA_LIGHTING
 in vec4 in_lightmap;
 in vec4 in_normal_flags;

@@ -16,20 +16,20 @@
 
 package grondag.canvas.texture;
 
-import com.mojang.blaze3d.platform.TextureUtil;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
 public class MaterialInfoTexture {
-	private final int squareSizePixels = computeSquareSizeInPixels();
+	public static final int MAX_MATERIAL_COUNT = 0x10000;
+	public static final int BYTES_PER_MATERIAL = 2 * 4;
+	public static final int BUFFER_SIZE_BYTES = BYTES_PER_MATERIAL * MAX_MATERIAL_COUNT;
+
 	private int glId = -1;
 	private MaterialInfoImage image = null;
 	private boolean enabled = false;
@@ -50,7 +50,7 @@ public class MaterialInfoTexture {
 
 		if (glId != -1) {
 			disable();
-			TextureUtil.releaseTextureId(glId);
+			GFX.deleteTexture(glId);
 			glId = -1;
 		}
 	}
@@ -66,7 +66,7 @@ public class MaterialInfoTexture {
 	private void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new MaterialInfoImage(squareSizePixels);
+				image = new MaterialInfoImage();
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create material info texture due to error:", e);
 				image = null;
@@ -78,35 +78,21 @@ public class MaterialInfoTexture {
 		if (enabled) {
 			enabled = false;
 			CanvasTextureState.activeTextureUnit(TextureData.MATERIAL_INFO);
-			CanvasTextureState.bindTexture(0);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 	}
 
 	private void uploadAndActivate() {
 		try {
-			boolean isNew = false;
-
 			if (glId == -1) {
-				glId = TextureUtil.generateTextureId();
-				isNew = true;
+				glId = GFX.genTexture();
 			}
 
 			CanvasTextureState.activeTextureUnit(TextureData.MATERIAL_INFO);
-			CanvasTextureState.bindTexture(glId);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
 
-			image.upload();
-
-			if (isNew) {
-				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAX_LEVEL, 0);
-				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_LOD, 0);
-				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAX_LOD, 0);
-				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
-				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_NEAREST);
-				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_NEAREST);
-				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_S, GFX.GL_REPEAT);
-				GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_T, GFX.GL_REPEAT);
-			}
+			image.upload(glId);
 
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
@@ -118,7 +104,7 @@ public class MaterialInfoTexture {
 			}
 
 			if (glId != -1) {
-				TextureUtil.releaseTextureId(glId);
+				GFX.deleteTexture(glId);
 				glId = -1;
 			}
 		}
@@ -130,22 +116,6 @@ public class MaterialInfoTexture {
 			createImageIfNeeded();
 			uploadAndActivate();
 		}
-	}
-
-	public int squareSizePixels() {
-		return squareSizePixels;
-	}
-
-	private static int computeSquareSizeInPixels() {
-		int size = 64;
-		int capacity = size * size;
-
-		while (capacity < RenderMaterialImpl.MAX_MATERIAL_COUNT) {
-			size *= 2;
-			capacity = size * size;
-		}
-
-		return size;
 	}
 
 	public static final MaterialInfoTexture INSTANCE = new MaterialInfoTexture();

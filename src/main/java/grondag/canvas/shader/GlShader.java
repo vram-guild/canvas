@@ -50,7 +50,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.varia.GFX;
 import grondag.frex.api.config.ShaderConfig;
 
@@ -271,7 +270,6 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "#define SHADOW_MAP_SIZE " + Pipeline.skyShadowSize);
 			}
 
-			result = StringUtils.replace(result, "#define _CV_MATERIAL_INFO_TEXTURE_SIZE 0", "#define _CV_MATERIAL_INFO_TEXTURE_SIZE " + MaterialInfoTexture.INSTANCE.squareSizePixels());
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
 
 			//if (Configurator.hdLightmaps()) {

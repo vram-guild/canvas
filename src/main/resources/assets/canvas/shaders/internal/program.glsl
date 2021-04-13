@@ -14,7 +14,6 @@
 
 uniform int[4] _cvu_context;
 
-#define _CV_MATERIAL_INFO_TEXTURE_SIZE 0
 #define _CV_MAX_SHADER_COUNT 0
 
 // undefine to use vertex data for program selection
@@ -40,7 +39,7 @@ bool _cv_programDiscard() {
 
 #else
 
-uniform sampler2D _cvu_materialInfo;
+uniform isamplerBuffer _cvu_materialInfo;
 
 #ifdef VERTEX_SHADER
 	flat out ivec4 _cvu_program;
@@ -71,13 +70,7 @@ float _cv_isGlint() {
 #ifdef VERTEX_SHADER
 void _cv_setupProgram() {
 #ifndef PROGRAM_BY_UNIFORM
-	float materialIndex = float(in_material);
-	float y = floor((materialIndex + 0.1) / _CV_MATERIAL_INFO_TEXTURE_SIZE);
-	float x = materialIndex - (y * _CV_MATERIAL_INFO_TEXTURE_SIZE);
-	vec2 coord = vec2(x, y);
-
-	vec4 raw = textureLod(_cvu_materialInfo, (coord + 0.5) / _CV_MATERIAL_INFO_TEXTURE_SIZE, 0);
-	_cvu_program = ivec4(raw * vec4(_CV_MAX_SHADER_COUNT, _CV_MAX_SHADER_COUNT, 1.0, 1.0));
+	_cvu_program = texelFetch(_cvu_materialInfo, in_material);
 	_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
 #endif
 }
