@@ -8,12 +8,14 @@
 in vec3 in_vertex;
 in vec4 in_color;
 in vec2 in_uv;
-in int in_sprite;
 in int in_material;
-	#ifdef VANILLA_LIGHTING
-in vec4 in_lightmap;
-in vec4 in_normal_flags;
-	#endif
+
+#ifdef VANILLA_LIGHTING
+in vec2 in_lightmap;
+in vec3 in_normal;
+in float in_ao;
+#endif
+
 #endif
 
 vec2 _cv_textureCoord(vec2 coordIn, int matrixIndex) {

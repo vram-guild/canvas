@@ -29,15 +29,14 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
  * designed to be usable without the default renderer.
  */
 public abstract class NormalHelper {
-	private NormalHelper() {
-	}
+	private NormalHelper() { }
 
 	public static int packNormal(float x, float y, float z) {
 		x = MathHelper.clamp(x, -1, 1);
 		y = MathHelper.clamp(y, -1, 1);
 		z = MathHelper.clamp(z, -1, 1);
 
-		return ((int) ((x * 127) + 127) & 255) | (((int) ((y * 127) + 127) & 255) << 8) | (((int) ((z * 127) + 127) & 255) << 16);
+		return ((int) (x * 127) & 255) | (((int) (y * 127) & 255) << 8) | (((int) (z * 127) & 255) << 16);
 	}
 
 	/**
@@ -53,7 +52,7 @@ public abstract class NormalHelper {
 	 * <p>Components are x, y, z - zero based.
 	 */
 	public static float getPackedNormalComponent(int packedNormal, int component) {
-		return (((packedNormal >>> (8 * component)) & 0xFF) - 127f) / 127f;
+		return ((byte) ((packedNormal >>> (8 * component)) & 0xFF)) / 127f;
 	}
 
 	/**

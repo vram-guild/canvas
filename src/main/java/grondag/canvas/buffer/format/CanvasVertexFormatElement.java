@@ -31,18 +31,14 @@ public class CanvasVertexFormatElement {
 	public static final CanvasVertexFormatElement BASE_TEX_2US = new CanvasVertexFormatElement(
 		VertexFormatElement.Format.USHORT, 2, "in_uv", true, false);
 
-	/**
-	 * In vanilla lighting model, Bytes 1-2 are sky and block lightmap
-	 * coordinates. 3rd and 4th bytes are control flags.
-	 */
-	public static final CanvasVertexFormatElement LIGHTMAPS_4UB = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.UBYTE, 4, "in_lightmap", false, false);
-
 	public static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
 			VertexFormatElement.Format.UBYTE, 2, "in_lightmap", false, false);
 
-	public static final CanvasVertexFormatElement NORMAL_PLUS_4UB = new CanvasVertexFormatElement(
-		VertexFormatElement.Format.UBYTE, 4, "in_normal_flags", false, false);
+	public static final CanvasVertexFormatElement NORMAL_3B = new CanvasVertexFormatElement(
+			VertexFormatElement.Format.BYTE, 3, "in_normal", true, false);
+
+	public static final CanvasVertexFormatElement AO_1UB = new CanvasVertexFormatElement(
+			VertexFormatElement.Format.UBYTE, 1, "in_ao", true, false);
 
 	public static final CanvasVertexFormatElement SPRITE_1US = new CanvasVertexFormatElement(
 			VertexFormatElement.Format.USHORT, 1, "in_sprite", false, true);

@@ -22,7 +22,7 @@ void main() {
 		vec4(in_vertex, 1.0),
 		in_uv,
 		in_color,
-		(in_normal_flags.xyz - 127.0) / 127.0
+		in_normal
 	);
 
 	_cv_setupProgram();

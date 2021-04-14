@@ -22,16 +22,16 @@ void main() {
 		vec4(in_vertex, 1.0),
 		in_uv,
 		in_color,
-		(in_normal_flags.xyz - 127.0) / 127.0,
+		in_normal,
 		in_lightmap.rg * 0.00390625 + 0.03125,
-		in_lightmap.b / 255.0
+		in_ao
 	);
 #else
 	frx_VertexData data = frx_VertexData(
 		vec4(in_vertex, 1.0),
 		in_uv,
 		in_color,
-		(in_normal_flags.xyz - 127.0) / 127.0
+		in_normal
 	);
 #endif
 
