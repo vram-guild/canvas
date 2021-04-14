@@ -19,8 +19,10 @@ uniform isamplerBuffer _cvu_materialInfo;
 
 #ifdef VERTEX_SHADER
 	flat out ivec4 _cvu_program;
+	flat out vec4 _cvv_spriteBounds;
 #else
 	flat in ivec4 _cvu_program;
+	flat in vec4 _cvv_spriteBounds;
 #endif
 
 int _cv_vertexProgramId() {
@@ -36,10 +38,17 @@ bool _cv_programDiscard() {
 }
 
 
-
 #ifdef VERTEX_SHADER
 void _cv_setupProgram() {
-	_cvu_program = texelFetch(_cvu_materialInfo, in_material);
-	_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
+	if (_cvu_context[_CV_ATLAS_WIDTH] == 0.0) {
+		_cvu_program = texelFetch(_cvu_materialInfo, in_material);
+		_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
+		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);
+	} else {
+		int i = in_material * 2;
+		_cvu_program = texelFetch(_cvu_materialInfo, i);
+		_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
+		_cvv_spriteBounds = vec4(texelFetch(_cvu_materialInfo, i + 1)) / 32768.0;
+	}
 }
 #endif

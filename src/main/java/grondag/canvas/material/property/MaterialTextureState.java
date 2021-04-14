@@ -25,10 +25,12 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 
+import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.MaterialIndexProvider;
-import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.texture.SpriteIndex;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
@@ -38,7 +40,8 @@ public class MaterialTextureState {
 
 	private AbstractTexture texture;
 	private boolean isAtlas;
-	private SpriteInfoTexture atlasInfo;
+	private SpriteFinder spriteFinder;
+	private SpriteIndex atlasInfo;
 	private MaterialIndexProvider donglenator;
 
 	private MaterialTextureState(int index, Identifier id) {
@@ -55,8 +58,9 @@ public class MaterialTextureState {
 			isAtlas = texture != null && texture instanceof SpriteAtlasTexture;
 
 			if (isAtlas) {
-				atlasInfo = SpriteInfoTexture.getOrCreate(id);
+				atlasInfo = SpriteIndex.getOrCreate(id);
 				donglenator = MaterialIndexProvider.getOrCreateForAtlas(id);
+				spriteFinder = SpriteFinder.get((SpriteAtlasTexture) texture);
 			} else {
 				atlasInfo = null;
 				donglenator = MaterialIndexProvider.GENERIC;
@@ -64,7 +68,12 @@ public class MaterialTextureState {
 		}
 	}
 
-	public MaterialIndexProvider donglenator() {
+	public SpriteFinder spriteFinder() {
+		retreiveTexture();
+		return spriteFinder;
+	}
+
+	public MaterialIndexProvider materialIndexProvider() {
 		retreiveTexture();
 		return donglenator;
 	}
@@ -79,7 +88,7 @@ public class MaterialTextureState {
 		return isAtlas;
 	}
 
-	public SpriteInfoTexture atlasInfo() {
+	public SpriteIndex atlasInfo() {
 		retreiveTexture();
 		return atlasInfo;
 	}
@@ -99,11 +108,6 @@ public class MaterialTextureState {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 				CanvasTextureState.bindTexture(0);
 			} else {
-				// Should happen before primary texture binding because resets active texture
-				if (isAtlas()) {
-					atlasInfo().enable();
-				}
-
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 				CanvasTextureState.bindTexture(texture().getGlId());
 				setFilter(bilinear);

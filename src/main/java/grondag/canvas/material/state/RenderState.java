@@ -35,7 +35,6 @@ import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.texture.MaterialIndexTexture;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
@@ -123,7 +122,7 @@ public final class RenderState extends AbstractRenderState {
 
 		shadowActive = this;
 		active = null;
-		texture.donglenator().tex.enable();
+		texture.materialIndexProvider().enable();
 
 		// WIP: can probably remove many of these
 
@@ -166,7 +165,7 @@ public final class RenderState extends AbstractRenderState {
 
 		active = this;
 		shadowActive = null;
-		texture.donglenator().tex.enable();
+		texture.materialIndexProvider().enable();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
@@ -225,7 +224,6 @@ public final class RenderState extends AbstractRenderState {
 		GFX.glCullFace(GFX.GL_BACK);
 
 		GlProgram.deactivate();
-		SpriteInfoTexture.disable();
 		MaterialDecal.disable();
 		MaterialTransparency.disable();
 		MaterialDepthTest.disable();

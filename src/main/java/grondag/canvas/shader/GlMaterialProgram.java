@@ -21,7 +21,7 @@ import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.texture.SpriteIndex;
 import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -108,7 +108,7 @@ public class GlMaterialProgram extends GlProgram {
 	private static final int _CV_ATLAS_HEIGHT = 1;
 	private static final int _CV_MATERIAL_TARGET = 2;
 
-	public void setContextInfo(SpriteInfoTexture atlasInfo, int targetIndex) {
+	public void setContextInfo(SpriteIndex atlasInfo, int targetIndex) {
 		if (atlasInfo == null) {
 			materialData[_CV_ATLAS_WIDTH] = 0;
 			materialData[_CV_ATLAS_HEIGHT] = 0;

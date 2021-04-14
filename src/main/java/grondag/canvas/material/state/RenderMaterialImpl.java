@@ -125,7 +125,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		MaterialIndexer result = dongle;
 
 		if (result == null) {
-			result = texture.donglenator().getIndexer(this);
+			result = texture.materialIndexProvider().getIndexer(this);
 			dongle = result;
 		}
 

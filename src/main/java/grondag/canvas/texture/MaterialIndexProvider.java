@@ -17,45 +17,96 @@
 package grondag.canvas.texture;
 
 import it.unimi.dsi.fastutil.Hash;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
 
-public class MaterialIndexProvider {
-	MaterialIndexProvider() { }
+public abstract class MaterialIndexProvider {
+	public abstract MaterialIndexer getIndexer(RenderMaterialImpl mat);
 
-	private int nextIndex = 0;
-	private final Long2IntOpenHashMap map = new Long2IntOpenHashMap();
-	public final MaterialIndexTexture tex = new MaterialIndexTexture();
+	public abstract void enable();
 
-	public MaterialIndexer getIndexer(RenderMaterialImpl mat) {
-		final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
+	private static class SimpleIndexProvider extends MaterialIndexProvider {
+		int nextIndex = 0;
+		final Long2IntOpenHashMap map = new Long2IntOpenHashMap(64, Hash.VERY_FAST_LOAD_FACTOR);
+		private final MaterialIndexTexture tex = new MaterialIndexTexture(false);
 
-		final int result = map.computeIfAbsent(key, k -> {
-			final int i = nextIndex++;
-			tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index);
-			return i;
-		});
+		@Override
+		public MaterialIndexer getIndexer(RenderMaterialImpl mat) {
+			final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
 
-		return i -> result;
-	}
+			final int result = map.computeIfAbsent(key, k -> {
+				final int i = nextIndex++;
+				tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index);
+				return i;
+			});
 
-	public static class AtlasMaterialIndexProvider extends MaterialIndexProvider {
-		//WIP2: implement
+			return i -> result;
+		}
 
-		AtlasMaterialIndexProvider(Identifier id) {
-			super();
+		@Override
+		public void enable() {
+			tex.enable();
 		}
 	}
 
-	private static final Object2ObjectOpenHashMap<Identifier, AtlasMaterialIndexProvider> MAP = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+	private static class AtlasIndexProvider extends MaterialIndexProvider {
+		@SuppressWarnings("unused")
+		private final Identifier atlasId;
 
-	public static final AtlasMaterialIndexProvider getOrCreateForAtlas(Identifier id) {
-		return MAP.computeIfAbsent(id, AtlasMaterialIndexProvider::new);
+		AtlasIndexProvider(Identifier atlasId) {
+			this.atlasId = atlasId;
+		}
+
+		int nextIndex = 0;
+		final Long2ObjectOpenHashMap<Indexer> materialMap = new Long2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+		private final MaterialIndexTexture tex = new MaterialIndexTexture(true);
+
+		private class Indexer implements MaterialIndexer {
+			private Indexer(RenderMaterialImpl mat) {
+				this.mat = mat;
+			}
+
+			private final RenderMaterialImpl mat;
+			private final Int2IntOpenHashMap spriteMap = new Int2IntOpenHashMap(64, Hash.VERY_FAST_LOAD_FACTOR);
+
+			@Override
+			public int index(int spriteId) {
+				return spriteMap.computeIfAbsent(spriteId, k -> {
+					final int i = nextIndex++;
+					final Sprite sprite = mat.texture.atlasInfo().fromId(k);
+					tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index, sprite);
+					return i;
+				});
+			}
+		}
+
+		@Override
+		public MaterialIndexer getIndexer(RenderMaterialImpl mat) {
+			final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
+
+			return materialMap.computeIfAbsent(key, k -> {
+				return new Indexer(mat);
+			});
+		}
+
+		@Override
+		public void enable() {
+			tex.enable();
+		}
 	}
 
-	public static final MaterialIndexProvider GENERIC = new MaterialIndexProvider();
+	private static final Object2ObjectOpenHashMap<Identifier, AtlasIndexProvider> ATLAS_PROVIDERS = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+
+	public static final MaterialIndexProvider getOrCreateForAtlas(Identifier id) {
+		return ATLAS_PROVIDERS.computeIfAbsent(id, AtlasIndexProvider::new);
+	}
+
+	public static final MaterialIndexProvider GENERIC = new SimpleIndexProvider();
 }

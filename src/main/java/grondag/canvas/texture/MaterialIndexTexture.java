@@ -16,6 +16,8 @@
 
 package grondag.canvas.texture;
 
+import net.minecraft.client.texture.Sprite;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -27,15 +29,23 @@ import grondag.canvas.varia.GFX;
 @Environment(EnvType.CLIENT)
 public class MaterialIndexTexture {
 	public static final int MAX_INDEX_COUNT = 0x10000;
-	public static final int BYTES_PER_MATERIAL = 2 * 4;
+	public static final int INTS_PER_MATERIAL = 2;
+	public static final int BYTES_PER_MATERIAL = INTS_PER_MATERIAL * 4;
 	public static final int BUFFER_SIZE_BYTES = BYTES_PER_MATERIAL * MAX_INDEX_COUNT;
+
+	public static final int ATLAS_INTS_PER_MATERIAL = 4;
+	public static final int ATLAS_BYTES_PER_MATERIAL = ATLAS_INTS_PER_MATERIAL * 4;
+	public static final int ATLAS_BUFFER_SIZE_BYTES = ATLAS_BYTES_PER_MATERIAL * MAX_INDEX_COUNT;
 
 	private int glId = 0;
 	private MaterialIndexImage image = null;
+	private final boolean isAtlas;
 
 	private static MaterialIndexTexture active = null;
 
-	MaterialIndexTexture() { }
+	MaterialIndexTexture(boolean isAtlas) {
+		this.isAtlas = isAtlas;
+	}
 
 	public void reset() {
 		if (Configurator.enableLifeCycleDebug) {
@@ -57,6 +67,8 @@ public class MaterialIndexTexture {
 	}
 
 	public synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId) {
+		assert !isAtlas;
+
 		createImageIfNeeded();
 
 		if (image != null) {
@@ -64,10 +76,20 @@ public class MaterialIndexTexture {
 		}
 	}
 
+	public synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId, Sprite sprite) {
+		assert isAtlas;
+
+		createImageIfNeeded();
+
+		if (image != null) {
+			image.set(materialIndex, vertexId, fragmentId, programFlags, conditionId, sprite);
+		}
+	}
+
 	private void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new MaterialIndexImage();
+				image = new MaterialIndexImage(isAtlas);
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create material info texture due to error:", e);
 				image = null;

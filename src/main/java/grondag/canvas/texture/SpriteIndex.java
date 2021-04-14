@@ -16,7 +16,6 @@
 
 package grondag.canvas.texture;
 
-import com.mojang.blaze3d.platform.TextureUtil;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -33,15 +32,13 @@ import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
-import grondag.canvas.render.CanvasTextureState;
-import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public class SpriteInfoTexture {
-	private static final Object2ObjectOpenHashMap<Identifier, SpriteInfoTexture> MAP = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+public class SpriteIndex {
+	private static final Object2ObjectOpenHashMap<Identifier, SpriteIndex> MAP = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 
-	public static final SpriteInfoTexture getOrCreate(Identifier id) {
-		return MAP.computeIfAbsent(id, SpriteInfoTexture::new);
+	public static final SpriteIndex getOrCreate(Identifier id) {
+		return MAP.computeIfAbsent(id, SpriteIndex::new);
 	}
 
 	private ObjectArrayList<Sprite> spriteIndex = null;
@@ -49,12 +46,9 @@ public class SpriteInfoTexture {
 	private SpriteFinder spriteFinder;
 	private int atlasWidth;
 	private int atlasHeight;
-	private int spriteCount = -1;
-	private int glId = 0;
-	private int bufferId;
 	public final Identifier id;
 
-	private SpriteInfoTexture(Identifier id) {
+	private SpriteIndex(Identifier id) {
 		this.id = id;
 	}
 
@@ -63,63 +57,11 @@ public class SpriteInfoTexture {
 			CanvasMod.LOG.info("Lifecycle Event: SpriteInfoTexture init");
 		}
 
-		if (glId != 0) {
-			disable();
-			TextureUtil.releaseTextureId(glId);
-			glId = 0;
-		}
-
-		if (bufferId != 0) {
-			GFX.deleteBuffers(bufferId);
-			bufferId = 0;
-		}
-
 		atlas = atlasIn;
 		spriteFinder = SpriteFinder.get(atlas);
 		spriteIndex = spriteIndexIn;
-		spriteCount = spriteIndex.size();
 		atlasWidth = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasWidth();
 		atlasHeight = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasHeight();
-	}
-
-	private void createImageIfNeeded() {
-		if (glId == 0) {
-			createImage();
-		}
-	}
-
-	private void createImage() {
-		try (SpriteInfoImage image = new SpriteInfoImage(spriteIndex, spriteCount)) {
-			glId = GFX.genTexture();
-			bufferId = GFX.genBuffer();
-
-			CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
-
-			image.upload(bufferId);
-
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
-			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-		} catch (final Exception e) {
-			CanvasMod.LOG.warn("Unable to create sprite info texture due to error:", e);
-
-			if (glId != 0) {
-				GFX.deleteTexture(glId);
-				glId = 0;
-			}
-		}
-	}
-
-	public static void disable() {
-		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
-		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
-		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-	}
-
-	public void enable() {
-		createImageIfNeeded();
-		CanvasTextureState.activeTextureUnit(TextureData.SPRITE_INFO);
-		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
 	}
 
 	public Sprite fromId(int spriteId) {

@@ -1,5 +1,4 @@
 #include frex:shaders/api/header.glsl
-#include canvas:shaders/internal/varying.glsl
 #include canvas:shaders/internal/flags.glsl
 #include frex:shaders/api/material.glsl
 #include frex:shaders/api/fragment.glsl

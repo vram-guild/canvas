@@ -21,6 +21,8 @@ import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
+import net.minecraft.client.texture.Sprite;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -46,8 +48,11 @@ public final class MaterialIndexImage {
 	private final IntArrayList data = new IntArrayList();
 	private int head = 0;
 	private int tail = 0;
+	private final boolean isAtlas;
 
-	public MaterialIndexImage() {
+	public MaterialIndexImage(boolean isAtlas) {
+		this.isAtlas = isAtlas;
+
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialInfoImage init");
 		}
@@ -61,6 +66,8 @@ public final class MaterialIndexImage {
 	}
 
 	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId) {
+		assert !isAtlas;
+
 		data.add(vertexId | (fragmentId << 16));
 		data.add(programFlags | (conditionId << 16));
 
@@ -68,6 +75,20 @@ public final class MaterialIndexImage {
 		assert bufferIndex >= head;
 		assert bufferIndex == tail;
 		tail = bufferIndex + MaterialIndexTexture.BYTES_PER_MATERIAL;
+	}
+
+	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId, Sprite sprite) {
+		assert isAtlas;
+
+		data.add(vertexId | (fragmentId << 16));
+		data.add(programFlags | (conditionId << 16));
+		data.add(Math.round(sprite.getMinU() * 0x8000) | (Math.round(sprite.getMinV() * 0x8000) << 16));
+		data.add(Math.round((sprite.getMaxU() - sprite.getMinU()) * 0x8000) | (Math.round((sprite.getMaxV() - sprite.getMinV()) * 0x8000) << 16));
+
+		final int bufferIndex = materialIndex * MaterialIndexTexture.ATLAS_BYTES_PER_MATERIAL;
+		assert bufferIndex >= head;
+		assert bufferIndex == tail;
+		tail = bufferIndex + MaterialIndexTexture.ATLAS_BYTES_PER_MATERIAL;
 	}
 
 	public void upload() {
@@ -78,7 +99,8 @@ public final class MaterialIndexImage {
 			if (bufferId == 0) {
 				bufferId = GFX.genBuffer();
 				GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
-				GFX.bufferData(GFX.GL_TEXTURE_BUFFER, MaterialIndexTexture.BUFFER_SIZE_BYTES, GFX.GL_STATIC_DRAW);
+				final int size = isAtlas ? MaterialIndexTexture.ATLAS_BUFFER_SIZE_BYTES : MaterialIndexTexture.BUFFER_SIZE_BYTES;
+				GFX.bufferData(GFX.GL_TEXTURE_BUFFER, size, GFX.GL_STATIC_DRAW);
 				GFX.texBuffer(GFX.GL_RGBA16UI, bufferId);
 			} else {
 				GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);

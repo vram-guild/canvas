@@ -22,7 +22,7 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.texture.SpriteIndex;
 import grondag.canvas.varia.MatrixState;
 
 public final class MaterialShaderImpl {
@@ -93,7 +93,7 @@ public final class MaterialShaderImpl {
 		updateCommonUniforms(renderState);
 	}
 
-	public void setContextInfo(SpriteInfoTexture atlasInfo, int targetIndex) {
+	public void setContextInfo(SpriteIndex atlasInfo, int targetIndex) {
 		getOrCreate().setContextInfo(atlasInfo, targetIndex);
 	}
 
