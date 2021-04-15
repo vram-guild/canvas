@@ -406,7 +406,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// This does not actually render anything - what it does do is set the current clear color
 		// Color is captured via a mixin for use in shaders
 		BackgroundRenderer.render(camera, tickDelta, mc.world, mc.options.viewDistance, gameRenderer.getSkyDarkness(tickDelta));
-		// WIP2: added this back for 1.17 - needed?
+		// We don't depend on this but call it here for compatibility
 		BackgroundRenderer.setFogBlack();
 
 		if (Pipeline.config().runVanillaClear) {
@@ -418,6 +418,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (mc.options.viewDistance >= 4) {
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
+			WorldDataManager.captureFogDistances();
 			profileSwap(profiler, ProfilerGroup.StartWorld, "sky");
 			// NB: fog / sky renderer normalcy get viewMatrixStack but we apply camera rotation in VertexBuffer mixin
 			RenderSystem.setShader(GameRenderer::getPositionShader);
@@ -426,6 +427,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
+		WorldDataManager.captureFogDistances();
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));

@@ -31,7 +31,6 @@ public class GlMaterialProgram extends GlProgram {
 	public final UniformArray4fImpl modelOrigin;
 	public final UniformArrayiImpl contextInfo;
 	public final Uniform1iImpl modelOriginType;
-	public final Uniform2fImpl fogInfo;
 	public final Uniform1iImpl cascade;
 	public final UniformMatrix4fImpl guiViewProjMatrix;
 
@@ -43,8 +42,6 @@ public class GlMaterialProgram extends GlProgram {
 		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 3);
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-		//WIP2: make fog info available in process shaders
-		fogInfo = (Uniform2fImpl) uniform2f("_cvu_fog_info", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0));
 		guiViewProjMatrix = uniformMatrix4f("_cvu_guiViewProjMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 	}
 

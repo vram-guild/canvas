@@ -178,7 +178,6 @@ abstract class AbstractRenderStateView {
 	// GL State comes first for sorting
 	static final BitPacker64<Void>.IntElement TARGET = PACKER.createIntElement(MaterialTarget.TARGET_COUNT);
 	static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(MaterialTextureState.MAX_TEXTURE_STATES);
-	// WIP2: is blur still part of GL-state?
 	static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
 	static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);

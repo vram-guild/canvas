@@ -144,7 +144,7 @@ public final class CanvasVertexFormats {
 		}
 	};
 
-	// WIP2: new UNLIT format - no lightmaps on vertex
+	// FEAT: new UNLIT format - no lightmaps on vertex
 	// Position 3F
 	// Color    4UB
 	// Texture	2US

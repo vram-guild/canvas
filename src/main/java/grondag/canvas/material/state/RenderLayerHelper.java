@@ -94,7 +94,6 @@ public final class RenderLayerHelper {
 		finder.depthTest(MaterialDepthTest.fromPhase(params.getDepthTest()));
 		finder.cull(params.getCull() == RenderPhase.ENABLE_CULLING);
 		finder.writeMask(MaterialWriteMask.fromPhase(params.getWriteMaskState()));
-		finder.enableLightmap(params.getLightmap() == RenderPhase.ENABLE_LIGHTMAP);
 		finder.decal(MaterialDecal.fromPhase(params.getLayering()));
 		finder.target(MaterialTarget.fromPhase(params.getTarget()));
 		finder.lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
@@ -107,7 +106,6 @@ public final class RenderLayerHelper {
 			finder.cull(true);
 			finder.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
 			finder.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH);
-			finder.enableLightmap(true);
 			finder.disableAo(false);
 		} else {
 			finder.disableAo(true);

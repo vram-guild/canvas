@@ -13,11 +13,11 @@ bool frx_fogEnabled() {
 }
 
 float frx_fogStart() {
-	return _cvu_fog_info.x;
+	return _cvu_world[_CV_RENDER_INFO].y;
 }
 
 float frx_fogEnd() {
-	return _cvu_fog_info.y;
+	return _cvu_world[_CV_RENDER_INFO].z;
 }
 
 vec4 frx_fogColor() {
@@ -29,10 +29,10 @@ vec4 frx_fogColor() {
 #define frxFogColor _cvu_world[_CV_FOG_COLOR]
 
 // float
-#define frxFogStart _cvu_fog_info.x
+#define frxFogStart _cvu_world[_CV_RENDER_INFO].y
 
 // float
-#define frxFogEnd _cvu_fog_info.y
+#define frxFogEnd _cvu_world[_CV_RENDER_INFO].z
 
 // bool
-#define frxFogEnabled (_cvu_fog_info.x >= 0.0)
+#define frxFogEnabled (frx_bitValue(uint(_cvv_flags), _CV_FLAG_ENABLE_FOG) == 1.0)

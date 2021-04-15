@@ -72,9 +72,6 @@ public final class MaterialShaderImpl {
 			program.guiViewProjMatrix.set(guiMatrix);
 			program.guiViewProjMatrix.upload();
 		}
-
-		program.fogInfo.set(RenderSystem.getShaderFogStart(), RenderSystem.getShaderFogEnd());
-		program.fogInfo.upload();
 	}
 
 	public void setModelOrigin(int x, int y, int z) {

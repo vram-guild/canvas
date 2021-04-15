@@ -126,6 +126,8 @@ public class WorldDataManager {
 
 	private static final int VEC_RENDER_INFO = 4 * 19;
 	private static final int RENDER_FRAMES = VEC_RENDER_INFO;
+	private static final int FOG_START = VEC_RENDER_INFO + 1;
+	private static final int FOG_END = VEC_RENDER_INFO + 2;
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -610,6 +612,12 @@ public class WorldDataManager {
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
 
 		DATA.put(RENDER_FRAMES, renderFrames++);
+	}
+
+	/** Called when values are known to be good because vanilla resets them outside of world rendering. */
+	public static void captureFogDistances() {
+		DATA.put(FOG_START, RenderSystem.getShaderFogStart());
+		DATA.put(FOG_END, RenderSystem.getShaderFogEnd());
 	}
 
 	public static void updateEmissiveColor(int color) {
