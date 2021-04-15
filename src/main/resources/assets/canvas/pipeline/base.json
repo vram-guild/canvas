@@ -1,4 +1,9 @@
 {
+  smoothBrightnessBidirectionaly: false,
+  runVanillaClear: true,
+  brightnessSmoothingFrames: 20,
+  rainSmoothingFrames: 500,
+
   images: [
     // color attachment for solid draws
     {
@@ -47,7 +52,7 @@
 			colorAttachments: [{image: "solid_main"}]
 		}
 	],
-  
+
   beforeWorldRender: {
     passes: [
       {
