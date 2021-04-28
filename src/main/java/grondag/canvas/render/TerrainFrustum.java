@@ -166,20 +166,20 @@ public class TerrainFrustum extends CanvasFrustum {
 		final double z = vec.z;
 
 		final long cameraBlockPos = camera.getBlockPos().asLong();
-		boolean movedOneBlock = false;
+		boolean cameraMoved = false;
 
 		if (cameraBlockPos != lastCameraBlockPos) {
 			lastCameraBlockPos = cameraBlockPos;
-			movedOneBlock = true;
+			cameraMoved = true;
 		} else {
-			// could move 1.0 or more diagonally within same block pos
+			// the assumption that occlusion data only needs updating if the camera moves 1 block doesn't hold up
 			final double dx = x - lastPositionX;
 			final double dy = y - lastPositionY;
 			final double dz = z - lastPositionZ;
-			movedOneBlock = dx * dx + dy * dy + dz * dz >= 1.0D;
+			cameraMoved = dx * dx + dy * dy + dz * dz >= 0.01D;
 		}
 
-		if (movedOneBlock) {
+		if (cameraMoved) {
 			++positionVersion;
 			lastPositionX = x;
 			lastPositionY = y;
@@ -201,7 +201,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			modelMatrixUpdate = dPitch * dPitch + dYaw * dYaw >= paddingFov * paddingFov;
 		}
 
-		if (movedOneBlock || modelMatrixUpdate || !projectionMatrixExt.matches(occlusionProjMat)) {
+		if (cameraMoved || modelMatrixUpdate || !projectionMatrixExt.matches(occlusionProjMat)) {
 			++viewVersion;
 
 			lastViewX = x;
