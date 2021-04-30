@@ -32,4 +32,5 @@ public class TextureData {
 	// want these outside of the range managed by Mojang's damn GlStateManager
 	public static final int SHADOWMAP = GL21.GL_TEXTURE12;
 	public static final int SHADOWMAP_TEXTURE = GL21.GL_TEXTURE13;
+	public static final int PROGRAM_SAMPLERS = GL21.GL_TEXTURE14;
 }

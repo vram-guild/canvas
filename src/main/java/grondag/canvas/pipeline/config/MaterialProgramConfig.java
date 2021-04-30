@@ -16,16 +16,44 @@
 
 package grondag.canvas.pipeline.config;
 
+import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class MaterialProgramConfig extends ProgramConfig {
+	public final NamedDependency<ImageConfig>[] samplerImages;
+
 	public MaterialProgramConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx, config, "materialProgram");
+
+		if (!config.containsKey("samplerImages")) {
+			samplerImages = new NamedDependency[0];
+		} else {
+			final JsonArray names = config.get(JsonArray.class, "samplerImages");
+			final int limit = names.size();
+			samplerImages = new NamedDependency[limit];
+
+			for (int i = 0; i < limit; ++i) {
+				samplerImages[i] = ctx.images.dependOn(names.get(i));
+			}
+		}
 	}
 
 	public MaterialProgramConfig(ConfigContext ctx) {
 		super(ctx, "materialProgram", "canvas:shaders/pipeline/standard.vert", "canvas:shaders/pipeline/standard.vert");
+		samplerImages = new NamedDependency[0];
+	}
+
+	@Override
+	public boolean validate() {
+		if (samplerImages.length != samplerNames.length) {
+			CanvasMod.LOG.warn(String.format("Material program is invalid because it expects %d samplers but the pass binds %d.",
+				samplerNames.length, samplerImages.length));
+			return false;
+		}
+		return super.validate();
 	}
 }
