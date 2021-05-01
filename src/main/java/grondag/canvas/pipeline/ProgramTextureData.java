@@ -1,11 +1,11 @@
 package grondag.canvas.pipeline;
 
-import grondag.canvas.pipeline.Image;
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
+import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL46;
 
@@ -24,7 +24,7 @@ public class ProgramTextureData {
 			int bindTarget = GL46.GL_TEXTURE_2D;
 
 			if (imageName.contains(":")) {
-				final AbstractTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(imageName));
+				final AbstractTexture tex = tryLoadResourceTexture(new Identifier(imageName));
 
 				if (tex != null) {
 					imageBind = tex.getGlId();
@@ -40,6 +40,22 @@ public class ProgramTextureData {
 
 			texIds[i] = imageBind;
 			texTargets[i] = bindTarget;
+		}
+	}
+
+	private static AbstractTexture tryLoadResourceTexture(Identifier identifier) {
+		final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+		final AbstractTexture existingTexture = textureManager.getTexture(identifier);
+
+		if (existingTexture != null) {
+			return existingTexture;
+		} else {
+			// NB: `registerTexture` will replace the texture with MissingSprite if not found. This is useful for
+			//     pipeline developers.
+			//     Additionally, TextureManager will handle removing missing textures on resource reload.
+			ResourceTexture resourceTexture = new ResourceTexture(identifier);
+			textureManager.registerTexture(identifier, resourceTexture);
+			return textureManager.getTexture(identifier);
 		}
 	}
 }
