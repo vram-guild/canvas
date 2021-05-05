@@ -157,7 +157,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private final RenderContextState contextState = new RenderContextState();
 	public final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
-	private final CanvasImmediate shadowExtrasProvider = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+	private final CanvasImmediate shadowExtrasProvider = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.dummyBuilders(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
 	public final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
