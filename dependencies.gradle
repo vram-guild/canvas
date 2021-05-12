@@ -1,6 +1,6 @@
 repositories {
-	mavenLocal()
-	mavenLocal()
+	//mavenLocal()
+	maven { url "https://maven.shedaniel.me/"}
 	jcenter();
 	maven {
 		name = "Fabric"
@@ -62,8 +62,8 @@ dependencies {
 		transitive(false)
 	}
 
-	modImplementation("me.shedaniel.cloth:config-2:${clothconfig_version}") {
-		exclude group: "io.github.prospector.modmenu"
+	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}") {
+		//exclude group: "io.github.prospector.modmenu"
 		exclude group: "net.fabricmc.fabric-api"
 		exclude group: "net.fabricmc.fabric-loader"
 	}
@@ -87,8 +87,8 @@ dependencies {
 		include "grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+"
 		include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
-		include "me.shedaniel.cloth:config-2:${clothconfig_version}"
-		//include "blue.endless:jankson:1.1.2"
+		include "me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}"
+		include "blue.endless:jankson:1.1.2"
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
 	}
 
