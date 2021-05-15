@@ -137,8 +137,6 @@ public abstract class Timekeeper {
 		private boolean prevIsProcess;
 		private int prevEndIndex;
 		private Object2LongOpenHashMap<String> gpuElapsed;
-
-		// Even indices are startTime, odd indices are endTime
 		private int[] queryIDs;
 
 		// Frame 1: setup gl query objects
@@ -159,23 +157,22 @@ public abstract class Timekeeper {
 
 			int ready = 0;
 			int[] temp = new int[1];
+
+			// Wait until all query result is ready (shouldn't cause infinite loop, but..?)
 			while (ready < numProcesses) {
 				ready = 0;
 				for (int i = 0; i < numProcesses; i++) {
-					GL46.glGetQueryObjectiv(queryIDs[i*2], GL15.GL_QUERY_RESULT_AVAILABLE, temp);
-					if (temp[0] == 0) break;
-					GL46.glGetQueryObjectiv(queryIDs[i*2+1], GL15.GL_QUERY_RESULT_AVAILABLE, temp);
+					GL46.glGetQueryObjectiv(queryIDs[i], GL15.GL_QUERY_RESULT_AVAILABLE, temp);
 					ready += temp[0];
 				}
 			}
-			long[] start = new long[1];
-			long[] end = new long[1];
+
+			long[] elapsed = new long[1];
 			int i = 0;
 			for(ProfilerGroup p:PROCESS_GROUPS) {
 				for (String token:groups[p.ordinal()].steps) {
-					GL46.glGetQueryObjecti64v(queryIDs[i*2], GL15.GL_QUERY_RESULT, start);
-					GL46.glGetQueryObjecti64v(queryIDs[i*2+1], GL15.GL_QUERY_RESULT, end);
-					gpuElapsed.put(token, end[0] - start[0]);
+					GL46.glGetQueryObjecti64v(queryIDs[i], GL15.GL_QUERY_RESULT, elapsed);
+					gpuElapsed.put(token, elapsed[0]);
 					i++;
 				}
 			}
@@ -199,7 +196,7 @@ public abstract class Timekeeper {
 
 				numProcesses = count;
 				prevIsProcess = false;
-				queryIDs = new int[numProcesses * 2];
+				queryIDs = new int[numProcesses];
 				gpuElapsed = new Object2LongOpenHashMap<>(numProcesses);
 
 				GL46.glGenQueries(queryIDs);
@@ -215,46 +212,45 @@ public abstract class Timekeeper {
 
 			if (prevIsProcess) {
 				// Count end time of previous process
-				GL46.glQueryCounter(queryIDs[prevEndIndex], GL33.GL_TIMESTAMP);
+				GL46.glEndQuery(GL33.GL_TIME_ELAPSED);
 				assert GlStateManager.getError() == 0;
 			}
 
-			final int startIndex = getStartIndex(group, token);
+			final int idIndex = getIdIndex(group, token);
 
-			if (startIndex > -1) {
+			if (idIndex > -1) {
 				// Count start time of current process
-				GL46.glQueryCounter(queryIDs[startIndex], GL33.GL_TIMESTAMP);
+				GL46.glBeginQuery(GL33.GL_TIME_ELAPSED, queryIDs[idIndex]);
 				assert GlStateManager.getError() == 0;
 
 				prevIsProcess = true;
-				prevEndIndex = startIndex + 1;
+				prevEndIndex = idIndex + 1;
 			} else {
 				prevIsProcess = false;
 			}
 		}
 
-		private int getStartIndex(ProfilerGroup group, String token) {
+		private int getIdIndex(ProfilerGroup group, String token) {
 			if (token == null) {
 				return -1;
 			}
 
-			int startIndex = -1;
-			int startOffset = 0;
+			int idIndex = -1;
+			int idOffset = 0;
 
 			for (ProfilerGroup p:PROCESS_GROUPS) {
 				if (p.equals(group)) {
-					startIndex = groups[p.ordinal()].steps.indexOf(token);
+					idIndex = groups[p.ordinal()].steps.indexOf(token);
 
-					if (startIndex > -1) {
-						startIndex += startOffset;
-						startIndex *= 2;
+					if (idIndex > -1) {
+						idIndex += idOffset;
 						break;
 					}
 				}
-				startOffset += groups[p.ordinal()].steps.size();
+				idOffset += groups[p.ordinal()].steps.size();
 			}
 
-			return startIndex;
+			return idIndex;
 		}
 
 		/**
