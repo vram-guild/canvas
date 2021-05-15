@@ -16,6 +16,7 @@
 
 package grondag.canvas.perf;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -26,6 +27,9 @@ import net.minecraft.util.Util;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.GL46;
 
 public abstract class Timekeeper {
 	public enum ProfilerGroup {
@@ -66,12 +70,14 @@ public abstract class Timekeeper {
 		private long start;
 		private String currentStep;
 		private Object2LongOpenHashMap<String> stepElapsed;
-		private Group[] groups;
+		protected Group[] groups;
+		protected int frameSinceReload;
 
-		private int frameSinceReload;
 		// Setup is done in all steps over single frames for every reload
 		// Frame 0: setup data container and list of steps
-		private final int SETUP_FRAMES = 1;
+		protected int getSetupFrames() {
+			return 1;
+		}
 
 		private void reload() {
 			frameSinceReload = -1;
@@ -81,7 +87,7 @@ public abstract class Timekeeper {
 		public void startFrame(ProfilerGroup group, String token) {
 			currentStep = null;
 
-			if (frameSinceReload < SETUP_FRAMES) {
+			if (frameSinceReload < getSetupFrames()) {
 				frameSinceReload++;
 			}
 
@@ -126,6 +132,147 @@ public abstract class Timekeeper {
 		}
 	}
 
+	private static class ActiveGPU extends Active {
+		private int numProcesses;
+		private boolean prevIsProcess;
+		private int prevEndIndex;
+		private Object2LongOpenHashMap<String> gpuElapsed;
+
+		// Even indices are startTime, odd indices are endTime
+		private int[] queryIDs;
+
+		// Frame 1: setup gl query objects
+		@Override
+		protected int getSetupFrames() {
+			return 2;
+		}
+
+		private static ProfilerGroup[] PROCESS_GROUPS = new ProfilerGroup[] {
+			ProfilerGroup.BeforeWorld,
+			ProfilerGroup.Fabulous,
+			ProfilerGroup.AfterHand
+		};
+
+		public boolean populateResult() {
+
+			if (frameSinceReload < 1 ) return false;
+
+			int ready = 0;
+			int[] temp = new int[1];
+			while (ready < numProcesses) {
+				ready = 0;
+				for (int i = 0; i < numProcesses; i++) {
+					GL46.glGetQueryObjectiv(queryIDs[i*2], GL15.GL_QUERY_RESULT_AVAILABLE, temp);
+					if (temp[0] == 0) break;
+					GL46.glGetQueryObjectiv(queryIDs[i*2+1], GL15.GL_QUERY_RESULT_AVAILABLE, temp);
+					ready += temp[0];
+				}
+			}
+			long[] start = new long[1];
+			long[] end = new long[1];
+			int i = 0;
+			for(ProfilerGroup p:PROCESS_GROUPS) {
+				for (String token:groups[p.ordinal()].steps) {
+					GL46.glGetQueryObjecti64v(queryIDs[i*2], GL15.GL_QUERY_RESULT, start);
+					GL46.glGetQueryObjecti64v(queryIDs[i*2+1], GL15.GL_QUERY_RESULT, end);
+					gpuElapsed.put(token, end[0] - start[0]);
+					i++;
+				}
+			}
+			assert GlStateManager.getError() == 0;
+
+			return true;
+		}
+
+		@Override
+		public void startFrame(ProfilerGroup group, String token) {
+			super.startFrame(group, token);
+			if (frameSinceReload == 1) {
+				if (queryIDs != null) {
+					deleteQueries();
+				}
+
+				int count = 0;
+				for (ProfilerGroup p:PROCESS_GROUPS) {
+					count += groups[p.ordinal()].steps.size();
+				}
+
+				numProcesses = count;
+				prevIsProcess = false;
+				queryIDs = new int[numProcesses * 2];
+				gpuElapsed = new Object2LongOpenHashMap<>(numProcesses);
+
+				GL46.glGenQueries(queryIDs);
+				assert GlStateManager.getError() == 0;
+			}
+		}
+
+		@Override
+		public void swap(ProfilerGroup group, String token) {
+			super.swap(group, token);
+
+			if (frameSinceReload < 1 ) return;
+
+			if (prevIsProcess) {
+				// Count end time of previous process
+				GL46.glQueryCounter(queryIDs[prevEndIndex], GL33.GL_TIMESTAMP);
+				assert GlStateManager.getError() == 0;
+			}
+
+			final int startIndex = getStartIndex(group, token);
+
+			if (startIndex > -1) {
+				// Count start time of current process
+				GL46.glQueryCounter(queryIDs[startIndex], GL33.GL_TIMESTAMP);
+				assert GlStateManager.getError() == 0;
+
+				prevIsProcess = true;
+				prevEndIndex = startIndex + 1;
+			} else {
+				prevIsProcess = false;
+			}
+		}
+
+		private int getStartIndex(ProfilerGroup group, String token) {
+			if (token == null) {
+				return -1;
+			}
+
+			int startIndex = -1;
+			int startOffset = 0;
+
+			for (ProfilerGroup p:PROCESS_GROUPS) {
+				if (p.equals(group)) {
+					startIndex = groups[p.ordinal()].steps.indexOf(token);
+
+					if (startIndex > -1) {
+						startIndex += startOffset;
+						startIndex *= 2;
+						break;
+					}
+				}
+				startOffset += groups[p.ordinal()].steps.size();
+			}
+
+			return startIndex;
+		}
+
+		/**
+		 * Delete all query objects if exists.
+		 * Make sure that this is called on reload frame and on config or pipeline reload.
+		 */
+		public void deleteQueries() {
+			if (queryIDs == null) {
+				return;
+			}
+
+			GL46.glDeleteQueries(queryIDs);
+			assert GlStateManager.getError() == 0;
+
+			queryIDs = null;
+		}
+	}
+
 	private static class Deactivated extends Timekeeper {
 		@Override
 		public void startFrame(ProfilerGroup group, String token) { }
@@ -141,10 +288,21 @@ public abstract class Timekeeper {
 	public static void configOrPipelineReload() {
 		final boolean enabled = Configurator.displayRenderProfiler || Configurator.logRenderLagSpikes;
 
+		// always delete queries on reload
+		if (instance instanceof ActiveGPU) {
+			((ActiveGPU) instance).deleteQueries();
+		}
+
 		if (!enabled) {
 			instance = DEACTIVATED;
 		} else {
-			if (instance == DEACTIVATED) {
+			final boolean gpuEnabled = Configurator.profileProcessShaders;
+
+			if (gpuEnabled) {
+				if (!(instance instanceof ActiveGPU)) {
+					instance = new ActiveGPU();
+				}
+			} else if (instance == DEACTIVATED || instance instanceof ActiveGPU) {
 				instance = new Active();
 			}
 
@@ -178,6 +336,20 @@ public abstract class Timekeeper {
 				for (final String step:group.steps) {
 					final long elapsed = active.stepElapsed.getLong(step);
 					renderTime(String.format("[%s] %s", group.enumVal.token, step), elapsed, i++, matrices, fontRenderer);
+				}
+			}
+		}
+
+		if (active instanceof ActiveGPU) {
+			final ActiveGPU activeGPU = (ActiveGPU) active;
+
+			if (activeGPU.populateResult()) {
+
+				for (ProfilerGroup p : ActiveGPU.PROCESS_GROUPS) {
+					for (String step : activeGPU.groups[p.ordinal()].steps) {
+						final long elapsed = activeGPU.gpuElapsed.getLong(step);
+						renderTime(String.format("gpuTime [%s] %s", p.token, step), elapsed, i++, matrices, fontRenderer);
+					}
 				}
 			}
 		}
