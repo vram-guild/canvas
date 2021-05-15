@@ -17,6 +17,7 @@
 package grondag.canvas.perf;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import grondag.canvas.varia.GFX;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -176,7 +177,7 @@ public abstract class Timekeeper {
 					i++;
 				}
 			}
-			assert GlStateManager.getError() == 0;
+			assert GFX.logError("Populating GPU Time Query Results");
 
 			return true;
 		}
@@ -200,7 +201,7 @@ public abstract class Timekeeper {
 				gpuElapsed = new Object2LongOpenHashMap<>(numProcesses);
 
 				GL46.glGenQueries(queryIDs);
-				assert GlStateManager.getError() == 0;
+				assert GFX.logError("Generating GPU Time Query Objects");
 			}
 		}
 
@@ -213,7 +214,7 @@ public abstract class Timekeeper {
 			if (prevIsProcess) {
 				// Count end time of previous process
 				GL46.glEndQuery(GL33.GL_TIME_ELAPSED);
-				assert GlStateManager.getError() == 0;
+				assert GFX.logError("Ending GPU Time Query");
 			}
 
 			final int idIndex = getIdIndex(group, token);
@@ -221,7 +222,7 @@ public abstract class Timekeeper {
 			if (idIndex > -1) {
 				// Count start time of current process
 				GL46.glBeginQuery(GL33.GL_TIME_ELAPSED, queryIDs[idIndex]);
-				assert GlStateManager.getError() == 0;
+				assert GFX.logError("Beginning GPU Time Query");
 
 				prevIsProcess = true;
 				prevEndIndex = idIndex + 1;
@@ -263,7 +264,7 @@ public abstract class Timekeeper {
 			}
 
 			GL46.glDeleteQueries(queryIDs);
-			assert GlStateManager.getError() == 0;
+			assert GFX.logError("Deleting GPU Time Query Objects");
 
 			queryIDs = null;
 		}
