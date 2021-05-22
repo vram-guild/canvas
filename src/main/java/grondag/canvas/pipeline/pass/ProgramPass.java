@@ -18,12 +18,12 @@ package grondag.canvas.pipeline.pass;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import grondag.canvas.pipeline.ProgramTextureData;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.pipeline.ProgramTextureData;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.ProcessShader;

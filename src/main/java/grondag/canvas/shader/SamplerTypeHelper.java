@@ -1,8 +1,5 @@
 package grondag.canvas.shader;
 
-import grondag.canvas.shader.GlProgram;
-import grondag.frex.api.material.UniformRefreshFrequency;
-
 public class SamplerTypeHelper {
 	public static final String[] samplerTypes = new String[]{
 		// float samplers
@@ -55,7 +52,7 @@ public class SamplerTypeHelper {
 	};
 
 	public static String getSamplerType(GlProgram program, String samplerName) {
-		for (String type:samplerTypes) {
+		for (final String type:samplerTypes) {
 			if (program.containsUniformSpec(type, samplerName)) {
 				return type;
 			}

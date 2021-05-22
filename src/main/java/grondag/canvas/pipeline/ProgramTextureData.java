@@ -1,17 +1,19 @@
 package grondag.canvas.pipeline;
 
-import grondag.canvas.pipeline.config.ImageConfig;
-import grondag.canvas.pipeline.config.util.NamedDependency;
+import org.lwjgl.opengl.GL46;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.AbstractTexture;
 import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.util.Identifier;
-import org.lwjgl.opengl.GL46;
+
+import grondag.canvas.pipeline.config.ImageConfig;
+import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class ProgramTextureData {
-	final public int[] texIds;
-	final public int[] texTargets;
+	public final int[] texIds;
+	public final int[] texTargets;
 
 	public ProgramTextureData(NamedDependency<ImageConfig>[] samplerImages) {
 		texIds = new int[samplerImages.length];
@@ -53,7 +55,7 @@ public class ProgramTextureData {
 			// NB: `registerTexture` will replace the texture with MissingSprite if not found. This is useful for
 			//     pipeline developers.
 			//     Additionally, TextureManager will handle removing missing textures on resource reload.
-			ResourceTexture resourceTexture = new ResourceTexture(identifier);
+			final ResourceTexture resourceTexture = new ResourceTexture(identifier);
 			textureManager.registerTexture(identifier, resourceTexture);
 			return textureManager.getTexture(identifier);
 		}

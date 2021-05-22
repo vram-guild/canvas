@@ -18,11 +18,11 @@ package grondag.canvas.shader;
 
 import java.util.function.Consumer;
 
-import grondag.canvas.pipeline.Pipeline;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.FlagData;
 import grondag.canvas.varia.MatrixState;

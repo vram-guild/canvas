@@ -26,6 +26,7 @@ import grondag.canvas.pipeline.config.util.NamedDependency;
 public class MaterialProgramConfig extends ProgramConfig {
 	public final NamedDependency<ImageConfig>[] samplerImages;
 
+	@SuppressWarnings("unchecked")
 	public MaterialProgramConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx, config, "materialProgram");
 
@@ -42,6 +43,7 @@ public class MaterialProgramConfig extends ProgramConfig {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public MaterialProgramConfig(ConfigContext ctx) {
 		super(ctx, "materialProgram", "canvas:shaders/pipeline/standard.vert", "canvas:shaders/pipeline/standard.vert");
 		samplerImages = new NamedDependency[0];
@@ -54,6 +56,7 @@ public class MaterialProgramConfig extends ProgramConfig {
 				samplerNames.length, samplerImages.length));
 			return false;
 		}
+
 		return super.validate();
 	}
 }

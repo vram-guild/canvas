@@ -186,6 +186,7 @@ public final class RenderState extends AbstractRenderState {
 				CanvasTextureState.bindTexture(bindTarget, bind);
 				assert CanvasGlHelper.checkError();
 			}
+
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 
