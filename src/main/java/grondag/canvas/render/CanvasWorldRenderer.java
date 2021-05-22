@@ -662,7 +662,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					// THIS IS WHEN LIGHTENING RENDERS IN VANILLA
 					final VertexConsumer blockOutlineConumer = immediate.getBuffer(RenderLayer.getLines());
 
-					eventContext.prepareBlockOutline(blockOutlineConumer, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
+					eventContext.prepareBlockOutline(camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
 
 					if (WorldRenderEvents.BLOCK_OUTLINE.invoker().onBlockOutline(eventContext, eventContext)) {
 						wr.canvas_drawBlockOutline(identityStack, blockOutlineConumer, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
