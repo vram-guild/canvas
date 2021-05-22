@@ -177,6 +177,18 @@ public final class RenderState extends AbstractRenderState {
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 
+		if (Pipeline.config().materialProgram.samplerNames.length > 0) {
+			// Activate non-frex material program textures
+			for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
+				final int bindTarget = Pipeline.materialTextures().texTargets[i];
+				final int bind = Pipeline.materialTextures().texIds[i];
+				CanvasTextureState.activeTextureUnit(TextureData.PROGRAM_SAMPLERS + i);
+				CanvasTextureState.bindTexture(bindTarget, bind);
+				assert CanvasGlHelper.checkError();
+			}
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		}
+
 		texture.enable(blur);
 		assert CanvasGlHelper.checkError();
 
