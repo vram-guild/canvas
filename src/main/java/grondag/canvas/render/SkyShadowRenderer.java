@@ -51,7 +51,7 @@ public class SkyShadowRenderer {
 		return active;
 	}
 
-	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer) {
+	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
 		if (Pipeline.skyShadowFbo != null) {
 			// Viewport call (or something else) seems to be messing up fixed-function matrix state
 			RenderSystem.pushMatrix();
@@ -61,7 +61,7 @@ public class SkyShadowRenderer {
 			for (cascade = 0; cascade < MatrixState.CASCADE_COUNT; ++cascade) {
 				Pipeline.skyShadowFbo.bind();
 				GL46.glFramebufferTextureLayer(GL46.GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, Pipeline.shadowMapDepth, 0, cascade);
-				renderInner(canvasWorldRenderer, cameraX, cameraY, cameraZ, entityBuffer);
+				renderInner(canvasWorldRenderer, cameraX, cameraY, cameraZ, entityBuffer, shadowExtrasBuffer);
 			}
 
 			Pipeline.defaultFbo.bind();
@@ -72,7 +72,7 @@ public class SkyShadowRenderer {
 		}
 	}
 
-	private static void renderInner(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer) {
+	private static void renderInner(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
 		Pipeline.skyShadowFbo.clear();
 
 		// WIP: will need purpose-specific methods for each frustum/render type
@@ -82,6 +82,7 @@ public class SkyShadowRenderer {
 
 		if (Pipeline.config().skyShadow.allowEntities && MinecraftClient.getInstance().options.entityShadows) {
 			entityBuffer.draw(true);
+			shadowExtrasBuffer.draw(true);
 		}
 	}
 
