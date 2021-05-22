@@ -17,6 +17,7 @@
 package grondag.canvas.varia;
 
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 
@@ -125,8 +126,9 @@ public class WorldDataManager {
 	// 15-18 reserved for cascades 0-3
 	static final int SHADOW_CENTER = 4 * 15;
 
-	private static final int VEC_RENDER_INFO = 4 * 19;
-	private static final int RENDER_FRAMES = VEC_RENDER_INFO;
+	public static final int UINT_COUNT = 1;
+	private static final int RENDER_FRAMES = 0;
+	public static final IntBuffer UINT_DATA = BufferUtils.createIntBuffer(UINT_COUNT);
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -604,7 +606,7 @@ public class WorldDataManager {
 		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
 
-		DATA.put(RENDER_FRAMES, renderFrames++);
+		UINT_DATA.put(RENDER_FRAMES, renderFrames++);
 	}
 
 	public static void updateEmissiveColor(int color) {
