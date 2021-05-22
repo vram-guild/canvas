@@ -136,10 +136,6 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		});
 	}
 
-	public static SortedMap<RenderLayer, BufferBuilder> dummyBuilders() {
-		return new Object2ObjectLinkedOpenHashMap<>();
-	}
-
 	private static void assignBufferBuilder(Object2ObjectLinkedOpenHashMap<RenderLayer, BufferBuilder> builderStorage, RenderLayer layer) {
 		builderStorage.put(layer, new BufferBuilder(layer.getExpectedBufferSize()));
 	}

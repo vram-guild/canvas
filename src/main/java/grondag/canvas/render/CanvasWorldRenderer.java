@@ -28,6 +28,7 @@ import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -157,7 +158,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private final RenderContextState contextState = new RenderContextState();
 	public final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
-	private final CanvasImmediate shadowExtrasProvider = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.dummyBuilders(), contextState);
+	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
+	private final CanvasImmediate shadowExtrasProvider = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
 	public final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
@@ -493,21 +495,25 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		entityBlockContext.tickDelta(tickDelta);
 		entityBlockContext.collectors = immediate.collectors;
 		blockContext.collectors = immediate.collectors;
-
 		SkyShadowRenderer.suppressEntityShadows(mc);
+
 		// PERF: find way to reduce allocation for this and MatrixStack generally
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			boolean isFirstPersonPlayer = false;
+
 			if (!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player)) {
 				continue;
 			}
 
-			if ((entity == camera.getFocusedEntity() && !FirstPersonModelHolder.handler.isThirdPerson(this, camera, viewMatrixStack) && (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
-				|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)) {
+			if ((entity == camera.getFocusedEntity() && !FirstPersonModelHolder.handler.isThirdPerson(this, camera, viewMatrixStack) && (!(camera.getFocusedEntity() instanceof LivingEntity)
+					|| !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
+					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)
+			) {
 				if (Pipeline.skyShadowFbo == null) {
 					continue;
 				}
+
 				isFirstPersonPlayer = true;
 			}
 
@@ -606,7 +612,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		contextState.setCurrentBlockEntity(null);
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
-			DrawableBuffer shadowExtrasBuffer = shadowExtrasProvider.prepareDrawable(MaterialTarget.MAIN)) {
+			DrawableBuffer shadowExtrasBuffer = shadowExtrasProvider.prepareDrawable(MaterialTarget.MAIN)
+		) {
 			profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer, shadowExtrasBuffer);
 			shadowExtrasBuffer.close();
