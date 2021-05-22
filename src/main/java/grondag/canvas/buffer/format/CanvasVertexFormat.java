@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class CanvasVertexFormat {
@@ -33,15 +33,15 @@ public class CanvasVertexFormat {
 	 */
 	public final int vertexStrideBytes;
 	public final int vertexStrideInts;
-	private final CanvasVertextFormatElement[] elements;
+	private final CanvasVertexFormatElement[] elements;
 
-	public CanvasVertexFormat(CanvasVertextFormatElement... elementsIn) {
+	public CanvasVertexFormat(CanvasVertexFormatElement... elementsIn) {
 		elements = elementsIn;
 
 		int bytes = 0;
 		int count = 0;
 
-		for (final CanvasVertextFormatElement e : elements) {
+		for (final CanvasVertexFormatElement e : elements) {
 			bytes += e.byteSize;
 
 			if (e.attributeName != null) {
@@ -75,18 +75,21 @@ public class CanvasVertexFormat {
 		final int limit = elements.length;
 
 		for (int i = 0; i < limit; i++) {
-			final CanvasVertextFormatElement e = elements[i];
+			final CanvasVertexFormatElement e = elements[i];
 
 			if (e.attributeName == null) {
 				assert i == 0 : "position element must be first";
 				GlStateManager.vertexPointer(3, GL21.GL_FLOAT, vertexStrideBytes, memPointer);
+				assert CanvasGlHelper.checkError();
 				GlStateManager.enableClientState(GL11.GL_VERTEX_ARRAY);
+				assert CanvasGlHelper.checkError();
 			} else {
 				if (Configurator.logGlStateChanges) {
 					CanvasMod.LOG.info(String.format("GlState: glVertexAttribPointer(%d, %d, %d, %b, %d) [direct non-VBO]", index, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes));
 				}
 
 				GL20.glVertexAttribPointer(index++, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, memPointer + offset);
+				assert CanvasGlHelper.checkError();
 			}
 
 			offset += e.byteSize;
@@ -113,7 +116,7 @@ public class CanvasVertexFormat {
 		// NB: <= because element 0 is vertex
 		for (int i = 0; i <= attributeCount; i++) {
 			if (i < limit) {
-				final CanvasVertextFormatElement e = elements[i];
+				final CanvasVertexFormatElement e = elements[i];
 
 				if (e.attributeName != null) {
 					if (Configurator.logGlStateChanges) {
@@ -134,7 +137,7 @@ public class CanvasVertexFormat {
 	public void bindProgramAttributes(int programID) {
 		int index = 1;
 
-		for (final CanvasVertextFormatElement e : elements) {
+		for (final CanvasVertexFormatElement e : elements) {
 			if (e.attributeName != null) {
 				GL20.glBindAttribLocation(programID, index++, e.attributeName);
 			}

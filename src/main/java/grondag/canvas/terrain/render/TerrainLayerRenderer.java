@@ -17,21 +17,17 @@
 package grondag.canvas.terrain.render;
 
 import com.google.common.util.concurrent.Runnables;
-import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.Configurator;
-import grondag.canvas.light.LightmapHdTexture;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.shader.ProgramType;
+import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.util.TerrainModelSpace;
-import grondag.canvas.texture.DitherTexture;
 
 public class TerrainLayerRenderer {
 	private final String profileString;
@@ -44,7 +40,7 @@ public class TerrainLayerRenderer {
 		sortTask = isTranslucent ? translucentSortTask : Runnables.doNothing();
 	}
 
-	public void render(final BuiltRenderRegion[] visibleRegions, final int visibleRegionCount, MatrixStack matrixStack, double x, double y, double z) {
+	public void render(final BuiltRenderRegion[] visibleRegions, final int visibleRegionCount, double x, double y, double z) {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 
 		sortTask.run();
@@ -55,10 +51,10 @@ public class TerrainLayerRenderer {
 		final int endIndex = isTranslucent ? -1 : visibleRegionCount;
 		final int step = isTranslucent ? -1 : 1;
 
-		if (Configurator.hdLightmaps()) {
-			LightmapHdTexture.instance().enable();
-			DitherTexture.instance().enable();
-		}
+		//if (Configurator.hdLightmaps()) {
+		//	LightmapHdTexture.instance().enable();
+		//	DitherTexture.instance().enable();
+		//}
 
 		long lastRelativeOrigin = -1;
 
@@ -87,60 +83,36 @@ public class TerrainLayerRenderer {
 						final long newRelativeOrigin = TerrainModelSpace.getPackedOrigin(modelOrigin);
 
 						if (newRelativeOrigin != lastRelativeOrigin) {
-							if (lastRelativeOrigin != -1) {
-								RenderSystem.popMatrix();
-								matrixStack.pop();
-							}
-
 							lastRelativeOrigin = newRelativeOrigin;
 
 							ox = TerrainModelSpace.renderCubeOrigin(modelOrigin.getX());
 							oy = TerrainModelSpace.renderCubeOrigin(modelOrigin.getY());
 							oz = TerrainModelSpace.renderCubeOrigin(modelOrigin.getZ());
-
-							matrixStack.push();
-							matrixStack.translate(ox - x, oy - y, oz - z);
-							RenderSystem.pushMatrix();
-							RenderSystem.loadIdentity();
-							RenderSystem.multMatrix(matrixStack.peek().getModel());
 						}
 					} else {
 						ox = modelOrigin.getX();
 						oy = modelOrigin.getY();
 						oz = modelOrigin.getZ();
-
-						matrixStack.push();
-						matrixStack.translate(ox - x, oy - y, oz - z);
-						RenderSystem.pushMatrix();
-						RenderSystem.loadIdentity();
-						RenderSystem.multMatrix(matrixStack.peek().getModel());
 					}
 
 					drawable.vboBuffer.bind();
 
 					final int limit = delegates.size();
+					final boolean notShadowPass = !SkyShadowRenderer.isActive();
 
 					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
 						final RenderMaterialImpl mat = d.materialState();
 
-						if (mat.programType == ProgramType.MATERIAL_VERTEX_LOGIC || !mat.condition.affectBlocks || mat.condition.compute()) {
-							d.materialState().renderState.enableWithOrigin(ox, oy, oz);
-							d.draw();
+						if (mat.programType.isVertexLogic || !mat.condition.affectBlocks || mat.condition.compute()) {
+							if (notShadowPass || mat.castShadows) {
+								d.materialState().renderState.enable(ox, oy, oz);
+								d.draw();
+							}
 						}
-					}
-
-					if (!Configurator.batchedChunkRender) {
-						RenderSystem.popMatrix();
-						matrixStack.pop();
 					}
 				}
 			}
-		}
-
-		if (lastRelativeOrigin != -1) {
-			RenderSystem.popMatrix();
-			matrixStack.pop();
 		}
 
 		mc.getProfiler().pop();

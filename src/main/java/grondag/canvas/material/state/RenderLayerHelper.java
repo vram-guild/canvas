@@ -30,7 +30,7 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialFog;
@@ -127,6 +127,10 @@ public final class RenderLayerHelper {
 	private static final ObjectOpenHashSet<String> VANILLA_MATERIAL_SET = new ObjectOpenHashSet<>();
 
 	public static RenderMaterialImpl copyFromLayer(RenderLayer layer) {
+		return copyFromLayer(layer, false);
+	}
+
+	public static RenderMaterialImpl copyFromLayer(RenderLayer layer, boolean glint) {
 		if (isExcluded(layer)) {
 			return RenderMaterialImpl.MISSING;
 		}
@@ -143,6 +147,7 @@ public final class RenderLayerHelper {
 		final MaterialFinderImpl finder = MaterialFinderImpl.threadLocal();
 		copyFromLayer(finder, multiPhase);
 		finder.renderlayerName(name);
+		finder.enableGlint(glint);
 		final RenderMaterialImpl result = finder.find();
 
 		if (Configurator.logMaterials) {

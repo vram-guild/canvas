@@ -29,10 +29,11 @@ import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Matrix4f;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
-import grondag.canvas.pipeline.CanvasFrameBufferHacks;
+import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.CanvasWorldRenderer;
 
 @Mixin(GameRenderer.class)
@@ -48,9 +49,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderHand", require = 1, at = @At("RETURN"))
 	private void afterRenderHand(CallbackInfo ci) {
-		if (Configurator.enableBloom) {
-			CanvasFrameBufferHacks.applyBloom();
-		}
+		PipelineManager.afterRenderHand();
 
 		if (Configurator.enableBufferDebug) {
 			BufferDebug.render();
@@ -69,7 +68,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
 	private void onRenderWorld(CallbackInfo ci) {
-		Configurator.lagFinder.start("GameRenderer Setup");
+		Timekeeper.instance.startFrame(Timekeeper.ProfilerGroup.GameRendererSetup, "GameRenderer_setup");
 	}
 
 	@Override
@@ -106,4 +105,9 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 	public int canvas_ticks() {
 		return ticks;
 	}
+
+	//	@Redirect(method = "renderWorld", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clear(IZ)V"))
+	//	private void preventClearOnDebug(int mask, boolean getError) {
+	//		//RenderSystem.clear(mask, getError);
+	//	}
 }

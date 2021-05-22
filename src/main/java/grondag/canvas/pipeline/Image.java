@@ -16,77 +16,88 @@
 
 package grondag.canvas.pipeline;
 
+import java.nio.ByteBuffer;
+
 import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.ARBTextureFloat;
 import org.lwjgl.opengl.GL21;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.texture.TextureUtil;
-import net.minecraft.util.Identifier;
 
-class Image {
-	final Identifier id;
-	private int glId = -1;
-	private final int width;
-	private final int height;
-	private final boolean hdr;
-	private final boolean blur;
-	// WIP: make more configurable
-	private final int lod;
+import grondag.canvas.pipeline.config.ImageConfig;
+import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.varia.CanvasGlHelper;
 
-	Image(Identifier id, int width, int height, boolean hdr, boolean blur, int lod) {
-		this.id = id;
+public class Image {
+	public final ImageConfig config;
+	protected int glId = -1;
+	public final int width;
+	public final int height;
+
+	Image(ImageConfig config, int width, int height) {
+		this.config = config;
 		this.width = width;
 		this.height = height;
-		this.hdr = hdr;
-		this.lod = lod;
-		this.blur = blur;
 		open();
 	}
 
-	int glId() {
+	public int glId() {
 		return glId;
 	}
 
-	private void open() {
+	protected void open() {
 		if (glId == -1) {
 			glId = TextureUtil.generateId();
+			assert CanvasGlHelper.checkError();
 
-			GlStateManager.bindTexture(glId);
+			CanvasTextureState.bindTexture(config.target, glId);
+			assert CanvasGlHelper.checkError();
 
-			if (lod > 0) {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR_MIPMAP_NEAREST);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
-			} else if (blur) {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_LINEAR);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_LINEAR);
-			} else {
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_FILTER, GL21.GL_NEAREST);
-				GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAG_FILTER, GL21.GL_NEAREST);
+			final int[] params = config.texParamPairs;
+			final int limit = params.length;
+
+			for (int i = 0; i < limit; ++i) {
+				GlStateManager.texParameter(config.target, params[i], params[++i]);
+				assert CanvasGlHelper.checkError();
 			}
 
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_S, GL21.GL_CLAMP);
-			GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_WRAP_T, GL21.GL_CLAMP);
-
-			if (hdr) {
-				GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, ARBTextureFloat.GL_RGBA16F_ARB, width, height, 0, GL21.GL_RGBA, GL21.GL_FLOAT, null);
+			if (config.target == GL46.GL_TEXTURE_2D_ARRAY || config.target == GL46.GL_TEXTURE_3D) {
+				GL46.glTexImage3D(config.target, 0, config.internalFormat, width, height, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				assert CanvasGlHelper.checkError();
 			} else {
-				GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, 0, GL21.GL_RGBA8, width, height, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
+				assert config.target == GL46.GL_TEXTURE_2D;
+				GL46.glTexImage2D(config.target, 0, config.internalFormat, width, height, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				assert CanvasGlHelper.checkError();
 			}
 
-			if (lod > 0) {
+			assert CanvasGlHelper.checkError();
+
+			if (config.lod > 0) {
 				setupLod();
 			}
+
+			assert CanvasGlHelper.checkError();
 		}
 	}
 
 	private void setupLod() {
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LEVEL, lod);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MIN_LOD, 0);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_MAX_LOD, lod);
-		GlStateManager.texParameter(GL21.GL_TEXTURE_2D, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
+		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MAX_LEVEL, config.lod);
+		assert CanvasGlHelper.checkError();
+		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MIN_LOD, 0);
+		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_MAX_LOD, config.lod);
+		assert CanvasGlHelper.checkError();
+		GlStateManager.texParameter(config.target, GL21.GL_TEXTURE_LOD_BIAS, 0.0F);
 
-		for (int i = 1; i <= lod; ++i) {
-			GlStateManager.texImage2D(GL21.GL_TEXTURE_2D, i, GL21.GL_RGBA8, width >> i, height >> i, 0, GL21.GL_RGBA, GL21.GL_UNSIGNED_BYTE, null);
+		for (int i = 1; i <= config.lod; ++i) {
+			if (config.target == GL46.GL_TEXTURE_3D) {
+				GL46.glTexImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			} else if (config.target == GL46.GL_TEXTURE_2D_ARRAY) {
+				GL46.glTexImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			} else {
+				GL46.glTexImage2D(config.target, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			}
+
+			assert CanvasGlHelper.checkError();
 		}
 	}
 
@@ -94,6 +105,26 @@ class Image {
 		if (glId != -1) {
 			TextureUtil.deleteId(glId);
 			glId = -1;
+		}
+	}
+
+	/**
+	 * For attachments managed by minecraft itself.
+	 */
+	static class BuiltIn extends Image {
+		BuiltIn(ImageConfig config, int width, int height, int glId) {
+			super(config, width, height);
+			this.glId = glId;
+		}
+
+		@Override
+		protected void open() {
+			// NOOP
+		}
+
+		@Override
+		void close() {
+			// NOOP
 		}
 	}
 }

@@ -72,11 +72,17 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		return collectors.get(mat);
 	}
 
+	public DrawableBuffer prepareDrawable(MaterialTarget target) {
+		final ObjectArrayList<VertexCollectorImpl> drawList = collectors.sortedDrawList(target);
+
+		return drawList.isEmpty() ? DrawableBuffer.EMPTY : new DrawableBuffer(drawList);
+	}
+
 	public void drawCollectors(MaterialTarget target) {
 		final ObjectArrayList<VertexCollectorImpl> drawList = collectors.sortedDrawList(target);
 
 		if (!drawList.isEmpty()) {
-			VertexCollectorImpl.drawAndClear(drawList);
+			VertexCollectorImpl.draw(drawList);
 		}
 	}
 
@@ -94,7 +100,7 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		}
 
 		if (!drawList.isEmpty()) {
-			VertexCollectorImpl.drawAndClear(drawList);
+			VertexCollectorImpl.draw(drawList);
 		}
 
 		super.draw();
@@ -108,7 +114,7 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 			final VertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
 
 			if (collector != null && !collector.isEmpty()) {
-				collector.drawAndClear();
+				collector.draw(true);
 			}
 		}
 	}

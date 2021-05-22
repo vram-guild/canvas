@@ -87,7 +87,7 @@ public class QuadViewImpl implements QuadView {
 	/**
 	 * Copies data from source, leaves baseIndex unchanged. For mesh iteration.
 	 */
-	public final void copyAndload(int[] source, int sourceIndex, int stride) {
+	public final void copyAndLoad(int[] source, int sourceIndex, int stride) {
 		System.arraycopy(source, sourceIndex, data, baseIndex, stride);
 		load();
 	}

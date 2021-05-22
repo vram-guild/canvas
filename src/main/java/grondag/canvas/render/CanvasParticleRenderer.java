@@ -56,7 +56,7 @@ public class CanvasParticleRenderer {
 	private Runnable drawHandler = Runnables.doNothing();
 	private RenderMaterialImpl baseMat;
 	private RenderMaterialImpl emissiveMat;
-	public final ParticleFrustum frustum = new ParticleFrustum();
+	public final FastFrustum frustum = new FastFrustum();
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
 		RenderSystem.pushMatrix();
@@ -110,7 +110,7 @@ public class CanvasParticleRenderer {
 		}
 
 		RenderSystem.popMatrix();
-		teardownVanillParticleRender();
+		teardownVanillaParticleRender();
 	}
 
 	private void setupVanillaParticleRender() {
@@ -121,7 +121,7 @@ public class CanvasParticleRenderer {
 		RenderSystem.enableFog();
 	}
 
-	private void teardownVanillParticleRender() {
+	private void teardownVanillaParticleRender() {
 		RenderSystem.depthMask(true);
 		RenderSystem.depthFunc(515);
 		RenderSystem.disableBlend();
@@ -138,19 +138,19 @@ public class CanvasParticleRenderer {
 			baseMat = RENDER_STATE_TERRAIN;
 			emissiveMat = RENDER_STATE_TERRAIN_EMISSIVE;
 			collector.prepare(baseMat);
-			drawHandler = () -> collector.drawAndClear();
+			drawHandler = () -> collector.draw(true);
 			return collector;
 		} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE) {
 			baseMat = RENDER_STATE_OPAQUE_OR_LIT;
 			emissiveMat = RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE;
 			collector.prepare(baseMat);
-			drawHandler = () -> collector.drawAndClear();
+			drawHandler = () -> collector.draw(true);
 			return collector;
 		} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT) {
 			baseMat = RENDER_STATE_TRANSLUCENT;
 			emissiveMat = RENDER_STATE_TRANSLUCENT_EMISSIVE;
 			collector.prepare(baseMat);
-			drawHandler = () -> collector.drawAndClear();
+			drawHandler = () -> collector.draw(true);
 			return collector;
 		}
 
@@ -168,10 +168,10 @@ public class CanvasParticleRenderer {
 				.depthTest(MaterialFinder.DEPTH_TEST_LEQUAL)
 				.cull(false)
 				.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH)
-				.enableLightmap(true)
 				.decal(MaterialFinder.DECAL_NONE)
 				.target(MaterialFinder.TARGET_PARTICLES)
 				.lines(false)
+				.enableGlint(false)
 				.disableAo(true)
 				.disableDiffuse(true)
 				.cutout(true)

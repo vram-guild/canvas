@@ -115,7 +115,7 @@ public abstract class OcclusionRegion {
 		}
 	}
 
-	private void captureInteriorVisbility(int index, int x, int y, int z) {
+	private void captureInteriorVisibility(int index, int x, int y, int z) {
 		final BlockState blockState = blockStateAtIndex(index);
 
 		// TODO: remove or make configurable
@@ -127,7 +127,7 @@ public abstract class OcclusionRegion {
 		}
 	}
 
-	private void captureExteriorVisbility(int index, int x, int y, int z) {
+	private void captureExteriorVisibility(int index, int x, int y, int z) {
 		final BlockState blockState = blockStateAtIndex(index);
 
 		if ((blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) && closedAtRelativePos(blockState, x, y, z)) {
@@ -137,54 +137,54 @@ public abstract class OcclusionRegion {
 
 	private void captureInterior() {
 		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
-			captureInteriorVisbility(i, i & 0xF, (i >> 4) & 0xF, (i >> 8) & 0xF);
+			captureInteriorVisibility(i, i & 0xF, (i >> 4) & 0xF, (i >> 8) & 0xF);
 		}
 	}
 
 	private void captureFaces() {
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				captureExteriorVisbility(localXfaceIndex(false, i, j), -1, i, j);
-				captureExteriorVisbility(localXfaceIndex(true, i, j), 16, i, j);
+				captureExteriorVisibility(localXfaceIndex(false, i, j), -1, i, j);
+				captureExteriorVisibility(localXfaceIndex(true, i, j), 16, i, j);
 
-				captureExteriorVisbility(localZfaceIndex(i, j, false), i, j, -1);
-				captureExteriorVisbility(localZfaceIndex(i, j, true), i, j, 16);
+				captureExteriorVisibility(localZfaceIndex(i, j, false), i, j, -1);
+				captureExteriorVisibility(localZfaceIndex(i, j, true), i, j, 16);
 
-				captureExteriorVisbility(localYfaceIndex(i, false, j), i, -1, j);
-				captureExteriorVisbility(localYfaceIndex(i, true, j), i, 16, j);
+				captureExteriorVisibility(localYfaceIndex(i, false, j), i, -1, j);
+				captureExteriorVisibility(localYfaceIndex(i, true, j), i, 16, j);
 			}
 		}
 	}
 
 	private void captureEdges() {
 		for (int i = 0; i < 16; i++) {
-			captureExteriorVisbility(localZEdgeIndex(false, false, i), -1, -1, i);
-			captureExteriorVisbility(localZEdgeIndex(false, true, i), -1, 16, i);
-			captureExteriorVisbility(localZEdgeIndex(true, false, i), 16, -1, i);
-			captureExteriorVisbility(localZEdgeIndex(true, true, i), 16, 16, i);
+			captureExteriorVisibility(localZEdgeIndex(false, false, i), -1, -1, i);
+			captureExteriorVisibility(localZEdgeIndex(false, true, i), -1, 16, i);
+			captureExteriorVisibility(localZEdgeIndex(true, false, i), 16, -1, i);
+			captureExteriorVisibility(localZEdgeIndex(true, true, i), 16, 16, i);
 
-			captureExteriorVisbility(localYEdgeIndex(false, i, false), -1, i, -1);
-			captureExteriorVisbility(localYEdgeIndex(false, i, true), -1, i, 16);
-			captureExteriorVisbility(localYEdgeIndex(true, i, false), 16, i, -1);
-			captureExteriorVisbility(localYEdgeIndex(true, i, true), 16, i, 16);
+			captureExteriorVisibility(localYEdgeIndex(false, i, false), -1, i, -1);
+			captureExteriorVisibility(localYEdgeIndex(false, i, true), -1, i, 16);
+			captureExteriorVisibility(localYEdgeIndex(true, i, false), 16, i, -1);
+			captureExteriorVisibility(localYEdgeIndex(true, i, true), 16, i, 16);
 
-			captureExteriorVisbility(localXEdgeIndex(i, false, false), i, -1, -1);
-			captureExteriorVisbility(localXEdgeIndex(i, false, true), i, -1, 16);
-			captureExteriorVisbility(localXEdgeIndex(i, true, false), i, 16, -1);
-			captureExteriorVisbility(localXEdgeIndex(i, true, true), i, 16, 16);
+			captureExteriorVisibility(localXEdgeIndex(i, false, false), i, -1, -1);
+			captureExteriorVisibility(localXEdgeIndex(i, false, true), i, -1, 16);
+			captureExteriorVisibility(localXEdgeIndex(i, true, false), i, 16, -1);
+			captureExteriorVisibility(localXEdgeIndex(i, true, true), i, 16, 16);
 		}
 	}
 
 	private void captureCorners() {
-		captureExteriorVisbility(localCornerIndex(false, false, false), -1, -1, -1);
-		captureExteriorVisbility(localCornerIndex(false, false, true), -1, -1, 16);
-		captureExteriorVisbility(localCornerIndex(false, true, false), -1, 16, -1);
-		captureExteriorVisbility(localCornerIndex(false, true, true), -1, 16, 16);
+		captureExteriorVisibility(localCornerIndex(false, false, false), -1, -1, -1);
+		captureExteriorVisibility(localCornerIndex(false, false, true), -1, -1, 16);
+		captureExteriorVisibility(localCornerIndex(false, true, false), -1, 16, -1);
+		captureExteriorVisibility(localCornerIndex(false, true, true), -1, 16, 16);
 
-		captureExteriorVisbility(localCornerIndex(true, false, false), 16, -1, -1);
-		captureExteriorVisbility(localCornerIndex(true, false, true), 16, -1, 16);
-		captureExteriorVisbility(localCornerIndex(true, true, false), 16, 16, -1);
-		captureExteriorVisbility(localCornerIndex(true, true, true), 16, 16, 16);
+		captureExteriorVisibility(localCornerIndex(true, false, false), 16, -1, -1);
+		captureExteriorVisibility(localCornerIndex(true, false, true), 16, -1, 16);
+		captureExteriorVisibility(localCornerIndex(true, true, false), 16, 16, -1);
+		captureExteriorVisibility(localCornerIndex(true, true, true), 16, 16, 16);
 	}
 
 	private void setVisited(int index) {
@@ -214,7 +214,7 @@ public abstract class OcclusionRegion {
 		bits[(index >> 6) + RENDERABLE_OFFSET] &= ~(1L << (index & 63));
 	}
 
-	private void adjustSurfaceVisbility() {
+	private void adjustSurfaceVisibility() {
 		// mask renderable to surface only
 		for (int i = 0; i < 64; i++) {
 			bits[i + RENDERABLE_OFFSET] &= EXTERIOR_MASK[i];
@@ -497,7 +497,7 @@ public abstract class OcclusionRegion {
 
 			// PERF: should do this after hiding interior closed positions?
 			// PERF: should still compute render box instead of assuming it is full
-			adjustSurfaceVisbility();
+			adjustSurfaceVisibility();
 
 			final int[] result = new int[2];
 			result[CULL_DATA_REGION_BOUNDS] = PackedBox.FULL_BOX;

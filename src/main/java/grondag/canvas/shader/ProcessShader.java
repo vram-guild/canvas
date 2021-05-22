@@ -19,9 +19,7 @@ package grondag.canvas.shader;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.shader.GlProgram.Uniform1fImpl;
 import grondag.canvas.shader.GlProgram.Uniform1iImpl;
-import grondag.canvas.shader.GlProgram.Uniform2fImpl;
 import grondag.canvas.shader.GlProgram.Uniform2iImpl;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
@@ -31,21 +29,33 @@ public class ProcessShader {
 	private final String[] samplers;
 	private GlProgram program;
 	private Uniform2iImpl size;
-	private Uniform2fImpl distance;
 	private Uniform1iImpl lod;
-	private Uniform1fImpl intensity;
+	private Uniform1iImpl layer;
 
-	ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
+	public ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
 		this.fragmentId = fragmentId;
 		this.vertexId = vertexId;
 		this.samplers = samplers;
 	}
 
-	void unload() {
+	public int samplerCount() {
+		return samplers.length;
+	}
+
+	public void unload() {
 		if (program != null) {
 			program.unload();
 			program = null;
 		}
+	}
+
+	/** Unloads if non-null and always returns null. */
+	public static ProcessShader unload(ProcessShader shader) {
+		if (shader != null) {
+			shader.unload();
+		}
+
+		return null;
 	}
 
 	public ProcessShader activate() {
@@ -53,16 +63,23 @@ public class ProcessShader {
 			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ProgramType.PROCESS);
 			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, ProgramType.PROCESS);
 			program = new GlProgram(vs, fs, CanvasVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
-			size = (Uniform2iImpl) program.uniform2i("_cvu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
-			lod = (Uniform1iImpl) program.uniform1i("_cvu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-			distance = (Uniform2fImpl) program.uniform2f("_cvu_distance", UniformRefreshFrequency.ON_LOAD, u -> u.set(0, 0));
-			intensity = (Uniform1fImpl) program.uniform1f("cvu_intensity", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			size = (Uniform2iImpl) program.uniform2i("frxu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
+			lod = (Uniform1iImpl) program.uniform1i("frxu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			layer = (Uniform1iImpl) program.uniform1i("frxu_layer", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 
 			int tex = 0;
 
 			for (final String samplerName : samplers) {
 				final int n = tex++;
-				program.uniformSampler2d(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+
+				// PERF: should probably match on any sampler uniform type - names must be unique anyway
+				if (program.containsUniformSpec("sampler2DArray", samplerName)) {
+					program.uniformSampler("sampler2DArray", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				} else if (program.containsUniformSpec("sampler2DArrayShadow", samplerName)) {
+					program.uniformSampler("sampler2DArrayShadow", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				} else if (program.containsUniformSpec("sampler2D", samplerName)) {
+					program.uniformSampler("sampler2D", samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+				}
 			}
 
 			program.load();
@@ -82,15 +99,6 @@ public class ProcessShader {
 		return this;
 	}
 
-	public ProcessShader distance(float x, float y) {
-		if (program != null && GlProgram.activeProgram() == program) {
-			distance.set(x, y);
-			distance.upload();
-		}
-
-		return this;
-	}
-
 	public ProcessShader lod(int lod) {
 		if (program != null && GlProgram.activeProgram() == program) {
 			this.lod.set(lod);
@@ -100,10 +108,10 @@ public class ProcessShader {
 		return this;
 	}
 
-	public ProcessShader intensity(float intensity) {
+	public ProcessShader layer(int layer) {
 		if (program != null && GlProgram.activeProgram() == program) {
-			this.intensity.set(intensity);
-			this.intensity.upload();
+			this.layer.set(layer);
+			this.layer.upload();
 		}
 
 		return this;

@@ -16,6 +16,7 @@
 
 package grondag.canvas;
 
+import grondag.canvas.config.Configurator;
 import grondag.jmx.api.JmxInitializer;
 
 public class CanvasJmxInit implements JmxInitializer {

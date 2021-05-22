@@ -55,21 +55,30 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final MaterialDepthTest depthTest;
 	public final boolean cull;
 	public final MaterialWriteMask writeMask;
-	public final boolean enableLightmap;
+	public final boolean enableGlint;
 	public final MaterialDecal decal;
 	public final boolean sorted;
 	public final MaterialTarget target;
 	public final boolean lines;
 	public final MaterialFog fog;
-	public final boolean gui;
+	public final MaterialShaderId shaderId;
+
 	public final int vertexShaderIndex;
 	public final Identifier vertexShaderId;
 	public final String vertexShader;
 	public final int fragmentShaderIndex;
 	public final Identifier fragmentShaderId;
 	public final String fragmentShader;
-	public final MaterialShaderId shaderId;
 	public final MaterialShaderImpl shader;
+	public final MaterialShaderImpl guiShader;
+
+	public final int depthVertexShaderIndex;
+	public final Identifier depthVertexShaderId;
+	public final String depthVertexShader;
+	public final int depthFragmentShaderIndex;
+	public final Identifier depthFragmentShaderId;
+	public final String depthFragmentShader;
+	public final MaterialShaderImpl depthShader;
 
 	/**
 	 * Will be always visible condition in vertex-controlled render state.
@@ -87,6 +96,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean translucentCutout;
 	public final boolean hurtOverlay;
 	public final boolean flashOverlay;
+	public final boolean castShadows;
 	public final boolean primaryTargetTransparency;
 	// PERF: use this to avoid overhead of animated textures
 	public final boolean discardsTexture;
@@ -102,12 +112,11 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		depthTest = MaterialDepthTest.fromIndex(depthTest());
 		cull = cull();
 		writeMask = MaterialWriteMask.fromIndex(writeMask());
-		enableLightmap = enableLightmap();
+		enableGlint = enableGlint();
 		decal = MaterialDecal.fromIndex(decal());
 		target = MaterialTarget.fromIndex(target());
 		lines = lines();
 		fog = MaterialFog.fromIndex(fog());
-		gui = gui();
 		condition = condition();
 		transparency = MaterialTransparency.fromIndex(transparency());
 		sorted = sorted();
@@ -118,9 +127,19 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		fragmentShaderIndex = shaderId.fragmentIndex;
 		fragmentShaderId = shaderId.fragmentId;
 		fragmentShader = fragmentShaderId.toString();
+
+		depthVertexShaderIndex = shaderId.depthVertexIndex;
+		depthVertexShaderId = shaderId.depthVertexId;
+		depthVertexShader = depthVertexShaderId.toString();
+		depthFragmentShaderIndex = shaderId.depthFragmentIndex;
+		depthFragmentShaderId = shaderId.depthFragmentId;
+		depthFragmentShader = depthFragmentShaderId.toString();
+
 		primaryTargetTransparency = primaryTargetTransparency();
-		programType = ((VERTEX_CONTROL_MODE && !gui && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
+		programType = ((VERTEX_CONTROL_MODE && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
+		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_UNIFORM_LOGIC);
+		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.shadowType(programType));
 		blendMode = blendMode();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();
@@ -131,6 +150,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		translucentCutout = transparentCutout();
 		hurtOverlay = hurtOverlay();
 		flashOverlay = flashOverlay();
+		castShadows = castShadows();
 		discardsTexture = discardsTexture();
 	}
 }

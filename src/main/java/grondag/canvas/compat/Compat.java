@@ -16,8 +16,6 @@
 
 package grondag.canvas.compat;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
@@ -64,12 +62,10 @@ public class Compat {
 			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderLayer.getTranslucent(), ctx.matrixStack(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
 
 			// litematica overlay uses fabulous buffers so must run before translucent shader when active
-			// and also expects view matrix to be pre-applied because it normally happens in weather render
+			// It expects view matrix to be pre-applied because it normally happens in weather render
+			// But Canvas already does that for unmanaged draws so no action needed.
 			if (ctx.advancedTranslucency()) {
-				RenderSystem.pushMatrix();
-				RenderSystem.multMatrix(ctx.matrixStack().peek().getModel());
 				MaliLibHolder.litematicaRenderWorldLast.render(ctx.matrixStack(), MinecraftClient.getInstance(), ctx.tickDelta());
-				RenderSystem.popMatrix();
 			}
 		});
 

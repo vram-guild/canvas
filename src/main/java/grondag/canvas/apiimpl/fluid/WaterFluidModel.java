@@ -23,7 +23,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.frex.api.fluid.AbstractFluidModel;
 
 public class WaterFluidModel extends AbstractFluidModel {

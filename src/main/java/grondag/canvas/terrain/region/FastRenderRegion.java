@@ -45,6 +45,8 @@ import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
+// FIX: cache padding should be 2 instead of 1 to match vanilla behavior
+// FIX: should not allow direct world access, esp from non-main threads
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_CACHE_SIZE];
 	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_CACHE_SIZE];

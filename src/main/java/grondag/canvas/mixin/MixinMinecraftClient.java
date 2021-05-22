@@ -25,13 +25,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
+import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.util.thread.ReentrantThreadExecutor;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.varia.CanvasGlHelper;
 
 @Mixin(MinecraftClient.class)
@@ -58,6 +60,11 @@ public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runna
 	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/client/render/BufferBuilderStorage;)Lnet/minecraft/client/render/WorldRenderer;"))
 	private WorldRenderer onWorldRendererNew(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		return new CanvasWorldRenderer(client, bufferBuilders);
+	}
+
+	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "(IIZZ)Lnet/minecraft/client/gl/Framebuffer;"))
+	private Framebuffer onFrameBufferNew(int width, int height, boolean useDepth, boolean getError) {
+		return new PrimaryFrameBuffer(width, height, getError);
 	}
 
 	@Override

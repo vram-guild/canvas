@@ -22,6 +22,7 @@ import org.lwjgl.system.Configuration;
 
 import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -35,7 +36,10 @@ import net.fabricmc.loader.api.FabricLoader;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
+import grondag.canvas.config.ConfigManager;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.RenderLayerExt;
+import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 //FEAT: weather rendering
@@ -52,15 +56,14 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 public class CanvasMod implements ClientModInitializer {
 	public static final String MODID = "canvas";
 	public static final Logger LOG = LogManager.getLogger("Canvas");
-	public static KeyBinding VIEW_KEY = new KeyBinding("key.canvas.cycle_view", Character.valueOf('`'), "key.canvas.category");
-	public static KeyBinding DECREMENT_A = new KeyBinding("key.canvas.decrement_a", Character.valueOf('-'), "key.canvas.category");
-	public static KeyBinding INCREMENT_A = new KeyBinding("key.canvas.increment_a", Character.valueOf('='), "key.canvas.category");
-	public static KeyBinding DECREMENT_B = new KeyBinding("key.canvas.decrement_b", Character.valueOf('['), "key.canvas.category");
-	public static KeyBinding INCREMENT_B = new KeyBinding("key.canvas.increment_b", Character.valueOf(']'), "key.canvas.category");
+	public static KeyBinding DEBUG_TOGGLE = new KeyBinding("key.canvas.debug_toggle", Character.valueOf('`'), "key.canvas.category");
+	public static KeyBinding DEBUG_PREV = new KeyBinding("key.canvas.debug_prev", Character.valueOf('['), "key.canvas.category");
+	public static KeyBinding DEBUG_NEXT = new KeyBinding("key.canvas.debug_next", Character.valueOf(']'), "key.canvas.category");
+	public static KeyBinding RECOMPILE = new KeyBinding("key.canvas.recompile", Character.valueOf('='), "key.canvas.category");
 
 	@Override
 	public void onInitializeClient() {
-		Configurator.init();
+		ConfigManager.init();
 		RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
 		FluidQuadSupplier.setReloadHandler(FluidHandler.HANDLER);
 		InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
@@ -76,11 +79,10 @@ public class CanvasMod implements ClientModInitializer {
 		((RenderLayerExt) RenderLayer.getCutout()).canvas_blendMode(BlendMode.CUTOUT);
 		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_blendMode(BlendMode.CUTOUT_MIPPED);
 
-		KeyBindingHelper.registerKeyBinding(VIEW_KEY);
-		KeyBindingHelper.registerKeyBinding(DECREMENT_A);
-		KeyBindingHelper.registerKeyBinding(INCREMENT_A);
-		KeyBindingHelper.registerKeyBinding(DECREMENT_B);
-		KeyBindingHelper.registerKeyBinding(INCREMENT_B);
+		KeyBindingHelper.registerKeyBinding(DEBUG_TOGGLE);
+		KeyBindingHelper.registerKeyBinding(DEBUG_PREV);
+		KeyBindingHelper.registerKeyBinding(DEBUG_NEXT);
+		KeyBindingHelper.registerKeyBinding(RECOMPILE);
 
 		Compat.init();
 
@@ -89,5 +91,7 @@ public class CanvasMod implements ClientModInitializer {
 			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:extras"), "resourcepacks/canvas_extras", modContainer, false);
 			//ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:development"), "resourcepacks/canvas_wip", modContainer, false);
 		});
+
+		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(PipelineLoader.INSTANCE);
 	}
 }

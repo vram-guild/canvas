@@ -20,6 +20,7 @@ import java.util.function.BooleanSupplier;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
 
@@ -33,19 +34,21 @@ import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.light.AoVertexClampFunction;
-import grondag.canvas.light.LightmapHd;
-import grondag.canvas.light.LightmapHdTexture;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.config.PipelineLoader;
+import grondag.canvas.shader.GlProgramManager;
+import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
-import grondag.canvas.shader.ProcessShaders;
 import grondag.canvas.terrain.region.ProtoRenderRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.TerrainModelSpace;
+import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 
@@ -99,14 +102,22 @@ public class Canvas implements Renderer {
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
-		GlShaderManager.INSTANCE.reload();
-		LightmapHdTexture.reload();
-		LightmapHd.reload();
-		MaterialProgramManager.INSTANCE.reload();
-		TerrainModelSpace.reload();
-		ProcessShaders.reload();
+		recompile();
+	}
+
+	public void recompile() {
+		PipelineLoader.INSTANCE.apply(MinecraftClient.getInstance().getResourceManager());
 		Pipeline.reload();
+		GlShader.forceReloadErrors();
+		GlShaderManager.INSTANCE.reload();
+		GlProgramManager.INSTANCE.reload();
+		MaterialProgramManager.INSTANCE.reload();
+		// LightmapHdTexture.reload();
+		// LightmapHd.reload();
+		TerrainModelSpace.reload();
 		MaterialTextureState.reload();
+		WorldDataManager.reload();
+		Timekeeper.configOrPipelineReload();
 	}
 
 	@Override

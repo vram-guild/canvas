@@ -8,11 +8,11 @@
   "error.canvas.program_link_failure": "Canvas unable to create linked shader due to unexpected error.",
   "error.canvas.fail_create_lightmap": "Canvas unable to create HD lightmap(s) - out of space. \nSome blocks will not render with proper lighting. \nReduce view distance or disable HD lightmaps. F3+A will temporarily clear this problem.",
   "key.canvas.category": "Canvas",
-  "key.canvas.cycle_view": "Cycle Debug View",
-  "key.canvas.decrement_a": "Debug Decrement A",
-  "key.canvas.increment_a": "Debug Increment A",
-  "key.canvas.decrement_b": "Debug Decrement B",
-  "key.canvas.increment_b": "Debug Increment B",
+
+
+
+
+
   "config.canvas.button": "Canvas",
   "config.canvas.title": "Canvas Renderer Configuration",
   "config.canvas.reset": "Reset",
@@ -20,13 +20,13 @@
   "config.canvas.value.fog_mode": "Fog",
   "config.canvas.help.fog_mode": "Makes terrain fog a little less foggy or turns it off.",
   "config.canvas.value.blend_fluid_colors": "Blend Fluid Colors",
-  "config.canvas.help.blend_fluid_colors": "Fluid biome colors are blended at block corners to avoid patchy; appearance. Slight peformance impact to chunk loading.",
-  "config.canvas.value.bloom": "Enable Bloom",
-  "config.canvas.help.bloom": "Glow effect around light sources.;Performance impact depends on resolution.",
+  "config.canvas.help.blend_fluid_colors": "Fluid biome colors are blended at block corners to avoid patchy; appearance. Slight performance impact to chunk loading.",
+
+
   "config.canvas.value.bloom_intensity": "Bloom Intensity",
   "config.canvas.help.bloom_intensity": "Intensity of glow effect around light sources.",
-  "config.canvas.value.bloom_scale": "Bloom Scale",
-  "config.canvas.help.bloom_scale": "Size of bloom effect around light sources.",
+
+
   "config.canvas.value.wavy_grass": "Animated Foliage",
   "config.canvas.help.wavy_grass": "Activates shaders for waving grass, leaves, etc.",
   "config.canvas.value.handheld_light_radius": "Handheld Light Radius",
@@ -119,12 +119,42 @@
   "config.canvas.value.static_frustum_padding": "Static Frustum Padding",
   "config.canvas.help.static_frustum_padding": "Padding at edges of screen to reduce how often terrain visibility;is computed. In degrees. Zero disables.",
   "config.canvas.value.dynamic_frustum_padding": "Dynamic Frustum Padding",
-  "config.canvas.help.dynamic_frustum_padding": "Extra padding at edges of screen to reduce missing chunks when;view roates and Parallel Terrain Setup is on.;In degrees. Zero disables.",
+  "config.canvas.help.dynamic_frustum_padding": "Extra padding at edges of screen to reduce missing chunks when;view rotates and Parallel Terrain Setup is on.;In degrees. Zero disables.",
   "config.canvas.value.cull_particles": "Particle Culling",
   "config.canvas.help.cull_particles": "Culls particles that are not in view.;Should always be faster.",
   "config.canvas.value.log_render_lag_spikes": "Log Render Lag Spikes",
   "config.canvas.help.log_render_lag_spikes": "Log information on render lag spikes - when they happen and where.;Will spam the log.",
   "config.canvas.value.render_lag_spike_fps": "Render Lag Spike FPS",
-  "config.canvas.help.render_lag_spike_fps": "Target frames per second when Log Render Lag Spikes is enabled.;If elapsed time exceeds an entire frame, a spike is logged."
-  
+  "config.canvas.help.render_lag_spike_fps": "Target frames per second when Log Render Lag Spikes is enabled.;If elapsed time exceeds an entire frame, a spike is logged.",
+  "config.canvas.value.display_render_profiler": "Display Render Profiler",
+  "config.canvas.help.display_render_profiler": "Enable and display render profiler data.",
+  "config.canvas.value.profiler_detail_level": "Profiler Detail Level",
+  "config.canvas.help.profiler_detail_level": "Profiler level of detail. 0=Collapse all, 1=Expand program passes, 2=Expand all",
+  "config.canvas.value.profiler_overlay_scale": "Profiler Overlay Scale",
+  "config.canvas.help.profiler_overlay_scale": "Size of the profiler overlay relative to GUI scale.",
+  "key.canvas.debug_toggle": "Toggle Debug View",
+  "key.canvas.debug_prev": "Debug Previous Image",
+  "key.canvas.debug_next": "Debug Next Image",
+  "pipeline.canvas_standard.name": "Canvas Standard",
+  "pipeline.canvas_standard.desc": "Some aesthetic improvements, with balanced performance",
+  "pipeline.canvas_basic.name": "Canvas Basic",
+  "pipeline.canvas_basic.desc": "Vanilla-style rendering, best performance.",
+  "pipeline.no_desc": "No description provided.",
+  "key.canvas.recompile": "Recompile Shaders",
+  "config.canvas.value.pipeline": "Pipeline",
+  "config.canvas.help.pipeline": "Renderer configuration. Determines appearance, ;performance and available options.",
+  "config.canvas.category.empty": "This pipeline has no configuration options",
+  "config.canvas.value.pipeline_config": "Pipeline Options",
+  "config.canvas.help.pipeline_config": "Available options depend on selected pipeline.",
+  "config.canvas.category.bloom": "Bloom",
+  "config.canvas.value.bloom_downsample_scale": "Downsample Scale",
+  "config.canvas.help.bloom_downsample_scale": "Affects size of bloom effect around light sources.",
+  "config.canvas.value.bloom_upsample_scale": "Downsample Scale",
+  "config.canvas.help.bloom_upsample_scale": "Affects Size of bloom effect around light sources.",
+  "config.canvas.value.bloom_cutoff": "Cutoff Threshold",
+  "config.canvas.help.bloom_cutoff": "Clamps low-intensity bloom edges to reduce halos and banding.",
+  "pipeline.canvas_dev.name": "Canvas Dev",
+  "pipeline.canvas_dev.desc": "Work-in progess features. May break, unsupported.",
+  "config.canvas.value.shadow_debug": "Render Shadowmap Debug",
+  "config.canvas.help.shadow_debug": "Renders a colorized grid to indicate;shadowmap cascade and resolution."
 }

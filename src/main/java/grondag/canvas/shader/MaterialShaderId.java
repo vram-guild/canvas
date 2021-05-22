@@ -16,7 +16,7 @@
 
 package grondag.canvas.shader;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.util.Identifier;
 
@@ -28,28 +28,41 @@ public class MaterialShaderId {
 	public final int vertexIndex;
 	public final Identifier fragmentId;
 	public final int fragmentIndex;
+	public final Identifier depthVertexId;
+	public final int depthVertexIndex;
+	public final Identifier depthFragmentId;
+	public final int depthFragmentIndex;
 
-	private MaterialShaderId(int index, int vertexIndex, int fragmentIndex) {
+	private MaterialShaderId(int index, int vertexIndex, int fragmentIndex, int depthVertexIndex, int depthFragmentIndex) {
 		this.index = index;
 		this.vertexIndex = vertexIndex;
 		this.fragmentIndex = fragmentIndex;
+		this.depthVertexIndex = depthVertexIndex;
+		this.depthFragmentIndex = depthFragmentIndex;
 		vertexId = MaterialShaderManager.VERTEX_INDEXER.fromHandle(vertexIndex);
 		fragmentId = MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(fragmentIndex);
+		depthVertexId = MaterialShaderManager.VERTEX_INDEXER.fromHandle(depthVertexIndex);
+		depthFragmentId = MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(depthFragmentIndex);
 	}
 
-	private static final Int2ObjectOpenHashMap<MaterialShaderId> MAP = new Int2ObjectOpenHashMap<>();
+	private static final Long2ObjectOpenHashMap<MaterialShaderId> MAP = new Long2ObjectOpenHashMap<>();
 	private static final SimpleUnorderedArrayList<MaterialShaderId> LIST = new SimpleUnorderedArrayList<>();
 
-	public static synchronized MaterialShaderId find(Identifier vertexShaderId, Identifier fragmentShaderId) {
-		return find(MaterialShaderManager.VERTEX_INDEXER.toHandle(vertexShaderId), MaterialShaderManager.FRAGMENT_INDEXER.toHandle(fragmentShaderId));
+	public static synchronized MaterialShaderId find(Identifier vertexShaderId, Identifier fragmentShaderId, Identifier depthVertexShaderId, Identifier depthFragmentShaderId) {
+		return find(
+			MaterialShaderManager.VERTEX_INDEXER.toHandle(vertexShaderId),
+			MaterialShaderManager.FRAGMENT_INDEXER.toHandle(fragmentShaderId),
+			MaterialShaderManager.VERTEX_INDEXER.toHandle(depthVertexShaderId),
+			MaterialShaderManager.FRAGMENT_INDEXER.toHandle(depthFragmentShaderId)
+		);
 	}
 
-	public static synchronized MaterialShaderId find(int vertexShaderIndex, int fragmentShaderIndex) {
-		final int key = (fragmentShaderIndex << 16) | vertexShaderIndex;
+	public static synchronized MaterialShaderId find(int vertexShaderIndex, int fragmentShaderIndex, int depthVertexIndex, int depthFragmentIndex) {
+		final long key = vertexShaderIndex | (fragmentShaderIndex << 16) | (((long) depthVertexIndex) << 32) | (((long) depthFragmentIndex) << 48);
 		MaterialShaderId result = MAP.get(key);
 
 		if (result == null) {
-			result = new MaterialShaderId(LIST.size(), vertexShaderIndex, fragmentShaderIndex);
+			result = new MaterialShaderId(LIST.size(), vertexShaderIndex, fragmentShaderIndex, depthVertexIndex, depthFragmentIndex);
 			LIST.add(result);
 			MAP.put(key, result);
 		}

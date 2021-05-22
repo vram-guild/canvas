@@ -20,10 +20,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
@@ -33,11 +33,17 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
-import grondag.canvas.pipeline.CanvasFrameBufferHacks;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.texture.TextureData;
+import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.MatrixState;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -59,7 +65,73 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	public void enable() {
+		enable(0, 0, 0);
+	}
+
+	public void enable(int x, int y, int z) {
+		if (SkyShadowRenderer.isActive()) {
+			enableDepthPass(x, y, z, SkyShadowRenderer.cascade());
+		} else {
+			enableMaterial(x, y, z);
+		}
+	}
+
+	private void enableDepthPass(int x, int y, int z, int cascade) {
+		if (shadowActive == this) {
+			depthShader.setModelOrigin(x, y, z);
+			depthShader.setCascade(cascade);
+			return;
+		}
+
+		if (shadowActive == null) {
+			// same for all, so only do 1X
+			RenderSystem.shadeModel(GL11.GL_SMOOTH);
+			Pipeline.skyShadowFbo.bind();
+		}
+
+		shadowActive = this;
+		active = null;
+
+		if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
+			MaterialInfoTexture.INSTANCE.enable();
+		} else {
+			MaterialInfoTexture.INSTANCE.disable();
+		}
+
+		// WIP: can probably remove many of these
+
+		// controlled in shader
+		RenderSystem.disableAlphaTest();
+
+		texture.enable(blur);
+		transparency.enable();
+		depthTest.enable();
+		writeMask.enable();
+		fog.enable();
+		// WIP: disable decal renders in depth pass
+		decal.enable();
+
+		CULL_STATE.setEnabled(cull);
+		LIGHTMAP_STATE.setEnabled(true);
+		LINE_STATE.setEnabled(lines);
+
+		depthShader.activate(this);
+		depthShader.setContextInfo(texture.atlasInfo(), target.index);
+		depthShader.setModelOrigin(x, y, z);
+		depthShader.setCascade(cascade);
+
+		GL46.glEnable(GL46.GL_POLYGON_OFFSET_FILL);
+		GL46.glPolygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
+		//GL46.glCullFace(GL46.GL_FRONT);
+	}
+
+	private void enableMaterial(int x, int y, int z) {
+		assert CanvasGlHelper.checkError();
+
+		final MaterialShaderImpl shader = MatrixState.get() == MatrixState.SCREEN ? guiShader : this.shader;
+
 		if (active == this) {
+			shader.setModelOrigin(x, y, z);
 			return;
 		}
 
@@ -71,43 +143,66 @@ public final class RenderState extends AbstractRenderState {
 			// same for all, so only do 1X
 			RenderSystem.shadeModel(GL11.GL_SMOOTH);
 			target.enable();
-			// NB: must be after frame-buffer target switch
-			if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
 		} else if (active.target != target) {
-			if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
 			target.enable();
-			if (Configurator.enableBloom) CanvasFrameBufferHacks.startEmissiveCapture();
 		}
 
-		active = this;
+		assert CanvasGlHelper.checkError();
 
-		if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
+		active = this;
+		shadowActive = null;
+
+		if (programType.isVertexLogic) {
 			MaterialInfoTexture.INSTANCE.enable();
 		} else {
 			MaterialInfoTexture.INSTANCE.disable();
 		}
 
+		assert CanvasGlHelper.checkError();
+
 		// controlled in shader
 		RenderSystem.disableAlphaTest();
+		assert CanvasGlHelper.checkError();
+
+		if (Pipeline.shadowMapDepth != -1) {
+			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			assert CanvasGlHelper.checkError();
+
+			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP_TEXTURE);
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			assert CanvasGlHelper.checkError();
+			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
+			// Was seeing stray invalid operations errors in GL without.
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		}
 
 		texture.enable(blur);
+		assert CanvasGlHelper.checkError();
+
 		transparency.enable();
+		assert CanvasGlHelper.checkError();
+
 		depthTest.enable();
+		assert CanvasGlHelper.checkError();
+
 		writeMask.enable();
 		fog.enable();
 		decal.enable();
 
+		assert CanvasGlHelper.checkError();
+
 		CULL_STATE.setEnabled(cull);
-		LIGHTMAP_STATE.setEnabled(enableLightmap);
+		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
-		shader.activate(this);
-		shader.setAtlasInfo(texture.atlasInfo());
-	}
+		assert CanvasGlHelper.checkError();
 
-	public void enableWithOrigin(int x, int y, int z) {
-		enable();
+		shader.activate(this);
+		shader.setContextInfo(texture.atlasInfo(), target.index);
 		shader.setModelOrigin(x, y, z);
+
+		assert CanvasGlHelper.checkError();
 	}
 
 	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(RenderSystem::enableCull, RenderSystem::disableCull);
@@ -121,14 +216,15 @@ public final class RenderState extends AbstractRenderState {
 		() -> RenderSystem.lineWidth(1.0F));
 
 	public static void disable() {
-		if (active == null) {
+		if (active == null && shadowActive == null) {
 			return;
 		}
 
 		active = null;
+		shadowActive = null;
 
-		// NB: must be before frame-buffer target switch
-		if (Configurator.enableBloom) CanvasFrameBufferHacks.endEmissiveCapture();
+		GL46.glDisable(GL46.GL_POLYGON_OFFSET_FILL);
+		GL46.glCullFace(GL46.GL_BACK);
 
 		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();
@@ -146,8 +242,15 @@ public final class RenderState extends AbstractRenderState {
 		RenderSystem.color4f(1f, 1f, 1f, 1f);
 		MaterialInfoTexture.INSTANCE.disable();
 
-		MaterialTarget.disable();
+		if (Pipeline.shadowMapDepth != -1) {
+			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
+			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, 0);
+		}
 
+		MaterialTarget.disable();
+		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+
+		assert CanvasGlHelper.checkError();
 		//		if (enablePrint) {
 		//			GlStateSpy.print();
 		//			enablePrint = false;
@@ -160,6 +263,7 @@ public final class RenderState extends AbstractRenderState {
 	static final Long2ObjectOpenHashMap<RenderState> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
 
 	private static RenderState active = null;
+	private static RenderState shadowActive = null;
 
 	public static final RenderState MISSING = new RenderState(0);
 

@@ -26,7 +26,7 @@ import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.frex.api.fluid.AbstractFluidModel;
 
 public class FluidHandlerModel extends AbstractFluidModel {

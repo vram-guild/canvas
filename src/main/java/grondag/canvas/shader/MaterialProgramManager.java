@@ -16,12 +16,11 @@
 
 package grondag.canvas.shader;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.config.Configurator;
 
 public enum MaterialProgramManager {
 	INSTANCE;
@@ -32,26 +31,29 @@ public enum MaterialProgramManager {
 		}
 	}
 
-	private final Int2ObjectOpenHashMap<GlMaterialProgram> materialPrograms = new Int2ObjectOpenHashMap<>();
-
-	public void reload() {
-		GlShader.forceReloadErrors();
-		materialPrograms.values().forEach(s -> s.forceReload());
-	}
+	private final GlMaterialProgram[] materialPrograms = new GlMaterialProgram[ProgramType.values().length];
 
 	GlMaterialProgram getOrCreateMaterialProgram(ProgramType programType) {
-		assert programType == ProgramType.MATERIAL_UNIFORM_LOGIC || programType == ProgramType.MATERIAL_VERTEX_LOGIC;
+		assert programType != ProgramType.PROCESS;
 		final int key = programType.ordinal();
-		GlMaterialProgram result = materialPrograms.get(key);
+		GlMaterialProgram result = materialPrograms[key];
 
 		if (result == null) {
-			final Shader vs = new GlMaterialShader(ShaderData.MATERIAL_MAIN_VERTEX, GL21.GL_VERTEX_SHADER, programType);
-			final Shader fs = new GlMaterialShader(ShaderData.MATERIAL_MAIN_FRAGMENT, GL21.GL_FRAGMENT_SHADER, programType);
+			final Shader vs = new GlMaterialShader(programType.vertexSource, GL21.GL_VERTEX_SHADER, programType);
+			final Shader fs = new GlMaterialShader(programType.fragmentSource, GL21.GL_FRAGMENT_SHADER, programType);
 			result = new GlMaterialProgram(vs, fs, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType);
-			ShaderData.STANDARD_UNIFORM_SETUP.accept(result);
-			materialPrograms.put(key, result);
+			ShaderData.MATERIAL_UNIFORM_SETUP.accept(result);
+			materialPrograms[key] = result;
 		}
 
 		return result;
+	}
+
+	public void reload() {
+		for (final GlMaterialProgram prog : materialPrograms) {
+			if (prog != null) {
+				prog.forceReload();
+			}
+		}
 	}
 }

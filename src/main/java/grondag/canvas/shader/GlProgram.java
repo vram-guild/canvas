@@ -21,6 +21,7 @@ import java.nio.IntBuffer;
 import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.EXTGPUShader4;
 import org.lwjgl.opengl.GL11;
@@ -31,13 +32,11 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -52,11 +51,11 @@ import grondag.frex.api.material.Uniform.Uniform3ui;
 import grondag.frex.api.material.Uniform.Uniform4f;
 import grondag.frex.api.material.Uniform.Uniform4i;
 import grondag.frex.api.material.Uniform.Uniform4ui;
+import grondag.frex.api.material.Uniform.UniformArray4f;
 import grondag.frex.api.material.Uniform.UniformArrayf;
 import grondag.frex.api.material.Uniform.UniformArrayi;
 import grondag.frex.api.material.Uniform.UniformArrayui;
 import grondag.frex.api.material.Uniform.UniformMatrix3f;
-import grondag.frex.api.material.Uniform.UniformMatrix4f;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlProgram {
@@ -86,6 +85,7 @@ public class GlProgram {
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
 		vertexFormat = format;
+		ShaderData.COMMON_UNIFORM_SETUP.accept(this);
 	}
 
 	public static void deactivate() {
@@ -123,8 +123,12 @@ public class GlProgram {
 		return new UniformArrayfImpl(name, initializer, frequency, size);
 	}
 
-	public Uniform1i uniformSampler2d(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-		return new UniformSamplerImpl(name, initializer, frequency);
+	public UniformArray4f uniformArray4f(String name, UniformRefreshFrequency frequency, Consumer<UniformArray4f> initializer, int size) {
+		return new UniformArray4fImpl(name, initializer, frequency, size);
+	}
+
+	public Uniform1i uniformSampler(String type, String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
+		return new UniformSamplerImpl(type, name, initializer, frequency);
 	}
 
 	public Uniform1i uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
@@ -190,6 +194,12 @@ public class GlProgram {
 
 		GL21.glUseProgram(progID);
 
+		if (!CanvasGlHelper.checkError()) {
+			isErrored = true;
+			CanvasMod.LOG.warn(String.format("Unable to activate program with shaders %s and %s.  Program was disabled.", vertexShader.getShaderSourceId(), fragmentShader.getShaderSourceId()));
+			return;
+		}
+
 		if (hasDirty) {
 			final int count = activeUniforms.size();
 
@@ -201,12 +211,8 @@ public class GlProgram {
 		}
 	}
 
-	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
-		return new UniformMatrix4fImpl(name, initializer, frequency);
-	}
-
-	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix4f> initializer) {
-		return new UniformMatrix4fImpl(name, initializer, frequency);
+	public UniformMatrix4fArrayImpl uniformMatrix4fArray(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fArrayImpl> initializer) {
+		return new UniformMatrix4fArrayImpl(name, frequency, initializer);
 	}
 
 	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix3f> initializer) {
@@ -217,7 +223,7 @@ public class GlProgram {
 		return new UniformMatrix3fImpl(name, initializer, frequency);
 	}
 
-	private void loadUniforms() {
+	private void findActiveUniforms() {
 		activeUniforms.clear();
 		renderTickUpdates.clear();
 		gameTickUpdates.clear();
@@ -264,19 +270,26 @@ public class GlProgram {
 		}
 
 		if (!isErrored) {
-			loadUniforms();
+			findActiveUniforms();
 			final int limit = activeUniforms.size();
 
 			for (int i = 0; i < limit; i++) {
 				activeUniforms.get(i).load(progID);
 			}
+
+			GlProgramManager.INSTANCE.add(this);
 		}
 	}
 
 	public final void unload() {
+		for (final UniformImpl<?> u : uniforms) {
+			u.unload();
+		}
+
 		if (progID > 0) {
 			GL21.glDeleteProgram(progID);
 			progID = -1;
+			GlProgramManager.INSTANCE.remove(this);
 		}
 	}
 
@@ -323,9 +336,10 @@ public class GlProgram {
 	}
 
 	public boolean containsUniformSpec(UniformImpl<?> uniform) {
-		final String type = uniform.searchString();
-		final String name = uniform.name;
+		return containsUniformSpec(uniform.searchString(), uniform.name);
+	}
 
+	public boolean containsUniformSpec(String type, String name) {
 		return vertexShader.containsUniformSpec(type, name)
 				|| fragmentShader.containsUniformSpec(type, name);
 	}
@@ -356,8 +370,13 @@ public class GlProgram {
 			flags |= FLAG_NEEDS_INITIALIZATION;
 		}
 
+		public void unload() {
+			this.unifID = -1;
+		}
+
 		private void load(int programID) {
 			this.unifID = GL21.glGetUniformLocation(programID, name);
+			assert CanvasGlHelper.checkError();
 
 			if (this.unifID == -1) {
 				if (Configurator.logMissingUniforms) {
@@ -374,19 +393,25 @@ public class GlProgram {
 
 		@SuppressWarnings("unchecked")
 		public final void upload() {
-			if (this.flags == 0) {
+			if (flags == 0 || unifID == -1) {
 				return;
 			}
 
-			if ((this.flags & FLAG_NEEDS_INITIALIZATION) == FLAG_NEEDS_INITIALIZATION) {
-				this.initializer.accept((T) this);
+			if ((flags & FLAG_NEEDS_INITIALIZATION) == FLAG_NEEDS_INITIALIZATION) {
+				initializer.accept((T) this);
+				assert CanvasGlHelper.checkError();
 			}
 
-			if ((this.flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD) {
-				this.uploadInner();
+			if ((flags & FLAG_NEEDS_UPLOAD) == FLAG_NEEDS_UPLOAD) {
+				uploadInner();
+
+				if (!CanvasGlHelper.checkError()) {
+					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
+					unifID = -1;
+				}
 			}
 
-			this.flags = 0;
+			flags = 0;
 		}
 
 		protected abstract void uploadInner();
@@ -395,7 +420,7 @@ public class GlProgram {
 	}
 
 	protected abstract class UniformFloat<T extends Uniform> extends UniformImpl<T> {
-		protected final FloatBuffer uniformFloatBuffer;
+		protected FloatBuffer uniformFloatBuffer;
 
 		protected UniformFloat(String name, Consumer<T> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency);
@@ -546,8 +571,16 @@ public class GlProgram {
 	}
 
 	public class UniformArrayfImpl extends UniformFloat<UniformArrayf> implements UniformArrayf {
+		@Nullable protected FloatBuffer externalFloatBuffer;
+
 		protected UniformArrayfImpl(String name, Consumer<UniformArrayf> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size);
+		}
+
+		@Override
+		public void setExternal(FloatBuffer externalFloatBuffer) {
+			this.externalFloatBuffer = externalFloatBuffer;
+			setDirty();
 		}
 
 		@Override
@@ -568,17 +601,51 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniform1fv(unifID, uniformFloatBuffer);
+			if (externalFloatBuffer == null) {
+				GL21.glUniform1fv(unifID, uniformFloatBuffer);
+			} else {
+				GL21.glUniform1fv(unifID, externalFloatBuffer);
+				externalFloatBuffer = null;
+			}
 		}
 
 		@Override
 		public String searchString() {
 			return "float\\s*\\[\\s*[0-9]+\\s*]";
 		}
+	}
+
+	public class UniformArray4fImpl extends UniformFloat<UniformArray4f> implements UniformArray4f {
+		protected UniformArray4fImpl(String name, Consumer<UniformArray4f> initializer, UniformRefreshFrequency frequency, int size) {
+			super(name, initializer, frequency, size * 4);
+		}
 
 		@Override
-		public void setExternal(FloatBuffer buff) {
-			// TODO Auto-generated method stub
+		public void setExternal(FloatBuffer externalFloatBuffer) {
+			if (unifID == -1) {
+				return;
+			}
+
+			uniformFloatBuffer = externalFloatBuffer;
+			setDirty();
+		}
+
+		@Override
+		protected void uploadInner() {
+			if (uniformFloatBuffer != null) {
+				GL21.glUniform4fv(unifID, uniformFloatBuffer);
+				uniformFloatBuffer = null;
+			}
+		}
+
+		@Override
+		public String searchString() {
+			return "vec4\\s*\\[\\s*[0-9]+\\s*]";
+		}
+
+		@Override
+		public void set(float[] v) {
+			uniformFloatBuffer.put(v, 0, v.length);
 		}
 	}
 
@@ -620,13 +687,16 @@ public class GlProgram {
 	}
 
 	public class UniformSamplerImpl extends Uniform1iImpl {
-		protected UniformSamplerImpl(String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
+		private final String type;
+
+		public UniformSamplerImpl(String type, String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency);
+			this.type = type;
 		}
 
 		@Override
 		public String searchString() {
-			return "sampler2D";
+			return type;
 		}
 	}
 
@@ -935,6 +1005,8 @@ public class GlProgram {
 	}
 
 	public class UniformArrayuiImpl extends UniformInt<UniformArrayui> implements UniformArrayui {
+		private @Nullable IntBuffer externalBuffer;
+
 		protected UniformArrayuiImpl(String name, Consumer<UniformArrayui> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size);
 		}
@@ -957,10 +1029,13 @@ public class GlProgram {
 
 		@Override
 		protected void uploadInner() {
+			final IntBuffer source = externalBuffer == null ? uniformIntBuffer : externalBuffer;
+			externalBuffer = null;
+
 			if (MinecraftClient.IS_SYSTEM_MAC) {
-				EXTGPUShader4.glUniform1uivEXT(unifID, uniformIntBuffer);
+				EXTGPUShader4.glUniform1uivEXT(unifID, source);
 			} else {
-				GL30.glUniform1uiv(unifID, uniformIntBuffer);
+				GL30.glUniform1uiv(unifID, source);
 			}
 		}
 
@@ -970,54 +1045,45 @@ public class GlProgram {
 		}
 
 		@Override
-		public void setExternal(IntBuffer data) {
-			// TODO Auto-generated method stub
-		}
-	}
-
-	public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4f> implements UniformMatrix4f {
-		protected final FloatBuffer uniformFloatBuffer;
-		protected final long bufferAddress;
-		protected final Matrix4f lastValue = new Matrix4f();
-
-		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer, UniformRefreshFrequency frequency) {
-			this(name, initializer, frequency, BufferUtils.createFloatBuffer(16));
-		}
-
-		/**
-		 * Use when have a shared direct buffer.
-		 */
-		protected UniformMatrix4fImpl(String name, Consumer<UniformMatrix4f> initializer, UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
-			super(name, initializer, frequency);
-			this.uniformFloatBuffer = uniformFloatBuffer;
-			bufferAddress = MemoryUtil.memAddress(this.uniformFloatBuffer);
-		}
-
-		@Override
-		public final void set(Matrix4f matrix) {
+		public void setExternal(IntBuffer buff) {
 			if (unifID == -1) {
 				return;
 			}
 
-			if (matrix == null || matrix.equals(lastValue)) {
+			externalBuffer = buff;
+			setDirty();
+		}
+	}
+
+	public class UniformMatrix4fArrayImpl extends UniformImpl<UniformMatrix4fArrayImpl> implements Uniform {
+		protected FloatBuffer uniformFloatBuffer;
+
+		/**
+		 * Requires a shared direct buffer.
+		 */
+		protected UniformMatrix4fArrayImpl(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fArrayImpl> initializer) {
+			super(name, initializer, frequency);
+		}
+
+		public final void set(FloatBuffer uniformFloatBuffer) {
+			if (unifID == -1) {
 				return;
 			}
 
-			((Matrix4fExt) (Object) lastValue).set((Matrix4fExt) (Object) matrix);
-
-			matrix.writeToBuffer(uniformFloatBuffer);
-
+			this.uniformFloatBuffer = uniformFloatBuffer;
 			setDirty();
 		}
 
 		@Override
 		protected void uploadInner() {
-			GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+			if (uniformFloatBuffer != null) {
+				GL21.glUniformMatrix4fv(unifID, false, uniformFloatBuffer);
+			}
 		}
 
 		@Override
 		public String searchString() {
-			return "mat4";
+			return "mat4\\s*\\[\\s*[0-9]+\\s*]";
 		}
 	}
 

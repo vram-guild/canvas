@@ -1,0 +1,21 @@
+{
+  options: [
+    {
+      includeToken: "canvas:fog_config",
+      categoryKey: "config.canvas.category.features",
+      options: {
+        fog_mode: {
+          // if omitted, block key will be used
+          define: "_CV_FOG_CONFIG",
+          default: "vanilla",
+          choices: ["vanilla", "subtle", "none"],
+          // causes each value to be listed with integer constants
+          enum: true,
+          prefix: "_CV_FOG_CONFIG_",
+          nameKey: "config.canvas.value.fog_mode",
+          descriptionKey: "config.canvas.help.fog_mode"
+        }
+      }
+    }
+  ]
+}

@@ -16,7 +16,3 @@ void frx_startVertex(inout frx_VertexData data) {
 	    frx_var0.zw = abs(data.normal.y)==1.0 ? vec2(0.0, 0.0) : -normalize(data.normal.xz);
 	}
 }
-
-void frx_endVertex(inout frx_VertexData data) {
-	// NOOP
-}

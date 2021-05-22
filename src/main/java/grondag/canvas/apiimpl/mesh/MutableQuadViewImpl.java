@@ -40,7 +40,6 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
-import grondag.canvas.light.LightmapHd;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.SpriteInfoTexture;
@@ -57,7 +56,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	// vanilla light outputs
 	public final float[] ao = new float[4];
 	// UGLY - need a lighting result class?
-	public LightmapHd hdLight = null;
+	//public LightmapHd hdLight = null;
 
 	public final void begin(int[] data, int baseIndex) {
 		this.data = data;

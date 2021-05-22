@@ -35,9 +35,9 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -96,16 +96,16 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
 		isFluidModel = true;
-		rebnderInner(blockState, blockPos, defaultAo, model, matrixStack);
+		renderInner(blockState, blockPos, defaultAo, model, matrixStack);
 	}
 
 	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
 		isFluidModel = false;
-		rebnderInner(blockState, blockPos, defaultAo, model, matrixStack);
+		renderInner(blockState, blockPos, defaultAo, model, matrixStack);
 	}
 
 	// PERF: don't pass in matrixStack each time, just change model matrix directly
-	private void rebnderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
+	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
 		matrix = matrixStack.peek().getModel();
 
 		// PERF: can probably grab this at prepare

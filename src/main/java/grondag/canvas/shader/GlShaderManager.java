@@ -22,7 +22,7 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 public enum GlShaderManager {
 	INSTANCE;
@@ -71,7 +71,6 @@ public enum GlShaderManager {
 	}
 
 	public void reload() {
-		GlShader.forceReloadErrors();
 		fragmentShaders.values().forEach(s -> s.forceReload());
 		vertexShaders.values().forEach(s -> s.forceReload());
 	}

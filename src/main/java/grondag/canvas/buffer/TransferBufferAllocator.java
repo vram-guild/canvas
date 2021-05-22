@@ -28,7 +28,7 @@ import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 /**
  * Tracks all allocations, ensures deallocation on render reload.

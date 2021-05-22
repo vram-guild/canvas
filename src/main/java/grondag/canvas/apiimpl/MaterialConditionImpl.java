@@ -19,6 +19,7 @@ package grondag.canvas.apiimpl;
 import java.util.function.BooleanSupplier;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.varia.FlagData;
 import grondag.frex.api.material.MaterialCondition;
 
 public class MaterialConditionImpl implements MaterialCondition {
@@ -67,7 +68,7 @@ public class MaterialConditionImpl implements MaterialCondition {
 		}
 	}
 
-	public static final int[] CONDITION_FLAGS = new int[CONDITION_FLAG_ARRAY_LENGTH];
+	private static final int[] CONDITION_FLAGS = new int[CONDITION_FLAG_ARRAY_LENGTH];
 
 	public static void update() {
 		for (int i = 0; i < CONDITION_FLAG_ARRAY_LENGTH; ++i) {
@@ -78,6 +79,10 @@ public class MaterialConditionImpl implements MaterialCondition {
 			if (CONDITIONS[i].supplier.getAsBoolean()) {
 				CONDITION_FLAGS[i >> 5] |= (1 << (i & 31));
 			}
+		}
+
+		for (int i = 0; i < CONDITION_FLAG_ARRAY_LENGTH; ++i) {
+			FlagData.DATA.put(FlagData.CONDITION_DATA_START + i, CONDITION_FLAGS[i]);
 		}
 	}
 }

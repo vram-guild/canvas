@@ -25,7 +25,7 @@ import net.minecraft.client.render.Frustum;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.render.CanvasWorldRenderer;
 
 /**

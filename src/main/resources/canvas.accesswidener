@@ -47,4 +47,7 @@ accessible   field   net/minecraft/client/render/RenderPhase   CLOUDS_TARGET   L
 accessible   field   net/minecraft/client/render/RenderPhase   ITEM_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
 accessible   field   net/minecraft/client/render/RenderPhase   FULL_LINE_WIDTH   Lnet/minecraft/client/render/RenderPhase$LineWidth;
 
+accessible   field   net/minecraft/client/gl/Framebuffer       colorAttachment I
+accessible   field   net/minecraft/client/gl/Framebuffer       depthAttachment I
+
 accessible class net/minecraft/client/render/RenderLayer$OutlineMode

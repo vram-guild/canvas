@@ -16,6 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
+import java.nio.FloatBuffer;
+
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Matrix4f;
 
@@ -197,5 +199,85 @@ public interface Matrix4fExt {
 		a30(b30);
 		a31(b31);
 		a32(b32);
+	}
+
+	void writeToBuffer(int baseIndex, FloatBuffer floatBuffer);
+
+	/**
+	 * Maps view space (with camera pointing towards negative Z) to -1/+1 NDC
+	 * coordinates expected by OpenGL.
+	 *
+	 * <P>Note comments on near and far distance! These are depth along z axis,
+	 * or in other words, you must negate the view space z-axis bounds when passing them.
+	 *
+	 * @param left bound towards negative x axis
+	 * @param right bound towards positive x axis
+	 * @param bottom bound towards negative y axis
+	 * @param top bound towards positive y axis
+	 * @param near distance of near plane from camera (POSITIVE!)
+	 * @param far distance of far plane from camera (POSITIVE!)
+	 */
+	default void setOrtho(float left, float right, float bottom, float top, float near, float far) {
+		loadIdentity();
+		a00(2.0f / (right - left));
+		a03(-(right + left) / (right - left));
+
+		a11(2.0f / (top - bottom));
+		a13(-(top + bottom) / (top - bottom));
+
+		a22(2.0f / (near - far));
+		a23(-(far + near) / (far - near));
+	}
+
+	// best explanation seen so far:  http://www.songho.ca/opengl/gl_camera.html#lookat
+	default void lookAt(
+		float fromX, float fromY, float fromZ,
+		float toX, float toY, float toZ,
+		float basisX, float basisY, float basisZ
+	) {
+		// the forward (Z) axis is the implied look vector
+		float forwardX, forwardY, forwardZ;
+		forwardX = fromX - toX;
+		forwardY = fromY - toY;
+		forwardZ = fromZ - toZ;
+
+		final float inverseForwardLength = 1.0f / (float) Math.sqrt(forwardX * forwardX + forwardY * forwardY + forwardZ * forwardZ);
+		forwardX *= inverseForwardLength;
+		forwardY *= inverseForwardLength;
+		forwardZ *= inverseForwardLength;
+
+		// the left (X) axis is found with cross product of forward and given "up" vector
+		float leftX, leftY, leftZ;
+		leftX = basisY * forwardZ - basisZ * forwardY;
+		leftY = basisZ * forwardX - basisX * forwardZ;
+		leftZ = basisX * forwardY - basisY * forwardX;
+
+		final float inverseLengthA = 1.0f / (float) Math.sqrt(leftX * leftX + leftY * leftY + leftZ * leftZ);
+		leftX *= inverseLengthA;
+		leftY *= inverseLengthA;
+		leftZ *= inverseLengthA;
+
+		// Orthonormal "up" axis (Y) is the cross product of those two
+		// Should already be a unit vector as both inputs are.
+		final float upX = forwardY * leftZ - forwardZ * leftY;
+		final float upY = forwardZ * leftX - forwardX * leftZ;
+		final float upZ = forwardX * leftY - forwardY * leftX;
+
+		a00(leftX);
+		a01(leftY);
+		a02(leftZ);
+		a03(-(leftX * fromX + leftY * fromY + leftZ * fromZ));
+		a10(upX);
+		a11(upY);
+		a12(upZ);
+		a13(-(upX * fromX + upY * fromY + upZ * fromZ));
+		a20(forwardX);
+		a21(forwardY);
+		a22(forwardZ);
+		a23(-(forwardX * fromX + forwardY * fromY + forwardZ * fromZ));
+		a30(0.0f);
+		a31(0.0f);
+		a32(0.0f);
+		a33(1.0f);
 	}
 }

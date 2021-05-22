@@ -48,7 +48,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 
 		while (index < limit) {
 			final int stride = MeshEncodingHelper.stride();
-			quad.copyAndload(data, index, stride);
+			quad.copyAndLoad(data, index, stride);
 			index += stride;
 			context.renderQuad();
 		}

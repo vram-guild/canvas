@@ -1,0 +1,17 @@
+{
+  options: [
+    {
+      includeToken: "canvas:handheld_light_config",
+      categoryKey: "config.canvas.category.features",
+      options: {
+        handheld_light_radius: {
+          default: 10,
+          min: 0,
+          max: 14,
+          nameKey: "config.canvas.value.handheld_light_radius",
+          descriptionKey: "config.canvas.help.handheld_light_radius"
+        }
+      }
+    }
+  ]
+}

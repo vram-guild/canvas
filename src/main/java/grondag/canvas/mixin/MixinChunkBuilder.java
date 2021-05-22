@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import net.minecraft.client.render.chunk.ChunkBuilder;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 @Mixin(ChunkBuilder.class)
 public abstract class MixinChunkBuilder {

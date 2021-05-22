@@ -24,16 +24,12 @@ import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
 import java.util.Random;
 import java.util.function.Supplier;
 
-import org.jetbrains.annotations.Nullable;
-
 import net.minecraft.block.AbstractBannerBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.item.ItemColors;
-import net.minecraft.client.render.OverlayVertexConsumer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.BuiltinModelItemRenderer;
@@ -85,12 +81,8 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		result.setSeed(ITEM_RANDOM_SEED);
 		return random;
 	};
-	private MatrixStack matrices;
-	private Mode renderMode;
 	private RenderLayer defaultRenderLayer;
-	private VertexConsumerProvider vanillaProvider;
 	private VertexConsumer defaultConsumer;
-	private @Nullable VertexConsumer glintConsumer;
 
 	private int lightmap;
 	private ItemStack itemStack;
@@ -159,19 +151,19 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	 */
 	private boolean isFrontLit;
 
+	private boolean hasGlint;
+
 	public void renderItem(ItemModels models, ItemStack stack, Mode renderMode, boolean leftHanded, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
 
 		lightmap = light;
 		this.overlay = overlay;
-		this.matrices = matrices;
-		this.renderMode = renderMode;
 		itemStack = stack;
 		isBlockItem = stack.getItem() instanceof BlockItem;
-		vanillaProvider = vertexConsumers;
 		materialMap = MaterialMap.get(itemStack);
 		isGui = renderMode == ModelTransformation.Mode.GUI;
 		isFrontLit = isGui && !model.isSideLit();
+		hasGlint = stack.hasGlint();
 		matrices.push();
 		final boolean detachedPerspective = renderMode == ModelTransformation.Mode.GUI || renderMode == ModelTransformation.Mode.GROUND || renderMode == ModelTransformation.Mode.FIXED;
 
@@ -189,16 +181,15 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		if (model.isBuiltin() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
 			if (isGui && vertexConsumers instanceof CanvasImmediate) {
 				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
-				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.GUI);
+				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
 				BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
-				context.guiMode(GuiMode.NONE);
+				context.guiMode(GuiMode.NORMAL);
 			} else {
 				BuiltinModelItemRenderer.INSTANCE.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
 			}
 		} else {
 			drawTranslucencyDirectToMainTarget = isGui || renderMode.isFirstPerson() || !isBlockItem;
 			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawTranslucencyDirectToMainTarget);
-			glintConsumer = getGlintConsumer(defaultRenderLayer);
 			defaultBlendMode = RenderLayerHelper.blendModeFromLayer(defaultRenderLayer);
 
 			if (((vertexConsumers instanceof CanvasImmediate))) {
@@ -214,41 +205,11 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		matrices.pop();
 	}
 
-	private VertexConsumer getGlintConsumer(RenderLayer layer) {
-		if (!itemStack.hasGlint()) {
-			return null;
-		}
-
-		if (itemStack.getItem() == Items.COMPASS) {
-			// WTAF MOJANG
-			final VertexConsumer result;
-			matrices.push();
-			final MatrixStack.Entry entry = matrices.peek();
-
-			if (renderMode == ModelTransformation.Mode.GUI) {
-				entry.getModel().multiply(0.5F);
-			} else if (renderMode.isFirstPerson()) {
-				entry.getModel().multiply(0.75F);
-			}
-
-			if (drawTranslucencyDirectToMainTarget) {
-				result = getDirectCompassGlintConsumer(vanillaProvider, layer, entry);
-			} else {
-				result = getCompassGlintConsumer(vanillaProvider, layer, entry);
-			}
-
-			matrices.pop();
-			return result;
-		} else if (drawTranslucencyDirectToMainTarget) {
-			return getDirectItemGlintConsumer(vanillaProvider, layer);
-		} else {
-			return getItemGlintConsumer(vanillaProvider, layer);
-		}
-	}
-
 	@Override
 	protected void adjustMaterial() {
 		final MaterialFinderImpl finder = this.finder;
+
+		finder.enableGlint(hasGlint);
 
 		BlendMode bm = finder.blendMode();
 
@@ -283,7 +244,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				// This makes it important that
 				//   1) geometry is the same
 				//   2) cutout is enabled for generated models so depth buffer isn't updated
-				// 1 is easily solved by renderin twice with same vertex data
+				// 1 is easily solved by rendering twice with same vertex data
 				// 2 has to be finessed because blend mode = TRANSLUCENT doesn't make it clear cutout is needed.
 				// The code below is an ugly hack - need a better way
 
@@ -337,27 +298,5 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		} else {
 			bufferQuadDirect(quad, this, collectors.get(quad.material()));
 		}
-
-		if (glintConsumer != null) {
-			bufferQuad(quad, this, glintConsumer);
-		}
-	}
-
-	// differ from vanilla in that aren't dual - just render quads twice
-	// PERF: avoid reallocation
-	private static VertexConsumer getCompassGlintConsumer(VertexConsumerProvider provider, RenderLayer layer, MatrixStack.Entry entry) {
-		return new OverlayVertexConsumer(provider.getBuffer(RenderLayer.getGlint()), entry.getModel(), entry.getNormal());
-	}
-
-	private static VertexConsumer getDirectCompassGlintConsumer(VertexConsumerProvider provider, RenderLayer layer, MatrixStack.Entry entry) {
-		return new OverlayVertexConsumer(provider.getBuffer(RenderLayer.getDirectGlint()), entry.getModel(), entry.getNormal());
-	}
-
-	private static VertexConsumer getItemGlintConsumer(VertexConsumerProvider vertexConsumers, RenderLayer layer) {
-		return MinecraftClient.isFabulousGraphicsOrBetter() && layer == TexturedRenderLayers.getItemEntityTranslucentCull() ? vertexConsumers.getBuffer(RenderLayer.method_30676()) : vertexConsumers.getBuffer(RenderLayer.getGlint());
-	}
-
-	private static VertexConsumer getDirectItemGlintConsumer(VertexConsumerProvider provider, RenderLayer layer) {
-		return provider.getBuffer(RenderLayer.getDirectGlint());
 	}
 }

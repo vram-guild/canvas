@@ -176,7 +176,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.Matrix4L;
 
 // Some elements are adapted from content found at

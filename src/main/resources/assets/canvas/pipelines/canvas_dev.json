@@ -1,0 +1,38 @@
+{
+	nameKey: "pipeline.canvas_dev.name",
+	descriptionKey: "pipeline.canvas_dev.desc",
+
+	materialProgram: {
+		vertexSource: "canvas:shaders/pipeline/dev.vert",
+		fragmentSource: "canvas:shaders/pipeline/dev.frag",
+		// glsl names for samplers additive to the FREX pre-defined samplers
+    samplers: [],
+    // image names for samplers additive to the FREX pre-defined samplers
+    samplerImages: []
+	},
+
+	sky: {
+		// Used when dimension/celestial object does not specify
+		defaultZenithAngle: 15
+	},
+
+	drawTargets: {
+		solidTerrain: "solid",
+		translucentTerrain: "translucent",
+		translucentEntity: "entity",
+		weather: "weather",
+		clouds: "clouds",
+		// TODO: segregate solid particles
+		translucentParticles: "particles"
+	},
+
+	include: [
+		"canvas:pipeline/base.json",
+		"canvas:pipeline/basic_light_config.json",
+		"canvas:pipeline/fog_config.json",
+		"canvas:pipeline/handheld_light_config.json",
+		"canvas:pipeline/skyshadow.json",
+		"canvas:pipeline/bloom.json",
+		"canvas:pipeline/fabulous.json"
+	]
+}

@@ -17,7 +17,7 @@
 package grondag.canvas.perf;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 import grondag.fermion.sc.concurrency.ConcurrentPerformanceCounter;
 
 public abstract class ChunkRebuildCounters {

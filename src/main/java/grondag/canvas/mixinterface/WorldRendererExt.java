@@ -80,7 +80,9 @@ public interface WorldRendererExt {
 
 	VertexFormat canvas_vertexFormat();
 
-	ShaderEffect canvas_transparencyShader();
-
 	void canvas_setEntityCounts(int regularEntityCount, int blockEntityCount);
+
+	void canvas_setWorldNoSideEffects(ClientWorld world);
+
+	void canvas_setupFabulousBuffers();
 }

@@ -32,10 +32,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
-import grondag.canvas.Configurator;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
 
@@ -165,13 +165,13 @@ public abstract class AoCalculator {
 			} else {
 				// currently can't handle these
 				irregularFace(quad);
-				quad.hdLight = null;
+				//quad.hdLight = null;
 			}
 
 			return;
 		}
 
-		quad.hdLight = null;
+		//quad.hdLight = null;
 
 		switch (flags) {
 			case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
@@ -195,7 +195,7 @@ public abstract class AoCalculator {
 	public void computeFlat(MutableQuadViewImpl quad) {
 		final int flags = quad.geometryFlags();
 
-		quad.hdLight = null;
+		//quad.hdLight = null;
 
 		switch (flags) {
 			case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
@@ -244,7 +244,7 @@ public abstract class AoCalculator {
 
 	private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
 		final int lightFace = quad.lightFaceId();
-		final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
+		//final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
 		final AoFace face = AoFace.get(lightFace);
 		final Vertex2Float uFunc = face.uFunc;
 		final Vertex2Float vFunc = face.vFunc;
@@ -254,7 +254,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.hdLight = LightmapHd.find(faceData);
+		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	private void flatFaceSmoothHd(MutableQuadViewImpl quad, int flatBrightness) {
@@ -270,7 +270,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.hdLight = LightmapHd.find(faceData);
+		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	/**
@@ -344,7 +344,7 @@ public abstract class AoCalculator {
 			quad.v[i] = vFunc.apply(quad, i);
 		}
 
-		quad.hdLight = LightmapHd.find(faceData);
+		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	private void irregularFace(MutableQuadViewImpl quad) {
@@ -354,7 +354,7 @@ public abstract class AoCalculator {
 		final float[] aoResult = quad.ao;
 
 		//TODO: currently no way to handle 3d interpolation shader-side
-		quad.hdLight = null;
+		//quad.hdLight = null;
 
 		for (int i = 0; i < 4; i++) {
 			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
@@ -372,7 +372,7 @@ public abstract class AoCalculator {
 				final float n = x * x;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
+				final int b = fd.weightedBlockLight(w);
 				ao += n * a;
 				sky += n * s;
 				block += n * b;
@@ -390,7 +390,7 @@ public abstract class AoCalculator {
 				final float n = y * y;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
+				final int b = fd.weightedBlockLight(w);
 				ao += n * a;
 				sky += n * s;
 				block += n * b;
@@ -408,7 +408,7 @@ public abstract class AoCalculator {
 				final float n = z * z;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
-				final int b = fd.weigtedBlockLight(w);
+				final int b = fd.weightedBlockLight(w);
 				ao += n * a;
 				sky += n * s;
 				block += n * b;
@@ -424,7 +424,7 @@ public abstract class AoCalculator {
 	}
 
 	private void irregularFaceFlat(MutableQuadViewImpl quad) {
-		// use center light - interpolatino too expensive given how often this happen for foliage, etc.
+		// use center light - interpolation too expensive given how often this happen for foliage, etc.
 		final int brightness = brightness(regionRelativeCacheIndex);
 		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
 		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));

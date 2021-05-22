@@ -49,10 +49,8 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
-import grondag.canvas.Configurator.AoMode;
-import grondag.canvas.Configurator.DiffuseMode;
-import grondag.canvas.Configurator.FogMode;
+import grondag.canvas.config.Configurator;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.MaterialInfoTexture;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.frex.api.config.ShaderConfig;
@@ -211,11 +209,11 @@ public class GlShader implements Shader {
 	}
 
 	protected String debugSourceString() {
-		return "-" + shaderSourceId.toString().replace("/", "-").replace(":", "-");
+		return shaderSourceId.getPath().toString().replace("/", "-").replace(":", "-");
 	}
 
 	private void outputDebugSource(String source, String error) {
-		final String fileName = programType.name + "-" + debugSourceString();
+		final String fileName = debugSourceString();
 		final Path path = shaderDebugPath();
 
 		File shaderDir = path.toFile();
@@ -267,44 +265,27 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
 			}
 
-			if (Configurator.fogMode != FogMode.VANILLA) {
-				result = StringUtils.replace(result, "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_VANILLA", "#define _CV_FOG_CONFIG _CV_FOG_CONFIG_SUBTLE");
+			if (Pipeline.skyShadowFbo == null) {
+				result = StringUtils.replace(result, "#define SHADOW_MAP_PRESENT", "//#define SHADOW_MAP_PRESENT");
+				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "//#define SHADOW_MAP_SIZE 1024");
+			} else {
+				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "#define SHADOW_MAP_SIZE " + Pipeline.skyShadowSize);
 			}
-
-			if (Configurator.enableBloom) {
-				result = StringUtils.replace(result, "#define TARGET_EMISSIVE -1", "#define TARGET_EMISSIVE 1");
-			}
-
-			result = StringUtils.replace(result, "#define HANDHELD_LIGHT_RADIUS 0", "#define HANDHELD_LIGHT_RADIUS " + Configurator.handheldLightRadius);
 
 			result = StringUtils.replace(result, "#define _CV_MATERIAL_INFO_TEXTURE_SIZE 0", "#define _CV_MATERIAL_INFO_TEXTURE_SIZE " + MaterialInfoTexture.INSTANCE.squareSizePixels());
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
 
-			if (Configurator.hdLightmaps()) {
-				result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
-
-				if (Configurator.lightmapNoise) {
-					result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
-				}
-			}
-
-			if (!MinecraftClient.isAmbientOcclusionEnabled()) {
-				// disable ao for particles or if disabled by player
-				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + AoMode.NONE.name());
-			} else if (Configurator.aoShadingMode != AoMode.NORMAL) {
-				result = StringUtils.replace(result, "#define AO_SHADING_MODE AO_MODE_NORMAL",
-					"#define AO_SHADING_MODE AO_MODE_" + Configurator.aoShadingMode.name());
-			}
-
-			if (Configurator.diffuseShadingMode != DiffuseMode.NORMAL) {
-				result = StringUtils.replace(result, "#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_NORMAL",
-					"#define DIFFUSE_SHADING_MODE DIFFUSE_MODE_" + Configurator.diffuseShadingMode.name());
-			}
+			//if (Configurator.hdLightmaps()) {
+			//	result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
+			//
+			//	if (Configurator.lightmapNoise) {
+			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
+			//	}
+			//}
 
 			if (!MinecraftClient.IS_SYSTEM_MAC) {
 				result = StringUtils.replace(result, "#version 120", "#version 130");
-				result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : require", "//#extension GL_EXT_gpu_shader4 : require");
+				//result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : require", "//#extension GL_EXT_gpu_shader4 : require");
 			}
 
 			source = result;
@@ -331,7 +312,8 @@ public class GlShader implements Shader {
 				return CharStreams.toString(reader);
 			}
 		} catch (final FileNotFoundException e) {
-			return ShaderConfig.getShaderConfigSupplier(shaderSourceId).get();
+			final String result = Pipeline.config().configSource(shaderSourceId);
+			return result == null ? ShaderConfig.getShaderConfigSupplier(shaderSourceId).get() : result;
 		} catch (final IOException e) {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + " due to exception.", e);
 			return "";

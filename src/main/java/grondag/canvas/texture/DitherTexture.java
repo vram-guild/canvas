@@ -16,19 +16,17 @@
 
 package grondag.canvas.texture;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL11;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 // adapted from http://www.anisopteragames.com/how-to-fix-color-banding-with-dithering/
-public class DitherTexture implements AutoCloseable {
+@SuppressWarnings("unused")
+class DitherTexture implements AutoCloseable {
 	private static DitherTexture instance;
 	private final NativeImageBackedTexture texture;
 	private final NativeImage image;
@@ -47,7 +45,7 @@ public class DitherTexture implements AutoCloseable {
 		image = texture.getImage();
 	}
 
-	public static DitherTexture instance() {
+	private static DitherTexture instance() {
 		DitherTexture result = instance;
 
 		if (result == null) {
@@ -64,28 +62,28 @@ public class DitherTexture implements AutoCloseable {
 	}
 
 	public void disable() {
-		if (!Configurator.lightmapNoise) {
-			return;
-		}
-
-		GlStateManager.activeTexture(TextureData.DITHER);
-		GlStateManager.disableTexture();
-		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+		//		if (!Configurator.lightmapNoise) {
+		//			return;
+		//		}
+		//
+		//		GlStateManager.activeTexture(TextureData.DITHER);
+		//		GlStateManager.disableTexture();
+		//		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public void enable() {
-		if (!Configurator.lightmapNoise) {
-			return;
-		}
-
-		GlStateManager.activeTexture(TextureData.DITHER);
-		client.getTextureManager().bindTexture(textureIdentifier);
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-		GlStateManager.enableTexture();
-		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
+		//		if (!Configurator.lightmapNoise) {
+		//			return;
+		//		}
+		//
+		//		GlStateManager.activeTexture(TextureData.DITHER);
+		//		client.getTextureManager().bindTexture(textureIdentifier);
+		//		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+		//		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
+		//		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
+		//		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+		//		GlStateManager.enableTexture();
+		//		GlStateManager.activeTexture(TextureData.MC_SPRITE_ATLAS);
 	}
 
 	public void initializeIfNeeded() {

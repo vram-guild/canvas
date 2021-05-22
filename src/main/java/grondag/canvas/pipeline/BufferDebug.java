@@ -16,60 +16,83 @@
 
 package grondag.canvas.pipeline;
 
-import com.google.common.util.concurrent.Runnables;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
-import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
+import grondag.canvas.pipeline.config.ImageConfig;
+import grondag.canvas.pipeline.config.PipelineConfig;
 
 public class BufferDebug {
-	private static ObjectArrayList<BufferDebug> DEBUGS = new ObjectArrayList<>();
+	private static final int NONE = 0;
+	private static final int SHIFT = 1;
+	private static final int ALT = 2;
+	private static final int MENU = 3;
+	private static final int CTL = 4;
 
-	static {
-		clear();
-	}
+	private static final String[] PREFIX = {"none: ", "shift: ", "alt: ", "menu: ", "ctl: "};
 
-	static void clear() {
-		DEBUGS.clear();
-		DEBUGS.add(NORMAL);
-	}
+	private static int[] VIEWS = new int[5];
 
-	static void add(Runnable render, String name) {
-		DEBUGS.add(new BufferDebug(DEBUGS.size(), render, name));
-	}
+	private static int viewCount;
+	private static int[] glIds;
+	private static int[] lods;
+	private static int[] layers;
+	private static String[] labels;
+	private static boolean[] isDepth;
+	private static boolean[] isArray;
 
-	static void add(Identifier mainImage, Identifier sneakImage, int lod, String name) {
-		final int mainId = Pipeline.getImage(mainImage).glId();
-		final int sneakId = Pipeline.getImage(sneakImage).glId();
-		final Runnable render = () -> CanvasFrameBufferHacks.renderDebug(mainId, sneakId, lod);
-		add(render, name);
-	}
+	private static int keyOption;
 
-	static BufferDebug NORMAL = new BufferDebug(0, Runnables.doNothing(), "NORMAL");
-	private static BufferDebug current = NORMAL;
+	private static boolean enabled = false;
 
-	private final Runnable task;
-	private final String name;
-	private final int index;
+	static void init(PipelineConfig config) {
+		int imageCount = 0;
 
-	private BufferDebug(int index, Runnable task, String name) {
-		this.index = index;
-		this.task = task;
-		this.name = name;
-	}
+		for (final ImageConfig img : config.images) {
+			imageCount += img.lod + 1 * img.depth;
+		}
 
-	public static BufferDebug current() {
-		return current;
-	}
+		glIds = new int[imageCount];
+		lods = new int[imageCount];
+		labels = new String[imageCount];
+		layers = new int[imageCount];
+		isDepth = new boolean[imageCount];
+		isArray = new boolean[imageCount];
 
-	public static void advance() {
-		current = DEBUGS.get((current.index + 1) % DEBUGS.size());
+		int i = 0;
+
+		for (final ImageConfig img : config.images) {
+			final int glId = Pipeline.getImage(img.name).glId();
+
+			for (int lod = 0; lod <= img.lod; ++lod) {
+				for (int layer = 0; layer < img.depth; ++layer) {
+					labels[i] = img.name + " lod=" + lod + " layer=" + layer;
+					glIds[i] = glId;
+					lods[i] = lod;
+					layers[i] = layer;
+					isDepth[i] = img.pixelFormat == GL46.GL_DEPTH_COMPONENT;
+					isArray[i] = img.target == GL46.GL_TEXTURE_2D_ARRAY;
+					++i;
+				}
+			}
+		}
+
+		if (viewCount != imageCount) {
+			viewCount = imageCount;
+			VIEWS[NONE] = 0;
+			VIEWS[SHIFT] = Math.min(1, imageCount - 1);
+			VIEWS[ALT] = Math.min(2, imageCount - 1);
+			VIEWS[CTL] = Math.min(3, imageCount - 1);
+			VIEWS[MENU] = Math.min(4, imageCount - 1);
+		}
 	}
 
 	/**
@@ -77,37 +100,63 @@ public class BufferDebug {
 	 */
 	@SuppressWarnings("resource")
 	public static void render() {
-		while (CanvasMod.VIEW_KEY.wasPressed()) {
-			final long handle = MinecraftClient.getInstance().getWindow().getHandle();
-
-			final int i = (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) ? -1 : 1;
-			final int count = DEBUGS.size();
-
-			current = DEBUGS.get((current.index + count + i) % count);
-
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Buffer Debug Mode: " + current.name), true);
+		while (CanvasMod.DEBUG_TOGGLE.wasPressed()) {
+			enabled = !enabled;
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Buffer Debug Mode Toggle: " + (enabled ? "ON" : "OFF")), true);
 		}
 
-		while (CanvasMod.DECREMENT_A.wasPressed()) {
-			Configurator.bloomIntensity = Math.max(0, Configurator.bloomIntensity - 0.01f);
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Bloom Intensity = " + Configurator.bloomIntensity), true);
+		if (!enabled) {
+			return;
 		}
 
-		while (CanvasMod.INCREMENT_A.wasPressed()) {
-			Configurator.bloomIntensity += 0.01f;
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Bloom Intensity = " + Configurator.bloomIntensity), true);
+		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
+
+		if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+			keyOption = SHIFT;
+		} else if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_ALT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_ALT)) {
+			keyOption = ALT;
+		} else if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_CONTROL) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_CONTROL)) {
+			keyOption = CTL;
+		} else if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SUPER) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SUPER)) {
+			keyOption = MENU;
+		} else {
+			keyOption = NONE;
 		}
 
-		while (CanvasMod.DECREMENT_B.wasPressed()) {
-			Configurator.bloomScale = Math.max(0, Configurator.bloomScale - 0.05f);
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Bloom Scale = " + Configurator.bloomScale), true);
+		while (CanvasMod.DEBUG_PREV.wasPressed()) {
+			VIEWS[keyOption] = (VIEWS[keyOption] + viewCount - 1) % viewCount;
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText(labels[VIEWS[keyOption]]), true);
 		}
 
-		while (CanvasMod.INCREMENT_B.wasPressed()) {
-			Configurator.bloomScale += 0.05f;
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Bloom Scale = " + Configurator.bloomScale), true);
+		while (CanvasMod.DEBUG_NEXT.wasPressed()) {
+			VIEWS[keyOption] = (VIEWS[keyOption] + viewCount + 1) % viewCount;
+			MinecraftClient.getInstance().player.sendMessage(new LiteralText(labels[VIEWS[keyOption]]), true);
 		}
 
-		current.task.run();
+		final int n = VIEWS[keyOption];
+		PipelineManager.renderDebug(glIds[n], lods[n], layers[n], isDepth[n], isArray[n]);
+	}
+
+	public static void renderOverlay(MatrixStack matrices, TextRenderer fontRenderer) {
+		if (!enabled) {
+			return;
+		}
+
+		for (int i = 0; i < 5; ++i) {
+			String string = PREFIX[i] + labels[VIEWS[i]];
+			int forecolor = 0xC0C0C0;
+			int backcolor = 0x60606060;
+
+			if (i == keyOption) {
+				forecolor = 0xFFFF80;
+				backcolor = 0xFF000000;
+				string += " (selected)";
+			}
+
+			final int k = fontRenderer.getWidth(string);
+			final int m = 100 + 12 * i;
+			DrawableHelper.fill(matrices, 20, m - 1, 22 + k + 1, m + 9, backcolor);
+			fontRenderer.draw(matrices, string, 21, m, forecolor);
+		}
 	}
 }

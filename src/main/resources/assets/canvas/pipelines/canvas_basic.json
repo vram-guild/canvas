@@ -1,0 +1,29 @@
+{
+	nameKey: "pipeline.canvas_basic.name",
+	descriptionKey: "pipeline.canvas_basic.desc",
+
+	materialProgram: {
+		vertexSource: "canvas:shaders/pipeline/standard.vert",
+		fragmentSource: "canvas:shaders/pipeline/standard.frag",
+		// glsl names for samplers additive to the FREX pre-defined samplers
+		samplers: [],
+		// image names for samplers additive to the FREX pre-defined samplers
+		samplerImages: []
+	},
+
+	drawTargets: {
+		solidTerrain: "default",
+		translucentTerrain: "default",
+		translucentEntity: "default",
+		weather: "default",
+		clouds: "default",
+		translucentParticles: "default"
+	},
+
+	include: [
+		"canvas:pipeline/base.json",
+		"canvas:pipeline/basic_light_config.json",
+		"canvas:pipeline/fog_config.json",
+		"canvas:pipeline/handheld_light_config.json"
+	]
+}

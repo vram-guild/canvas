@@ -27,8 +27,8 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.client.render.VertexFormatElement;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.Configurator;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.CanvasGlHelper;
 
 public class VboBuffer {

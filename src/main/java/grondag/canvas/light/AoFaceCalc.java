@@ -124,7 +124,7 @@ public class AoFaceCalc {
 		skyTopRight = (l >>> 16) & 0xFFFF;
 	}
 
-	int weigtedBlockLight(float[] w) {
+	int weightedBlockLight(float[] w) {
 		return (int) (blockBottomRight * w[0] + blockBottomLeft * w[1] + blockTopLeft * w[2] + blockTopRight * w[3]) & 0xFF;
 	}
 
@@ -145,7 +145,7 @@ public class AoFaceCalc {
 	}
 
 	int weightedCombinedLight(float[] w) {
-		return weigtedSkyLight(w) << 16 | weigtedBlockLight(w);
+		return weigtedSkyLight(w) << 16 | weightedBlockLight(w);
 	}
 
 	float weigtedAo(float[] w) {

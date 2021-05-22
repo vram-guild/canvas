@@ -19,7 +19,7 @@ package grondag.canvas.terrain.occlusion;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.Configurator;
+import grondag.canvas.config.Configurator;
 
 public class Constants {
 	public static final int UP = 1 << Direction.UP.getId();
@@ -263,7 +263,7 @@ public class Constants {
 	static final int EVENTS_LENGTH = PIXEL_HEIGHT * 2;
 	static final int IDX_VERTEX_DATA = IDX_EVENTS + EVENTS_LENGTH;
 
-	// Boumds of current triangle - pixel coordinates
+	// Bounds of current triangle - pixel coordinates
 	static final int IDX_MIN_PIX_X = IDX_VERTEX_DATA + VERTEX_DATA_LENGTH;
 	static final int IDX_MIN_PIX_Y = IDX_MIN_PIX_X + 1;
 	static final int IDX_MAX_PIX_X = IDX_MIN_PIX_Y + 1;
