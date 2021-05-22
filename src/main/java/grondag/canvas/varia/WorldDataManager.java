@@ -383,7 +383,7 @@ public class WorldDataManager {
 				factor = (13000 - tickTime) / 1000f;
 			} else if (tickTime < 14000) {
 				// rising moon
-				factor = (14000 - tickTime) / 1000f;
+				factor = (tickTime - 13000) / 1000f;
 				result = true;
 			} else {
 				result = true;
