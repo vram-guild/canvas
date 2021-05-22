@@ -159,27 +159,27 @@ public class TerrainFrustum extends CanvasFrustum {
 	}
 
 	@SuppressWarnings("resource")
-	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera) {
+	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, boolean nearOccludersPresent) {
 		final Vec3d vec = camera.getPos();
 		final double x = vec.x;
 		final double y = vec.y;
 		final double z = vec.z;
 
 		final long cameraBlockPos = camera.getBlockPos().asLong();
-		boolean movedOneBlock = false;
+		boolean movedEnoughToInvalidateOcclusion = false;
 
 		if (cameraBlockPos != lastCameraBlockPos) {
 			lastCameraBlockPos = cameraBlockPos;
-			movedOneBlock = true;
+			movedEnoughToInvalidateOcclusion = true;
 		} else {
-			// could move 1.0 or more diagonally within same block pos
+			// if no near occluders, assume can move 1.0 or more diagonally within same block pos
 			final double dx = x - lastPositionX;
 			final double dy = y - lastPositionY;
 			final double dz = z - lastPositionZ;
-			movedOneBlock = dx * dx + dy * dy + dz * dz >= 1.0D;
+			movedEnoughToInvalidateOcclusion = dx * dx + dy * dy + dz * dz >= (nearOccludersPresent ? 0.01D : 1.0D);
 		}
 
-		if (movedOneBlock) {
+		if (movedEnoughToInvalidateOcclusion) {
 			++positionVersion;
 			lastPositionX = x;
 			lastPositionY = y;
@@ -201,7 +201,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			modelMatrixUpdate = dPitch * dPitch + dYaw * dYaw >= paddingFov * paddingFov;
 		}
 
-		if (movedOneBlock || modelMatrixUpdate || !projectionMatrixExt.matches(occlusionProjMat)) {
+		if (movedEnoughToInvalidateOcclusion || modelMatrixUpdate || !projectionMatrixExt.matches(occlusionProjMat)) {
 			++viewVersion;
 
 			lastViewX = x;

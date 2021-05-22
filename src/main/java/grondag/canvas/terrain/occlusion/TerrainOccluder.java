@@ -53,6 +53,9 @@ import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.varia.Matrix4L;
 
 public class TerrainOccluder {
+	/** How close face must be to trigger aggressive refresh of occlusion. */
+	private static final int NEAR_RANGE = 8 << CAMERA_PRECISION_BITS;
+
 	private final Matrix4L baseMvpMatrix = new Matrix4L();
 
 	private final Rasterizer raster = new Rasterizer();
@@ -62,6 +65,8 @@ public class TerrainOccluder {
 	private long viewX;
 	private long viewY;
 	private long viewZ;
+	// Add these to region-relative box coordinates to get camera-relative coordinates
+	// They are in camera fixed precision.
 	private int offsetX;
 	private int offsetY;
 	private int offsetZ;
@@ -72,6 +77,7 @@ public class TerrainOccluder {
 	private volatile boolean forceRedraw = false;
 	private boolean needsRedraw = false;
 	private int maxSquaredChunkDistance;
+	private boolean hasNearOccluders = false;
 
 	public final TerrainFrustum frustum = new TerrainFrustum();
 
@@ -772,6 +778,7 @@ public class TerrainOccluder {
 			System.arraycopy(EMPTY_BITS, 0, raster.tiles, 0, TILE_COUNT);
 			forceRedraw = false;
 			needsRedraw = true;
+			hasNearOccluders = false;
 			maxSquaredChunkDistance = 0;
 			++occluderVersion;
 		} else {
@@ -779,6 +786,14 @@ public class TerrainOccluder {
 		}
 
 		return needsRedraw;
+	}
+
+	/**
+	 * True if occlusion includes geometry within the near region.
+	 * When true, simple movement distance test isn't sufficient for knowing if redraw is needed.
+	*/
+	public boolean hasNearOccluders() {
+		return hasNearOccluders;
 	}
 
 	public boolean needsRedraw() {
@@ -848,24 +863,56 @@ public class TerrainOccluder {
 
 		int outcome = 0;
 
-		// if camera below top face can't be seen
-		if (offsetY < -(y1 << CAMERA_PRECISION_BITS)) {
+		boolean hasNear = true;
+
+		final int top = (y1 << CAMERA_PRECISION_BITS) + offsetY;
+
+		// NB: entirely possible for neither top or bottom to be visible.
+		// This happens when camera is between them.
+
+		if (top < 0) {
+			// camera above top face
 			outcome |= UP;
-		} else if (offsetY > -(y0 << CAMERA_PRECISION_BITS)) {
-			outcome |= DOWN;
+			hasNear &= top > -NEAR_RANGE;
+		} else {
+			final int bottom = (y0 << CAMERA_PRECISION_BITS) + offsetY;
+
+			if (bottom > 0) {
+				// camera below bottom face
+				outcome |= DOWN;
+				hasNear &= bottom < NEAR_RANGE;
+			}
 		}
 
-		if (offsetX < -(x1 << CAMERA_PRECISION_BITS)) {
+		final int east = (x1 << CAMERA_PRECISION_BITS) + offsetX;
+
+		if (east < 0) {
 			outcome |= EAST;
-		} else if (offsetX > -(x0 << CAMERA_PRECISION_BITS)) {
-			outcome |= WEST;
+			hasNear &= east > -NEAR_RANGE;
+		} else {
+			final int west = (x0 << CAMERA_PRECISION_BITS) + offsetX;
+
+			if (west > 0) {
+				outcome |= WEST;
+				hasNear &= west < NEAR_RANGE;
+			}
 		}
 
-		if (offsetZ < -(z1 << CAMERA_PRECISION_BITS)) {
+		final int south = (z1 << CAMERA_PRECISION_BITS) + offsetZ;
+
+		if (south < 0) {
 			outcome |= SOUTH;
-		} else if (offsetZ > -(z0 << CAMERA_PRECISION_BITS)) {
-			outcome |= NORTH;
+			hasNear &= south > -NEAR_RANGE;
+		} else {
+			final int north = (z0 << CAMERA_PRECISION_BITS) + offsetZ;
+
+			if (north > 0) {
+				outcome |= NORTH;
+				hasNear &= north < NEAR_RANGE;
+			}
 		}
+
+		hasNearOccluders |= hasNear;
 
 		boxDraws[outcome].apply(x0, y0, z0, x1, y1, z1);
 	}

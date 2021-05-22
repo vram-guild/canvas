@@ -1194,7 +1194,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// the GL state to the view matrix but it will have no effect - it is already applied.
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
-		terrainFrustum.prepare(viewMatrix, tickDelta, camera);
+		terrainFrustum.prepare(viewMatrix, tickDelta, camera, terrainOccluder.hasNearOccluders());
 		particleRenderer.frustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		WorldDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
