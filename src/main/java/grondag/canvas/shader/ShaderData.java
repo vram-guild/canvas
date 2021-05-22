@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.FlagData;
 import grondag.canvas.varia.MatrixState;
@@ -57,10 +58,19 @@ public class ShaderData {
 		program.uniformSampler("sampler2D", "_cvu_spriteInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SPRITE_INFO - GL21.GL_TEXTURE0));
 
 		program.uniformSampler("sampler2D", "_cvu_materialInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MATERIAL_INFO - GL21.GL_TEXTURE0));
+
+		for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
+			final int texId = i;
+			final String samplerName = Pipeline.config().materialProgram.samplerNames[i];
+			final String samplerType = SamplerTypeHelper.getSamplerType(program, samplerName);
+			program.uniformSampler(samplerType, samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.PROGRAM_SAMPLERS - GL21.GL_TEXTURE0 + texId));
+		}
 	};
 
 	public static final Consumer<GlProgram> COMMON_UNIFORM_SETUP = program -> {
 		program.uniformArray4f("_cvu_world", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(WorldDataManager.DATA), WorldDataManager.VECTOR_COUNT);
+
+		program.uniformArrayui("_cvu_world_uint", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(WorldDataManager.UINT_DATA), WorldDataManager.UINT_COUNT);
 
 		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(FlagData.DATA), FlagData.LENGTH);
 

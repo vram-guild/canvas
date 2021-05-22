@@ -20,22 +20,16 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL46;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.util.Identifier;
-
-import grondag.canvas.pipeline.Image;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.pipeline.ProgramTextureData;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.ProcessShader;
 
 class ProgramPass extends Pass {
-	final int[] binds;
-	final int[] bindTargets;
+	final ProgramTextureData textures;
 
 	ProcessShader shader;
 
@@ -43,34 +37,7 @@ class ProgramPass extends Pass {
 		super(config);
 
 		shader = Pipeline.getShader(config.program.name);
-
-		binds = new int[config.samplerImages.length];
-		bindTargets = new int[config.samplerImages.length];
-
-		for (int i = 0; i < config.samplerImages.length; ++i) {
-			final String imageName = config.samplerImages[i].name;
-
-			int imageBind = 0;
-			int bindTarget = GL46.GL_TEXTURE_2D;
-
-			if (imageName.contains(":")) {
-				final AbstractTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(imageName));
-
-				if (tex != null) {
-					imageBind = tex.getGlId();
-				}
-			} else {
-				final Image img = Pipeline.getImage(imageName);
-
-				if (img != null) {
-					imageBind = img.glId();
-					bindTarget = img.config.target;
-				}
-			}
-
-			binds[i] = imageBind;
-			bindTargets[i] = bindTarget;
-		}
+		textures = new ProgramTextureData(config.samplerImages);
 	}
 
 	@Override
@@ -91,11 +58,11 @@ class ProgramPass extends Pass {
 		PipelineManager.setProjection(width, height);
 		RenderSystem.viewport(0, 0, width, height);
 
-		final int slimit = binds.length;
+		final int slimit = textures.texIds.length;
 
 		for (int i = 0; i < slimit; ++i) {
 			CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0 + i);
-			CanvasTextureState.bindTexture(bindTargets[i], binds[i]);
+			CanvasTextureState.bindTexture(textures.texTargets[i], textures.texIds[i]);
 		}
 
 		shader.activate().lod(config.lod).size(width, height);
