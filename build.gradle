@@ -174,7 +174,7 @@ githubRelease {
 
 	body changelog()
 
-	tagName project.version + "-unstable"
+	tagName project.mc_tag + "-" + grgit.branch.current().name + "-" + project.version + "-unstable"
 	targetCommitish { org.ajoberstar.grgit.Grgit.open(dir: ".").branch.current().name }
 	releaseName project.version + " Unstable"
 	prerelease true

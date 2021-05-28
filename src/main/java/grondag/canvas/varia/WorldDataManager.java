@@ -17,6 +17,7 @@
 package grondag.canvas.varia;
 
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.BufferUtils;
@@ -125,9 +126,12 @@ public class WorldDataManager {
 	static final int SHADOW_CENTER = 4 * 15;
 
 	private static final int VEC_RENDER_INFO = 4 * 19;
-	private static final int RENDER_FRAMES = VEC_RENDER_INFO;
-	private static final int FOG_START = VEC_RENDER_INFO + 1;
-	private static final int FOG_END = VEC_RENDER_INFO + 2;
+	private static final int FOG_START = VEC_RENDER_INFO;
+	private static final int FOG_END = VEC_RENDER_INFO + 1;
+
+	public static final int UINT_COUNT = 1;
+	private static final int RENDER_FRAMES = 0;
+	public static final IntBuffer UINT_DATA = BufferUtils.createIntBuffer(UINT_COUNT);
 
 	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
 	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
@@ -382,7 +386,7 @@ public class WorldDataManager {
 				factor = (13000 - tickTime) / 1000f;
 			} else if (tickTime < 14000) {
 				// rising moon
-				factor = (14000 - tickTime) / 1000f;
+				factor = (tickTime - 13000) / 1000f;
 				result = true;
 			} else {
 				result = true;
@@ -611,7 +615,7 @@ public class WorldDataManager {
 		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
 		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
 
-		DATA.put(RENDER_FRAMES, renderFrames++);
+		UINT_DATA.put(RENDER_FRAMES, renderFrames++);
 	}
 
 	/** Called when values are known to be good because vanilla resets them outside of world rendering. */
