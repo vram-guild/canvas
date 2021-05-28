@@ -16,52 +16,52 @@
 
 package grondag.canvas.buffer.encoding;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.MemoryUtil;
 
-import grondag.canvas.buffer.TransferBufferAllocator;
+import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.varia.GFX;
 
 public class DrawableBuffer implements AutoCloseable {
-	@Nullable private ByteBuffer buffer;
+	@Nullable private VboBuffer buffer;
 	private final int limit;
 	private final int[] counts;
 	private final RenderState[] states;
 
-	public DrawableBuffer(ObjectArrayList<VertexCollectorImpl> drawList) {
+	public DrawableBuffer(ObjectArrayList<ArrayVertexCollector> drawList) {
 		limit = drawList.size();
 
 		int bytes = 0;
 
 		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = drawList.get(i);
+			final ArrayVertexCollector collector = drawList.get(i);
 			collector.sortIfNeeded();
 			bytes += collector.byteSize();
 		}
 
 		// PERF: trial memory mapped here
-		buffer = TransferBufferAllocator.claim(bytes);
-		final IntBuffer intBuffer = buffer.asIntBuffer();
+		buffer = new VboBuffer(bytes, CanvasVertexFormats.MATERIAL_FORMAT);
+		final IntBuffer intBuffer = buffer.intBuffer();
 		counts = new int[limit];
 		states = new RenderState[limit];
 
 		intBuffer.position(0);
 
 		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = drawList.get(i);
+			final ArrayVertexCollector collector = drawList.get(i);
 			collector.toBuffer(intBuffer);
 			counts[i] = collector.vertexCount();
-			states[i] = collector.materialState.renderState;
+			states[i] = collector.renderState;
 			collector.clear();
 		}
 
 		drawList.clear();
+		buffer.upload();
 	}
 
 	private DrawableBuffer() {
@@ -73,7 +73,7 @@ public class DrawableBuffer implements AutoCloseable {
 
 	public void draw(boolean isShadow) {
 		if (buffer != null) {
-			CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
+			buffer.bind();
 			int startIndex = 0;
 
 			for (int i = 0; i < limit; ++i) {
@@ -82,20 +82,25 @@ public class DrawableBuffer implements AutoCloseable {
 
 				if (state.castShadows || !isShadow) {
 					state.enable();
-					GlStateManager.drawArrays(state.primitive, startIndex, vertexCount);
+					final int elementCount = vertexCount / 4 * 6;
+					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(state.primitive, elementCount);
+					GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
+					final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
+					GFX.drawElementsBaseVertex(state.primitive.mode, elementCount, elementType, 0L, startIndex);
 				}
 
 				startIndex += vertexCount;
 			}
 
 			RenderState.disable();
+			GFX.bindVertexArray(0);
 		}
 	}
 
 	@Override
 	public void close() {
 		if (buffer != null) {
-			TransferBufferAllocator.release(buffer);
+			buffer.close();
 			buffer = null;
 		}
 	}

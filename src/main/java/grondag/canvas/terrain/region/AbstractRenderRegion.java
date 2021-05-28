@@ -33,7 +33,8 @@ abstract class AbstractRenderRegion {
 	protected int originY;
 	protected int originZ;
 	protected int chunkBaseX;
-	protected int chunkBaseY;
+	/** Section index of region below this one, -1 if this is the bottom-most region in a chunk. */
+	protected int baseSectionIndex;
 	protected int chunkBaseZ;
 	protected World world;
 
@@ -50,11 +51,14 @@ abstract class AbstractRenderRegion {
 	}
 
 	protected ChunkSection getSection(int x, int y, int z) {
-		if ((y == 0 && chunkBaseY < 0) || (y == 2 && chunkBaseY > 13)) {
+		final int index = y + baseSectionIndex;
+
+		if (index < 0) {
 			return null;
 		}
 
-		return chunks[x | (z << 2)].getSectionArray()[chunkBaseY + y];
+		final ChunkSection[] sections = chunks[x | (z << 2)].getSectionArray();
+		return index >= sections.length ? null : sections[index];
 	}
 
 	protected WorldChunk getChunk(int cx, int cz) {

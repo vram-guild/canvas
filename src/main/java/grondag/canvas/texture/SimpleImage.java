@@ -19,15 +19,14 @@ package grondag.canvas.texture;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.util.Untracker;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+
+import grondag.canvas.varia.GFX;
 
 /**
  * Leaner adaptation of Minecraft NativeImage suitable for our needs.
@@ -38,7 +37,7 @@ public final class SimpleImage implements AutoCloseable {
 	public final int height;
 	public final int bytesPerPixel;
 	public final int pixelDataFormat;
-	public final int pixelDataType = GL11.GL_UNSIGNED_BYTE;
+	public final int pixelDataType = GFX.GL_UNSIGNED_BYTE;
 	private final int sizeBytes;
 	private long pointer;
 	private ByteBuffer byteBuffer;
@@ -62,18 +61,18 @@ public final class SimpleImage implements AutoCloseable {
 	}
 
 	private static void setTextureClamp(boolean clamp) {
-		final int wrap = clamp ? GL11.GL_CLAMP : GL11.GL_REPEAT;
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, wrap);
-		GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, wrap);
+		final int wrap = clamp ? GFX.GL_CLAMP_TO_EDGE : GFX.GL_REPEAT;
+		GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_S, wrap);
+		GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_WRAP_T, wrap);
 	}
 
 	private static void setTextureFilter(boolean interpolate, boolean mipmap) {
 		if (interpolate) {
-			GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mipmap ? GL11.GL_LINEAR_MIPMAP_LINEAR : GL11.GL_LINEAR);
-			GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_FILTER, mipmap ? GFX.GL_LINEAR_MIPMAP_LINEAR : GFX.GL_LINEAR);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_LINEAR);
 		} else {
-			GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, mipmap ? GL11.GL_NEAREST_MIPMAP_LINEAR : GL11.GL_NEAREST);
-			GlStateManager.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MIN_FILTER, mipmap ? GFX.GL_NEAREST_MIPMAP_LINEAR : GFX.GL_NEAREST);
+			GFX.texParameter(GFX.GL_TEXTURE_2D, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_NEAREST);
 		}
 	}
 
@@ -138,17 +137,17 @@ public final class SimpleImage implements AutoCloseable {
 		assert pointer != 0L : "Image not allocated.";
 		setTextureFilter(interpolate, mipmap);
 		setTextureClamp(clamp);
-		GlStateManager.pixelStore(GL21.GL_UNPACK_ALIGNMENT, bytesPerPixel);
-		GlStateManager.pixelStore(GL21.GL_UNPACK_ROW_LENGTH, this.width);
-		GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_PIXELS, skipPixels);
-		GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_ROWS, skipRows);
-		GlStateManager.texSubImage2D(GL11.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, pixelDataType, pointer);
+		GFX.pixelStore(GFX.GL_UNPACK_ALIGNMENT, bytesPerPixel);
+		GFX.pixelStore(GFX.GL_UNPACK_ROW_LENGTH, this.width);
+		GFX.pixelStore(GFX.GL_UNPACK_SKIP_PIXELS, skipPixels);
+		GFX.pixelStore(GFX.GL_UNPACK_SKIP_ROWS, skipRows);
+		GFX.texSubImage2D(GFX.GL_TEXTURE_2D, lod, x, y, width, height, pixelDataFormat, pixelDataType, pointer);
 
 		// reset defaults to avoid leaking unexpected / unhandled state
-		GlStateManager.pixelStore(GL21.GL_UNPACK_ALIGNMENT, 4);
-		GlStateManager.pixelStore(GL21.GL_UNPACK_ROW_LENGTH, 0);
-		GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_PIXELS, 0);
-		GlStateManager.pixelStore(GL21.GL_UNPACK_SKIP_ROWS, 0);
+		GFX.pixelStore(GFX.GL_UNPACK_ALIGNMENT, 4);
+		GFX.pixelStore(GFX.GL_UNPACK_ROW_LENGTH, 0);
+		GFX.pixelStore(GFX.GL_UNPACK_SKIP_PIXELS, 0);
+		GFX.pixelStore(GFX.GL_UNPACK_SKIP_ROWS, 0);
 	}
 
 	public void untrack() {

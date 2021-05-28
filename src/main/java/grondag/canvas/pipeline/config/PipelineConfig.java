@@ -27,11 +27,10 @@ import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class PipelineConfig {
-	// WIP: add to config options
-	public boolean smoothBrightnessBidirectionaly = false;
-	public int brightnessSmoothingFrames = 20;
-	public int rainSmoothingFrames = 500;
-	public boolean runVanillaClear = true;
+	public final boolean smoothBrightnessBidirectionaly;
+	public final int brightnessSmoothingFrames;
+	public final int rainSmoothingFrames;
+	public final boolean runVanillaClear;
 
 	public final ConfigContext context;
 	public final ImageConfig[] images;
@@ -55,6 +54,11 @@ public class PipelineConfig {
 	private final Object2ObjectOpenHashMap<Identifier, OptionConfig> optionMap = new Object2ObjectOpenHashMap<>();
 
 	private PipelineConfig() {
+		smoothBrightnessBidirectionaly = false;
+		brightnessSmoothingFrames = 20;
+		rainSmoothingFrames = 500;
+		runVanillaClear = true;
+
 		context = new ConfigContext();
 		programs = new ProgramConfig[0];
 		onWorldStart = new PassConfig[0];
@@ -73,6 +77,11 @@ public class PipelineConfig {
 
 	PipelineConfig (PipelineConfigBuilder builder) {
 		context = builder.context;
+
+		smoothBrightnessBidirectionaly = builder.smoothBrightnessBidirectionaly;
+		brightnessSmoothingFrames = builder.brightnessSmoothingFrames;
+		rainSmoothingFrames = builder.rainSmoothingFrames;
+		runVanillaClear = builder.runVanillaClear;
 
 		materialProgram = builder.materialProgram;
 		defaultFramebuffer = builder.defaultFramebuffer;

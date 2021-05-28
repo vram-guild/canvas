@@ -21,6 +21,12 @@ import java.util.function.Predicate;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import net.minecraft.client.render.VertexConsumer;
+
+import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.terrain.render.UploadableChunk;
@@ -29,43 +35,75 @@ import grondag.canvas.terrain.render.UploadableChunk;
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
  */
 public class VertexCollectorList {
-	private final ObjectArrayList<VertexCollectorImpl> pool = new ObjectArrayList<>();
-	private final VertexCollectorImpl[] collectors = new VertexCollectorImpl[RenderState.MAX_COUNT];
-	private final ObjectArrayList<VertexCollectorImpl> drawList = new ObjectArrayList<>();
+	private final ObjectArrayList<ArrayVertexCollector> active = new ObjectArrayList<>();
+	private final ArrayVertexCollector[] collectors = new ArrayVertexCollector[RenderState.MAX_COUNT];
+	private final ObjectArrayList<ArrayVertexCollector> drawList = new ObjectArrayList<>();
 
 	/**
-	 * Clears all vertex collectors.
+	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
+	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
 	 */
-	public void clear() {
-		final int limit = pool.size();
+	public class Consumer extends MutableQuadViewImpl {
+		{
+			data = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
+			material(Canvas.MATERIAL_STANDARD);
+		}
 
-		for (int i = 0; i < limit; i++) {
-			pool.get(i).clear();
+		@Override
+		public Consumer emit() {
+			final RenderMaterialImpl mat = material();
+
+			if (mat.condition.compute()) {
+				complete();
+				CanvasVertexFormats.MATERIAL_ENCODER.encode(this, get(mat));
+			}
+
+			clear();
+			return this;
+		}
+
+		public VertexConsumer prepare(RenderMaterialImpl mat) {
+			defaultMaterial(mat);
+			clear();
+			return this;
 		}
 	}
 
-	public final VertexCollectorImpl getIfExists(RenderMaterialImpl materialState) {
+	public final Consumer consumer = new Consumer();
+
+	/**
+	 * Clears all storage arrays.
+	 */
+	public void clear() {
+		final int limit = active.size();
+
+		for (int i = 0; i < limit; i++) {
+			active.get(i).clear();
+		}
+	}
+
+	public final ArrayVertexCollector getIfExists(RenderMaterialImpl materialState) {
 		return materialState == RenderMaterialImpl.MISSING ? null : collectors[materialState.collectorIndex];
 	}
 
-	public final VertexCollectorImpl get(RenderMaterialImpl materialState) {
+	public final ArrayVertexCollector get(RenderMaterialImpl materialState) {
 		if (materialState == RenderMaterialImpl.MISSING) {
 			return null;
 		}
 
 		final int index = materialState.collectorIndex;
-		final VertexCollectorImpl[] collectors = this.collectors;
+		final ArrayVertexCollector[] collectors = this.collectors;
 
-		VertexCollectorImpl result = null;
+		ArrayVertexCollector result = null;
 
 		if (index < collectors.length) {
 			result = collectors[index];
 		}
 
 		if (result == null) {
-			result = new VertexCollectorImpl().prepare(materialState);
+			result = new ArrayVertexCollector(materialState.renderState);
 			collectors[index] = result;
-			pool.add(result);
+			active.add(result);
 		}
 
 		return result;
@@ -76,41 +114,23 @@ public class VertexCollectorList {
 		return index < collectors.length && collectors[index] != null;
 	}
 
-	//	public int totalBytes() {
-	//		final int size = this.size;
-	//		final ObjectArrayList<WipVertexCollectorImpl> pool = this.pool;
-	//
-	//		int intSize = 0;
-	//
-	//		for (int i = 0; i < size; i++) {
-	//			intSize += pool.get(i).integerSize();
-	//		}
-	//
-	//		return intSize * 4;
-	//	}
-
-	//	public UploadableChunk toUploadableChunk(EncodingContext context, boolean isTranslucent) {
-	//		final int bytes = totalBytes(isTranslucent);
-	//		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, MaterialVertexFormats.get(context, isTranslucent), isTranslucent, bytes);
-	//	}
-
 	public int size() {
-		return pool.size();
+		return active.size();
 	}
 
-	public VertexCollectorImpl get(int index) {
-		return pool.get(index);
+	public ArrayVertexCollector get(int index) {
+		return active.get(index);
 	}
 
 	public int totalBytes(boolean sorted) {
-		final int limit = pool.size();
-		final ObjectArrayList<VertexCollectorImpl> pool = this.pool;
+		final int limit = active.size();
+		final ObjectArrayList<ArrayVertexCollector> active = this.active;
 		int intSize = 0;
 
 		for (int i = 0; i < limit; i++) {
-			final VertexCollectorImpl collector = pool.get(i);
+			final ArrayVertexCollector collector = active.get(i);
 
-			if (!collector.isEmpty() && collector.materialState.sorted == sorted) {
+			if (!collector.isEmpty() && collector.renderState.sorted == sorted) {
 				intSize += collector.integerSize();
 			}
 		}
@@ -127,17 +147,17 @@ public class VertexCollectorList {
 	 * Gives populated collectors in the order they should be drawn.
 	 * DO NOT RETAIN A REFERENCE
 	 */
-	public ObjectArrayList<VertexCollectorImpl> sortedDrawList(Predicate<RenderMaterialImpl> predicate) {
-		final ObjectArrayList<VertexCollectorImpl> drawList = this.drawList;
+	public ObjectArrayList<ArrayVertexCollector> sortedDrawList(Predicate<RenderState> predicate) {
+		final ObjectArrayList<ArrayVertexCollector> drawList = this.drawList;
 		drawList.clear();
 
 		final int limit = size();
 
 		if (limit != 0) {
 			for (int i = 0; i < limit; ++i) {
-				final VertexCollectorImpl collector = get(i);
+				final ArrayVertexCollector collector = get(i);
 
-				if (!collector.isEmpty() && predicate.test(collector.materialState)) {
+				if (!collector.isEmpty() && predicate.test(collector.renderState)) {
 					drawList.add(collector);
 				}
 			}
@@ -150,8 +170,8 @@ public class VertexCollectorList {
 		return drawList;
 	}
 
-	private static final Comparator<VertexCollectorImpl> DRAW_SORT = (a, b) -> {
+	private static final Comparator<ArrayVertexCollector> DRAW_SORT = (a, b) -> {
 		// note reverse argument order - higher priority wins
-		return Long.compare(b.materialState.drawPriority, a.materialState.drawPriority);
+		return Long.compare(b.renderState.drawPriority, a.renderState.drawPriority);
 	};
 }

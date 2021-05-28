@@ -154,4 +154,31 @@ public abstract class MeshEncodingHelper {
 	public static int geometryFlags(int bits, int geometryFlags) {
 		return (bits & GEOMETRY_INVERSE_MASK) | ((geometryFlags & GEOMETRY_MASK) << GEOMETRY_SHIFT);
 	}
+
+	static int packNormalizedUV(float u, float v) {
+		return Math.round(u * MeshEncodingHelper.UV_UNIT_VALUE) | (Math.round(v * MeshEncodingHelper.UV_UNIT_VALUE) << 16);
+	}
+
+	static int packColor(int red, int green, int blue, int alpha) {
+		return red | (green << 8) | (blue << 16) | (alpha << 24);
+	}
+
+	static int packColor(float red, float green, float blue, float alpha) {
+		return packColor((int) (red * 255.0F), (int) (green * 255.0F), (int) (blue * 255.0F), (int) (alpha * 255.0F));
+	}
+
+	static int packColorFromFloats(float red, float green, float blue, float alpha) {
+		return packColorFromBytes((int) (red * 255.0F), (int) (green * 255.0F), (int) (blue * 255.0F), (int) (alpha * 255.0F));
+	}
+
+	static int packColorFromBytes(int red, int green, int blue, int alpha) {
+		return red | (green << 8) | (blue << 16) | (alpha << 24);
+	}
+
+	public static final int FULL_BRIGHTNESS = 0xF000F0;
+
+	public static final int NORMALIZED_U0_V0 = packNormalizedUV(0, 0);
+	public static final int NORMALIZED_U0_V1 = packNormalizedUV(0, 1);
+	public static final int NORMALIZED_U1_V0 = packNormalizedUV(1, 0);
+	public static final int NORMALIZED_U1_V1 = packNormalizedUV(1, 1);
 }

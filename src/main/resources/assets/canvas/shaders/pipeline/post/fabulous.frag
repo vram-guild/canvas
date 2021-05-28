@@ -19,7 +19,8 @@ uniform sampler2D weatherDepth;
 uniform sampler2D cloudsColor;
 uniform sampler2D cloudsDepth;
 
-varying vec2 _cvv_texcoord;
+in vec2 _cvv_texcoord;
+out vec4 fragColor;
 
 #define NUM_LAYERS 6
 
@@ -56,15 +57,15 @@ vec3 blend(vec3 dst, vec4 src) {
 }
 
 void main() {
-    color_layers[0] = vec4(texture2D(diffuseColor, _cvv_texcoord).rgb, 1.0);
-    depth_layers[0] = texture2D(diffuseDepth, _cvv_texcoord).r;
+    color_layers[0] = vec4(texture(diffuseColor, _cvv_texcoord).rgb, 1.0);
+    depth_layers[0] = texture(diffuseDepth, _cvv_texcoord).r;
     active_layers = 1;
 
-    try_insert(texture2D(translucentColor, _cvv_texcoord), texture2D(translucentDepth, _cvv_texcoord).r);
-    try_insert(texture2D(entityColor, _cvv_texcoord), texture2D(entityDepth, _cvv_texcoord).r);
-    try_insert(texture2D(particleColor, _cvv_texcoord), texture2D(particleDepth, _cvv_texcoord).r);
-    try_insert(texture2D(weatherColor, _cvv_texcoord), texture2D(weatherDepth, _cvv_texcoord).r);
-    try_insert(texture2D(cloudsColor, _cvv_texcoord), texture2D(cloudsDepth, _cvv_texcoord).r);
+    try_insert(texture(translucentColor, _cvv_texcoord), texture(translucentDepth, _cvv_texcoord).r);
+    try_insert(texture(entityColor, _cvv_texcoord), texture(entityDepth, _cvv_texcoord).r);
+    try_insert(texture(particleColor, _cvv_texcoord), texture(particleDepth, _cvv_texcoord).r);
+    try_insert(texture(weatherColor, _cvv_texcoord), texture(weatherDepth, _cvv_texcoord).r);
+    try_insert(texture(cloudsColor, _cvv_texcoord), texture(cloudsDepth, _cvv_texcoord).r);
 
     vec3 texelAccum = color_layers[0].rgb;
 
@@ -72,7 +73,7 @@ void main() {
         texelAccum = blend(texelAccum, color_layers[i]);
     }
 
-    gl_FragData[0] = vec4(texelAccum.rgb, 1.0);
+    fragColor = vec4(texelAccum.rgb, 1.0);
 }
 
 

@@ -17,7 +17,6 @@
 package grondag.canvas.pipeline;
 
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -29,6 +28,7 @@ import net.minecraft.text.LiteralText;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.varia.GFX;
 
 public class BufferDebug {
 	private static final int NONE = 0;
@@ -78,8 +78,8 @@ public class BufferDebug {
 					glIds[i] = glId;
 					lods[i] = lod;
 					layers[i] = layer;
-					isDepth[i] = img.pixelFormat == GL46.GL_DEPTH_COMPONENT;
-					isArray[i] = img.target == GL46.GL_TEXTURE_2D_ARRAY;
+					isDepth[i] = img.pixelFormat == GFX.GL_DEPTH_COMPONENT;
+					isArray[i] = img.target == GFX.GL_TEXTURE_2D_ARRAY;
 					++i;
 				}
 			}

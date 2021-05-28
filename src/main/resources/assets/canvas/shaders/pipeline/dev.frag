@@ -21,30 +21,17 @@
 #define TARGET_BASECOLOR 0
 #define TARGET_EMISSIVE  1
 
-varying vec4 shadowPos;
+in vec4 shadowPos;
+out vec4[2] fragColor;
 
 /**
  * Offers results similar to vanilla in GUI, assumes a fixed transform.
- * Vanilla GUI light setup looks like this:
- *
- * light(GL_LIGHT0, GL_POSITION, -0.96104145, -0.078606814, -0.2593495, 0
- * light(GL_LIGHT0, GL_DIFFUSE, getBuffer(0.6F, 0.6F, 0.6F, 1.0F));
- * light(GL_LIGHT0, GL_AMBIENT, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
- * light(GL_LIGHT0, GL_SPECULAR, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
- *
- * light(GL_LIGHT1, GL_POSITION, -0.26765957, -0.95667744, 0.100838766, 0
- * light(GL_LIGHT1, GL_DIFFUSE, getBuffer(0.6F, 0.6F, 0.6F, 1.0F));
- * light(GL_LIGHT1, GL_AMBIENT, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
- * light(GL_LIGHT1, GL_SPECULAR, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
- *
- * glShadeModel(GL_FLAT);
- * glLightModel(GL_LIGHT_MODEL_AMBIENT, 0.4F, 0.4F, 0.4F, 1.0F);
  */
 float p_diffuseGui(vec3 normal) {
-	normal = normalize(gl_NormalMatrix * normal);
+	normal = normalize(normal);
 	float light = 0.4
-	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.96104145, -0.078606814, -0.2593495)), 0.0, 1.0)
-	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.26765957, -0.95667744, 0.100838766)), 0.0, 1.0);
+		+ 0.6 * clamp(dot(normal.xyz, vec3(-0.93205774, 0.26230583, -0.24393857)), 0.0, 1.0)
+		+ 0.6 * clamp(dot(normal.xyz, vec3(-0.10341814, 0.9751613, 0.18816751)), 0.0, 1.0);
 	return min(light, 1.0);
 }
 
@@ -56,15 +43,15 @@ vec4 aoFactor(vec2 lightCoord, float ao) {
 	bao = bao * bao * (1.0 - lightCoord.x * 0.6);
 	bao = 0.4 + (1.0 - bao) * 0.6;
 
-	vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, lightCoord.y));
+	vec4 sky = texture(frxs_lightmap, vec2(0.03125, lightCoord.y));
 	ao = mix(bao, ao, frx_luminance(sky.rgb));
 	return vec4(ao, ao, ao, 1.0);
 }
 
 vec4 ambientLight(frx_FragmentData fragData, float exposure) {
 	vec4 result;
-	vec4 block = texture2D(frxs_lightmap, vec2(fragData.light.x, 0.03125));
-	vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
+	vec4 block = texture(frxs_lightmap, vec2(fragData.light.x, 0.03125));
+	vec4 sky = texture(frxs_lightmap, vec2(0.03125, fragData.light.y));
 	float skyFactor = fragData.diffuse ? 0.5 + exposure * 0.2 : 0.7;
 	result = max(block, sky * skyFactor);
 
@@ -72,10 +59,10 @@ vec4 ambientLight(frx_FragmentData fragData, float exposure) {
 	vec4 held = frx_heldLight();
 
 	if (held.w > 0.0 && !frx_isGui()) {
-		float d = clamp(gl_FogFragCoord / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
+		float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 		d = 1.0 - d * d;
 
-		vec4 maxBlock = texture2D(frxs_lightmap, vec2(0.96875, 0.03125));
+		vec4 maxBlock = texture(frxs_lightmap, vec2(0.96875, 0.03125));
 
 		held = vec4(held.xyz, 1.0) * maxBlock * d;
 
@@ -88,7 +75,7 @@ vec4 ambientLight(frx_FragmentData fragData, float exposure) {
 
 frx_FragmentData frx_createPipelineFragment() {
 	return frx_FragmentData (
-		texture2D(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
+		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
 		frx_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),
@@ -153,17 +140,17 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 
 		// ambient
 		float skyCoord = fragData.diffuse ? 0.03125 + (fragData.light.y - 0.03125) * 0.5 : fragData.light.y;
-		vec4 light = frx_fromGamma(texture2D(frxs_lightmap, vec2(fragData.light.x, skyCoord)));
+		vec4 light = frx_fromGamma(texture(frxs_lightmap, vec2(fragData.light.x, skyCoord)));
 		light = mix(light, frx_emissiveColor(), fragData.emissivity);
 
 	#if HANDHELD_LIGHT_RADIUS != 0
 		vec4 held = frx_heldLight();
 
 		if (held.w > 0.0) {
-			float d = clamp(gl_FogFragCoord / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
+			float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 			d = 1.0 - d * d;
 
-			vec4 maxBlock = texture2D(frxs_lightmap, vec2(0.96875, 0.03125));
+			vec4 maxBlock = texture(frxs_lightmap, vec2(0.96875, 0.03125));
 
 			held = vec4(held.xyz, 0.0) * maxBlock * d;
 
@@ -224,7 +211,12 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	//}
 	//a = vec4(frx_vanillaClearColor(), a.a);
 
-	gl_FragData[TARGET_BASECOLOR] = p_fog(a);
+	if (frx_isGui()) {
+		fragColor[TARGET_BASECOLOR] = a;
+	} else {
+		fragColor[TARGET_BASECOLOR] = p_fog(a);
+		fragColor[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
+	}
+
 	gl_FragDepth = gl_FragCoord.z;
-	gl_FragData[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
 }

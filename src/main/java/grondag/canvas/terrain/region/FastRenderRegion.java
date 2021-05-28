@@ -96,7 +96,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		originZ = protoRegion.originZ;
 
 		chunkBaseX = protoRegion.chunkBaseX;
-		chunkBaseY = protoRegion.chunkBaseY;
+		baseSectionIndex = protoRegion.baseSectionIndex;
 		chunkBaseZ = protoRegion.chunkBaseZ;
 
 		final PaletteCopy pc = protoRegion.takePaletteCopy();
@@ -283,5 +283,15 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 	public int originZ() {
 		return originZ;
+	}
+
+	@Override
+	public int getHeight() {
+		return world.getHeight();
+	}
+
+	@Override
+	public int getBottomY() {
+		return world.getBottomY();
 	}
 }

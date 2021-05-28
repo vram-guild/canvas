@@ -19,6 +19,7 @@ package grondag.canvas.varia;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.BufferUtils;
 
 import net.minecraft.client.MinecraftClient;
@@ -26,7 +27,6 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack.Entry;
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
@@ -36,6 +36,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.light.LightingProvider;
@@ -113,9 +114,7 @@ public class WorldDataManager {
 	private static final int SKYLIGHT_VECTOR = 4 * 11;
 	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
 
-	// was previously skylight position
-	@SuppressWarnings("unused")
-	private static final int RESERVED = 4 * 12;
+	private static final int FOG_COLOR = 4 * 12;
 
 	private static final int ATMOSPHERIC_COLOR = 4 * 13;
 	private static final int SKYLIGHT_TRANSITION_FACTOR = ATMOSPHERIC_COLOR + 3;
@@ -125,6 +124,10 @@ public class WorldDataManager {
 
 	// 15-18 reserved for cascades 0-3
 	static final int SHADOW_CENTER = 4 * 15;
+
+	private static final int VEC_RENDER_INFO = 4 * 19;
+	private static final int FOG_START = VEC_RENDER_INFO;
+	private static final int FOG_END = VEC_RENDER_INFO + 1;
 
 	public static final int UINT_COUNT = 1;
 	private static final int RENDER_FRAMES = 0;
@@ -201,10 +204,10 @@ public class WorldDataManager {
 	static double smoothedRainStrength = 0;
 
 	/** Camera view vector in world space - normalized. */
-	public static final Vector3f cameraVector = new Vector3f();
+	public static final Vec3f cameraVector = new Vec3f();
 
 	/** Points towards the light - normalized. */
-	public static final Vector3f skyLightVector = new Vector3f();
+	public static final Vec3f skyLightVector = new Vec3f();
 
 	public static float cameraX, cameraY, cameraZ = 0f;
 
@@ -323,7 +326,7 @@ public class WorldDataManager {
 	private static void computeCameraFlags(ClientWorld world, Camera camera) {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 
-		if (World.isInBuildLimit(cameraBlockPos) && world.isChunkLoaded(cameraBlockPos)) {
+		if (world.isInBuildLimit(cameraBlockPos) && world.isChunkLoaded(cameraBlockPos)) {
 			final FluidState fluidState = world.getFluidState(cameraBlockPos);
 
 			if (!fluidState.isEmpty()) {
@@ -442,7 +445,7 @@ public class WorldDataManager {
 		DATA.put(VEC_CAMERA_POS + 2, cameraZ);
 
 		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
-		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch, null);
+		putViewVector(VEC_ENTITY_VIEW, cameraEntity.getYaw(), cameraEntity.getPitch(), null);
 
 		MatrixState.update(entry, projectionMatrix, camera, tickDelta);
 
@@ -463,6 +466,12 @@ public class WorldDataManager {
 			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
 			computeCameraFlags(world, camera);
+
+			final float[] fogColor = RenderSystem.getShaderFogColor();
+			DATA.put(FOG_COLOR, fogColor[0]);
+			DATA.put(FOG_COLOR + 1, fogColor[1]);
+			DATA.put(FOG_COLOR + 2, fogColor[2]);
+			DATA.put(FOG_COLOR + 3, fogColor[3]);
 
 			if (skyLight) {
 				final boolean moonLight = computeSkylightFactor(tickTime);
@@ -609,13 +618,19 @@ public class WorldDataManager {
 		UINT_DATA.put(RENDER_FRAMES, renderFrames++);
 	}
 
+	/** Called when values are known to be good because vanilla resets them outside of world rendering. */
+	public static void captureFogDistances() {
+		DATA.put(FOG_START, RenderSystem.getShaderFogStart());
+		DATA.put(FOG_END, RenderSystem.getShaderFogEnd());
+	}
+
 	public static void updateEmissiveColor(int color) {
 		DATA.put(EMISSIVE_COLOR_RED, ((color >> 24) & 0xFF) / 255f);
 		DATA.put(EMISSIVE_COLOR_GREEN, ((color >> 16) & 0xFF) / 255f);
 		DATA.put(EMISSIVE_COLOR_BLUE, (color & 0xFF) / 255f);
 	}
 
-	private static void putViewVector(int index, float yaw, float pitch, Vector3f storeTo) {
+	private static void putViewVector(int index, float yaw, float pitch, Vec3f storeTo) {
 		final Vec3d vec = Vec3d.fromPolar(pitch, yaw);
 		final float x = (float) vec.x;
 		final float y = (float) vec.y;

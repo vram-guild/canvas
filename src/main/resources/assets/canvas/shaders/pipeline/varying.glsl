@@ -5,6 +5,11 @@
 ******************************************************/
 
 #ifdef VANILLA_LIGHTING
-varying vec2 pv_lightcoord;
-varying float pv_ao;
+#ifdef VERTEX_SHADER
+	out vec2 pv_lightcoord;
+	out float pv_ao;
+#else
+	in vec2 pv_lightcoord;
+	in float pv_ao;
+#endif
 #endif

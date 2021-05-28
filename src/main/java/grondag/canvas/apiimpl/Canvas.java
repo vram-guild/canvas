@@ -47,7 +47,6 @@ import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.terrain.region.ProtoRenderRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
-import grondag.canvas.terrain.util.TerrainModelSpace;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
@@ -106,7 +105,7 @@ public class Canvas implements Renderer {
 	}
 
 	public void recompile() {
-		PipelineLoader.INSTANCE.apply(MinecraftClient.getInstance().getResourceManager());
+		PipelineLoader.INSTANCE.reload(MinecraftClient.getInstance().getResourceManager());
 		Pipeline.reload();
 		GlShader.forceReloadErrors();
 		GlShaderManager.INSTANCE.reload();
@@ -114,7 +113,6 @@ public class Canvas implements Renderer {
 		MaterialProgramManager.INSTANCE.reload();
 		// LightmapHdTexture.reload();
 		// LightmapHd.reload();
-		TerrainModelSpace.reload();
 		MaterialTextureState.reload();
 		WorldDataManager.reload();
 		Timekeeper.configOrPipelineReload();

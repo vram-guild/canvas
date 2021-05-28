@@ -18,14 +18,13 @@ package grondag.canvas.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.WindowFramebuffer;
 
 import grondag.canvas.pipeline.PipelineManager;
 
-public class FabulousFrameBuffer extends Framebuffer {
+public class FabulousFrameBuffer extends WindowFramebuffer {
 	public FabulousFrameBuffer(int fboId, int colorId, int depthId) {
-		super(PipelineManager.width(), PipelineManager.height(), true, MinecraftClient.IS_SYSTEM_MAC);
+		super(PipelineManager.width(), PipelineManager.height());
 		setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
 
 		fbo = fboId;

@@ -30,7 +30,7 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.texture.SpriteIndex;
 
 @Mixin(SpriteAtlasTexture.class)
 public class MixinSpriteAtlasTexture {
@@ -49,6 +49,6 @@ public class MixinSpriteAtlasTexture {
 			((SpriteExt) sprite).canvas_id(index++);
 		}
 
-		SpriteInfoTexture.getOrCreate(id).reset(input, spriteIndex, (SpriteAtlasTexture) (Object) this);
+		SpriteIndex.getOrCreate(id).reset(input, spriteIndex, (SpriteAtlasTexture) (Object) this);
 	}
 }

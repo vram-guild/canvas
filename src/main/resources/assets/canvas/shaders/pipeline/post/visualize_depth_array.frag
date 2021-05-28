@@ -6,10 +6,11 @@
 ******************************************************/
 uniform sampler2DArray _cvu_input;
 
-varying vec2 _cvv_texcoord;
+in vec2 _cvv_texcoord;
+out vec4 fragColor;
 
 // rough approximation - will be more linear and visible but cannot be used for anything else
 void main() {
-	float depth = texture2DArray(_cvu_input, vec3(_cvv_texcoord, frxu_layer)).r;
-	gl_FragData[0] = vec4(depth, depth, depth, 1.0);
+	float depth = texture(_cvu_input, vec3(_cvv_texcoord, frxu_layer)).r;
+	fragColor = vec4(depth, depth, depth, 1.0);
 }

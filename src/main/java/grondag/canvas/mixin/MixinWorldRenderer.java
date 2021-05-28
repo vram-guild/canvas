@@ -35,7 +35,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderEffect;
-import net.minecraft.client.options.GameOptions;
+import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.render.BlockBreakingInfo;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.BuiltChunkStorage;
@@ -46,7 +46,6 @@ import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.chunk.ChunkBuilder.BuiltChunk;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
@@ -66,7 +65,7 @@ import grondag.canvas.render.FabulousFrameBuffer;
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private MinecraftClient client;
-	@Shadow private int renderDistance;
+	@Shadow private int viewDistance;
 	@Shadow private ClientWorld world;
 	@Shadow private int frame;
 	@Shadow private boolean cloudsDirty;
@@ -81,7 +80,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	@Shadow private ShaderEffect entityOutlineShader;
 	@Shadow private Set<BlockEntity> noCullingBlockEntities;
 	@Shadow private Long2ObjectMap<SortedSet<BlockBreakingInfo>> blockBreakingProgressions;
-	@Shadow private VertexFormat vertexFormat;
 	@Shadow private Framebuffer translucentFramebuffer;
 	@Shadow private Framebuffer entityFramebuffer;
 	@Shadow private Framebuffer particlesFramebuffer;
@@ -120,7 +118,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		((CanvasWorldRenderer) (Object) this).scheduleRegionRender(x, y, z, urgent);
 	}
 
-	@Redirect(method = "reload", at = @At(value = "FIELD", target = "Lnet/minecraft/client/options/GameOptions;viewDistance:I", ordinal = 1))
+	@Redirect(method = "reload()V", at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;viewDistance:I", ordinal = 1))
 	private int onReloadZeroChunkStorage(GameOptions options) {
 		return 0;
 	}
@@ -184,7 +182,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Override
 	public int canvas_renderDistance() {
-		return renderDistance;
+		return viewDistance;
 	}
 
 	@Override
@@ -217,7 +215,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 		cloudsDirty = true;
 		RenderLayers.setFancyGraphicsOrBetter(true);
-		renderDistance = client.options.viewDistance;
+		viewDistance = client.options.viewDistance;
 
 		synchronized (noCullingBlockEntities) {
 			noCullingBlockEntities.clear();
@@ -308,10 +306,5 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	public void canvas_setEntityCounts(int regularEntityCountIn, int blockEntityCountIn) {
 		regularEntityCount = regularEntityCountIn;
 		blockEntityCount = blockEntityCountIn;
-	}
-
-	@Override
-	public VertexFormat canvas_vertexFormat() {
-		return vertexFormat;
 	}
 }

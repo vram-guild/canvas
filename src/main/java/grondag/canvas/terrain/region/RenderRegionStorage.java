@@ -70,12 +70,10 @@ public class RenderRegionStorage {
 	}
 
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
-		if ((y & 0xFFFFFF00) == 0) {
-			final BuiltRenderRegion region = getRegionIfExists(x, y, z);
+		final BuiltRenderRegion region = getRegionIfExists(x, y, z);
 
-			if (region != null) {
-				region.markForBuild(urgent);
-			}
+		if (region != null) {
+			region.markForBuild(urgent);
 		}
 	}
 

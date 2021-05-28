@@ -16,11 +16,10 @@
 
 package grondag.canvas.shader;
 
-import org.lwjgl.opengl.GL21;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.varia.GFX;
 
 public enum MaterialProgramManager {
 	INSTANCE;
@@ -39,9 +38,9 @@ public enum MaterialProgramManager {
 		GlMaterialProgram result = materialPrograms[key];
 
 		if (result == null) {
-			final Shader vs = new GlMaterialShader(programType.vertexSource, GL21.GL_VERTEX_SHADER, programType);
-			final Shader fs = new GlMaterialShader(programType.fragmentSource, GL21.GL_FRAGMENT_SHADER, programType);
-			result = new GlMaterialProgram(vs, fs, CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL, programType);
+			final Shader vs = new GlMaterialShader(programType.vertexSource, GFX.GL_VERTEX_SHADER, programType);
+			final Shader fs = new GlMaterialShader(programType.fragmentSource, GFX.GL_FRAGMENT_SHADER, programType);
+			result = new GlMaterialProgram(vs, fs, CanvasVertexFormats.MATERIAL_FORMAT, programType);
 			ShaderData.MATERIAL_UNIFORM_SETUP.accept(result);
 			materialPrograms[key] = result;
 		}

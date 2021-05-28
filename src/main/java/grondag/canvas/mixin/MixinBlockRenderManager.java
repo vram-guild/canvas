@@ -36,6 +36,7 @@ import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 @Mixin(BlockRenderManager.class)
 public abstract class MixinBlockRenderManager {
 	@Shadow private BlockModelRenderer blockModelRenderer;
+	@Shadow private BuiltinModelItemRenderer builtinModelItemRenderer;
 
 	/**
 	 * @author grondag
@@ -52,7 +53,7 @@ public abstract class MixinBlockRenderManager {
 					EntityBlockRenderContext.get().render(blockModelRenderer, bakedModel, state, matrices, consumers, overlay, light);
 					break;
 				case ENTITYBLOCK_ANIMATED:
-					BuiltinModelItemRenderer.INSTANCE.render(new ItemStack(state.getBlock()), ModelTransformation.Mode.NONE, matrices, consumers, light, overlay);
+					builtinModelItemRenderer.render(new ItemStack(state.getBlock()), ModelTransformation.Mode.NONE, matrices, consumers, light, overlay);
 					break;
 				default:
 					break;

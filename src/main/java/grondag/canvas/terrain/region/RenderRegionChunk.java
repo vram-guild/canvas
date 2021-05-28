@@ -23,6 +23,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.ChunkStatus;
 
 public class RenderRegionChunk {
+	private static final int MAX_REGIONS = 24;
+	private static final int Y_OFFSET = 64;
+
 	final RenderRegionStorage storage;
 
 	private int chunkX;
@@ -39,7 +42,7 @@ public class RenderRegionChunk {
 	private void open(int chunkX, int chunkZ) {
 		this.chunkX = chunkX;
 		this.chunkZ = chunkZ;
-		regions = new BuiltRenderRegion[16];
+		regions = new BuiltRenderRegion[MAX_REGIONS];
 		areCornersLoadedCache = false;
 		chunkDistVersion = -1;
 	}
@@ -87,7 +90,7 @@ public class RenderRegionChunk {
 		final BuiltRenderRegion[] regions = this.regions;
 
 		if (regions != null) {
-			for (int i = 0; i < 16; ++i) {
+			for (int i = 0; i < MAX_REGIONS; ++i) {
 				final BuiltRenderRegion r = regions[i];
 
 				if (r != null) {
@@ -102,7 +105,9 @@ public class RenderRegionChunk {
 	}
 
 	synchronized BuiltRenderRegion getOrCreateRegion(int x, int y, int z) {
-		if ((y & 0xFFFFFF00) != 0) {
+		final int i = (y + Y_OFFSET) >> 4;
+
+		if (i < 0 || i >= MAX_REGIONS) {
 			return null;
 		}
 
@@ -112,8 +117,6 @@ public class RenderRegionChunk {
 			open(x >> 4, z >> 4);
 			regions = this.regions;
 		}
-
-		final int i = y >> 4;
 
 		BuiltRenderRegion r = regions[i];
 
@@ -128,11 +131,13 @@ public class RenderRegionChunk {
 	}
 
 	synchronized BuiltRenderRegion getRegionIfExists(int x, int y, int z) {
-		if ((y & 0xFFFFFF00) != 0) {
+		final int i = (y + Y_OFFSET) >> 4;
+
+		if (i < 0 || i >= MAX_REGIONS) {
 			return null;
 		}
 
 		final BuiltRenderRegion[] regions = this.regions;
-		return regions == null ? null : regions[y >> 4];
+		return regions == null ? null : regions[i];
 	}
 }

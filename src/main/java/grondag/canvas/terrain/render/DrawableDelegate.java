@@ -18,15 +18,14 @@ package grondag.canvas.terrain.render;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
 
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderState;
+import grondag.canvas.varia.GFX;
 
 public class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
-	private RenderMaterialImpl materialState;
+	private RenderState renderState;
 	private int vertexOffset;
 	private int vertexCount;
 	private boolean isReleased = false;
@@ -35,14 +34,14 @@ public class DrawableDelegate {
 		super();
 	}
 
-	public static DrawableDelegate claim(RenderMaterialImpl renderState, int vertexOffset, int vertexCount) {
+	public static DrawableDelegate claim(RenderState renderState, int vertexOffset, int vertexCount) {
 		DrawableDelegate result = store.poll();
 
 		if (result == null) {
 			result = new DrawableDelegate();
 		}
 
-		result.materialState = renderState;
+		result.renderState = renderState;
 		result.vertexOffset = vertexOffset;
 		result.vertexCount = vertexCount;
 		result.isReleased = false;
@@ -52,8 +51,8 @@ public class DrawableDelegate {
 	/**
 	 * The pipeline (and vertex format) associated with this delegate.
 	 */
-	public RenderMaterialImpl materialState() {
-		return materialState;
+	public RenderState renderState() {
+		return renderState;
 	}
 
 	/**
@@ -63,7 +62,13 @@ public class DrawableDelegate {
 	public void draw() {
 		assert !isReleased;
 
-		GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
+		final int triVertexCount = vertexCount / 4 * 6;
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(renderState.primitive, triVertexCount);
+		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
+		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
+		//GFX.drawElements(materialState.primitive.mode, triVertexCount, elementType, 0);
+		GFX.drawElementsBaseVertex(renderState.primitive.mode, triVertexCount, elementType, 0L, vertexOffset);
+		//GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
 	}
 
 	public void release() {
@@ -71,7 +76,7 @@ public class DrawableDelegate {
 
 		if (!isReleased) {
 			isReleased = true;
-			materialState = null;
+			renderState = null;
 			store.offer(this);
 		}
 	}

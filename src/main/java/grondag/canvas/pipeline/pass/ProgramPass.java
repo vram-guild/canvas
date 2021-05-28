@@ -16,17 +16,14 @@
 
 package grondag.canvas.pipeline.pass;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
+import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.ProgramTextureData;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.ProcessShader;
+import grondag.canvas.varia.GFX;
 
 class ProgramPass extends Pass {
 	final ProgramTextureData textures;
@@ -55,19 +52,19 @@ class ProgramPass extends Pass {
 			height >>= lod;
 		}
 
-		PipelineManager.setProjection(width, height);
-		RenderSystem.viewport(0, 0, width, height);
+		final Matrix4f orthoMatrix = Matrix4f.projectionMatrix(width, -height, 1000.0F, 3000.0F);
+		GFX.viewport(0, 0, width, height);
 
 		final int slimit = textures.texIds.length;
 
 		for (int i = 0; i < slimit; ++i) {
-			CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0 + i);
+			CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0 + i);
 			CanvasTextureState.bindTexture(textures.texTargets[i], textures.texIds[i]);
 		}
 
-		shader.activate().lod(config.lod).size(width, height);
+		shader.activate().lod(config.lod).size(width, height).projection(orthoMatrix);
 
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
 	}
 
 	@Override

@@ -7,14 +7,15 @@
 ******************************************************/
 uniform sampler2D _cvu_input;
 
-varying vec2 _cvv_texcoord;
+in vec2 _cvv_texcoord;
+out vec4 fragColor;
 
 const float near = 0.05;
 float far = frx_viewDistance() * 0.5f;
 
 // rough approximation - will be more linear and visible but cannot be used for anything else
 void main() {
-	float depth = texture2D(_cvu_input, _cvv_texcoord).r;
+	float depth = texture(_cvu_input, _cvv_texcoord).r;
 	float linearDepth = (2.0 * near) / (far + near - depth * (far - near));
-	gl_FragData[0] = vec4(linearDepth, linearDepth, linearDepth, 1.0);
+	fragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
 }

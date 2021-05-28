@@ -19,34 +19,19 @@ package grondag.canvas.shader;
 import net.minecraft.util.Identifier;
 
 public enum ProgramType {
-	MATERIAL_UNIFORM_LOGIC(false, false, ShaderData.MATERIAL_MAIN_VERTEX, ShaderData.MATERIAL_MAIN_FRAGMENT),
-	MATERIAL_VERTEX_LOGIC(true, false, ShaderData.MATERIAL_MAIN_VERTEX, ShaderData.MATERIAL_MAIN_FRAGMENT),
-	DEPTH_UNIFORM_LOGIC(false, true, ShaderData.DEPTH_MAIN_VERTEX, ShaderData.DEPTH_MAIN_FRAGMENT),
-	DEPTH_VERTEX_LOGIC(true, true, ShaderData.DEPTH_MAIN_VERTEX, ShaderData.DEPTH_MAIN_FRAGMENT),
-	PROCESS(false, false, null, null);
+	MATERIAL_COLOR(false, ShaderData.MATERIAL_MAIN_VERTEX, ShaderData.MATERIAL_MAIN_FRAGMENT),
+	MATERIAL_DEPTH(true, ShaderData.DEPTH_MAIN_VERTEX, ShaderData.DEPTH_MAIN_FRAGMENT),
+	PROCESS(false, null, null);
 
 	public final String name;
-	public final boolean isVertexLogic;
 	public final boolean isDepth;
 	public final Identifier vertexSource;
 	public final Identifier fragmentSource;
 
-	ProgramType(boolean isVertexLogic, boolean isShadow, Identifier vertexSource, Identifier fragmentSource) {
+	ProgramType(boolean isShadow, Identifier vertexSource, Identifier fragmentSource) {
 		name = name().toLowerCase();
-		this.isVertexLogic = isVertexLogic;
 		isDepth = isShadow;
 		this.vertexSource = vertexSource;
 		this.fragmentSource = fragmentSource;
-	}
-
-	public static ProgramType shadowType(ProgramType materialType) {
-		if (materialType == MATERIAL_UNIFORM_LOGIC) {
-			return DEPTH_UNIFORM_LOGIC;
-		} else if (materialType == MATERIAL_VERTEX_LOGIC) {
-			return DEPTH_VERTEX_LOGIC;
-		} else {
-			assert false : "Depth program type requested for unrecognized material program type.";
-			return null;
-		}
 	}
 }

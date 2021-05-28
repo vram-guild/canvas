@@ -23,11 +23,10 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
-import grondag.canvas.terrain.util.TerrainModelSpace;
+import grondag.canvas.varia.GFX;
 
 public class TerrainLayerRenderer {
 	private final String profileString;
@@ -56,8 +55,6 @@ public class TerrainLayerRenderer {
 		//	DitherTexture.instance().enable();
 		//}
 
-		long lastRelativeOrigin = -1;
-
 		//		final DrawHandler h = DrawHandlers.get(EncodingContext.TERRAIN, shaderContext.pass);
 		//		final MaterialVertexFormat format = h.format;
 		//		h.setup();
@@ -78,22 +75,9 @@ public class TerrainLayerRenderer {
 
 				if (delegates != null) {
 					final BlockPos modelOrigin = builtRegion.getOrigin();
-
-					if (Configurator.batchedChunkRender) {
-						final long newRelativeOrigin = TerrainModelSpace.getPackedOrigin(modelOrigin);
-
-						if (newRelativeOrigin != lastRelativeOrigin) {
-							lastRelativeOrigin = newRelativeOrigin;
-
-							ox = TerrainModelSpace.renderCubeOrigin(modelOrigin.getX());
-							oy = TerrainModelSpace.renderCubeOrigin(modelOrigin.getY());
-							oz = TerrainModelSpace.renderCubeOrigin(modelOrigin.getZ());
-						}
-					} else {
-						ox = modelOrigin.getX();
-						oy = modelOrigin.getY();
-						oz = modelOrigin.getZ();
-					}
+					ox = modelOrigin.getX();
+					oy = modelOrigin.getY();
+					oz = modelOrigin.getZ();
 
 					drawable.vboBuffer.bind();
 
@@ -102,15 +86,17 @@ public class TerrainLayerRenderer {
 
 					for (int i = 0; i < limit; ++i) {
 						final DrawableDelegate d = delegates.get(i);
-						final RenderMaterialImpl mat = d.materialState();
+						final RenderState mat = d.renderState();
 
-						if (mat.programType.isVertexLogic || !mat.condition.affectBlocks || mat.condition.compute()) {
+						if (!mat.condition.affectBlocks || mat.condition.compute()) {
 							if (notShadowPass || mat.castShadows) {
-								d.materialState().renderState.enable(ox, oy, oz);
+								mat.enable(ox, oy, oz);
 								d.draw();
 							}
 						}
 					}
+
+					GFX.bindVertexArray(0);
 				}
 			}
 		}

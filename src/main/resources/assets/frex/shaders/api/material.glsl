@@ -25,12 +25,12 @@ float frx_matEmissiveFactor() {
  * fragments will be discarded if alpha < 0.5.
  */
 bool frx_matCutout() {
-	return _cv_getFlag(_CV_FLAG_CUTOUT) == 1.0;
+	return ((_cvv_flags >> _CV_CUTOUT_SHIFT) & _CV_CUTOUT_MASK) != _CV_CUTOUT_NONE;
 }
 
 /** Multiplicative version frx_matCutout(), true return 1, false returns 0 */
 float frx_matCutoutFactor() {
-	return _cv_getFlag(_CV_FLAG_CUTOUT);
+	return frx_matCutout() ? 1.0 : 0.0;
 }
 
 /*

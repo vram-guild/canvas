@@ -16,12 +16,10 @@
 
 package grondag.canvas.material.property;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Transparency;
 
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.MaterialFinder;
 
 public class MaterialTransparency {
@@ -30,7 +28,7 @@ public class MaterialTransparency {
 		"none",
 		6,
 		() -> {
-			RenderSystem.disableBlend();
+			GFX.disableBlend();
 		});
 
 	public static final MaterialTransparency ADDITIVE = new MaterialTransparency(
@@ -38,8 +36,8 @@ public class MaterialTransparency {
 		"additive",
 		2,
 		() -> {
-			RenderSystem.enableBlend();
-			RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE);
+			GFX.enableBlend();
+			GFX.blendFunc(GFX.GL_ONE, GFX.GL_ONE);
 		});
 
 	public static final MaterialTransparency LIGHTNING = new MaterialTransparency(
@@ -47,8 +45,8 @@ public class MaterialTransparency {
 		"lightning",
 		5,
 		() -> {
-			RenderSystem.enableBlend();
-			RenderSystem.blendFunc(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE);
+			GFX.enableBlend();
+			GFX.blendFunc(GFX.GL_SRC_ALPHA, GFX.GL_ONE);
 		});
 
 	public static final MaterialTransparency GLINT = new MaterialTransparency(
@@ -56,8 +54,8 @@ public class MaterialTransparency {
 		"glint",
 		1,
 		() -> {
-			RenderSystem.enableBlend();
-			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_COLOR, GlStateManager.DstFactor.ONE, GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE);
+			GFX.enableBlend();
+			GFX.blendFuncSeparate(GFX.GL_SRC_COLOR, GFX.GL_ONE, GFX.GL_ZERO, GFX.GL_ONE);
 		});
 
 	public static final MaterialTransparency CRUMBLING = new MaterialTransparency(
@@ -65,8 +63,8 @@ public class MaterialTransparency {
 		"crumbling",
 		0,
 		() -> {
-			RenderSystem.enableBlend();
-			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.DST_COLOR, GlStateManager.DstFactor.SRC_COLOR, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+			GFX.enableBlend();
+			GFX.blendFuncSeparate(GFX.GL_DST_COLOR, GFX.GL_SRC_COLOR, GFX.GL_ONE, GFX.GL_ZERO);
 		});
 
 	public static final MaterialTransparency TRANSLUCENT = new MaterialTransparency(
@@ -74,8 +72,8 @@ public class MaterialTransparency {
 		"translucent",
 		4,
 		() -> {
-			RenderSystem.enableBlend();
-			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
+			GFX.enableBlend();
+			GFX.blendFuncSeparate(GFX.GL_SRC_ALPHA, GFX.GL_ONE_MINUS_SRC_ALPHA, GFX.GL_ONE, GFX.GL_ONE_MINUS_SRC_ALPHA);
 		});
 
 	/** Used for terrain particles. */
@@ -84,8 +82,8 @@ public class MaterialTransparency {
 		"default",
 		3,
 		() -> {
-			RenderSystem.enableBlend();
-			RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+			GFX.enableBlend();
+			GFX.blendFuncSeparate(GFX.GL_SRC_ALPHA, GFX.GL_ONE_MINUS_SRC_ALPHA, GFX.GL_ONE, GFX.GL_ZERO);
 		});
 
 	public static final int TRANSPARENCY_COUNT = 7;
@@ -146,8 +144,8 @@ public class MaterialTransparency {
 
 	public static void disable() {
 		if (active != null) {
-			RenderSystem.disableBlend();
-			RenderSystem.defaultBlendFunc();
+			GFX.disableBlend();
+			GFX.defaultBlendFunc();
 			active = null;
 		}
 	}

@@ -26,7 +26,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
@@ -47,7 +47,7 @@ public class RegionData {
 	}
 
 	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
-		final VertexCollectorImpl buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
+		final ArrayVertexCollector buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null && !buffer.isEmpty()) {
 			buffer.sortQuads(x, y, z);

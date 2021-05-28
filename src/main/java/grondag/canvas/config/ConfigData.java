@@ -45,8 +45,6 @@ class ConfigData {
 	boolean semiFlatLighting = true;
 
 	// TWEAKS
-	@Comment("Draws multiple chunks with same view transformation. Much faster, but try without if you see visual defects.")
-	boolean batchedChunkRender = true;
 	@Comment("Adjusts quads on some vanilla models (like iron bars) to avoid z-fighting with neighbor blocks.")
 	boolean preventDepthFighting = true;
 	@Comment("Treats model geometry outside of block boundaries as on the block for lighting purposes. Helps prevent bad lighting outcomes.")
@@ -55,8 +53,6 @@ class ConfigData {
 	boolean fixLuminousBlockShading = true;
 	@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
 	boolean terrainSetupOffThread = true;
-	@Comment("Use Vertex Array Objects if available. VAOs generally improve performance when they are supported.")
-	boolean enableVao = true;
 	@Comment("Use more efficient entity culling. Improves framerate in most scenes.")
 	boolean cullEntityRender = true;
 	@Comment("When true, render thread does not yield to other threads every frame. Vanilla behavior is false (yields).")
@@ -65,8 +61,6 @@ class ConfigData {
 	boolean forceJmxModelLoading = true;
 	@Comment("Use half resolution on retina displays - greatly improves frame rate on Macs.")
 	boolean reduceResolutionOnMac = true;
-	@Comment("Reduce draw calls for terrain by controlling shaders with vertex data. Faster on some hardware.")
-	boolean vertexControlMode = false;
 	@Comment("Padding at edges of screen to reduce how often terrain visibility is computed. In degrees. Values 0 to 20. Zero disables.")
 	int staticFrustumPadding = 10;
 	@Comment("Extra padding at edges of screen to reduce missing chunks when view rotates and terrainSetupOffThread is on. In degrees. Values 0 to 30. Zero disables.")

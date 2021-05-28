@@ -37,11 +37,9 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
 
@@ -51,7 +49,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
-	public final int[] appendData = new int[CanvasVertexFormats.MATERIAL_QUAD_STRIDE];
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;
@@ -107,7 +104,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 			return;
 		}
 
-		final Sprite sprite = materialMap.needsSprite() ? SpriteInfoTexture.BLOCKS.fromId(quad.spriteId()) : null;
+		final Sprite sprite = materialMap.needsSprite() ? quad.material().texture.atlasInfo().fromId(quad.spriteId()) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {
@@ -215,7 +212,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 			}
 
 			quad.geometryFlags();
-			quad.unmapSpritesIfNeeded();
+			quad.normalizeSpritesIfNeeded();
 		}
 
 		if (cullTest(quad)) {
@@ -244,9 +241,8 @@ public abstract class AbstractRenderContext implements RenderContext {
 		switch (bm) {
 			case CUTOUT: {
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(true)
+					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(true)
-					.transparentCutout(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;
@@ -254,25 +250,22 @@ public abstract class AbstractRenderContext implements RenderContext {
 			case CUTOUT_MIPPED:
 				finder
 					.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(true)
+					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(false)
-					.transparentCutout(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;
 			case TRANSLUCENT:
 				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
-					.cutout(false)
+					.cutout(MaterialFinder.CUTOUT_NONE)
 					.unmipped(false)
-					.transparentCutout(false)
 					.target(MaterialFinder.TARGET_TRANSLUCENT)
 					.sorted(true);
 				break;
 			case SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(false)
+					.cutout(MaterialFinder.CUTOUT_NONE)
 					.unmipped(false)
-					.transparentCutout(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;

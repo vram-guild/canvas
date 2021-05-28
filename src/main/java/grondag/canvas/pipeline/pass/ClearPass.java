@@ -16,9 +16,8 @@
 
 package grondag.canvas.pipeline.pass;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import grondag.canvas.pipeline.config.PassConfig;
+import grondag.canvas.varia.GFX;
 
 public class ClearPass extends Pass {
 	ClearPass(PassConfig config) {
@@ -29,7 +28,7 @@ public class ClearPass extends Pass {
 	public void run(int width, int height) {
 		if (fbo != null) {
 			fbo.bind();
-			RenderSystem.viewport(0, 0, width, height);
+			GFX.viewport(0, 0, width, height);
 			fbo.clear();
 		}
 	}

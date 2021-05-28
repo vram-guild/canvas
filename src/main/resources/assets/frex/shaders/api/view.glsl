@@ -150,11 +150,13 @@ bool frx_isGui() {
 	return _cvu_model_origin_type == MODEL_ORIGIN_SCREEN;
 }
 
+mat4 frx_guiViewProjectionMatrix() {
+	return _cvu_guiViewProjMatrix;
+}
+
 /**
- * Converts world space normals to coordinate space of incoming vertex data.
- * Entity render, for example, has camera rotation already baked in to
- * vertex data and so a pure world normal vector can be transformed
- * with this to be consistent with vertex normals.
+ * Converts camera/world space normals to view space.
+ * Incoming vertex normals are always in camera/world space.
  */
 mat3 frx_normalModelMatrix() {
 	return _cvu_normal_model_matrix;

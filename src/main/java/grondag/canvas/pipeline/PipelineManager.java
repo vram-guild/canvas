@@ -16,23 +16,19 @@
 
 package grondag.canvas.pipeline;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL21;
-import org.lwjgl.opengl.GL46;
-
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.options.GraphicsMode;
+import net.minecraft.client.option.GraphicsMode;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.pass.Pass;
@@ -40,7 +36,7 @@ import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class PipelineManager {
@@ -112,40 +108,31 @@ public class PipelineManager {
 
 	static void beginFullFrameRender() {
 		// UGLY: put state preservation into texture manager
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE1);
+		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE1);
 		oldTex1 = CanvasTextureState.getActiveBoundTexture();
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
-		GlStateManager.enableTexture();
+		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);
 		oldTex0 = CanvasTextureState.getActiveBoundTexture();
 
-		RenderSystem.depthMask(false);
-		RenderSystem.disableBlend();
-		RenderSystem.disableCull();
-		RenderSystem.disableAlphaTest();
-		RenderSystem.disableDepthTest();
-		GlStateManager.matrixMode(GL11.GL_PROJECTION);
-		RenderSystem.pushMatrix();
-	}
-
-	public static void setProjection(int pixelWidth, int pixelHeight) {
-		RenderSystem.loadIdentity();
-		GlStateManager.ortho(0.0D, pixelWidth, pixelHeight, 0.0D, 1000.0, 3000.0);
+		GFX.depthMask(false);
+		GFX.disableBlend();
+		GFX.disableCull();
+		GFX.disableDepthTest();
+		GFX.backupProjectionMatrix();
 	}
 
 	static void endFullFrameRender() {
-		VboBuffer.unbind();
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE1);
+		GFX.bindVertexArray(0);
+		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE1);
 		CanvasTextureState.bindTexture(oldTex1);
-		GlStateManager.disableTexture();
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
+		//GlStateManager.disableTexture();
+		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);
 		CanvasTextureState.bindTexture(oldTex0);
 		GlProgram.deactivate();
-		RenderSystem.popMatrix();
-		GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-		RenderSystem.depthMask(true);
-		RenderSystem.enableDepthTest();
-		RenderSystem.enableCull();
-		RenderSystem.viewport(0, 0, w, h);
+		GFX.restoreProjectionMatrix();
+		GFX.depthMask(true);
+		GFX.enableDepthTest();
+		GFX.enableCull();
+		GFX.viewport(0, 0, w, h);
 	}
 
 	public static void afterRenderHand() {
@@ -182,55 +169,46 @@ public class PipelineManager {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
-		RenderSystem.viewport(0, 0, w, h);
+		final Matrix4f orthoMatrix = Matrix4f.projectionMatrix(w, -h, 1000.0F, 3000.0F);
+		GFX.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
-		PipelineManager.setProjection(w, h);
-		CanvasTextureState.activeTextureUnit(GL21.GL_TEXTURE0);
-		GlStateManager.disableTexture();
+		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);
+		//GlStateManager.disableTexture();
 
 		if (array) {
-			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, glId);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, glId);
 		} else {
 			CanvasTextureState.bindTexture(glId);
 		}
 
-		setProjection(w, h);
-
 		if (depth) {
 			if (array) {
-				debugDepthArrayShader.activate().size(w, h).lod(lod).layer(layer);
+				debugDepthArrayShader.activate().size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
 			} else {
-				debugDepthShader.activate().size(w, h).lod(0);
+				debugDepthShader.activate().size(w, h).lod(0).projection(orthoMatrix);
 			}
 		} else {
-			debugShader.activate().size(w, h).lod(lod);
+			debugShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
 		}
 
-		GlStateManager.drawArrays(GL11.GL_QUADS, 0, 4);
+		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
 
 		endFullFrameRender();
 	}
 
 	public static void init(PrimaryFrameBuffer primary, int width, int height) {
-		assert RenderSystem.isOnRenderThread();
-
-		assert CanvasGlHelper.checkError();
-
 		Pipeline.close();
 		tearDown();
-		assert CanvasGlHelper.checkError();
 
 		w = width;
 		h = height;
 
 		Pipeline.activate(primary, w, h);
-		assert CanvasGlHelper.checkError();
 
 		final MinecraftClient mc = MinecraftClient.getInstance();
 
 		if (mc.worldRenderer != null) {
 			((WorldRendererExt) mc.worldRenderer).canvas_setupFabulousBuffers();
-			assert CanvasGlHelper.checkError();
 		}
 
 		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsMode.FABULOUS : GraphicsMode.FANCY;
@@ -240,19 +218,30 @@ public class PipelineManager {
 		debugDepthArrayShader = new ProcessShader(new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
-		assert CanvasGlHelper.checkError();
 
-		final VertexCollectorImpl collector = new VertexCollectorImpl();
-		collector.add(0f, 0f, 0.2f, 0, 1f);
-		collector.add(1f, 0f, 0.2f, 1f, 1f);
-		collector.add(1f, 1f, 0.2f, 1f, 0f);
-		collector.add(0f, 1f, 0.2f, 0f, 0f);
+		final ArrayVertexCollector collector = new ArrayVertexCollector(RenderState.MISSING);
+		final int k = collector.allocate(30);
+		final int[] v = collector.data();
+		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k);
+		addVertex(1f, 0f, 0.2f, 1f, 1f, v, k + 5);
+		addVertex(1f, 1f, 0.2f, 1f, 0f, v, k + 10);
+		addVertex(1f, 1f, 0.2f, 1f, 0f, v, k + 15);
+		addVertex(0f, 1f, 0.2f, 0f, 0f, v, k + 20);
+		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k + 25);
 
 		drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
 		collector.toBuffer(drawBuffer.intBuffer());
 		drawBuffer.upload();
 
 		collector.clear(); // releases storage
+	}
+
+	private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {
+		target[index] = Float.floatToRawIntBits(x);
+		target[++index] = Float.floatToRawIntBits(y);
+		target[++index] = Float.floatToRawIntBits(z);
+		target[++index] = Float.floatToRawIntBits(u);
+		target[++index] = Float.floatToRawIntBits(v);
 	}
 
 	private static void tearDown() {

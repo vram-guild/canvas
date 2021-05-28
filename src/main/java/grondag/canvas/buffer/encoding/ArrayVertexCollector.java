@@ -16,38 +16,44 @@
 
 package grondag.canvas.buffer.encoding;
 
-import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_INT_QUAD_STRIDE;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_INT_VERTEX_STRIDE;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.buffer.TransferBufferAllocator;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 
-public class VertexCollectorImpl extends AbstractVertexCollector {
-	float[] perQuadDistance = new float[512];
+public class ArrayVertexCollector implements VertexCollector {
+	private int capacity = 1024;
+	private int[] vertexData = new int[capacity];
+	private float[] perQuadDistance = new float[512];
+	/** also the index of the first vertex when used in VertexConsumer mode. */
+	private int integerSize = 0;
 
-	public VertexCollectorImpl prepare(RenderMaterialImpl materialState) {
-		clear();
-		this.materialState = materialState;
-		vertexState(materialState);
-		return this;
+	public final RenderState renderState;
+
+	public ArrayVertexCollector(RenderState renderState) {
+		this.renderState = renderState;
+		arrayCount.incrementAndGet();
+		arryBytes.addAndGet(capacity);
 	}
 
-	public void clear() {
-		currentVertexIndex = 0;
-		integerSize = 0;
-		didPopulateNormal = false;
+	protected void grow(int newSize) {
+		if (newSize > capacity) {
+			final int newCapacity = MathHelper.smallestEncompassingPowerOfTwo(newSize);
+			final int[] newData = new int[newCapacity];
+			System.arraycopy(vertexData, 0, newData, 0, capacity);
+			arryBytes.addAndGet(newCapacity - capacity);
+			capacity = newCapacity;
+			vertexData = newData;
+		}
 	}
 
 	public int integerSize() {
@@ -58,25 +64,45 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		return integerSize * 4;
 	}
 
-	public boolean isEmpty() {
-		return integerSize == 0;
-	}
-
-	public RenderMaterialImpl materialState() {
-		return materialState;
-	}
-
 	public int vertexCount() {
-		return integerSize / CanvasVertexFormats.MATERIAL_VERTEX_STRIDE;
+		return integerSize / MATERIAL_INT_VERTEX_STRIDE;
 	}
 
 	public int quadCount() {
 		return vertexCount() / 4;
 	}
 
+	public boolean isEmpty() {
+		return integerSize == 0;
+	}
+
+	static AtomicInteger arrayCount = new AtomicInteger();
+	static AtomicInteger arryBytes = new AtomicInteger();
+
+	public static String debugReport() {
+		return String.format("CPU Vertex Arrays - count;%d,   MB allocated:%f", arrayCount.get(), arryBytes.get() / 1048576f);
+	}
+
 	@Override
-	public VertexCollectorImpl clone() {
-		throw new UnsupportedOperationException();
+	public int[] data() {
+		return vertexData;
+	}
+
+	@Override
+	public int allocate(int size) {
+		final int result = integerSize;
+		final int newSize = result + size;
+		grow(newSize);
+		integerSize = newSize;
+		return result;
+	}
+
+	public void toBuffer(IntBuffer intBuffer) {
+		intBuffer.put(vertexData, 0, integerSize);
+	}
+
+	public void clear() {
+		integerSize = 0;
 	}
 
 	public void sortQuads(float x, float y, float z) {
@@ -87,7 +113,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		}
 
 		for (int j = 0; j < quadCount; ++j) {
-			perQuadDistance[j] = getDistanceSq(x, y, z, CanvasVertexFormats.MATERIAL_VERTEX_STRIDE, j);
+			perQuadDistance[j] = getDistanceSq(x, y, z, MATERIAL_INT_VERTEX_STRIDE, j);
 		}
 
 		// sort the indexes by distance - farthest first
@@ -104,7 +130,7 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		}
 	};
 
-	private final int[] swapData = new int[MATERIAL_QUAD_STRIDE * 2];
+	private final int[] swapData = new int[MATERIAL_INT_QUAD_STRIDE * 2];
 
 	private final Swapper swapper = new Swapper() {
 		@Override
@@ -113,13 +139,13 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 			perQuadDistance[a] = perQuadDistance[b];
 			perQuadDistance[b] = distSwap;
 
-			final int aIndex = a * MATERIAL_QUAD_STRIDE;
-			final int bIndex = b * MATERIAL_QUAD_STRIDE;
+			final int aIndex = a * MATERIAL_INT_QUAD_STRIDE;
+			final int bIndex = b * MATERIAL_INT_QUAD_STRIDE;
 
-			System.arraycopy(vertexData, aIndex, swapData, 0, MATERIAL_QUAD_STRIDE);
-			System.arraycopy(vertexData, bIndex, swapData, MATERIAL_QUAD_STRIDE, MATERIAL_QUAD_STRIDE);
-			System.arraycopy(swapData, 0, vertexData, bIndex, MATERIAL_QUAD_STRIDE);
-			System.arraycopy(swapData, MATERIAL_QUAD_STRIDE, vertexData, aIndex, MATERIAL_QUAD_STRIDE);
+			System.arraycopy(vertexData, aIndex, swapData, 0, MATERIAL_INT_QUAD_STRIDE);
+			System.arraycopy(vertexData, bIndex, swapData, MATERIAL_INT_QUAD_STRIDE, MATERIAL_INT_QUAD_STRIDE);
+			System.arraycopy(swapData, 0, vertexData, bIndex, MATERIAL_INT_QUAD_STRIDE);
+			System.arraycopy(swapData, MATERIAL_INT_QUAD_STRIDE, vertexData, aIndex, MATERIAL_INT_QUAD_STRIDE);
 		}
 	};
 
@@ -154,6 +180,8 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	}
 
 	public int[] saveState(int[] priorState) {
+		final int integerSize = this.integerSize;
+
 		if (integerSize == 0) {
 			return null;
 		}
@@ -171,27 +199,18 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 		return result;
 	}
 
-	public VertexCollectorImpl loadState(RenderMaterialImpl state, int[] stateData) {
-		if (stateData == null) {
-			clear();
-			return this;
+	public void loadState(int[] stateData) {
+		clear();
+
+		if (stateData != null) {
+			final int size = stateData.length;
+			allocate(size);
+			System.arraycopy(stateData, 0, vertexData, 0, size);
 		}
-
-		materialState = state;
-		final int newSize = stateData.length;
-		integerSize = 0;
-
-		if (newSize > 0) {
-			ensureCapacity(newSize);
-			integerSize = newSize;
-			System.arraycopy(stateData, 0, vertexData, 0, newSize);
-		}
-
-		return this;
 	}
 
-	public void toBuffer(IntBuffer intBuffer) {
-		intBuffer.put(vertexData, 0, integerSize);
+	public RenderState renderState() {
+		return renderState;
 	}
 
 	public void draw(boolean clear) {
@@ -205,80 +224,26 @@ public class VertexCollectorImpl extends AbstractVertexCollector {
 	}
 
 	void sortIfNeeded() {
-		if (materialState.sorted) {
+		if (renderState.sorted) {
 			sortQuads(0, 0, 0);
 		}
 	}
 
 	/** Avoid: slow. */
 	public void drawSingle() {
-		sortIfNeeded();
-
-		materialState.renderState.enable();
-
-		final ByteBuffer buffer = TransferBufferAllocator.claim(byteSize());
-
-		final IntBuffer intBuffer = buffer.asIntBuffer();
-		intBuffer.position(0);
-		toBuffer(intBuffer);
-
-		CanvasVertexFormats.POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.enableDirect(MemoryUtil.memAddress(buffer));
-
-		GlStateManager.drawArrays(materialState.primitive, 0, vertexCount());
-
-		TransferBufferAllocator.release(buffer);
-
-		RenderState.disable();
+		// PERF: allocation - or eliminate this
+		final ObjectArrayList<ArrayVertexCollector> drawList = new ObjectArrayList<>();
+		drawList.add(this);
+		draw(drawList);
 	}
 
 	/**
 	 * Single-buffer draw, minimizes state changes.
 	 * Assumes all collectors are non-empty.
 	 */
-	public static void draw(ObjectArrayList<VertexCollectorImpl> drawList) {
+	public static void draw(ObjectArrayList<ArrayVertexCollector> drawList) {
 		final DrawableBuffer buffer = new DrawableBuffer(drawList);
 		buffer.draw(false);
 		buffer.close();
-	}
-
-	@Override
-	protected void emitQuad() {
-		if (conditionActive) {
-			final int newSize = integerSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE;
-			ensureCapacity(newSize + CanvasVertexFormats.MATERIAL_QUAD_STRIDE);
-			currentVertexIndex = newSize;
-			integerSize = newSize;
-		} else {
-			currentVertexIndex = integerSize;
-		}
-	}
-
-	@Override
-	public final void add(int[] appendData, int length) {
-		final int oldSize = integerSize;
-		final int newSize = integerSize + length;
-		ensureCapacity(newSize);
-		System.arraycopy(appendData, 0, vertexData, oldSize, length);
-		integerSize = newSize;
-		currentVertexIndex = newSize;
-	}
-
-	@Override
-	public void add(float... val) {
-		final int length = val.length;
-		final int oldSize = integerSize;
-		final int newSize = integerSize + length;
-		final int[] data = vertexData;
-		ensureCapacity(newSize);
-
-		for (int i = 0; i < length; ++i) {
-			data[i + oldSize] = Float.floatToRawIntBits(val[i]);
-		}
-
-		integerSize = newSize;
-	}
-
-	public static String debugReport() {
-		return String.format("Vertex Collectors - count;%d,   MB allocated:%f", collectorCount.get(), collectorBytes.get() / 1048576f);
 	}
 }

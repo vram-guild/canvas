@@ -19,9 +19,10 @@ package grondag.canvas.buffer;
 import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.util.GlAllocationUtils;
+
+import grondag.canvas.varia.GFX;
 
 /**
  * Buffer gen is incredibly slow on some Windows/NVidia systems and default MC behavior.
@@ -34,7 +35,7 @@ public class GlBufferAllocator {
 
 	public static int claimBuffer(int expectedBytes) {
 		if (queue.isEmpty()) {
-			GL21.glGenBuffers(buff);
+			GFX.genBuffers(buff);
 
 			for (int i = 0; i < 256; i++) {
 				queue.enqueue(buff.get(i));
@@ -49,7 +50,7 @@ public class GlBufferAllocator {
 	}
 
 	public static void releaseBuffer(int buff, int expectedBytes) {
-		GL21.glDeleteBuffers(buff);
+		GFX.deleteBuffers(buff);
 		--allocatedCount;
 		allocatedBytes -= expectedBytes;
 	}

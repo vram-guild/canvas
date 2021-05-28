@@ -16,15 +16,14 @@
 
 package grondag.canvas.render;
 
-import com.mojang.blaze3d.platform.FramebufferInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 
 import grondag.canvas.buffer.encoding.DrawableBuffer;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
 
 public class SkyShadowRenderer {
@@ -36,14 +35,12 @@ public class SkyShadowRenderer {
 		assert !active;
 		active = true;
 		final int size = Pipeline.skyShadowSize;
-		PipelineManager.setProjection(size, size);
 		RenderSystem.viewport(0, 0, size, size);
 	}
 
 	private static void end() {
 		assert active;
 		active = false;
-		PipelineManager.setProjection(PipelineManager.width(), PipelineManager.height());
 		RenderSystem.viewport(0, 0, PipelineManager.width(), PipelineManager.height());
 	}
 
@@ -53,22 +50,17 @@ public class SkyShadowRenderer {
 
 	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
 		if (Pipeline.skyShadowFbo != null) {
-			// Viewport call (or something else) seems to be messing up fixed-function matrix state
-			RenderSystem.pushMatrix();
-
 			begin();
 
 			for (cascade = 0; cascade < MatrixState.CASCADE_COUNT; ++cascade) {
 				Pipeline.skyShadowFbo.bind();
-				GL46.glFramebufferTextureLayer(GL46.GL_FRAMEBUFFER, FramebufferInfo.DEPTH_ATTACHMENT, Pipeline.shadowMapDepth, 0, cascade);
+				GFX.framebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, Pipeline.shadowMapDepth, 0, cascade);
 				renderInner(canvasWorldRenderer, cameraX, cameraY, cameraZ, entityBuffer, shadowExtrasBuffer);
 			}
 
 			Pipeline.defaultFbo.bind();
 
 			end();
-
-			RenderSystem.popMatrix();
 		}
 	}
 

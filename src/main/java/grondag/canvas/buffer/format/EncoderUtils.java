@@ -14,25 +14,20 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.format;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.NormalHelper;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.texture.SpriteInfoTexture;
 
 public abstract class EncoderUtils {
-	public static final int FULL_BRIGHTNESS = 0xF000F0;
-
 	public static void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context, VertexConsumer buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final int overlay = context.overlay();
@@ -55,14 +50,14 @@ public abstract class EncoderUtils {
 		final boolean emissive = quad.material().emissive();
 
 		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppend(i, matrix, buff);
+			quad.transformAndAppendVertex(i, matrix, buff);
 
 			final int color = quad.spriteColor(i, 0);
 			buff.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 
 			buff.texture(quad.spriteU(i, 0), quad.spriteV(i, 0));
 			buff.overlay(overlay);
-			buff.light(emissive ? FULL_BRIGHTNESS : quad.lightmap(i));
+			buff.light(emissive ? MeshEncodingHelper.FULL_BRIGHTNESS : quad.lightmap(i));
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -100,65 +95,6 @@ public abstract class EncoderUtils {
 			quad.vertexColor(2, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(indexedColor, quad.vertexColor(2))));
 			quad.vertexColor(3, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(indexedColor, quad.vertexColor(3))));
 		}
-	}
-
-	public static void bufferQuadDirect(MutableQuadViewImpl quad, AbstractRenderContext context, VertexCollectorImpl buff) {
-		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
-		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final float[] aoData = quad.ao;
-		final RenderMaterialImpl mat = quad.material();
-		final int[] appendData = context.appendData;
-
-		assert mat.blendMode != BlendMode.DEFAULT;
-
-		final int shaderFlags = mat.shaderFlags << 24;
-
-		int packedNormal = 0;
-		int transformedNormal = 0;
-		final boolean useNormals = quad.hasVertexNormals();
-
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-			transformedNormal = normalMatrix.canvas_transform(packedNormal);
-		}
-
-		int spriteIdCoord = SpriteInfoTexture.BLOCKS.coordinate(quad.spriteId());
-
-		assert spriteIdCoord <= 0xFFFF;
-
-		spriteIdCoord |= (mat.index << 16);
-
-		int k = 0;
-
-		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppend(i, matrix, appendData, k);
-			k += 3;
-
-			appendData[k++] = quad.vertexColor(i);
-			appendData[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
-			appendData[k++] = spriteIdCoord;
-
-			final int packedLight = quad.lightmap(i);
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
-			final int ao = aoData == null ? 255 : (Math.round(aoData[i] * 255));
-			appendData[k++] = blockLight | (skyLight << 8) | (ao << 16);
-
-			if (useNormals) {
-				final int p = quad.packedNormal(i);
-
-				if (p != packedNormal) {
-					packedNormal = p;
-					transformedNormal = normalMatrix.canvas_transform(packedNormal);
-				}
-			}
-
-			appendData[k++] = transformedNormal | shaderFlags;
-		}
-
-		buff.add(appendData, k);
 	}
 
 	public static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {

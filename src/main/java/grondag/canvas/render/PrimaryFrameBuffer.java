@@ -19,13 +19,14 @@ package grondag.canvas.render;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.gl.WindowFramebuffer;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.PipelineManager;
 
-public class PrimaryFrameBuffer extends Framebuffer {
-	public PrimaryFrameBuffer(int width, int height, boolean getError) {
-		super(width, height, true, getError);
+public class PrimaryFrameBuffer extends WindowFramebuffer {
+	public PrimaryFrameBuffer(int width, int height) {
+		super(width, height);
 	}
 
 	@Override
@@ -46,7 +47,7 @@ public class PrimaryFrameBuffer extends Framebuffer {
 		textureHeight = height;
 
 		// UGLY - throwing away what seems to be a spurious INVALID_VALUE error here
-		GlStateManager.getError();
+		GlStateManager._getError();
 
 		PipelineManager.init(this, width, height);
 
@@ -57,6 +58,6 @@ public class PrimaryFrameBuffer extends Framebuffer {
 	@Override
 	public void clear(boolean getError) {
 		// NOOP - should be done in pipeline buffers
-		assert false : "Unmanaged framebuffer clear";
+		CanvasMod.LOG.info("Unmanaged framebuffer clear");
 	}
 }

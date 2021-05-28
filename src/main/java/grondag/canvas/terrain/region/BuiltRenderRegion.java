@@ -34,7 +34,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
@@ -51,9 +50,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
@@ -66,7 +64,6 @@ import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.terrain.util.RenderRegionAddressHelper;
-import grondag.canvas.terrain.util.TerrainModelSpace;
 import grondag.canvas.varia.BlockPosHelper;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
@@ -124,8 +121,8 @@ public class BuiltRenderRegion {
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
 		chunkY = origin.getY() >> 4;
-		isBottom = origin.getY() == 0;
-		isTop = origin.getY() == 240;
+		isBottom = origin.getY() == cwr.getWorld().getBottomY();
+		isTop = origin.getY() == cwr.getWorld().getTopY() - 16;
 	}
 
 	@Override
@@ -166,7 +163,7 @@ public class BuiltRenderRegion {
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
-		final BlockEntityRenderer<E> blockEntityRenderer = BlockEntityRenderDispatcher.INSTANCE.get(blockEntity);
+		final BlockEntityRenderer<E> blockEntityRenderer = MinecraftClient.getInstance().getBlockEntityRenderDispatcher().get(blockEntity);
 
 		if (blockEntityRenderer != null) {
 			chunkEntities.add(blockEntity);
@@ -429,21 +426,14 @@ public class BuiltRenderRegion {
 				final Vec3d cameraPos = cwr.cameraPos();
 				final VertexCollectorList collectors = context.collectors;
 				final RenderMaterialImpl translucentState = RenderLayerHelper.TRANSLUCENT_TERRAIN;
-				final VertexCollectorImpl collector = collectors.get(translucentState);
+				final ArrayVertexCollector collector = collectors.get(translucentState);
 
-				collector.loadState(translucentState, state);
+				collector.loadState(state);
 
-				if (Configurator.batchedChunkRender) {
-					collector.sortQuads(
-						(float) (cameraPos.x - TerrainModelSpace.renderCubeOrigin(origin.getX())),
-						(float) (cameraPos.y - TerrainModelSpace.renderCubeOrigin(origin.getY())),
-						(float) (cameraPos.z - TerrainModelSpace.renderCubeOrigin(origin.getZ())));
-				} else {
-					collector.sortQuads(
-						(float) (cameraPos.x - origin.getX()),
-						(float) (cameraPos.y - origin.getY()),
-						(float) (cameraPos.z - origin.getZ()));
-				}
+				collector.sortQuads(
+					(float) (cameraPos.x - origin.getX()),
+					(float) (cameraPos.y - origin.getY()),
+					(float) (cameraPos.z - origin.getZ()));
 
 				regionData.translucentState = collector.saveState(state);
 
@@ -543,18 +533,6 @@ public class BuiltRenderRegion {
 		final int yOrigin = origin.getY();
 		final int zOrigin = origin.getZ();
 
-		final int xModelOffset, yModelOffset, zModelOffset;
-
-		if (Configurator.batchedChunkRender) {
-			xModelOffset = TerrainModelSpace.renderCubeRelative(xOrigin);
-			yModelOffset = TerrainModelSpace.renderCubeRelative(yOrigin);
-			zModelOffset = TerrainModelSpace.renderCubeRelative(zOrigin);
-		} else {
-			xModelOffset = 0;
-			yModelOffset = 0;
-			zModelOffset = 0;
-		}
-
 		final FastRenderRegion region = context.region;
 		final Vec3d cameraPos = cwr.cameraPos();
 		final MatrixStack matrixStack = new MatrixStack();
@@ -576,7 +554,7 @@ public class BuiltRenderRegion {
 				if (hasFluid || hasBlock) {
 					// PERF: allocation, speed
 					matrixStack.push();
-					matrixStack.translate(x + xModelOffset, y + yModelOffset, z + zModelOffset);
+					matrixStack.translate(x, y, z);
 
 					if (hasFluid) {
 						context.renderFluid(blockState, searchPos, false, FluidQuadSupplier.get(fluidState.getFluid()), matrixStack);
@@ -600,7 +578,7 @@ public class BuiltRenderRegion {
 			}
 		}
 
-		regionData.endBuffering((float) (cameraPos.x - xOrigin + xModelOffset), (float) (cameraPos.y - yOrigin + yModelOffset), (float) (cameraPos.z - zOrigin + zModelOffset), collectors);
+		regionData.endBuffering((float) (cameraPos.x - xOrigin), (float) (cameraPos.y - yOrigin), (float) (cameraPos.z - zOrigin), collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();

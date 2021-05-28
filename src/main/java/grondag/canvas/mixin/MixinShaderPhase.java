@@ -16,22 +16,24 @@
 
 package grondag.canvas.mixin;
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.Shadow;
 
-import grondag.canvas.CanvasMod;
+import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.Shader;
 
-@Mixin(targets = "net.minecraft.client.render.chunk.ChunkBuilder$BuiltChunk$RebuildTask")
-public abstract class MixinChunkRebuildTask {
-	private static boolean shouldWarn = true;
+import grondag.canvas.material.state.MojangShaderData;
+import grondag.canvas.mixinterface.ShaderExt;
 
-	@Inject(at = @At("RETURN"), method = "<init>*")
-	private void onNew(CallbackInfo ci) {
-		if (shouldWarn) {
-			CanvasMod.LOG.warn("[Canvas] ChunkBuilder.BuiltChunk.RebuildTask instantiated unexpectedly. This probably indicates a mod incompatibility.");
-			shouldWarn = false;
-		}
+@Mixin(RenderPhase.Shader.class)
+public class MixinShaderPhase implements ShaderExt {
+	@Shadow private Optional<Supplier<Shader>> supplier;
+
+	@Override
+	public MojangShaderData canvas_shaderData() {
+		return supplier.isPresent() ? ((ShaderExt) (supplier.get().get())).canvas_shaderData() : MojangShaderData.MISSING;
 	}
 }

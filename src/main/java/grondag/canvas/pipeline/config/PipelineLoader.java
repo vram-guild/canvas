@@ -48,7 +48,7 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 	}
 
 	@Override
-	public void apply(ResourceManager manager) {
+	public void reload(ResourceManager manager) {
 		hasLoadedOnce = true;
 		MAP.clear();
 

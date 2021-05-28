@@ -19,16 +19,12 @@ package grondag.canvas.material.state;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
@@ -38,12 +34,11 @@ import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderImpl;
-import grondag.canvas.shader.ProgramType;
-import grondag.canvas.texture.MaterialInfoTexture;
-import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 import grondag.canvas.varia.MatrixState;
+import grondag.fermion.bits.BitPacker64;
 
 /**
  * Primitives with the same state have the same vertex encoding,
@@ -60,8 +55,44 @@ import grondag.canvas.varia.MatrixState;
  * packed in glState, uniformState order for best performance.
  */
 public final class RenderState extends AbstractRenderState {
+	// packs render order sorting weights - higher (later) weights are drawn first
+	// assumes draws are for a single target and primitive type, so those are not included
+	private static final BitPacker64<Void> SORT_PACKER = new BitPacker64<> (null, null);
+
+	// these aren't order-dependent, they are included in sort to minimize state changes
+	private static final BitPacker64<Void>.BooleanElement SORT_BLUR = SORT_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
+	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
+
+	// decal should be drawn after non-decal
+	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
+	// primary sorted layer drawn first
+	private static final BitPacker64<Void>.BooleanElement SORT_TPP = SORT_PACKER.createBooleanElement();
+	// draw solid first, then various translucent layers
+	private static final BitPacker64<Void>.IntElement SORT_TRANSPARENCY = SORT_PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
+	// draw things that update depth buffer first
+	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
+
+	public final long drawPriority;
+
 	protected RenderState(long bits) {
 		super(nextIndex++, bits);
+		drawPriority = drawPriority();
+	}
+
+	private long drawPriority() {
+		long result = SORT_BLUR.setValue(blur, 0);
+		result = SORT_DEPTH_TEST.setValue(depthTest.index, result);
+		result = SORT_CULL.setValue(cull, result);
+		result = SORT_LINES.setValue(lines, result);
+		result = SORT_DECAL.setValue(decal.drawPriority, result);
+		// inverted because higher goes first
+		result = SORT_TPP.setValue(!primaryTargetTransparency, result);
+		result = SORT_TRANSPARENCY.setValue(transparency.drawPriority, result);
+		result = SORT_WRITE_MASK.setValue(writeMask.drawPriority, result);
+
+		return result;
 	}
 
 	public void enable() {
@@ -85,29 +116,19 @@ public final class RenderState extends AbstractRenderState {
 
 		if (shadowActive == null) {
 			// same for all, so only do 1X
-			RenderSystem.shadeModel(GL11.GL_SMOOTH);
 			Pipeline.skyShadowFbo.bind();
 		}
 
 		shadowActive = this;
 		active = null;
-
-		if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
-			MaterialInfoTexture.INSTANCE.enable();
-		} else {
-			MaterialInfoTexture.INSTANCE.disable();
-		}
+		texture.materialIndexProvider().enable();
 
 		// WIP: can probably remove many of these
-
-		// controlled in shader
-		RenderSystem.disableAlphaTest();
 
 		texture.enable(blur);
 		transparency.enable();
 		depthTest.enable();
 		writeMask.enable();
-		fog.enable();
 		// WIP: disable decal renders in depth pass
 		decal.enable();
 
@@ -120,14 +141,12 @@ public final class RenderState extends AbstractRenderState {
 		depthShader.setModelOrigin(x, y, z);
 		depthShader.setCascade(cascade);
 
-		GL46.glEnable(GL46.GL_POLYGON_OFFSET_FILL);
-		GL46.glPolygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
+		GFX.enable(GFX.GL_POLYGON_OFFSET_FILL);
+		GFX.polygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
 		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 
 	private void enableMaterial(int x, int y, int z) {
-		assert CanvasGlHelper.checkError();
-
 		final MaterialShaderImpl shader = MatrixState.get() == MatrixState.SCREEN ? guiShader : this.shader;
 
 		if (active == this) {
@@ -139,39 +158,20 @@ public final class RenderState extends AbstractRenderState {
 		//			GlStateSpy.print();
 		//		}
 
-		if (active == null) {
-			// same for all, so only do 1X
-			RenderSystem.shadeModel(GL11.GL_SMOOTH);
-			target.enable();
-		} else if (active.target != target) {
+		if (active == null || active.target != target) {
 			target.enable();
 		}
-
-		assert CanvasGlHelper.checkError();
 
 		active = this;
 		shadowActive = null;
-
-		if (programType.isVertexLogic) {
-			MaterialInfoTexture.INSTANCE.enable();
-		} else {
-			MaterialInfoTexture.INSTANCE.disable();
-		}
-
-		assert CanvasGlHelper.checkError();
-
-		// controlled in shader
-		RenderSystem.disableAlphaTest();
-		assert CanvasGlHelper.checkError();
+		texture.materialIndexProvider().enable();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
-			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
-			assert CanvasGlHelper.checkError();
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP_TEXTURE);
-			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
-			assert CanvasGlHelper.checkError();
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
 			// Was seeing stray invalid operations errors in GL without.
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
@@ -184,45 +184,40 @@ public final class RenderState extends AbstractRenderState {
 				final int bind = Pipeline.materialTextures().texIds[i];
 				CanvasTextureState.activeTextureUnit(TextureData.PROGRAM_SAMPLERS + i);
 				CanvasTextureState.bindTexture(bindTarget, bind);
-				assert CanvasGlHelper.checkError();
 			}
 
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 
 		texture.enable(blur);
-		assert CanvasGlHelper.checkError();
-
 		transparency.enable();
-		assert CanvasGlHelper.checkError();
-
 		depthTest.enable();
-		assert CanvasGlHelper.checkError();
-
 		writeMask.enable();
-		fog.enable();
 		decal.enable();
-
-		assert CanvasGlHelper.checkError();
 
 		CULL_STATE.setEnabled(cull);
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
-		assert CanvasGlHelper.checkError();
-
 		shader.activate(this);
 		shader.setContextInfo(texture.atlasInfo(), target.index);
 		shader.setModelOrigin(x, y, z);
-
-		assert CanvasGlHelper.checkError();
 	}
 
-	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(RenderSystem::enableCull, RenderSystem::disableCull);
+	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(GFX::enableCull, GFX::disableCull);
 
+	@SuppressWarnings("resource")
 	private static final BinaryMaterialState LIGHTMAP_STATE = new BinaryMaterialState(
-		() -> MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable(),
-		() -> MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable());
+		//UGLY: vanilla handles binding before uniform upload but we need to do it here
+		//so that we don't bind the lightmap texture to some random texture unit
+		() -> {
+			CanvasTextureState.activeTextureUnit(TextureData.MC_LIGHTMAP);
+			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
+		},
+		() -> {
+			CanvasTextureState.activeTextureUnit(TextureData.MC_LIGHTMAP);
+			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
+		});
 
 	private static final BinaryMaterialState LINE_STATE = new BinaryMaterialState(
 		() -> RenderSystem.lineWidth(Math.max(2.5F, MinecraftClient.getInstance().getWindow().getFramebufferWidth() / 1920.0F * 2.5F)),
@@ -236,38 +231,28 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		shadowActive = null;
 
-		GL46.glDisable(GL46.GL_POLYGON_OFFSET_FILL);
-		GL46.glCullFace(GL46.GL_BACK);
+		GFX.glDisable(GFX.GL_POLYGON_OFFSET_FILL);
+		GFX.glCullFace(GFX.GL_BACK);
 
-		CanvasVertexFormat.disableDirect();
 		GlProgram.deactivate();
-		RenderSystem.shadeModel(GL11.GL_FLAT);
-		SpriteInfoTexture.disable();
 		MaterialDecal.disable();
 		MaterialTransparency.disable();
 		MaterialDepthTest.disable();
 		MaterialWriteMask.disable();
-		MaterialFog.disable();
 		CULL_STATE.disable();
 		LIGHTMAP_STATE.disable();
 		LINE_STATE.disable();
 		MaterialTextureState.disable();
-		RenderSystem.color4f(1f, 1f, 1f, 1f);
-		MaterialInfoTexture.INSTANCE.disable();
+		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		MaterialIndexTexture.disable();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
-			CanvasTextureState.bindTexture(GL46.GL_TEXTURE_2D_ARRAY, 0);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, 0);
 		}
 
 		MaterialTarget.disable();
 		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-
-		assert CanvasGlHelper.checkError();
-		//		if (enablePrint) {
-		//			GlStateSpy.print();
-		//			enablePrint = false;
-		//		}
 	}
 
 	public static final int MAX_COUNT = 4096;

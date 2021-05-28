@@ -67,33 +67,32 @@ public class GlMaterialShader extends GlShader {
 			final StringBuilder startsBuilder = new StringBuilder();
 			final StringBuilder implBuilder = new StringBuilder();
 
+			startsBuilder.append("\tswitch (cv_programId) {\n");
+
 			for (int i = 0; i < limit; ++i) {
 				final int index = shaders[i];
 
-				if (i > 0) {
-					startsBuilder.append("\telse ");
-				}
-
-				if (i < limit - 1) {
-					startsBuilder.append("\tif (cv_programId == ");
-					startsBuilder.append(index);
-					startsBuilder.append(") ");
-				}
+				startsBuilder.append("\tcase ");
+				startsBuilder.append(index);
+				startsBuilder.append(": ");
 
 				String src = loadShaderSource(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
 
 				if (src.contains("frx_startFragment")) {
 					startsBuilder.append("frx_startFragment");
 					startsBuilder.append(index);
-					startsBuilder.append("(data);\n");
+					startsBuilder.append("(data); break;\n");
 
 					src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
 					implBuilder.append(src);
 					implBuilder.append("\n");
 				} else {
-					startsBuilder.append("{ }\n");
+					startsBuilder.append("break;\n");
 				}
 			}
+
+			startsBuilder.append("\tdefault: break;\n");
+			startsBuilder.append("\t}\n");
 
 			impl = implBuilder.toString();
 			starts = startsBuilder.toString();
@@ -130,35 +129,35 @@ public class GlMaterialShader extends GlShader {
 			final StringBuilder startsBuilder = new StringBuilder();
 			final StringBuilder implBuilder = new StringBuilder();
 
+			startsBuilder.append("\tswitch (cv_programId) {\n");
+
 			for (int i = 0; i < limit; ++i) {
 				final int index = shaders[i];
+
+				startsBuilder.append("\tcase ");
+				startsBuilder.append(index);
+				startsBuilder.append(": ");
+
 				String src = loadShaderSource(resourceManager, MaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
 
 				// prevent abandoned endVertex calls from conflicting
 				src = StringUtils.replace(src, "frx_endVertex", "frx_endVertex" + i + "_UNUSED");
 
-				if (i > 0) {
-					startsBuilder.append("\telse ");
-				}
-
-				if (i < limit - 1) {
-					startsBuilder.append("\tif (cv_programId == ");
-					startsBuilder.append(index);
-					startsBuilder.append(") ");
-				}
-
 				if (src.contains("frx_startVertex")) {
-					startsBuilder.append("{ frx_startVertex");
+					startsBuilder.append("frx_startVertex");
 					startsBuilder.append(index);
-					startsBuilder.append("(data); }\n");
+					startsBuilder.append("(data); break;\n");
 					src = StringUtils.replace(src, "frx_startVertex", "frx_startVertex" + index);
 				} else {
-					startsBuilder.append("{ }\n");
+					startsBuilder.append("break;\n");
 				}
 
 				implBuilder.append(src);
 				implBuilder.append("\n");
 			}
+
+			startsBuilder.append("\tdefault: break;\n");
+			startsBuilder.append("\t}\n");
 
 			impl = implBuilder.toString();
 			starts = startsBuilder.toString();

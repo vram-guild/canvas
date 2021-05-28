@@ -16,9 +16,9 @@
 
 package grondag.canvas.apiimpl.util;
 
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vec3i;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
@@ -29,21 +29,20 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
  * designed to be usable without the default renderer.
  */
 public abstract class NormalHelper {
-	private NormalHelper() {
-	}
+	private NormalHelper() { }
 
 	public static int packNormal(float x, float y, float z) {
 		x = MathHelper.clamp(x, -1, 1);
 		y = MathHelper.clamp(y, -1, 1);
 		z = MathHelper.clamp(z, -1, 1);
 
-		return ((int) ((x * 127) + 127) & 255) | (((int) ((y * 127) + 127) & 255) << 8) | (((int) ((z * 127) + 127) & 255) << 16);
+		return ((int) (x * 127) & 255) | (((int) (y * 127) & 255) << 8) | (((int) (z * 127) & 255) << 16);
 	}
 
 	/**
 	 * Version of {@link #packNormal(float, float, float)} that accepts a vector type.
 	 */
-	public static int packNormal(Vector3f normal) {
+	public static int packNormal(Vec3f normal) {
 		return packNormal(normal.getX(), normal.getY(), normal.getZ());
 	}
 
@@ -53,7 +52,7 @@ public abstract class NormalHelper {
 	 * <p>Components are x, y, z - zero based.
 	 */
 	public static float getPackedNormalComponent(int packedNormal, int component) {
-		return (((packedNormal >>> (8 * component)) & 0xFF) - 127f) / 127f;
+		return ((byte) ((packedNormal >>> (8 * component)) & 0xFF)) / 127f;
 	}
 
 	/**
@@ -64,7 +63,7 @@ public abstract class NormalHelper {
 	 * <p>Will work with triangles also. Assumes counter-clockwise winding order, which is the norm.
 	 * Expects convex quads with all points co-planar.
 	 */
-	public static void computeFaceNormal(Vector3f saveTo, QuadView q) {
+	public static void computeFaceNormal(Vec3f saveTo, QuadView q) {
 		final Direction nominalFace = q.nominalFace();
 
 		if (GeometryHelper.isQuadParallelToFace(nominalFace, q)) {

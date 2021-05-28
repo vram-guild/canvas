@@ -1,5 +1,6 @@
 #include frex:shaders/api/context.glsl
 #include frex:shaders/api/world.glsl
+#include frex:shaders/api/view.glsl
 #include canvas:basic_light_config
 
 /******************************************************
@@ -7,7 +8,11 @@
 ******************************************************/
 
 #if DIFFUSE_SHADING_MODE != DIFFUSE_MODE_NONE
-varying float pv_diffuse;
+#ifdef VERTEX_SHADER
+	out float pv_diffuse;
+#else
+	in float pv_diffuse;
+#endif
 #endif
 
 /**
@@ -15,7 +20,6 @@ varying float pv_diffuse;
  * consistent with Phong lighting ambient + diffuse for others.
  */
 float p_diffuseBaked(vec3 normal) {
-	mat3 normalModelMatrix = frx_normalModelMatrix();
 	// TODO: encode as constants here and below
 	vec3 lv1 = normalize(vec3(0.1, 1.0, -0.3));
 
@@ -38,26 +42,12 @@ float p_diffuseSky(vec3 normal) {
 
 /**
  * Offers results similar to vanilla in GUI, assumes a fixed transform.
- * Vanilla GUI light setup looks like this:
- *
- * light(GL_LIGHT0, GL_POSITION, -0.96104145, -0.078606814, -0.2593495, 0
- * light(GL_LIGHT0, GL_DIFFUSE, getBuffer(0.6F, 0.6F, 0.6F, 1.0F));
- * light(GL_LIGHT0, GL_AMBIENT, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
- * light(GL_LIGHT0, GL_SPECULAR, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
- *
- * light(GL_LIGHT1, GL_POSITION, -0.26765957, -0.95667744, 0.100838766, 0
- * light(GL_LIGHT1, GL_DIFFUSE, getBuffer(0.6F, 0.6F, 0.6F, 1.0F));
- * light(GL_LIGHT1, GL_AMBIENT, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
- * light(GL_LIGHT1, GL_SPECULAR, getBuffer(0.0F, 0.0F, 0.0F, 1.0F));
- *
- * glShadeModel(GL_FLAT);
- * glLightModel(GL_LIGHT_MODEL_AMBIENT, 0.4F, 0.4F, 0.4F, 1.0F);
  */
 float p_diffuseGui(vec3 normal) {
-	normal = normalize(gl_NormalMatrix * normal);
+	normal = normalize(normal);
 	float light = 0.4
-	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.96104145, -0.078606814, -0.2593495)), 0.0, 1.0)
-	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.26765957, -0.95667744, 0.100838766)), 0.0, 1.0);
+	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.93205774, 0.26230583, -0.24393857)), 0.0, 1.0)
+	+ 0.6 * clamp(dot(normal.xyz, vec3(-0.10341814, 0.9751613, 0.18816751)), 0.0, 1.0);
 	return min(light, 1.0);
 }
 

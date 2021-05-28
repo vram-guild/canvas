@@ -47,7 +47,7 @@
 // w is sky rotation in radians
 #define _CV_SKYLIGHT_VECTOR 11
 
-#define _CV_RESERVED 12
+#define _CV_FOG_COLOR 12
 
 // rgb: skylight color modified for atmospheric effects
 // a: skylight transition smoothing factor 0-1
@@ -59,6 +59,12 @@
 
 // 15 - 18 reserved for cascades 0-3
 #define _CV_SHADOW_CENTER 15
+
+// x = fog start
+// y = fog end
+// z = unused
+// w = unused
+#define _CV_RENDER_INFO 19
 
 // UINT ARRAY
 #define _CV_RENDER_FRAMES 0
@@ -87,7 +93,7 @@ uniform uint[4] _cvu_flags;
 uniform vec4[2] _cvu_model_origin;
 uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;
-uniform int _cvu_fog_mode;
+uniform vec2 _cvu_fog_info;
 
 #define _CV_MAT_VIEW 0
 #define _CV_MAT_VIEW_INVERSE 1
@@ -112,6 +118,8 @@ uniform int _cvu_fog_mode;
 #define _CV_MAT_CLEAN_VIEW_PROJ_LAST 24
 
 uniform mat4[25] _cvu_matrix;
+
+uniform mat4 _cvu_guiViewProjMatrix;
 
 bool _cv_testCondition(int conditionIndex) {
 	return frx_bitValue(_cvu_flags[_CV_CONDITION_FLAGS_START + (conditionIndex >> 5)], conditionIndex & 31) == 1.0;

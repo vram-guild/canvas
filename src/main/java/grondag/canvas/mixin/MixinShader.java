@@ -21,17 +21,24 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.gl.VertexBuffer;
-import net.minecraft.util.math.Matrix4f;
+import net.minecraft.client.render.Shader;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.resource.ResourceFactory;
 
-import grondag.canvas.varia.MatrixState;
+import grondag.canvas.material.state.MojangShaderData;
+import grondag.canvas.mixinterface.ShaderExt;
 
-@Mixin(VertexBuffer.class)
-public class MixinVertexBuffer {
-	// Unmanaged draws during world rendering expect the view matrix to include
-	// camera rotation but we apply that to the GL state directly - it's not part of the matrix.
-	@Inject(method = "draw", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;multMatrix(Lnet/minecraft/util/math/Matrix4f;)V"), cancellable = false)
-	private void onDraw(Matrix4f matrix, int mode, CallbackInfo ci) {
-		MatrixState.applyViewIfNeeded();
+@Mixin(Shader.class)
+public class MixinShader implements ShaderExt {
+	private MojangShaderData canvas_shaderData;
+
+	@Inject(at = @At("RETURN"), method = "<init>*")
+	private void onNew(ResourceFactory resourceFactory, String string, VertexFormat vertexFormat, CallbackInfo ci) {
+		canvas_shaderData = MojangShaderData.get(string);
+	}
+
+	@Override
+	public MojangShaderData canvas_shaderData() {
+		return canvas_shaderData;
 	}
 }

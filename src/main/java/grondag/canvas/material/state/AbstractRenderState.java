@@ -16,6 +16,7 @@
 
 package grondag.canvas.material.state;
 
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -23,7 +24,6 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialFog;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.property.MaterialTransparency;
@@ -46,7 +46,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	 * GL_TRIANGLE_FAN (currently GUI only)
 	 * GL_QUADS
 	 */
-	public final int primitive;
+	public final DrawMode primitive;
 
 	public final MaterialTextureState texture;
 	public final String textureIdString;
@@ -60,7 +60,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean sorted;
 	public final MaterialTarget target;
 	public final boolean lines;
-	public final MaterialFog fog;
+	public final boolean fog;
 	public final MaterialShaderId shaderId;
 
 	public final int vertexShaderIndex;
@@ -91,16 +91,14 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final boolean disableDiffuse;
 	public final boolean disableAo;
 	public final boolean disableColorIndex;
-	public final boolean cutout;
+	public final int cutout;
 	public final boolean unmipped;
-	public final boolean translucentCutout;
 	public final boolean hurtOverlay;
 	public final boolean flashOverlay;
 	public final boolean castShadows;
 	public final boolean primaryTargetTransparency;
 	// PERF: use this to avoid overhead of animated textures
 	public final boolean discardsTexture;
-	public final ProgramType programType;
 
 	protected AbstractRenderState(int index, long bits) {
 		super(bits);
@@ -116,7 +114,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		decal = MaterialDecal.fromIndex(decal());
 		target = MaterialTarget.fromIndex(target());
 		lines = lines();
-		fog = MaterialFog.fromIndex(fog());
+		fog = fog();
 		condition = condition();
 		transparency = MaterialTransparency.fromIndex(transparency());
 		sorted = sorted();
@@ -136,10 +134,9 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		depthFragmentShader = depthFragmentShaderId.toString();
 
 		primaryTargetTransparency = primaryTargetTransparency();
-		programType = ((VERTEX_CONTROL_MODE && textureIdString.contains("/atlas/")) || primaryTargetTransparency) ? ProgramType.MATERIAL_VERTEX_LOGIC : ProgramType.MATERIAL_UNIFORM_LOGIC;
-		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, programType);
-		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_UNIFORM_LOGIC);
-		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.shadowType(programType));
+		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
 		blendMode = blendMode();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();
@@ -147,7 +144,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		disableColorIndex = disableColorIndex();
 		cutout = cutout();
 		unmipped = unmipped();
-		translucentCutout = transparentCutout();
 		hurtOverlay = hurtOverlay();
 		flashOverlay = flashOverlay();
 		castShadows = castShadows();

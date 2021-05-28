@@ -23,10 +23,13 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.SpriteInfoTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.texture.SpriteIndex;
+
 import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -35,10 +38,9 @@ public class GlMaterialProgram extends GlProgram {
 	// UGLY: special casing, public
 	public final UniformArray4fImpl modelOrigin;
 	public final UniformArrayiImpl contextInfo;
-	public final Uniform3iImpl programInfo;
 	public final Uniform1iImpl modelOriginType;
-	public final Uniform1iImpl fogMode;
 	public final Uniform1iImpl cascade;
+	public final UniformMatrix4fImpl guiViewProjMatrix;
 
 	private final ObjectArrayList<UniformSamplerImpl> configuredSamplers;
 
@@ -47,13 +49,12 @@ public class GlMaterialProgram extends GlProgram {
 	GlMaterialProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
 		super(vertexShader, fragmentShader, format, programType);
 		modelOrigin = (UniformArray4fImpl) uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.setExternal(null), 2);
-		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
-		programInfo = (Uniform3iImpl) uniform3i("_cvu_program", UniformRefreshFrequency.ON_LOAD, u -> { });
+		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 3);
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-		fogMode = (Uniform1iImpl) uniform1i("_cvu_fog_mode", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		configuredSamplers = new ObjectArrayList<>();
 		reloadConfigurableSamplers();
+		guiViewProjMatrix = uniformMatrix4f("_cvu_guiViewProjMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 	}
 
 	public void setModelOrigin(int x, int y, int z) {
@@ -72,7 +73,6 @@ public class GlMaterialProgram extends GlProgram {
 
 		modelOrigin.setExternal(MODEL_ORIGIN);
 		modelOrigin.upload();
-		assert CanvasGlHelper.checkError();
 	}
 
 	private void setRegionOrigin(int x, int y, int z) {
@@ -111,18 +111,17 @@ public class GlMaterialProgram extends GlProgram {
 		MODEL_ORIGIN.put(6, 0);
 	}
 
-	private final int[] materialData = new int[4];
+	private final int[] materialData = new int[3];
 
-	private static final int _CV_SPRITE_INFO_TEXTURE_SIZE = 0;
-	private static final int _CV_ATLAS_WIDTH = 1;
-	private static final int _CV_ATLAS_HEIGHT = 2;
-	private static final int _CV_MATERIAL_TARGET = 3;
+	private static final int _CV_ATLAS_WIDTH = 0;
+	private static final int _CV_ATLAS_HEIGHT = 1;
+	private static final int _CV_MATERIAL_TARGET = 2;
 
-	public void setContextInfo(SpriteInfoTexture atlasInfo, int targetIndex) {
+	public void setContextInfo(SpriteIndex atlasInfo, int targetIndex) {
 		if (atlasInfo == null) {
-			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = 0;
+			materialData[_CV_ATLAS_WIDTH] = 0;
+			materialData[_CV_ATLAS_HEIGHT] = 0;
 		} else {
-			materialData[_CV_SPRITE_INFO_TEXTURE_SIZE] = atlasInfo.textureSize();
 			materialData[_CV_ATLAS_WIDTH] = atlasInfo.atlasWidth();
 			materialData[_CV_ATLAS_HEIGHT] = atlasInfo.atlasHeight();
 		}

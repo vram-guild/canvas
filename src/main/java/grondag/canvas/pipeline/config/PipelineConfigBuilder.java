@@ -56,11 +56,21 @@ public class PipelineConfigBuilder {
 	@Nullable public SkyShadowConfig skyShadow;
 	@Nullable public SkyConfig sky;
 
+	public boolean smoothBrightnessBidirectionaly = false;
+	public int brightnessSmoothingFrames = 20;
+	public int rainSmoothingFrames = 500;
+	public boolean runVanillaClear = true;
+
 	public NamedDependency<FramebufferConfig> defaultFramebuffer;
 
 	public MaterialProgramConfig materialProgram;
 
 	public void load(JsonObject configJson) {
+		smoothBrightnessBidirectionaly = configJson.getBoolean("smoothBrightnessBidirectionaly", false);
+		runVanillaClear = configJson.getBoolean("runVanillaClear", true);
+		brightnessSmoothingFrames = configJson.getInt("brightnessSmoothingFrames", 20);
+		rainSmoothingFrames = configJson.getInt("rainSmoothingFrames", 500);
+
 		if (configJson.containsKey("materialProgram")) {
 			if (materialProgram == null) {
 				materialProgram = LoadHelper.loadObject(context, configJson, "materialProgram", MaterialProgramConfig::new);

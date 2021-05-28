@@ -26,6 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.client.render.item.ItemModels;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
@@ -36,10 +37,17 @@ import net.minecraft.item.ItemStack;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.mixinterface.ItemRendererExt;
 
 @Mixin(ItemRenderer.class)
-public abstract class MixinItemRenderer {
+public abstract class MixinItemRenderer implements ItemRendererExt {
 	@Shadow private ItemModels models;
+	@Shadow private BuiltinModelItemRenderer builtinModelItemRenderer;
+
+	@Override
+	public BuiltinModelItemRenderer canvas_builtinModelItemRenderer() {
+		return builtinModelItemRenderer;
+	}
 
 	/**
 	 * @author grondag

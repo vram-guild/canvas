@@ -25,7 +25,7 @@ float pcfSample(in vec2 base_uv, in float u, in float v, in vec2 shadowMapSizeIn
     vec2 uv = base_uv + vec2(u, v) * shadowMapSizeInv;
     float z = depth + dot(vec2(u, v) * shadowMapSizeInv, receiverPlaneDepthBias);
 
-	return shadow2DArray(frxs_shadowMap, vec4(uv, cascade, z)).x;
+	return texture(frxs_shadowMap, vec4(uv, cascade, z));
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ float sampleShadowPCF(in vec3 shadowPos, in float cascade) {
     float sum = 0;
 
     #if SHADOW_FILTER_SIZE == PCF_SIZE_SMALL
-    	return shadow2DArray(frxs_shadowMap, vec4(shadowPos.xy, cascade, shadowPos.z)).x;
+    	return texture(frxs_shadowMap, vec4(shadowPos.xy, cascade, shadowPos.z));
     #elif SHADOW_FILTER_SIZE == PCF_SIZE_MEDIUM
 
         float uw0 = (3 - 2 * s);
@@ -196,7 +196,7 @@ float Penumbra(float gradientNoise, vec3 shadowMapCoords, float cascade) {
 	vec2 sampleUV = VogelDiskSample(i, 16, gradientNoise);
     sampleUV = shadowMapCoords.xy + penumbraFilterMaxSize * sampleUV;
 
-    float sampleDepth = texture2DArray(frxs_shadowMapTexture, vec3(sampleUV, cascade)).x;
+    float sampleDepth = texture(frxs_shadowMapTexture, vec3(sampleUV, cascade)).x;
 
     // WIP: Here and below need work, may be related to diff Z-sign in OGL vs DX
     if(sampleDepth < shadowMapCoords.z) {
@@ -226,7 +226,7 @@ float pcfSampleVogel(in vec2 base_uv, in int sample, float gradientNoise, in vec
     vec2 uv = base_uv + offset * shadowMapSizeInv;
     float z = depth + dot(offset * shadowMapSizeInv, receiverPlaneDepthBias);
 
-	return shadow2DArray(frxs_shadowMap, vec4(uv, cascade, z)).x;
+	return texture(frxs_shadowMap, vec4(uv, cascade, z));
 }
 
 float sampleVogelShadowPCF(in vec3 shadowPos, in float cascade, float gradientNoise, float spread) {

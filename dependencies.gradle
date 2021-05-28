@@ -31,12 +31,7 @@ dependencies {
 		exclude(module: "fabric-dimensions-v1")
 	}
 
-	// dev env annotation support
-	compileOnly "org.apiguardian:apiguardian-api:1.0.0"
-	compileOnly "com.google.code.findbugs:jsr305:3.0.2"
-
 	modImplementation("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false }
-	modImplementation("grondag:frex-events-${project.mc_tag}:${project.frex_events_version}.+") { transitive = false }
 
 	modImplementation("grondag:fermion-${project.mc_tag}:${project.fermion_version}.+") {
 		transitive = false
@@ -58,9 +53,9 @@ dependencies {
 		exclude group: "net.fabricmc.fabric-loader"
 	}
 
-	modImplementation("me.shedaniel.cloth.api:cloth-client-events-v0:${cloth_client_events_v0_version}") {
-		transitive(false)
-	}
+	//modImplementation("me.shedaniel.cloth.api:cloth-client-events-v0:${cloth_client_events_v0_version}") {
+	//	transitive(false)
+	//}
 
 	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}") {
 		//exclude group: "io.github.prospector.modmenu"
@@ -68,10 +63,10 @@ dependencies {
 		exclude group: "net.fabricmc.fabric-loader"
 	}
 
-	modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}") {
-		exclude group: "net.fabricmc.fabric-api"
-		exclude group: "net.fabricmc.fabric-loader"
-	}
+	//modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}") {
+	//	exclude group: "net.fabricmc.fabric-api"
+	//	exclude group: "net.fabricmc.fabric-loader"
+	//}
 
 	//modImplementation("blue.endless:jankson:1.1.2") {
 	//	exclude group: "net.fabricmc.fabric-api"
@@ -81,18 +76,16 @@ dependencies {
 
 	if (!(gradle.startParameter.taskNames.contains("publish") || gradle.startParameter.taskNames.contains("publishToMavenLocal"))) {
 		include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
-		include "grondag:frex-events-${project.mc_tag}:${project.frex_events_version}.+"
 		include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
 		include "grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+"
 		include "grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+"
 		include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
 		include "me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}"
-		include "blue.endless:jankson:1.1.2"
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
 	}
 
-	modImplementation("io.github.ladysnake:Satin:${satin_version}") {
-		transitive = false
-	}
+	//modImplementation("io.github.ladysnake:Satin:${satin_version}") {
+	//	transitive = false
+	//}
 }

@@ -16,16 +16,24 @@
 
 package grondag.canvas.buffer.format;
 
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.AO_1UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2F;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2US;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_4UB;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_2US;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_FLAGS_4UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
 
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.encoding.QuadEncoder;
+import grondag.canvas.buffer.encoding.QuadTranscoder;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.Matrix4fExt;
 
 public final class CanvasVertexFormats {
 	static {
@@ -38,21 +46,114 @@ public final class CanvasVertexFormats {
 	public static final CanvasVertexFormat PROCESS_VERTEX = new CanvasVertexFormat(POSITION_3F);
 
 	/**
-	 * New common format for all world/game object rendering.
+	 * Compact format for all world/game object rendering.
 	 *
-	 * <p>Texture is always normalized. For atlas textures, sprite ID is
-	 * carried in most significant bytes of normal.
-	 * Normal only contains packed x and y values, z is derived in shader.
-	 * Most significant byte of lightmap holds vertex state flags.
+	 * <p>Texture is always normalized.
+	 *
+	 * <p>Two-byte material ID conveys sprite, condition, program IDs
+	 * and vertex state flags.  AO is carried in last octet of normal.
 	 */
-	public static final CanvasVertexFormat POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, MATERIAL_2US, LIGHTMAPS_4UB, NORMAL_FLAGS_4UB);
+	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
-	public static final int MATERIAL_COLOR_INDEX = 3;
-	public static final int MATERIAL_TEXTURE_INDEX = 4;
-	public static final int MATERIAL_MATERIAL_INDEX = 5;
-	public static final int MATERIAL_LIGHT_INDEX = 6;
-	public static final int MATERIAL_NORMAL_INDEX = 7;
+	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
 
-	public static final int MATERIAL_VERTEX_STRIDE = POSITION_COLOR_TEXTURE_MATERIAL_LIGHT_NORMAL.vertexStrideInts;
-	public static final int MATERIAL_QUAD_STRIDE = MATERIAL_VERTEX_STRIDE * 4;
+	private static final QuadEncoder COMPACT_ENCODER = (quad, buff) -> {
+		final RenderMaterialImpl mat = quad.material();
+
+		int packedNormal = 0;
+		final boolean useNormals = quad.hasVertexNormals();
+
+		if (useNormals) {
+			quad.populateMissingNormals();
+		} else {
+			packedNormal = quad.packedFaceNormal();
+		}
+
+		final int material = mat.dongle().index(quad.spriteId()) << 16;
+
+		int k = buff.allocate(COMPACT_QUAD_STRIDE);
+		final int[] target = buff.data();
+
+		for (int i = 0; i < 4; i++) {
+			quad.appendVertex(i, target, k);
+			k += 3;
+
+			target[k++] = quad.vertexColor(i);
+			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
+
+			final int packedLight = quad.lightmap(i);
+			final int blockLight = (packedLight & 0xFF);
+			final int skyLight = ((packedLight >> 16) & 0xFF);
+			target[k++] = blockLight | (skyLight << 8) | material;
+
+			if (useNormals) {
+				packedNormal = quad.packedNormal(i);
+			}
+
+			target[k++] = packedNormal | 0xFF000000;
+		}
+	};
+
+	private static final QuadTranscoder COMPACT_TRANSCODER = (quad, context, buff) -> {
+		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
+		final Matrix3fExt normalMatrix = context.normalMatrix();
+		final float[] aoData = quad.ao;
+		final RenderMaterialImpl mat = quad.material();
+
+		assert mat.blendMode != BlendMode.DEFAULT;
+
+		int packedNormal = 0;
+		int transformedNormal = 0;
+		final boolean useNormals = quad.hasVertexNormals();
+
+		if (useNormals) {
+			quad.populateMissingNormals();
+		} else {
+			packedNormal = quad.packedFaceNormal();
+			transformedNormal = normalMatrix.canvas_transform(packedNormal);
+		}
+
+		final int material = mat.dongle().index(quad.spriteId()) << 16;
+
+		int k = buff.allocate(COMPACT_QUAD_STRIDE);
+		final int[] target = buff.data();
+
+		for (int i = 0; i < 4; i++) {
+			quad.transformAndAppendVertex(i, matrix, target, k);
+			k += 3;
+
+			target[k++] = quad.vertexColor(i);
+			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
+
+			final int packedLight = quad.lightmap(i);
+			final int blockLight = (packedLight & 0xFF);
+			final int skyLight = ((packedLight >> 16) & 0xFF);
+			final int ao = aoData == null ? 255 : (Math.round(aoData[i] * 255));
+			target[k++] = blockLight | (skyLight << 8) | material;
+
+			if (useNormals) {
+				final int p = quad.packedNormal(i);
+
+				if (p != packedNormal) {
+					packedNormal = p;
+					transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				}
+			}
+
+			target[k++] = transformedNormal | (ao << 24);
+		}
+	};
+
+	// FEAT: new UNLIT format - no lightmaps on vertex
+	// Position 3F
+	// Color    4UB
+	// Texture	2US
+	// Mat/normal 2US
+	// 6 words / 24 bytes
+
+	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
+	public static final int MATERIAL_INT_VERTEX_STRIDE = MATERIAL_FORMAT.vertexStrideInts;
+	public static final int MATERIAL_INT_QUAD_STRIDE = MATERIAL_FORMAT.quadStrideInts;
+	public static final QuadTranscoder MATERIAL_TRANSCODER = COMPACT_TRANSCODER;
+	public static final QuadEncoder MATERIAL_ENCODER = COMPACT_ENCODER;
 }

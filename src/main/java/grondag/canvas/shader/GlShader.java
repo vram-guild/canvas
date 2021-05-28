@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 import com.google.common.io.CharStreams;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryStack;
@@ -51,8 +50,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.texture.MaterialInfoTexture;
-import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.config.ShaderConfig;
 
 public class GlShader implements Shader {
@@ -135,7 +133,7 @@ public class GlShader implements Shader {
 
 		try {
 			if (glId <= 0) {
-				glId = GL21.glCreateShader(shaderType);
+				glId = GFX.glCreateShader(shaderType);
 
 				if (glId == 0) {
 					glId = -1;
@@ -147,11 +145,11 @@ public class GlShader implements Shader {
 			source = getSource();
 
 			safeShaderSource(glId, source);
-			GL21.glCompileShader(glId);
+			GFX.glCompileShader(glId);
 
-			if (GL21.glGetShaderi(glId, GL21.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
+			if (GFX.glGetShaderi(glId, GFX.GL_COMPILE_STATUS) == GFX.GL_FALSE) {
 				isErrored = true;
-				error = CanvasGlHelper.getShaderInfoLog(glId);
+				error = GFX.getShaderInfoLog(glId);
 
 				if (error.isEmpty()) {
 					error = "Unknown OpenGL Error.";
@@ -164,7 +162,7 @@ public class GlShader implements Shader {
 
 		if (isErrored) {
 			if (glId > 0) {
-				GL21.glDeleteShader(glId);
+				GFX.glDeleteShader(glId);
 				glId = -1;
 			}
 
@@ -253,7 +251,7 @@ public class GlShader implements Shader {
 		if (result == null) {
 			result = getCombinedShaderSource();
 
-			if (programType == ProgramType.MATERIAL_VERTEX_LOGIC) {
+			if (programType == ProgramType.MATERIAL_COLOR) {
 				result = StringUtils.replace(result, "#define PROGRAM_BY_UNIFORM", "//#define PROGRAM_BY_UNIFORM");
 			}
 
@@ -272,7 +270,6 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "#define SHADOW_MAP_SIZE " + Pipeline.skyShadowSize);
 			}
 
-			result = StringUtils.replace(result, "#define _CV_MATERIAL_INFO_TEXTURE_SIZE 0", "#define _CV_MATERIAL_INFO_TEXTURE_SIZE " + MaterialInfoTexture.INSTANCE.squareSizePixels());
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
 
 			//if (Configurator.hdLightmaps()) {
@@ -282,11 +279,6 @@ public class GlShader implements Shader {
 			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
 			//	}
 			//}
-
-			if (!MinecraftClient.IS_SYSTEM_MAC) {
-				result = StringUtils.replace(result, "#version 120", "#version 130");
-				//result = StringUtils.replace(result, "#extension GL_EXT_gpu_shader4 : require", "//#extension GL_EXT_gpu_shader4 : require");
-			}
 
 			source = result;
 		}

@@ -112,7 +112,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T fog(int fog) {
+	public T fog(boolean fog) {
 		bits = FOG.setValue(fog, bits);
 		return (T) this;
 	}
@@ -162,21 +162,13 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T cutout(boolean cutout) {
+	public T cutout(int cutout) {
 		bits = CUTOUT.setValue(cutout, bits);
 		return (T) this;
 	}
 
 	public T unmipped(boolean unmipped) {
 		bits = UNMIPPED.setValue(unmipped, bits);
-		return (T) this;
-	}
-
-	/**
-	 * Sets cutout threshold to low value vs default of 50%.
-	 */
-	public T transparentCutout(boolean translucentCutout) {
-		bits = TRANSLUCENT_CUTOUT.setValue(translucentCutout, bits);
 		return (T) this;
 	}
 

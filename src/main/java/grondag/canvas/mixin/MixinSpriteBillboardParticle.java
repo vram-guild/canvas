@@ -24,11 +24,11 @@ import net.minecraft.client.particle.SpriteBillboardParticle;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 
 import grondag.canvas.varia.CanvasMath;
 
@@ -42,7 +42,7 @@ public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 
 	private static final Quaternion quat = new Quaternion(0, 0, 0, 0);
 	private static final Quaternion auxQuat = new Quaternion(0, 0, 0, 0);
-	private static final Vector3f vec = new Vector3f();
+	private static final Vec3f vec = new Vec3f();
 
 	// slightly faster math and less allocation
 	@Override
@@ -62,13 +62,13 @@ public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
 			rotation.set(cr.getX(), cr.getY(), cr.getZ(), cr.getW());
 			final float adjustedAngle = MathHelper.lerp(tickDelta, prevAngle, angle);
 			final Quaternion radialRotation = auxQuat;
-			CanvasMath.setRadialRotation(radialRotation, Vector3f.POSITIVE_Z, adjustedAngle);
+			CanvasMath.setRadialRotation(radialRotation, Vec3f.POSITIVE_Z, adjustedAngle);
 			rotation.hamiltonProduct(radialRotation);
 		}
 
-		final Vector3f pos = vec;
+		final Vec3f pos = vec;
 		final float scale = getSize(tickDelta);
-		final int light = getColorMultiplier(tickDelta);
+		final int light = getBrightness(tickDelta);
 
 		final float l = getMinU();
 		final float m = getMaxU();

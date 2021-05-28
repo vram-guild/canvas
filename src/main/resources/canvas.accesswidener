@@ -47,7 +47,71 @@ accessible   field   net/minecraft/client/render/RenderPhase   CLOUDS_TARGET   L
 accessible   field   net/minecraft/client/render/RenderPhase   ITEM_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
 accessible   field   net/minecraft/client/render/RenderPhase   FULL_LINE_WIDTH   Lnet/minecraft/client/render/RenderPhase$LineWidth;
 
+accessible   field   net/minecraft/client/render/RenderPhase   NO_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   BLOCK_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   NEW_ENTITY_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   POSITION_COLOR_LIGHTMAP_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   POSITION_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   POSITION_COLOR_TEXTURE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   POSITION_TEXTURE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   POSITION_COLOR_TEXTURE_LIGHTMAP_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   COLOR_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   SOLID_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   CUTOUT_MIPPED_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   CUTOUT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_MOVING_BLOCK_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_NO_CRUMBLING_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ARMOR_CUTOUT_NO_CULL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_SOLID_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_CUTOUT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_CUTOUT_NONULL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_CUTOUT_NONULL_OFFSET_Z_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ITEM_ENTITY_TRANSLUCENT_CULL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_TRANSLUCENT_CULL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_TRANSLUCENT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_SMOOTH_CUTOUT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   BEACON_BEAM_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_DECAL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_NO_OUTLINE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_SHADOW_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_ALPHA_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   EYES_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENERGY_SWIRL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   LEASH_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   WATER_MASK_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   OUTLINE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ARMOR_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ARMOR_ENTITY_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   DIRECT_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   DIRECT_ENTITY_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   CRUMBLING_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   TEXT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   TRANSPARENT_TEXT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   LIGHTNING_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   TRIPWIRE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   END_PORTAL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   END_GATEWAY_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/render/RenderPhase   LINES_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+
 accessible   field   net/minecraft/client/gl/Framebuffer       colorAttachment I
 accessible   field   net/minecraft/client/gl/Framebuffer       depthAttachment I
 
 accessible class net/minecraft/client/render/RenderLayer$OutlineMode
+accessible class net/minecraft/client/render/RenderLayer$MultiPhaseParameters
+accessible class net/minecraft/client/render/RenderPhase$Texture
+accessible class net/minecraft/client/render/RenderPhase$Shader
+accessible class net/minecraft/client/render/RenderPhase$Layering
+accessible class net/minecraft/client/render/RenderPhase$DepthTest
+accessible class net/minecraft/client/render/RenderPhase$Target
+accessible class net/minecraft/client/render/RenderPhase$Transparency
+accessible class net/minecraft/client/render/RenderPhase$WriteMaskState
+accessible class net/minecraft/client/render/RenderPhase$TextureBase
+accessible class net/minecraft/client/render/RenderPhase$Cull
+accessible class net/minecraft/client/render/RenderPhase$Lightmap
+accessible class net/minecraft/client/render/RenderPhase$Overlay
+accessible class net/minecraft/client/render/RenderPhase$Texturing
+accessible class net/minecraft/client/render/RenderPhase$LineWidth

@@ -33,7 +33,6 @@ import net.minecraft.client.render.FpsSmoother;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.texture.TextureManager;
 import net.minecraft.client.util.math.MatrixStack;
@@ -77,8 +76,6 @@ public interface WorldRendererExt {
 	void canvas_renderEntity(Entity entity, double d, double e, double f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider);
 
 	void canvas_renderWeather(LightmapTextureManager lightmapTextureManager, float f, double d, double e, double g);
-
-	VertexFormat canvas_vertexFormat();
 
 	void canvas_setEntityCounts(int regularEntityCount, int blockEntityCount);
 

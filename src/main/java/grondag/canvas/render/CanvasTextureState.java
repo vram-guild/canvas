@@ -16,33 +16,32 @@
 
 package grondag.canvas.render;
 
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL21;
+import grondag.canvas.varia.GFX;
 
 /**
  * Deals with Mojang's unfortunate assumptions regarding the existence of
  * anything that is not GL_TEXTURE_2D or more than 12 texture units.
  */
 public class CanvasTextureState {
-	private static final int[] BOUND_TEXTURES = new int[16];
+	private static final int MAX_TEXTURES = 16;
+	private static final int[] BOUND_TEXTURES = new int[MAX_TEXTURES];
 	private static int activeTextureUnit = 0;
 
 	public static void bindTexture(int target, int texture) {
 		if (texture != BOUND_TEXTURES[activeTextureUnit]) {
 			BOUND_TEXTURES[activeTextureUnit] = texture;
-			GL11.glBindTexture(target, texture);
+			GFX.bindTexture(target, texture);
 		}
 	}
 
 	public static void bindTexture(int texture) {
-		bindTexture(GL21.GL_TEXTURE_2D, texture);
+		bindTexture(GFX.GL_TEXTURE_2D, texture);
 	}
 
 	public static void deleteTexture(int texture) {
-		GL11.glDeleteTextures(texture);
+		GFX.deleteTexture(texture);
 
-		for (int i = 0; i < 16; ++i) {
+		for (int i = 0; i < MAX_TEXTURES; ++i) {
 			if (BOUND_TEXTURES[i] == texture) {
 				BOUND_TEXTURES[i] = 0;
 			}
@@ -56,7 +55,21 @@ public class CanvasTextureState {
 	public static void activeTextureUnit(int textureUnit) {
 		if (activeTextureUnit != textureUnit - '蓀') {
 			activeTextureUnit = textureUnit - '蓀';
-			GL13.glActiveTexture(textureUnit);
+			GFX.activeTexture(textureUnit);
 		}
+	}
+
+	public static int activeTextureUnit() {
+		return activeTextureUnit + '蓀';
+	}
+
+	public static void deleteTextures(int[] textures) {
+		for (final int t : textures) {
+			deleteTexture(t);
+		}
+	}
+
+	public static int getTextureId(int i) {
+		return (i < 0 || i >= MAX_TEXTURES) ? 0 : BOUND_TEXTURES[i];
 	}
 }

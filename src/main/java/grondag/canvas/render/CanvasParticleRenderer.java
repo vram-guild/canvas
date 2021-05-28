@@ -20,35 +20,33 @@ import java.util.Iterator;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.particle.ParticleTextureSheet;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 
-import grondag.canvas.buffer.encoding.VertexCollectorImpl;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
+import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
 import grondag.frex.api.material.RenderMaterial;
 
 public class CanvasParticleRenderer {
-	private final VertexCollectorImpl collector = new VertexCollectorImpl();
-
 	private Tessellator tessellator;
 	private BufferBuilder bufferBuilder;
 	private LightmapTextureManager lightmapTextureManager;
@@ -58,9 +56,11 @@ public class CanvasParticleRenderer {
 	private RenderMaterialImpl emissiveMat;
 	public final FastFrustum frustum = new FastFrustum();
 
-	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
-		RenderSystem.pushMatrix();
-		RenderSystem.multMatrix(matrixStack.peek().getModel());
+	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexCollectorList collectors, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
+		final MatrixStack renderMatrix = RenderSystem.getModelViewStack();
+		renderMatrix.push();
+		renderMatrix.method_34425(matrixStack.peek().getModel());
+		RenderSystem.applyModelViewMatrix();
 
 		this.lightmapTextureManager = lightmapTextureManager;
 		tessellator = Tessellator.getInstance();
@@ -80,7 +80,7 @@ public class CanvasParticleRenderer {
 
 			if (!particles.hasNext()) continue;
 
-			final VertexConsumer consumer = beginSheet(particleTextureSheet);
+			final VertexConsumer consumer = beginSheet(particleTextureSheet, collectors);
 
 			while (particles.hasNext()) {
 				final Particle particle = particles.next();
@@ -93,7 +93,7 @@ public class CanvasParticleRenderer {
 					if (baseMat != null) {
 						// FEAT: enhanced material maps for particles - shaders for animation in particular
 						final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
-						collector.vertexState(mat == null || !mat.emissive() ? baseMat : emissiveMat);
+						collectors.consumer.defaultMaterial(mat == null || !mat.emissive() ? baseMat : emissiveMat);
 					}
 
 					particle.buildGeometry(consumer, camera, tickDelta);
@@ -109,49 +109,43 @@ public class CanvasParticleRenderer {
 			drawHandler.run();
 		}
 
-		RenderSystem.popMatrix();
+		renderMatrix.pop();
+		RenderSystem.applyModelViewMatrix();
 		teardownVanillaParticleRender();
 	}
 
 	private void setupVanillaParticleRender() {
 		lightmapTextureManager.enable();
-		RenderSystem.enableAlphaTest();
-		RenderSystem.defaultAlphaFunc();
 		RenderSystem.enableDepthTest();
-		RenderSystem.enableFog();
 	}
 
 	private void teardownVanillaParticleRender() {
 		RenderSystem.depthMask(true);
 		RenderSystem.depthFunc(515);
 		RenderSystem.disableBlend();
-		RenderSystem.defaultAlphaFunc();
 		lightmapTextureManager.disable();
-		RenderSystem.disableFog();
 	}
 
-	private VertexConsumer beginSheet(ParticleTextureSheet particleTextureSheet) {
-		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+	private VertexConsumer beginSheet(ParticleTextureSheet particleTextureSheet, VertexCollectorList collectors) {
+		RenderSystem.setShader(GameRenderer::getParticleShader);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 		// PERF: consolidate these draws
 		if (particleTextureSheet == ParticleTextureSheet.TERRAIN_SHEET) {
 			baseMat = RENDER_STATE_TERRAIN;
 			emissiveMat = RENDER_STATE_TERRAIN_EMISSIVE;
-			collector.prepare(baseMat);
-			drawHandler = () -> collector.draw(true);
-			return collector;
+			drawHandler = () -> collectors.get(baseMat).draw(true);
+			return collectors.consumer.prepare(baseMat);
 		} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_OPAQUE) {
 			baseMat = RENDER_STATE_OPAQUE_OR_LIT;
 			emissiveMat = RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE;
-			collector.prepare(baseMat);
-			drawHandler = () -> collector.draw(true);
-			return collector;
+			drawHandler = () -> collectors.get(baseMat).draw(true);
+			return collectors.consumer.prepare(baseMat);
 		} else if (particleTextureSheet == ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT) {
 			baseMat = RENDER_STATE_TRANSLUCENT;
 			emissiveMat = RENDER_STATE_TRANSLUCENT_EMISSIVE;
-			collector.prepare(baseMat);
-			drawHandler = () -> collector.draw(true);
-			return collector;
+			drawHandler = () -> collectors.get(baseMat).draw(true);
+			return collectors.consumer.prepare(baseMat);
 		}
 
 		setupVanillaParticleRender();
@@ -164,7 +158,7 @@ public class CanvasParticleRenderer {
 
 	private static MaterialFinderImpl baseFinder() {
 		return MaterialFinderImpl.threadLocal()
-				.primitive(GL11.GL_QUADS)
+				.primitive(GFX.GL_QUADS)
 				.depthTest(MaterialFinder.DEPTH_TEST_LEQUAL)
 				.cull(false)
 				.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH)
@@ -174,9 +168,8 @@ public class CanvasParticleRenderer {
 				.enableGlint(false)
 				.disableAo(true)
 				.disableDiffuse(true)
-				.cutout(true)
-				.transparentCutout(true)
-				.fog(MaterialFinder.FOG_TINTED);
+				.cutout(MaterialFinder.CUTOUT_TENTH)
+				.fog(true);
 	}
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()

@@ -17,12 +17,12 @@
 package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.varia.GFX;
 
 public enum GlShaderManager {
 	INSTANCE;
@@ -47,7 +47,7 @@ public enum GlShaderManager {
 			Shader result = vertexShaders.get(shaderKey);
 
 			if (result == null) {
-				result = new GlShader(shaderSource, GL21.GL_VERTEX_SHADER, programType);
+				result = new GlShader(shaderSource, GFX.GL_VERTEX_SHADER, programType);
 				vertexShaders.put(shaderKey, result);
 			}
 
@@ -62,7 +62,7 @@ public enum GlShaderManager {
 			Shader result = fragmentShaders.get(shaderKey);
 
 			if (result == null) {
-				result = new GlShader(shaderSourceId, GL21.GL_FRAGMENT_SHADER, programType);
+				result = new GlShader(shaderSourceId, GFX.GL_FRAGMENT_SHADER, programType);
 				fragmentShaders.put(shaderKey, result);
 			}
 

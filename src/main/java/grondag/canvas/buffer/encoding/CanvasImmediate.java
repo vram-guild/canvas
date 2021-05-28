@@ -60,47 +60,36 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		if (mat == RenderMaterialImpl.MISSING) {
 			return super.getBuffer(renderLayer);
 		} else {
-			final VertexCollector result = collectors.get(mat);
-			result.vertexState(mat);
-			return result;
+			return collectors.consumer.prepare(mat);
 		}
 	}
 
 	@Override
 	public VertexConsumer getConsumer(RenderMaterial material) {
 		final RenderMaterialImpl mat = contextState.mapMaterial((RenderMaterialImpl) material);
-		return collectors.get(mat);
+		return collectors.consumer.prepare(mat);
 	}
 
 	public DrawableBuffer prepareDrawable(MaterialTarget target) {
-		final ObjectArrayList<VertexCollectorImpl> drawList = collectors.sortedDrawList(target);
+		final ObjectArrayList<ArrayVertexCollector> drawList = collectors.sortedDrawList(target);
 
 		return drawList.isEmpty() ? DrawableBuffer.EMPTY : new DrawableBuffer(drawList);
 	}
 
 	public void drawCollectors(MaterialTarget target) {
-		final ObjectArrayList<VertexCollectorImpl> drawList = collectors.sortedDrawList(target);
+		final ObjectArrayList<ArrayVertexCollector> drawList = collectors.sortedDrawList(target);
 
 		if (!drawList.isEmpty()) {
-			VertexCollectorImpl.draw(drawList);
+			ArrayVertexCollector.draw(drawList);
 		}
 	}
 
 	@Override
 	public void draw() {
-		final ObjectArrayList<VertexCollectorImpl> drawList = collectors.sortedDrawList(Predicates.alwaysTrue());
-		final int limit = collectors.size();
-
-		for (int i = 0; i < limit; ++i) {
-			final VertexCollectorImpl collector = collectors.get(i);
-
-			if (!collector.isEmpty()) {
-				drawList.add(collector);
-			}
-		}
+		final ObjectArrayList<ArrayVertexCollector> drawList = collectors.sortedDrawList(Predicates.alwaysTrue());
 
 		if (!drawList.isEmpty()) {
-			VertexCollectorImpl.draw(drawList);
+			ArrayVertexCollector.draw(drawList);
 		}
 
 		super.draw();
@@ -111,7 +100,7 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		if (RenderLayerHelper.isExcluded(layer)) {
 			super.draw(layer);
 		} else {
-			final VertexCollectorImpl collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
+			final ArrayVertexCollector collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
 
 			if (collector != null && !collector.isEmpty()) {
 				collector.draw(true);

@@ -14,10 +14,9 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.texture;
 
-public interface VertexAppender {
-	void add(int[] appendData, int length);
-
-	void add(float... val);
+@FunctionalInterface
+public interface MaterialIndexer {
+	int index(int spriteId);
 }

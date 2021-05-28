@@ -4,4 +4,8 @@
   canvas:shaders/internal/varying.glsl
 ******************************************************/
 
-flat varying vec4 _cvv_spriteBounds;
+#ifdef VERTEX_SHADER
+	flat out vec4 _cvv_spriteBounds;
+#else
+	flat in vec4 _cvv_spriteBounds;
+#endif

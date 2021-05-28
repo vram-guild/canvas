@@ -1,5 +1,5 @@
 #include frex:shaders/api/context.glsl
-#include canvas:shaders/internal/varying.glsl
+#include canvas:shaders/internal/program.glsl
 
 /******************************************************
   frex:shaders/api/sampler.glsl

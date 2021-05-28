@@ -14,10 +14,10 @@
  *  the License.
  */
 
-package grondag.canvas.varia;
+package grondag.canvas.mixinterface;
 
-import grondag.canvas.mixinterface.FogStateExt;
+import grondag.canvas.material.state.MojangShaderData;
 
-public class FogStateExtHolder {
-	public static FogStateExt INSTANCE;
+public interface ShaderExt {
+	MojangShaderData canvas_shaderData();
 }

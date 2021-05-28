@@ -16,10 +16,9 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
-import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuad;
-import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
-import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
+import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
+import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
+import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
 import java.util.Random;
 import java.util.function.Supplier;
@@ -38,9 +37,10 @@ import net.minecraft.world.BlockRenderView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.buffer.encoding.VertexCollector;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
 
@@ -156,7 +156,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		 * That logic only applies in flat lighting.
 		 */
 		if (blockState.hasEmissiveLighting(region, blockPos)) {
-			return VertexCollector.VANILLA_FULL_BRIGHTNESS;
+			return MeshEncodingHelper.FULL_BRIGHTNESS;
 		}
 
 		internalSearchPos.set(blockPos);
@@ -184,7 +184,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			bufferQuadDirect(quad, this, collectors.get(quad.material()));
+			CanvasVertexFormats.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
 		}
 	}
 }

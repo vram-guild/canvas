@@ -16,9 +16,8 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.buffer.encoding.EncoderUtils.applyBlockLighting;
-import static grondag.canvas.buffer.encoding.EncoderUtils.bufferQuadDirect;
-import static grondag.canvas.buffer.encoding.EncoderUtils.colorizeQuad;
+import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
+import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
@@ -30,6 +29,7 @@ import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
@@ -37,6 +37,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
@@ -120,7 +121,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Canvas Renderer");
 			final CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
-			CrashReportSection.addBlockInfo(crashReportElement_1, blockPos, blockState);
+			CrashReportSection.addBlockInfo(crashReportElement_1, region, blockPos, blockState);
 			throw new CrashException(crashReport_1);
 		}
 	}
@@ -163,8 +164,9 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 		if ((cullCompletionFlags & mask) == 0) {
 			cullCompletionFlags |= mask;
+			final Direction face = ModelHelper.faceFromIndex(faceIndex);
 
-			if (Block.shouldDrawSide(blockState, region, blockPos, ModelHelper.faceFromIndex(faceIndex))) {
+			if (Block.shouldDrawSide(blockState, region, blockPos, face, internalSearchPos.set(blockPos, face))) {
 				cullResultFlags |= mask;
 				return true;
 			} else {
@@ -180,6 +182,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		bufferQuadDirect(quad, this, collectors.get(quad.material()));
+		CanvasVertexFormats.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
 	}
 }
