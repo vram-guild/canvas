@@ -359,7 +359,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public void method_35666() {
+	public void unfixColor() {
 		// TODO Auto-generated method stub
 	}
 

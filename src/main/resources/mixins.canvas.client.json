@@ -1,7 +1,8 @@
 {
   "required": true,
+  "minVersion": "0.8",
   "package": "grondag.canvas.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "mixins": [
 	"AccessMultiPhaseParameters",
 	"AccessTexture",
@@ -12,7 +13,6 @@
 	"MixinBufferBuilderStorage",
 	"MixinBufferRenderer",
 	"MixinChunkBuilder",
-	"MixinChunkRebuildTask",
 	"MixinChunkRenderData",
 	"MixinClientChunkManager",
 	"MixinCyclingOption",

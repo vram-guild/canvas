@@ -441,7 +441,7 @@ public class WorldDataManager {
 		DATA.put(VEC_CAMERA_POS + 2, cameraZ);
 
 		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
-		putViewVector(VEC_ENTITY_VIEW, cameraEntity.yaw, cameraEntity.pitch, null);
+		putViewVector(VEC_ENTITY_VIEW, cameraEntity.getYaw(), cameraEntity.getPitch(), null);
 
 		MatrixState.update(entry, projectionMatrix, camera, tickDelta);
 

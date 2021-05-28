@@ -37,7 +37,7 @@ public class MixinWindow {
 	@Shadow private int framebufferWidth;
 	@Shadow private int framebufferHeight;
 
-	@Redirect (at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwDefaultWindowHints()V"), method = "<init>")
+	@Redirect (at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwDefaultWindowHints()V"), method = "<init>", remap = false)
 	private void onDefaultWindowHints() {
 		GLFW.glfwDefaultWindowHints();
 

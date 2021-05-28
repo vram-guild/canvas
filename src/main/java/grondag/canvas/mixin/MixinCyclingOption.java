@@ -21,7 +21,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.gui.widget.AbstractButtonWidget;
+import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.option.CyclingOption;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.Option;
@@ -32,7 +32,7 @@ import grondag.canvas.varia.CanvasButtonWidget;
 @Mixin(CyclingOption.class)
 public abstract class MixinCyclingOption {
 	@Inject(at = @At("HEAD"), method = "createButton", cancellable = true)
-	private void onCreateButton(GameOptions options, int x, int y, int width, CallbackInfoReturnable<AbstractButtonWidget> info) {
+	private void onCreateButton(GameOptions options, int x, int y, int width, CallbackInfoReturnable<ClickableWidget> info) {
 		final CyclingOption<?> self = (CyclingOption<?>) (Object) this;
 
 		if (self == Option.GRAPHICS) {

@@ -85,7 +85,7 @@ public class DrawableBuffer implements AutoCloseable {
 					final int elementCount = vertexCount / 4 * 6;
 					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(state.primitive, elementCount);
 					GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-					final int elementType = indexBuffer.getVertexFormat().field_27374;
+					final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
 					GFX.drawElementsBaseVertex(state.primitive.mode, elementCount, elementType, 0L, startIndex);
 				}
 

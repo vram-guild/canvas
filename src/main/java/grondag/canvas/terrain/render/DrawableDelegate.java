@@ -64,7 +64,7 @@ public class DrawableDelegate {
 
 		final int triVertexCount = vertexCount / 4 * 6;
 		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(renderState.primitive, triVertexCount);
-		final int elementType = indexBuffer.getVertexFormat().field_27374;
+		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
 		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
 		//GFX.drawElements(materialState.primitive.mode, triVertexCount, elementType, 0);
 		GFX.drawElementsBaseVertex(renderState.primitive.mode, triVertexCount, elementType, 0L, vertexOffset);

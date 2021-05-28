@@ -79,7 +79,7 @@ public final class RenderLayerHelper {
 		final AccessMultiPhaseParameters params = layer.canvas_phases();
 		final TextureBase texBase = params.getTexture();
 
-		final MojangShaderData sd = ((ShaderExt) params.getField_29461()).canvas_shaderData();
+		final MojangShaderData sd = ((ShaderExt) params.getShader()).canvas_shaderData();
 		finder.sorted(layer.canvas_isTranslucent());
 		//finder.primitive(GL11.GL_QUADS);
 

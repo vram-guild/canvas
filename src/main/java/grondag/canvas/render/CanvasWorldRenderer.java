@@ -462,7 +462,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// Causes lower face to be lit like top face
 			DiffuseLighting.enableForLevel(MatrixState.viewMatrix);
 		} else {
-			DiffuseLighting.method_27869(MatrixState.viewMatrix);
+			DiffuseLighting.disableForLevel(MatrixState.viewMatrix);
 		}
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
@@ -575,7 +575,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 						outputConsumer = (renderLayer) -> {
 							final VertexConsumer baseConsumer = immediate.getBuffer(renderLayer);
-							return renderLayer.hasCrumbling() ? VertexConsumers.dual(overlayConsumer, baseConsumer) : baseConsumer;
+							return renderLayer.hasCrumbling() ? VertexConsumers.union(overlayConsumer, baseConsumer) : baseConsumer;
 						};
 					}
 				}
@@ -672,7 +672,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					// THIS IS WHEN LIGHTENING RENDERS IN VANILLA
 					final VertexConsumer blockOutlineConumer = immediate.getBuffer(RenderLayer.getLines());
 
-					eventContext.prepareBlockOutline(blockOutlineConumer, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
+					eventContext.prepareBlockOutline(camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);
 
 					if (WorldRenderEvents.BLOCK_OUTLINE.invoker().onBlockOutline(eventContext, eventContext)) {
 						wr.canvas_drawBlockOutline(identityStack, blockOutlineConumer, camera.getFocusedEntity(), cameraX, cameraY, cameraZ, blockOutlinePos, blockOutlineState);

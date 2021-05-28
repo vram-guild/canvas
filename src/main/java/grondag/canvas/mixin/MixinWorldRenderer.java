@@ -30,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
@@ -53,6 +54,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.shape.VoxelShape;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.WorldRendererExt;
@@ -87,7 +89,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 		return false;
 	}
 
-	@Shadow private void drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState) { }
+	@Shadow private static void drawShapeOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, VoxelShape voxelShape, double d, double e, double f, float g, float h, float i, float j) { }
 
 	@Shadow private void renderWorldBorder(Camera camera) { }
 
@@ -277,7 +279,7 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 	@Override
 	public void canvas_drawBlockOutline(MatrixStack matrixStack, VertexConsumer vertexConsumer, Entity entity, double d, double e, double f, BlockPos blockPos, BlockState blockState) {
-		drawBlockOutline(matrixStack, vertexConsumer, entity, d, e, f, blockPos, blockState);
+		drawShapeOutline(matrixStack, vertexConsumer, blockState.getOutlineShape(world, blockPos, ShapeContext.of(entity)), blockPos.getX() - d, blockPos.getY() - e, blockPos.getZ() - f, 0.0F, 0.0F, 0.0F, 0.4F);
 	}
 
 	@Override
