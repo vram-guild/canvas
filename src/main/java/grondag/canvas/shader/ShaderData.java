@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.FlagData;
 import grondag.canvas.varia.MatrixState;
@@ -56,13 +55,6 @@ public class ShaderData {
 		//program.uniformSampler2d("frxs_hdLightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.HD_LIGHTMAP - GL21.GL_TEXTURE0));
 
 		program.uniformSampler("isamplerBuffer", "_cvu_materialInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MATERIAL_INFO - GL21.GL_TEXTURE0));
-
-		for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
-			final int texId = i;
-			final String samplerName = Pipeline.config().materialProgram.samplerNames[i];
-			final String samplerType = SamplerTypeHelper.getSamplerType(program, samplerName);
-			program.uniformSampler(samplerType, samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.PROGRAM_SAMPLERS - GL21.GL_TEXTURE0 + texId));
-		}
 	};
 
 	public static final Consumer<GlProgram> COMMON_UNIFORM_SETUP = program -> {
