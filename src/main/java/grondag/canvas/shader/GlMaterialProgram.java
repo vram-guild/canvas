@@ -18,10 +18,14 @@ package grondag.canvas.shader;
 
 import java.nio.FloatBuffer;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.texture.SpriteInfoTexture;
+import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
@@ -36,6 +40,8 @@ public class GlMaterialProgram extends GlProgram {
 	public final Uniform1iImpl fogMode;
 	public final Uniform1iImpl cascade;
 
+	private final ObjectArrayList<UniformSamplerImpl> configuredSamplers;
+
 	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
 
 	GlMaterialProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
@@ -46,6 +52,8 @@ public class GlMaterialProgram extends GlProgram {
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		fogMode = (Uniform1iImpl) uniform1i("_cvu_fog_mode", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		configuredSamplers = new ObjectArrayList<>();
+		reloadConfigurableSamplers();
 	}
 
 	public void setModelOrigin(int x, int y, int z) {
@@ -123,5 +131,17 @@ public class GlMaterialProgram extends GlProgram {
 
 		contextInfo.set(materialData);
 		contextInfo.upload();
+	}
+
+	public void reloadConfigurableSamplers() {
+		configuredSamplers.forEach(UniformImpl::unload);
+		configuredSamplers.clear();
+
+		for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
+			final int texId = i;
+			final String samplerName = Pipeline.config().materialProgram.samplerNames[i];
+			final String samplerType = SamplerTypeHelper.getSamplerType(this, samplerName);
+			configuredSamplers.add((UniformSamplerImpl) uniformSampler(samplerType, samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.PROGRAM_SAMPLERS - GL21.GL_TEXTURE0 + texId)));
+		}
 	}
 }
