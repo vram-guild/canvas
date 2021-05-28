@@ -184,7 +184,6 @@ public final class RenderState extends AbstractRenderState {
 				final int bind = Pipeline.materialTextures().texIds[i];
 				CanvasTextureState.activeTextureUnit(TextureData.PROGRAM_SAMPLERS + i);
 				CanvasTextureState.bindTexture(bindTarget, bind);
-				assert CanvasGlHelper.checkError();
 			}
 
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
