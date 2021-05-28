@@ -23,13 +23,9 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.texture.SpriteInfoTexture;
-import grondag.canvas.texture.TextureData;
-import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.texture.SpriteIndex;
-
+import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.MatrixState;
 import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
