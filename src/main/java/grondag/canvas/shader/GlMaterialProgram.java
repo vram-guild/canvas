@@ -129,7 +129,7 @@ public class GlMaterialProgram extends GlProgram {
 	}
 
 	public void reloadConfigurableSamplers() {
-		configuredSamplers.forEach(UniformImpl::unload);
+		configuredSamplers.forEach(this::removeUniform);
 		configuredSamplers.clear();
 
 		for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
