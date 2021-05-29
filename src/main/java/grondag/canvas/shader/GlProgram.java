@@ -168,7 +168,7 @@ public class GlProgram {
 		return new UniformArrayuiImpl(name, initializer, frequency, size);
 	}
 
-	protected void removeUniform(UniformImpl uniform) {
+	protected void removeUniform(UniformImpl<?> uniform) {
 		assert uniforms.contains(uniform);
 		uniform.unload();
 		uniforms.remove(uniform);

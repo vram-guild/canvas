@@ -427,11 +427,13 @@ public abstract class MixinGlStateManager {
 		GFX.bufferData(target, size, usage);
 	}
 
+	// NB: This is the ONLY method Yarn currently remaps in this class.
+	// No, I don't know why. I just work here.
 	/**
 	 * @author grondag
 	 * @reason nukem from space - it's only way to be sure
 	 */
-	@Overwrite(remap = false)
+	@Overwrite(remap = true)
 	@Nullable
 	public static ByteBuffer mapBuffer(int target, int access) {
 		return GFX.mapBuffer(target, access);
