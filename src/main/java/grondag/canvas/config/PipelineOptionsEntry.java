@@ -23,10 +23,10 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import me.shedaniel.clothconfig2.gui.entries.TooltipListEntry;
 
-import net.minecraft.class_6379;
-import net.minecraft.class_6382;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
+import net.minecraft.client.gui.Selectable;
+import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.PressableWidget;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.math.MatrixStack;
@@ -46,8 +46,8 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 		}
 
 		@Override
-		public void method_37020(class_6382 arg) {
-			// TODO whatever this is
+		public void appendNarrations(NarrationMessageBuilder builder) {
+			// TODO Auto-generated method stub
 		}
 	};
 
@@ -94,8 +94,8 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 	}
 
 	@Override
-	public List<? extends class_6379> narratables() {
-		// TODO Auto-generated method stub
+	public List<? extends Selectable> narratables() {
+		// TODO implement
 		return Collections.emptyList();
 	}
 }
