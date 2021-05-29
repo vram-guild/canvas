@@ -6,7 +6,7 @@ plugins {
 	id "maven-publish"
 	id "com.github.breadmoirai.github-release" version "2.2.12"
 	id 'org.cadixdev.licenser' version '0.5.0'
-	id "org.ajoberstar.grgit" version "3.1.1"
+	id "org.ajoberstar.grgit" version "4.1.0"
 	id "com.matthewprenger.cursegradle" version "1.4.0"
 	id "checkstyle"
 }
@@ -175,7 +175,7 @@ githubRelease {
 	body changelog()
 
 	tagName project.mc_tag + "-" + grgit.branch.current().name + "-" + project.version + "-unstable"
-	targetCommitish { org.ajoberstar.grgit.Grgit.open(dir: ".").branch.current().name }
+	targetCommitish { grgit.branch.current().name }
 	releaseName project.version + " Unstable"
 	prerelease true
 	releaseAssets = remapJar
