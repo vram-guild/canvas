@@ -68,8 +68,8 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.perf.Timekeeper;
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
@@ -115,7 +115,7 @@ public class ConfigGui {
 				.setTooltipSupplier(o -> Optional.of(parse(o.descriptionKey)))
 				.setSaveConsumer(b -> {
 					if (!b.id.toString().equals(pipelineId)) {
-						Pipeline.reload();
+						Canvas.INSTANCE.recompile();
 						reload = true;
 						pipelineId = b.id.toString();
 					}
