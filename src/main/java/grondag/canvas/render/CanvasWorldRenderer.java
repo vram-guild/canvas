@@ -802,6 +802,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// also need to ensure works with non-fabulous pipelines
 		profileSwap(profiler, ProfilerGroup.EndWorld, "weather");
 
+		// Apply view transform locally for vanilla weather and world border rendering
+		matrixStack.push();
+		matrixStack.method_34425(viewMatrixStack.peek().getModel());
+		RenderSystem.applyModelViewMatrix();
+
 		if (advancedTranslucency) {
 			RenderPhase.WEATHER_TARGET.startDrawing();
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, cameraX, cameraY, cameraZ);
@@ -816,6 +821,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			wr.canvas_renderWorldBorder(camera);
 			GFX.depthMask(true);
 		}
+
+		matrixStack.pop();
+		RenderSystem.applyModelViewMatrix();
 
 		// doesn't make any sense with our chunk culling scheme
 		// this.renderChunkDebugInfo(camera);
