@@ -23,6 +23,7 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 
 	if (frx_isGui()) {
 		gl_Position = frx_guiViewProjectionMatrix() * data.vertex;
+		frx_distance = length(gl_Position.xyz);
 	} else {
 		data.vertex += frx_modelToCamera();
 		vec4 viewCoord = frx_viewMatrix() * data.vertex;
