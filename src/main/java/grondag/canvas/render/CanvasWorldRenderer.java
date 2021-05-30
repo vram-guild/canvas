@@ -586,7 +586,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					final int stage = sortedSet.last().getStage();
 
 					if (stage >= 0) {
-						final MatrixStack.Entry xform = viewMatrixStack.peek();
+						final MatrixStack.Entry xform = identityStack.peek();
 						final VertexConsumer overlayConsumer = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
 
 						outputConsumer = (renderLayer) -> {
@@ -669,7 +669,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					final int stage = breakSet.last().getStage();
 					identityStack.push();
 					identityStack.translate(breakPos.getX() - cameraX, breakPos.getY() - cameraY, breakPos.getZ() - cameraZ);
-					final MatrixStack.Entry xform = viewMatrixStack.peek();
+					final MatrixStack.Entry xform = identityStack.peek();
 					final VertexConsumer vertexConsumer2 = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
 					mc.getBlockRenderManager().renderDamage(world.getBlockState(breakPos), breakPos, world, identityStack, vertexConsumer2);
 					identityStack.pop();
