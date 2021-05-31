@@ -92,6 +92,12 @@ public class Canvas implements Renderer {
 		return true;
 	}
 
+	@Override
+	public boolean registerOrUpdateMaterial(Identifier id, RenderMaterial material) {
+		// cast to prevent acceptance of impostor implementations
+		return materialMap.put(id, (RenderMaterialImpl) material) == null;
+	}
+
 	public void reload() {
 		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
 		ProtoRenderRegion.reload();
