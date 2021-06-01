@@ -57,8 +57,8 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "getFov", require = 1, at = @At("RETURN"))
 	private void onGetFov(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Double> ci) {
-		((CanvasWorldRenderer) client.worldRenderer).terrainFrustum.updateProjection(camera, tickDelta);
 		((CanvasWorldRenderer) client.worldRenderer).terrainFrustum.setFov(ci.getReturnValueD());
+		((CanvasWorldRenderer) client.worldRenderer).terrainFrustum.updateProjection(camera, tickDelta);
 	}
 
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
