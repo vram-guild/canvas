@@ -18,7 +18,7 @@ package grondag.canvas.terrain.region;
 
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.AIR;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_INTERIOR_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localCornerIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXEdgeIndex;
@@ -27,6 +27,8 @@ import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYEdgeIn
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZfaceIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.RENDER_REGION_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.renderRegionIndex;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -66,11 +68,13 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 	public static final ProtoRenderRegion EMPTY = new DummyRegion();
 	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
-	final BlockState[] states = new BlockState[EXTERIOR_CACHE_SIZE];
+	final BlockState[] exteriorStates = new BlockState[EXTERIOR_CACHE_SIZE];
 	final ShortArrayList renderDataPos = new ShortArrayList();
 	final ObjectArrayList<Object> renderData = new ObjectArrayList<>();
 	final ShortArrayList blockEntityPos = new ShortArrayList();
 	PaletteCopy mainSectionCopy;
+
+	final BlockState[] states = new BlockState[RENDER_REGION_STATE_COUNT];
 
 	public static ProtoRenderRegion claim(ClientWorld world, BlockPos origin) {
 		final ProtoRenderRegion result = POOL.poll();
@@ -188,14 +192,25 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				states[localXfaceIndex(false, i, j) - INTERIOR_CACHE_SIZE] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
-				states[localXfaceIndex(true, i, j) - INTERIOR_CACHE_SIZE] = highX == null ? AIR : highX.getBlockState(0, i, j);
+				exteriorStates[localXfaceIndex(false, i, j) - RENDER_REGION_INTERIOR_COUNT] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
+				exteriorStates[localXfaceIndex(true, i, j) - RENDER_REGION_INTERIOR_COUNT] = highX == null ? AIR : highX.getBlockState(0, i, j);
 
-				states[localZfaceIndex(i, j, false) - INTERIOR_CACHE_SIZE] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
-				states[localZfaceIndex(i, j, true) - INTERIOR_CACHE_SIZE] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
+				exteriorStates[localZfaceIndex(i, j, false) - RENDER_REGION_INTERIOR_COUNT] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
+				exteriorStates[localZfaceIndex(i, j, true) - RENDER_REGION_INTERIOR_COUNT] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
 
-				states[localYfaceIndex(i, false, j) - INTERIOR_CACHE_SIZE] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
-				states[localYfaceIndex(i, true, j) - INTERIOR_CACHE_SIZE] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+				exteriorStates[localYfaceIndex(i, false, j) - RENDER_REGION_INTERIOR_COUNT] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
+				exteriorStates[localYfaceIndex(i, true, j) - RENDER_REGION_INTERIOR_COUNT] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+
+				///
+
+				states[renderRegionIndex(-1, i, j)] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
+				states[renderRegionIndex(16, i, j)] = highX == null ? AIR : highX.getBlockState(0, i, j);
+
+				states[renderRegionIndex(i, j, -1)] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
+				states[renderRegionIndex(i, j, 16)] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
+
+				states[renderRegionIndex(i, -1, j)] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
+				states[renderRegionIndex(i, 16, j)] = highY == null ? AIR : highY.getBlockState(i, 0, j);
 			}
 		}
 	}
@@ -217,33 +232,62 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		final ChunkSection Xbb = getSection(1, 2, 2);
 
 		for (int i = 0; i < 16; i++) {
-			states[localZEdgeIndex(false, false, i) - INTERIOR_CACHE_SIZE] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
-			states[localZEdgeIndex(false, true, i) - INTERIOR_CACHE_SIZE] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
-			states[localZEdgeIndex(true, false, i) - INTERIOR_CACHE_SIZE] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
-			states[localZEdgeIndex(true, true, i) - INTERIOR_CACHE_SIZE] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+			exteriorStates[localZEdgeIndex(false, false, i) - RENDER_REGION_INTERIOR_COUNT] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
+			exteriorStates[localZEdgeIndex(false, true, i) - RENDER_REGION_INTERIOR_COUNT] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
+			exteriorStates[localZEdgeIndex(true, false, i) - RENDER_REGION_INTERIOR_COUNT] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
+			exteriorStates[localZEdgeIndex(true, true, i) - RENDER_REGION_INTERIOR_COUNT] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
 
-			states[localYEdgeIndex(false, i, false) - INTERIOR_CACHE_SIZE] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
-			states[localYEdgeIndex(false, i, true) - INTERIOR_CACHE_SIZE] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
-			states[localYEdgeIndex(true, i, false) - INTERIOR_CACHE_SIZE] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
-			states[localYEdgeIndex(true, i, true) - INTERIOR_CACHE_SIZE] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+			exteriorStates[localYEdgeIndex(false, i, false) - RENDER_REGION_INTERIOR_COUNT] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
+			exteriorStates[localYEdgeIndex(false, i, true) - RENDER_REGION_INTERIOR_COUNT] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
+			exteriorStates[localYEdgeIndex(true, i, false) - RENDER_REGION_INTERIOR_COUNT] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
+			exteriorStates[localYEdgeIndex(true, i, true) - RENDER_REGION_INTERIOR_COUNT] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
 
-			states[localXEdgeIndex(i, false, false) - INTERIOR_CACHE_SIZE] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
-			states[localXEdgeIndex(i, false, true) - INTERIOR_CACHE_SIZE] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
-			states[localXEdgeIndex(i, true, false) - INTERIOR_CACHE_SIZE] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
-			states[localXEdgeIndex(i, true, true) - INTERIOR_CACHE_SIZE] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+			exteriorStates[localXEdgeIndex(i, false, false) - RENDER_REGION_INTERIOR_COUNT] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
+			exteriorStates[localXEdgeIndex(i, false, true) - RENDER_REGION_INTERIOR_COUNT] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
+			exteriorStates[localXEdgeIndex(i, true, false) - RENDER_REGION_INTERIOR_COUNT] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
+			exteriorStates[localXEdgeIndex(i, true, true) - RENDER_REGION_INTERIOR_COUNT] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+
+			////
+
+			states[renderRegionIndex(-1, -1, i)] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
+			states[renderRegionIndex(-1, 16, i)] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
+			states[renderRegionIndex(16, -1, i)] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
+			states[renderRegionIndex(16, 16, i)] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+
+			states[renderRegionIndex(-1, i, -1)] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
+			states[renderRegionIndex(-1, i, 16)] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
+			states[renderRegionIndex(16, i, -1)] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
+			states[renderRegionIndex(16, i, 16)] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+
+			states[renderRegionIndex(i, -1, -1)] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
+			states[renderRegionIndex(i, -1, 16)] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
+			states[renderRegionIndex(i, 16, -1)] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
+			states[renderRegionIndex(i, 16, 16)] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
 		}
 	}
 
 	private void captureCorners() {
-		states[localCornerIndex(false, false, false) - INTERIOR_CACHE_SIZE] = captureCornerState(0, 0, 0);
-		states[localCornerIndex(false, false, true) - INTERIOR_CACHE_SIZE] = captureCornerState(0, 0, 2);
-		states[localCornerIndex(false, true, false) - INTERIOR_CACHE_SIZE] = captureCornerState(0, 2, 0);
-		states[localCornerIndex(false, true, true) - INTERIOR_CACHE_SIZE] = captureCornerState(0, 2, 2);
+		exteriorStates[localCornerIndex(false, false, false) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(0, 0, 0);
+		exteriorStates[localCornerIndex(false, false, true) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(0, 0, 2);
+		exteriorStates[localCornerIndex(false, true, false) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(0, 2, 0);
+		exteriorStates[localCornerIndex(false, true, true) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(0, 2, 2);
 
-		states[localCornerIndex(true, false, false) - INTERIOR_CACHE_SIZE] = captureCornerState(2, 0, 0);
-		states[localCornerIndex(true, false, true) - INTERIOR_CACHE_SIZE] = captureCornerState(2, 0, 2);
-		states[localCornerIndex(true, true, false) - INTERIOR_CACHE_SIZE] = captureCornerState(2, 2, 0);
-		states[localCornerIndex(true, true, true) - INTERIOR_CACHE_SIZE] = captureCornerState(2, 2, 2);
+		exteriorStates[localCornerIndex(true, false, false) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(2, 0, 0);
+		exteriorStates[localCornerIndex(true, false, true) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(2, 0, 2);
+		exteriorStates[localCornerIndex(true, true, false) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(2, 2, 0);
+		exteriorStates[localCornerIndex(true, true, true) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(2, 2, 2);
+
+		///
+
+		states[renderRegionIndex(-1, -1, -1)] = captureCornerState(0, 0, 0);
+		states[renderRegionIndex(-1, -1, 16)] = captureCornerState(0, 0, 2);
+		states[renderRegionIndex(-1, 16, -1)] = captureCornerState(0, 2, 0);
+		states[renderRegionIndex(-1, 16, 16)] = captureCornerState(0, 2, 2);
+
+		states[renderRegionIndex(16, -1, -1)] = captureCornerState(2, 0, 0);
+		states[renderRegionIndex(16, -1, 16)] = captureCornerState(2, 0, 2);
+		states[renderRegionIndex(16, 16, -1)] = captureCornerState(2, 2, 0);
+		states[renderRegionIndex(16, 16, 16)] = captureCornerState(2, 2, 2);
 	}
 
 	private BlockState captureCornerState(int x, int y, int z) {

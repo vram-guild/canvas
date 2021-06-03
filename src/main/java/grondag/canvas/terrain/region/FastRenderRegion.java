@@ -17,10 +17,12 @@
 package grondag.canvas.terrain.region;
 
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_SIZE;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_INTERIOR_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_TOTAL_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.cacheIndexToXyz5;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.RENDER_REGION_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.renderRegionIndex;
 
 import java.util.Arrays;
 
@@ -48,21 +50,24 @@ import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 // FIX: cache padding should be 2 instead of 1 to match vanilla behavior
 // FIX: should not allow direct world access, esp from non-main threads
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
-	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_CACHE_SIZE];
-	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_CACHE_SIZE];
-	private static final Object[] EMPTY_RENDER_DATA = new Object[INTERIOR_CACHE_SIZE];
-	private static final BlockEntity[] EMPTY_BLOCK_ENTITIES = new BlockEntity[INTERIOR_CACHE_SIZE];
+	private static final int[] EMPTY_AO_CACHE = new int[RENDER_REGION_TOTAL_COUNT];
+	private static final int[] EMPTY_LIGHT_CACHE = new int[RENDER_REGION_TOTAL_COUNT];
+	private static final Object[] EMPTY_RENDER_DATA = new Object[RENDER_REGION_INTERIOR_COUNT];
+	private static final BlockEntity[] EMPTY_BLOCK_ENTITIES = new BlockEntity[RENDER_REGION_INTERIOR_COUNT];
 
 	static {
 		Arrays.fill(EMPTY_AO_CACHE, Integer.MAX_VALUE);
 		Arrays.fill(EMPTY_LIGHT_CACHE, Integer.MAX_VALUE);
 	}
 
-	public final BlockEntity[] blockEntities = new BlockEntity[INTERIOR_CACHE_SIZE];
+	public final BlockEntity[] blockEntities = new BlockEntity[RENDER_REGION_INTERIOR_COUNT];
 	public final TerrainRenderContext terrainContext;
 	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();
-	protected final Object[] renderData = new Object[INTERIOR_CACHE_SIZE];
-	private final BlockState[] states = new BlockState[TOTAL_CACHE_SIZE];
+	protected final Object[] renderData = new Object[RENDER_REGION_INTERIOR_COUNT];
+	private final BlockState[] states = new BlockState[RENDER_REGION_TOTAL_COUNT];
+
+	private final BlockState[] newStates = new BlockState[RENDER_REGION_STATE_COUNT];
+
 	public final OcclusionRegion occlusion = new OcclusionRegion() {
 		@Override
 		protected BlockState blockStateAtIndex(int index) {
@@ -75,8 +80,8 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		}
 	};
 	// PERF: pack for reduced memory, better LOC
-	private final int[] aoCache = new int[TOTAL_CACHE_SIZE];
-	private final int[] lightCache = new int[TOTAL_CACHE_SIZE];
+	private final int[] aoCache = new int[RENDER_REGION_TOTAL_COUNT];
+	private final int[] lightCache = new int[RENDER_REGION_TOTAL_COUNT];
 
 	public FastRenderRegion(TerrainRenderContext terrainContext) {
 		this.terrainContext = terrainContext;
@@ -84,10 +89,12 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 	public void prepare(ProtoRenderRegion protoRegion) {
 		System.arraycopy(protoRegion.chunks, 0, chunks, 0, 16);
-		System.arraycopy(EMPTY_BLOCK_ENTITIES, 0, blockEntities, 0, INTERIOR_CACHE_SIZE);
-		System.arraycopy(EMPTY_RENDER_DATA, 0, renderData, 0, INTERIOR_CACHE_SIZE);
-		System.arraycopy(EMPTY_AO_CACHE, 0, aoCache, 0, TOTAL_CACHE_SIZE);
-		System.arraycopy(EMPTY_LIGHT_CACHE, 0, lightCache, 0, TOTAL_CACHE_SIZE);
+		System.arraycopy(EMPTY_BLOCK_ENTITIES, 0, blockEntities, 0, RENDER_REGION_INTERIOR_COUNT);
+		System.arraycopy(EMPTY_RENDER_DATA, 0, renderData, 0, RENDER_REGION_INTERIOR_COUNT);
+		System.arraycopy(EMPTY_AO_CACHE, 0, aoCache, 0, RENDER_REGION_TOTAL_COUNT);
+		System.arraycopy(EMPTY_LIGHT_CACHE, 0, lightCache, 0, RENDER_REGION_TOTAL_COUNT);
+
+		System.arraycopy(protoRegion.states, 0, newStates, 0, RENDER_REGION_STATE_COUNT);
 
 		world = protoRegion.world;
 
@@ -104,14 +111,17 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {
 				for (int z = 0; z < 16; z++) {
-					states[interiorIndex(x, y, z)] = pc.apply(x | (y << 8) | (z << 4));
+					final BlockState state = pc.apply(x | (y << 8) | (z << 4));
+					states[interiorIndex(x, y, z)] = state;
+
+					newStates[renderRegionIndex(x, y, z)] = state;
 				}
 			}
 		}
 
 		pc.release();
 
-		System.arraycopy(protoRegion.states, 0, states, INTERIOR_CACHE_SIZE, EXTERIOR_CACHE_SIZE);
+		System.arraycopy(protoRegion.exteriorStates, 0, states, RENDER_REGION_INTERIOR_COUNT, EXTERIOR_CACHE_SIZE);
 
 		copyBeData(protoRegion);
 
@@ -147,7 +157,18 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		final int i = blockIndex(pos.getX(), pos.getY(), pos.getZ());
 
 		if (i == -1) {
+			//FIX: really shouldn't be doing this - is triggered by light smoothing
 			return world.getBlockState(pos);
+		}
+
+		final BlockState newState = newStates[stateIndex(pos.getX(), pos.getY(), pos.getZ())];
+
+		if (states[i] != newState) {
+			System.out.println((states[i] == null ? "null" : states[i].toString())
+					+ "  "
+					+ (newState == null ? "null" : newState.toString()));
+
+			System.out.println(String.format("pos %d %d %d", pos.getX() - originX, pos.getY() - originY, pos.getZ() - originZ));
 		}
 
 		return states[i];

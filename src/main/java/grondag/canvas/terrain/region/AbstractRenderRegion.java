@@ -17,6 +17,7 @@
 package grondag.canvas.terrain.region;
 
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.relativeCacheIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.renderRegionIndex;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -48,6 +49,10 @@ abstract class AbstractRenderRegion {
 
 	final int blockIndex(int x, int y, int z) {
 		return relativeCacheIndex(x - originX, y - originY, z - originZ);
+	}
+
+	final int stateIndex(int x, int y, int z) {
+		return renderRegionIndex(x - originX, y - originY, z - originZ);
 	}
 
 	protected ChunkSection getSection(int x, int y, int z) {

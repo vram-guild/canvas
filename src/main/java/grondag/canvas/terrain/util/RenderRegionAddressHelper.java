@@ -25,25 +25,34 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 
 public abstract class RenderRegionAddressHelper {
-	public static final int INTERIOR_CACHE_SIZE = 4096;
-	public static final int FACE_CACHE_START = INTERIOR_CACHE_SIZE;
-	public static final int FACE_CACHE_SIZE = 256 * 6;
-	public static final int EDGE_CACHE_START = FACE_CACHE_START + FACE_CACHE_SIZE;
-	public static final int EDGE_CACHE_SIZE = 16 * 12;
-	public static final int CORNER_CACHE_START = EDGE_CACHE_START + EDGE_CACHE_SIZE;
-	public static final int CORNER_CACHE_SIZE = 8;
-	public static final int TOTAL_CACHE_SIZE = INTERIOR_CACHE_SIZE + FACE_CACHE_SIZE + EDGE_CACHE_SIZE + CORNER_CACHE_SIZE;
-	public static final int EXTERIOR_CACHE_SIZE = TOTAL_CACHE_SIZE - INTERIOR_CACHE_SIZE;
+	/** How many block/fluid states we capture along edges of region to support neighbor queries on edges. Vanilla is 2. */
+	public static final int RENDER_REGION_PADDING = 2;
+	/** Number of block/fluid states in each axis of a render region including padding on each face. */
+	public static final int RENDER_REGION_DIAMETER = 16 + RENDER_REGION_PADDING * 2;
+	/** How many block/fluid states catured for a render region, including padding. */
+	public static final int RENDER_REGION_STATE_COUNT = RENDER_REGION_DIAMETER * RENDER_REGION_DIAMETER * RENDER_REGION_DIAMETER;
+
+	public static final int RENDER_REGION_INTERIOR_COUNT = 4096;
+	private static final int FACE_CACHE_START = RENDER_REGION_INTERIOR_COUNT;
+	private static final int FACE_CACHE_SIZE = 256 * 6;
+	private static final int EDGE_CACHE_START = FACE_CACHE_START + FACE_CACHE_SIZE;
+	private static final int EDGE_CACHE_SIZE = 16 * 12;
+	private static final int CORNER_CACHE_START = EDGE_CACHE_START + EDGE_CACHE_SIZE;
+	private static final int CORNER_CACHE_SIZE = 8;
+	public static final int RENDER_REGION_TOTAL_COUNT = RENDER_REGION_INTERIOR_COUNT + FACE_CACHE_SIZE + EDGE_CACHE_SIZE + CORNER_CACHE_SIZE;
+	public static final int EXTERIOR_CACHE_SIZE = RENDER_REGION_TOTAL_COUNT - RENDER_REGION_INTERIOR_COUNT;
 	/**
 	 * number of long words per dimensional unit.  Default orientation sliced on z axis
 	 */
 	public static final int SLICE_WORD_COUNT = 4;
-	public static final int INTERIOR_CACHE_WORDS = INTERIOR_CACHE_SIZE / 64;
-	public static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_CACHE_SIZE + 63) / 64;
+	public static final int INTERIOR_CACHE_WORDS = RENDER_REGION_INTERIOR_COUNT / 64;
+	private static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_CACHE_SIZE + 63) / 64;
+
 	public static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;
 	public static final BlockState AIR = Blocks.AIR.getDefaultState();
-	static final int[] REVERSE_INDEX_LOOKUP = new int[TOTAL_CACHE_SIZE];
-	static final int[] INDEX_LOOKUP = new int[32768];
+
+	private static final int[] REVERSE_INDEX_LOOKUP = new int[RENDER_REGION_TOTAL_COUNT];
+	private static final int[] INDEX_LOOKUP = new int[32768];
 
 	static {
 		Arrays.fill(INDEX_LOOKUP, -1);
@@ -60,13 +69,10 @@ public abstract class RenderRegionAddressHelper {
 		}
 	}
 
-	private RenderRegionAddressHelper() {
-	}
-
 	/**
 	 * Handles values < 0 or > 15 by masking to LSB.
 	 */
-	public static int clampedInteriorIndex(int x, int y, int z) {
+	private static int clampedInteriorIndex(int x, int y, int z) {
 		return interiorIndex(x & 0xF, y & 0xF, z & 0xF);
 	}
 
