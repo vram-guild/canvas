@@ -420,12 +420,17 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final boolean thickFog = mc.world.getSkyProperties().useThickFog(MathHelper.floor(cameraX), MathHelper.floor(cameraY)) || mc.inGameHud.getBossBarHud().shouldThickenFog();
 
 		if (mc.options.viewDistance >= 4) {
+			// We call applyFog here to do some state capture - otherwise has no effect
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
 			WorldDataManager.captureFogDistances();
 			profileSwap(profiler, ProfilerGroup.StartWorld, "sky");
 			// NB: fog / sky renderer normalcy get viewMatrixStack but we apply camera rotation in VertexBuffer mixin
 			RenderSystem.setShader(GameRenderer::getPositionShader);
-			renderSky(viewMatrixStack, projectionMatrix, tickDelta);
+
+			// Mojang passes applyFog as a lambda here because they sometimes call it twice.
+			renderSky(viewMatrixStack, projectionMatrix, tickDelta, () -> {
+				BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
+			});
 		}
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
