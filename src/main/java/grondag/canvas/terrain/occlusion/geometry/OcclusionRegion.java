@@ -16,8 +16,8 @@
 
 package grondag.canvas.terrain.occlusion.geometry;
 
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_INTERIOR_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_INTERIOR_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localCornerIndex;
@@ -40,8 +40,14 @@ public abstract class OcclusionRegion {
 	public static final int[] EMPTY_CULL_DATA = {PackedBox.EMPTY_BOX};
 	// PERF: do we need space for exterior positions in all cases?
 	static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
-	static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
-	static final int WORD_COUNT = EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
+
+	/**
+	 * During population, bits at this index track which positions are visited.
+	 * If this is not the camera region the interior positions are
+	 * cleared so that only exterior-visible positions remain.
+	 */
+	static final int VISITED_THEN_EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
+	static final int WORD_COUNT = VISITED_THEN_EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
 	static final long[] EMPTY_BITS = new long[WORD_COUNT];
 	static final long[] EXTERIOR_MASK = new long[INTERIOR_CACHE_WORDS];
 
@@ -91,6 +97,9 @@ public abstract class OcclusionRegion {
 
 	protected abstract BlockState blockStateAtIndex(int index);
 
+	/**
+	 * Returns true if block is an opaque, full cube at the given position relative to region origin.
+	 */
 	protected abstract boolean closedAtRelativePos(BlockState blockState, int x, int y, int z);
 
 	public boolean isClosed(int index) {
@@ -187,24 +196,29 @@ public abstract class OcclusionRegion {
 		captureExteriorVisibility(localCornerIndex(true, true, true), 16, 16, 16);
 	}
 
-	private void setVisited(int index) {
-		bits[(index >> 6) + EXTERIOR_VISIBLE_OFFSET] |= (1L << (index & 63));
-	}
-
-	// interior, not opaque and not already visited
-	private boolean canVisit(int index) {
-		// can't visit outside central chunk
+	/**
+	 * Checks if the position is interior and not already visited.
+	 * If the position is interior and not already visited, marks it visited
+	 * and returns a boolean indicating opacity.
+	 *
+	 * @param index
+	 * @return True if position met the conditions for visiting AND was not opaque.
+	 */
+	private boolean setVisited(int index) {
+		// interior only
 		if (index >= RENDER_REGION_INTERIOR_COUNT) {
 			return false;
 		}
 
-		final int baseIndex = index >> 6;
+		final int wordIndex = index >> 6;
 		final long mask = 1L << (index & 63);
 
-		if ((bits[baseIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0) {
-			bits[baseIndex + EXTERIOR_VISIBLE_OFFSET] |= mask;
-			return (bits[baseIndex] & mask) == 0;
+		// confirm not already visited
+		if ((bits[wordIndex + VISITED_THEN_EXTERIOR_VISIBLE_OFFSET] & mask) == 0) {
+			bits[wordIndex + VISITED_THEN_EXTERIOR_VISIBLE_OFFSET] |= mask;
+			return (bits[wordIndex] & mask) == 0;
 		} else {
+			// already visited
 			return false;
 		}
 	}
@@ -333,7 +347,7 @@ public abstract class OcclusionRegion {
 			final int y = (i >> 4) & 0xF;
 			final int z = (i >> 8) & 0xF;
 
-			if ((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && x != 0 && y != 0 && z != 0 && x != 15 && y != 15 && z != 15) {
+			if ((bits[wordIndex + VISITED_THEN_EXTERIOR_VISIBLE_OFFSET] & mask) == 0 && x != 0 && y != 0 && z != 0 && x != 15 && y != 15 && z != 15) {
 				bits[wordIndex + RENDERABLE_OFFSET] &= ~mask;
 				// mark it opaque
 				bits[wordIndex] |= mask;
@@ -414,7 +428,7 @@ public abstract class OcclusionRegion {
 	private void visitSurfaceIfPossible(int x, int y, int z) {
 		final int index = interiorIndex(x, y, z);
 
-		if (canVisit(index)) {
+		if (setVisited(index)) {
 			fill(index);
 		}
 	}
@@ -510,7 +524,6 @@ public abstract class OcclusionRegion {
 
 	private void fill(int xyz4) {
 		final int faceBits = 0;
-		setVisited(xyz4);
 		visit(xyz4, faceBits);
 
 		while (!queue.isEmpty()) {
@@ -555,8 +568,7 @@ public abstract class OcclusionRegion {
 	}
 
 	private void enqueIfUnvisited(int xyz4) {
-		if (canVisit(xyz4)) {
-			setVisited(xyz4);
+		if (setVisited(xyz4)) {
 			queue.enqueue(xyz4);
 		}
 	}
