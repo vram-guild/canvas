@@ -27,6 +27,7 @@ import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYEdgeIn
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYfaceIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZEdgeIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZfaceIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.renderRegionIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -124,8 +125,9 @@ public abstract class OcclusionRegion {
 		}
 	}
 
+	// WIP: use consistent indexing derived from relative pos
 	private void captureInteriorVisibility(int index, int x, int y, int z) {
-		final BlockState blockState = blockStateAtIndex(index);
+		final BlockState blockState = blockStateAtIndex(renderRegionIndex(x, y, z));
 
 		// TODO: remove or make configurable
 		//		final boolean isHack = blockState.getBlock() == Blocks.WHITE_STAINED_GLASS;
@@ -136,8 +138,9 @@ public abstract class OcclusionRegion {
 		}
 	}
 
+	// WIP: use consistent indexing derived from relative pos
 	private void captureExteriorVisibility(int index, int x, int y, int z) {
-		final BlockState blockState = blockStateAtIndex(index);
+		final BlockState blockState = blockStateAtIndex(renderRegionIndex(x, y, z));
 
 		if ((blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) && closedAtRelativePos(blockState, x, y, z)) {
 			setVisibility(index, false, true);

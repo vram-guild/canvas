@@ -71,7 +71,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	public final OcclusionRegion occlusion = new OcclusionRegion() {
 		@Override
 		protected BlockState blockStateAtIndex(int index) {
-			return states[index];
+			return newStates[index];
 		}
 
 		@Override
@@ -79,6 +79,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 			return blockState.isOpaqueFullCube(FastRenderRegion.this, searchPos.set(originX + x, originY + y, originZ + z));
 		}
 	};
+
 	// PERF: pack for reduced memory, better LOC
 	private final int[] aoCache = new int[RENDER_REGION_TOTAL_COUNT];
 	private final int[] lightCache = new int[RENDER_REGION_TOTAL_COUNT];
@@ -161,7 +162,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 			return world.getBlockState(pos);
 		}
 
-		final BlockState newState = newStates[stateIndex(pos.getX(), pos.getY(), pos.getZ())];
+		final BlockState newState = newStates[indexFromWorldPos(pos.getX(), pos.getY(), pos.getZ())];
 
 		if (states[i] != newState) {
 			System.out.println((states[i] == null ? "null" : states[i].toString())

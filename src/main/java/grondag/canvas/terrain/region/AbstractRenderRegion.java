@@ -51,7 +51,10 @@ abstract class AbstractRenderRegion {
 		return relativeCacheIndex(x - originX, y - originY, z - originZ);
 	}
 
-	final int stateIndex(int x, int y, int z) {
+	/**
+	 * Use when have absolute coordinates (not relative to region origin).
+	 */
+	final int indexFromWorldPos(int x, int y, int z) {
 		return renderRegionIndex(x - originX, y - originY, z - originZ);
 	}
 
