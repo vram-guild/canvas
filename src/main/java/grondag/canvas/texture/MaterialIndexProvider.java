@@ -41,13 +41,15 @@ public abstract class MaterialIndexProvider {
 		public MaterialIndexer getIndexer(RenderMaterialImpl mat) {
 			final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
 
-			final int result = map.computeIfAbsent(key, k -> {
-				final int i = nextIndex++;
-				tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index);
-				return i;
-			});
+			synchronized (this) {
+				final int result = map.computeIfAbsent(key, k -> {
+					final int i = nextIndex++;
+					tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index);
+					return i;
+				});
 
-			return i -> result;
+				return i -> result;
+			}
 		}
 
 		@Override
@@ -64,9 +66,12 @@ public abstract class MaterialIndexProvider {
 			this.atlasId = atlasId;
 		}
 
-		int nextIndex = 0;
-		final Long2ObjectOpenHashMap<Indexer> materialMap = new Long2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+		private int nextIndex = 0;
+		private final Long2ObjectOpenHashMap<Indexer> materialMap = new Long2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 		private final MaterialIndexTexture tex = new MaterialIndexTexture(true);
+
+		// PERF: find ways to reduce/avoid locking here and in MaterialIndexImage
+		private final Object sync = new Object();
 
 		private class Indexer implements MaterialIndexer {
 			private Indexer(RenderMaterialImpl mat) {
@@ -78,12 +83,14 @@ public abstract class MaterialIndexProvider {
 
 			@Override
 			public int index(int spriteId) {
-				return spriteMap.computeIfAbsent(spriteId, k -> {
-					final int i = nextIndex++;
-					final Sprite sprite = mat.texture.atlasInfo().fromId(k);
-					tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index, sprite);
-					return i;
-				});
+				synchronized (sync) {
+					return spriteMap.computeIfAbsent(spriteId, k -> {
+						final int i = nextIndex++;
+						final Sprite sprite = mat.texture.atlasInfo().fromId(k);
+						tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index, sprite);
+						return i;
+					});
+				}
 			}
 		}
 
@@ -91,9 +98,11 @@ public abstract class MaterialIndexProvider {
 		public MaterialIndexer getIndexer(RenderMaterialImpl mat) {
 			final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
 
-			return materialMap.computeIfAbsent(key, k -> {
-				return new Indexer(mat);
-			});
+			synchronized (sync) {
+				return materialMap.computeIfAbsent(key, k -> {
+					return new Indexer(mat);
+				});
+			}
 		}
 
 		@Override
@@ -104,7 +113,7 @@ public abstract class MaterialIndexProvider {
 
 	private static final Object2ObjectOpenHashMap<Identifier, AtlasIndexProvider> ATLAS_PROVIDERS = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 
-	public static final MaterialIndexProvider getOrCreateForAtlas(Identifier id) {
+	public static final synchronized MaterialIndexProvider getOrCreateForAtlas(Identifier id) {
 		return ATLAS_PROVIDERS.computeIfAbsent(id, AtlasIndexProvider::new);
 	}
 

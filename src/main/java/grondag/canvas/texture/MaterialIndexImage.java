@@ -65,7 +65,7 @@ public final class MaterialIndexImage {
 		}
 	}
 
-	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId) {
+	synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId) {
 		assert !isAtlas;
 
 		data.add(vertexId | (fragmentId << 16));
@@ -77,7 +77,7 @@ public final class MaterialIndexImage {
 		tail = bufferIndex + MaterialIndexTexture.BYTES_PER_MATERIAL;
 	}
 
-	void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId, Sprite sprite) {
+	synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId, Sprite sprite) {
 		assert isAtlas;
 
 		data.add(vertexId | (fragmentId << 16));
@@ -91,7 +91,9 @@ public final class MaterialIndexImage {
 		tail = bufferIndex + MaterialIndexTexture.ATLAS_BYTES_PER_MATERIAL;
 	}
 
-	public void upload() {
+	// PERF: Should only be called on render thread but data updates can occur on other threads
+	// so we currently sync here and in the set methods, even though set calls are also synchronized by caller.
+	public synchronized void upload() {
 		final int len = tail - head;
 		assert len / 4 == data.size();
 
