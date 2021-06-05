@@ -30,10 +30,16 @@ If you're looking to max performance with Canvas, the config menu tool tips indi
 
 More optimizations will be added after a stable release.
 
-## Playing with Canvas
-Add Canvas to your mods folder and make sure you have recent versions of Fabric Loader and API, plus at least 4GB of memory allocated to Minecraft.  An in-game config menu is available in video options, or via Mod Menu if you have it installed.
+# Using Canvas
 
-## Developing With Canvas
+## Installing Canvas
+Add Canvas to the `mods` folder in your minecraft folder (`%appdata%/.minecraft/mods` on Windows) and make sure you have recent versions of [Fabric](https://fabricmc.net/) Loader and API, plus at least 4GB of memory allocated to Minecraft.  An in-game config menu is available in video options, or via Mod Menu if you have it installed.
+
+## List of Compatible Shaders
+
+* [Lumi Lights (wip)](https://spiralhalo.github.io/)
+
+# Developing With Canvas
 Before using Canvas, you should first understand RenderMaterials, Meshes, RenderContexts and other features defined by the Fabric Rendering API.  For that information, consult the [rendering article on the Fabric Wiki](https://fabricmc.net/wiki/rendering). Note: Fabric wiki is still WIP as of this writing but should be more complete "soon."
 
 You can also see [RenderBender](https://github.com/grondag/renderbender) for some (not very good) examples of usage.  Avoid duplicating those examples directly - they aren't especially performant or suitable for use at scale.  As soon as someone releases a model loader / library for Fabric Rendering API / FREX, that will almost certainly be a better approach.  
