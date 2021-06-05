@@ -71,7 +71,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 		@Override
 		protected boolean closedAtRelativePos(BlockState blockState, int x, int y, int z) {
-			return blockState.isOpaqueFullCube(world, searchPos.set(originX + x, originY + y, originZ + z));
+			return blockState.isOpaqueFullCube(FastRenderRegion.this, searchPos.set(originX + x, originY + y, originZ + z));
 		}
 	};
 	// PERF: pack for reduced memory, better LOC
