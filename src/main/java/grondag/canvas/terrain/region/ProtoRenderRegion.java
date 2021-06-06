@@ -17,18 +17,9 @@
 package grondag.canvas.terrain.region;
 
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.AIR;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_INTERIOR_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localCornerIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXfaceIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYfaceIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZfaceIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.RENDER_REGION_STATE_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.renderRegionIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionStateCacheIndex;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -68,7 +59,6 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 	public static final ProtoRenderRegion EMPTY = new DummyRegion();
 	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
-	final BlockState[] exteriorStates = new BlockState[EXTERIOR_CACHE_SIZE];
 	final ShortArrayList renderDataPos = new ShortArrayList();
 	final ObjectArrayList<Object> renderData = new ObjectArrayList<>();
 	final ShortArrayList blockEntityPos = new ShortArrayList();
@@ -192,25 +182,23 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				exteriorStates[localXfaceIndex(false, i, j) - RENDER_REGION_INTERIOR_COUNT] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
-				exteriorStates[localXfaceIndex(true, i, j) - RENDER_REGION_INTERIOR_COUNT] = highX == null ? AIR : highX.getBlockState(0, i, j);
+				states[regionStateCacheIndex(-2, i, j)] = lowX == null ? AIR : lowX.getBlockState(14, i, j);
+				states[regionStateCacheIndex(-1, i, j)] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
 
-				exteriorStates[localZfaceIndex(i, j, false) - RENDER_REGION_INTERIOR_COUNT] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
-				exteriorStates[localZfaceIndex(i, j, true) - RENDER_REGION_INTERIOR_COUNT] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
+				states[regionStateCacheIndex(16, i, j)] = highX == null ? AIR : highX.getBlockState(0, i, j);
+				states[regionStateCacheIndex(17, i, j)] = highX == null ? AIR : highX.getBlockState(1, i, j);
 
-				exteriorStates[localYfaceIndex(i, false, j) - RENDER_REGION_INTERIOR_COUNT] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
-				exteriorStates[localYfaceIndex(i, true, j) - RENDER_REGION_INTERIOR_COUNT] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+				states[regionStateCacheIndex(i, j, -2)] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 14);
+				states[regionStateCacheIndex(i, j, -1)] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
 
-				///
+				states[regionStateCacheIndex(i, j, 16)] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
+				states[regionStateCacheIndex(i, j, 17)] = highZ == null ? AIR : highZ.getBlockState(i, j, 1);
 
-				states[renderRegionIndex(-1, i, j)] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
-				states[renderRegionIndex(16, i, j)] = highX == null ? AIR : highX.getBlockState(0, i, j);
+				states[regionStateCacheIndex(i, -2, j)] = lowY == null ? AIR : lowY.getBlockState(i, 14, j);
+				states[regionStateCacheIndex(i, -1, j)] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
 
-				states[renderRegionIndex(i, j, -1)] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
-				states[renderRegionIndex(i, j, 16)] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
-
-				states[renderRegionIndex(i, -1, j)] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
-				states[renderRegionIndex(i, 16, j)] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+				states[regionStateCacheIndex(i, 16, j)] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+				states[regionStateCacheIndex(i, 17, j)] = highY == null ? AIR : highY.getBlockState(i, 1, j);
 			}
 		}
 	}
@@ -232,67 +220,148 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		final ChunkSection Xbb = getSection(1, 2, 2);
 
 		for (int i = 0; i < 16; i++) {
-			exteriorStates[localZEdgeIndex(false, false, i) - RENDER_REGION_INTERIOR_COUNT] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
-			exteriorStates[localZEdgeIndex(false, true, i) - RENDER_REGION_INTERIOR_COUNT] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
-			exteriorStates[localZEdgeIndex(true, false, i) - RENDER_REGION_INTERIOR_COUNT] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
-			exteriorStates[localZEdgeIndex(true, true, i) - RENDER_REGION_INTERIOR_COUNT] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+			states[regionStateCacheIndex(-2, -2, i)] = aaZ == null ? AIR : aaZ.getBlockState(14, 14, i);
+			states[regionStateCacheIndex(-2, -1, i)] = aaZ == null ? AIR : aaZ.getBlockState(14, 15, i);
+			states[regionStateCacheIndex(-1, -2, i)] = aaZ == null ? AIR : aaZ.getBlockState(15, 14, i);
+			states[regionStateCacheIndex(-1, -1, i)] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
 
-			exteriorStates[localYEdgeIndex(false, i, false) - RENDER_REGION_INTERIOR_COUNT] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
-			exteriorStates[localYEdgeIndex(false, i, true) - RENDER_REGION_INTERIOR_COUNT] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
-			exteriorStates[localYEdgeIndex(true, i, false) - RENDER_REGION_INTERIOR_COUNT] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
-			exteriorStates[localYEdgeIndex(true, i, true) - RENDER_REGION_INTERIOR_COUNT] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+			states[regionStateCacheIndex(-2, 16, i)] = abZ == null ? AIR : abZ.getBlockState(14, 0, i);
+			states[regionStateCacheIndex(-2, 17, i)] = abZ == null ? AIR : abZ.getBlockState(14, 1, i);
+			states[regionStateCacheIndex(-1, 16, i)] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
+			states[regionStateCacheIndex(-1, 17, i)] = abZ == null ? AIR : abZ.getBlockState(15, 1, i);
 
-			exteriorStates[localXEdgeIndex(i, false, false) - RENDER_REGION_INTERIOR_COUNT] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
-			exteriorStates[localXEdgeIndex(i, false, true) - RENDER_REGION_INTERIOR_COUNT] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
-			exteriorStates[localXEdgeIndex(i, true, false) - RENDER_REGION_INTERIOR_COUNT] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
-			exteriorStates[localXEdgeIndex(i, true, true) - RENDER_REGION_INTERIOR_COUNT] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+			states[regionStateCacheIndex(16, -2, i)] = baZ == null ? AIR : baZ.getBlockState(0, 14, i);
+			states[regionStateCacheIndex(16, -1, i)] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
+			states[regionStateCacheIndex(17, -2, i)] = baZ == null ? AIR : baZ.getBlockState(1, 14, i);
+			states[regionStateCacheIndex(17, -1, i)] = baZ == null ? AIR : baZ.getBlockState(1, 15, i);
 
-			////
+			states[regionStateCacheIndex(16, 16, i)] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+			states[regionStateCacheIndex(16, 17, i)] = bbZ == null ? AIR : bbZ.getBlockState(0, 1, i);
+			states[regionStateCacheIndex(17, 16, i)] = bbZ == null ? AIR : bbZ.getBlockState(1, 0, i);
+			states[regionStateCacheIndex(17, 17, i)] = bbZ == null ? AIR : bbZ.getBlockState(0, 1, i);
 
-			states[renderRegionIndex(-1, -1, i)] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
-			states[renderRegionIndex(-1, 16, i)] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
-			states[renderRegionIndex(16, -1, i)] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
-			states[renderRegionIndex(16, 16, i)] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+			states[regionStateCacheIndex(-2, i, -2)] = aYa == null ? AIR : aYa.getBlockState(14, i, 14);
+			states[regionStateCacheIndex(-2, i, -1)] = aYa == null ? AIR : aYa.getBlockState(14, i, 15);
+			states[regionStateCacheIndex(-1, i, -2)] = aYa == null ? AIR : aYa.getBlockState(15, i, 14);
+			states[regionStateCacheIndex(-1, i, -1)] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
 
-			states[renderRegionIndex(-1, i, -1)] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
-			states[renderRegionIndex(-1, i, 16)] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
-			states[renderRegionIndex(16, i, -1)] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
-			states[renderRegionIndex(16, i, 16)] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+			states[regionStateCacheIndex(-2, i, 16)] = aYb == null ? AIR : aYb.getBlockState(14, i, 0);
+			states[regionStateCacheIndex(-2, i, 17)] = aYb == null ? AIR : aYb.getBlockState(14, i, 1);
+			states[regionStateCacheIndex(-1, i, 16)] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
+			states[regionStateCacheIndex(-1, i, 17)] = aYb == null ? AIR : aYb.getBlockState(15, i, 1);
 
-			states[renderRegionIndex(i, -1, -1)] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
-			states[renderRegionIndex(i, -1, 16)] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
-			states[renderRegionIndex(i, 16, -1)] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
-			states[renderRegionIndex(i, 16, 16)] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+			states[regionStateCacheIndex(16, i, -2)] = bYa == null ? AIR : bYa.getBlockState(0, i, 14);
+			states[regionStateCacheIndex(16, i, -1)] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
+			states[regionStateCacheIndex(17, i, -2)] = bYa == null ? AIR : bYa.getBlockState(1, i, 14);
+			states[regionStateCacheIndex(17, i, -1)] = bYa == null ? AIR : bYa.getBlockState(1, i, 15);
+
+			states[regionStateCacheIndex(16, i, 16)] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+			states[regionStateCacheIndex(16, i, 17)] = bYb == null ? AIR : bYb.getBlockState(0, i, 1);
+			states[regionStateCacheIndex(17, i, 16)] = bYb == null ? AIR : bYb.getBlockState(1, i, 0);
+			states[regionStateCacheIndex(17, i, 17)] = bYb == null ? AIR : bYb.getBlockState(1, i, 1);
+
+			states[regionStateCacheIndex(i, -2, -2)] = Xaa == null ? AIR : Xaa.getBlockState(i, 14, 14);
+			states[regionStateCacheIndex(i, -2, -1)] = Xaa == null ? AIR : Xaa.getBlockState(i, 14, 15);
+			states[regionStateCacheIndex(i, -1, -2)] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 14);
+			states[regionStateCacheIndex(i, -1, -1)] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
+
+			states[regionStateCacheIndex(i, -2, 16)] = Xab == null ? AIR : Xab.getBlockState(i, 14, 0);
+			states[regionStateCacheIndex(i, -2, 17)] = Xab == null ? AIR : Xab.getBlockState(i, 14, 1);
+			states[regionStateCacheIndex(i, -1, 16)] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
+			states[regionStateCacheIndex(i, -1, 17)] = Xab == null ? AIR : Xab.getBlockState(i, 15, 1);
+
+			states[regionStateCacheIndex(i, 16, -2)] = Xba == null ? AIR : Xba.getBlockState(i, 0, 14);
+			states[regionStateCacheIndex(i, 16, -1)] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
+			states[regionStateCacheIndex(i, 17, -2)] = Xba == null ? AIR : Xba.getBlockState(i, 1, 14);
+			states[regionStateCacheIndex(i, 17, -1)] = Xba == null ? AIR : Xba.getBlockState(i, 1, 15);
+
+			states[regionStateCacheIndex(i, 16, 16)] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+			states[regionStateCacheIndex(i, 16, 17)] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 1);
+			states[regionStateCacheIndex(i, 17, 16)] = Xbb == null ? AIR : Xbb.getBlockState(i, 1, 0);
+			states[regionStateCacheIndex(i, 17, 17)] = Xbb == null ? AIR : Xbb.getBlockState(i, 1, 1);
 		}
 	}
 
 	private void captureCorners() {
-		exteriorStates[localCornerIndex(false, false, false) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(0, 0, 0);
-		exteriorStates[localCornerIndex(false, false, true) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(0, 0, 2);
-		exteriorStates[localCornerIndex(false, true, false) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(0, 2, 0);
-		exteriorStates[localCornerIndex(false, true, true) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(0, 2, 2);
+		ChunkSection sec = getSection(0, 0, 0);
+		states[regionStateCacheIndex(-2, -2, -2)] = sec == null ? AIR : sec.getBlockState(14, 14, 14);
+		states[regionStateCacheIndex(-2, -2, -1)] = sec == null ? AIR : sec.getBlockState(14, 14, 15);
+		states[regionStateCacheIndex(-2, -1, -2)] = sec == null ? AIR : sec.getBlockState(14, 15, 14);
+		states[regionStateCacheIndex(-2, -1, -1)] = sec == null ? AIR : sec.getBlockState(14, 15, 15);
+		states[regionStateCacheIndex(-1, -2, -2)] = sec == null ? AIR : sec.getBlockState(15, 14, 14);
+		states[regionStateCacheIndex(-1, -2, -1)] = sec == null ? AIR : sec.getBlockState(15, 14, 15);
+		states[regionStateCacheIndex(-1, -1, -2)] = sec == null ? AIR : sec.getBlockState(15, 15, 14);
+		states[regionStateCacheIndex(-1, -1, -1)] = sec == null ? AIR : sec.getBlockState(15, 15, 15);
 
-		exteriorStates[localCornerIndex(true, false, false) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(2, 0, 0);
-		exteriorStates[localCornerIndex(true, false, true) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(2, 0, 2);
-		exteriorStates[localCornerIndex(true, true, false) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(2, 2, 0);
-		exteriorStates[localCornerIndex(true, true, true) - RENDER_REGION_INTERIOR_COUNT] = captureCornerState(2, 2, 2);
+		sec = getSection(0, 0, 2);
+		states[regionStateCacheIndex(-2, -2, 16)] = sec == null ? AIR : sec.getBlockState(14, 14, 0);
+		states[regionStateCacheIndex(-2, -2, 17)] = sec == null ? AIR : sec.getBlockState(14, 14, 1);
+		states[regionStateCacheIndex(-2, -1, 16)] = sec == null ? AIR : sec.getBlockState(14, 15, 0);
+		states[regionStateCacheIndex(-2, -1, 17)] = sec == null ? AIR : sec.getBlockState(14, 15, 1);
+		states[regionStateCacheIndex(-1, -2, 16)] = sec == null ? AIR : sec.getBlockState(15, 14, 0);
+		states[regionStateCacheIndex(-1, -2, 17)] = sec == null ? AIR : sec.getBlockState(15, 14, 1);
+		states[regionStateCacheIndex(-1, -1, 16)] = sec == null ? AIR : sec.getBlockState(15, 15, 0);
+		states[regionStateCacheIndex(-1, -1, 17)] = sec == null ? AIR : sec.getBlockState(15, 15, 1);
 
-		///
+		sec = getSection(0, 2, 0);
+		states[regionStateCacheIndex(-2, 16, -2)] = sec == null ? AIR : sec.getBlockState(14, 0, 14);
+		states[regionStateCacheIndex(-2, 16, -1)] = sec == null ? AIR : sec.getBlockState(14, 0, 15);
+		states[regionStateCacheIndex(-2, 17, -2)] = sec == null ? AIR : sec.getBlockState(14, 1, 14);
+		states[regionStateCacheIndex(-2, 17, -1)] = sec == null ? AIR : sec.getBlockState(14, 1, 15);
+		states[regionStateCacheIndex(-1, 16, -2)] = sec == null ? AIR : sec.getBlockState(15, 0, 14);
+		states[regionStateCacheIndex(-1, 16, -1)] = sec == null ? AIR : sec.getBlockState(15, 0, 15);
+		states[regionStateCacheIndex(-1, 17, -2)] = sec == null ? AIR : sec.getBlockState(15, 1, 14);
+		states[regionStateCacheIndex(-1, 17, -1)] = sec == null ? AIR : sec.getBlockState(15, 1, 15);
 
-		states[renderRegionIndex(-1, -1, -1)] = captureCornerState(0, 0, 0);
-		states[renderRegionIndex(-1, -1, 16)] = captureCornerState(0, 0, 2);
-		states[renderRegionIndex(-1, 16, -1)] = captureCornerState(0, 2, 0);
-		states[renderRegionIndex(-1, 16, 16)] = captureCornerState(0, 2, 2);
+		sec = getSection(0, 2, 2);
+		states[regionStateCacheIndex(-2, 16, 16)] = sec == null ? AIR : sec.getBlockState(14, 0, 0);
+		states[regionStateCacheIndex(-2, 16, 17)] = sec == null ? AIR : sec.getBlockState(14, 0, 1);
+		states[regionStateCacheIndex(-2, 17, 16)] = sec == null ? AIR : sec.getBlockState(14, 1, 0);
+		states[regionStateCacheIndex(-2, 17, 17)] = sec == null ? AIR : sec.getBlockState(14, 1, 1);
+		states[regionStateCacheIndex(-1, 16, 16)] = sec == null ? AIR : sec.getBlockState(15, 0, 0);
+		states[regionStateCacheIndex(-1, 16, 17)] = sec == null ? AIR : sec.getBlockState(15, 0, 1);
+		states[regionStateCacheIndex(-1, 17, 16)] = sec == null ? AIR : sec.getBlockState(15, 1, 0);
+		states[regionStateCacheIndex(-1, 17, 17)] = sec == null ? AIR : sec.getBlockState(15, 1, 1);
 
-		states[renderRegionIndex(16, -1, -1)] = captureCornerState(2, 0, 0);
-		states[renderRegionIndex(16, -1, 16)] = captureCornerState(2, 0, 2);
-		states[renderRegionIndex(16, 16, -1)] = captureCornerState(2, 2, 0);
-		states[renderRegionIndex(16, 16, 16)] = captureCornerState(2, 2, 2);
-	}
+		sec = getSection(2, 0, 0);
+		states[regionStateCacheIndex(16, -2, -2)] = sec == null ? AIR : sec.getBlockState(0, 14, 14);
+		states[regionStateCacheIndex(16, -2, -1)] = sec == null ? AIR : sec.getBlockState(0, 14, 15);
+		states[regionStateCacheIndex(16, -1, -2)] = sec == null ? AIR : sec.getBlockState(0, 15, 14);
+		states[regionStateCacheIndex(16, -1, -1)] = sec == null ? AIR : sec.getBlockState(0, 15, 15);
+		states[regionStateCacheIndex(17, -2, -2)] = sec == null ? AIR : sec.getBlockState(1, 14, 14);
+		states[regionStateCacheIndex(17, -2, -1)] = sec == null ? AIR : sec.getBlockState(1, 14, 15);
+		states[regionStateCacheIndex(17, -1, -2)] = sec == null ? AIR : sec.getBlockState(1, 15, 14);
+		states[regionStateCacheIndex(17, -1, -1)] = sec == null ? AIR : sec.getBlockState(1, 15, 15);
 
-	private BlockState captureCornerState(int x, int y, int z) {
-		final ChunkSection section = getSection(x, y, z);
-		return section == null ? AIR : section.getBlockState(x == 0 ? 15 : 0, y == 0 ? 15 : 0, z == 0 ? 15 : 0);
+		sec = getSection(2, 0, 2);
+		states[regionStateCacheIndex(16, -2, 16)] = sec == null ? AIR : sec.getBlockState(0, 14, 0);
+		states[regionStateCacheIndex(16, -2, 17)] = sec == null ? AIR : sec.getBlockState(0, 14, 1);
+		states[regionStateCacheIndex(16, -1, 16)] = sec == null ? AIR : sec.getBlockState(0, 15, 0);
+		states[regionStateCacheIndex(16, -1, 17)] = sec == null ? AIR : sec.getBlockState(0, 15, 1);
+		states[regionStateCacheIndex(17, -2, 16)] = sec == null ? AIR : sec.getBlockState(1, 14, 0);
+		states[regionStateCacheIndex(17, -2, 17)] = sec == null ? AIR : sec.getBlockState(1, 14, 1);
+		states[regionStateCacheIndex(17, -1, 16)] = sec == null ? AIR : sec.getBlockState(1, 15, 0);
+		states[regionStateCacheIndex(17, -1, 17)] = sec == null ? AIR : sec.getBlockState(1, 15, 1);
+
+		sec = getSection(2, 2, 0);
+		states[regionStateCacheIndex(16, 16, -2)] = sec == null ? AIR : sec.getBlockState(0, 0, 14);
+		states[regionStateCacheIndex(16, 16, -1)] = sec == null ? AIR : sec.getBlockState(0, 0, 15);
+		states[regionStateCacheIndex(16, 17, -2)] = sec == null ? AIR : sec.getBlockState(0, 1, 14);
+		states[regionStateCacheIndex(16, 17, -1)] = sec == null ? AIR : sec.getBlockState(0, 1, 15);
+		states[regionStateCacheIndex(17, 16, -2)] = sec == null ? AIR : sec.getBlockState(1, 0, 14);
+		states[regionStateCacheIndex(17, 16, -1)] = sec == null ? AIR : sec.getBlockState(1, 0, 15);
+		states[regionStateCacheIndex(17, 17, -2)] = sec == null ? AIR : sec.getBlockState(1, 1, 14);
+		states[regionStateCacheIndex(17, 17, -1)] = sec == null ? AIR : sec.getBlockState(1, 1, 15);
+
+		sec = getSection(2, 2, 2);
+		states[regionStateCacheIndex(16, 16, 16)] = sec == null ? AIR : sec.getBlockState(0, 0, 0);
+		states[regionStateCacheIndex(16, 16, 17)] = sec == null ? AIR : sec.getBlockState(0, 0, 1);
+		states[regionStateCacheIndex(16, 17, 16)] = sec == null ? AIR : sec.getBlockState(0, 1, 0);
+		states[regionStateCacheIndex(16, 17, 17)] = sec == null ? AIR : sec.getBlockState(0, 1, 1);
+		states[regionStateCacheIndex(17, 16, 16)] = sec == null ? AIR : sec.getBlockState(1, 0, 0);
+		states[regionStateCacheIndex(17, 16, 17)] = sec == null ? AIR : sec.getBlockState(1, 0, 1);
+		states[regionStateCacheIndex(17, 17, 16)] = sec == null ? AIR : sec.getBlockState(1, 1, 0);
+		states[regionStateCacheIndex(17, 17, 17)] = sec == null ? AIR : sec.getBlockState(1, 1, 1);
 	}
 
 	public void release() {

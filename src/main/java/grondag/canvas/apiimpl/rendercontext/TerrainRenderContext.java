@@ -113,7 +113,8 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 
 		try {
-			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));
+			// NB: we assume the block pos is within the region and derive region-relative coordinates by masking to 0-15
+			aoCalc.prepare(RenderRegionAddressHelper.regionStateCacheIndex(blockPos.getX() & 0xF, blockPos.getY() & 0xF, blockPos.getZ() & 0xF));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;

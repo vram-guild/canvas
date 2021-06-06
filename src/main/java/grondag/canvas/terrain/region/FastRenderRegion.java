@@ -16,13 +16,12 @@
 
 package grondag.canvas.terrain.region;
 
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_INTERIOR_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_TOTAL_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.cacheIndexToXyz5;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.RENDER_REGION_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.indexToBlockPos;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.RENDER_REGION_STATE_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelperNew.renderRegionIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.newIndexToOldIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionStateCacheIndex;
 
 import java.util.Arrays;
 
@@ -47,11 +46,9 @@ import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
-// FIX: cache padding should be 2 instead of 1 to match vanilla behavior
-// FIX: should not allow direct world access, esp from non-main threads
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
-	private static final int[] EMPTY_AO_CACHE = new int[RENDER_REGION_TOTAL_COUNT];
-	private static final int[] EMPTY_LIGHT_CACHE = new int[RENDER_REGION_TOTAL_COUNT];
+	private static final int[] EMPTY_AO_CACHE = new int[RENDER_REGION_STATE_COUNT];
+	private static final int[] EMPTY_LIGHT_CACHE = new int[RENDER_REGION_STATE_COUNT];
 	private static final Object[] EMPTY_RENDER_DATA = new Object[RENDER_REGION_INTERIOR_COUNT];
 	private static final BlockEntity[] EMPTY_BLOCK_ENTITIES = new BlockEntity[RENDER_REGION_INTERIOR_COUNT];
 
@@ -64,14 +61,12 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	public final TerrainRenderContext terrainContext;
 	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 	protected final Object[] renderData = new Object[RENDER_REGION_INTERIOR_COUNT];
-	private final BlockState[] states = new BlockState[RENDER_REGION_TOTAL_COUNT];
-
-	private final BlockState[] newStates = new BlockState[RENDER_REGION_STATE_COUNT];
+	private final BlockState[] blockStates = new BlockState[RENDER_REGION_STATE_COUNT];
 
 	public final OcclusionRegion occlusion = new OcclusionRegion() {
 		@Override
 		protected BlockState blockStateAtIndex(int index) {
-			return newStates[index];
+			return blockStates[index];
 		}
 
 		@Override
@@ -81,8 +76,8 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	};
 
 	// PERF: pack for reduced memory, better LOC
-	private final int[] aoCache = new int[RENDER_REGION_TOTAL_COUNT];
-	private final int[] lightCache = new int[RENDER_REGION_TOTAL_COUNT];
+	private final int[] aoCache = new int[RENDER_REGION_STATE_COUNT];
+	private final int[] lightCache = new int[RENDER_REGION_STATE_COUNT];
 
 	public FastRenderRegion(TerrainRenderContext terrainContext) {
 		this.terrainContext = terrainContext;
@@ -92,10 +87,10 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		System.arraycopy(protoRegion.chunks, 0, chunks, 0, 16);
 		System.arraycopy(EMPTY_BLOCK_ENTITIES, 0, blockEntities, 0, RENDER_REGION_INTERIOR_COUNT);
 		System.arraycopy(EMPTY_RENDER_DATA, 0, renderData, 0, RENDER_REGION_INTERIOR_COUNT);
-		System.arraycopy(EMPTY_AO_CACHE, 0, aoCache, 0, RENDER_REGION_TOTAL_COUNT);
-		System.arraycopy(EMPTY_LIGHT_CACHE, 0, lightCache, 0, RENDER_REGION_TOTAL_COUNT);
+		System.arraycopy(EMPTY_AO_CACHE, 0, aoCache, 0, RENDER_REGION_STATE_COUNT);
+		System.arraycopy(EMPTY_LIGHT_CACHE, 0, lightCache, 0, RENDER_REGION_STATE_COUNT);
 
-		System.arraycopy(protoRegion.states, 0, newStates, 0, RENDER_REGION_STATE_COUNT);
+		System.arraycopy(protoRegion.states, 0, blockStates, 0, RENDER_REGION_STATE_COUNT);
 
 		world = protoRegion.world;
 
@@ -109,20 +104,16 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 		final PaletteCopy pc = protoRegion.takePaletteCopy();
 
+		// PERF: do unnested loop on apply argument and break out the x, y, z to pass to renderRegionIndex
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {
 				for (int z = 0; z < 16; z++) {
-					final BlockState state = pc.apply(x | (y << 8) | (z << 4));
-					states[interiorIndex(x, y, z)] = state;
-
-					newStates[renderRegionIndex(x, y, z)] = state;
+					blockStates[regionStateCacheIndex(x, y, z)] = pc.apply(x | (y << 8) | (z << 4));
 				}
 			}
 		}
 
 		pc.release();
-
-		System.arraycopy(protoRegion.exteriorStates, 0, states, RENDER_REGION_INTERIOR_COUNT, EXTERIOR_CACHE_SIZE);
 
 		copyBeData(protoRegion);
 
@@ -155,41 +146,31 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 	@Override
 	public BlockState getBlockState(BlockPos pos) {
-		final int i = blockIndex(pos.getX(), pos.getY(), pos.getZ());
+		final int index = indexFromWorldPos(pos.getX(), pos.getY(), pos.getZ());
 
-		if (i == -1) {
+		if (index == -1) {
 			//FIX: really shouldn't be doing this - is triggered by light smoothing
 			return world.getBlockState(pos);
 		}
 
-		final BlockState newState = newStates[indexFromWorldPos(pos.getX(), pos.getY(), pos.getZ())];
-
-		if (states[i] != newState) {
-			System.out.println((states[i] == null ? "null" : states[i].toString())
-					+ "  "
-					+ (newState == null ? "null" : newState.toString()));
-
-			System.out.println(String.format("pos %d %d %d", pos.getX() - originX, pos.getY() - originY, pos.getZ() - originZ));
-		}
-
-		return states[i];
+		return blockStates[index];
 	}
 
 	public BlockState getBlockState(int x, int y, int z) {
-		final int i = blockIndex(x, y, z);
+		final int index = indexFromWorldPos(x, y, z);
 
-		if (i == -1) {
+		if (index == -1) {
 			return world.getBlockState(searchPos.set(x, y, z));
 		}
 
-		return states[i];
+		return blockStates[index];
 	}
 
 	/**
 	 * Assumes values 0-15.
 	 */
-	public BlockState getLocalBlockState(int interiorIndex) {
-		return states[interiorIndex];
+	public BlockState getLocalBlockState(int x, int y, int z) {
+		return blockStates[regionStateCacheIndex(x, y, z)];
 	}
 
 	@Override
@@ -214,19 +195,19 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	}
 
 	public int cachedBrightness(BlockPos pos) {
-		return cachedBrightness(blockIndex(pos.getX(), pos.getY(), pos.getZ()));
+		return cachedBrightness(indexFromWorldPos(pos.getX(), pos.getY(), pos.getZ()));
 	}
 
 	public int cachedBrightness(int cacheIndex) {
 		int result = lightCache[cacheIndex];
 
 		if (result == Integer.MAX_VALUE) {
-			final BlockState state = states[cacheIndex];
-			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
-			final int x = (packedXyz5 & 31) - 1 + originX;
-			final int y = ((packedXyz5 >> 5) & 31) - 1 + originY;
-			final int z = (packedXyz5 >> 10) - 1 + originZ;
-			result = WorldRenderer.getLightmapCoordinates(world, state, searchPos.set(x, y, z));
+			final BlockState state = blockStates[cacheIndex];
+			indexToBlockPos(cacheIndex, searchPos);
+			searchPos.move(originX, originY, originZ);
+
+			// WIP: should pass self as world argument
+			result = WorldRenderer.getLightmapCoordinates(world, state, searchPos);
 			lightCache[cacheIndex] = result;
 		}
 
@@ -237,7 +218,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	 * For light smoothing.
 	 */
 	public void setLightCache(int x, int y, int z, int val) {
-		lightCache[blockIndex(x, y, z)] = val;
+		lightCache[indexFromWorldPos(x, y, z)] = val;
 	}
 
 	public int directBrightness(BlockPos pos) {
@@ -255,14 +236,12 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 		int result = aoCache[cacheIndex];
 
 		if (result == Integer.MAX_VALUE) {
-			final BlockState state = states[cacheIndex];
+			final BlockState state = blockStates[cacheIndex];
 
 			if (state.getLuminance() == 0) {
-				final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
-				final int x = (packedXyz5 & 31) - 1 + originX;
-				final int y = ((packedXyz5 >> 5) & 31) - 1 + originY;
-				final int z = (packedXyz5 >> 10) - 1 + originZ;
-				result = Math.round(255f * state.getAmbientOcclusionLightLevel(this, searchPos.set(x, y, z)));
+				indexToBlockPos(cacheIndex, searchPos);
+				searchPos.move(originX, originY, originZ);
+				result = Math.round(255f * state.getAmbientOcclusionLightLevel(this, searchPos));
 			} else {
 				result = 255;
 			}
@@ -292,6 +271,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	 * Only valid for positions in render region, including exterior.
 	 */
 	public boolean isClosed(int cacheIndex) {
+		cacheIndex = newIndexToOldIndex(cacheIndex);
 		return occlusion.isClosed(cacheIndex);
 	}
 

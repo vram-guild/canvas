@@ -20,9 +20,7 @@ import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 import static grondag.canvas.light.AoFaceData.OPAQUE;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.cacheIndexToXyz5;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.fastOffsetRelativeCacheIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.offsetMainChunkBlockIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.offsetIndex;
 
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
@@ -464,14 +462,12 @@ public abstract class AoCalculator {
 		// A key difference from vanilla is that this position is then used as the center for
 		// all following offsets, which avoids anisotropy in smooth lighting.
 		if (isOnBlockFace) {
-			final int offsetIndex = offsetMainChunkBlockIndex(index, ModelHelper.faceFromIndex(lightFace));
+			final int offsetIndex = offsetIndex(index, ModelHelper.faceFromIndex(lightFace));
 
 			if (!isOpaque(offsetIndex)) {
 				index = offsetIndex;
 			}
 		}
-
-		final int packedXyz5 = cacheIndexToXyz5(index);
 
 		fd.center = brightness(index);
 		final int aoCenter = ao(index);
@@ -481,25 +477,25 @@ public abstract class AoCalculator {
 
 		// vanilla was further offsetting these in the direction of the light face
 		// but it was actually mis-sampling and causing visible artifacts in certain situation
-		int cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.bottomOffset);
+		int cacheIndex = offsetIndex(index, aoFace.bottomOffset);
 		final boolean bottomClear = !isOpaque(cacheIndex);
 		fd.bottom = bottomClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoBottom = ao(cacheIndex);
 		fd.aoBottom = aoBottom;
 
-		cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.topOffset);
+		cacheIndex = offsetIndex(index, aoFace.topOffset);
 		final boolean topClear = !isOpaque(cacheIndex);
 		fd.top = topClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoTop = ao(cacheIndex);
 		fd.aoTop = aoTop;
 
-		cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.leftOffset);
+		cacheIndex = offsetIndex(index, aoFace.leftOffset);
 		final boolean leftClear = !isOpaque(cacheIndex);
 		fd.left = leftClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoLeft = ao(cacheIndex);
 		fd.aoLeft = aoLeft;
 
-		cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.rightOffset);
+		cacheIndex = offsetIndex(index, aoFace.rightOffset);
 		final boolean rightClear = !isOpaque(cacheIndex);
 		fd.right = rightClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoRight = ao(cacheIndex);
@@ -515,7 +511,7 @@ public abstract class AoCalculator {
 
 			fd.bottomLeft = OPAQUE;
 		} else { // at least one clear
-			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.bottomLeftOffset);
+			cacheIndex = offsetIndex(index, aoFace.bottomLeftOffset);
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
@@ -536,7 +532,7 @@ public abstract class AoCalculator {
 
 			fd.bottomRight = OPAQUE;
 		} else { // at least one clear
-			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.bottomRightOffset);
+			cacheIndex = offsetIndex(index, aoFace.bottomRightOffset);
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
@@ -557,7 +553,7 @@ public abstract class AoCalculator {
 
 			fd.topLeft = OPAQUE;
 		} else { // at least one clear
-			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.topLeftOffset);
+			cacheIndex = offsetIndex(index, aoFace.topLeftOffset);
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
 
@@ -578,7 +574,7 @@ public abstract class AoCalculator {
 
 			fd.topRight = OPAQUE;
 		} else { // at least one clear
-			cacheIndex = fastOffsetRelativeCacheIndex(packedXyz5, aoFace.topRightOffset);
+			cacheIndex = offsetIndex(index, aoFace.topRightOffset);
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 

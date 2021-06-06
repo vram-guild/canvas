@@ -17,7 +17,6 @@
 package grondag.canvas.light;
 
 import static grondag.canvas.light.AoVertexClampFunction.clamp;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.signedXyzOffset5;
 import static net.minecraft.util.math.Direction.DOWN;
 import static net.minecraft.util.math.Direction.EAST;
 import static net.minecraft.util.math.Direction.NORTH;
@@ -119,14 +118,14 @@ enum AoFace {
 	final Vertex2Float depthFunc;
 	final Vertex2Float uFunc;
 	final Vertex2Float vFunc;
-	final int bottomOffset;
-	final int leftOffset;
-	final int topOffset;
-	final int rightOffset;
-	final int bottomLeftOffset;
-	final int bottomRightOffset;
-	final int topLeftOffset;
-	final int topRightOffset;
+	final Vec3i bottomOffset;
+	final Vec3i leftOffset;
+	final Vec3i topOffset;
+	final Vec3i rightOffset;
+	final Vec3i bottomLeftOffset;
+	final Vec3i bottomRightOffset;
+	final Vec3i topLeftOffset;
+	final Vec3i topRightOffset;
 
 	AoFace(Direction bottom, Direction top, Direction left, Direction right, Vertex2Float depthFunc, Vertex2Float uFunc, Vertex2Float vFunc, WeightFunction weightFunc) {
 		neighbors = new int[4];
@@ -135,20 +134,15 @@ enum AoFace {
 		neighbors[2] = left.ordinal();
 		neighbors[3] = right.ordinal();
 
-		final Vec3i bottomVec = bottom.getVector();
-		final Vec3i leftVec = left.getVector();
-		final Vec3i topVec = top.getVector();
-		final Vec3i rightVec = right.getVector();
+		bottomOffset = bottom.getVector();
+		leftOffset = left.getVector();
+		topOffset = top.getVector();
+		rightOffset = right.getVector();
 
-		bottomOffset = signedXyzOffset5(bottomVec);
-		leftOffset = signedXyzOffset5(leftVec);
-		topOffset = signedXyzOffset5(topVec);
-		rightOffset = signedXyzOffset5(rightVec);
-
-		bottomLeftOffset = bottomOffset + leftOffset - 0b000010000100001;
-		bottomRightOffset = bottomOffset + rightOffset - 0b000010000100001;
-		topLeftOffset = topOffset + leftOffset - 0b000010000100001;
-		topRightOffset = topOffset + rightOffset - 0b000010000100001;
+		bottomLeftOffset = bottomOffset.add(leftOffset);
+		bottomRightOffset = bottomOffset.add(rightOffset);
+		topLeftOffset = topOffset.add(leftOffset);
+		topRightOffset = topOffset.add(rightOffset);
 
 		this.depthFunc = depthFunc;
 		this.weightFunc = weightFunc;

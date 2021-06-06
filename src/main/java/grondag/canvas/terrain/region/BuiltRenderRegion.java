@@ -541,11 +541,13 @@ public class BuiltRenderRegion {
 
 		for (int i = 0; i < RenderRegionAddressHelper.RENDER_REGION_INTERIOR_COUNT; i++) {
 			if (occlusionRegion.shouldRender(i)) {
-				final BlockState blockState = region.getLocalBlockState(i);
-				final FluidState fluidState = blockState.getFluidState();
 				final int x = i & 0xF;
 				final int y = (i >> 4) & 0xF;
 				final int z = (i >> 8) & 0xF;
+
+				final BlockState blockState = region.getLocalBlockState(x, y, z);
+				final FluidState fluidState = blockState.getFluidState();
+
 				searchPos.set(xOrigin + x, yOrigin + y, zOrigin + z);
 
 				final boolean hasFluid = !fluidState.isEmpty();
