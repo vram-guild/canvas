@@ -187,24 +187,33 @@ public abstract class OcclusionRegion {
 		captureExteriorVisibility(localCornerIndex(true, true, true), 16, 16, 16);
 	}
 
-	private void setVisited(int index) {
-		bits[(index >> 6) + EXTERIOR_VISIBLE_OFFSET] |= (1L << (index & 63));
-	}
-
-	// interior, not opaque and not already visited
-	private boolean canVisit(int index) {
-		// can't visit outside central chunk
+	/**
+	 * Checks if the position is interior and not already visited.
+	 * If the position is interior and not already visited, marks it visited
+	 * and returns a boolean indicating opacity.
+	 *
+	 * @param index
+	 * @return True if position met the conditions for visiting AND was not opaque.
+	 */
+	private boolean setVisited(int index) {
+		// interior only
 		if (index >= INTERIOR_CACHE_SIZE) {
 			return false;
 		}
 
-		final int baseIndex = index >> 6;
+		final int wordIndex = index >> 6;
 		final long mask = 1L << (index & 63);
 
-		if ((bits[baseIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0) {
-			bits[baseIndex + EXTERIOR_VISIBLE_OFFSET] |= mask;
-			return (bits[baseIndex] & mask) == 0;
+		if ((bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] & mask) == 0) {
+			// not already visited
+
+			// mark visited
+			bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] |= mask;
+
+			// return opacity result
+			return (bits[wordIndex] & mask) == 0;
 		} else {
+			// already visited
 			return false;
 		}
 	}
@@ -414,7 +423,7 @@ public abstract class OcclusionRegion {
 	private void visitSurfaceIfPossible(int x, int y, int z) {
 		final int index = interiorIndex(x, y, z);
 
-		if (canVisit(index)) {
+		if (setVisited(index)) {
 			fill(index);
 		}
 	}
@@ -510,7 +519,6 @@ public abstract class OcclusionRegion {
 
 	private void fill(int xyz4) {
 		final int faceBits = 0;
-		setVisited(xyz4);
 		visit(xyz4, faceBits);
 
 		while (!queue.isEmpty()) {
@@ -555,8 +563,7 @@ public abstract class OcclusionRegion {
 	}
 
 	private void enqueIfUnvisited(int xyz4) {
-		if (canVisit(xyz4)) {
-			setVisited(xyz4);
+		if (setVisited(xyz4)) {
 			queue.enqueue(xyz4);
 		}
 	}
