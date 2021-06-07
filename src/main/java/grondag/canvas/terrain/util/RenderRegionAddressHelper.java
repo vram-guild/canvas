@@ -25,20 +25,22 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 
 public abstract class RenderRegionAddressHelper {
-	public static final int INTERIOR_CACHE_SIZE = 4096;
-	public static final int FACE_CACHE_START = INTERIOR_CACHE_SIZE;
+	static final int REGION_PADDING = 2;
+	public static final int REGION_INTERIOR_STATE_COUNT = 4096;
+
+	public static final int FACE_CACHE_START = REGION_INTERIOR_STATE_COUNT;
 	public static final int FACE_CACHE_SIZE = 256 * 6;
 	public static final int EDGE_CACHE_START = FACE_CACHE_START + FACE_CACHE_SIZE;
 	public static final int EDGE_CACHE_SIZE = 16 * 12;
 	public static final int CORNER_CACHE_START = EDGE_CACHE_START + EDGE_CACHE_SIZE;
 	public static final int CORNER_CACHE_SIZE = 8;
-	public static final int TOTAL_CACHE_SIZE = INTERIOR_CACHE_SIZE + FACE_CACHE_SIZE + EDGE_CACHE_SIZE + CORNER_CACHE_SIZE;
-	public static final int EXTERIOR_CACHE_SIZE = TOTAL_CACHE_SIZE - INTERIOR_CACHE_SIZE;
+	public static final int TOTAL_CACHE_SIZE = REGION_INTERIOR_STATE_COUNT + FACE_CACHE_SIZE + EDGE_CACHE_SIZE + CORNER_CACHE_SIZE;
+	public static final int EXTERIOR_CACHE_SIZE = TOTAL_CACHE_SIZE - REGION_INTERIOR_STATE_COUNT;
 	/**
 	 * number of long words per dimensional unit.  Default orientation sliced on z axis
 	 */
 	public static final int SLICE_WORD_COUNT = 4;
-	public static final int INTERIOR_CACHE_WORDS = INTERIOR_CACHE_SIZE / 64;
+	public static final int INTERIOR_CACHE_WORDS = REGION_INTERIOR_STATE_COUNT / 64;
 	public static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_CACHE_SIZE + 63) / 64;
 	public static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;
 	public static final BlockState AIR = Blocks.AIR.getDefaultState();

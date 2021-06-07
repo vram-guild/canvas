@@ -16,8 +16,8 @@
 
 package grondag.canvas.terrain.occlusion.geometry;
 
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_SIZE;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.REGION_INTERIOR_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localCornerIndex;
@@ -85,7 +85,7 @@ public abstract class OcclusionRegion {
 		captureEdges();
 		captureCorners();
 
-		openCount = INTERIOR_CACHE_SIZE;
+		openCount = REGION_INTERIOR_STATE_COUNT;
 		captureInterior();
 	}
 
@@ -136,7 +136,7 @@ public abstract class OcclusionRegion {
 	}
 
 	private void captureInterior() {
-		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
+		for (int i = 0; i < REGION_INTERIOR_STATE_COUNT; i++) {
 			captureInteriorVisibility(i, i & 0xF, (i >> 4) & 0xF, (i >> 8) & 0xF);
 		}
 	}
@@ -197,7 +197,7 @@ public abstract class OcclusionRegion {
 	 */
 	private boolean setVisited(int index) {
 		// interior only
-		if (index >= INTERIOR_CACHE_SIZE) {
+		if (index >= REGION_INTERIOR_STATE_COUNT) {
 			return false;
 		}
 
@@ -333,7 +333,7 @@ public abstract class OcclusionRegion {
 	 * Should not be called if camera may be inside the chunk!
 	 */
 	private void hideInteriorClosedPositions() {
-		for (int i = 0; i < INTERIOR_CACHE_SIZE; i++) {
+		for (int i = 0; i < REGION_INTERIOR_STATE_COUNT; i++) {
 			// PERF: iterate by word vs recomputing mask each time
 			final long mask = (1L << (i & 63));
 			final int wordIndex = (i >> 6);
