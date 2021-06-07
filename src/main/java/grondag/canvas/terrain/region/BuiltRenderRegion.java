@@ -539,7 +539,7 @@ public class BuiltRenderRegion {
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 		final OcclusionRegion occlusionRegion = region.occlusion;
 
-		for (int i = 0; i < RenderRegionAddressHelper.REGION_INTERIOR_STATE_COUNT; i++) {
+		for (int i = 0; i < RenderRegionAddressHelper.INTERIOR_STATE_COUNT; i++) {
 			if (occlusionRegion.shouldRender(i)) {
 				final BlockState blockState = region.getLocalBlockState(i);
 				final FluidState fluidState = blockState.getFluidState();

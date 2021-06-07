@@ -25,36 +25,77 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 
 public abstract class RenderRegionAddressHelper {
-	static final int REGION_PADDING = 2;
-	public static final int REGION_INTERIOR_STATE_COUNT = 4096;
+	public static final int INTERIOR_STATE_COUNT = 4096;
 
-	public static final int FACE_CACHE_START = REGION_INTERIOR_STATE_COUNT;
-	public static final int FACE_CACHE_SIZE = 256 * 6;
-	public static final int EDGE_CACHE_START = FACE_CACHE_START + FACE_CACHE_SIZE;
-	public static final int EDGE_CACHE_SIZE = 16 * 12;
-	public static final int CORNER_CACHE_START = EDGE_CACHE_START + EDGE_CACHE_SIZE;
-	public static final int CORNER_CACHE_SIZE = 8;
-	public static final int TOTAL_CACHE_SIZE = REGION_INTERIOR_STATE_COUNT + FACE_CACHE_SIZE + EDGE_CACHE_SIZE + CORNER_CACHE_SIZE;
-	public static final int EXTERIOR_CACHE_SIZE = TOTAL_CACHE_SIZE - REGION_INTERIOR_STATE_COUNT;
+	private static final int REGION_PADDING = 2;
+	private static final int FACE_STATE_COUNT = 16 * 16 * REGION_PADDING;
+	private static final int EDGE_STATE_COUNT = 16 * REGION_PADDING * REGION_PADDING;
+	private static final int CORNER_STATE_COUNT = REGION_PADDING * REGION_PADDING * REGION_PADDING;
+	private static final int SIDE_INDEX_X0 = INTERIOR_STATE_COUNT;
+	private static final int SIDE_INDEX_X2 = SIDE_INDEX_X0 + FACE_STATE_COUNT;
+	private static final int SIDE_INDEX_Y0 = SIDE_INDEX_X2 + FACE_STATE_COUNT;
+	private static final int SIDE_INDEX_Y2 = SIDE_INDEX_Y0 + FACE_STATE_COUNT;
+	private static final int SIDE_INDEX_Z0 = SIDE_INDEX_Y2 + FACE_STATE_COUNT;
+	private static final int SIDE_INDEX_Z2 = SIDE_INDEX_Z0 + FACE_STATE_COUNT;
+
+	private static final int EDGE_INDEX_Y0X0 = SIDE_INDEX_Z2 + FACE_STATE_COUNT;
+	private static final int EDGE_INDEX_Y0X2 = EDGE_INDEX_Y0X0 + EDGE_STATE_COUNT;
+	private static final int EDGE_INDEX_Y2X0 = EDGE_INDEX_Y0X2 + EDGE_STATE_COUNT;
+	private static final int EDGE_INDEX_Y2X2 = EDGE_INDEX_Y2X0 + EDGE_STATE_COUNT;
+
+	private static final int EDGE_INDEX_Z0X0 = EDGE_INDEX_Y2X2 + EDGE_STATE_COUNT;
+	private static final int EDGE_INDEX_Z0X2 = EDGE_INDEX_Z0X0 + EDGE_STATE_COUNT;
+	private static final int EDGE_INDEX_Z2X0 = EDGE_INDEX_Z0X2 + EDGE_STATE_COUNT;
+	private static final int EDGE_INDEX_Z2X2 = EDGE_INDEX_Z2X0 + EDGE_STATE_COUNT;
+
+	private static final int EDGE_INDEX_Z0Y0 = EDGE_INDEX_Z2X2 + EDGE_STATE_COUNT;
+	private static final int EDGE_INDEX_Z0Y2 = EDGE_INDEX_Z0Y0 + EDGE_STATE_COUNT;
+	private static final int EDGE_INDEX_Z2Y0 = EDGE_INDEX_Z0Y2 + EDGE_STATE_COUNT;
+	private static final int EDGE_INDEX_Z2Y2 = EDGE_INDEX_Z2Y0 + EDGE_STATE_COUNT;
+
+	private static final int CORNER_INDEX_000 = EDGE_INDEX_Z2Y2 + EDGE_STATE_COUNT;
+	private static final int CORNER_INDEX_002 = CORNER_INDEX_000 + CORNER_STATE_COUNT;
+	private static final int CORNER_INDEX_020 = CORNER_INDEX_002 + CORNER_STATE_COUNT;
+	private static final int CORNER_INDEX_022 = CORNER_INDEX_020 + CORNER_STATE_COUNT;
+	private static final int CORNER_INDEX_200 = CORNER_INDEX_022 + CORNER_STATE_COUNT;
+	private static final int CORNER_INDEX_202 = CORNER_INDEX_200 + CORNER_STATE_COUNT;
+	private static final int CORNER_INDEX_220 = CORNER_INDEX_202 + CORNER_STATE_COUNT;
+	private static final int CORNER_INDEX_222 = CORNER_INDEX_220 + CORNER_STATE_COUNT;
+
+	public static final int TOTAL_STATE_COUNT = CORNER_INDEX_222 + CORNER_STATE_COUNT;
+
+	private static final int X0 = 0;
+	private static final int X1 = 1;
+	private static final int X2 = 2;
+	private static final int Y0 = 0;
+	private static final int Y1 = 4;
+	private static final int Y2 = 8;
+	private static final int Z0 = 0;
+	private static final int Z1 = 16;
+	private static final int Z2 = 32;
+
+	public static final int EXTERIOR_STATE_COUNT = TOTAL_STATE_COUNT - INTERIOR_STATE_COUNT;
+
 	/**
 	 * number of long words per dimensional unit.  Default orientation sliced on z axis
 	 */
 	public static final int SLICE_WORD_COUNT = 4;
-	public static final int INTERIOR_CACHE_WORDS = REGION_INTERIOR_STATE_COUNT / 64;
-	public static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_CACHE_SIZE + 63) / 64;
+	public static final int INTERIOR_CACHE_WORDS = INTERIOR_STATE_COUNT / 64;
+	public static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_STATE_COUNT + 63) / 64;
 	public static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;
 	public static final BlockState AIR = Blocks.AIR.getDefaultState();
-	static final int[] REVERSE_INDEX_LOOKUP = new int[TOTAL_CACHE_SIZE];
-	static final int[] INDEX_LOOKUP = new int[32768];
+
+	private static final int[] REVERSE_INDEX_LOOKUP = new int[TOTAL_STATE_COUNT];
+	private static final int[] INDEX_LOOKUP = new int[32768];
 
 	static {
 		Arrays.fill(INDEX_LOOKUP, -1);
 
-		for (int x = -1; x <= 16; x++) {
-			for (int y = -1; y <= 16; y++) {
-				for (int z = -1; z <= 16; z++) {
-					final int fastIndex = (x + 1) | ((y + 1) << 5) | ((z + 1) << 10);
-					final int cacheIndex = computeRelativeBlockIndex(x, y, z);
+		for (int x = -2; x <= 17; x++) {
+			for (int y = -2; y <= 17; y++) {
+				for (int z = -2; z <= 17; z++) {
+					final int fastIndex = (x + 2) | ((y + 2) << 5) | ((z + 2) << 10);
+					final int cacheIndex = address(x, y, z);
 					INDEX_LOOKUP[fastIndex] = cacheIndex;
 					REVERSE_INDEX_LOOKUP[cacheIndex] = fastIndex;
 				}
@@ -63,6 +104,112 @@ public abstract class RenderRegionAddressHelper {
 	}
 
 	private RenderRegionAddressHelper() {
+	}
+
+	public static int cornerSubAddress(int x, int y, int z) {
+		return x | (y << 1) | (z << 2);
+	}
+
+	/**
+	 * Compute sub index for face state.
+	 *
+	 * @param i 0-15 - source depends on axis
+	 * @param j 0-15 - source depends on axis
+	 * @param depth 0 to padding size - 1 (currently 0-2)
+	 * @return
+	 */
+	public static int faceSubAddress(int i, int j, int depth) {
+		return i | (j << 4) | (depth << 8);
+	}
+
+	/**
+	 * Compute sub index for edge state.
+	 *
+	 * @param i 0 to padding size - 1 (currently 0-2)
+	 * @param j 0 to padding size - 1 (currently 0-2)
+	 * @param depth 0-15 - source depends on axis
+	 * @return
+	 */
+	public static int edgeSubAddress(int i, int j, int depth) {
+		return i | (j << 1) | (depth << 2);
+	}
+
+	public static int address(int x, int y, int z) {
+		// translate each component to a 0-2 value that indicates low, interior or high
+		final int rx = (x + 16) >> 4;
+		final int ry = (y + 16) >> 4;
+		final int rz = (z + 16) >> 4;
+
+		// switch based on word that indicates which quadrant we are in, or if we are in interior
+		// bitwise address space not fully handled because meaningful inputs are 0-2, not 0-3
+
+		switch (rx | (ry << 2) | (rz << 4)) {
+			case Z1 | Y1 | X1:
+				return interiorIndex(x, y, z);
+
+			//faces
+			case Z1 | Y1 | X0:
+				return SIDE_INDEX_X0 + faceSubAddress(y, z, x + REGION_PADDING);
+			case Z1 | Y1 | X2:
+				return SIDE_INDEX_X2 + faceSubAddress(y, z, x - 16);
+			case Z1 | Y0 | X1:
+				return SIDE_INDEX_Y0 + faceSubAddress(x, z, y + REGION_PADDING);
+			case Z1 | Y2 | X1:
+				return SIDE_INDEX_Y2 + faceSubAddress(x, z, y - 16);
+			case Z0 | Y1 | X1:
+				return SIDE_INDEX_Z0 + faceSubAddress(x, y, z + REGION_PADDING);
+			case Z2 | Y1 | X1:
+				return SIDE_INDEX_Z2 + faceSubAddress(x, y, z - 16);
+
+			// edges
+			case Z1 | Y0 | X0:
+				return EDGE_INDEX_Y0X0 + edgeSubAddress(x + REGION_PADDING, y + REGION_PADDING, z);
+			case Z1 | Y0 | X2:
+				return EDGE_INDEX_Y0X2 + edgeSubAddress(x - 16, y + REGION_PADDING, z);
+			case Z1 | Y2 | X0:
+				return EDGE_INDEX_Y2X0 + edgeSubAddress(x + REGION_PADDING, y - 16, z);
+			case Z1 | Y2 | X2:
+				return EDGE_INDEX_Y2X2 + edgeSubAddress(x - 16, y - 16, z);
+
+			case Z0 | Y1 | X0:
+				return EDGE_INDEX_Z0X0 + edgeSubAddress(x + REGION_PADDING, z + REGION_PADDING, y);
+			case Z0 | Y1 | X2:
+				return EDGE_INDEX_Z0X2 + edgeSubAddress(x - 16, z + REGION_PADDING, y);
+			case Z2 | Y1 | X0:
+				return EDGE_INDEX_Z2X0 + edgeSubAddress(x + REGION_PADDING, z - 16, y);
+			case Z2 | Y1 | X2:
+				return EDGE_INDEX_Z2X2 + edgeSubAddress(x - 16, z - 16, y);
+
+			case Z0 | Y0 | X1:
+				return EDGE_INDEX_Z0Y0 + edgeSubAddress(y + REGION_PADDING, z + REGION_PADDING, x);
+			case Z0 | Y2 | X1:
+				return EDGE_INDEX_Z0Y2 + edgeSubAddress(y - 16, z + REGION_PADDING, x);
+			case Z2 | Y0 | X1:
+				return EDGE_INDEX_Z2Y0 + edgeSubAddress(y + REGION_PADDING, z - 16, x);
+			case Z2 | Y2 | X1:
+				return EDGE_INDEX_Z2Y2 + edgeSubAddress(y - 16, z - 16, x);
+
+			// corners
+			case Z0 | Y0 | X0:
+				return CORNER_INDEX_000 + cornerSubAddress(x + REGION_PADDING, y + REGION_PADDING, z + REGION_PADDING);
+			case Z0 | Y0 | X2:
+				return CORNER_INDEX_002 + cornerSubAddress(x - 16, y + REGION_PADDING, z + REGION_PADDING);
+			case Z0 | Y2 | X0:
+				return CORNER_INDEX_020 + cornerSubAddress(x + REGION_PADDING, y - 16, z + REGION_PADDING);
+			case Z0 | Y2 | X2:
+				return CORNER_INDEX_022 + cornerSubAddress(x - 16, y - 16, z + REGION_PADDING);
+			case Z2 | Y0 | X0:
+				return CORNER_INDEX_200 + cornerSubAddress(x + REGION_PADDING, y + REGION_PADDING, z - 16);
+			case Z2 | Y0 | X2:
+				return CORNER_INDEX_202 + cornerSubAddress(x - 16, y + REGION_PADDING, z - 16);
+			case Z2 | Y2 | X0:
+				return CORNER_INDEX_220 + cornerSubAddress(x + REGION_PADDING, y - 16, z - 16);
+			case Z2 | Y2 | X2:
+				return CORNER_INDEX_222 + cornerSubAddress(x - 16, y - 16, z - 16);
+			default:
+				assert false;
+				return 0;
+		}
 	}
 
 	/**
@@ -83,47 +230,6 @@ public abstract class RenderRegionAddressHelper {
 		return clampedInteriorIndex(pos.getX(), pos.getY(), pos.getZ());
 	}
 
-	public static int localXfaceIndex(boolean high, int y, int z) {
-		return FACE_CACHE_START + (high ? 256 : 0) | y | (z << 4);
-	}
-
-	public static int localYfaceIndex(int x, boolean high, int z) {
-		return FACE_CACHE_START + (high ? 768 : 512) | x | (z << 4);
-	}
-
-	public static int localZfaceIndex(int x, int y, boolean high) {
-		return FACE_CACHE_START + (high ? 1280 : 1024) | x | (y << 4);
-	}
-
-	public static int localXEdgeIndex(int x, boolean highY, boolean highZ) {
-		final int subindex = highY ? highZ ? 48 : 32 : highZ ? 16 : 0;
-		return EDGE_CACHE_START + subindex + x;
-	}
-
-	public static int localYEdgeIndex(boolean highX, int y, boolean highZ) {
-		final int subindex = highX ? highZ ? 48 : 32 : highZ ? 16 : 0;
-		return EDGE_CACHE_START + 64 + subindex + y;
-	}
-
-	public static int localZEdgeIndex(boolean highX, boolean highY, int z) {
-		final int subindex = highX ? highY ? 48 : 32 : highY ? 16 : 0;
-		return EDGE_CACHE_START + 128 + subindex + z;
-	}
-
-	public static int localCornerIndex(boolean highX, boolean highY, boolean highZ) {
-		int subindex = highX ? 0 : 1;
-
-		if (highY) {
-			subindex |= 2;
-		}
-
-		if (highZ) {
-			subindex |= 4;
-		}
-
-		return CORNER_CACHE_START + subindex;
-	}
-
 	/**
 	 * Accepts a main section index (0-4096) and returns
 	 * a full-region index offset by the given face.
@@ -139,18 +245,18 @@ public abstract class RenderRegionAddressHelper {
 	}
 
 	/**
-	 * Checks for values outside -1 to 16, returns -1 if outside.
+	 * Checks for values outside -2 to 17, returns -1 if outside.
 	 */
 	public static int relativeCacheIndex(int x, int y, int z) {
-		final int ix = (x + 1);
+		final int ix = (x + 2);
 
 		if ((ix & 31) != ix) return -1;
 
-		final int iy = (y + 1);
+		final int iy = (y + 2);
 
 		if ((iy & 31) != iy) return -1;
 
-		final int iz = (z + 1);
+		final int iz = (z + 2);
 
 		if ((iz & 31) != iz) return -1;
 
@@ -158,17 +264,17 @@ public abstract class RenderRegionAddressHelper {
 	}
 
 	/**
-	 * Values must be -1 to 16.
+	 * Values must be -2 to 17.
 	 */
 	public static int fastRelativeCacheIndex(int x, int y, int z) {
-		final int lookupIndex = (x + 1) | ((y + 1) << 5) | ((z + 1) << 10);
+		final int lookupIndex = (x + 2) | ((y + 2) << 5) | ((z + 2) << 10);
 		return INDEX_LOOKUP[lookupIndex];
 	}
 
 	/**
-	 * Inputs must ensure result of addition is in  -1 to 16 range.
+	 * Inputs must ensure result of addition is in  -2 to 17 range.
 	 *
-	 * @param packedXyz5       must be in  -1 to 16 range (packed values 0-17)
+	 * @param packedXyz5       must be in  -2 to 17 range (packed values 0-19)
 	 * @param signedXyzOffset5 must be in -1 to 1 (packed values 0-2)
 	 * @return equivalent to {@link #fastRelativeCacheIndex(int, int, int)} with added values
 	 */
@@ -176,139 +282,9 @@ public abstract class RenderRegionAddressHelper {
 		return INDEX_LOOKUP[packedXyz5 + signedXyzOffset5 - 0b000010000100001];
 	}
 
-	private static int computeRelativeBlockIndex(int x, int y, int z) {
-		final int scenario = ((x & 0xF) == x ? 1 : 0) | ((y & 0xF) == y ? 2 : 0) | ((z & 0xF) == z ? 4 : 0);
-
-		switch (scenario) {
-			case 0b000:
-				// not contained in any - may be a corner
-				if (x == -1) {
-					if (y == -1) {
-						if (z == -1) {
-							return localCornerIndex(false, false, false);
-						} else if (z == 16) {
-							return localCornerIndex(false, false, true);
-						}
-					} else if (y == 16) {
-						if (z == -1) {
-							return localCornerIndex(false, true, false);
-						} else if (z == 16) {
-							return localCornerIndex(false, true, true);
-						}
-					}
-				} else if (x == 16) {
-					if (y == -1) {
-						if (z == -1) {
-							return localCornerIndex(true, false, false);
-						} else if (z == 16) {
-							return localCornerIndex(true, false, true);
-						}
-					} else if (y == 16) {
-						if (z == -1) {
-							return localCornerIndex(true, true, false);
-						} else if (z == 16) {
-							return localCornerIndex(true, true, true);
-						}
-					}
-				}
-
-				break;
-			case 0b001:
-				// contained in X - may be an edge
-				if (y == -1) {
-					if (z == -1) {
-						return localXEdgeIndex(x & 0xF, false, false);
-					} else if (z == 16) {
-						return localXEdgeIndex(x & 0xF, false, true);
-					}
-				} else if (y == 16) {
-					if (z == -1) {
-						return localXEdgeIndex(x & 0xF, true, false);
-					} else if (z == 16) {
-						return localXEdgeIndex(x & 0xF, true, true);
-					}
-				}
-
-				break;
-
-			case 0b010:
-				// contained in Y - may be an edge
-				if (x == -1) {
-					if (z == -1) {
-						return localYEdgeIndex(false, y & 0xF, false);
-					} else if (z == 16) {
-						return localYEdgeIndex(false, y & 0xF, true);
-					}
-				} else if (x == 16) {
-					if (z == -1) {
-						return localYEdgeIndex(true, y & 0xF, false);
-					} else if (z == +16) {
-						return localYEdgeIndex(true, y & 0xF, true);
-					}
-				}
-
-				break;
-
-			case 0b100:
-				// contained in Z - may be an edge
-				if (x == -1) {
-					if (y == -1) {
-						return localZEdgeIndex(false, false, z & 0xF);
-					} else if (y == 16) {
-						return localZEdgeIndex(false, true, z & 0xF);
-					}
-				} else if (x == 16) {
-					if (y == -1) {
-						return localZEdgeIndex(true, false, z & 0xF);
-					} else if (y == 16) {
-						return localZEdgeIndex(true, true, z & 0xF);
-					}
-				}
-
-				break;
-
-			case 0b011:
-				// contained in XY - may be a Z face
-				if (z == -1) {
-					return localZfaceIndex(x & 0xF, y & 0xF, false);
-				} else if (z == 16) {
-					return localZfaceIndex(x & 0xF, y & 0xF, true);
-				}
-
-				break;
-
-			case 0b110:
-				// contained in YZ - may be an X face
-				if (x == -1) {
-					return localXfaceIndex(false, y & 0xF, z & 0xF);
-				} else if (x == 16) {
-					return localXfaceIndex(true, y & 0xF, z & 0xF);
-				}
-
-				break;
-
-			case 0b101:
-				// contained in XZ - may be a Y face
-				if (y == -1) {
-					return localYfaceIndex(x & 0xF, false, z & 0xF);
-				} else if (y == 16) {
-					return localYfaceIndex(x & 0xF, true, z & 0xF);
-				}
-
-				break;
-
-			case 0b111:
-				// contained in XYZ - is main section
-				return clampedInteriorIndex(x, y, z);
-		}
-
-		// use world directly
-		return -1;
-	}
-
 	/**
 	 * Return packed x, y, z relative coordinates for the given cache position.
-	 * Values are +1 actual. (0-17 instead of -1 to 16).
+	 * Values are +2 actual. (0-19 instead of -2 to 17).
 	 */
 	public static int cacheIndexToXyz5(int cacheIndex) {
 		return REVERSE_INDEX_LOOKUP[cacheIndex];

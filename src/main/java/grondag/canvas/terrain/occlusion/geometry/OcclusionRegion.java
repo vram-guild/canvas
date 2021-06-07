@@ -17,16 +17,10 @@
 package grondag.canvas.terrain.occlusion.geometry;
 
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.REGION_INTERIOR_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.address;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localCornerIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXfaceIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYfaceIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZfaceIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -85,7 +79,7 @@ public abstract class OcclusionRegion {
 		captureEdges();
 		captureCorners();
 
-		openCount = REGION_INTERIOR_STATE_COUNT;
+		openCount = INTERIOR_STATE_COUNT;
 		captureInterior();
 	}
 
@@ -136,7 +130,7 @@ public abstract class OcclusionRegion {
 	}
 
 	private void captureInterior() {
-		for (int i = 0; i < REGION_INTERIOR_STATE_COUNT; i++) {
+		for (int i = 0; i < INTERIOR_STATE_COUNT; i++) {
 			captureInteriorVisibility(i, i & 0xF, (i >> 4) & 0xF, (i >> 8) & 0xF);
 		}
 	}
@@ -144,47 +138,47 @@ public abstract class OcclusionRegion {
 	private void captureFaces() {
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				captureExteriorVisibility(localXfaceIndex(false, i, j), -1, i, j);
-				captureExteriorVisibility(localXfaceIndex(true, i, j), 16, i, j);
+				captureExteriorVisibility(address(-1, i, j), -1, i, j);
+				captureExteriorVisibility(address(16, i, j), 16, i, j);
 
-				captureExteriorVisibility(localZfaceIndex(i, j, false), i, j, -1);
-				captureExteriorVisibility(localZfaceIndex(i, j, true), i, j, 16);
+				captureExteriorVisibility(address(i, j, -1), i, j, -1);
+				captureExteriorVisibility(address(i, j, 16), i, j, 16);
 
-				captureExteriorVisibility(localYfaceIndex(i, false, j), i, -1, j);
-				captureExteriorVisibility(localYfaceIndex(i, true, j), i, 16, j);
+				captureExteriorVisibility(address(i, -1, j), i, -1, j);
+				captureExteriorVisibility(address(i, 16, j), i, 16, j);
 			}
 		}
 	}
 
 	private void captureEdges() {
 		for (int i = 0; i < 16; i++) {
-			captureExteriorVisibility(localZEdgeIndex(false, false, i), -1, -1, i);
-			captureExteriorVisibility(localZEdgeIndex(false, true, i), -1, 16, i);
-			captureExteriorVisibility(localZEdgeIndex(true, false, i), 16, -1, i);
-			captureExteriorVisibility(localZEdgeIndex(true, true, i), 16, 16, i);
+			captureExteriorVisibility(address(-1, -1, i), -1, -1, i);
+			captureExteriorVisibility(address(-1, 16, i), -1, 16, i);
+			captureExteriorVisibility(address(16, -1, i), 16, -1, i);
+			captureExteriorVisibility(address(16, 16, i), 16, 16, i);
 
-			captureExteriorVisibility(localYEdgeIndex(false, i, false), -1, i, -1);
-			captureExteriorVisibility(localYEdgeIndex(false, i, true), -1, i, 16);
-			captureExteriorVisibility(localYEdgeIndex(true, i, false), 16, i, -1);
-			captureExteriorVisibility(localYEdgeIndex(true, i, true), 16, i, 16);
+			captureExteriorVisibility(address(-1, i, -1), -1, i, -1);
+			captureExteriorVisibility(address(-1, i, 16), -1, i, 16);
+			captureExteriorVisibility(address(16, i, -1), 16, i, -1);
+			captureExteriorVisibility(address(16, i, 16), 16, i, 16);
 
-			captureExteriorVisibility(localXEdgeIndex(i, false, false), i, -1, -1);
-			captureExteriorVisibility(localXEdgeIndex(i, false, true), i, -1, 16);
-			captureExteriorVisibility(localXEdgeIndex(i, true, false), i, 16, -1);
-			captureExteriorVisibility(localXEdgeIndex(i, true, true), i, 16, 16);
+			captureExteriorVisibility(address(i, -1, -1), i, -1, -1);
+			captureExteriorVisibility(address(i, -1, 16), i, -1, 16);
+			captureExteriorVisibility(address(i, 16, -1), i, 16, -1);
+			captureExteriorVisibility(address(i, 16, 16), i, 16, 16);
 		}
 	}
 
 	private void captureCorners() {
-		captureExteriorVisibility(localCornerIndex(false, false, false), -1, -1, -1);
-		captureExteriorVisibility(localCornerIndex(false, false, true), -1, -1, 16);
-		captureExteriorVisibility(localCornerIndex(false, true, false), -1, 16, -1);
-		captureExteriorVisibility(localCornerIndex(false, true, true), -1, 16, 16);
+		captureExteriorVisibility(address(-1, -1, -1), -1, -1, -1);
+		captureExteriorVisibility(address(-1, -1, 16), -1, -1, 16);
+		captureExteriorVisibility(address(-1, 16, -1), -1, 16, -1);
+		captureExteriorVisibility(address(-1, 16, 16), -1, 16, 16);
 
-		captureExteriorVisibility(localCornerIndex(true, false, false), 16, -1, -1);
-		captureExteriorVisibility(localCornerIndex(true, false, true), 16, -1, 16);
-		captureExteriorVisibility(localCornerIndex(true, true, false), 16, 16, -1);
-		captureExteriorVisibility(localCornerIndex(true, true, true), 16, 16, 16);
+		captureExteriorVisibility(address(16, -1, -1), 16, -1, -1);
+		captureExteriorVisibility(address(16, -1, 16), 16, -1, 16);
+		captureExteriorVisibility(address(16, 16, -1), 16, 16, -1);
+		captureExteriorVisibility(address(16, 16, 16), 16, 16, 16);
 	}
 
 	/**
@@ -197,7 +191,7 @@ public abstract class OcclusionRegion {
 	 */
 	private boolean setVisited(int index) {
 		// interior only
-		if (index >= REGION_INTERIOR_STATE_COUNT) {
+		if (index >= INTERIOR_STATE_COUNT) {
 			return false;
 		}
 
@@ -232,98 +226,98 @@ public abstract class OcclusionRegion {
 		// don't render face blocks obscured by neighboring chunks
 		for (int i = 1; i < 15; i++) {
 			for (int j = 1; j < 15; j++) {
-				if (isClosed(localXfaceIndex(false, i, j))) clearInteriorRenderable(0, i, j);
-				if (isClosed(localXfaceIndex(true, i, j))) clearInteriorRenderable(15, i, j);
+				if (isClosed(address(-1, i, j))) clearInteriorRenderable(0, i, j);
+				if (isClosed(address(16, i, j))) clearInteriorRenderable(15, i, j);
 
-				if (isClosed(localZfaceIndex(i, j, false))) clearInteriorRenderable(i, j, 0);
-				if (isClosed(localZfaceIndex(i, j, true))) clearInteriorRenderable(i, j, 15);
+				if (isClosed(address(i, j, -1))) clearInteriorRenderable(i, j, 0);
+				if (isClosed(address(i, j, 16))) clearInteriorRenderable(i, j, 15);
 
-				if (isClosed(localYfaceIndex(i, false, j))) clearInteriorRenderable(i, 0, j);
-				if (isClosed(localYfaceIndex(i, true, j))) clearInteriorRenderable(i, 15, j);
+				if (isClosed(address(i, -1, j))) clearInteriorRenderable(i, 0, j);
+				if (isClosed(address(i, 16, j))) clearInteriorRenderable(i, 15, j);
 			}
 		}
 
 		// don't render edge blocks obscured by neighboring chunks
 		for (int i = 1; i < 15; i++) {
-			if (isClosed(localXfaceIndex(false, 0, i)) && isClosed(localYfaceIndex(0, false, i))) {
+			if (isClosed(address(-1, 0, i)) && isClosed(address(0, -1, i))) {
 				clearInteriorRenderable(0, 0, i);
 			}
 
-			if (isClosed(localXfaceIndex(true, 0, i)) && isClosed(localYfaceIndex(15, false, i))) {
+			if (isClosed(address(16, 0, i)) && isClosed(address(15, -1, i))) {
 				clearInteriorRenderable(15, 0, i);
 			}
 
-			if (isClosed(localXfaceIndex(false, 15, i)) && isClosed(localYfaceIndex(0, true, i))) {
+			if (isClosed(address(-1, 15, i)) && isClosed(address(0, 16, i))) {
 				clearInteriorRenderable(0, 15, i);
 			}
 
-			if (isClosed(localXfaceIndex(true, 15, i)) && isClosed(localYfaceIndex(15, true, i))) {
+			if (isClosed(address(16, 15, i)) && isClosed(address(15, 16, i))) {
 				clearInteriorRenderable(15, 15, i);
 			}
 
-			if (isClosed(localZfaceIndex(i, 0, false)) && isClosed(localYfaceIndex(i, false, 0))) {
+			if (isClosed(address(i, 0, -1)) && isClosed(address(i, -1, 0))) {
 				clearInteriorRenderable(i, 0, 0);
 			}
 
-			if (isClosed(localZfaceIndex(i, 0, true)) && isClosed(localYfaceIndex(i, false, 15))) {
+			if (isClosed(address(i, 0, 16)) && isClosed(address(i, -1, 15))) {
 				clearInteriorRenderable(i, 0, 15);
 			}
 
-			if (isClosed(localZfaceIndex(i, 15, false)) && isClosed(localYfaceIndex(i, true, 0))) {
+			if (isClosed(address(i, 15, -1)) && isClosed(address(i, 16, 0))) {
 				clearInteriorRenderable(i, 15, 0);
 			}
 
-			if (isClosed(localZfaceIndex(i, 15, true)) && isClosed(localYfaceIndex(i, true, 15))) {
+			if (isClosed(address(i, 15, 16)) && isClosed(address(i, 16, 15))) {
 				clearInteriorRenderable(i, 15, 15);
 			}
 
-			if (isClosed(localXfaceIndex(false, i, 0)) && isClosed(localZfaceIndex(0, i, false))) {
+			if (isClosed(address(-1, i, 0)) && isClosed(address(0, i, -1))) {
 				clearInteriorRenderable(0, i, 0);
 			}
 
-			if (isClosed(localXfaceIndex(true, i, 0)) && isClosed(localZfaceIndex(15, i, false))) {
+			if (isClosed(address(16, i, 0)) && isClosed(address(15, i, -1))) {
 				clearInteriorRenderable(15, i, 0);
 			}
 
-			if (isClosed(localXfaceIndex(false, i, 15)) && isClosed(localZfaceIndex(0, i, true))) {
+			if (isClosed(address(-1, i, 15)) && isClosed(address(0, i, 16))) {
 				clearInteriorRenderable(0, i, 15);
 			}
 
-			if (isClosed(localXfaceIndex(true, i, 15)) && isClosed(localZfaceIndex(15, i, true))) {
+			if (isClosed(address(16, i, 15)) && isClosed(address(15, i, 16))) {
 				clearInteriorRenderable(15, i, 15);
 			}
 		}
 
 		// don't render corner blocks obscured by neighboring chunks
-		if (isClosed(localXfaceIndex(false, 0, 0)) && isClosed(localYfaceIndex(0, false, 0)) && isClosed(localZfaceIndex(0, 0, false))) {
+		if (isClosed(address(-1, 0, 0)) && isClosed(address(0, -1, 0)) && isClosed(address(0, 0, -1))) {
 			clearInteriorRenderable(0, 0, 0);
 		}
 
-		if (isClosed(localXfaceIndex(true, 0, 0)) && isClosed(localYfaceIndex(15, false, 0)) && isClosed(localZfaceIndex(15, 0, false))) {
+		if (isClosed(address(16, 0, 0)) && isClosed(address(15, -1, 0)) && isClosed(address(15, 0, -1))) {
 			clearInteriorRenderable(15, 0, 0);
 		}
 
-		if (isClosed(localXfaceIndex(false, 15, 0)) && isClosed(localYfaceIndex(0, true, 0)) && isClosed(localZfaceIndex(0, 15, false))) {
+		if (isClosed(address(-1, 15, 0)) && isClosed(address(0, 16, 0)) && isClosed(address(0, 15, -1))) {
 			clearInteriorRenderable(0, 15, 0);
 		}
 
-		if (isClosed(localXfaceIndex(true, 15, 0)) && isClosed(localYfaceIndex(15, true, 0)) && isClosed(localZfaceIndex(15, 15, false))) {
+		if (isClosed(address(16, 15, 0)) && isClosed(address(15, 16, 0)) && isClosed(address(15, 15, -1))) {
 			clearInteriorRenderable(15, 15, 0);
 		}
 
-		if (isClosed(localXfaceIndex(false, 0, 15)) && isClosed(localYfaceIndex(0, false, 15)) && isClosed(localZfaceIndex(0, 0, true))) {
+		if (isClosed(address(-1, 0, 15)) && isClosed(address(0, -1, 15)) && isClosed(address(0, 0, 16))) {
 			clearInteriorRenderable(0, 0, 15);
 		}
 
-		if (isClosed(localXfaceIndex(true, 0, 15)) && isClosed(localYfaceIndex(15, false, 15)) && isClosed(localZfaceIndex(15, 0, true))) {
+		if (isClosed(address(16, 0, 15)) && isClosed(address(15, -1, 15)) && isClosed(address(15, 0, 16))) {
 			clearInteriorRenderable(15, 0, 15);
 		}
 
-		if (isClosed(localXfaceIndex(false, 15, 15)) && isClosed(localYfaceIndex(0, true, 15)) && isClosed(localZfaceIndex(0, 15, true))) {
+		if (isClosed(address(-1, 15, 15)) && isClosed(address(0, 16, 15)) && isClosed(address(0, 15, 16))) {
 			clearInteriorRenderable(0, 15, 15);
 		}
 
-		if (isClosed(localXfaceIndex(true, 15, 15)) && isClosed(localYfaceIndex(15, true, 15)) && isClosed(localZfaceIndex(15, 15, true))) {
+		if (isClosed(address(16, 15, 15)) && isClosed(address(15, 16, 15)) && isClosed(address(15, 15, 16))) {
 			clearInteriorRenderable(15, 15, 15);
 		}
 	}
@@ -333,7 +327,7 @@ public abstract class OcclusionRegion {
 	 * Should not be called if camera may be inside the chunk!
 	 */
 	private void hideInteriorClosedPositions() {
-		for (int i = 0; i < REGION_INTERIOR_STATE_COUNT; i++) {
+		for (int i = 0; i < INTERIOR_STATE_COUNT; i++) {
 			// PERF: iterate by word vs recomputing mask each time
 			final long mask = (1L << (i & 63));
 			final int wordIndex = (i >> 6);
@@ -433,27 +427,27 @@ public abstract class OcclusionRegion {
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				if (!isClosed(localXfaceIndex(false, i, j))) {
+				if (!isClosed(address(-1, i, j))) {
 					visitSurfaceIfPossible(0, i, j);
 				}
 
-				if (!isClosed(localXfaceIndex(true, i, j))) {
+				if (!isClosed(address(16, i, j))) {
 					visitSurfaceIfPossible(15, i, j);
 				}
 
-				if (!isClosed(localZfaceIndex(i, j, false))) {
+				if (!isClosed(address(i, j, -1))) {
 					visitSurfaceIfPossible(i, j, 0);
 				}
 
-				if (!isClosed(localZfaceIndex(i, j, true))) {
+				if (!isClosed(address(i, j, 16))) {
 					visitSurfaceIfPossible(i, j, 15);
 				}
 
-				if (!isClosed(localYfaceIndex(i, false, j))) {
+				if (!isClosed(address(i, -1, j))) {
 					visitSurfaceIfPossible(i, 0, j);
 				}
 
-				if (!isClosed(localYfaceIndex(i, true, j))) {
+				if (!isClosed(address(i, 16, j))) {
 					visitSurfaceIfPossible(i, 15, j);
 				}
 			}

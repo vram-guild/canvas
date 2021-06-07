@@ -17,16 +17,10 @@
 package grondag.canvas.terrain.region;
 
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.AIR;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_CACHE_SIZE;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.REGION_INTERIOR_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.address;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localCornerIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localXfaceIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localYfaceIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZEdgeIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.localZfaceIndex;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -66,7 +60,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 	public static final ProtoRenderRegion EMPTY = new DummyRegion();
 	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
-	final BlockState[] states = new BlockState[EXTERIOR_CACHE_SIZE];
+	final BlockState[] states = new BlockState[EXTERIOR_STATE_COUNT];
 	final ShortArrayList renderDataPos = new ShortArrayList();
 	final ObjectArrayList<Object> renderData = new ObjectArrayList<>();
 	final ShortArrayList blockEntityPos = new ShortArrayList();
@@ -188,14 +182,20 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				states[localXfaceIndex(false, i, j) - REGION_INTERIOR_STATE_COUNT] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
-				states[localXfaceIndex(true, i, j) - REGION_INTERIOR_STATE_COUNT] = highX == null ? AIR : highX.getBlockState(0, i, j);
+				states[address(-1, i, j) - INTERIOR_STATE_COUNT] = lowX == null ? AIR : lowX.getBlockState(15, i, j);
+				states[address(-2, i, j) - INTERIOR_STATE_COUNT] = lowX == null ? AIR : lowX.getBlockState(14, i, j);
+				states[address(16, i, j) - INTERIOR_STATE_COUNT] = highX == null ? AIR : highX.getBlockState(0, i, j);
+				states[address(17, i, j) - INTERIOR_STATE_COUNT] = highX == null ? AIR : highX.getBlockState(1, i, j);
 
-				states[localZfaceIndex(i, j, false) - REGION_INTERIOR_STATE_COUNT] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
-				states[localZfaceIndex(i, j, true) - REGION_INTERIOR_STATE_COUNT] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
+				states[address(i, j, -1) - INTERIOR_STATE_COUNT] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 15);
+				states[address(i, j, -2) - INTERIOR_STATE_COUNT] = lowZ == null ? AIR : lowZ.getBlockState(i, j, 14);
+				states[address(i, j, 16) - INTERIOR_STATE_COUNT] = highZ == null ? AIR : highZ.getBlockState(i, j, 0);
+				states[address(i, j, 17) - INTERIOR_STATE_COUNT] = highZ == null ? AIR : highZ.getBlockState(i, j, 1);
 
-				states[localYfaceIndex(i, false, j) - REGION_INTERIOR_STATE_COUNT] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
-				states[localYfaceIndex(i, true, j) - REGION_INTERIOR_STATE_COUNT] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+				states[address(i, -1, j) - INTERIOR_STATE_COUNT] = lowY == null ? AIR : lowY.getBlockState(i, 15, j);
+				states[address(i, -2, j) - INTERIOR_STATE_COUNT] = lowY == null ? AIR : lowY.getBlockState(i, 14, j);
+				states[address(i, 16, j) - INTERIOR_STATE_COUNT] = highY == null ? AIR : highY.getBlockState(i, 0, j);
+				states[address(i, 17, j) - INTERIOR_STATE_COUNT] = highY == null ? AIR : highY.getBlockState(i, 1, j);
 			}
 		}
 	}
@@ -217,38 +217,148 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		final ChunkSection Xbb = getSection(1, 2, 2);
 
 		for (int i = 0; i < 16; i++) {
-			states[localZEdgeIndex(false, false, i) - REGION_INTERIOR_STATE_COUNT] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
-			states[localZEdgeIndex(false, true, i) - REGION_INTERIOR_STATE_COUNT] = abZ == null ? AIR : abZ.getBlockState(15, 0, i);
-			states[localZEdgeIndex(true, false, i) - REGION_INTERIOR_STATE_COUNT] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
-			states[localZEdgeIndex(true, true, i) - REGION_INTERIOR_STATE_COUNT] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+			states[address(-2, -2, i) - INTERIOR_STATE_COUNT] = aaZ == null ? AIR : aaZ.getBlockState(14, 14, i);
+			states[address(-2, -1, i) - INTERIOR_STATE_COUNT] = aaZ == null ? AIR : aaZ.getBlockState(14, 15, i);
+			states[address(-1, -2, i) - INTERIOR_STATE_COUNT] = aaZ == null ? AIR : aaZ.getBlockState(15, 14, i);
+			states[address(-1, -1, i) - INTERIOR_STATE_COUNT] = aaZ == null ? AIR : aaZ.getBlockState(15, 15, i);
 
-			states[localYEdgeIndex(false, i, false) - REGION_INTERIOR_STATE_COUNT] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
-			states[localYEdgeIndex(false, i, true) - REGION_INTERIOR_STATE_COUNT] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
-			states[localYEdgeIndex(true, i, false) - REGION_INTERIOR_STATE_COUNT] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
-			states[localYEdgeIndex(true, i, true) - REGION_INTERIOR_STATE_COUNT] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+			states[address(-2, 16, i) - INTERIOR_STATE_COUNT] = abZ == null ? AIR : abZ.getBlockState(14, 0, i);
+			states[address(-2, 17, i) - INTERIOR_STATE_COUNT] = abZ == null ? AIR : abZ.getBlockState(15, 1, i);
+			states[address(-1, 16, i) - INTERIOR_STATE_COUNT] = abZ == null ? AIR : abZ.getBlockState(14, 0, i);
+			states[address(-1, 17, i) - INTERIOR_STATE_COUNT] = abZ == null ? AIR : abZ.getBlockState(15, 1, i);
 
-			states[localXEdgeIndex(i, false, false) - REGION_INTERIOR_STATE_COUNT] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
-			states[localXEdgeIndex(i, false, true) - REGION_INTERIOR_STATE_COUNT] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
-			states[localXEdgeIndex(i, true, false) - REGION_INTERIOR_STATE_COUNT] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
-			states[localXEdgeIndex(i, true, true) - REGION_INTERIOR_STATE_COUNT] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+			states[address(16, -2, i) - INTERIOR_STATE_COUNT] = baZ == null ? AIR : baZ.getBlockState(0, 14, i);
+			states[address(16, -1, i) - INTERIOR_STATE_COUNT] = baZ == null ? AIR : baZ.getBlockState(0, 15, i);
+			states[address(17, -2, i) - INTERIOR_STATE_COUNT] = baZ == null ? AIR : baZ.getBlockState(1, 14, i);
+			states[address(17, -1, i) - INTERIOR_STATE_COUNT] = baZ == null ? AIR : baZ.getBlockState(1, 15, i);
+
+			states[address(16, 16, i) - INTERIOR_STATE_COUNT] = bbZ == null ? AIR : bbZ.getBlockState(0, 0, i);
+			states[address(16, 17, i) - INTERIOR_STATE_COUNT] = bbZ == null ? AIR : bbZ.getBlockState(0, 1, i);
+			states[address(17, 16, i) - INTERIOR_STATE_COUNT] = bbZ == null ? AIR : bbZ.getBlockState(1, 0, i);
+			states[address(17, 17, i) - INTERIOR_STATE_COUNT] = bbZ == null ? AIR : bbZ.getBlockState(1, 1, i);
+
+			states[address(-2, i, -2) - INTERIOR_STATE_COUNT] = aYa == null ? AIR : aYa.getBlockState(14, i, 14);
+			states[address(-2, i, -1) - INTERIOR_STATE_COUNT] = aYa == null ? AIR : aYa.getBlockState(14, i, 15);
+			states[address(-1, i, -2) - INTERIOR_STATE_COUNT] = aYa == null ? AIR : aYa.getBlockState(15, i, 14);
+			states[address(-1, i, -1) - INTERIOR_STATE_COUNT] = aYa == null ? AIR : aYa.getBlockState(15, i, 15);
+
+			states[address(-2, i, 16) - INTERIOR_STATE_COUNT] = aYb == null ? AIR : aYb.getBlockState(14, i, 0);
+			states[address(-2, i, 17) - INTERIOR_STATE_COUNT] = aYb == null ? AIR : aYb.getBlockState(14, i, 1);
+			states[address(-1, i, 16) - INTERIOR_STATE_COUNT] = aYb == null ? AIR : aYb.getBlockState(15, i, 0);
+			states[address(-1, i, 17) - INTERIOR_STATE_COUNT] = aYb == null ? AIR : aYb.getBlockState(15, i, 1);
+
+			states[address(16, i, -2) - INTERIOR_STATE_COUNT] = bYa == null ? AIR : bYa.getBlockState(0, i, 14);
+			states[address(16, i, -1) - INTERIOR_STATE_COUNT] = bYa == null ? AIR : bYa.getBlockState(0, i, 15);
+			states[address(17, i, -2) - INTERIOR_STATE_COUNT] = bYa == null ? AIR : bYa.getBlockState(1, i, 14);
+			states[address(17, i, -1) - INTERIOR_STATE_COUNT] = bYa == null ? AIR : bYa.getBlockState(1, i, 15);
+
+			states[address(16, i, 16) - INTERIOR_STATE_COUNT] = bYb == null ? AIR : bYb.getBlockState(0, i, 0);
+			states[address(16, i, 17) - INTERIOR_STATE_COUNT] = bYb == null ? AIR : bYb.getBlockState(0, i, 1);
+			states[address(17, i, 16) - INTERIOR_STATE_COUNT] = bYb == null ? AIR : bYb.getBlockState(1, i, 0);
+			states[address(17, i, 17) - INTERIOR_STATE_COUNT] = bYb == null ? AIR : bYb.getBlockState(1, i, 1);
+
+			states[address(i, -2, -2) - INTERIOR_STATE_COUNT] = Xaa == null ? AIR : Xaa.getBlockState(i, 14, 14);
+			states[address(i, -2, -1) - INTERIOR_STATE_COUNT] = Xaa == null ? AIR : Xaa.getBlockState(i, 14, 15);
+			states[address(i, -1, -2) - INTERIOR_STATE_COUNT] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 14);
+			states[address(i, -1, -1) - INTERIOR_STATE_COUNT] = Xaa == null ? AIR : Xaa.getBlockState(i, 15, 15);
+
+			states[address(i, -2, 16) - INTERIOR_STATE_COUNT] = Xab == null ? AIR : Xab.getBlockState(i, 14, 0);
+			states[address(i, -2, 17) - INTERIOR_STATE_COUNT] = Xab == null ? AIR : Xab.getBlockState(i, 14, 1);
+			states[address(i, -1, 16) - INTERIOR_STATE_COUNT] = Xab == null ? AIR : Xab.getBlockState(i, 15, 0);
+			states[address(i, -1, 17) - INTERIOR_STATE_COUNT] = Xab == null ? AIR : Xab.getBlockState(i, 15, 1);
+
+			states[address(i, 16, -2) - INTERIOR_STATE_COUNT] = Xba == null ? AIR : Xba.getBlockState(i, 0, 14);
+			states[address(i, 16, -1) - INTERIOR_STATE_COUNT] = Xba == null ? AIR : Xba.getBlockState(i, 0, 15);
+			states[address(i, 17, -2) - INTERIOR_STATE_COUNT] = Xba == null ? AIR : Xba.getBlockState(i, 1, 14);
+			states[address(i, 17, -1) - INTERIOR_STATE_COUNT] = Xba == null ? AIR : Xba.getBlockState(i, 1, 15);
+
+			states[address(i, 16, 16) - INTERIOR_STATE_COUNT] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 0);
+			states[address(i, 16, 17) - INTERIOR_STATE_COUNT] = Xbb == null ? AIR : Xbb.getBlockState(i, 0, 1);
+			states[address(i, 17, 16) - INTERIOR_STATE_COUNT] = Xbb == null ? AIR : Xbb.getBlockState(i, 1, 0);
+			states[address(i, 17, 17) - INTERIOR_STATE_COUNT] = Xbb == null ? AIR : Xbb.getBlockState(i, 1, 1);
 		}
 	}
 
 	private void captureCorners() {
-		states[localCornerIndex(false, false, false) - REGION_INTERIOR_STATE_COUNT] = captureCornerState(0, 0, 0);
-		states[localCornerIndex(false, false, true) - REGION_INTERIOR_STATE_COUNT] = captureCornerState(0, 0, 2);
-		states[localCornerIndex(false, true, false) - REGION_INTERIOR_STATE_COUNT] = captureCornerState(0, 2, 0);
-		states[localCornerIndex(false, true, true) - REGION_INTERIOR_STATE_COUNT] = captureCornerState(0, 2, 2);
+		ChunkSection section = getSection(0, 0, 0);
+		states[address(-2, -2, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 14, 14);
+		states[address(-2, -2, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 14, 15);
+		states[address(-2, -1, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 15, 14);
+		states[address(-2, -1, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 15, 15);
+		states[address(-1, -2, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 14, 14);
+		states[address(-1, -2, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 14, 15);
+		states[address(-1, -1, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 15, 14);
+		states[address(-1, -1, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 15, 15);
 
-		states[localCornerIndex(true, false, false) - REGION_INTERIOR_STATE_COUNT] = captureCornerState(2, 0, 0);
-		states[localCornerIndex(true, false, true) - REGION_INTERIOR_STATE_COUNT] = captureCornerState(2, 0, 2);
-		states[localCornerIndex(true, true, false) - REGION_INTERIOR_STATE_COUNT] = captureCornerState(2, 2, 0);
-		states[localCornerIndex(true, true, true) - REGION_INTERIOR_STATE_COUNT] = captureCornerState(2, 2, 2);
-	}
+		section = getSection(0, 0, 2);
+		states[address(-2, -2, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 14, 0);
+		states[address(-2, -2, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 14, 1);
+		states[address(-2, -1, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 15, 0);
+		states[address(-2, -1, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 15, 1);
+		states[address(-1, -2, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 14, 0);
+		states[address(-1, -2, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 14, 1);
+		states[address(-1, -1, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 15, 0);
+		states[address(-1, -1, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 15, 1);
 
-	private BlockState captureCornerState(int x, int y, int z) {
-		final ChunkSection section = getSection(x, y, z);
-		return section == null ? AIR : section.getBlockState(x == 0 ? 15 : 0, y == 0 ? 15 : 0, z == 0 ? 15 : 0);
+		section = getSection(0, 2, 0);
+		states[address(-2, 16, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 0, 14);
+		states[address(-2, 16, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 0, 15);
+		states[address(-2, 17, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 1, 14);
+		states[address(-2, 17, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 1, 15);
+		states[address(-1, 16, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 0, 14);
+		states[address(-1, 16, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 0, 15);
+		states[address(-1, 17, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 1, 14);
+		states[address(-1, 17, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 1, 15);
+
+		section = getSection(0, 2, 2);
+		states[address(-2, 16, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 0, 0);
+		states[address(-2, 16, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 0, 1);
+		states[address(-2, 17, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 1, 0);
+		states[address(-2, 17, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(14, 1, 1);
+		states[address(-1, 16, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 0, 0);
+		states[address(-1, 16, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 0, 1);
+		states[address(-1, 17, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 1, 0);
+		states[address(-1, 17, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(15, 1, 1);
+
+		section = getSection(2, 0, 0);
+		states[address(16, -2, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 14, 14);
+		states[address(16, -2, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 14, 15);
+		states[address(16, -1, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 15, 14);
+		states[address(16, -1, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 15, 15);
+		states[address(17, -2, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 14, 14);
+		states[address(17, -2, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 14, 15);
+		states[address(17, -1, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 15, 14);
+		states[address(17, -1, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 15, 15);
+
+		section = getSection(2, 0, 2);
+		states[address(16, -2, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 14, 0);
+		states[address(16, -2, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 14, 1);
+		states[address(16, -1, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 15, 0);
+		states[address(16, -1, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 15, 1);
+		states[address(17, -2, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 14, 0);
+		states[address(17, -2, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 14, 1);
+		states[address(17, -1, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 15, 0);
+		states[address(17, -1, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 15, 1);
+
+		section = getSection(2, 2, 0);
+		states[address(16, 16, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 0, 14);
+		states[address(16, 16, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 0, 15);
+		states[address(16, 17, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 1, 14);
+		states[address(16, 17, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 1, 15);
+		states[address(17, 16, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 0, 14);
+		states[address(17, 16, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 0, 15);
+		states[address(17, 17, -2) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 1, 14);
+		states[address(17, 17, -1) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 1, 15);
+
+		section = getSection(2, 2, 2);
+		states[address(16, 16, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 0, 0);
+		states[address(16, 16, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 0, 1);
+		states[address(16, 17, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 1, 0);
+		states[address(16, 17, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(0, 1, 1);
+		states[address(17, 16, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 0, 0);
+		states[address(17, 16, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 0, 1);
+		states[address(17, 17, 16) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 1, 0);
+		states[address(17, 17, 17) - INTERIOR_STATE_COUNT] = section == null ? AIR : section.getBlockState(1, 1, 1);
 	}
 
 	public void release() {
