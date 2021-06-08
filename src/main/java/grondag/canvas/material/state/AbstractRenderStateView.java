@@ -226,9 +226,6 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
 
-	public static final long HURT_OVERLAY_FLAG = HURT_OVERLAY.comparisonMask() >>> FLAG_SHIFT;
-	public static final long FLASH_OVERLAY_FLAG = FLASH_OVERLAY.comparisonMask() >>> FLAG_SHIFT;
-
 	static final long DEFAULT_BITS;
 
 	public static final long TRANSLUCENT_TERRAIN_COLLECTOR_KEY;

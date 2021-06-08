@@ -42,8 +42,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
+import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -60,7 +60,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final float[] v = new float[4];
 	// vanilla light outputs
 	public final float[] ao = new float[4];
-	protected int overlayFlags;
 	protected RenderMaterialImpl defaultMaterial = Canvas.MATERIAL_STANDARD;
 
 	private int vertexIndex = 0;
@@ -98,7 +97,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		material(defaultMaterial);
 		isSpriteInterpolated = false;
 		vertexIndex = 0;
-		overlayFlags = 0;
 	}
 
 	@Override
@@ -409,13 +407,15 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	protected void setOverlay (int u, int v) {
-		if (v == 3) {
-			// NB: these are pre-shifted to msb
-			overlayFlags = RenderStateData.HURT_OVERLAY_FLAG;
-		} else if (v == 10) {
-			overlayFlags = u > 7 ? RenderStateData.FLASH_OVERLAY_FLAG : 0;
-		} else {
-			overlayFlags = 0;
+		final boolean hurtOverlay = v == 3;
+		final boolean flashOverlay = (v == 10 && u > 7);
+
+		if (hurtOverlay || flashOverlay) {
+			final MaterialFinderImpl materialFinder = new MaterialFinderImpl();
+			materialFinder.copyFrom(material());
+			materialFinder.hurtOverlay(hurtOverlay);
+			materialFinder.flashOverlay(flashOverlay);
+			material(materialFinder.find());
 		}
 	}
 
