@@ -34,39 +34,39 @@ public abstract class RenderRegionAddressHelper {
 	// Constants below define where each section of padding maps in the total index space.
 	// Exterior index values begin after index values for interior positions, so that
 	// addressing of interior can be done with simple bitwise math.
-	private static final int FACE_STATE_COUNT = 16 * 16 * REGION_PADDING;
-	private static final int EDGE_STATE_COUNT = 16 * REGION_PADDING * REGION_PADDING;
-	private static final int CORNER_STATE_COUNT = REGION_PADDING * REGION_PADDING * REGION_PADDING;
-	private static final int SIDE_INDEX_X0 = INTERIOR_STATE_COUNT;
-	private static final int SIDE_INDEX_X2 = SIDE_INDEX_X0 + FACE_STATE_COUNT;
-	private static final int SIDE_INDEX_Y0 = SIDE_INDEX_X2 + FACE_STATE_COUNT;
-	private static final int SIDE_INDEX_Y2 = SIDE_INDEX_Y0 + FACE_STATE_COUNT;
-	private static final int SIDE_INDEX_Z0 = SIDE_INDEX_Y2 + FACE_STATE_COUNT;
-	private static final int SIDE_INDEX_Z2 = SIDE_INDEX_Z0 + FACE_STATE_COUNT;
+	public static final int FACE_STATE_COUNT = 16 * 16 * REGION_PADDING;
+	public static final int EDGE_STATE_COUNT = 16 * REGION_PADDING * REGION_PADDING;
+	public static final int CORNER_STATE_COUNT = REGION_PADDING * REGION_PADDING * REGION_PADDING;
+	public static final int SIDE_INDEX_X0 = INTERIOR_STATE_COUNT;
+	public static final int SIDE_INDEX_X2 = SIDE_INDEX_X0 + FACE_STATE_COUNT;
+	public static final int SIDE_INDEX_Y0 = SIDE_INDEX_X2 + FACE_STATE_COUNT;
+	public static final int SIDE_INDEX_Y2 = SIDE_INDEX_Y0 + FACE_STATE_COUNT;
+	public static final int SIDE_INDEX_Z0 = SIDE_INDEX_Y2 + FACE_STATE_COUNT;
+	public static final int SIDE_INDEX_Z2 = SIDE_INDEX_Z0 + FACE_STATE_COUNT;
 
-	private static final int EDGE_INDEX_Y0X0 = SIDE_INDEX_Z2 + FACE_STATE_COUNT;
-	private static final int EDGE_INDEX_Y0X2 = EDGE_INDEX_Y0X0 + EDGE_STATE_COUNT;
-	private static final int EDGE_INDEX_Y2X0 = EDGE_INDEX_Y0X2 + EDGE_STATE_COUNT;
-	private static final int EDGE_INDEX_Y2X2 = EDGE_INDEX_Y2X0 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Y0X0 = SIDE_INDEX_Z2 + FACE_STATE_COUNT;
+	public static final int EDGE_INDEX_Y0X2 = EDGE_INDEX_Y0X0 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Y2X0 = EDGE_INDEX_Y0X2 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Y2X2 = EDGE_INDEX_Y2X0 + EDGE_STATE_COUNT;
 
-	private static final int EDGE_INDEX_Z0X0 = EDGE_INDEX_Y2X2 + EDGE_STATE_COUNT;
-	private static final int EDGE_INDEX_Z0X2 = EDGE_INDEX_Z0X0 + EDGE_STATE_COUNT;
-	private static final int EDGE_INDEX_Z2X0 = EDGE_INDEX_Z0X2 + EDGE_STATE_COUNT;
-	private static final int EDGE_INDEX_Z2X2 = EDGE_INDEX_Z2X0 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Z0X0 = EDGE_INDEX_Y2X2 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Z0X2 = EDGE_INDEX_Z0X0 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Z2X0 = EDGE_INDEX_Z0X2 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Z2X2 = EDGE_INDEX_Z2X0 + EDGE_STATE_COUNT;
 
-	private static final int EDGE_INDEX_Z0Y0 = EDGE_INDEX_Z2X2 + EDGE_STATE_COUNT;
-	private static final int EDGE_INDEX_Z0Y2 = EDGE_INDEX_Z0Y0 + EDGE_STATE_COUNT;
-	private static final int EDGE_INDEX_Z2Y0 = EDGE_INDEX_Z0Y2 + EDGE_STATE_COUNT;
-	private static final int EDGE_INDEX_Z2Y2 = EDGE_INDEX_Z2Y0 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Z0Y0 = EDGE_INDEX_Z2X2 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Z0Y2 = EDGE_INDEX_Z0Y0 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Z2Y0 = EDGE_INDEX_Z0Y2 + EDGE_STATE_COUNT;
+	public static final int EDGE_INDEX_Z2Y2 = EDGE_INDEX_Z2Y0 + EDGE_STATE_COUNT;
 
-	private static final int CORNER_INDEX_000 = EDGE_INDEX_Z2Y2 + EDGE_STATE_COUNT;
-	private static final int CORNER_INDEX_002 = CORNER_INDEX_000 + CORNER_STATE_COUNT;
-	private static final int CORNER_INDEX_020 = CORNER_INDEX_002 + CORNER_STATE_COUNT;
-	private static final int CORNER_INDEX_022 = CORNER_INDEX_020 + CORNER_STATE_COUNT;
-	private static final int CORNER_INDEX_200 = CORNER_INDEX_022 + CORNER_STATE_COUNT;
-	private static final int CORNER_INDEX_202 = CORNER_INDEX_200 + CORNER_STATE_COUNT;
-	private static final int CORNER_INDEX_220 = CORNER_INDEX_202 + CORNER_STATE_COUNT;
-	private static final int CORNER_INDEX_222 = CORNER_INDEX_220 + CORNER_STATE_COUNT;
+	public static final int CORNER_INDEX_000 = EDGE_INDEX_Z2Y2 + EDGE_STATE_COUNT;
+	public static final int CORNER_INDEX_002 = CORNER_INDEX_000 + CORNER_STATE_COUNT;
+	public static final int CORNER_INDEX_020 = CORNER_INDEX_002 + CORNER_STATE_COUNT;
+	public static final int CORNER_INDEX_022 = CORNER_INDEX_020 + CORNER_STATE_COUNT;
+	public static final int CORNER_INDEX_200 = CORNER_INDEX_022 + CORNER_STATE_COUNT;
+	public static final int CORNER_INDEX_202 = CORNER_INDEX_200 + CORNER_STATE_COUNT;
+	public static final int CORNER_INDEX_220 = CORNER_INDEX_202 + CORNER_STATE_COUNT;
+	public static final int CORNER_INDEX_222 = CORNER_INDEX_220 + CORNER_STATE_COUNT;
 
 	/**
 	 * Number of positions captured for a 16x16x16 render region, including exterior padding.
@@ -145,32 +145,50 @@ public abstract class RenderRegionAddressHelper {
 	private RenderRegionAddressHelper() {
 	}
 
-	private static int cornerSubAddress(int x, int y, int z) {
-		return x | (y << 1) | (z << 2);
+	// These are exposed so addressing in intensive region lookups can be directly computed
+	public static final int CORNER_I_MASK = 1;
+	public static final int CORNER_J_SHIFT = 1;
+	public static final int CORNER_J_MASK = 1;
+	public static final int CORNER_K_SHIFT = 2;
+
+	private static int cornerSubAddress(int i, int j, int k) {
+		return i | (j << CORNER_J_SHIFT) | (k << CORNER_K_SHIFT);
 	}
+
+	// These are exposed so addressing in intensive region lookups can be directly computed
+	public static final int FACE_I_MASK = 0xF;
+	public static final int FACE_J_SHIFT = 4;
+	public static final int FACE_J_MASK = 0xF;
+	public static final int FACE_K_SHIFT = 8;
 
 	/**
 	 * Compute sub index for face state.
 	 *
 	 * @param i 0-15 - source depends on axis
 	 * @param j 0-15 - source depends on axis
-	 * @param depth 0 to padding size - 1 (currently 0-2)
+	 * @param k 0 to padding size - 1 (currently 0-2)
 	 * @return
 	 */
-	private static int faceSubAddress(int i, int j, int depth) {
-		return i | (j << 4) | (depth << 8);
+	private static int faceSubAddress(int i, int j, int k) {
+		return i | (j << FACE_J_SHIFT) | (k << FACE_K_SHIFT);
 	}
+
+	// These are exposed so addressing in intensive region lookups can be directly computed
+	public static final int EDGE_I_MASK = 1;
+	public static final int EDGE_J_SHIFT = 1;
+	public static final int EDGE_J_MASK = 1;
+	public static final int EDGE_K_SHIFT = 2;
 
 	/**
 	 * Compute sub index for edge state.
 	 *
-	 * @param i 0 to padding size - 1 (currently 0-2)
-	 * @param j 0 to padding size - 1 (currently 0-2)
-	 * @param depth 0-15 - source depends on axis
+	 * @param i 0 to padding size - 1 (currently 0-1)
+	 * @param j 0 to padding size - 1 (currently 0-1)
+	 * @param k 0-15 - source depends on axis
 	 * @return
 	 */
-	private static int edgeSubAddress(int i, int j, int depth) {
-		return i | (j << 1) | (depth << 2);
+	private static int edgeSubAddress(int i, int j, int k) {
+		return i | (j << EDGE_J_SHIFT) | (k << EDGE_K_SHIFT);
 	}
 
 	/**
