@@ -18,16 +18,22 @@ package grondag.canvas.terrain.util;
 
 import java.util.Arrays;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 
 public abstract class RenderRegionAddressHelper {
+	/**
+	 * Number of positions within a 16x16x16 render region, not including exterior padding.
+	 */
 	public static final int INTERIOR_STATE_COUNT = 4096;
 
+	/** Render region padding depth, inclusive.  Same as vanilla. */
 	private static final int REGION_PADDING = 2;
+
+	// Constants below define where each section of padding maps in the total index space.
+	// Exterior index values begin after index values for interior positions, so that
+	// addressing of interior can be done with simple bitwise math.
 	private static final int FACE_STATE_COUNT = 16 * 16 * REGION_PADDING;
 	private static final int EDGE_STATE_COUNT = 16 * REGION_PADDING * REGION_PADDING;
 	private static final int CORNER_STATE_COUNT = REGION_PADDING * REGION_PADDING * REGION_PADDING;
@@ -62,8 +68,13 @@ public abstract class RenderRegionAddressHelper {
 	private static final int CORNER_INDEX_220 = CORNER_INDEX_202 + CORNER_STATE_COUNT;
 	private static final int CORNER_INDEX_222 = CORNER_INDEX_220 + CORNER_STATE_COUNT;
 
+	/**
+	 * Number of positions captured for a 16x16x16 render region, including exterior padding.
+	 */
 	public static final int TOTAL_STATE_COUNT = CORNER_INDEX_222 + CORNER_STATE_COUNT;
 
+	// These constants address the low/interior/high sub-regions (chunk sections) that are
+	// ultimately the source of data for a padded region.  Each sub-region represents a sub-addressing scheme.
 	private static final int X0 = 0;
 	private static final int X1 = 1;
 	private static final int X2 = 2;
@@ -74,19 +85,47 @@ public abstract class RenderRegionAddressHelper {
 	private static final int Z1 = 16;
 	private static final int Z2 = 32;
 
+	/**
+	 * Number of positions in the padded exterior area of a 16x16x16 render region - excludes the interior positions.
+	 */
 	public static final int EXTERIOR_STATE_COUNT = TOTAL_STATE_COUNT - INTERIOR_STATE_COUNT;
 
 	/**
-	 * number of long words per dimensional unit.  Default orientation sliced on z axis
+	 * Number of long words per dimensional unit for bit fields that represent interior sections.
+	 * Interior sections are 16x16, which can be represented with 4 long words.
+	 * Default orientation slices on z axis.
 	 */
 	public static final int SLICE_WORD_COUNT = 4;
-	public static final int INTERIOR_CACHE_WORDS = INTERIOR_STATE_COUNT / 64;
-	public static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_STATE_COUNT + 63) / 64;
-	public static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;
-	public static final BlockState AIR = Blocks.AIR.getDefaultState();
 
-	private static final int[] REVERSE_INDEX_LOOKUP = new int[TOTAL_STATE_COUNT];
+	/**
+	 * Number of long words needed to represent a full region interior as a bit field.
+	 */
+	public static final int INTERIOR_CACHE_WORDS = INTERIOR_STATE_COUNT / 64;
+
+	/**
+	 * Number of long words needed to represent the padded areas of a region.
+	 * This does not map cleanly to a word boundary and it assumes indexing of
+	 * bits in padded areas is done using values from {@link #regionIndex(int, int, int)}.
+	 */
+	public static final int EXTERIOR_CACHE_WORDS = (EXTERIOR_STATE_COUNT + 63) / 64;
+
+	/**
+	 * Number of long words needed to represent a bit field for region with both interior and padded areas.
+	 */
+	public static final int TOTAL_CACHE_WORDS = INTERIOR_CACHE_WORDS + EXTERIOR_CACHE_WORDS;
+
+	/**
+	 * Pre-computed, compact region index values that can be looked up using a larger but computationally less
+	 * expensive bit-wise derivation.  (The larger space is simply 32^3, or five bits per dimension.)
+	 */
 	private static final int[] INDEX_LOOKUP = new int[32768];
+
+	/**
+	 * Our compact region index values don't offer an inexpensive way to extract the original x, y, z components
+	 * so we use a lookup from compact index to the five-bits-per axis index that offers easy bit-wise extraction
+	 * of each component.
+	 */
+	private static final int[] REVERSE_INDEX_LOOKUP = new int[TOTAL_STATE_COUNT];
 
 	static {
 		Arrays.fill(INDEX_LOOKUP, -1);
@@ -95,7 +134,7 @@ public abstract class RenderRegionAddressHelper {
 			for (int y = -2; y <= 17; y++) {
 				for (int z = -2; z <= 17; z++) {
 					final int fastIndex = (x + 2) | ((y + 2) << 5) | ((z + 2) << 10);
-					final int cacheIndex = address(x, y, z);
+					final int cacheIndex = computeRegionIndex(x, y, z);
 					INDEX_LOOKUP[fastIndex] = cacheIndex;
 					REVERSE_INDEX_LOOKUP[cacheIndex] = fastIndex;
 				}
@@ -106,7 +145,7 @@ public abstract class RenderRegionAddressHelper {
 	private RenderRegionAddressHelper() {
 	}
 
-	public static int cornerSubAddress(int x, int y, int z) {
+	private static int cornerSubAddress(int x, int y, int z) {
 		return x | (y << 1) | (z << 2);
 	}
 
@@ -118,7 +157,7 @@ public abstract class RenderRegionAddressHelper {
 	 * @param depth 0 to padding size - 1 (currently 0-2)
 	 * @return
 	 */
-	public static int faceSubAddress(int i, int j, int depth) {
+	private static int faceSubAddress(int i, int j, int depth) {
 		return i | (j << 4) | (depth << 8);
 	}
 
@@ -130,11 +169,14 @@ public abstract class RenderRegionAddressHelper {
 	 * @param depth 0-15 - source depends on axis
 	 * @return
 	 */
-	public static int edgeSubAddress(int i, int j, int depth) {
+	private static int edgeSubAddress(int i, int j, int depth) {
 		return i | (j << 1) | (depth << 2);
 	}
 
-	public static int address(int x, int y, int z) {
+	/**
+	 * Computes indexes that match the contract of {@link #regionIndex(int, int, int)}.
+	 */
+	static int computeRegionIndex(int x, int y, int z) {
 		// translate each component to a 0-2 value that indicates low, interior or high
 		final int rx = (x + 16) >> 4;
 		final int ry = (y + 16) >> 4;
@@ -207,8 +249,8 @@ public abstract class RenderRegionAddressHelper {
 			case Z2 | Y2 | X2:
 				return CORNER_INDEX_222 + cornerSubAddress(x - 16, y - 16, z - 16);
 			default:
-				assert false;
-				return 0;
+				assert false : "Encountered input values out of range in render region addressing.";
+				return -1;
 		}
 	}
 
@@ -220,73 +262,75 @@ public abstract class RenderRegionAddressHelper {
 	}
 
 	/**
-	 * Assumes values 0-15.
+	 * Same as {@link #clampedInteriorIndex(int, int, int)} but accepts a position instance.
 	 */
-	public static int interiorIndex(int x, int y, int z) {
-		return x | (y << 4) | (z << 8);
-	}
-
 	public static int interiorIndex(BlockPos pos) {
 		return clampedInteriorIndex(pos.getX(), pos.getY(), pos.getZ());
 	}
 
 	/**
-	 * Accepts a main section index (0-4096) and returns
-	 * a full-region index offset by the given face.
+	 * Assumes input values 0-15.
 	 */
-	public static int offsetMainChunkBlockIndex(int index, Direction face) {
+	public static int interiorIndex(int x, int y, int z) {
+		return x | (y << 4) | (z << 8);
+	}
+
+	/**
+	 * Accepts an interior index (0-4095) and returns
+	 * a full-region index offset in the direction of the given face.
+	 */
+	public static int offsetInteriorIndex(int interiorIndex, Direction face) {
 		final Vec3i vec = face.getVector();
 
-		final int x = (index & 0xF) + vec.getX();
-		final int y = ((index >> 4) & 0xF) + vec.getY();
-		final int z = ((index >> 8) & 0xF) + vec.getZ();
+		final int x = (interiorIndex & 0xF) + vec.getX();
+		final int y = ((interiorIndex >> 4) & 0xF) + vec.getY();
+		final int z = ((interiorIndex >> 8) & 0xF) + vec.getZ();
 
-		return fastRelativeCacheIndex(x, y, z);
+		return regionIndex(x, y, z);
 	}
 
+	static final int ADDEND = 2 | (2 << 5) | (2 << 10);
+
 	/**
-	 * Checks for values outside -2 to 17, returns -1 if outside.
+	 * Returns an index of block position relative to the region origin.
+	 * Handles values that are within the padding distance, currently
+	 * -2 to 17, vs the 0-15 within a normal region.
+	 *
+	 * <p>The index space is arranged so that interior positions
+	 * map to index values 0-4095 using simple bitwise math that
+	 * is codified in {@link #interiorIndex(int, int, int)}.
+	 *
+	 * @param x -2 to 17
+	 * @param y -2 to 17
+	 * @param z -2 to 17
+	 * @return 0 to 7999, >= 4096 if position is outside the interior, -1 if inputs are invalid.
 	 */
-	public static int relativeCacheIndex(int x, int y, int z) {
-		final int ix = (x + 2);
-
-		if ((ix & 31) != ix) return -1;
-
-		final int iy = (y + 2);
-
-		if ((iy & 31) != iy) return -1;
-
-		final int iz = (z + 2);
-
-		if ((iz & 31) != iz) return -1;
-
-		return INDEX_LOOKUP[ix | (iy << 5) | (iz << 10)];
+	public static int regionIndex(int x, int y, int z) {
+		final int index = x + (y << 5) + (z << 10) + ADDEND;
+		return (index & 32767) == index ? INDEX_LOOKUP[index] : -1;
 	}
 
 	/**
-	 * Values must be -2 to 17.
-	 */
-	public static int fastRelativeCacheIndex(int x, int y, int z) {
-		final int lookupIndex = (x + 2) | ((y + 2) << 5) | ((z + 2) << 10);
-		return INDEX_LOOKUP[lookupIndex];
-	}
-
-	/**
-	 * Inputs must ensure result of addition is in  -2 to 17 range.
+	 * Takes a 5-bit per axis region index and a five-bit-per axis offset,
+	 * adds them and returns the compact index value consistent with
+	 * {@link #regionIndex(int, int, int)}.
+	 *
+	 * <p>Caller must ensure result of addition is in  -2 to 17 range.
 	 *
 	 * @param packedXyz5       must be in  -2 to 17 range (packed values 0-19)
 	 * @param signedXyzOffset5 must be in -1 to 1 (packed values 0-2)
-	 * @return equivalent to {@link #fastRelativeCacheIndex(int, int, int)} with added values
+	 * @return equivalent to {@link #uncheckedRegionIndex(int, int, int)} with added values
 	 */
-	public static int fastOffsetRelativeCacheIndex(int packedXyz5, int signedXyzOffset5) {
+	public static int fastOffsetRegionIndex(int packedXyz5, int signedXyzOffset5) {
 		return INDEX_LOOKUP[packedXyz5 + signedXyzOffset5 - 0b000010000100001];
 	}
 
 	/**
-	 * Return packed x, y, z relative coordinates for the given cache position.
+	 * Returns a five-bit-per axis translation of the given compact region index.
 	 * Values are +2 actual. (0-19 instead of -2 to 17).
+	 * Useful for extracting x, y, z values of a region index.
 	 */
-	public static int cacheIndexToXyz5(int cacheIndex) {
+	public static int regionIndexToXyz5(int cacheIndex) {
 		return REVERSE_INDEX_LOOKUP[cacheIndex];
 	}
 

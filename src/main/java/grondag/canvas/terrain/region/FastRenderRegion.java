@@ -19,7 +19,7 @@ package grondag.canvas.terrain.region;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_STATE_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.cacheIndexToXyz5;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndexToXyz5;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
 
 import java.util.Arrays;
@@ -200,7 +200,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 		if (result == Integer.MAX_VALUE) {
 			final BlockState state = states[cacheIndex];
-			final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
+			final int packedXyz5 = regionIndexToXyz5(cacheIndex);
 			final int x = (packedXyz5 & 31) - 2 + originX;
 			final int y = ((packedXyz5 >> 5) & 31) - 2 + originY;
 			final int z = (packedXyz5 >> 10) - 2 + originZ;
@@ -236,7 +236,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 			final BlockState state = states[cacheIndex];
 
 			if (state.getLuminance() == 0) {
-				final int packedXyz5 = cacheIndexToXyz5(cacheIndex);
+				final int packedXyz5 = regionIndexToXyz5(cacheIndex);
 				final int x = (packedXyz5 & 31) - 2 + originX;
 				final int y = ((packedXyz5 >> 5) & 31) - 2 + originY;
 				final int z = (packedXyz5 >> 10) - 2 + originZ;

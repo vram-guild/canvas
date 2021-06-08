@@ -19,7 +19,7 @@ package grondag.canvas.terrain.occlusion.geometry;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.address;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
@@ -138,47 +138,47 @@ public abstract class OcclusionRegion {
 	private void captureFaces() {
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				captureExteriorVisibility(address(-1, i, j), -1, i, j);
-				captureExteriorVisibility(address(16, i, j), 16, i, j);
+				captureExteriorVisibility(regionIndex(-1, i, j), -1, i, j);
+				captureExteriorVisibility(regionIndex(16, i, j), 16, i, j);
 
-				captureExteriorVisibility(address(i, j, -1), i, j, -1);
-				captureExteriorVisibility(address(i, j, 16), i, j, 16);
+				captureExteriorVisibility(regionIndex(i, j, -1), i, j, -1);
+				captureExteriorVisibility(regionIndex(i, j, 16), i, j, 16);
 
-				captureExteriorVisibility(address(i, -1, j), i, -1, j);
-				captureExteriorVisibility(address(i, 16, j), i, 16, j);
+				captureExteriorVisibility(regionIndex(i, -1, j), i, -1, j);
+				captureExteriorVisibility(regionIndex(i, 16, j), i, 16, j);
 			}
 		}
 	}
 
 	private void captureEdges() {
 		for (int i = 0; i < 16; i++) {
-			captureExteriorVisibility(address(-1, -1, i), -1, -1, i);
-			captureExteriorVisibility(address(-1, 16, i), -1, 16, i);
-			captureExteriorVisibility(address(16, -1, i), 16, -1, i);
-			captureExteriorVisibility(address(16, 16, i), 16, 16, i);
+			captureExteriorVisibility(regionIndex(-1, -1, i), -1, -1, i);
+			captureExteriorVisibility(regionIndex(-1, 16, i), -1, 16, i);
+			captureExteriorVisibility(regionIndex(16, -1, i), 16, -1, i);
+			captureExteriorVisibility(regionIndex(16, 16, i), 16, 16, i);
 
-			captureExteriorVisibility(address(-1, i, -1), -1, i, -1);
-			captureExteriorVisibility(address(-1, i, 16), -1, i, 16);
-			captureExteriorVisibility(address(16, i, -1), 16, i, -1);
-			captureExteriorVisibility(address(16, i, 16), 16, i, 16);
+			captureExteriorVisibility(regionIndex(-1, i, -1), -1, i, -1);
+			captureExteriorVisibility(regionIndex(-1, i, 16), -1, i, 16);
+			captureExteriorVisibility(regionIndex(16, i, -1), 16, i, -1);
+			captureExteriorVisibility(regionIndex(16, i, 16), 16, i, 16);
 
-			captureExteriorVisibility(address(i, -1, -1), i, -1, -1);
-			captureExteriorVisibility(address(i, -1, 16), i, -1, 16);
-			captureExteriorVisibility(address(i, 16, -1), i, 16, -1);
-			captureExteriorVisibility(address(i, 16, 16), i, 16, 16);
+			captureExteriorVisibility(regionIndex(i, -1, -1), i, -1, -1);
+			captureExteriorVisibility(regionIndex(i, -1, 16), i, -1, 16);
+			captureExteriorVisibility(regionIndex(i, 16, -1), i, 16, -1);
+			captureExteriorVisibility(regionIndex(i, 16, 16), i, 16, 16);
 		}
 	}
 
 	private void captureCorners() {
-		captureExteriorVisibility(address(-1, -1, -1), -1, -1, -1);
-		captureExteriorVisibility(address(-1, -1, 16), -1, -1, 16);
-		captureExteriorVisibility(address(-1, 16, -1), -1, 16, -1);
-		captureExteriorVisibility(address(-1, 16, 16), -1, 16, 16);
+		captureExteriorVisibility(regionIndex(-1, -1, -1), -1, -1, -1);
+		captureExteriorVisibility(regionIndex(-1, -1, 16), -1, -1, 16);
+		captureExteriorVisibility(regionIndex(-1, 16, -1), -1, 16, -1);
+		captureExteriorVisibility(regionIndex(-1, 16, 16), -1, 16, 16);
 
-		captureExteriorVisibility(address(16, -1, -1), 16, -1, -1);
-		captureExteriorVisibility(address(16, -1, 16), 16, -1, 16);
-		captureExteriorVisibility(address(16, 16, -1), 16, 16, -1);
-		captureExteriorVisibility(address(16, 16, 16), 16, 16, 16);
+		captureExteriorVisibility(regionIndex(16, -1, -1), 16, -1, -1);
+		captureExteriorVisibility(regionIndex(16, -1, 16), 16, -1, 16);
+		captureExteriorVisibility(regionIndex(16, 16, -1), 16, 16, -1);
+		captureExteriorVisibility(regionIndex(16, 16, 16), 16, 16, 16);
 	}
 
 	/**
@@ -226,98 +226,98 @@ public abstract class OcclusionRegion {
 		// don't render face blocks obscured by neighboring chunks
 		for (int i = 1; i < 15; i++) {
 			for (int j = 1; j < 15; j++) {
-				if (isClosed(address(-1, i, j))) clearInteriorRenderable(0, i, j);
-				if (isClosed(address(16, i, j))) clearInteriorRenderable(15, i, j);
+				if (isClosed(regionIndex(-1, i, j))) clearInteriorRenderable(0, i, j);
+				if (isClosed(regionIndex(16, i, j))) clearInteriorRenderable(15, i, j);
 
-				if (isClosed(address(i, j, -1))) clearInteriorRenderable(i, j, 0);
-				if (isClosed(address(i, j, 16))) clearInteriorRenderable(i, j, 15);
+				if (isClosed(regionIndex(i, j, -1))) clearInteriorRenderable(i, j, 0);
+				if (isClosed(regionIndex(i, j, 16))) clearInteriorRenderable(i, j, 15);
 
-				if (isClosed(address(i, -1, j))) clearInteriorRenderable(i, 0, j);
-				if (isClosed(address(i, 16, j))) clearInteriorRenderable(i, 15, j);
+				if (isClosed(regionIndex(i, -1, j))) clearInteriorRenderable(i, 0, j);
+				if (isClosed(regionIndex(i, 16, j))) clearInteriorRenderable(i, 15, j);
 			}
 		}
 
 		// don't render edge blocks obscured by neighboring chunks
 		for (int i = 1; i < 15; i++) {
-			if (isClosed(address(-1, 0, i)) && isClosed(address(0, -1, i))) {
+			if (isClosed(regionIndex(-1, 0, i)) && isClosed(regionIndex(0, -1, i))) {
 				clearInteriorRenderable(0, 0, i);
 			}
 
-			if (isClosed(address(16, 0, i)) && isClosed(address(15, -1, i))) {
+			if (isClosed(regionIndex(16, 0, i)) && isClosed(regionIndex(15, -1, i))) {
 				clearInteriorRenderable(15, 0, i);
 			}
 
-			if (isClosed(address(-1, 15, i)) && isClosed(address(0, 16, i))) {
+			if (isClosed(regionIndex(-1, 15, i)) && isClosed(regionIndex(0, 16, i))) {
 				clearInteriorRenderable(0, 15, i);
 			}
 
-			if (isClosed(address(16, 15, i)) && isClosed(address(15, 16, i))) {
+			if (isClosed(regionIndex(16, 15, i)) && isClosed(regionIndex(15, 16, i))) {
 				clearInteriorRenderable(15, 15, i);
 			}
 
-			if (isClosed(address(i, 0, -1)) && isClosed(address(i, -1, 0))) {
+			if (isClosed(regionIndex(i, 0, -1)) && isClosed(regionIndex(i, -1, 0))) {
 				clearInteriorRenderable(i, 0, 0);
 			}
 
-			if (isClosed(address(i, 0, 16)) && isClosed(address(i, -1, 15))) {
+			if (isClosed(regionIndex(i, 0, 16)) && isClosed(regionIndex(i, -1, 15))) {
 				clearInteriorRenderable(i, 0, 15);
 			}
 
-			if (isClosed(address(i, 15, -1)) && isClosed(address(i, 16, 0))) {
+			if (isClosed(regionIndex(i, 15, -1)) && isClosed(regionIndex(i, 16, 0))) {
 				clearInteriorRenderable(i, 15, 0);
 			}
 
-			if (isClosed(address(i, 15, 16)) && isClosed(address(i, 16, 15))) {
+			if (isClosed(regionIndex(i, 15, 16)) && isClosed(regionIndex(i, 16, 15))) {
 				clearInteriorRenderable(i, 15, 15);
 			}
 
-			if (isClosed(address(-1, i, 0)) && isClosed(address(0, i, -1))) {
+			if (isClosed(regionIndex(-1, i, 0)) && isClosed(regionIndex(0, i, -1))) {
 				clearInteriorRenderable(0, i, 0);
 			}
 
-			if (isClosed(address(16, i, 0)) && isClosed(address(15, i, -1))) {
+			if (isClosed(regionIndex(16, i, 0)) && isClosed(regionIndex(15, i, -1))) {
 				clearInteriorRenderable(15, i, 0);
 			}
 
-			if (isClosed(address(-1, i, 15)) && isClosed(address(0, i, 16))) {
+			if (isClosed(regionIndex(-1, i, 15)) && isClosed(regionIndex(0, i, 16))) {
 				clearInteriorRenderable(0, i, 15);
 			}
 
-			if (isClosed(address(16, i, 15)) && isClosed(address(15, i, 16))) {
+			if (isClosed(regionIndex(16, i, 15)) && isClosed(regionIndex(15, i, 16))) {
 				clearInteriorRenderable(15, i, 15);
 			}
 		}
 
 		// don't render corner blocks obscured by neighboring chunks
-		if (isClosed(address(-1, 0, 0)) && isClosed(address(0, -1, 0)) && isClosed(address(0, 0, -1))) {
+		if (isClosed(regionIndex(-1, 0, 0)) && isClosed(regionIndex(0, -1, 0)) && isClosed(regionIndex(0, 0, -1))) {
 			clearInteriorRenderable(0, 0, 0);
 		}
 
-		if (isClosed(address(16, 0, 0)) && isClosed(address(15, -1, 0)) && isClosed(address(15, 0, -1))) {
+		if (isClosed(regionIndex(16, 0, 0)) && isClosed(regionIndex(15, -1, 0)) && isClosed(regionIndex(15, 0, -1))) {
 			clearInteriorRenderable(15, 0, 0);
 		}
 
-		if (isClosed(address(-1, 15, 0)) && isClosed(address(0, 16, 0)) && isClosed(address(0, 15, -1))) {
+		if (isClosed(regionIndex(-1, 15, 0)) && isClosed(regionIndex(0, 16, 0)) && isClosed(regionIndex(0, 15, -1))) {
 			clearInteriorRenderable(0, 15, 0);
 		}
 
-		if (isClosed(address(16, 15, 0)) && isClosed(address(15, 16, 0)) && isClosed(address(15, 15, -1))) {
+		if (isClosed(regionIndex(16, 15, 0)) && isClosed(regionIndex(15, 16, 0)) && isClosed(regionIndex(15, 15, -1))) {
 			clearInteriorRenderable(15, 15, 0);
 		}
 
-		if (isClosed(address(-1, 0, 15)) && isClosed(address(0, -1, 15)) && isClosed(address(0, 0, 16))) {
+		if (isClosed(regionIndex(-1, 0, 15)) && isClosed(regionIndex(0, -1, 15)) && isClosed(regionIndex(0, 0, 16))) {
 			clearInteriorRenderable(0, 0, 15);
 		}
 
-		if (isClosed(address(16, 0, 15)) && isClosed(address(15, -1, 15)) && isClosed(address(15, 0, 16))) {
+		if (isClosed(regionIndex(16, 0, 15)) && isClosed(regionIndex(15, -1, 15)) && isClosed(regionIndex(15, 0, 16))) {
 			clearInteriorRenderable(15, 0, 15);
 		}
 
-		if (isClosed(address(-1, 15, 15)) && isClosed(address(0, 16, 15)) && isClosed(address(0, 15, 16))) {
+		if (isClosed(regionIndex(-1, 15, 15)) && isClosed(regionIndex(0, 16, 15)) && isClosed(regionIndex(0, 15, 16))) {
 			clearInteriorRenderable(0, 15, 15);
 		}
 
-		if (isClosed(address(16, 15, 15)) && isClosed(address(15, 16, 15)) && isClosed(address(15, 15, 16))) {
+		if (isClosed(regionIndex(16, 15, 15)) && isClosed(regionIndex(15, 16, 15)) && isClosed(regionIndex(15, 15, 16))) {
 			clearInteriorRenderable(15, 15, 15);
 		}
 	}
@@ -427,27 +427,27 @@ public abstract class OcclusionRegion {
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				if (!isClosed(address(-1, i, j))) {
+				if (!isClosed(regionIndex(-1, i, j))) {
 					visitSurfaceIfPossible(0, i, j);
 				}
 
-				if (!isClosed(address(16, i, j))) {
+				if (!isClosed(regionIndex(16, i, j))) {
 					visitSurfaceIfPossible(15, i, j);
 				}
 
-				if (!isClosed(address(i, j, -1))) {
+				if (!isClosed(regionIndex(i, j, -1))) {
 					visitSurfaceIfPossible(i, j, 0);
 				}
 
-				if (!isClosed(address(i, j, 16))) {
+				if (!isClosed(regionIndex(i, j, 16))) {
 					visitSurfaceIfPossible(i, j, 15);
 				}
 
-				if (!isClosed(address(i, -1, j))) {
+				if (!isClosed(regionIndex(i, -1, j))) {
 					visitSurfaceIfPossible(i, 0, j);
 				}
 
-				if (!isClosed(address(i, 16, j))) {
+				if (!isClosed(regionIndex(i, 16, j))) {
 					visitSurfaceIfPossible(i, 15, j);
 				}
 			}
