@@ -307,7 +307,10 @@ public abstract class RenderRegionAddressHelper {
 		return regionIndex(x, y, z);
 	}
 
-	static final int ADDEND = 2 | (2 << 5) | (2 << 10);
+	/**
+	 * Add to make coordinates zero-based instead of starting at -2.
+	 */
+	private static final int ADDEND = 2 | (2 << 5) | (2 << 10);
 
 	/**
 	 * Returns an index of block position relative to the region origin.

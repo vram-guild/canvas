@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test;
 class RenderRegionAddressHelperTest {
 	@Test
 	void test() {
-		doIt();
-		doIt();
-		doIt();
+		runTests();
+		runTests();
+		runTests();
 	}
 
 	private static int TEST_COUNT = 100000000;
 
-	private static void doIt() {
+	private static void runTests() {
 		final Random r = new Random();
 
 		r.setSeed(42);
@@ -46,14 +46,4 @@ class RenderRegionAddressHelperTest {
 
 		System.out.println("Lookup duration:        " + (System.nanoTime() - start));
 	}
-
-	// baseline
-	//	Compute duration:       3171940539
-	//	Lookup duration:        2465613387
-	//	Unsafe Lookup duration: 2404757643
-
-	// short lookup array
-	//	Compute duration:       3249437683
-	//	Lookup duration:        2490307392
-	//	Unsafe Lookup duration: 2486879609
 }
