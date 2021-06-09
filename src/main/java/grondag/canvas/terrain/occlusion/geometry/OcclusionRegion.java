@@ -19,8 +19,8 @@ package grondag.canvas.terrain.occlusion.geometry;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndex;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -212,9 +212,148 @@ public abstract class OcclusionRegion {
 		}
 	}
 
-	private void clearInteriorRenderable(int x, int y, int z) {
-		final int index = interiorIndex(x, y, z);
-		bits[(index >> 6) + RENDERABLE_OFFSET] &= ~(1L << (index & 63));
+	private void clearInteriorRenderable(int interiorIndex) {
+		bits[(interiorIndex >> 6) + RENDERABLE_OFFSET] &= ~(1L << (interiorIndex & 63));
+	}
+
+	// Pre-compute the position indices for exterior visibility tests to reduce computation overhead
+
+	// 14x14 blocks per face (not counting edges and corners), six faces, one target and one test position each.
+	private static final int FACE_VISIBILITY_COUNT = 14 * 14 * 2 * 6;
+	private static final int[] FACE_VISIBILITY_TESTS = new int[FACE_VISIBILITY_COUNT];
+
+	// 14 blocks per edge (not counting corners), 12 edges, one position and two test positions per edge block
+	private static final int EDGE_VISIBILITY_COUNT = 14 * 12 * 3;
+	private static final int[] EDGE_VISIBILITY_TESTS = new int[EDGE_VISIBILITY_COUNT];
+
+	// 8 corners, one target position and three test positions per corner
+	private static final int CORNER_VISIBILITY_COUNT = 8 * 4;
+	private static final int[] CORNER_VISIBILITY_TESTS = new int[CORNER_VISIBILITY_COUNT];
+
+	static {
+		int n = 0;
+
+		for (int i = 1; i < 15; i++) {
+			for (int j = 1; j < 15; j++) {
+				FACE_VISIBILITY_TESTS[n++] = regionIndex(-1, i, j);
+				FACE_VISIBILITY_TESTS[n++] = interiorIndex(0, i, j);
+
+				FACE_VISIBILITY_TESTS[n++] = regionIndex(16, i, j);
+				FACE_VISIBILITY_TESTS[n++] = interiorIndex(15, i, j);
+
+				FACE_VISIBILITY_TESTS[n++] = regionIndex(i, j, -1);
+				FACE_VISIBILITY_TESTS[n++] = interiorIndex(i, j, 0);
+
+				FACE_VISIBILITY_TESTS[n++] = regionIndex(i, j, 16);
+				FACE_VISIBILITY_TESTS[n++] = interiorIndex(i, j, 15);
+
+				FACE_VISIBILITY_TESTS[n++] = regionIndex(i, -1, j);
+				FACE_VISIBILITY_TESTS[n++] = interiorIndex(i, 0, j);
+
+				FACE_VISIBILITY_TESTS[n++] = regionIndex(i, 16, j);
+				FACE_VISIBILITY_TESTS[n++] = interiorIndex(i, 15, j);
+			}
+		}
+
+		assert n == FACE_VISIBILITY_COUNT;
+
+		n = 0;
+
+		for (int i = 1; i < 15; i++) {
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(-1, 0, i);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(0, -1, i);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(0, 0, i);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(16, 0, i);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(15, -1, i);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(15, 0, i);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(-1, 15, i);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(0, 16, i);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(0, 15, i);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(16, 15, i);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(15, 16, i);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(15, 15, i);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(i, 0, -1);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(i, -1, 0);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(i, 0, 0);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(i, 0, 16);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(i, -1, 15);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(i, 0, 15);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(i, 15, -1);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(i, 16, 0);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(i, 15, 0);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(i, 15, 16);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(i, 16, 15);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(i, 15, 15);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(-1, i, 0);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(0, i, -1);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(0, i, 0);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(16, i, 0);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(15, i, -1);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(15, i, 0);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(-1, i, 15);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(0, i, 16);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(0, i, 15);
+
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(16, i, 15);
+			EDGE_VISIBILITY_TESTS[n++] = regionIndex(15, i, 16);
+			EDGE_VISIBILITY_TESTS[n++] = interiorIndex(15, i, 15);
+		}
+
+		assert n == EDGE_VISIBILITY_COUNT;
+
+		n = 0;
+
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(-1, 0, 0);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(0, -1, 0);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(0, 0, -1);
+		CORNER_VISIBILITY_TESTS[n++] = interiorIndex(0, 0, 0);
+
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(16, 0, 0);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(15, -1, 0);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(15, 0, -1);
+		CORNER_VISIBILITY_TESTS[n++] = interiorIndex(15, 0, 0);
+
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(-1, 15, 0);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(0, 16, 0);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(0, 15, -1);
+		CORNER_VISIBILITY_TESTS[n++] = interiorIndex(0, 15, 0);
+
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(16, 15, 0);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(15, 16, 0);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(15, 15, -1);
+		CORNER_VISIBILITY_TESTS[n++] = interiorIndex(15, 15, 0);
+
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(-1, 0, 15);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(0, -1, 15);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(0, 0, 16);
+		CORNER_VISIBILITY_TESTS[n++] = interiorIndex(0, 0, 15);
+
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(16, 0, 15);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(15, -1, 15);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(15, 0, 16);
+		CORNER_VISIBILITY_TESTS[n++] = interiorIndex(15, 0, 15);
+
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(-1, 15, 15);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(0, 16, 15);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(0, 15, 16);
+		CORNER_VISIBILITY_TESTS[n++] = interiorIndex(0, 15, 15);
+
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(16, 15, 15);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(15, 16, 15);
+		CORNER_VISIBILITY_TESTS[n++] = regionIndex(15, 15, 16);
+		CORNER_VISIBILITY_TESTS[n++] = interiorIndex(15, 15, 15);
+
+		assert n == CORNER_VISIBILITY_COUNT;
 	}
 
 	private void adjustSurfaceVisibility() {
@@ -224,101 +363,24 @@ public abstract class OcclusionRegion {
 		}
 
 		// don't render face blocks obscured by neighboring chunks
-		for (int i = 1; i < 15; i++) {
-			for (int j = 1; j < 15; j++) {
-				if (isClosed(regionIndex(-1, i, j))) clearInteriorRenderable(0, i, j);
-				if (isClosed(regionIndex(16, i, j))) clearInteriorRenderable(15, i, j);
-
-				if (isClosed(regionIndex(i, j, -1))) clearInteriorRenderable(i, j, 0);
-				if (isClosed(regionIndex(i, j, 16))) clearInteriorRenderable(i, j, 15);
-
-				if (isClosed(regionIndex(i, -1, j))) clearInteriorRenderable(i, 0, j);
-				if (isClosed(regionIndex(i, 16, j))) clearInteriorRenderable(i, 15, j);
+		for (int n = 0; n < FACE_VISIBILITY_COUNT; n += 2) {
+			if (isClosed(FACE_VISIBILITY_TESTS[n])) {
+				clearInteriorRenderable(FACE_VISIBILITY_TESTS[n + 1]);
 			}
 		}
 
 		// don't render edge blocks obscured by neighboring chunks
-		for (int i = 1; i < 15; i++) {
-			if (isClosed(regionIndex(-1, 0, i)) && isClosed(regionIndex(0, -1, i))) {
-				clearInteriorRenderable(0, 0, i);
-			}
-
-			if (isClosed(regionIndex(16, 0, i)) && isClosed(regionIndex(15, -1, i))) {
-				clearInteriorRenderable(15, 0, i);
-			}
-
-			if (isClosed(regionIndex(-1, 15, i)) && isClosed(regionIndex(0, 16, i))) {
-				clearInteriorRenderable(0, 15, i);
-			}
-
-			if (isClosed(regionIndex(16, 15, i)) && isClosed(regionIndex(15, 16, i))) {
-				clearInteriorRenderable(15, 15, i);
-			}
-
-			if (isClosed(regionIndex(i, 0, -1)) && isClosed(regionIndex(i, -1, 0))) {
-				clearInteriorRenderable(i, 0, 0);
-			}
-
-			if (isClosed(regionIndex(i, 0, 16)) && isClosed(regionIndex(i, -1, 15))) {
-				clearInteriorRenderable(i, 0, 15);
-			}
-
-			if (isClosed(regionIndex(i, 15, -1)) && isClosed(regionIndex(i, 16, 0))) {
-				clearInteriorRenderable(i, 15, 0);
-			}
-
-			if (isClosed(regionIndex(i, 15, 16)) && isClosed(regionIndex(i, 16, 15))) {
-				clearInteriorRenderable(i, 15, 15);
-			}
-
-			if (isClosed(regionIndex(-1, i, 0)) && isClosed(regionIndex(0, i, -1))) {
-				clearInteriorRenderable(0, i, 0);
-			}
-
-			if (isClosed(regionIndex(16, i, 0)) && isClosed(regionIndex(15, i, -1))) {
-				clearInteriorRenderable(15, i, 0);
-			}
-
-			if (isClosed(regionIndex(-1, i, 15)) && isClosed(regionIndex(0, i, 16))) {
-				clearInteriorRenderable(0, i, 15);
-			}
-
-			if (isClosed(regionIndex(16, i, 15)) && isClosed(regionIndex(15, i, 16))) {
-				clearInteriorRenderable(15, i, 15);
+		for (int n = 0; n < EDGE_VISIBILITY_COUNT; n += 3) {
+			if (isClosed(EDGE_VISIBILITY_TESTS[n]) && isClosed(EDGE_VISIBILITY_TESTS[n +1 ])) {
+				clearInteriorRenderable(EDGE_VISIBILITY_TESTS[n + 2]);
 			}
 		}
 
 		// don't render corner blocks obscured by neighboring chunks
-		if (isClosed(regionIndex(-1, 0, 0)) && isClosed(regionIndex(0, -1, 0)) && isClosed(regionIndex(0, 0, -1))) {
-			clearInteriorRenderable(0, 0, 0);
-		}
-
-		if (isClosed(regionIndex(16, 0, 0)) && isClosed(regionIndex(15, -1, 0)) && isClosed(regionIndex(15, 0, -1))) {
-			clearInteriorRenderable(15, 0, 0);
-		}
-
-		if (isClosed(regionIndex(-1, 15, 0)) && isClosed(regionIndex(0, 16, 0)) && isClosed(regionIndex(0, 15, -1))) {
-			clearInteriorRenderable(0, 15, 0);
-		}
-
-		if (isClosed(regionIndex(16, 15, 0)) && isClosed(regionIndex(15, 16, 0)) && isClosed(regionIndex(15, 15, -1))) {
-			clearInteriorRenderable(15, 15, 0);
-		}
-
-		if (isClosed(regionIndex(-1, 0, 15)) && isClosed(regionIndex(0, -1, 15)) && isClosed(regionIndex(0, 0, 16))) {
-			clearInteriorRenderable(0, 0, 15);
-		}
-
-		if (isClosed(regionIndex(16, 0, 15)) && isClosed(regionIndex(15, -1, 15)) && isClosed(regionIndex(15, 0, 16))) {
-			clearInteriorRenderable(15, 0, 15);
-		}
-
-		if (isClosed(regionIndex(-1, 15, 15)) && isClosed(regionIndex(0, 16, 15)) && isClosed(regionIndex(0, 15, 16))) {
-			clearInteriorRenderable(0, 15, 15);
-		}
-
-		if (isClosed(regionIndex(16, 15, 15)) && isClosed(regionIndex(15, 16, 15)) && isClosed(regionIndex(15, 15, 16))) {
-			clearInteriorRenderable(15, 15, 15);
+		for (int n = 0; n < CORNER_VISIBILITY_COUNT; n += 4) {
+			if (isClosed(CORNER_VISIBILITY_TESTS[n]) && isClosed(CORNER_VISIBILITY_TESTS[n + 1]) && isClosed(CORNER_VISIBILITY_TESTS[n + 2])) {
+				clearInteriorRenderable(CORNER_VISIBILITY_TESTS[n + 3]);
+			}
 		}
 	}
 
