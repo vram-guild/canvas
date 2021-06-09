@@ -40,6 +40,8 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 
 import net.fabricmc.api.EnvType;
@@ -536,6 +538,10 @@ public class BuiltRenderRegion {
 		final FastRenderRegion region = context.region;
 		final Vec3d cameraPos = cwr.cameraPos();
 		final MatrixStack matrixStack = new MatrixStack();
+		final MatrixStack.Entry entry = matrixStack.peek();
+		final Matrix4f modelMatrix = entry.getModel();
+		final Matrix3f normalMatrix = entry.getNormal();
+
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 		final OcclusionRegion occlusionRegion = region.occlusion;
 
@@ -552,9 +558,10 @@ public class BuiltRenderRegion {
 				final boolean hasBlock = blockState.getRenderType() != BlockRenderType.INVISIBLE;
 
 				if (hasFluid || hasBlock) {
-					// PERF: allocation, speed
-					matrixStack.push();
-					matrixStack.translate(x, y, z);
+					// Vanilla does a push/pop for each block but that creates needless allocation spam.
+					modelMatrix.loadIdentity();
+					modelMatrix.multiplyByTranslation(x, y, z);
+					normalMatrix.loadIdentity();
 
 					if (hasFluid) {
 						context.renderFluid(blockState, searchPos, false, FluidQuadSupplier.get(fluidState.getFluid()), matrixStack);
@@ -565,15 +572,13 @@ public class BuiltRenderRegion {
 							final Vec3d vec3d = blockState.getModelOffset(region, searchPos);
 
 							if (vec3d != Vec3d.ZERO) {
-								matrixStack.translate(vec3d.x, vec3d.y, vec3d.z);
+								modelMatrix.multiplyByTranslation((float) vec3d.x, (float) vec3d.y, (float) vec3d.z);
 							}
 						}
 
 						final BakedModel model = blockRenderManager.getModel(blockState);
 						context.renderBlock(blockState, searchPos, model.useAmbientOcclusion(), (FabricBakedModel) model, matrixStack);
 					}
-
-					matrixStack.pop();
 				}
 			}
 		}
