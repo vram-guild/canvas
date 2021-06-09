@@ -23,13 +23,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import net.minecraft.client.render.BackgroundRenderer;
 
-import grondag.canvas.varia.WorldDataManager;
+import grondag.canvas.shader.data.ShaderDataManager;
 
 @Mixin(BackgroundRenderer.class)
 public class MixinBackgroundRenderer {
 	@Redirect(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clearColor(FFFF)V"), require = 1)
 	private static void onClearColor(float r, float g, float b, float a) {
-		WorldDataManager.captureClearColor(r, g, b);
+		ShaderDataManager.captureClearColor(r, g, b);
 		RenderSystem.clearColor(r, g, b, a);
 	}
 }

@@ -14,34 +14,17 @@
  *  the License.
  */
 
-package grondag.canvas.shader;
+package grondag.canvas.shader.data;
 
 import java.util.function.Consumer;
 
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.util.Identifier;
-
+import grondag.canvas.shader.GlProgram;
 import grondag.canvas.texture.TextureData;
-import grondag.canvas.varia.FlagData;
-import grondag.canvas.varia.MatrixState;
-import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
-public class ShaderData {
-	public static final Identifier DEFAULT_VERTEX_SOURCE = new Identifier("canvas:shaders/material/default.vert");
-	public static final Identifier DEFAULT_FRAGMENT_SOURCE = new Identifier("canvas:shaders/material/default.frag");
-
-	public static final Identifier MATERIAL_MAIN_VERTEX = new Identifier("canvas:shaders/internal/material_main.vert");
-	public static final Identifier MATERIAL_MAIN_FRAGMENT = new Identifier("canvas:shaders/internal/material_main.frag");
-
-	public static final Identifier DEPTH_MAIN_VERTEX = new Identifier("canvas:shaders/internal/shadow_main.vert");
-	public static final Identifier DEPTH_MAIN_FRAGMENT = new Identifier("canvas:shaders/internal/shadow_main.frag");
-
-	public static final String API_TARGET = "#include canvas:apitarget";
-	public static final String FRAGMENT_START = "#include canvas:startfragment";
-	public static final String VERTEX_START = "#include canvas:startvertex";
-
+public class ShaderUniforms {
 	public static final Consumer<GlProgram> MATERIAL_UNIFORM_SETUP = program -> {
 		program.uniformSampler("sampler2D", "frxs_spriteAltas", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MC_SPRITE_ATLAS - GL21.GL_TEXTURE0));
 
@@ -58,14 +41,14 @@ public class ShaderData {
 	};
 
 	public static final Consumer<GlProgram> COMMON_UNIFORM_SETUP = program -> {
-		program.uniformArray4f("_cvu_world", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(WorldDataManager.DATA), WorldDataManager.VECTOR_COUNT);
+		program.uniformArray4f("_cvu_world", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(FloatData.FLOAT_VECTOR_DATA), FloatData.FLOAT_VECTOR_COUNT);
 
-		program.uniformArrayui("_cvu_world_uint", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(WorldDataManager.UINT_DATA), WorldDataManager.UINT_COUNT);
+		program.uniformArrayui("_cvu_world_uint", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(IntData.UINT_DATA), IntData.UINT_COUNT);
 
-		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(FlagData.DATA), FlagData.LENGTH);
+		program.uniformArrayui("_cvu_flags", UniformRefreshFrequency.PER_FRAME, u -> u.setExternal(IntData.INT_DATA), IntData.INT_LENGTH);
 
-		program.uniformMatrix4fArray("_cvu_matrix", UniformRefreshFrequency.PER_FRAME, u -> u.set(MatrixState.DATA));
+		program.uniformMatrix4fArray("_cvu_matrix", UniformRefreshFrequency.PER_FRAME, u -> u.set(MatrixData.MATRIX_DATA));
 
-		program.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.PER_FRAME, u -> u.set(MatrixState.viewNormalMatrix));
+		program.uniformMatrix3f("_cvu_normal_model_matrix", UniformRefreshFrequency.PER_FRAME, u -> u.set(MatrixData.viewNormalMatrix));
 	};
 }

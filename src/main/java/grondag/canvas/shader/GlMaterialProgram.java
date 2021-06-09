@@ -24,10 +24,10 @@ import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.shader.data.MatrixState;
+import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.texture.SpriteIndex;
 import grondag.canvas.texture.TextureData;
-import grondag.canvas.varia.MatrixState;
-import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlMaterialProgram extends GlProgram {
@@ -78,16 +78,16 @@ public class GlMaterialProgram extends GlProgram {
 		MODEL_ORIGIN.put(2, z);
 
 		// to get to view/camera space, add world and subtract camera
-		MODEL_ORIGIN.put(4, (float) (x - WorldDataManager.cameraXd));
-		MODEL_ORIGIN.put(5, (float) (y - WorldDataManager.cameraYd));
-		MODEL_ORIGIN.put(6, (float) (z - WorldDataManager.cameraZd));
+		MODEL_ORIGIN.put(4, (float) (x - ShaderDataManager.cameraXd));
+		MODEL_ORIGIN.put(5, (float) (y - ShaderDataManager.cameraYd));
+		MODEL_ORIGIN.put(6, (float) (z - ShaderDataManager.cameraZd));
 	}
 
 	private void setCameraOrigin() {
 		// camera is the model origin, so to get world just add camera pos
-		MODEL_ORIGIN.put(0, WorldDataManager.cameraX);
-		MODEL_ORIGIN.put(1, WorldDataManager.cameraY);
-		MODEL_ORIGIN.put(2, WorldDataManager.cameraZ);
+		MODEL_ORIGIN.put(0, ShaderDataManager.cameraX);
+		MODEL_ORIGIN.put(1, ShaderDataManager.cameraY);
+		MODEL_ORIGIN.put(2, ShaderDataManager.cameraZ);
 
 		// relative to camera, so model to view space is zero
 		MODEL_ORIGIN.put(4, 0);

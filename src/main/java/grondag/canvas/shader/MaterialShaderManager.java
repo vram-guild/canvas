@@ -23,6 +23,7 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.shader.data.ShaderStrings;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.IndexedInterner;
 
@@ -96,8 +97,8 @@ public enum MaterialShaderManager {
 		return programType.ordinal() | ((long) fragmentShaderIndex << 16) | ((long) vertexShaderIndex << 32);
 	}
 
-	public static final int DEFAULT_VERTEX_INDEX = VERTEX_INDEXER.toHandle(ShaderData.DEFAULT_VERTEX_SOURCE);
-	public static final int DEFAULT_FRAGMENT_INDEX = FRAGMENT_INDEXER.toHandle(ShaderData.DEFAULT_FRAGMENT_SOURCE);
+	public static final int DEFAULT_VERTEX_INDEX = VERTEX_INDEXER.toHandle(ShaderStrings.DEFAULT_VERTEX_SOURCE);
+	public static final int DEFAULT_FRAGMENT_INDEX = FRAGMENT_INDEXER.toHandle(ShaderStrings.DEFAULT_FRAGMENT_SOURCE);
 
 	static int[] vertexIds(ProgramType programType) {
 		return programType.isDepth ? DEPTH_VERTEX_INDEXES.toIntArray() : VERTEX_INDEXES.toIntArray();

@@ -30,7 +30,7 @@ import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
-import grondag.canvas.shader.ShaderData;
+import grondag.canvas.shader.data.ShaderStrings;
 import grondag.fermion.bits.BitPacker64;
 import grondag.frex.api.material.MaterialFinder;
 
@@ -236,7 +236,7 @@ abstract class AbstractRenderStateView {
 
 		long defaultBits = 0; //PRIMITIVE.setValue(GL11.GL_QUADS, 0);
 
-		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE, ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
+		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE, ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
 		defaultBits = BLENDMODE.setValue(BlendMode.DEFAULT, defaultBits);
 		defaultBits = CULL.setValue(true, defaultBits);
 		defaultBits = DEPTH_TEST.setValue(MaterialFinder.DEPTH_TEST_LEQUAL, defaultBits);

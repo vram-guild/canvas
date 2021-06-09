@@ -45,9 +45,9 @@ import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
+import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.ProtoRenderRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
-import grondag.canvas.varia.WorldDataManager;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 
@@ -120,7 +120,7 @@ public class Canvas implements Renderer {
 		// LightmapHdTexture.reload();
 		// LightmapHd.reload();
 		MaterialTextureState.reload();
-		WorldDataManager.reload();
+		ShaderDataManager.reload();
 		Timekeeper.configOrPipelineReload();
 	}
 

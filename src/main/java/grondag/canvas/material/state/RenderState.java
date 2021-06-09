@@ -34,10 +34,10 @@ import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderImpl;
+import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.varia.MatrixState;
 import grondag.fermion.bits.BitPacker64;
 
 /**

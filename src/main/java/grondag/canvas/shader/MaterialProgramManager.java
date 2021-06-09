@@ -19,6 +19,7 @@ package grondag.canvas.shader;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.shader.data.ShaderUniforms;
 import grondag.canvas.varia.GFX;
 
 public enum MaterialProgramManager {
@@ -41,7 +42,7 @@ public enum MaterialProgramManager {
 			final Shader vs = new GlMaterialShader(programType.vertexSource, GFX.GL_VERTEX_SHADER, programType);
 			final Shader fs = new GlMaterialShader(programType.fragmentSource, GFX.GL_FRAGMENT_SHADER, programType);
 			result = new GlMaterialProgram(vs, fs, CanvasVertexFormats.MATERIAL_FORMAT, programType);
-			ShaderData.MATERIAL_UNIFORM_SETUP.accept(result);
+			ShaderUniforms.MATERIAL_UNIFORM_SETUP.accept(result);
 			materialPrograms[key] = result;
 		}
 

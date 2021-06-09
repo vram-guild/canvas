@@ -45,13 +45,16 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	public static final int READY = 1;
 	public static final int RUNNING = 2;
 	public static final int COMPLETE = 3;
+
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[CanvasWorldRenderer.MAX_REGION_COUNT];
 	private final RenderRegionStorage renderRegionStorage;
 	public final TerrainOccluder terrainOccluder;
 	private final AtomicInteger state = new AtomicInteger(IDLE);
 	private final PotentiallyVisibleRegionSorter distanceSorter;
+
 	public volatile int visibleRegionCount;
+
 	private BuiltRenderRegion cameraRegion;
 	private Vec3d cameraPos;
 	private long cameraChunkOrigin;

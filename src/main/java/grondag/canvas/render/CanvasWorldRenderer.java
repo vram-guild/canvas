@@ -100,6 +100,9 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
+import grondag.canvas.shader.data.MatrixData;
+import grondag.canvas.shader.data.MatrixState;
+import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
@@ -111,8 +114,6 @@ import grondag.canvas.terrain.region.RenderRegionPruner;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.varia.MatrixState;
-import grondag.canvas.varia.WorldDataManager;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class CanvasWorldRenderer extends WorldRenderer {
@@ -422,7 +423,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (mc.options.viewDistance >= 4) {
 			// We call applyFog here to do some state capture - otherwise has no effect
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
-			WorldDataManager.captureFogDistances();
+			ShaderDataManager.captureFogDistances();
 			profileSwap(profiler, ProfilerGroup.StartWorld, "sky");
 			// NB: fog / sky renderer normalcy get viewMatrixStack but we apply camera rotation in VertexBuffer mixin
 			RenderSystem.setShader(GameRenderer::getPositionShader);
@@ -435,7 +436,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
-		WorldDataManager.captureFogDistances();
+		ShaderDataManager.captureFogDistances();
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
@@ -468,9 +469,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		if (this.world.getSkyProperties().isDarkened()) {
 			// True for nether - yarn names here are not great
 			// Causes lower face to be lit like top face
-			DiffuseLighting.enableForLevel(MatrixState.viewMatrix);
+			DiffuseLighting.enableForLevel(MatrixData.viewMatrix);
 		} else {
-			DiffuseLighting.disableForLevel(MatrixState.viewMatrix);
+			DiffuseLighting.disableForLevel(MatrixData.viewMatrix);
 		}
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
@@ -1214,7 +1215,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
 		terrainFrustum.prepare(viewMatrix, tickDelta, camera, terrainOccluder.hasNearOccluders());
 		particleRenderer.frustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
-		WorldDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
+		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
 
 		eventContext.prepare(this, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, wr.canvas_mc().getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), world);

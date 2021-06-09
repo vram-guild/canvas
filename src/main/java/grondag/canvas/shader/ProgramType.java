@@ -18,9 +18,11 @@ package grondag.canvas.shader;
 
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.shader.data.ShaderStrings;
+
 public enum ProgramType {
-	MATERIAL_COLOR(false, ShaderData.MATERIAL_MAIN_VERTEX, ShaderData.MATERIAL_MAIN_FRAGMENT),
-	MATERIAL_DEPTH(true, ShaderData.DEPTH_MAIN_VERTEX, ShaderData.DEPTH_MAIN_FRAGMENT),
+	MATERIAL_COLOR(false, ShaderStrings.MATERIAL_MAIN_VERTEX, ShaderStrings.MATERIAL_MAIN_FRAGMENT),
+	MATERIAL_DEPTH(true, ShaderStrings.DEPTH_MAIN_VERTEX, ShaderStrings.DEPTH_MAIN_FRAGMENT),
 	PROCESS(false, null, null);
 
 	public final String name;

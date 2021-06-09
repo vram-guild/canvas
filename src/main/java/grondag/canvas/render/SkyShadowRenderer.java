@@ -23,8 +23,9 @@ import net.minecraft.client.MinecraftClient;
 import grondag.canvas.buffer.encoding.DrawableBuffer;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.shader.data.MatrixState;
+import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.varia.MatrixState;
 
 public class SkyShadowRenderer {
 	private static boolean active = false;
@@ -52,7 +53,7 @@ public class SkyShadowRenderer {
 		if (Pipeline.skyShadowFbo != null) {
 			begin();
 
-			for (cascade = 0; cascade < MatrixState.CASCADE_COUNT; ++cascade) {
+			for (cascade = 0; cascade < ShadowMatrixData.CASCADE_COUNT; ++cascade) {
 				Pipeline.skyShadowFbo.bind();
 				GFX.framebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, Pipeline.shadowMapDepth, 0, cascade);
 				renderInner(canvasWorldRenderer, cameraX, cameraY, cameraZ, entityBuffer, shadowExtrasBuffer);

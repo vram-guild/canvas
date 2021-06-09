@@ -22,8 +22,8 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.SpriteIndex;
-import grondag.canvas.varia.MatrixState;
 
 public final class MaterialShaderImpl {
 	public final int index;

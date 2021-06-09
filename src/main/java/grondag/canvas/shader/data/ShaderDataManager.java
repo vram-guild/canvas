@@ -14,13 +14,114 @@
  *  the License.
  */
 
-package grondag.canvas.varia;
+package grondag.canvas.shader.data;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import static grondag.canvas.shader.data.FloatData.AMBIENT_INTENSITY;
+import static grondag.canvas.shader.data.FloatData.ATMOSPHERIC_COLOR;
+import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_BLUE;
+import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_GREEN;
+import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_RED;
+import static grondag.canvas.shader.data.FloatData.EYE_LIGHT_BLOCK;
+import static grondag.canvas.shader.data.FloatData.EYE_LIGHT_SKY;
+import static grondag.canvas.shader.data.FloatData.EYE_POSITION;
+import static grondag.canvas.shader.data.FloatData.FLOAT_VECTOR_DATA;
+import static grondag.canvas.shader.data.FloatData.FOG_COLOR;
+import static grondag.canvas.shader.data.FloatData.FOG_END;
+import static grondag.canvas.shader.data.FloatData.FOG_START;
+import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_BLUE;
+import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_GREEN;
+import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_INTENSITY;
+import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_RED;
+import static grondag.canvas.shader.data.FloatData.MOON_SIZE;
+import static grondag.canvas.shader.data.FloatData.NIGHT_VISION_STRENGTH;
+import static grondag.canvas.shader.data.FloatData.PLAYER_MOOD;
+import static grondag.canvas.shader.data.FloatData.RAIN_STRENGTH;
+import static grondag.canvas.shader.data.FloatData.RENDER_SECONDS;
+import static grondag.canvas.shader.data.FloatData.SKYLIGHT_COLOR;
+import static grondag.canvas.shader.data.FloatData.SKYLIGHT_ILLUMINANCE;
+import static grondag.canvas.shader.data.FloatData.SKYLIGHT_TRANSITION_FACTOR;
+import static grondag.canvas.shader.data.FloatData.SKYLIGHT_VECTOR;
+import static grondag.canvas.shader.data.FloatData.SKY_ANGLE_RADIANS;
+import static grondag.canvas.shader.data.FloatData.SMOOTHED_EYE_LIGHT_BLOCK;
+import static grondag.canvas.shader.data.FloatData.SMOOTHED_EYE_LIGHT_SKY;
+import static grondag.canvas.shader.data.FloatData.SMOOTHED_RAIN_STRENGTH;
+import static grondag.canvas.shader.data.FloatData.THUNDER_STRENGTH;
+import static grondag.canvas.shader.data.FloatData.VEC_CAMERA_POS;
+import static grondag.canvas.shader.data.FloatData.VEC_CAMERA_VIEW;
+import static grondag.canvas.shader.data.FloatData.VEC_ENTITY_VIEW;
+import static grondag.canvas.shader.data.FloatData.VEC_LAST_CAMERA_POS;
+import static grondag.canvas.shader.data.FloatData.VEC_VANILLA_CLEAR_COLOR;
+import static grondag.canvas.shader.data.FloatData.VIEW_ASPECT;
+import static grondag.canvas.shader.data.FloatData.VIEW_BRIGHTNESS;
+import static grondag.canvas.shader.data.FloatData.VIEW_DISTANCE;
+import static grondag.canvas.shader.data.FloatData.VIEW_HEIGHT;
+import static grondag.canvas.shader.data.FloatData.VIEW_WIDTH;
+import static grondag.canvas.shader.data.FloatData.WORLD_DAYS;
+import static grondag.canvas.shader.data.FloatData.WORLD_TIME;
+import static grondag.canvas.shader.data.IntData.FLAG_ABSORPTION;
+import static grondag.canvas.shader.data.IntData.FLAG_BAD_OMEN;
+import static grondag.canvas.shader.data.IntData.FLAG_BLINDNESS;
+import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_FLUID;
+import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_LAVA;
+import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_WATER;
+import static grondag.canvas.shader.data.IntData.FLAG_CONDUIT_POWER;
+import static grondag.canvas.shader.data.IntData.FLAG_CREATIVE;
+import static grondag.canvas.shader.data.IntData.FLAG_DOLPHINS_GRACE;
+import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_FLUID;
+import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_LAVA;
+import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_WATER;
+import static grondag.canvas.shader.data.IntData.FLAG_FIRE_RESISTANCE;
+import static grondag.canvas.shader.data.IntData.FLAG_GLOWING;
+import static grondag.canvas.shader.data.IntData.FLAG_HASTE;
+import static grondag.canvas.shader.data.IntData.FLAG_HAS_SKYLIGHT;
+import static grondag.canvas.shader.data.IntData.FLAG_HEALTH_BOOST;
+import static grondag.canvas.shader.data.IntData.FLAG_HERO_OF_THE_VILLAGE;
+import static grondag.canvas.shader.data.IntData.FLAG_HUNGER;
+import static grondag.canvas.shader.data.IntData.FLAG_INSTANT_DAMAGE;
+import static grondag.canvas.shader.data.IntData.FLAG_INSTANT_HEALTH;
+import static grondag.canvas.shader.data.IntData.FLAG_INVISIBILITY;
+import static grondag.canvas.shader.data.IntData.FLAG_IS_END;
+import static grondag.canvas.shader.data.IntData.FLAG_IS_NETHER;
+import static grondag.canvas.shader.data.IntData.FLAG_IS_OVERWORLD;
+import static grondag.canvas.shader.data.IntData.FLAG_IS_RAINING;
+import static grondag.canvas.shader.data.IntData.FLAG_IS_SKY_DARKENED;
+import static grondag.canvas.shader.data.IntData.FLAG_IS_THUNDERING;
+import static grondag.canvas.shader.data.IntData.FLAG_JUMP_BOOST;
+import static grondag.canvas.shader.data.IntData.FLAG_LEVITATION;
+import static grondag.canvas.shader.data.IntData.FLAG_LUCK;
+import static grondag.canvas.shader.data.IntData.FLAG_MINING_FATIGUE;
+import static grondag.canvas.shader.data.IntData.FLAG_MOONLIT;
+import static grondag.canvas.shader.data.IntData.FLAG_NAUSEA;
+import static grondag.canvas.shader.data.IntData.FLAG_NIGHT_VISION;
+import static grondag.canvas.shader.data.IntData.FLAG_ON_FIRE;
+import static grondag.canvas.shader.data.IntData.FLAG_POISON;
+import static grondag.canvas.shader.data.IntData.FLAG_REGENERATION;
+import static grondag.canvas.shader.data.IntData.FLAG_RESISTANCE;
+import static grondag.canvas.shader.data.IntData.FLAG_RIDING;
+import static grondag.canvas.shader.data.IntData.FLAG_SATURATION;
+import static grondag.canvas.shader.data.IntData.FLAG_SLEEPING;
+import static grondag.canvas.shader.data.IntData.FLAG_SLOWNESS;
+import static grondag.canvas.shader.data.IntData.FLAG_SLOW_FALLING;
+import static grondag.canvas.shader.data.IntData.FLAG_SNEAKING;
+import static grondag.canvas.shader.data.IntData.FLAG_SNEAKING_POSE;
+import static grondag.canvas.shader.data.IntData.FLAG_SPECTATOR;
+import static grondag.canvas.shader.data.IntData.FLAG_SPEED;
+import static grondag.canvas.shader.data.IntData.FLAG_SPRINTING;
+import static grondag.canvas.shader.data.IntData.FLAG_STRENGTH;
+import static grondag.canvas.shader.data.IntData.FLAG_SWIMMING;
+import static grondag.canvas.shader.data.IntData.FLAG_SWIMMING_POSE;
+import static grondag.canvas.shader.data.IntData.FLAG_UNLUCK;
+import static grondag.canvas.shader.data.IntData.FLAG_WATER_BREATHING;
+import static grondag.canvas.shader.data.IntData.FLAG_WEAKNESS;
+import static grondag.canvas.shader.data.IntData.FLAG_WET;
+import static grondag.canvas.shader.data.IntData.FLAG_WITHER;
+import static grondag.canvas.shader.data.IntData.INT_DATA;
+import static grondag.canvas.shader.data.IntData.PLAYER_DATA_INDEX;
+import static grondag.canvas.shader.data.IntData.RENDER_FRAMES;
+import static grondag.canvas.shader.data.IntData.UINT_DATA;
+import static grondag.canvas.shader.data.IntData.WORLD_DATA_INDEX;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.BufferUtils;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -45,156 +146,12 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.varia.CelestialObjectFunction;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectInput;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
-import grondag.fermion.bits.BitPacker32;
 import grondag.frex.api.light.ItemLight;
 
-public class WorldDataManager {
-	public static final int VECTOR_COUNT = 32;
-	private static final int LENGTH = VECTOR_COUNT * 4;
-
-	private static final int VEC_WORLD_TIME = 4 * 0;
-	private static final int RENDER_SECONDS = VEC_WORLD_TIME;
-	private static final int WORLD_TIME = VEC_WORLD_TIME + 1;
-	private static final int WORLD_DAYS = VEC_WORLD_TIME + 2;
-	private static final int MOON_SIZE = VEC_WORLD_TIME + 3;
-
-	private static final int VEC_AMBIENT_LIGHT = 4 * 1;
-	private static final int EMISSIVE_COLOR_RED = VEC_AMBIENT_LIGHT;
-	private static final int EMISSIVE_COLOR_GREEN = VEC_AMBIENT_LIGHT + 1;
-	private static final int EMISSIVE_COLOR_BLUE = VEC_AMBIENT_LIGHT + 2;
-	private static final int AMBIENT_INTENSITY = VEC_AMBIENT_LIGHT + 3;
-
-	// carries view distance in spare slot
-	private static final int VEC_VANILLA_CLEAR_COLOR = 4 * 2;
-	private static final int VIEW_DISTANCE = VEC_VANILLA_CLEAR_COLOR + 3;
-
-	private static final int VEC_HELD_LIGHT = 4 * 3;
-	private static final int HELD_LIGHT_RED = VEC_HELD_LIGHT;
-	private static final int HELD_LIGHT_GREEN = VEC_HELD_LIGHT + 1;
-	private static final int HELD_LIGHT_BLUE = VEC_HELD_LIGHT + 2;
-	private static final int HELD_LIGHT_INTENSITY = VEC_HELD_LIGHT + 3;
-
-	// camera position in world space
-	// carries player mood in spare slot
-	private static final int VEC_CAMERA_POS = 4 * 4;
-	private static final int PLAYER_MOOD = VEC_CAMERA_POS + 3;
-
-	// carries effect strength in spare slot
-	private static final int VEC_LAST_CAMERA_POS = 4 * 5;
-	private static final int NIGHT_VISION_STRENGTH = VEC_LAST_CAMERA_POS + 3;
-
-	// camera view vector in world space
-	// carries rain strength in spare slot
-	private static final int VEC_CAMERA_VIEW = 4 * 6;
-	private static final int RAIN_STRENGTH = VEC_CAMERA_VIEW + 3;
-
-	// entity view vector in world space
-	// smoothed rain strength in spare slot
-	private static final int VEC_ENTITY_VIEW = 4 * 7;
-	private static final int SMOOTHED_RAIN_STRENGTH = VEC_ENTITY_VIEW + 3;
-
-	private static final int VEC_VIEW_PARAMS = 4 * 8;
-	private static final int VIEW_WIDTH = VEC_VIEW_PARAMS;
-	private static final int VIEW_HEIGHT = VEC_VIEW_PARAMS + 1;
-	private static final int VIEW_ASPECT = VEC_VIEW_PARAMS + 2;
-	private static final int VIEW_BRIGHTNESS = VEC_VIEW_PARAMS + 3;
-
-	private static final int EYE_BRIGHTNESS = 4 * 9;
-	private static final int EYE_LIGHT_BLOCK = EYE_BRIGHTNESS;
-	private static final int EYE_LIGHT_SKY = EYE_BRIGHTNESS + 1;
-	private static final int SMOOTHED_EYE_LIGHT_BLOCK = EYE_BRIGHTNESS + 2;
-	private static final int SMOOTHED_EYE_LIGHT_SKY = EYE_BRIGHTNESS + 3;
-
-	// thunder gradient in spare slot
-	private static final int EYE_POSITION = 4 * 10;
-	private static final int THUNDER_STRENGTH = EYE_POSITION + 3;
-
-	private static final int SKYLIGHT_VECTOR = 4 * 11;
-	private static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
-
-	private static final int FOG_COLOR = 4 * 12;
-
-	private static final int ATMOSPHERIC_COLOR = 4 * 13;
-	private static final int SKYLIGHT_TRANSITION_FACTOR = ATMOSPHERIC_COLOR + 3;
-
-	private static final int SKYLIGHT_COLOR = 4 * 14;
-	private static final int SKYLIGHT_ILLUMINANCE = SKYLIGHT_COLOR + 3;
-
-	// 15-18 reserved for cascades 0-3
-	static final int SHADOW_CENTER = 4 * 15;
-
-	private static final int VEC_RENDER_INFO = 4 * 19;
-	private static final int FOG_START = VEC_RENDER_INFO;
-	private static final int FOG_END = VEC_RENDER_INFO + 1;
-
-	public static final int UINT_COUNT = 1;
-	private static final int RENDER_FRAMES = 0;
-	public static final IntBuffer UINT_DATA = BufferUtils.createIntBuffer(UINT_COUNT);
-
-	private static final BitPacker32<Void> WORLD_FLAGS = new BitPacker32<>(null, null);
-	private static final BitPacker32<Void>.BooleanElement FLAG_HAS_SKYLIGHT = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_IS_OVERWORLD = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_IS_NETHER = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_IS_END = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_IS_RAINING = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_IS_THUNDERING = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_IS_SKY_DARKENED = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_EYE_IN_FLUID = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_EYE_IN_WATER = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_EYE_IN_LAVA = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SNEAKING = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SWIMMING = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SNEAKING_POSE = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SWIMMING_POSE = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_CREATIVE = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SPECTATOR = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_RIDING = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_ON_FIRE = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SLEEPING = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SPRINTING = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_WET = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_MOONLIT = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_CAMERA_IN_FLUID = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_CAMERA_IN_WATER = WORLD_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_CAMERA_IN_LAVA = WORLD_FLAGS.createBooleanElement();
-
-	private static final BitPacker32<Void> PLAYER_FLAGS = new BitPacker32<>(null, null);
-	private static final BitPacker32<Void>.BooleanElement FLAG_SPEED = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SLOWNESS = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_HASTE = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_MINING_FATIGUE = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_STRENGTH = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_INSTANT_HEALTH = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_INSTANT_DAMAGE = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_JUMP_BOOST = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_NAUSEA = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_REGENERATION = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_RESISTANCE = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_FIRE_RESISTANCE = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_WATER_BREATHING = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_INVISIBILITY = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_BLINDNESS = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_NIGHT_VISION = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_HUNGER = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_WEAKNESS = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_POISON = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_WITHER = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_HEALTH_BOOST = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_ABSORPTION = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SATURATION = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_GLOWING = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_LEVITATION = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_LUCK = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_UNLUCK = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_SLOW_FALLING = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_CONDUIT_POWER = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_DOLPHINS_GRACE = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_BAD_OMEN = PLAYER_FLAGS.createBooleanElement();
-	private static final BitPacker32<Void>.BooleanElement FLAG_HERO_OF_THE_VILLAGE = PLAYER_FLAGS.createBooleanElement();
-
-	public static final FloatBuffer DATA = BufferUtils.createFloatBuffer(LENGTH);
+public class ShaderDataManager {
 	private static int worldFlags;
 	private static int playerFlags;
 	static long baseRenderTime = System.currentTimeMillis();
@@ -252,17 +209,17 @@ public class WorldDataManager {
 	}
 
 	public static void captureClearColor(float r, float g, float b) {
-		DATA.put(VEC_VANILLA_CLEAR_COLOR, r);
-		DATA.put(VEC_VANILLA_CLEAR_COLOR + 1, g);
-		DATA.put(VEC_VANILLA_CLEAR_COLOR + 2, b);
+		FLOAT_VECTOR_DATA.put(VEC_VANILLA_CLEAR_COLOR, r);
+		FLOAT_VECTOR_DATA.put(VEC_VANILLA_CLEAR_COLOR + 1, g);
+		FLOAT_VECTOR_DATA.put(VEC_VANILLA_CLEAR_COLOR + 2, b);
 	}
 
 	private static void computeEyeNumbers(ClientWorld world, ClientPlayerEntity player) {
 		float sky = 15, block = 15;
 
-		DATA.put(EYE_POSITION, (float) player.getX());
-		DATA.put(EYE_POSITION + 1, (float) player.getY());
-		DATA.put(EYE_POSITION + 2, (float) player.getZ());
+		FLOAT_VECTOR_DATA.put(EYE_POSITION, (float) player.getX());
+		FLOAT_VECTOR_DATA.put(EYE_POSITION + 1, (float) player.getY());
+		FLOAT_VECTOR_DATA.put(EYE_POSITION + 2, (float) player.getZ());
 
 		final int eyeX = MathHelper.floor(player.getX());
 		final int eyeZ = MathHelper.floor(player.getZ());
@@ -299,10 +256,10 @@ public class WorldDataManager {
 			smoothedEyeLightSky = sky > smoothedEyeLightSky ? sky : smoothedEyeLightSky * (1f - a) + a * sky;
 		}
 
-		DATA.put(EYE_LIGHT_BLOCK, block);
-		DATA.put(EYE_LIGHT_SKY, sky);
-		DATA.put(SMOOTHED_EYE_LIGHT_BLOCK, (float) smoothedEyeLightBlock);
-		DATA.put(SMOOTHED_EYE_LIGHT_SKY, (float) smoothedEyeLightSky);
+		FLOAT_VECTOR_DATA.put(EYE_LIGHT_BLOCK, block);
+		FLOAT_VECTOR_DATA.put(EYE_LIGHT_SKY, sky);
+		FLOAT_VECTOR_DATA.put(SMOOTHED_EYE_LIGHT_BLOCK, (float) smoothedEyeLightBlock);
+		FLOAT_VECTOR_DATA.put(SMOOTHED_EYE_LIGHT_SKY, (float) smoothedEyeLightSky);
 	}
 
 	private static void computeEyeFlags(ClientWorld world, ClientPlayerEntity player, BlockPos eyePos) {
@@ -351,13 +308,13 @@ public class WorldDataManager {
 
 	private static void updateRain(ClientWorld world, float tickDelta) {
 		final float rain = world.getRainGradient(tickDelta);
-		DATA.put(RAIN_STRENGTH, rain);
-		DATA.put(THUNDER_STRENGTH, world.getThunderGradient(tickDelta));
+		FLOAT_VECTOR_DATA.put(RAIN_STRENGTH, rain);
+		FLOAT_VECTOR_DATA.put(THUNDER_STRENGTH, world.getThunderGradient(tickDelta));
 
 		// Simple exponential smoothing
 		final double a = 1.0 - Math.pow(Math.E, -1.0 / Pipeline.config().rainSmoothingFrames);
 		smoothedRainStrength = smoothedRainStrength * (1f - a) + a * rain;
-		DATA.put(SMOOTHED_RAIN_STRENGTH, (float) smoothedRainStrength);
+		FLOAT_VECTOR_DATA.put(SMOOTHED_RAIN_STRENGTH, (float) smoothedRainStrength);
 	}
 
 	// WIP: make configurable by dimension, add smoothing
@@ -393,7 +350,7 @@ public class WorldDataManager {
 			}
 		}
 
-		DATA.put(SKYLIGHT_TRANSITION_FACTOR, factor);
+		FLOAT_VECTOR_DATA.put(SKYLIGHT_TRANSITION_FACTOR, factor);
 		return result;
 	}
 
@@ -424,12 +381,12 @@ public class WorldDataManager {
 			return;
 		}
 
-		DATA.put(RENDER_SECONDS, (System.currentTimeMillis() - baseRenderTime) / 1000f);
-		DATA.put(VIEW_DISTANCE, client.options.viewDistance * 16);
+		FLOAT_VECTOR_DATA.put(RENDER_SECONDS, (System.currentTimeMillis() - baseRenderTime) / 1000f);
+		FLOAT_VECTOR_DATA.put(VIEW_DISTANCE, client.options.viewDistance * 16);
 
-		DATA.put(VEC_LAST_CAMERA_POS, cameraX);
-		DATA.put(VEC_LAST_CAMERA_POS + 1, cameraY);
-		DATA.put(VEC_LAST_CAMERA_POS + 2, cameraZ);
+		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS, cameraX);
+		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS + 1, cameraY);
+		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS + 2, cameraZ);
 		final Vec3d cameraPos = camera.getPos();
 		cameraXd = cameraPos.x;
 		cameraX = (float) cameraXd;
@@ -440,38 +397,38 @@ public class WorldDataManager {
 		cameraZd = cameraPos.z;
 		cameraZ = (float) cameraZd;
 
-		DATA.put(VEC_CAMERA_POS, cameraX);
-		DATA.put(VEC_CAMERA_POS + 1, cameraY);
-		DATA.put(VEC_CAMERA_POS + 2, cameraZ);
+		FLOAT_VECTOR_DATA.put(VEC_CAMERA_POS, cameraX);
+		FLOAT_VECTOR_DATA.put(VEC_CAMERA_POS + 1, cameraY);
+		FLOAT_VECTOR_DATA.put(VEC_CAMERA_POS + 2, cameraZ);
 
 		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
 		putViewVector(VEC_ENTITY_VIEW, cameraEntity.getYaw(), cameraEntity.getPitch(), null);
 
-		MatrixState.update(entry, projectionMatrix, camera, tickDelta);
+		MatrixData.update(entry, projectionMatrix, camera, tickDelta);
 
-		DATA.put(VIEW_WIDTH, PipelineManager.width());
-		DATA.put(VIEW_HEIGHT, PipelineManager.height());
-		DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
-		DATA.put(VIEW_BRIGHTNESS, (float) client.options.gamma);
+		FLOAT_VECTOR_DATA.put(VIEW_WIDTH, PipelineManager.width());
+		FLOAT_VECTOR_DATA.put(VIEW_HEIGHT, PipelineManager.height());
+		FLOAT_VECTOR_DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
+		FLOAT_VECTOR_DATA.put(VIEW_BRIGHTNESS, (float) client.options.gamma);
 
 		final ClientWorld world = client.world;
 
 		if (world != null) {
 			final long days = world.getTimeOfDay() / 24000L;
-			DATA.put(WORLD_DAYS, (int) (days % 2147483647L));
+			FLOAT_VECTOR_DATA.put(WORLD_DAYS, (int) (days % 2147483647L));
 			final long tickTime = world.getTimeOfDay() - days * 24000L;
 			final boolean skyLight = world.getDimension().hasSkyLight();
-			DATA.put(WORLD_TIME, (float) (tickTime / 24000.0));
+			FLOAT_VECTOR_DATA.put(WORLD_TIME, (float) (tickTime / 24000.0));
 			final ClientPlayerEntity player = client.player;
-			DATA.put(PLAYER_MOOD, player.getMoodPercentage());
+			FLOAT_VECTOR_DATA.put(PLAYER_MOOD, player.getMoodPercentage());
 			computeEyeNumbers(world, player);
 			computeCameraFlags(world, camera);
 
 			final float[] fogColor = RenderSystem.getShaderFogColor();
-			DATA.put(FOG_COLOR, fogColor[0]);
-			DATA.put(FOG_COLOR + 1, fogColor[1]);
-			DATA.put(FOG_COLOR + 2, fogColor[2]);
-			DATA.put(FOG_COLOR + 3, fogColor[3]);
+			FLOAT_VECTOR_DATA.put(FOG_COLOR, fogColor[0]);
+			FLOAT_VECTOR_DATA.put(FOG_COLOR + 1, fogColor[1]);
+			FLOAT_VECTOR_DATA.put(FOG_COLOR + 2, fogColor[2]);
+			FLOAT_VECTOR_DATA.put(FOG_COLOR + 3, fogColor[3]);
 
 			if (skyLight) {
 				final boolean moonLight = computeSkylightFactor(tickTime);
@@ -481,8 +438,8 @@ public class WorldDataManager {
 				// WIP: fully implement celestial object model
 				// should compute all objects and choose brightest as the skylight
 				// and also apply dimension/pack settings
-				WorldDataManager.world = world;
-				WorldDataManager.tickDelta = tickDelta;
+				ShaderDataManager.world = world;
+				ShaderDataManager.tickDelta = tickDelta;
 
 				skyOutput.zenithAngle = Pipeline.defaultZenithAngle;
 
@@ -493,30 +450,30 @@ public class WorldDataManager {
 				}
 
 				// Note this computes the value of skyLightVector
-				MatrixState.updateShadow(camera, tickDelta, skyOutput);
-				DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
-				DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());
-				DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.getZ());
-				DATA.put(SKY_ANGLE_RADIANS, skyAngle);
+				ShadowMatrixData.update(camera, tickDelta, skyOutput);
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.getZ());
+				FLOAT_VECTOR_DATA.put(SKY_ANGLE_RADIANS, skyAngle);
 
 				worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
-				DATA.put(ATMOSPHERIC_COLOR + 0, skyOutput.atmosphericColorModifier.getX());
-				DATA.put(ATMOSPHERIC_COLOR + 1, skyOutput.atmosphericColorModifier.getY());
-				DATA.put(ATMOSPHERIC_COLOR + 2, skyOutput.atmosphericColorModifier.getZ());
-				DATA.put(SKYLIGHT_COLOR + 0, skyOutput.lightColor.getX());
-				DATA.put(SKYLIGHT_COLOR + 1, skyOutput.lightColor.getY());
-				DATA.put(SKYLIGHT_COLOR + 2, skyOutput.lightColor.getZ());
-				DATA.put(SKYLIGHT_ILLUMINANCE, skyOutput.illuminance);
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 0, skyOutput.atmosphericColorModifier.getX());
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 1, skyOutput.atmosphericColorModifier.getY());
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 2, skyOutput.atmosphericColorModifier.getZ());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 0, skyOutput.lightColor.getX());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 1, skyOutput.lightColor.getY());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 2, skyOutput.lightColor.getZ());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_ILLUMINANCE, skyOutput.illuminance);
 			} else {
-				DATA.put(SKYLIGHT_TRANSITION_FACTOR, 1);
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_TRANSITION_FACTOR, 1);
 				worldFlags = FLAG_MOONLIT.setValue(false, worldFlags);
-				DATA.put(ATMOSPHERIC_COLOR + 0, 1);
-				DATA.put(ATMOSPHERIC_COLOR + 1, 1);
-				DATA.put(ATMOSPHERIC_COLOR + 2, 1);
-				DATA.put(SKYLIGHT_COLOR + 0, 1);
-				DATA.put(SKYLIGHT_COLOR + 1, 1);
-				DATA.put(SKYLIGHT_COLOR + 2, 1);
-				DATA.put(SKYLIGHT_ILLUMINANCE, 0);
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 0, 1);
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 1, 1);
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 2, 1);
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 0, 1);
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 1, 1);
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 2, 1);
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_ILLUMINANCE, 0);
 			}
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);
@@ -595,39 +552,39 @@ public class WorldDataManager {
 				}
 			}
 
-			DATA.put(HELD_LIGHT_RED, light.red());
-			DATA.put(HELD_LIGHT_GREEN, light.green());
-			DATA.put(HELD_LIGHT_BLUE, light.blue());
-			DATA.put(HELD_LIGHT_INTENSITY, light.intensity());
+			FLOAT_VECTOR_DATA.put(HELD_LIGHT_RED, light.red());
+			FLOAT_VECTOR_DATA.put(HELD_LIGHT_GREEN, light.green());
+			FLOAT_VECTOR_DATA.put(HELD_LIGHT_BLUE, light.blue());
+			FLOAT_VECTOR_DATA.put(HELD_LIGHT_INTENSITY, light.intensity());
 
-			DATA.put(AMBIENT_INTENSITY, world.method_23783(1.0F));
-			DATA.put(MOON_SIZE, world.getMoonSize());
+			FLOAT_VECTOR_DATA.put(AMBIENT_INTENSITY, world.method_23783(1.0F));
+			FLOAT_VECTOR_DATA.put(MOON_SIZE, world.getMoonSize());
 
 			final float fluidModifier = client.player.getUnderwaterVisibility();
 
 			if (nightVision) {
-				DATA.put(NIGHT_VISION_STRENGTH, GameRenderer.getNightVisionStrength(client.player, tickDelta));
+				FLOAT_VECTOR_DATA.put(NIGHT_VISION_STRENGTH, GameRenderer.getNightVisionStrength(client.player, tickDelta));
 			} else if (fluidModifier > 0.0F && client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
-				DATA.put(NIGHT_VISION_STRENGTH, fluidModifier);
+				FLOAT_VECTOR_DATA.put(NIGHT_VISION_STRENGTH, fluidModifier);
 			}
 		}
 
-		FlagData.DATA.put(FlagData.WORLD_DATA_INDEX, worldFlags);
-		FlagData.DATA.put(FlagData.PLAYER_DATA_INDEX, playerFlags);
+		INT_DATA.put(WORLD_DATA_INDEX, worldFlags);
+		INT_DATA.put(PLAYER_DATA_INDEX, playerFlags);
 
 		UINT_DATA.put(RENDER_FRAMES, renderFrames++);
 	}
 
 	/** Called when values are known to be good because vanilla resets them outside of world rendering. */
 	public static void captureFogDistances() {
-		DATA.put(FOG_START, RenderSystem.getShaderFogStart());
-		DATA.put(FOG_END, RenderSystem.getShaderFogEnd());
+		FLOAT_VECTOR_DATA.put(FOG_START, RenderSystem.getShaderFogStart());
+		FLOAT_VECTOR_DATA.put(FOG_END, RenderSystem.getShaderFogEnd());
 	}
 
 	public static void updateEmissiveColor(int color) {
-		DATA.put(EMISSIVE_COLOR_RED, ((color >> 24) & 0xFF) / 255f);
-		DATA.put(EMISSIVE_COLOR_GREEN, ((color >> 16) & 0xFF) / 255f);
-		DATA.put(EMISSIVE_COLOR_BLUE, (color & 0xFF) / 255f);
+		FLOAT_VECTOR_DATA.put(EMISSIVE_COLOR_RED, ((color >> 24) & 0xFF) / 255f);
+		FLOAT_VECTOR_DATA.put(EMISSIVE_COLOR_GREEN, ((color >> 16) & 0xFF) / 255f);
+		FLOAT_VECTOR_DATA.put(EMISSIVE_COLOR_BLUE, (color & 0xFF) / 255f);
 	}
 
 	private static void putViewVector(int index, float yaw, float pitch, Vec3f storeTo) {
@@ -636,9 +593,9 @@ public class WorldDataManager {
 		final float y = (float) vec.y;
 		final float z = (float) vec.z;
 
-		DATA.put(index, x);
-		DATA.put(index + 1, y);
-		DATA.put(index + 2, z);
+		FLOAT_VECTOR_DATA.put(index, x);
+		FLOAT_VECTOR_DATA.put(index + 1, y);
+		FLOAT_VECTOR_DATA.put(index + 2, z);
 
 		if (storeTo != null) {
 			storeTo.set(x, y, z);
