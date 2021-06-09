@@ -27,17 +27,20 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+
+import grondag.canvas.config.Configurator;
 
 public abstract class OcclusionRegion {
 	public static final int CULL_DATA_REGION_BOUNDS = 0;
 	public static final int CULL_DATA_FIRST_BOX = 1;
 	public static final int[] EMPTY_CULL_DATA = {PackedBox.EMPTY_BOX};
-	// PERF: do we need space for exterior positions in all cases?
-	static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
-	static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
-	static final int WORD_COUNT = EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
+
+	private static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
+	private static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
+	private static final int WORD_COUNT = EXTERIOR_VISIBLE_OFFSET + TOTAL_CACHE_WORDS;
 	static final long[] EMPTY_BITS = new long[WORD_COUNT];
-	static final long[] EXTERIOR_MASK = new long[INTERIOR_CACHE_WORDS];
+	private static final long[] EXTERIOR_MASK = new long[INTERIOR_CACHE_WORDS];
 
 	static {
 		//		final int[] open = {0, 0, 0, 16, 16, 16, 0};
@@ -75,17 +78,14 @@ public abstract class OcclusionRegion {
 
 	public void prepare() {
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
-		captureFaces();
-		captureEdges();
-		captureCorners();
-
+		captureExterior();
 		openCount = INTERIOR_STATE_COUNT;
 		captureInterior();
 	}
 
-	protected abstract BlockState blockStateAtIndex(int index);
+	protected abstract BlockState blockStateAtIndex(int regionIndex);
 
-	protected abstract boolean closedAtRelativePos(BlockState blockState, int x, int y, int z);
+	protected abstract boolean closedAtRelativePos(BlockState blockState, int regionIndex);
 
 	public boolean isClosed(int index) {
 		return (bits[(index >> 6)] & (1L << (index & 63))) != 0;
@@ -109,76 +109,99 @@ public abstract class OcclusionRegion {
 		}
 	}
 
-	private void captureInteriorVisibility(int index, int x, int y, int z) {
-		final BlockState blockState = blockStateAtIndex(index);
-
-		// TODO: remove or make configurable
-		//		final boolean isHack = blockState.getBlock() == Blocks.WHITE_STAINED_GLASS;
+	private void captureInteriorVisibility(int regionIndex) {
+		final BlockState blockState = blockStateAtIndex(regionIndex);
 
 		if (blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
-			//			setVisibility(index, true, closedAtRelativePos(blockState, x, y, z) || isHack);
-			setVisibility(index, true, closedAtRelativePos(blockState, x, y, z));
-		}
-	}
-
-	private void captureExteriorVisibility(int index, int x, int y, int z) {
-		final BlockState blockState = blockStateAtIndex(index);
-
-		if ((blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) && closedAtRelativePos(blockState, x, y, z)) {
-			setVisibility(index, false, true);
+			final boolean closed = closedAtRelativePos(blockState, regionIndex) || (Configurator.renderWhiteGlassAsOccluder && blockState.getBlock() == Blocks.WHITE_STAINED_GLASS);
+			setVisibility(regionIndex, true, closed);
 		}
 	}
 
 	private void captureInterior() {
 		for (int i = 0; i < INTERIOR_STATE_COUNT; i++) {
-			captureInteriorVisibility(i, i & 0xF, (i >> 4) & 0xF, (i >> 8) & 0xF);
+			captureInteriorVisibility(i);
 		}
 	}
 
-	private void captureFaces() {
+	/**
+	 * Count of positions from adjacent regions that can potentially obscure this region.
+	 * Is also the count of positions in the interior region that can be obscured.
+	 * Six 16x16 faces. Does not include diagonally adjacent corners and edges
+	 * because those can't occlude the interior region.
+	 */
+	private static final int COVERING_INDEX_COUNT = 16 * 16 * 6;
+
+	/**
+	 * Count of positions from adjacent regions that can potentially obscure this region.
+	 */
+	private static final int[] COVERING_INDEXES = new int[COVERING_INDEX_COUNT];
+
+	/**
+	 * Surface positions in the interior region that can potentially be obscured by adjacent regions.
+	 */
+	private static final int[] COVERED_INDEXES = new int[COVERING_INDEX_COUNT];
+
+	static {
+		int exteriorIndex = 0;
+
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
-				captureExteriorVisibility(regionIndex(-1, i, j), -1, i, j);
-				captureExteriorVisibility(regionIndex(16, i, j), 16, i, j);
-
-				captureExteriorVisibility(regionIndex(i, j, -1), i, j, -1);
-				captureExteriorVisibility(regionIndex(i, j, 16), i, j, 16);
-
-				captureExteriorVisibility(regionIndex(i, -1, j), i, -1, j);
-				captureExteriorVisibility(regionIndex(i, 16, j), i, 16, j);
+				COVERING_INDEXES[exteriorIndex] = regionIndex(-1, i, j);
+				COVERED_INDEXES[exteriorIndex++] = regionIndex(0, i, j);
 			}
 		}
+
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				COVERING_INDEXES[exteriorIndex] = regionIndex(16, i, j);
+				COVERED_INDEXES[exteriorIndex++] = regionIndex(15, i, j);
+			}
+		}
+
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				COVERING_INDEXES[exteriorIndex] = regionIndex(i, j, -1);
+				COVERED_INDEXES[exteriorIndex++] = regionIndex(i, j, 0);
+			}
+		}
+
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				COVERING_INDEXES[exteriorIndex] = regionIndex(i, j, 16);
+				COVERED_INDEXES[exteriorIndex++] = regionIndex(i, j, 15);
+			}
+		}
+
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				COVERING_INDEXES[exteriorIndex] = regionIndex(i, -1, j);
+				COVERED_INDEXES[exteriorIndex++] = regionIndex(i, 0, j);
+			}
+		}
+
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				COVERING_INDEXES[exteriorIndex] = regionIndex(i, 16, j);
+				COVERED_INDEXES[exteriorIndex++] = regionIndex(i, 15, j);
+			}
+		}
+
+		assert exteriorIndex == COVERING_INDEX_COUNT;
 	}
 
-	private void captureEdges() {
-		for (int i = 0; i < 16; i++) {
-			captureExteriorVisibility(regionIndex(-1, -1, i), -1, -1, i);
-			captureExteriorVisibility(regionIndex(-1, 16, i), -1, 16, i);
-			captureExteriorVisibility(regionIndex(16, -1, i), 16, -1, i);
-			captureExteriorVisibility(regionIndex(16, 16, i), 16, 16, i);
+	private void captureExteriorVisibility(int regionIndex) {
+		final BlockState blockState = blockStateAtIndex(regionIndex);
 
-			captureExteriorVisibility(regionIndex(-1, i, -1), -1, i, -1);
-			captureExteriorVisibility(regionIndex(-1, i, 16), -1, i, 16);
-			captureExteriorVisibility(regionIndex(16, i, -1), 16, i, -1);
-			captureExteriorVisibility(regionIndex(16, i, 16), 16, i, 16);
-
-			captureExteriorVisibility(regionIndex(i, -1, -1), i, -1, -1);
-			captureExteriorVisibility(regionIndex(i, -1, 16), i, -1, 16);
-			captureExteriorVisibility(regionIndex(i, 16, -1), i, 16, -1);
-			captureExteriorVisibility(regionIndex(i, 16, 16), i, 16, 16);
+		if ((blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) && closedAtRelativePos(blockState, regionIndex)) {
+			setVisibility(regionIndex, false, true);
 		}
 	}
 
-	private void captureCorners() {
-		captureExteriorVisibility(regionIndex(-1, -1, -1), -1, -1, -1);
-		captureExteriorVisibility(regionIndex(-1, -1, 16), -1, -1, 16);
-		captureExteriorVisibility(regionIndex(-1, 16, -1), -1, 16, -1);
-		captureExteriorVisibility(regionIndex(-1, 16, 16), -1, 16, 16);
-
-		captureExteriorVisibility(regionIndex(16, -1, -1), 16, -1, -1);
-		captureExteriorVisibility(regionIndex(16, -1, 16), 16, -1, 16);
-		captureExteriorVisibility(regionIndex(16, 16, -1), 16, 16, -1);
-		captureExteriorVisibility(regionIndex(16, 16, 16), 16, 16, 16);
+	private void captureExterior() {
+		for (int i = 0; i < COVERING_INDEX_COUNT; i++) {
+			captureExteriorVisibility(COVERING_INDEXES[i]);
+		}
 	}
 
 	/**
@@ -476,44 +499,49 @@ public abstract class OcclusionRegion {
 		maxRenderableZ = maxZ < minZ ? minZ : maxZ;
 	}
 
-	private void visitSurfaceIfPossible(int x, int y, int z) {
-		final int index = interiorIndex(x, y, z);
-
+	private void visitSurfaceIfPossible(int index) {
 		if (setVisited(index)) {
 			fill(index);
 		}
 	}
 
 	private int[] computeOcclusion(boolean isNear) {
-		// determine which blocks are visible
+		// Determine which blocks are visible by visiting exterior blocks
+		// that aren't occluded by neighboring regions and doing a fill from there.
 
-		for (int i = 0; i < 16; i++) {
-			for (int j = 0; j < 16; j++) {
-				if (!isClosed(regionIndex(-1, i, j))) {
-					visitSurfaceIfPossible(0, i, j);
-				}
-
-				if (!isClosed(regionIndex(16, i, j))) {
-					visitSurfaceIfPossible(15, i, j);
-				}
-
-				if (!isClosed(regionIndex(i, j, -1))) {
-					visitSurfaceIfPossible(i, j, 0);
-				}
-
-				if (!isClosed(regionIndex(i, j, 16))) {
-					visitSurfaceIfPossible(i, j, 15);
-				}
-
-				if (!isClosed(regionIndex(i, -1, j))) {
-					visitSurfaceIfPossible(i, 0, j);
-				}
-
-				if (!isClosed(regionIndex(i, 16, j))) {
-					visitSurfaceIfPossible(i, 15, j);
-				}
+		for (int i = 0; i < COVERING_INDEX_COUNT; ++i) {
+			if (!isClosed(COVERING_INDEXES[i])) {
+				visitSurfaceIfPossible(COVERED_INDEXES[i]);
 			}
 		}
+
+		//		for (int i = 0; i < 16; i++) {
+		//			for (int j = 0; j < 16; j++) {
+		//				if (!isClosed(regionIndex(-1, i, j))) {
+		//					visitSurfaceIfPossible(0, i, j);
+		//				}
+		//
+		//				if (!isClosed(regionIndex(16, i, j))) {
+		//					visitSurfaceIfPossible(15, i, j);
+		//				}
+		//
+		//				if (!isClosed(regionIndex(i, j, -1))) {
+		//					visitSurfaceIfPossible(i, j, 0);
+		//				}
+		//
+		//				if (!isClosed(regionIndex(i, j, 16))) {
+		//					visitSurfaceIfPossible(i, j, 15);
+		//				}
+		//
+		//				if (!isClosed(regionIndex(i, -1, j))) {
+		//					visitSurfaceIfPossible(i, 0, j);
+		//				}
+		//
+		//				if (!isClosed(regionIndex(i, 16, j))) {
+		//					visitSurfaceIfPossible(i, 15, j);
+		//				}
+		//			}
+		//		}
 
 		// don't hide inside position if we may be inside the chunk!
 		if (!isNear) {
@@ -558,7 +586,8 @@ public abstract class OcclusionRegion {
 
 	public int[] build(boolean isNear) {
 		if (openCount == 0) {
-			// only surface blocks are visible, and only if not covered
+			// If there are no open interior positions then only surface blocks can be visible,
+			// and only if they not covered by positions in adjacent sections.
 
 			// PERF: should do this after hiding interior closed positions?
 			// PERF: should still compute render box instead of assuming it is full

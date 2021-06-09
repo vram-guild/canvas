@@ -29,7 +29,7 @@ public abstract class RenderRegionAddressHelper {
 	public static final int INTERIOR_STATE_COUNT = 4096;
 
 	/** Render region padding depth, inclusive.  Same as vanilla. */
-	private static final int REGION_PADDING = 2;
+	public static final int REGION_PADDING = 2;
 
 	// Constants below define where each section of padding maps in the total index space.
 	// Exterior index values begin after index values for interior positions, so that

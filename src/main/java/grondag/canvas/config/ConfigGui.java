@@ -46,6 +46,7 @@ import static grondag.canvas.config.Configurator.profilerOverlayScale;
 import static grondag.canvas.config.Configurator.reduceResolutionOnMac;
 import static grondag.canvas.config.Configurator.reload;
 import static grondag.canvas.config.Configurator.renderLagSpikeFps;
+import static grondag.canvas.config.Configurator.renderWhiteGlassAsOccluder;
 import static grondag.canvas.config.Configurator.safeNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.semiFlatLighting;
 import static grondag.canvas.config.Configurator.shaderDebug;
@@ -377,6 +378,16 @@ public class ConfigGui {
 				.setDefaultValue(DEFAULTS.debugOcclusionBoxes)
 				.setTooltip(parse("config.canvas.help.debug_occlusion_boxes"))
 				.setSaveConsumer(b -> debugOcclusionBoxes = b)
+				.build());
+
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.white_glass_occludes_terrain"), renderWhiteGlassAsOccluder)
+				.setDefaultValue(DEFAULTS.renderWhiteGlassAsOccluder)
+				.setTooltip(parse("config.canvas.help.white_glass_occludes_terrain"))
+				.setSaveConsumer(b -> {
+					reload |= renderWhiteGlassAsOccluder != b;
+					renderWhiteGlassAsOccluder = b;
+				})
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER

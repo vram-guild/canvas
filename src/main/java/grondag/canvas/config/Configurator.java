@@ -56,6 +56,7 @@ public class Configurator {
 	public static boolean enablePerformanceTrace = DEFAULTS.enablePerformanceTrace;
 	public static boolean debugOcclusionRaster = DEFAULTS.debugOcclusionRaster;
 	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
+	public static boolean renderWhiteGlassAsOccluder = DEFAULTS.renderWhiteGlassAsOccluder;
 	public static boolean traceOcclusionOutcomes = DEFAULTS.traceOcclusionOutcomes;
 	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
@@ -124,6 +125,7 @@ public class Configurator {
 		enablePerformanceTrace = config.enablePerformanceTrace;
 		debugOcclusionBoxes = config.debugOcclusionBoxes;
 		debugOcclusionRaster = config.debugOcclusionRaster;
+		renderWhiteGlassAsOccluder = config.renderWhiteGlassAsOccluder;
 		traceOcclusionEdgeCases = config.traceOcclusionEdgeCases;
 		traceOcclusionOutcomes = config.traceOcclusionOutcomes;
 		enableBufferDebug = config.enableBufferDebug;
@@ -172,6 +174,7 @@ public class Configurator {
 		config.enablePerformanceTrace = enablePerformanceTrace;
 		config.debugOcclusionBoxes = debugOcclusionBoxes;
 		config.debugOcclusionRaster = debugOcclusionRaster;
+		config.renderWhiteGlassAsOccluder = renderWhiteGlassAsOccluder;
 		config.traceOcclusionOutcomes = traceOcclusionOutcomes;
 		config.traceOcclusionEdgeCases = traceOcclusionEdgeCases;
 		config.enableBufferDebug = enableBufferDebug;

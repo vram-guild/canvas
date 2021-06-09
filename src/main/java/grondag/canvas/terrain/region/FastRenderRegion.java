@@ -18,9 +18,10 @@ package grondag.canvas.terrain.region;
 
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.REGION_PADDING;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_STATE_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndexToXyz5;
 import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
+import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndexToXyz5;
 
 import java.util.Arrays;
 
@@ -65,12 +66,16 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	private final BlockState[] states = new BlockState[TOTAL_STATE_COUNT];
 	public final OcclusionRegion occlusion = new OcclusionRegion() {
 		@Override
-		protected BlockState blockStateAtIndex(int index) {
-			return states[index];
+		protected BlockState blockStateAtIndex(int regionIndex) {
+			return states[regionIndex];
 		}
 
 		@Override
-		protected boolean closedAtRelativePos(BlockState blockState, int x, int y, int z) {
+		protected boolean closedAtRelativePos(BlockState blockState, int regionIndex) {
+			final int xyz5 = regionIndexToXyz5(regionIndex);
+			final int x = (xyz5 & 31) - REGION_PADDING;
+			final int y = ((xyz5 >> 5) & 31) - REGION_PADDING;
+			final int z = ((xyz5 >> 10) & 31) - REGION_PADDING;
 			return blockState.isOpaqueFullCube(FastRenderRegion.this, searchPos.set(originX + x, originY + y, originZ + z));
 		}
 	};

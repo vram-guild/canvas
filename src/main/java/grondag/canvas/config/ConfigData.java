@@ -89,6 +89,8 @@ class ConfigData {
 	boolean debugOcclusionRaster = false;
 	@Comment("Render active occlusion boxes of targeted render region. Will have performance impact and looks strange.")
 	boolean debugOcclusionBoxes = false;
+	@Comment("White stained glass occludes terrain. Use to debug terrain occlusion.")
+	boolean renderWhiteGlassAsOccluder = false;
 	@Comment("Log various region/occluder tests and status changes. Highly verbose and WILL spam the log. Requires restart.")
 	boolean traceOcclusionOutcomes = false;
 	@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
