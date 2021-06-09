@@ -97,6 +97,10 @@ public final class CanvasVertexFormats {
 	private static final QuadTranscoder COMPACT_TRANSCODER = (quad, context, buff) -> {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
+		final int overlay = context.overlay();
+
+		quad.overlay(overlay);
+
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl mat = quad.material();
 
