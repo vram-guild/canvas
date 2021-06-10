@@ -103,15 +103,13 @@ import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShaderDataManager;
-import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
-import grondag.canvas.terrain.region.RenderRegionPruner;
 import grondag.canvas.terrain.region.RenderRegionStorage;
+import grondag.canvas.terrain.region.TerrainVisibilityState;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -122,11 +120,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	// TODO: redirect uses in MC WorldRenderer
 	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
 	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", null);
-	private final PotentiallyVisibleRegionSorter distanceSorter = new PotentiallyVisibleRegionSorter();
-	private final TerrainOccluder terrainOccluder = new TerrainOccluder();
-	private final RenderRegionPruner pruner = new RenderRegionPruner(terrainOccluder, distanceSorter);
-	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, pruner);
-	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainOccluder, distanceSorter);
+	private final TerrainVisibilityState terrainVisibilityState = new TerrainVisibilityState();
+	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, terrainVisibilityState);
+	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainVisibilityState);
 	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
 
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
@@ -290,11 +286,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
-				final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
-				final int size = terrainIterator.visibleRegionCount;
-				visibleRegionCount = size;
-				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
-				assert size == 0 || visibleRegions[0] != null;
+				visibleRegionCount = terrainIterator.visibleRegionCount;
+				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, visibleRegionCount);
 				scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 				state = TerrainIterator.IDLE;
@@ -309,6 +302,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				regionBuilder.executor.execute(terrainIterator, -1);
 			}
 		} else {
+			// Run iteration on main thread
 			final int newRegionDataVersion = regionDataVersion.get();
 
 			if (terrainFrustum.viewVersion() != lastViewVersion || newRegionDataVersion != lastRegionDataVersion) {
@@ -316,11 +310,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
 				terrainIterator.accept(null);
 
-				final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
-				final int size = terrainIterator.visibleRegionCount;
 				lastViewVersion = terrainFrustum.viewVersion();
-				visibleRegionCount = size;
-				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, size);
+				visibleRegionCount = terrainIterator.visibleRegionCount;
+				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, visibleRegionCount);
 				scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 			}
@@ -1213,7 +1205,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		identityStack.peek().getNormal().loadIdentity();
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
-		terrainFrustum.prepare(viewMatrix, tickDelta, camera, terrainOccluder.hasNearOccluders());
+		terrainFrustum.prepare(viewMatrix, tickDelta, camera, terrainVisibilityState.occluder.hasNearOccluders());
 		particleRenderer.frustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
@@ -1245,7 +1237,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		computeDistances();
 		terrainIterator.reset();
-		terrainOccluder.invalidate();
+		terrainVisibilityState.clear();
 		terrainSetupOffThread = Configurator.terrainSetupOffThread;
 		regionsToRebuild.clear();
 
@@ -1254,7 +1246,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		renderRegionStorage.clear();
-		distanceSorter.clear();
 		visibleRegionCount = 0;
 		terrainFrustum.reload();
 

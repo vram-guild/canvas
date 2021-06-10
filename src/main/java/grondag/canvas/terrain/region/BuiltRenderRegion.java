@@ -58,7 +58,6 @@ import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
@@ -75,7 +74,7 @@ public class BuiltRenderRegion {
 
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
-	private final RenderRegionPruner pruner;
+	private final TerrainVisibilityState terrainVisibilityState;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
@@ -102,7 +101,7 @@ public class BuiltRenderRegion {
 	private volatile RegionBuildState buildState = new RegionBuildState();
 	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
-	private int frustumVersion = -1;
+	private int occlusionFrustumVersion = -1;
 	private int positionVersion = -1;
 	private boolean frustumResult;
 	private int lastSeenVisibility;
@@ -117,7 +116,7 @@ public class BuiltRenderRegion {
 		cwr = chunk.storage.cwr;
 		renderRegionBuilder = cwr.regionBuilder();
 		storage = chunk.storage;
-		pruner = storage.regionPruner;
+		terrainVisibilityState = storage.terrainVisibilityState;
 		renderRegionChunk = chunk;
 		buildData = new AtomicReference<>(RegionData.UNBUILT);
 		needsRebuild = true;
@@ -134,7 +133,7 @@ public class BuiltRenderRegion {
 			squaredChunkDistance,
 			needsRebuild,
 			isClosed,
-			frustumVersion,
+			occlusionFrustumVersion,
 			frustumResult,
 			positionVersion,
 			lastSeenVisibility,
@@ -177,7 +176,7 @@ public class BuiltRenderRegion {
 	}
 
 	/**
-	 * Result is computed in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
+	 * Result is computed in {@link #updateCameraDistanceAndVisibilityInfo(TerrainVisibilityState)}.
 	 *
 	 * <p>NB: tried a crude hierarchical scheme of checking chunk columns first
 	 * but didn't pay off.  Would probably  need to propagate per-plane results
@@ -189,7 +188,7 @@ public class BuiltRenderRegion {
 	}
 
 	public boolean wasRecentlySeen() {
-		return pruner.potentiallyVisibleRegions.version() - lastSeenVisibility < 4 && occluderResult;
+		return terrainVisibilityState.potentiallVisibleRegionSorter.version() - lastSeenVisibility < 4 && occluderResult;
 	}
 
 	/**
@@ -200,16 +199,15 @@ public class BuiltRenderRegion {
 	}
 
 	void updateCameraDistanceAndVisibilityInfo() {
-		final TerrainFrustum frustum = pruner.frustum;
-		final int fv = frustum.viewVersion();
+		final int fv = terrainVisibilityState.occluder.frustumViewVersion();
 
 		if (chunkDistVersion != renderRegionChunk.chunkDistVersion) {
 			chunkDistVersion = renderRegionChunk.chunkDistVersion;
 			computeDistanceChecks();
 		}
 
-		if (fv != frustumVersion) {
-			frustumVersion = fv;
+		if (fv != occlusionFrustumVersion) {
+			occlusionFrustumVersion = fv;
 			computeFrustumChecks();
 		}
 
@@ -226,10 +224,8 @@ public class BuiltRenderRegion {
 	}
 
 	private void computeFrustumChecks() {
-		final TerrainFrustum frustum = pruner.frustum;
-
 		// position version can only be different if overall frustum version is different
-		final int pv = frustum.positionVersion();
+		final int pv = terrainVisibilityState.occluder.frustumPositionVersion();
 
 		if (pv != positionVersion) {
 			positionVersion = pv;
@@ -248,7 +244,7 @@ public class BuiltRenderRegion {
 		}
 
 		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-		frustumResult = isInsideRenderDistance && frustum.isRegionVisible(this);
+		frustumResult = isInsideRenderDistance && terrainVisibilityState.occluder.isRegionVisible(this);
 	}
 
 	/**
@@ -264,27 +260,27 @@ public class BuiltRenderRegion {
 	 */
 	private void invalidateOccluderIfNeeded() {
 		if (frustumResult && buildData.get().canOcclude()) {
-			if (occluderVersion == pruner.occluderVersion()) {
+			if (occluderVersion == terrainVisibilityState.occluderVersion()) {
 				// Existing - has been drawn in occlusion raster
 				if (buildCount != occlusionBuildCount) {
 					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
 						CanvasMod.LOG.info("Invalidate - redraw: " + origin.toShortString() + "  occluder version:" + occluderVersion);
 					}
 
-					pruner.invalidateOccluder();
+					terrainVisibilityState.invalidateOccluder();
 				}
-			} else if (squaredChunkDistance < pruner.maxSquaredChunkDistance()) {
+			} else if (squaredChunkDistance < terrainVisibilityState.maxSquaredChunkDistance()) {
 				// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been
 				// Need to invalidate the occlusion raster if both things are true:
 				//   1) This region isn't empty (empty regions don't matter for culling)
 				//   2) This region is in the view frustum
 
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + pruner.maxSquaredChunkDistance()
-						+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + pruner.occluderVersion() + "  chunk version:" + occluderVersion);
+					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + terrainVisibilityState.maxSquaredChunkDistance()
+						+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + terrainVisibilityState.occluderVersion() + "  chunk version:" + occluderVersion);
 				}
 
-				pruner.invalidateOccluder();
+				terrainVisibilityState.invalidateOccluder();
 			}
 		}
 	}
@@ -312,7 +308,7 @@ public class BuiltRenderRegion {
 			cancel();
 			buildData.set(RegionData.UNBUILT);
 			needsRebuild = true;
-			frustumVersion = -1;
+			occlusionFrustumVersion = -1;
 			positionVersion = -1;
 			isInsideRenderDistance = false;
 			isNear = false;
@@ -731,7 +727,7 @@ public class BuiltRenderRegion {
 	 * to chunk center from camera < 768.0.  Ours will always return true for all 26 chunks adjacent
 	 * (including diagonal) to the achunk containing the camera.
 	 *
-	 * <p>This logic is in {@link #updateCameraDistanceAndVisibilityInfo(RenderRegionPruner)}.
+	 * <p>This logic is in {@link #updateCameraDistanceAndVisibilityInfo(TerrainVisibilityState)}.
 	 */
 	public boolean isNear() {
 		return isNear;
@@ -759,13 +755,13 @@ public class BuiltRenderRegion {
 		// has to be found reaching around. This will cause some backtracking and
 		// thus redraw of the occluder, but that already happens and is handled.
 
-		final PotentiallyVisibleRegionSorter pvs = pruner.potentiallyVisibleRegions;
-		final int version = pvs.version();
+		final PotentiallyVisibleRegionSorter sorter = terrainVisibilityState.potentiallVisibleRegionSorter;
+		final int version = sorter.version();
 
 		// The frustum version check is necessary to skip regions without valid info.
-		if (lastSeenVisibility != version && frustumVersion != -1) {
+		if (lastSeenVisibility != version && occlusionFrustumVersion != -1) {
 			lastSeenVisibility = version;
-			pvs.add(this);
+			sorter.add(this);
 		}
 	}
 

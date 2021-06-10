@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 /**
  * Sorts render regions by distance in a single array using
@@ -33,43 +32,43 @@ import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
  */
 public class PotentiallyVisibleRegionSorter {
 	/** Max render chunk distance + 2 padding to allow for neighbor regions at edge. */
-	static final int RADIUS = 34;
+	private static final int RADIUS = 34;
 
 	/**
 	 * The number of unique squared distance values ("rings") that occur
 	 * in our voxelized sphere.
 	 */
-	static final int RING_COUNT;
+	private static final int RING_COUNT;
 
 	/**
 	 * Max squared chunk distance that occurs. To allow for validity checks.
 	 */
-	static final int MAX_SQ_DIST;
+	private static final int MAX_SQ_DIST;
 
 	/**
 	 * Length of {@link #SQ_DIST_TO_RING_MAP}. Will be +1 because we
 	 * include both zero and the max distance.
 	 */
-	static final int RING_MAP_LENGTH;
+	private static final int RING_MAP_LENGTH;
 
 	/**
 	 * Array index is squared chunk distance, values are the first index
 	 * location to store that distance.  Value will be maxint for squared
 	 * distance values that should not occur. (Maxint helps assertion.)
 	 */
-	static final int[] SQ_DIST_TO_RING_MAP;
+	private static final int[] SQ_DIST_TO_RING_MAP;
 
 	/**
 	 * Size of array needed to store regions sorted by distance. Is half
 	 * the total number of positions in a 34-radius voxelized sphere because
 	 * only half of the sphere can be visible at a time.
 	 */
-	static final int REGION_LOOKUP_LENGTH;
+	private static final int REGION_LOOKUP_LENGTH;
 
 	/**
 	 * For fast clearing up the region lookup array.
 	 */
-	static final BuiltRenderRegion[] EMPTY_REGIONS;
+	private static final BuiltRenderRegion[] EMPTY_REGIONS;
 
 	static {
 		final Int2IntOpenHashMap rings = new Int2IntOpenHashMap();
@@ -116,13 +115,11 @@ public class PotentiallyVisibleRegionSorter {
 	 * Same as {@link #SQ_DIST_TO_RING_MAP} but indices are updated as we collect regions.
 	 * Starting state is a copy of {@link #SQ_DIST_TO_RING_MAP}.
 	 */
-	final int[] ringMap = new int[RING_MAP_LENGTH];
-	final BuiltRenderRegion[] regions = new BuiltRenderRegion[REGION_LOOKUP_LENGTH];
+	private final int[] ringMap = new int[RING_MAP_LENGTH];
+	private final BuiltRenderRegion[] regions = new BuiltRenderRegion[REGION_LOOKUP_LENGTH];
 
-	@SuppressWarnings("unchecked")
-	final SimpleUnorderedArrayList<BuiltRenderRegion>[] rings = new SimpleUnorderedArrayList[RING_COUNT];
-	int regionIndex = 0;
-	int maxIndex = 0;
+	private int regionIndex = 0;
+	private int maxIndex = 0;
 
 	public PotentiallyVisibleRegionSorter() {
 		clear();

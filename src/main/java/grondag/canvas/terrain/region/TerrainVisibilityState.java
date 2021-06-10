@@ -16,32 +16,24 @@
 
 package grondag.canvas.terrain.region;
 
-import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
-public class RenderRegionPruner {
+public final class TerrainVisibilityState {
 	private boolean invalidateOccluder = false;
 	private int occluderVersion = 0;
 
 	private int maxSquaredChunkDistance;
-	public final TerrainFrustum frustum;
-	public final TerrainOccluder occluder;
-	public final PotentiallyVisibleRegionSorter potentiallyVisibleRegions;
-
-	public RenderRegionPruner(TerrainOccluder occluder, PotentiallyVisibleRegionSorter distanceSorter) {
-		this.occluder = occluder;
-		potentiallyVisibleRegions = distanceSorter;
-		frustum = occluder.frustum;
-	}
+	public final TerrainOccluder occluder = new TerrainOccluder();
+	public final PotentiallyVisibleRegionSorter potentiallVisibleRegionSorter = new PotentiallyVisibleRegionSorter();
 
 	public void prepare(boolean clear) {
 		invalidateOccluder = false;
 
 		if (clear) {
-			potentiallyVisibleRegions.clear();
+			potentiallVisibleRegionSorter.clear();
 		} else {
-			potentiallyVisibleRegions.returnToStart();
+			potentiallVisibleRegionSorter.returnToStart();
 		}
 
 		occluderVersion = occluder.version();
@@ -62,5 +54,10 @@ public class RenderRegionPruner {
 
 	public int maxSquaredChunkDistance() {
 		return maxSquaredChunkDistance;
+	}
+
+	public void clear() {
+		occluder.invalidate();
+		potentiallVisibleRegionSorter.clear();
 	}
 }

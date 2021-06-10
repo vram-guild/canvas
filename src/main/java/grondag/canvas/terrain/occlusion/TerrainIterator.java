@@ -35,6 +35,7 @@ import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
 import grondag.canvas.terrain.region.RenderRegionStorage;
+import grondag.canvas.terrain.region.TerrainVisibilityState;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 
@@ -49,9 +50,8 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[CanvasWorldRenderer.MAX_REGION_COUNT];
 	private final RenderRegionStorage renderRegionStorage;
-	public final TerrainOccluder terrainOccluder;
+	private final TerrainVisibilityState terrainVisiblityState;
 	private final AtomicInteger state = new AtomicInteger(IDLE);
-	private final PotentiallyVisibleRegionSorter distanceSorter;
 
 	public volatile int visibleRegionCount;
 
@@ -62,10 +62,9 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	private boolean chunkCullingEnabled = true;
 	private volatile boolean cancelled = false;
 
-	public TerrainIterator(RenderRegionStorage renderRegionStorage, TerrainOccluder terrainOccluder, PotentiallyVisibleRegionSorter distanceSorter) {
+	public TerrainIterator(RenderRegionStorage renderRegionStorage, TerrainVisibilityState terrainVisiblityState) {
 		this.renderRegionStorage = renderRegionStorage;
-		this.terrainOccluder = terrainOccluder;
-		this.distanceSorter = distanceSorter;
+		this.terrainVisiblityState = terrainVisiblityState;
 	}
 
 	public void prepare(@Nullable BuiltRenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
@@ -74,7 +73,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		cameraPos = camera.getPos();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = BlockPos.asLong(cameraBlockPos.getX() & 0xFFFFFFF0, cameraBlockPos.getY() & 0xFFFFFFF0, cameraBlockPos.getZ() & 0xFFFFFFF0);
-		terrainOccluder.frustum.copy(frustum);
+		terrainVisiblityState.occluder.updateFrustum(frustum);
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
@@ -100,12 +99,13 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		final int renderDistance = this.renderDistance;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
-		final PotentiallyVisibleRegionSorter distanceSorter = this.distanceSorter;
+		final PotentiallyVisibleRegionSorter distanceSorter = terrainVisiblityState.potentiallVisibleRegionSorter;
+		final TerrainOccluder occluder = terrainVisiblityState.occluder;
 		int visibleRegionCount = 0;
 		updateRegions.clear();
 		renderRegionStorage.updateCameraDistanceAndVisibilityInfo(cameraChunkOrigin);
-		final boolean redrawOccluder = terrainOccluder.prepareScene(cameraPos);
-		final int occluderVersion = terrainOccluder.version();
+		final boolean redrawOccluder = occluder.prepareScene(cameraPos);
+		final int occluderVersion = occluder.version();
 
 		if (TRACE_OCCLUSION_OUTCOMES) {
 			CanvasMod.LOG.info("TerrainIterator Redraw Status: " + redrawOccluder);
@@ -169,7 +169,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				if (Configurator.cullEntityRender) {
 					// reuse prior test results
 					if (builtRegion.occluderVersion() != occluderVersion) {
-						if (!chunkCullingEnabled || builtRegion.isNear() || terrainOccluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
+						if (!chunkCullingEnabled || builtRegion.isNear() || occluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
 							builtRegion.enqueueUnvistedNeighbors();
 							builtRegion.setOccluderResult(true, occluderVersion);
 						} else {
@@ -189,8 +189,8 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				visibleRegions[visibleRegionCount++] = builtRegion;
 
 				if (redrawOccluder || builtRegion.occluderVersion() != occluderVersion) {
-					terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
-					terrainOccluder.occlude(visData);
+					occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
+					occluder.occlude(visData);
 				}
 
 				builtRegion.setOccluderResult(true, occluderVersion);
@@ -202,20 +202,20 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
-						terrainOccluder.occlude(visData);
+						occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
+						occluder.occlude(visData);
 					}
 				}
 			} else {
-				terrainOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
+				occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
 
-				if (terrainOccluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
+				if (occluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
 					builtRegion.enqueueUnvistedNeighbors();
 					visibleRegions[visibleRegionCount++] = builtRegion;
 					builtRegion.setOccluderResult(true, occluderVersion);
 
 					// these must always be drawn - will be additive if view hasn't changed
-					terrainOccluder.occlude(visData);
+					occluder.occlude(visData);
 				} else {
 					builtRegion.setOccluderResult(false, occluderVersion);
 				}
@@ -231,7 +231,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 			this.visibleRegionCount = visibleRegionCount;
 
 			if (Configurator.debugOcclusionRaster) {
-				terrainOccluder.outputRaster();
+				occluder.outputRaster();
 			}
 		}
 	}

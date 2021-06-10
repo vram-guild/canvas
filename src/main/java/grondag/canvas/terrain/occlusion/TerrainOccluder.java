@@ -79,9 +79,34 @@ public class TerrainOccluder {
 	private int maxSquaredChunkDistance;
 	private boolean hasNearOccluders = false;
 
-	public final TerrainFrustum frustum = new TerrainFrustum();
-
+	/**
+	 * This frustum is a snapshot of the view frustum and may lag behind for a frame or two.
+	 * A snapshot is used because occlusion test can happen off the main render thread and we
+	 * need a stable frustum for each occlusion update.
+	 */
+	private final TerrainFrustum occlusionFrustum = new TerrainFrustum();
 	private final BlockPos.Mutable originForTracing = new BlockPos.Mutable();
+
+	/**
+	 * Synchronizes our frustum snapshot with the input, typically the active terrain view frustum.
+	 * Should be called from the main thread when the source is known to be stable and correct.
+	 * The snapshot will be used (potentially off thread) for all occlusion tests until the next update.
+	 */
+	public void updateFrustum(TerrainFrustum source) {
+		occlusionFrustum.copy(source);
+	}
+
+	public int frustumViewVersion() {
+		return occlusionFrustum.viewVersion();
+	}
+
+	public int frustumPositionVersion() {
+		return occlusionFrustum.positionVersion();
+	}
+
+	public boolean isRegionVisible(BuiltRenderRegion builtRenderRegion) {
+		return occlusionFrustum.isRegionVisible(builtRenderRegion);
+	}
 
 	@Override
 	public String toString() {
@@ -744,13 +769,13 @@ public class TerrainOccluder {
 	 * When false, regions should be drawn only if their occluder version is not current.
 	 */
 	public boolean prepareScene(Vec3d cameraPos) {
-		final int viewVersion = frustum.viewVersion();
+		final int viewVersion = occlusionFrustum.viewVersion();
 
 		if (this.viewVersion != viewVersion) {
 			final Matrix4L baseMvpMatrix = this.baseMvpMatrix;
 			final Matrix4L tempMatrix = raster.mvpMatrix;
-			final Matrix4fExt projectionMatrix = frustum.projectionMatrix();
-			final Matrix4fExt modelMatrix = frustum.modelMatrix();
+			final Matrix4fExt projectionMatrix = occlusionFrustum.projectionMatrix();
+			final Matrix4fExt modelMatrix = occlusionFrustum.modelMatrix();
 
 			baseMvpMatrix.loadIdentity();
 

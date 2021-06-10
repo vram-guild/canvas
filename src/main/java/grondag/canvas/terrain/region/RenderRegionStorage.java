@@ -25,7 +25,7 @@ import grondag.canvas.render.CanvasWorldRenderer;
 
 public class RenderRegionStorage {
 	final AtomicInteger regionCount = new AtomicInteger();
-	public final RenderRegionPruner regionPruner;
+	public final TerrainVisibilityState terrainVisibilityState;
 	final CanvasWorldRenderer cwr;
 	private int lastCameraChunkX = Integer.MAX_VALUE;
 	private int lastCameraChunkY = Integer.MAX_VALUE;
@@ -35,9 +35,9 @@ public class RenderRegionStorage {
 	private final RenderRegionChunk[] chunks = new RenderRegionChunk[CHUNK_COUNT];
 	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionStorage.CHUNK_COUNT);
 
-	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer, RenderRegionPruner pruner) {
+	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer, TerrainVisibilityState terrainVisibilityState) {
 		cwr = canvasWorldRenderer;
-		regionPruner = pruner;
+		this.terrainVisibilityState = terrainVisibilityState;
 
 		for (int i = 0; i < CHUNK_COUNT; ++i) {
 			chunks[i] = new RenderRegionChunk(this);
@@ -93,14 +93,14 @@ public class RenderRegionStorage {
 			clearVisibility = true;
 		}
 
-		regionPruner.prepare(clearVisibility);
+		terrainVisibilityState.prepare(clearVisibility);
 
 		for (int i = 0; i < CHUNK_COUNT; ++i) {
 			chunks[i].updateCameraDistanceAndVisibilityInfo();
 		}
 
-		if (regionPruner.didInvalidateOccluder()) {
-			regionPruner.occluder.invalidate();
+		if (terrainVisibilityState.didInvalidateOccluder()) {
+			terrainVisibilityState.occluder.invalidate();
 		}
 	}
 
