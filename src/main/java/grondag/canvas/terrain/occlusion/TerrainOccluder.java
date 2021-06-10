@@ -101,7 +101,7 @@ public class TerrainOccluder {
 	}
 
 	public int frustumPositionVersion() {
-		return occlusionFrustum.positionVersion();
+		return occlusionFrustum.occlusionPositionVersion();
 	}
 
 	public boolean isRegionVisible(BuiltRenderRegion builtRenderRegion) {

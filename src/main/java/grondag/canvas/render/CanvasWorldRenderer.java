@@ -144,7 +144,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private RenderRegionBuilder regionBuilder;
-	private int translucentSortPositionVersion;
 	private ClientWorld world;
 	// both of these are measured in chunks, not blocks
 	private int squaredChunkRenderDistance;
@@ -721,7 +720,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		bufferBuilders.getEffectVertexConsumers().draw();
 
-		sortTranslucentTerrain();
+		visibleRegions.scheduleResort(terrainFrustum.sortPositionVersion());
 
 		if (advancedTranslucency) {
 			profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
@@ -980,29 +979,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
 		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
 		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
-	}
-
-	private void sortTranslucentTerrain() {
-		final MinecraftClient mc = MinecraftClient.getInstance();
-
-		mc.getProfiler().push("translucent_sort");
-
-		// FIX: looks like this will not sort past the first 15 regions if there are more
-		// than that because we always reset the version here
-		if (translucentSortPositionVersion != terrainFrustum.positionVersion()) {
-			translucentSortPositionVersion = terrainFrustum.positionVersion();
-
-			int j = 0;
-			final int visibleRegionCount = visibleRegions.size();
-
-			for (int regionIndex = 0; regionIndex < visibleRegionCount; regionIndex++) {
-				if (j < 15 && visibleRegions.get(regionIndex).scheduleSort()) {
-					++j;
-				}
-			}
-		}
-
-		mc.getProfiler().pop();
 	}
 
 	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {

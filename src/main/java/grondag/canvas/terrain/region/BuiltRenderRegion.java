@@ -54,7 +54,6 @@ import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
@@ -355,19 +354,13 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		}
 	}
 
-	public boolean scheduleSort() {
+	public void scheduleSort() {
 		final RegionData regionData = buildData.get();
 
-		if (regionData.translucentState == null) {
-			return false;
-		} else {
-			if (buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE, ProtoRenderRegion.RESORT_ONLY)) {
-				// null means need to reschedule, otherwise was already scheduled for either
-				// resort or rebuild, or is invalid, not ready to be built.
-				renderRegionBuilder.executor.execute(this);
-			}
-
-			return true;
+		if (regionData.translucentState != null && buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE, ProtoRenderRegion.RESORT_ONLY)) {
+			// null means need to reschedule, otherwise was already scheduled for either
+			// resort or rebuild, or is invalid, not ready to be built.
+			renderRegionBuilder.executor.execute(this);
 		}
 	}
 
@@ -428,34 +421,33 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 			if (state != null) {
 				final Vec3d cameraPos = cwr.cameraPos();
 				final VertexCollectorList collectors = context.collectors;
-				final RenderMaterialImpl translucentState = RenderLayerHelper.TRANSLUCENT_TERRAIN;
-				final ArrayVertexCollector collector = collectors.get(translucentState);
-
+				final ArrayVertexCollector collector = collectors.get(RenderLayerHelper.TRANSLUCENT_TERRAIN);
 				collector.loadState(state);
 
-				collector.sortQuads(
+				if (collector.sortQuads(
 					(float) (cameraPos.x - origin.getX()),
 					(float) (cameraPos.y - origin.getY()),
-					(float) (cameraPos.z - origin.getZ()));
+					(float) (cameraPos.z - origin.getZ()))
+				) {
+					regionData.translucentState = collector.saveState(state);
 
-				regionData.translucentState = collector.saveState(state);
+					if (runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
+						final UploadableChunk upload = collectors.toUploadableChunk(true);
 
-				if (runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
-					final UploadableChunk upload = collectors.toUploadableChunk(true);
+						if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
+							renderRegionBuilder.scheduleUpload(() -> {
+								if (ChunkRebuildCounters.ENABLED) {
+									ChunkRebuildCounters.startUpload();
+								}
 
-					if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
-						renderRegionBuilder.scheduleUpload(() -> {
-							if (ChunkRebuildCounters.ENABLED) {
-								ChunkRebuildCounters.startUpload();
-							}
+								translucentDrawable.close();
+								translucentDrawable = upload.produceDrawable();
 
-							translucentDrawable.close();
-							translucentDrawable = upload.produceDrawable();
-
-							if (ChunkRebuildCounters.ENABLED) {
-								ChunkRebuildCounters.completeUpload();
-							}
-						});
+								if (ChunkRebuildCounters.ENABLED) {
+									ChunkRebuildCounters.completeUpload();
+								}
+							});
+						}
 					}
 				}
 

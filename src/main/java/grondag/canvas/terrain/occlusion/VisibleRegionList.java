@@ -18,12 +18,15 @@ package grondag.canvas.terrain.occlusion;
 
 import java.util.Arrays;
 
+import net.minecraft.client.MinecraftClient;
+
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 
 public final class VisibleRegionList {
 	private static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 24;
 	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
 	private volatile int visibleRegionCount = 0;
+	private int lastSortPositionVersion;
 
 	public void clear() {
 		visibleRegionCount = 0;
@@ -61,5 +64,20 @@ public final class VisibleRegionList {
 		}
 
 		return result;
+	}
+
+	public void scheduleResort(int positionVersion) {
+		if (lastSortPositionVersion != positionVersion) {
+			final MinecraftClient mc = MinecraftClient.getInstance();
+			mc.getProfiler().push("translucent_sort");
+			final int limit = visibleRegionCount;
+
+			for (int i = 0; i < limit; i++) {
+				visibleRegions[i].scheduleSort();
+			}
+
+			lastSortPositionVersion = positionVersion;
+			mc.getProfiler().pop();
+		}
 	}
 }

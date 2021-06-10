@@ -48,10 +48,14 @@ public class TerrainFrustum extends CanvasFrustum {
 
 	private int viewDistanceSquared;
 	private int viewVersion;
-	private int positionVersion;
-	private double lastPositionX = Double.MAX_VALUE;
-	private double lastPositionY = Double.MAX_VALUE;
-	private double lastPositionZ = Double.MAX_VALUE;
+	private int occlusionPositionVersion;
+	private int sortPositionVersion;
+	private double lastOcclusionPositionX = Double.MAX_VALUE;
+	private double lastOcclusionPositionY = Double.MAX_VALUE;
+	private double lastOcclusionPositionZ = Double.MAX_VALUE;
+	private double lastSortPositionX = Double.MAX_VALUE;
+	private double lastSortPositionY = Double.MAX_VALUE;
+	private double lastSortPositionZ = Double.MAX_VALUE;
 	private long lastCameraBlockPos = Long.MAX_VALUE;
 	private float lastCameraPitch = Float.MAX_VALUE;
 	private float lastCameraYaw = Float.MAX_VALUE;
@@ -61,20 +65,29 @@ public class TerrainFrustum extends CanvasFrustum {
 		lastViewX = Double.MAX_VALUE;
 		lastViewY = Double.MAX_VALUE;
 		lastViewZ = Double.MAX_VALUE;
-		lastPositionX = Double.MAX_VALUE;
-		lastPositionY = Double.MAX_VALUE;
-		lastPositionZ = Double.MAX_VALUE;
+		lastOcclusionPositionX = Double.MAX_VALUE;
+		lastOcclusionPositionY = Double.MAX_VALUE;
+		lastOcclusionPositionZ = Double.MAX_VALUE;
+		lastSortPositionX = Double.MAX_VALUE;
+		lastSortPositionY = Double.MAX_VALUE;
+		lastSortPositionZ = Double.MAX_VALUE;
 		lastCameraBlockPos = Long.MAX_VALUE;
 		lastCameraPitch = Float.MAX_VALUE;
 		lastCameraYaw = Float.MAX_VALUE;
 	}
 
 	/**
-	 * Incremented when player moves more than 1 block.
-	 * Triggers region visibility recalc and translucency resort.
+	 * Incremented when player moves enough to triggers region visibility recalc.
 	 */
-	public int positionVersion() {
-		return positionVersion;
+	public int occlusionPositionVersion() {
+		return occlusionPositionVersion;
+	}
+
+	/**
+	 * Incremented when player moves enough to trigger translucency resort.
+	 */
+	public int sortPositionVersion() {
+		return sortPositionVersion;
 	}
 
 	/**
@@ -86,7 +99,8 @@ public class TerrainFrustum extends CanvasFrustum {
 
 	public void copy(TerrainFrustum src) {
 		viewVersion = src.viewVersion;
-		positionVersion = src.positionVersion;
+		occlusionPositionVersion = src.occlusionPositionVersion;
+		sortPositionVersion = src.sortPositionVersion;
 
 		lastViewX = src.lastViewX;
 		lastViewY = src.lastViewY;
@@ -96,9 +110,13 @@ public class TerrainFrustum extends CanvasFrustum {
 		lastViewY = src.lastViewY;
 		lastViewZ = src.lastViewZ;
 
-		lastPositionX = src.lastPositionX;
-		lastPositionY = src.lastPositionY;
-		lastPositionZ = src.lastPositionZ;
+		lastOcclusionPositionX = src.lastOcclusionPositionX;
+		lastOcclusionPositionY = src.lastOcclusionPositionY;
+		lastOcclusionPositionZ = src.lastOcclusionPositionZ;
+
+		lastSortPositionX = src.lastSortPositionX;
+		lastSortPositionY = src.lastSortPositionY;
+		lastSortPositionZ = src.lastSortPositionZ;
 
 		lastCameraBlockPos = src.lastCameraBlockPos;
 		lastCameraPitch = src.lastCameraPitch;
@@ -167,23 +185,38 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		final long cameraBlockPos = camera.getBlockPos().asLong();
 		boolean movedEnoughToInvalidateOcclusion = false;
+		boolean movedEnoughToInvalidateSort = false;
 
 		if (cameraBlockPos != lastCameraBlockPos) {
 			lastCameraBlockPos = cameraBlockPos;
 			movedEnoughToInvalidateOcclusion = true;
+			movedEnoughToInvalidateSort = true;
 		} else {
 			// if no near occluders, assume can move 1.0 or more diagonally within same block pos
-			final double dx = x - lastPositionX;
-			final double dy = y - lastPositionY;
-			final double dz = z - lastPositionZ;
+			final double dx = x - lastOcclusionPositionX;
+			final double dy = y - lastOcclusionPositionY;
+			final double dz = z - lastOcclusionPositionZ;
 			movedEnoughToInvalidateOcclusion = dx * dx + dy * dy + dz * dz >= (nearOccludersPresent ? 0.01D : 1.0D);
+
+			// can move 1.0 or more diagonally within same block pos
+			final double sdx = x - lastSortPositionX;
+			final double sdy = y - lastSortPositionY;
+			final double sdz = z - lastSortPositionZ;
+			movedEnoughToInvalidateSort = sdx * sdx + sdy * sdy + sdz * sdz >= 1.0D;
 		}
 
 		if (movedEnoughToInvalidateOcclusion) {
-			++positionVersion;
-			lastPositionX = x;
-			lastPositionY = y;
-			lastPositionZ = z;
+			++occlusionPositionVersion;
+			lastOcclusionPositionX = x;
+			lastOcclusionPositionY = y;
+			lastOcclusionPositionZ = z;
+		}
+
+		if (movedEnoughToInvalidateSort) {
+			++sortPositionVersion;
+			lastSortPositionX = x;
+			lastSortPositionY = y;
+			lastSortPositionZ = z;
 		}
 
 		boolean modelMatrixUpdate = false;

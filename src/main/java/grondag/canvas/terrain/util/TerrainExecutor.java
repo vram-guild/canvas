@@ -92,7 +92,7 @@ public class TerrainExecutor {
 		void run(TerrainRenderContext context);
 
 		/**
-		 * Normally squared chunk distance. Use -1 for privileged execution
+		 * Normally squared chunk distance. Use -1 for privileged execution.
 		 */
 		int priority();
 	}
