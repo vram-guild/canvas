@@ -117,13 +117,16 @@ import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 public class CanvasWorldRenderer extends WorldRenderer {
 	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 24;
 	private static CanvasWorldRenderer instance;
-	// TODO: redirect uses in MC WorldRenderer
-	public final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
-	final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", null);
+	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();
+
+	private final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", null);
+	private final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", this::sortTranslucentTerrain);
+
+	private final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
 	private final TerrainVisibilityState terrainVisibilityState = new TerrainVisibilityState();
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, terrainVisibilityState);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainVisibilityState);
-	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
+	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
 
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
 	private final MatrixStack identityStack = new MatrixStack();
@@ -146,14 +149,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private int lastRegionDataVersion = -1;
 	private int lastViewVersion = -1;
 	private int visibleRegionCount = 0;
-	final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", this::sortTranslucentTerrain);
 
 	private final RenderContextState contextState = new RenderContextState();
-	public final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
 	private final CanvasImmediate shadowExtrasProvider = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
-	public final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
+	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
@@ -205,6 +207,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public void forceVisibilityUpdate() {
 		regionDataVersion.incrementAndGet();
+	}
+
+	public void updateProjection(Camera camera, float tickDelta, double fov) {
+		terrainFrustum.updateProjection(camera, tickDelta, fov);
 	}
 
 	public RenderRegionBuilder regionBuilder() {
@@ -859,8 +865,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 	}
 
-	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();
-
 	private static void renderBlockEntitySafely(BlockEntity blockEntity, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider outputConsumer) {
 		try {
 			MinecraftClient.getInstance().getBlockEntityRenderDispatcher().render(blockEntity, tickDelta, matrixStack, outputConsumer);
@@ -951,8 +955,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		GFX.enableDepthTest();
 		GFX.disableBlend();
 	}
-
-	//	private static final Direction[] DIRECTIONS = Direction.values();
 
 	private void drawOutline(BufferBuilder bufferBuilder, double x0, double y0, double z0, double x1, double y1, double z1, int color) {
 		final int a = (color >>> 24) & 0xFF;
@@ -1075,10 +1077,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				}
 			}
 		}
-	}
-
-	public CanvasFrustum frustum() {
-		return terrainFrustum;
 	}
 
 	public Vec3d cameraPos() {

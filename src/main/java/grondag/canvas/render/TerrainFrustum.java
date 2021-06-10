@@ -226,12 +226,8 @@ public class TerrainFrustum extends CanvasFrustum {
 		}
 	}
 
-	/** Called by GameRenderer mixin to avoid recomputing fov. */
-	public void setFov(double fov) {
+	public void updateProjection(Camera camera, float tickDelta, double fov) {
 		this.fov = fov;
-	}
-
-	public void updateProjection(Camera camera, float tickDelta) {
 		int fovPadding = Configurator.terrainSetupOffThread ? Configurator.dynamicFrustumPadding : 0;
 
 		// avoid bobbing frust on hurt/nausea to avoid occlusion update - give sufficient padding
