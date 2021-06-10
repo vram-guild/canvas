@@ -32,7 +32,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderEffect;
 import net.minecraft.client.option.GameOptions;
@@ -64,8 +63,6 @@ import grondag.canvas.render.FabulousFrameBuffer;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {
-	@Shadow private MinecraftClient client;
-	@Shadow private int viewDistance;
 	@Shadow private ClientWorld world;
 	@Shadow private int frame;
 	@Shadow private boolean cloudsDirty;
@@ -176,16 +173,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 	}
 
 	@Override
-	public MinecraftClient canvas_mc() {
-		return client;
-	}
-
-	@Override
-	public int canvas_renderDistance() {
-		return viewDistance;
-	}
-
-	@Override
 	public void canvas_setupFabulousBuffers() {
 		if (Pipeline.isFabulous()) {
 			translucentFramebuffer = new FabulousFrameBuffer(Pipeline.fabTranslucentFbo, Pipeline.fabTranslucentColor, Pipeline.fabTranslucentDepth);
@@ -215,7 +202,6 @@ public class MixinWorldRenderer implements WorldRendererExt {
 
 		cloudsDirty = true;
 		RenderLayers.setFancyGraphicsOrBetter(true);
-		viewDistance = client.options.viewDistance;
 
 		synchronized (noCullingBlockEntities) {
 			noCullingBlockEntities.clear();

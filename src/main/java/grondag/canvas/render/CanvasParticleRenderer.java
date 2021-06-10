@@ -54,7 +54,11 @@ public class CanvasParticleRenderer {
 	private Runnable drawHandler = Runnables.doNothing();
 	private RenderMaterialImpl baseMat;
 	private RenderMaterialImpl emissiveMat;
-	public final FastFrustum frustum = new FastFrustum();
+	private final FastFrustum cullingFrustum;
+
+	public CanvasParticleRenderer(FastFrustum cullingFrustum) {
+		this.cullingFrustum = cullingFrustum;
+	}
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexCollectorList collectors, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
 		final MatrixStack renderMatrix = RenderSystem.getModelViewStack();
@@ -85,7 +89,7 @@ public class CanvasParticleRenderer {
 			while (particles.hasNext()) {
 				final Particle particle = particles.next();
 
-				if (!frustum.isVisible(particle.getBoundingBox())) {
+				if (!cullingFrustum.isVisible(particle.getBoundingBox())) {
 					continue;
 				}
 

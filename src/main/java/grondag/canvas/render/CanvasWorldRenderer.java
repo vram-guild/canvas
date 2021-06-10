@@ -123,12 +123,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, terrainVisibilityState);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainVisibilityState);
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
+	private final FastFrustum cullingFrustum = new FastFrustum();
 	private final VisibleRegionList visibleRegions = new VisibleRegionList();
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
-	private final CanvasImmediate shadowExtrasProvider = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
-	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
+	private final CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
+	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(cullingFrustum);
 	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
@@ -140,12 +141,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 */
 	private final AtomicInteger regionDataVersion = new AtomicInteger();
 
-	private final WorldRendererExt wr;
+	private final WorldRendererExt vanillaWorldRenderer;
 
-	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private RenderRegionBuilder regionBuilder;
 	private ClientWorld world;
-	// both of these are measured in chunks, not blocks
+	// these are measured in chunks, not blocks
+	private int chunkRenderDistance;
 	private int squaredChunkRenderDistance;
 	private int squaredChunkRetentionDistance;
 	private Vec3d cameraPos;
@@ -159,18 +160,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
 		}
 
-		wr = (WorldRendererExt) this;
+		vanillaWorldRenderer = (WorldRendererExt) this;
 		instance = this;
 		computeDistances();
 	}
-
-	// PERF: render larger cubes - avoid matrix state changes
-	// PERF: cull particle rendering?
-	// PERF: reduce garbage generation
-	// PERF: lod culling: don't render grass, cobwebs, flowers, etc. at longer ranges
-	// PERF: render leaves as solid at distance - omit interior faces
-	// PERF: get VAO working again
-	// PERF: consider trying backface culling again but at draw time w/ glMultiDrawArrays
 
 	private static int rangeColor(int range) {
 		switch (range) {
@@ -194,7 +187,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	private void computeDistances() {
-		int renderDistance = wr.canvas_renderDistance();
+		@SuppressWarnings("resource")
+		int renderDistance = MinecraftClient.getInstance().options.viewDistance;
+		chunkRenderDistance = renderDistance;
 		squaredChunkRenderDistance = renderDistance * renderDistance;
 		renderDistance += 2;
 		squaredChunkRetentionDistance = renderDistance * renderDistance;
@@ -233,7 +228,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		terrainIterator.reset();
 		renderRegionStorage.clear();
 		// we don't want to use our collector unless we are in a world
-		((BufferBuilderStorageExt) wr.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
+		((BufferBuilderStorageExt) vanillaWorldRenderer.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
 		// Mixins mostly disable what this does
 		super.setWorld(clientWorld);
 	}
@@ -249,11 +244,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 * or
 	 */
 	public void setupTerrain(Camera camera, int frameCounter, boolean shouldCullChunks) {
-		final WorldRendererExt wr = this.wr;
-		final MinecraftClient mc = wr.canvas_mc();
-		final int renderDistance = wr.canvas_renderDistance();
+		final int renderDistance = chunkRenderDistance;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
 		final TerrainIterator terrainIterator = this.terrainIterator;
+		final MinecraftClient mc = MinecraftClient.getInstance();
 
 		regionStorage.closeRegionsOnRenderThread();
 
@@ -281,7 +275,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		mc.getProfiler().swap("update");
 
-		if (terrainSetupOffThread) {
+		if (Configurator.terrainSetupOffThread) {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
@@ -349,10 +343,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 	}
 
-	@SuppressWarnings("resource")
 	private boolean shouldCullChunks(BlockPos pos) {
-		final MinecraftClient mc = wr.canvas_mc();
-		boolean result = wr.canvas_mc().chunkCullingEnabled;
+		final MinecraftClient mc = MinecraftClient.getInstance();
+		boolean result = mc.chunkCullingEnabled;
 
 		if (mc.player.isSpectator() && !world.isOutOfHeightLimit(pos.getY()) && world.getBlockState(pos).isOpaqueFullCube(world, pos)) {
 			result = false;
@@ -367,8 +360,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	public void renderWorld(MatrixStack viewMatrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
-		final WorldRendererExt wr = this.wr;
-		final MinecraftClient mc = wr.canvas_mc();
+		final WorldRendererExt wr = vanillaWorldRenderer;
+		final MinecraftClient mc = MinecraftClient.getInstance();
 		final WorldRenderer mcwr = mc.worldRenderer;
 		final Framebuffer mcfb = mc.getFramebuffer();
 		final BlockRenderContext blockContext = BlockRenderContext.get();
@@ -495,9 +488,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// Because we are passing identity stack to entity renders we need to
 		// apply the view transform to vanilla renders.
-		final MatrixStack matrixStack = RenderSystem.getModelViewStack();
-		matrixStack.push();
-		matrixStack.method_34425(viewMatrixStack.peek().getModel());
+		final MatrixStack renderSystemModelViewStack = RenderSystem.getModelViewStack();
+		renderSystemModelViewStack.push();
+		renderSystemModelViewStack.method_34425(viewMatrixStack.peek().getModel());
 		RenderSystem.applyModelViewMatrix();
 
 		// PERF: find way to reduce allocation for this and MatrixStack generally
@@ -533,7 +526,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			if (isFirstPersonPlayer) {
 				// only render as shadow
-				renderProvider = shadowExtrasProvider;
+				renderProvider = shadowExtrasImmediate;
 			} else if (canDrawEntityOutlines && mc.hasOutline(entity)) {
 				didRenderOutlines = true;
 				final OutlineVertexConsumerProvider outlineVertexConsumerProvider = bufferBuilders.getOutlineVertexConsumers();
@@ -615,7 +608,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderState.disable();
 
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
-			DrawableBuffer shadowExtrasBuffer = shadowExtrasProvider.prepareDrawable(MaterialTarget.MAIN)
+			DrawableBuffer shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
 		) {
 			profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, cameraX, cameraY, cameraZ, entityBuffer, shadowExtrasBuffer);
@@ -773,7 +766,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate.collectors, lightmapTextureManager, camera, tickDelta);
 		}
 
-		matrixStack.pop();
+		renderSystemModelViewStack.pop();
 		RenderSystem.applyModelViewMatrix();
 
 		RenderState.disable();
@@ -798,8 +791,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		profileSwap(profiler, ProfilerGroup.EndWorld, "weather");
 
 		// Apply view transform locally for vanilla weather and world border rendering
-		matrixStack.push();
-		matrixStack.method_34425(viewMatrixStack.peek().getModel());
+		renderSystemModelViewStack.push();
+		renderSystemModelViewStack.method_34425(viewMatrixStack.peek().getModel());
 		RenderSystem.applyModelViewMatrix();
 
 		if (advancedTranslucency) {
@@ -817,7 +810,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			GFX.depthMask(true);
 		}
 
-		matrixStack.pop();
+		renderSystemModelViewStack.pop();
 		RenderSystem.applyModelViewMatrix();
 
 		// doesn't make any sense with our chunk culling scheme
@@ -1040,7 +1033,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {
-		((WorldRenderer) wr).updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
+		((WorldRenderer) vanillaWorldRenderer).updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
 	}
 
 	// PERF: stash frustum version and terrain version in entity - only retest when changed
@@ -1066,8 +1059,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			z1 = box.maxZ;
 		}
 
-		// PERF: should probably use same frustum as for particles - don't need the padding
-		if (!terrainFrustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
+		if (!cullingFrustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
 			return false;
 		}
 
@@ -1126,21 +1118,20 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public void render(MatrixStack viewMatrixStack, float tickDelta, long frameStartNanos, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
-		final WorldRendererExt wr = this.wr;
-		final MinecraftClient mc = wr.canvas_mc();
+		final MinecraftClient mc = MinecraftClient.getInstance();
 		final boolean wasFabulous = Pipeline.isFabulous();
 
 		PipelineManager.reloadIfNeeded();
 
 		if (wasFabulous != Pipeline.isFabulous()) {
-			wr.canvas_setupFabulousBuffers();
+			vanillaWorldRenderer.canvas_setupFabulousBuffers();
 		}
 
-		if (mc.options.viewDistance != wr.canvas_renderDistance()) {
+		if (mc.options.viewDistance != chunkRenderDistance) {
 			reload();
 		}
 
-		wr.canvas_mc().getProfiler().swap("dynamic_lighting");
+		mc.getProfiler().swap("dynamic_lighting");
 
 		// All managed draws - including anything targeting vertex consumer - will have camera rotation applied
 		// in shader - this gives better consistency with terrain rendering and may be more intuitive for lighting.
@@ -1152,11 +1143,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
 		terrainFrustum.prepare(viewMatrix, tickDelta, camera, terrainVisibilityState.occluder.hasNearOccluders());
-		particleRenderer.frustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
+		cullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
 
-		eventContext.prepare(this, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, wr.canvas_mc().getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), world);
+		eventContext.prepare(this, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, mc.getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), world);
 
 		WorldRenderEvents.START.invoker().onStart(eventContext);
 		PipelineManager.beforeWorldRender();
@@ -1173,18 +1164,17 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// cause injections to fire but disable all other vanilla logic
 		// by setting world to null temporarily
-		final ClientWorld swapWorld = wr.canvas_world();
-		wr.canvas_setWorldNoSideEffects(null);
+		final ClientWorld swapWorld = vanillaWorldRenderer.canvas_world();
+		vanillaWorldRenderer.canvas_setWorldNoSideEffects(null);
 		super.reload();
-		wr.canvas_setWorldNoSideEffects(swapWorld);
+		vanillaWorldRenderer.canvas_setWorldNoSideEffects(swapWorld);
 
 		// has the logic from super.reload() that requires private access
-		wr.canvas_reload();
+		vanillaWorldRenderer.canvas_reload();
 
 		computeDistances();
 		terrainIterator.reset();
 		terrainVisibilityState.clear();
-		terrainSetupOffThread = Configurator.terrainSetupOffThread;
 		regionsToRebuild.clear();
 
 		if (regionBuilder != null) {
@@ -1214,6 +1204,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final int len = renderRegionStorage.regionCount();
 		final int count = getCompletedChunkCount();
 		final RenderRegionBuilder chunkBuilder = regionBuilder();
-		return String.format("C: %d/%d %sD: %d, %s", count, len, wr.canvas_mc().chunkCullingEnabled ? "(s) " : "", wr.canvas_renderDistance(), chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
+		return String.format("C: %d/%d %sD: %d, %s", count, len, MinecraftClient.getInstance().chunkCullingEnabled ? "(s) " : "", chunkRenderDistance, chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
 	}
 }
