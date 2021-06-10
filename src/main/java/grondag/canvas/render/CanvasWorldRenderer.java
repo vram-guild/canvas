@@ -16,7 +16,6 @@
 
 package grondag.canvas.render;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -104,6 +103,7 @@ import grondag.canvas.shader.data.MatrixData;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
+import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
@@ -115,18 +115,15 @@ import grondag.canvas.varia.GFX;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class CanvasWorldRenderer extends WorldRenderer {
-	public static final int MAX_REGION_COUNT = (32 * 2 + 1) * (32 * 2 + 1) * 24;
 	private static CanvasWorldRenderer instance;
 	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();
-
-	private final TerrainLayerRenderer SOLID = new TerrainLayerRenderer("solid", null);
-	private final TerrainLayerRenderer TRANSLUCENT = new TerrainLayerRenderer("translucemt", this::sortTranslucentTerrain);
 
 	private final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
 	private final TerrainVisibilityState terrainVisibilityState = new TerrainVisibilityState();
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, terrainVisibilityState);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainVisibilityState);
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
+	private final VisibleRegionList visibleRegions = new VisibleRegionList();
 
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
 	private final MatrixStack identityStack = new MatrixStack();
@@ -136,7 +133,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 * Distinct from occluder state, which indicates if/when occluder must be reset or redrawn.
 	 */
 	private final AtomicInteger regionDataVersion = new AtomicInteger();
-	private final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[MAX_REGION_COUNT];
+
 	private final WorldRendererExt wr;
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private RenderRegionBuilder regionBuilder;
@@ -148,7 +145,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private Vec3d cameraPos;
 	private int lastRegionDataVersion = -1;
 	private int lastViewVersion = -1;
-	private int visibleRegionCount = 0;
 
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
@@ -234,11 +230,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// DitherTexture.instance().initializeIfNeeded();
 		world = clientWorld;
-		visibleRegionCount = 0;
+		visibleRegions.clear();
 		terrainIterator.reset();
 		renderRegionStorage.clear();
-		Arrays.fill(visibleRegions, null);
-		Arrays.fill(terrainIterator.visibleRegions, null);
 		// we don't want to use our collector unless we are in a world
 		((BufferBuilderStorageExt) wr.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
 		// Mixins mostly disable what this does
@@ -292,8 +286,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
-				visibleRegionCount = terrainIterator.visibleRegionCount;
-				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, visibleRegionCount);
+				visibleRegions.copyFrom(terrainIterator.visibleRegions);
 				scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 				state = TerrainIterator.IDLE;
@@ -317,8 +310,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				terrainIterator.accept(null);
 
 				lastViewVersion = terrainFrustum.viewVersion();
-				visibleRegionCount = terrainIterator.visibleRegionCount;
-				System.arraycopy(terrainIterator.visibleRegions, 0, visibleRegions, 0, visibleRegionCount);
+				visibleRegions.copyFrom(terrainIterator.visibleRegions);
 				scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 			}
@@ -496,7 +488,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final CanvasImmediate immediate = worldRenderImmediate;
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
-		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
+		final VisibleRegionList visibleRegions = this.visibleRegions;
 		entityBlockContext.tickDelta(tickDelta);
 		entityBlockContext.collectors = immediate.collectors;
 		blockContext.collectors = immediate.collectors;
@@ -566,13 +558,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		SkyShadowRenderer.restoreEntityShadows(mc);
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "blockentities");
-		final int visibleRegionCount = this.visibleRegionCount;
+		final int visibleRegionCount = visibleRegions.size();
 		final Set<BlockEntity> noCullingBlockEntities = wr.canvas_noCullingBlockEntities();
 
 		for (int regionIndex = 0; regionIndex < visibleRegionCount; ++regionIndex) {
-			assert visibleRegions[regionIndex] != null;
-
-			final List<BlockEntity> list = visibleRegions[regionIndex].getBuildData().getBlockEntities();
+			final List<BlockEntity> list = visibleRegions.get(regionIndex).getBuildData().getBlockEntities();
 
 			final Iterator<BlockEntity> itBER = list.iterator();
 
@@ -730,6 +720,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.getWaterMask());
 
 		bufferBuilders.getEffectVertexConsumers().draw();
+
+		sortTranslucentTerrain();
 
 		if (advancedTranslucency) {
 			profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
@@ -995,13 +987,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		mc.getProfiler().push("translucent_sort");
 
+		// FIX: looks like this will not sort past the first 15 regions if there are more
+		// than that because we always reset the version here
 		if (translucentSortPositionVersion != terrainFrustum.positionVersion()) {
 			translucentSortPositionVersion = terrainFrustum.positionVersion();
 
 			int j = 0;
+			final int visibleRegionCount = visibleRegions.size();
 
 			for (int regionIndex = 0; regionIndex < visibleRegionCount; regionIndex++) {
-				if (j < 15 && visibleRegions[regionIndex].scheduleSort()) {
+				if (j < 15 && visibleRegions.get(regionIndex).scheduleSort()) {
 					++j;
 				}
 			}
@@ -1011,30 +1006,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
-		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
-		final int visibleRegionCount = this.visibleRegionCount;
-
-		if (visibleRegionCount == 0) {
-			return;
-		}
-
-		if (isTranslucent) {
-			TRANSLUCENT.render(visibleRegions, visibleRegionCount, x, y, z);
-		} else {
-			SOLID.render(visibleRegions, visibleRegionCount, x, y, z);
-		}
-
-		RenderState.disable();
-
-		// Important this happens BEFORE anything that could affect vertex state
-		GFX.glBindVertexArray(0);
-
-		//if (Configurator.hdLightmaps()) {
-		//	LightmapHdTexture.instance().disable();
-		//	DitherTexture.instance().disable();
-		//}
-
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
+		TerrainLayerRenderer.render(visibleRegions, x, y, z, isTranslucent);
 	}
 
 	private void updateRegions(long endNanos) {
@@ -1244,7 +1216,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		renderRegionStorage.clear();
-		visibleRegionCount = 0;
+		visibleRegions.clear();
 		terrainFrustum.reload();
 
 		//ClassInspector.inspect();
@@ -1257,19 +1229,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public int getCompletedChunkCount() {
-		int result = 0;
-		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
-		final int limit = visibleRegionCount;
-
-		for (int i = 0; i < limit; i++) {
-			final BuiltRenderRegion region = visibleRegions[i];
-
-			if (!region.solidDrawable().isClosed() || !region.translucentDrawable().isClosed()) {
-				++result;
-			}
-		}
-
-		return result;
+		return visibleRegions.getActiveCount();
 	}
 
 	@Override

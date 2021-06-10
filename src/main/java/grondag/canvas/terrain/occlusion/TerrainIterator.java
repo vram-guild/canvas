@@ -29,7 +29,6 @@ import net.minecraft.util.math.Vec3i;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
@@ -48,12 +47,10 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	public static final int COMPLETE = 3;
 
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
-	public final BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[CanvasWorldRenderer.MAX_REGION_COUNT];
+	public final VisibleRegionList visibleRegions = new VisibleRegionList();
 	private final RenderRegionStorage renderRegionStorage;
 	private final TerrainVisibilityState terrainVisiblityState;
 	private final AtomicInteger state = new AtomicInteger(IDLE);
-
-	public volatile int visibleRegionCount;
 
 	private BuiltRenderRegion cameraRegion;
 	private Vec3d cameraPos;
@@ -88,6 +85,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	public void reset() {
 		cancelled = true;
 		state.compareAndSet(COMPLETE, IDLE);
+		visibleRegions.clear();
 	}
 
 	@Override
@@ -98,10 +96,8 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
 		final RenderRegionStorage regionStorage = renderRegionStorage;
-		final BuiltRenderRegion[] visibleRegions = this.visibleRegions;
 		final PotentiallyVisibleRegionSorter distanceSorter = terrainVisiblityState.potentiallVisibleRegionSorter;
 		final TerrainOccluder occluder = terrainVisiblityState.occluder;
-		int visibleRegionCount = 0;
 		updateRegions.clear();
 		renderRegionStorage.updateCameraDistanceAndVisibilityInfo(cameraChunkOrigin);
 		final boolean redrawOccluder = occluder.prepareScene(cameraPos);
@@ -186,7 +182,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 			if (!chunkCullingEnabled || builtRegion.isNear()) {
 				builtRegion.enqueueUnvistedNeighbors();
-				visibleRegions[visibleRegionCount++] = builtRegion;
+				visibleRegions.add(builtRegion);
 
 				if (redrawOccluder || builtRegion.occluderVersion() != occluderVersion) {
 					occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
@@ -198,7 +194,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				// reuse prior test results
 				if (builtRegion.occluderResult()) {
 					builtRegion.enqueueUnvistedNeighbors();
-					visibleRegions[visibleRegionCount++] = builtRegion;
+					visibleRegions.add(builtRegion);
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
@@ -211,7 +207,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 				if (occluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
 					builtRegion.enqueueUnvistedNeighbors();
-					visibleRegions[visibleRegionCount++] = builtRegion;
+					visibleRegions.add(builtRegion);
 					builtRegion.setOccluderResult(true, occluderVersion);
 
 					// these must always be drawn - will be additive if view hasn't changed
@@ -224,11 +220,10 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 
 		if (cancelled) {
 			state.set(IDLE);
-			this.visibleRegionCount = 0;
+			visibleRegions.clear();
 		} else {
 			assert state.get() == RUNNING;
 			state.set(COMPLETE);
-			this.visibleRegionCount = visibleRegionCount;
 
 			if (Configurator.debugOcclusionRaster) {
 				occluder.outputRaster();

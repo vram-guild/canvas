@@ -16,33 +16,27 @@
 
 package grondag.canvas.terrain.render;
 
-import com.google.common.util.concurrent.Runnables;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.SkyShadowRenderer;
+import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.varia.GFX;
 
 public class TerrainLayerRenderer {
-	private final String profileString;
-	private final Runnable sortTask;
-	private final boolean isTranslucent;
+	public static final void render(final VisibleRegionList visibleRegions, double x, double y, double z, boolean isTranslucent) {
+		final int visibleRegionCount = visibleRegions.size();
 
-	public TerrainLayerRenderer(String layerName, @Nullable Runnable translucentSortTask) {
-		profileString = "render_" + layerName;
-		isTranslucent = translucentSortTask != null;
-		sortTask = isTranslucent ? translucentSortTask : Runnables.doNothing();
-	}
+		if (visibleRegionCount == 0) {
+			return;
+		}
 
-	public void render(final BuiltRenderRegion[] visibleRegions, final int visibleRegionCount, double x, double y, double z) {
+		final String profileString = isTranslucent ? "render_translucent" : "render_solid";
 		final MinecraftClient mc = MinecraftClient.getInstance();
-
-		sortTask.run();
 
 		mc.getProfiler().push(profileString);
 
@@ -62,7 +56,7 @@ public class TerrainLayerRenderer {
 		int ox = 0, oy = 0, oz = 0;
 
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
-			final BuiltRenderRegion builtRegion = visibleRegions[regionIndex];
+			final BuiltRenderRegion builtRegion = visibleRegions.get(regionIndex);
 
 			if (builtRegion == null) {
 				continue;
@@ -102,5 +96,17 @@ public class TerrainLayerRenderer {
 		}
 
 		mc.getProfiler().pop();
+
+		RenderState.disable();
+
+		// Important this happens BEFORE anything that could affect vertex state
+		GFX.glBindVertexArray(0);
+
+		//if (Configurator.hdLightmaps()) {
+		//	LightmapHdTexture.instance().disable();
+		//	DitherTexture.instance().disable();
+		//}
+
+		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 	}
 }
