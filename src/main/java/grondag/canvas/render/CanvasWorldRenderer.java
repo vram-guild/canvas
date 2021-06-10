@@ -124,6 +124,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainVisibilityState);
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
 	private final VisibleRegionList visibleRegions = new VisibleRegionList();
+	private final RenderContextState contextState = new RenderContextState();
+	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
+	private final CanvasImmediate shadowExtrasProvider = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
+	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
+	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
 	private final MatrixStack identityStack = new MatrixStack();
@@ -135,6 +141,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final AtomicInteger regionDataVersion = new AtomicInteger();
 
 	private final WorldRendererExt wr;
+
 	private boolean terrainSetupOffThread = Configurator.terrainSetupOffThread;
 	private RenderRegionBuilder regionBuilder;
 	private int translucentSortPositionVersion;
@@ -145,13 +152,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private Vec3d cameraPos;
 	private int lastRegionDataVersion = -1;
 	private int lastViewVersion = -1;
-
-	private final RenderContextState contextState = new RenderContextState();
-	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
-	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
-	private final CanvasImmediate shadowExtrasProvider = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
-	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer();
-	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
@@ -298,7 +298,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				lastRegionDataVersion = newRegionDataVersion;
 				lastViewVersion = terrainFrustum.viewVersion();
 				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
-				regionBuilder.executor.execute(terrainIterator, -1);
+				regionBuilder.executor.execute(terrainIterator);
 			}
 		} else {
 			// Run iteration on main thread
@@ -307,7 +307,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			if (terrainFrustum.viewVersion() != lastViewVersion || newRegionDataVersion != lastRegionDataVersion) {
 				lastRegionDataVersion = newRegionDataVersion;
 				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
-				terrainIterator.accept(null);
+				terrainIterator.run(null);
 
 				lastViewVersion = terrainFrustum.viewVersion();
 				visibleRegions.copyFrom(terrainIterator.visibleRegions);

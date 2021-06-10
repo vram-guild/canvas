@@ -17,7 +17,6 @@
 package grondag.canvas.terrain.occlusion;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -35,10 +34,11 @@ import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.region.TerrainVisibilityState;
+import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 
-public class TerrainIterator implements Consumer<TerrainRenderContext> {
+public class TerrainIterator implements TerrainExecutorTask {
 	public static final boolean TRACE_OCCLUSION_OUTCOMES = Configurator.traceOcclusionOutcomes;
 
 	public static final int IDLE = 0;
@@ -89,7 +89,7 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 	}
 
 	@Override
-	public void accept(TerrainRenderContext ignored) {
+	public void run(TerrainRenderContext ignored) {
 		assert state.get() == READY;
 		state.set(RUNNING);
 
@@ -229,5 +229,10 @@ public class TerrainIterator implements Consumer<TerrainRenderContext> {
 				occluder.outputRaster();
 			}
 		}
+	}
+
+	@Override
+	public int priority() {
+		return -1;
 	}
 }

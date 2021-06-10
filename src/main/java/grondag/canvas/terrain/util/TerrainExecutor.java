@@ -18,7 +18,6 @@ package grondag.canvas.terrain.util;
 
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.function.Consumer;
 
 import com.google.common.collect.ImmutableList;
 
@@ -34,10 +33,10 @@ import grondag.fermion.sc.Sc;
  * and privileged tasks run in order of submission.
  */
 public class TerrainExecutor {
-	private final PriorityBlockingQueue<ChunkBuildTask> queue = new PriorityBlockingQueue<>(1024, new Comparator<ChunkBuildTask>() {
+	private final PriorityBlockingQueue<TerrainExecutorTask> queue = new PriorityBlockingQueue<>(1024, new Comparator<TerrainExecutorTask>() {
 		@Override
-		public int compare(ChunkBuildTask o1, ChunkBuildTask o2) {
-			return Integer.compare(o1.priority, o2.priority);
+		public int compare(TerrainExecutorTask o1, TerrainExecutorTask o2) {
+			return Integer.compare(o1.priority(), o2.priority());
 		}
 	});
 
@@ -72,8 +71,8 @@ public class TerrainExecutor {
 		return threadCount > 1 ? threadCount : 1;
 	}
 
-	public void execute(Consumer<TerrainRenderContext> task, int squaredDistance) {
-		queue.add(new ChunkBuildTask(task, squaredDistance));
+	public void execute(TerrainExecutorTask task) {
+		queue.add(task);
 	}
 
 	public void clear() {
@@ -89,18 +88,13 @@ public class TerrainExecutor {
 		return queue.isEmpty();
 	}
 
-	private class ChunkBuildTask {
-		final Consumer<TerrainRenderContext> task;
+	public interface TerrainExecutorTask {
+		void run(TerrainRenderContext context);
 
 		/**
 		 * Normally squared chunk distance. Use -1 for privileged execution
 		 */
-		final int priority;
-
-		ChunkBuildTask(Consumer<TerrainRenderContext> task, int priority) {
-			this.task = task;
-			this.priority = priority;
-		}
+		int priority();
 	}
 
 	private class Worker implements Runnable {
@@ -110,10 +104,10 @@ public class TerrainExecutor {
 		public void run() {
 			while (true) {
 				try {
-					final ChunkBuildTask t = queue.take();
+					final TerrainExecutorTask t = queue.take();
 
 					if (t != null) {
-						t.task.accept(context);
+						t.run(context);
 					}
 				} catch (final InterruptedException e) {
 					// NOOP

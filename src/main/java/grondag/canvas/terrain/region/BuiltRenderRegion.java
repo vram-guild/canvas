@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -65,11 +64,12 @@ import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.terrain.util.RenderRegionAddressHelper;
+import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
 import grondag.canvas.varia.BlockPosHelper;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
-public class BuiltRenderRegion {
+public class BuiltRenderRegion implements TerrainExecutorTask {
 	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
 
 	private final RenderRegionBuilder renderRegionBuilder;
@@ -107,7 +107,6 @@ public class BuiltRenderRegion {
 	private int lastSeenVisibility;
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
-	private final Consumer<TerrainRenderContext> buildTask = this::rebuildOnWorkerThread;
 	private int buildCount = -1;
 	// build count that was in effect last time drawn to occluder
 	private int occlusionBuildCount;
@@ -352,7 +351,7 @@ public class BuiltRenderRegion {
 
 		// null region is signal to reschedule
 		if (buildState.protoRegion.getAndSet(region) == ProtoRenderRegion.IDLE) {
-			renderRegionBuilder.executor.execute(buildTask, squaredChunkDistance);
+			renderRegionBuilder.executor.execute(this);
 		}
 	}
 
@@ -365,7 +364,7 @@ public class BuiltRenderRegion {
 			if (buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE, ProtoRenderRegion.RESORT_ONLY)) {
 				// null means need to reschedule, otherwise was already scheduled for either
 				// resort or rebuild, or is invalid, not ready to be built.
-				renderRegionBuilder.executor.execute(buildTask, squaredChunkDistance);
+				renderRegionBuilder.executor.execute(this);
 			}
 
 			return true;
@@ -377,7 +376,13 @@ public class BuiltRenderRegion {
 		buildState = new RegionBuildState();
 	}
 
-	private void rebuildOnWorkerThread(TerrainRenderContext context) {
+	@Override
+	public int priority() {
+		return squaredChunkDistance;
+	}
+
+	@Override
+	public void run(TerrainRenderContext context) {
 		final RegionBuildState runningState = buildState;
 		final ProtoRenderRegion region = runningState.protoRegion.getAndSet(ProtoRenderRegion.IDLE);
 
