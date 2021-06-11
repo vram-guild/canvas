@@ -54,13 +54,14 @@ public class CanvasParticleRenderer {
 	private Runnable drawHandler = Runnables.doNothing();
 	private RenderMaterialImpl baseMat;
 	private RenderMaterialImpl emissiveMat;
-	private final FastFrustum cullingFrustum;
+	private final RegionCullingFrustum cullingFrustum;
 
-	public CanvasParticleRenderer(FastFrustum cullingFrustum) {
+	public CanvasParticleRenderer(RegionCullingFrustum cullingFrustum) {
 		this.cullingFrustum = cullingFrustum;
 	}
 
 	public void renderParticles(ParticleManager pm, MatrixStack matrixStack, VertexCollectorList collectors, LightmapTextureManager lightmapTextureManager, Camera camera, float tickDelta) {
+		cullingFrustum.enableRegionCulling = false;
 		final MatrixStack renderMatrix = RenderSystem.getModelViewStack();
 		renderMatrix.push();
 		renderMatrix.method_34425(matrixStack.peek().getModel());

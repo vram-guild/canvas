@@ -18,7 +18,6 @@
 	"MixinCyclingOption",
 	"MixinDebugHud",
 	"MixinEntityRenderDispatcher",
-	"MixinEntityRenderer",
 	"MixinFrameBuffer",
 	"MixinGameRenderer",
 	"MixinGlStateManager",

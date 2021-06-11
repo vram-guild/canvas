@@ -70,7 +70,6 @@ import net.minecraft.util.Util;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -123,7 +122,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, terrainVisibilityState);
 	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainVisibilityState);
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
-	private final FastFrustum cullingFrustum = new FastFrustum();
+	private final RegionCullingFrustum cullingFrustum = new RegionCullingFrustum(renderRegionStorage);
 	private final VisibleRegionList visibleRegions = new VisibleRegionList();
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
@@ -493,12 +492,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		renderSystemModelViewStack.method_34425(viewMatrixStack.peek().getModel());
 		RenderSystem.applyModelViewMatrix();
 
+		cullingFrustum.enableRegionCulling = Configurator.cullEntityRender;
+
 		// PERF: find way to reduce allocation for this and MatrixStack generally
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			boolean isFirstPersonPlayer = false;
 
-			if (!entityRenderDispatcher.shouldRender(entity, frustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player)) {
+			if (!entityRenderDispatcher.shouldRender(entity, cullingFrustum, cameraX, cameraY, cameraZ) && !entity.hasPassengerDeep(mc.player)) {
 				continue;
 			}
 
@@ -1034,81 +1035,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {
 		((WorldRenderer) vanillaWorldRenderer).updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
-	}
-
-	// PERF: stash frustum version and terrain version in entity - only retest when changed
-	public <T extends Entity> boolean isEntityVisible(T entity) {
-		final Box box = entity.getVisibilityBoundingBox();
-
-		final double x0, y0, z0, x1, y1, z1;
-
-		// NB: this method is mis-named
-		if (box.isValid()) {
-			x0 = entity.getX() - 1.5;
-			y0 = entity.getY() - 1.5;
-			z0 = entity.getZ() - 1.5;
-			x1 = x0 + 3.0;
-			y1 = y0 + 3.0;
-			z1 = z0 + 3.0;
-		} else {
-			x0 = box.minX;
-			y0 = box.minY;
-			z0 = box.minZ;
-			x1 = box.maxX;
-			y1 = box.maxY;
-			z1 = box.maxZ;
-		}
-
-		if (!cullingFrustum.isVisible(x0 - 0.5, y0 - 0.5, z0 - 0.5, x1 + 0.5, y1 + 0.5, z1 + 0.5)) {
-			return false;
-		}
-
-		final int rx0 = MathHelper.floor(x0) & 0xFFFFFFF0;
-		final int ry0 = MathHelper.floor(y0) & 0xFFFFFFF0;
-		final int rz0 = MathHelper.floor(z0) & 0xFFFFFFF0;
-		final int rx1 = MathHelper.floor(x1) & 0xFFFFFFF0;
-		final int ry1 = MathHelper.floor(y1) & 0xFFFFFFF0;
-		final int rz1 = MathHelper.floor(z1) & 0xFFFFFFF0;
-
-		int flags = rx0 == rz1 ? 0 : 1;
-		if (ry0 != ry1) flags |= 2;
-		if (rz0 != rz1) flags |= 4;
-
-		final RenderRegionStorage regions = renderRegionStorage;
-
-		switch (flags) {
-			case 0b000:
-				return regions.wasSeen(rx0, ry0, rz0);
-
-			case 0b001:
-				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0);
-
-			case 0b010:
-				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0);
-
-			case 0b011:
-				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-						|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
-
-			case 0b100:
-				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry0, rz1);
-
-			case 0b101:
-				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
-
-			case 0b110:
-				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0)
-						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
-
-			case 0b111:
-				return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-						|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
-						|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
-						|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
-		}
-
-		return true;
 	}
 
 	public void scheduleRegionRender(int x, int y, int z, boolean urgent) {

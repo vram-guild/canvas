@@ -80,7 +80,7 @@ public abstract class CanvasFrustum extends Frustum {
 		return isVisible(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
 	}
 
-	public final boolean isVisible(double x0, double y0, double z0, double x1, double y1, double z1) {
+	public boolean isVisible(double x0, double y0, double z0, double x1, double y1, double z1) {
 		final double hdx = 0.5 * (x1 - x0);
 		final double hdy = 0.5 * (y1 - y0);
 		final double hdz = 0.5 * (z1 - z0);
