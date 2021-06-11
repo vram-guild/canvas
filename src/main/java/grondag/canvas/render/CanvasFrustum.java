@@ -46,9 +46,9 @@ public abstract class CanvasFrustum extends Frustum {
 	protected final Matrix4f modelMatrix = new Matrix4f();
 	protected final Matrix4fExt modelMatrixExt = (Matrix4fExt) (Object) modelMatrix;
 
-	protected double lastViewX = Double.MAX_VALUE;
-	protected double lastViewY = Double.MAX_VALUE;
-	protected double lastViewZ = Double.MAX_VALUE;
+	protected double lastCameraX = Double.MAX_VALUE;
+	protected double lastCameraY = Double.MAX_VALUE;
+	protected double lastCameraZ = Double.MAX_VALUE;
 
 	// NB: distance (w) and subtraction are baked into region extents but must be done for other box tests
 	protected float leftX, leftY, leftZ, leftW, leftXe, leftYe, leftZe, leftRegionExtent;
@@ -89,9 +89,9 @@ public abstract class CanvasFrustum extends Frustum {
 		assert hdy > 0;
 		assert hdz > 0;
 
-		final float cx = (float) (x0 + hdx - lastViewX);
-		final float cy = (float) (y0 + hdy - lastViewY);
-		final float cz = (float) (z0 + hdz - lastViewZ);
+		final float cx = (float) (x0 + hdx - lastCameraX);
+		final float cy = (float) (y0 + hdy - lastCameraY);
+		final float cz = (float) (z0 + hdz - lastCameraZ);
 
 		if (cx * leftX + cy * leftY + cz * leftZ + leftW - (hdx * leftXe + hdy * leftYe + hdz * leftZe) > 0) {
 			return false;

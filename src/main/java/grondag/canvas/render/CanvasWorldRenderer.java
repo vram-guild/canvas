@@ -148,7 +148,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private int chunkRenderDistance;
 	private int squaredChunkRenderDistance;
 	private int squaredChunkRetentionDistance;
-	private Vec3d frameCameraPos;
 	private int lastRegionDataVersion = -1;
 	private int lastViewVersion = -1;
 
@@ -370,7 +369,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
 		final boolean advancedTranslucency = Pipeline.isFabulous();
 		final Vec3d cameraVec3d = camera.getPos();
-		frameCameraPos = cameraVec3d;
 		final double frameCameraX = cameraVec3d.getX();
 		final double frameCameraY = cameraVec3d.getY();
 		final double frameCameraZ = cameraVec3d.getZ();
@@ -1019,14 +1017,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				}
 			}
 		}
-	}
-
-	/**
-	 * Camera position in the current frame.  May NOT be the camera position in a terrain occlusion context.
-	 * Used for translucent sort.
-	 */
-	public Vec3d frameCameraPos() {
-		return frameCameraPos;
 	}
 
 	public int maxSquaredChunkRenderDistance() {

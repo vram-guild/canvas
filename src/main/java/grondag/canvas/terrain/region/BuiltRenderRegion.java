@@ -232,7 +232,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 			// these are needed by the frustum - only need to recompute when position moves
 			// not needed at all if outside of render distance
 			if (isInsideRenderDistance) {
-				final Vec3d cameraPos = cwr.frameCameraPos();
+				final Vec3d cameraPos = terrainVisibilityState.occluder.frustumCameraPos();
 				final float dx = (float) (origin.getX() + 8 - cameraPos.x);
 				final float dy = (float) (origin.getY() + 8 - cameraPos.y);
 				final float dz = (float) (origin.getZ() + 8 - cameraPos.z);

@@ -52,6 +52,7 @@ public class TerrainFrustum extends CanvasFrustum {
 	private double lastOcclusionPositionX = Double.MAX_VALUE;
 	private double lastOcclusionPositionY = Double.MAX_VALUE;
 	private double lastOcclusionPositionZ = Double.MAX_VALUE;
+	private Vec3d lastCameraPos = new Vec3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 
 	private long lastCameraBlockPos = Long.MAX_VALUE;
 	private float lastCameraPitch = Float.MAX_VALUE;
@@ -59,15 +60,16 @@ public class TerrainFrustum extends CanvasFrustum {
 	private double fov;
 
 	void reload() {
-		lastViewX = Double.MAX_VALUE;
-		lastViewY = Double.MAX_VALUE;
-		lastViewZ = Double.MAX_VALUE;
+		lastCameraX = Double.MAX_VALUE;
+		lastCameraY = Double.MAX_VALUE;
+		lastCameraZ = Double.MAX_VALUE;
 		lastOcclusionPositionX = Double.MAX_VALUE;
 		lastOcclusionPositionY = Double.MAX_VALUE;
 		lastOcclusionPositionZ = Double.MAX_VALUE;
 		lastCameraBlockPos = Long.MAX_VALUE;
 		lastCameraPitch = Float.MAX_VALUE;
 		lastCameraYaw = Float.MAX_VALUE;
+		lastCameraPos = new Vec3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 	}
 
 	/**
@@ -84,17 +86,21 @@ public class TerrainFrustum extends CanvasFrustum {
 		return viewVersion;
 	}
 
+	public Vec3d lastCameraPos() {
+		return lastCameraPos;
+	}
+
 	public void copy(TerrainFrustum src) {
 		viewVersion = src.viewVersion;
 		occlusionPositionVersion = src.occlusionPositionVersion;
 
-		lastViewX = src.lastViewX;
-		lastViewY = src.lastViewY;
-		lastViewZ = src.lastViewZ;
+		lastCameraX = src.lastCameraX;
+		lastCameraY = src.lastCameraY;
+		lastCameraZ = src.lastCameraZ;
 
-		lastViewX = src.lastViewX;
-		lastViewY = src.lastViewY;
-		lastViewZ = src.lastViewZ;
+		lastCameraX = src.lastCameraX;
+		lastCameraY = src.lastCameraY;
+		lastCameraZ = src.lastCameraZ;
 
 		lastOcclusionPositionX = src.lastOcclusionPositionX;
 		lastOcclusionPositionY = src.lastOcclusionPositionY;
@@ -103,6 +109,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		lastCameraBlockPos = src.lastCameraBlockPos;
 		lastCameraPitch = src.lastCameraPitch;
 		lastCameraYaw = src.lastCameraYaw;
+		lastCameraPos = src.lastCameraPos;
 
 		viewDistanceSquared = src.viewDistanceSquared;
 
@@ -160,10 +167,10 @@ public class TerrainFrustum extends CanvasFrustum {
 
 	@SuppressWarnings("resource")
 	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, boolean nearOccludersPresent) {
-		final Vec3d vec = camera.getPos();
-		final double x = vec.x;
-		final double y = vec.y;
-		final double z = vec.z;
+		final Vec3d cameraPos = camera.getPos();
+		final double x = cameraPos.x;
+		final double y = cameraPos.y;
+		final double z = cameraPos.z;
 
 		final long cameraBlockPos = camera.getBlockPos().asLong();
 		boolean movedEnoughToInvalidateOcclusion = false;
@@ -204,10 +211,10 @@ public class TerrainFrustum extends CanvasFrustum {
 		if (movedEnoughToInvalidateOcclusion || modelMatrixUpdate || !projectionMatrixExt.matches(occlusionProjMat)) {
 			++viewVersion;
 
-			lastViewX = x;
-			lastViewY = y;
-			lastViewZ = z;
-
+			lastCameraX = x;
+			lastCameraY = y;
+			lastCameraZ = z;
+			lastCameraPos = cameraPos;
 			lastCameraPitch = cameraPitch;
 			lastCameraYaw = cameraYaw;
 

@@ -143,9 +143,9 @@ public class FastFrustum extends CanvasFrustum {
 
 	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, Matrix4f projectionMatrix) {
 		final Vec3d vec = camera.getPos();
-		lastViewX = vec.x;
-		lastViewY = vec.y;
-		lastViewZ = vec.z;
+		lastCameraX = vec.x;
+		lastCameraY = vec.y;
+		lastCameraZ = vec.z;
 
 		modelMatrixExt.set(modelMatrix);
 		projectionMatrixExt.set(projectionMatrix);

@@ -104,6 +104,10 @@ public class TerrainOccluder {
 		return occlusionFrustum.occlusionPositionVersion();
 	}
 
+	public Vec3d frustumCameraPos() {
+		return occlusionFrustum.lastCameraPos();
+	}
+
 	public boolean isRegionVisible(BuiltRenderRegion builtRenderRegion) {
 		return occlusionFrustum.isRegionVisible(builtRenderRegion);
 	}
