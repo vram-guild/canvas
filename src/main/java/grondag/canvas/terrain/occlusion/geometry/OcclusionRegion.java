@@ -133,7 +133,7 @@ public abstract class OcclusionRegion {
 	private static final int COVERING_INDEX_COUNT = 16 * 16 * 6;
 
 	/**
-	 * Count of positions from adjacent regions that can potentially obscure this region.
+	 * Positions from adjacent regions that can potentially obscure this region.
 	 */
 	private static final int[] COVERING_INDEXES = new int[COVERING_INDEX_COUNT];
 
@@ -141,6 +141,18 @@ public abstract class OcclusionRegion {
 	 * Surface positions in the interior region that can potentially be obscured by adjacent regions.
 	 */
 	private static final int[] COVERED_INDEXES = new int[COVERING_INDEX_COUNT];
+
+	/**
+	 * Count of corner and edge positions from adjacent regions that aren't used for
+	 * exterior occlusion but still need to be present to support for AO calcs.
+	 * These are the exterior positions not part of COVERING_INDEXES.
+	 */
+	private static final int EDGE_INDEX_COUNT = 16 * 12 + 8;
+
+	/**
+	 * Exterior edge (and corner) positions from adjacent regions needed for AO calc.
+	 */
+	private static final int[] EDGE_INDEXES = new int[EDGE_INDEX_COUNT];
 
 	static {
 		int exteriorIndex = 0;
@@ -188,6 +200,34 @@ public abstract class OcclusionRegion {
 		}
 
 		assert exteriorIndex == COVERING_INDEX_COUNT;
+
+		exteriorIndex = 0;
+
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(-1, -1, i);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(-1, 16, i);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(16, -1, i);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(16, 16, i);
+
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(-1, i, -1);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(-1, i, 16);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(16, i, -1);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(16, i, 16);
+
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(i, -1, -1);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(i, -1, 16);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(i, 16, -1);
+		for (int i = 0; i < 16; i++) EDGE_INDEXES[exteriorIndex++] = regionIndex(i, 16, 16);
+
+		EDGE_INDEXES[exteriorIndex++] = regionIndex(-1, -1, -1);
+		EDGE_INDEXES[exteriorIndex++] = regionIndex(-1, -1, 16);
+		EDGE_INDEXES[exteriorIndex++] = regionIndex(-1, 16, -1);
+		EDGE_INDEXES[exteriorIndex++] = regionIndex(-1, 16, 16);
+		EDGE_INDEXES[exteriorIndex++] = regionIndex(16, -1, -1);
+		EDGE_INDEXES[exteriorIndex++] = regionIndex(16, -1, 16);
+		EDGE_INDEXES[exteriorIndex++] = regionIndex(16, 16, -1);
+		EDGE_INDEXES[exteriorIndex++] = regionIndex(16, 16, 16);
+
+		assert exteriorIndex == EDGE_INDEX_COUNT;
 	}
 
 	private void captureExteriorVisibility(int regionIndex) {
@@ -201,6 +241,10 @@ public abstract class OcclusionRegion {
 	private void captureExterior() {
 		for (int i = 0; i < COVERING_INDEX_COUNT; i++) {
 			captureExteriorVisibility(COVERING_INDEXES[i]);
+		}
+
+		for (int i = 0; i < EDGE_INDEX_COUNT; i++) {
+			captureExteriorVisibility(EDGE_INDEXES[i]);
 		}
 	}
 
