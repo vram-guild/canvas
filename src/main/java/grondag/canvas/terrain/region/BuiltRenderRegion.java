@@ -87,6 +87,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	private int occluderVersion;
 	private boolean occluderResult;
 	private int chunkDistVersion = -1;
+	private int sortPositionVersion = -1;
 
 	/** Used by frustum tests. Will be current only if region is within render distance. */
 	public float cameraRelativeCenterX;
@@ -354,13 +355,34 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		}
 	}
 
-	public void scheduleSort() {
+	/**
+	 * Schedules a resort of this region if all of the following are true.
+	 * 1) region has translucency
+	 * 2) region sort version doesn't match the input version
+	 * 3) resort isn't already scheduled for this region
+	 *
+	 * <p>If a resort is already scheduled then the region sort version is
+	 * updated to match the input version.
+	 *
+	 * @param sortPositionVersion The most recent position version counter - for comparision.
+	 * @return true if a resort was scheduled
+	 */
+	public boolean scheduleSort(int sortPositionVersion) {
 		final RegionData regionData = buildData.get();
+
+		if (sortPositionVersion == this.sortPositionVersion) {
+			return false;
+		}
+
+		this.sortPositionVersion = sortPositionVersion;
 
 		if (regionData.translucentState != null && buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE, ProtoRenderRegion.RESORT_ONLY)) {
 			// null means need to reschedule, otherwise was already scheduled for either
 			// resort or rebuild, or is invalid, not ready to be built.
 			renderRegionBuilder.executor.execute(this);
+			return true;
+		} else {
+			return false;
 		}
 	}
 

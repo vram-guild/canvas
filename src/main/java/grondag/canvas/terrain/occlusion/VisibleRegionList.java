@@ -66,17 +66,35 @@ public final class VisibleRegionList {
 		return result;
 	}
 
+	/**
+	 * Checks build regions for translucent resort need and schedules
+	 * up to 16 of them per pass. Nearer regions are checked first and
+	 * the sort position version isn't updated until all regions are handled.
+	 *
+	 * <p>Regions that are non-translucent, already scheduled or already current
+	 * won't count against the limit.  Resorts are fast and happen off thread -
+	 * checking incrementally avoids overloading the GPU with buffer uploads.
+	 */
 	public void scheduleResort(int positionVersion) {
 		if (lastSortPositionVersion != positionVersion) {
 			final MinecraftClient mc = MinecraftClient.getInstance();
 			mc.getProfiler().push("translucent_sort");
 			final int limit = visibleRegionCount;
+			int count = 0;
+			int i;
 
-			for (int i = 0; i < limit; i++) {
-				visibleRegions[i].scheduleSort();
+			for (i = 0; i < limit; i++) {
+				if (visibleRegions[i].scheduleSort(positionVersion)) {
+					if (++count > 16) {
+						break;
+					}
+				}
 			}
 
-			lastSortPositionVersion = positionVersion;
+			if (i == limit) {
+				lastSortPositionVersion = positionVersion;
+			}
+
 			mc.getProfiler().pop();
 		}
 	}
