@@ -49,13 +49,10 @@ public class TerrainFrustum extends CanvasFrustum {
 	private int viewDistanceSquared;
 	private int viewVersion;
 	private int occlusionPositionVersion;
-	private int sortPositionVersion;
 	private double lastOcclusionPositionX = Double.MAX_VALUE;
 	private double lastOcclusionPositionY = Double.MAX_VALUE;
 	private double lastOcclusionPositionZ = Double.MAX_VALUE;
-	private double lastSortPositionX = Double.MAX_VALUE;
-	private double lastSortPositionY = Double.MAX_VALUE;
-	private double lastSortPositionZ = Double.MAX_VALUE;
+
 	private long lastCameraBlockPos = Long.MAX_VALUE;
 	private float lastCameraPitch = Float.MAX_VALUE;
 	private float lastCameraYaw = Float.MAX_VALUE;
@@ -68,9 +65,6 @@ public class TerrainFrustum extends CanvasFrustum {
 		lastOcclusionPositionX = Double.MAX_VALUE;
 		lastOcclusionPositionY = Double.MAX_VALUE;
 		lastOcclusionPositionZ = Double.MAX_VALUE;
-		lastSortPositionX = Double.MAX_VALUE;
-		lastSortPositionY = Double.MAX_VALUE;
-		lastSortPositionZ = Double.MAX_VALUE;
 		lastCameraBlockPos = Long.MAX_VALUE;
 		lastCameraPitch = Float.MAX_VALUE;
 		lastCameraYaw = Float.MAX_VALUE;
@@ -84,13 +78,6 @@ public class TerrainFrustum extends CanvasFrustum {
 	}
 
 	/**
-	 * Incremented when player moves enough to trigger translucency resort.
-	 */
-	public int sortPositionVersion() {
-		return sortPositionVersion;
-	}
-
-	/**
 	 * Incremented when frustum changes for any reason by any amount - movement, rotation, etc.
 	 */
 	public int viewVersion() {
@@ -100,7 +87,6 @@ public class TerrainFrustum extends CanvasFrustum {
 	public void copy(TerrainFrustum src) {
 		viewVersion = src.viewVersion;
 		occlusionPositionVersion = src.occlusionPositionVersion;
-		sortPositionVersion = src.sortPositionVersion;
 
 		lastViewX = src.lastViewX;
 		lastViewY = src.lastViewY;
@@ -113,10 +99,6 @@ public class TerrainFrustum extends CanvasFrustum {
 		lastOcclusionPositionX = src.lastOcclusionPositionX;
 		lastOcclusionPositionY = src.lastOcclusionPositionY;
 		lastOcclusionPositionZ = src.lastOcclusionPositionZ;
-
-		lastSortPositionX = src.lastSortPositionX;
-		lastSortPositionY = src.lastSortPositionY;
-		lastSortPositionZ = src.lastSortPositionZ;
 
 		lastCameraBlockPos = src.lastCameraBlockPos;
 		lastCameraPitch = src.lastCameraPitch;
@@ -185,24 +167,16 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		final long cameraBlockPos = camera.getBlockPos().asLong();
 		boolean movedEnoughToInvalidateOcclusion = false;
-		boolean movedEnoughToInvalidateSort = false;
 
 		if (cameraBlockPos != lastCameraBlockPos) {
 			lastCameraBlockPos = cameraBlockPos;
 			movedEnoughToInvalidateOcclusion = true;
-			movedEnoughToInvalidateSort = true;
 		} else {
 			// if no near occluders, assume can move 1.0 or more diagonally within same block pos
 			final double dx = x - lastOcclusionPositionX;
 			final double dy = y - lastOcclusionPositionY;
 			final double dz = z - lastOcclusionPositionZ;
 			movedEnoughToInvalidateOcclusion = dx * dx + dy * dy + dz * dz >= (nearOccludersPresent ? 0.01D : 1.0D);
-
-			// can move 1.0 or more diagonally within same block pos
-			final double sdx = x - lastSortPositionX;
-			final double sdy = y - lastSortPositionY;
-			final double sdz = z - lastSortPositionZ;
-			movedEnoughToInvalidateSort = sdx * sdx + sdy * sdy + sdz * sdz >= 1.0D;
 		}
 
 		if (movedEnoughToInvalidateOcclusion) {
@@ -210,13 +184,6 @@ public class TerrainFrustum extends CanvasFrustum {
 			lastOcclusionPositionX = x;
 			lastOcclusionPositionY = y;
 			lastOcclusionPositionZ = z;
-		}
-
-		if (movedEnoughToInvalidateSort) {
-			++sortPositionVersion;
-			lastSortPositionX = x;
-			lastSortPositionY = y;
-			lastSortPositionZ = z;
 		}
 
 		boolean modelMatrixUpdate = false;

@@ -232,7 +232,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 			// these are needed by the frustum - only need to recompute when position moves
 			// not needed at all if outside of render distance
 			if (isInsideRenderDistance) {
-				final Vec3d cameraPos = cwr.cameraPos();
+				final Vec3d cameraPos = cwr.frameCameraPos();
 				final float dx = (float) (origin.getX() + 8 - cameraPos.x);
 				final float dy = (float) (origin.getY() + 8 - cameraPos.y);
 				final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
@@ -441,15 +441,15 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 			final int[] state = regionData.translucentState;
 
 			if (state != null) {
-				final Vec3d cameraPos = cwr.cameraPos();
 				final VertexCollectorList collectors = context.collectors;
 				final ArrayVertexCollector collector = collectors.get(RenderLayerHelper.TRANSLUCENT_TERRAIN);
+				final Vec3d sortPos = cwr.visibleRegions.lastSortPos();
 				collector.loadState(state);
 
 				if (collector.sortQuads(
-					(float) (cameraPos.x - origin.getX()),
-					(float) (cameraPos.y - origin.getY()),
-					(float) (cameraPos.z - origin.getZ()))
+					(float) (sortPos.x - origin.getX()),
+					(float) (sortPos.y - origin.getY()),
+					(float) (sortPos.z - origin.getZ()))
 				) {
 					regionData.translucentState = collector.saveState(state);
 
@@ -551,7 +551,6 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		final int zOrigin = origin.getZ();
 
 		final FastRenderRegion region = context.region;
-		final Vec3d cameraPos = cwr.cameraPos();
 		final MatrixStack matrixStack = new MatrixStack();
 		final MatrixStack.Entry entry = matrixStack.peek();
 		final Matrix4f modelMatrix = entry.getModel();
@@ -598,7 +597,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 			}
 		}
 
-		regionData.endBuffering((float) (cameraPos.x - xOrigin), (float) (cameraPos.y - yOrigin), (float) (cameraPos.z - zOrigin), collectors);
+		final Vec3d sortPos = cwr.visibleRegions.lastSortPos();
+		regionData.endBuffering((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();
