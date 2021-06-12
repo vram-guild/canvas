@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.collect.Sets;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
@@ -112,13 +111,12 @@ import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
 	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();
 
-	private final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
+	private final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 	public final PotentiallyVisibleRegionSorter potentiallVisibleRegionSorter = new PotentiallyVisibleRegionSorter();
 	public final TerrainOccluder occluder = new TerrainOccluder();
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
@@ -260,13 +258,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().swap("buildnear");
 
 		if (cameraRegion != null) {
-			buildNearRegionIfNeeded(cameraRegion);
+			regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
 
 			for (int i = 0; i < 6; ++i) {
 				final BuiltRenderRegion r = cameraRegion.getNeighbor(i);
 
 				if (r != null) {
-					buildNearRegionIfNeeded(r);
+					regionRebuildManager.buildNearRegionIfNeeded(r);
 				}
 			}
 		}
@@ -280,7 +278,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			if (state == TerrainIterator.COMPLETE) {
 				visibleRegions.copyFrom(terrainIterator.visibleRegions);
-				scheduleOrBuild(terrainIterator.updateRegions);
+				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 				state = TerrainIterator.IDLE;
 			}
@@ -304,43 +302,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 				lastViewVersion = terrainFrustum.viewVersion();
 				visibleRegions.copyFrom(terrainIterator.visibleRegions);
-				scheduleOrBuild(terrainIterator.updateRegions);
+				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 			}
 		}
 
 		mc.getProfiler().pop();
-	}
-
-	private void scheduleOrBuild(SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions) {
-		final int limit = updateRegions.size();
-		final Set<BuiltRenderRegion> regionsToRebuild = this.regionsToRebuild;
-
-		if (limit == 0) {
-			return;
-		}
-
-		for (int i = 0; i < limit; ++i) {
-			final BuiltRenderRegion region = updateRegions.get(i);
-
-			if (region.needsRebuild()) {
-				if (region.needsImportantRebuild() || region.isNear()) {
-					regionsToRebuild.remove(region);
-					region.rebuildOnMainThread();
-					region.markBuilt();
-				} else {
-					regionsToRebuild.add(region);
-				}
-			}
-		}
-	}
-
-	private void buildNearRegionIfNeeded(BuiltRenderRegion region) {
-		if (region.needsRebuild()) {
-			regionsToRebuild.remove(region);
-			region.rebuildOnMainThread();
-			region.markBuilt();
-		}
 	}
 
 	private boolean shouldCullChunks(BlockPos pos) {
@@ -442,7 +409,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(usedTime) * 3L / 2L;
 		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
-		updateRegions(frameStartNanos + clampedBudget);
+		regionBuilder.upload();
+		regionRebuildManager.updateRegions(frameStartNanos + clampedBudget);
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
@@ -977,48 +945,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		TerrainLayerRenderer.render(visibleRegions, x, y, z, isTranslucent);
 	}
 
-	private void updateRegions(long endNanos) {
-		regionBuilder.upload();
-
-		final Set<BuiltRenderRegion> regionsToRebuild = this.regionsToRebuild;
-
-		//final long start = Util.getMeasuringTimeNano();
-		//int builtCount = 0;
-
-		if (!regionsToRebuild.isEmpty()) {
-			final Iterator<BuiltRenderRegion> iterator = regionsToRebuild.iterator();
-
-			while (iterator.hasNext()) {
-				final BuiltRenderRegion builtRegion = iterator.next();
-
-				if (builtRegion.needsImportantRebuild()) {
-					builtRegion.rebuildOnMainThread();
-				} else {
-					builtRegion.scheduleRebuild();
-				}
-
-				builtRegion.markBuilt();
-				iterator.remove();
-
-				// this seemed excessive
-				//				++builtCount;
-				//
-				//				final long now = Util.getMeasuringTimeNano();
-				//				final long elapsed = now - start;
-				//				final long avg = elapsed / builtCount;
-				//				final long remaining = endNanos - now;
-				//
-				//				if (remaining < avg) {
-				//					break;
-				//				}
-
-				if (Util.getMeasuringTimeNano() >= endNanos) {
-					break;
-				}
-			}
-		}
-	}
-
 	public int maxSquaredChunkRenderDistance() {
 		return squaredChunkRenderDistance;
 	}
@@ -1096,7 +1022,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		terrainIterator.reset();
 		occluder.invalidate();
 		potentiallVisibleRegionSorter.clear();
-		regionsToRebuild.clear();
+		regionRebuildManager.clear();
 
 		if (regionBuilder != null) {
 			regionBuilder.reset();
@@ -1111,7 +1037,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public boolean isTerrainRenderComplete() {
-		return regionsToRebuild.isEmpty() && regionBuilder.isEmpty() && regionDataVersion.get() == lastRegionDataVersion;
+		return regionRebuildManager.isEmpty() && regionBuilder.isEmpty() && regionDataVersion.get() == lastRegionDataVersion;
 	}
 
 	@Override
