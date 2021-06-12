@@ -48,6 +48,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
+import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
@@ -59,7 +60,6 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
-import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.terrain.util.RenderRegionAddressHelper;

@@ -29,6 +29,7 @@ import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 
+import grondag.bitraster.PackedBox;
 import grondag.canvas.config.Configurator;
 
 public abstract class OcclusionRegion {

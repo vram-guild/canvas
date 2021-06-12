@@ -23,6 +23,8 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
+import grondag.bitraster.PackedBox;
+
 public class BoxFinder {
 	public final IntArrayList boxes = new IntArrayList();
 	public final AreaFinder areaFinder;

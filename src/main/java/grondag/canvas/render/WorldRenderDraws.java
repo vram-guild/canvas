@@ -37,11 +37,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.registry.Registry;
 
+import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
-import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.varia.GFX;

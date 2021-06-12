@@ -45,10 +45,10 @@ import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
+import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.TerrainFrustum;
-import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.varia.Matrix4L;
 
