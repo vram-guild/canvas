@@ -16,6 +16,7 @@
 
 package grondag.canvas.terrain.occlusion;
 
+import static grondag.bitraster.Matrix4L.MATRIX_PRECISION_HALF;
 import static grondag.canvas.terrain.occlusion.Constants.BOUNDS_IN;
 import static grondag.canvas.terrain.occlusion.Constants.BOUNDS_OUTSIDE_OR_TOO_SMALL;
 import static grondag.canvas.terrain.occlusion.Constants.DATA_LENGTH;
@@ -170,14 +171,13 @@ import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_X_MASK;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_Y;
 import static grondag.canvas.terrain.occlusion.Constants.TILE_INDEX_LOW_Y_MASK;
 import static grondag.canvas.terrain.occlusion.Indexer.tileIndex;
-import static grondag.canvas.varia.Matrix4L.MATRIX_PRECISION_HALF;
 
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
+import grondag.bitraster.Matrix4L;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.varia.Matrix4L;
 
 // Some elements are adapted from content found at
 // https://fgiesen.wordpress.com/2013/02/17/optimizing-sw-occlusion-culling-index/

@@ -45,12 +45,12 @@ import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
+import grondag.bitraster.Matrix4L;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
-import grondag.canvas.varia.Matrix4L;
 
 public class TerrainOccluder {
 	/** How close face must be to trigger aggressive refresh of occlusion. */
@@ -783,10 +783,10 @@ public class TerrainOccluder {
 
 			baseMvpMatrix.loadIdentity();
 
-			tempMatrix.copyFrom(projectionMatrix);
+			projectionMatrix.copyTo(tempMatrix);
 			baseMvpMatrix.multiply(tempMatrix);
 
-			tempMatrix.copyFrom(modelMatrix);
+			modelMatrix.copyTo(tempMatrix);
 			baseMvpMatrix.multiply(tempMatrix);
 
 			final Vec3d cameraPos = occlusionFrustum.lastCameraPos();
