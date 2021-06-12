@@ -25,23 +25,37 @@ import grondag.canvas.render.CanvasWorldRenderer;
 
 public class RenderRegionStorage {
 	final AtomicInteger regionCount = new AtomicInteger();
-	public final TerrainVisibilityState terrainVisibilityState;
 	final CanvasWorldRenderer cwr;
 	private int lastCameraChunkX = Integer.MAX_VALUE;
 	private int lastCameraChunkY = Integer.MAX_VALUE;
 	private int lastCameraChunkZ = Integer.MAX_VALUE;
 
+	private boolean didInvalidateOccluder = false;
+	private int occluderVersion = 0;
+	private int maxSquaredChunkDistance;
+
 	static final int CHUNK_COUNT = 128 * 128;
 	private final RenderRegionChunk[] chunks = new RenderRegionChunk[CHUNK_COUNT];
 	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionStorage.CHUNK_COUNT);
 
-	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer, TerrainVisibilityState terrainVisibilityState) {
+	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer) {
 		cwr = canvasWorldRenderer;
-		this.terrainVisibilityState = terrainVisibilityState;
 
 		for (int i = 0; i < CHUNK_COUNT; ++i) {
 			chunks[i] = new RenderRegionChunk(this);
 		}
+	}
+
+	public int occluderVersion() {
+		return occluderVersion;
+	}
+
+	public void invalidateOccluder() {
+		didInvalidateOccluder = true;
+	}
+
+	public int maxSquaredChunkDistance() {
+		return maxSquaredChunkDistance;
 	}
 
 	public synchronized void clear() {
@@ -83,24 +97,27 @@ public class RenderRegionStorage {
 		final int cameraChunkX = BlockPos.unpackLongX(cameraChunkOrigin) >> 4;
 		final int cameraChunkY = BlockPos.unpackLongY(cameraChunkOrigin) >> 4;
 		final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkOrigin) >> 4;
-		boolean clearVisibility = false;
 
 		if (!(cameraChunkX == lastCameraChunkX && cameraChunkY == lastCameraChunkY && cameraChunkZ == lastCameraChunkZ)) {
 			lastCameraChunkX = cameraChunkX;
 			lastCameraChunkY = cameraChunkY;
 			lastCameraChunkZ = cameraChunkZ;
 			++chunkDistVersion;
-			clearVisibility = true;
+			cwr.potentiallVisibleRegionSorter.clear();
+		} else {
+			cwr.potentiallVisibleRegionSorter.returnToStart();
 		}
 
-		terrainVisibilityState.prepare(clearVisibility);
+		occluderVersion = cwr.occluder.version();
+		maxSquaredChunkDistance = cwr.occluder.maxSquaredChunkDistance();
+		didInvalidateOccluder = false;
 
 		for (int i = 0; i < CHUNK_COUNT; ++i) {
 			chunks[i].updateCameraDistanceAndVisibilityInfo();
 		}
 
-		if (terrainVisibilityState.didInvalidateOccluder()) {
-			terrainVisibilityState.occluder.invalidate();
+		if (didInvalidateOccluder) {
+			cwr.occluder.invalidate();
 		}
 	}
 

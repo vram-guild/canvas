@@ -101,14 +101,15 @@ import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShaderDataManager;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
+import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.terrain.region.TerrainVisibilityState;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -118,9 +119,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();
 
 	private final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
-	private final TerrainVisibilityState terrainVisibilityState = new TerrainVisibilityState();
-	private final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this, terrainVisibilityState);
-	private final TerrainIterator terrainIterator = new TerrainIterator(renderRegionStorage, terrainVisibilityState);
+	public final PotentiallyVisibleRegionSorter potentiallVisibleRegionSorter = new PotentiallyVisibleRegionSorter();
+	public final TerrainOccluder occluder = new TerrainOccluder();
+	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
+	private final TerrainIterator terrainIterator = new TerrainIterator(this);
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
 	private final RegionCullingFrustum cullingFrustum = new RegionCullingFrustum(renderRegionStorage);
 	public final VisibleRegionList visibleRegions = new VisibleRegionList();
@@ -258,13 +260,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().swap("buildnear");
 
 		if (cameraRegion != null) {
-			buildNearRegion(cameraRegion);
+			buildNearRegionIfNeeded(cameraRegion);
 
 			for (int i = 0; i < 6; ++i) {
 				final BuiltRenderRegion r = cameraRegion.getNeighbor(i);
 
 				if (r != null) {
-					buildNearRegion(r);
+					buildNearRegionIfNeeded(r);
 				}
 			}
 		}
@@ -333,7 +335,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 	}
 
-	private void buildNearRegion(BuiltRenderRegion region) {
+	private void buildNearRegionIfNeeded(BuiltRenderRegion region) {
 		if (region.needsRebuild()) {
 			regionsToRebuild.remove(region);
 			region.rebuildOnMainThread();
@@ -491,7 +493,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		cullingFrustum.enableRegionCulling = Configurator.cullEntityRender;
 
-		// PERF: find way to reduce allocation for this and MatrixStack generally
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			boolean isFirstPersonPlayer = false;
@@ -1061,7 +1062,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		identityStack.peek().getNormal().loadIdentity();
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
-		terrainFrustum.prepare(viewMatrix, tickDelta, camera, terrainVisibilityState.occluder.hasNearOccluders());
+		terrainFrustum.prepare(viewMatrix, tickDelta, camera, occluder.hasNearOccluders());
 		cullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
@@ -1093,7 +1094,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		computeDistances();
 		terrainIterator.reset();
-		terrainVisibilityState.clear();
+		occluder.invalidate();
+		potentiallVisibleRegionSorter.clear();
 		regionsToRebuild.clear();
 
 		if (regionBuilder != null) {

@@ -73,7 +73,6 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
-	private final TerrainVisibilityState terrainVisibilityState;
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
@@ -115,7 +114,6 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		cwr = chunk.storage.cwr;
 		renderRegionBuilder = cwr.regionBuilder();
 		storage = chunk.storage;
-		terrainVisibilityState = storage.terrainVisibilityState;
 		renderRegionChunk = chunk;
 		buildData = new AtomicReference<>(RegionData.UNBUILT);
 		needsRebuild = true;
@@ -187,7 +185,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	}
 
 	public boolean wasRecentlySeen() {
-		return terrainVisibilityState.potentiallVisibleRegionSorter.version() - lastSeenVisibility < 4 && occluderResult;
+		return cwr.potentiallVisibleRegionSorter.version() - lastSeenVisibility < 4 && occluderResult;
 	}
 
 	/**
@@ -198,7 +196,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	}
 
 	void updateCameraDistanceAndVisibilityInfo() {
-		final int fv = terrainVisibilityState.occluder.frustumViewVersion();
+		final int fv = cwr.occluder.frustumViewVersion();
 
 		if (chunkDistVersion != renderRegionChunk.chunkDistVersion) {
 			chunkDistVersion = renderRegionChunk.chunkDistVersion;
@@ -224,7 +222,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 	private void computeFrustumChecks() {
 		// position version can only be different if overall frustum version is different
-		final int pv = terrainVisibilityState.occluder.frustumPositionVersion();
+		final int pv = cwr.occluder.frustumPositionVersion();
 
 		if (pv != positionVersion) {
 			positionVersion = pv;
@@ -232,7 +230,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 			// these are needed by the frustum - only need to recompute when position moves
 			// not needed at all if outside of render distance
 			if (isInsideRenderDistance) {
-				final Vec3d cameraPos = terrainVisibilityState.occluder.frustumCameraPos();
+				final Vec3d cameraPos = cwr.occluder.frustumCameraPos();
 				final float dx = (float) (origin.getX() + 8 - cameraPos.x);
 				final float dy = (float) (origin.getY() + 8 - cameraPos.y);
 				final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
@@ -243,7 +241,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		}
 
 		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-		frustumResult = isInsideRenderDistance && terrainVisibilityState.occluder.isRegionVisible(this);
+		frustumResult = isInsideRenderDistance && cwr.occluder.isRegionVisible(this);
 	}
 
 	/**
@@ -266,27 +264,27 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	 */
 	private void invalidateOccluderIfNeeded() {
 		if (frustumResult && buildData.get().canOcclude()) {
-			if (occluderVersion == terrainVisibilityState.occluderVersion()) {
+			if (occluderVersion == storage.occluderVersion()) {
 				// Existing - has been drawn in occlusion raster
 				if (buildCount != occlusionBuildCount) {
 					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
 						CanvasMod.LOG.info("Invalidate - redraw: " + origin.toShortString() + "  occluder version:" + occluderVersion);
 					}
 
-					terrainVisibilityState.invalidateOccluder();
+					storage.invalidateOccluder();
 				}
-			} else if (squaredChunkDistance < terrainVisibilityState.maxSquaredChunkDistance()) {
+			} else if (squaredChunkDistance < storage.maxSquaredChunkDistance()) {
 				// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been
 				// Need to invalidate the occlusion raster if both things are true:
 				//   1) This region isn't empty (empty regions don't matter for culling)
 				//   2) This region is in the view frustum
 
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + terrainVisibilityState.maxSquaredChunkDistance()
-						+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + terrainVisibilityState.occluderVersion() + "  chunk version:" + occluderVersion);
+					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + storage.maxSquaredChunkDistance()
+						+ "  chunk max:" + squaredChunkDistance + "  occluder version:" + storage.occluderVersion() + "  chunk version:" + occluderVersion);
 				}
 
-				terrainVisibilityState.invalidateOccluder();
+				storage.invalidateOccluder();
 			}
 		}
 	}
@@ -781,7 +779,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		// has to be found reaching around. This will cause some backtracking and
 		// thus redraw of the occluder, but that already happens and is handled.
 
-		final PotentiallyVisibleRegionSorter sorter = terrainVisibilityState.potentiallVisibleRegionSorter;
+		final PotentiallyVisibleRegionSorter sorter = cwr.potentiallVisibleRegionSorter;
 		final int version = sorter.version();
 
 		// The frustum version check is necessary to skip regions without valid info.

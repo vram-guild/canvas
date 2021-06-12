@@ -27,12 +27,12 @@ import net.minecraft.util.math.Vec3i;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.terrain.region.TerrainVisibilityState;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
@@ -47,9 +47,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final VisibleRegionList visibleRegions = new VisibleRegionList();
-	private final RenderRegionStorage renderRegionStorage;
-	private final TerrainVisibilityState terrainVisiblityState;
 	private final AtomicInteger state = new AtomicInteger(IDLE);
+	private final CanvasWorldRenderer cwr;
 
 	private BuiltRenderRegion cameraRegion;
 	/**
@@ -61,9 +60,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private boolean chunkCullingEnabled = true;
 	private volatile boolean cancelled = false;
 
-	public TerrainIterator(RenderRegionStorage renderRegionStorage, TerrainVisibilityState terrainVisiblityState) {
-		this.renderRegionStorage = renderRegionStorage;
-		this.terrainVisiblityState = terrainVisiblityState;
+	public TerrainIterator(CanvasWorldRenderer cwr) {
+		this.cwr = cwr;
 	}
 
 	public void prepare(@Nullable BuiltRenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
@@ -72,7 +70,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = BlockPos.asLong(cameraBlockPos.getX() & 0xFFFFFFF0, cameraBlockPos.getY() & 0xFFFFFFF0, cameraBlockPos.getZ() & 0xFFFFFFF0);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.getOrigin().asLong();
-		terrainVisiblityState.occluder.updateFrustum(frustum);
+		cwr.occluder.updateFrustum(frustum);
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
@@ -97,11 +95,11 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
-		final RenderRegionStorage regionStorage = renderRegionStorage;
-		final PotentiallyVisibleRegionSorter distanceSorter = terrainVisiblityState.potentiallVisibleRegionSorter;
-		final TerrainOccluder occluder = terrainVisiblityState.occluder;
+		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
+		final PotentiallyVisibleRegionSorter distanceSorter = cwr.potentiallVisibleRegionSorter;
+		final TerrainOccluder occluder = cwr.occluder;
 		updateRegions.clear();
-		renderRegionStorage.updateCameraDistanceAndVisibilityInfo(cameraChunkOrigin);
+		regionStorage.updateCameraDistanceAndVisibilityInfo(cameraChunkOrigin);
 		final boolean redrawOccluder = occluder.prepareScene();
 		final int occluderVersion = occluder.version();
 
