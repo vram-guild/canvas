@@ -27,12 +27,10 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderEffect;
@@ -51,13 +49,9 @@ import net.minecraft.client.render.OutlineVertexConsumerProvider;
 import net.minecraft.client.render.OverlayVertexConsumer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.client.render.VertexConsumers;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.model.ModelLoader;
@@ -73,7 +67,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.registry.Registry;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.impl.client.rendering.WorldRenderContextImpl;
@@ -104,8 +97,6 @@ import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
-import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
-import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
@@ -114,7 +105,6 @@ import grondag.canvas.varia.GFX;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
-	private static final ReferenceOpenHashSet<BlockEntityType<?>> CAUGHT_BER_ERRORS = new ReferenceOpenHashSet<>();
 
 	private final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 	public final PotentiallyVisibleRegionSorter potentiallVisibleRegionSorter = new PotentiallyVisibleRegionSorter();
@@ -144,6 +134,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private RenderRegionBuilder regionBuilder;
 	private ClientWorld world;
+
 	// these are measured in chunks, not blocks
 	private int chunkRenderDistance;
 	private int squaredChunkRenderDistance;
@@ -161,23 +152,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		vanillaWorldRenderer = (WorldRendererExt) this;
 		instance = this;
 		computeDistances();
-	}
-
-	private static int rangeColor(int range) {
-		switch (range) {
-			case PackedBox.RANGE_NEAR:
-			default:
-				return 0x80FF8080;
-
-			case PackedBox.RANGE_MID:
-				return 0x80FFFF80;
-
-			case PackedBox.RANGE_FAR:
-				return 0x8080FF80;
-
-			case PackedBox.RANGE_EXTREME:
-				return 0x808080FF;
-		}
 	}
 
 	public static CanvasWorldRenderer instance() {
@@ -204,10 +178,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public RenderRegionBuilder regionBuilder() {
 		return regionBuilder;
 	}
-
-	//	public RenderRegionStorage regionStorage() {
-	//		return renderRegionStorage;
-	//	}
 
 	public ClientWorld getWorld() {
 		return world;
@@ -321,11 +291,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		return result;
 	}
 
-	private static void profileSwap(Profiler profiler, ProfilerGroup profilerGroup, String token) {
-		profiler.swap(token);
-		Timekeeper.instance.swap(profilerGroup, token);
-	}
-
 	public void renderWorld(MatrixStack viewMatrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix) {
 		final WorldRendererExt wr = vanillaWorldRenderer;
 		final MinecraftClient mc = MinecraftClient.getInstance();
@@ -348,10 +313,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
 		final Profiler profiler = world.getProfiler();
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "light_updates");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "light_updates");
 		mc.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "clear");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "clear");
 		Pipeline.defaultFbo.bind();
 
 		// This does not actually render anything - what it does do is set the current clear color
@@ -371,7 +336,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// We call applyFog here to do some state capture - otherwise has no effect
 			BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_SKY, viewDistance, thickFog);
 			ShaderDataManager.captureFogDistances();
-			profileSwap(profiler, ProfilerGroup.StartWorld, "sky");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "sky");
 			// NB: fog / sky renderer normalcy get viewMatrixStack but we apply camera rotation in VertexBuffer mixin
 			RenderSystem.setShader(GameRenderer::getPositionShader);
 
@@ -381,18 +346,18 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			});
 		}
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
 		BackgroundRenderer.applyFog(camera, BackgroundRenderer.FogType.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
 		ShaderDataManager.captureFogDistances();
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
 		eventContext.setFrustum(terrainFrustum);
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "after_setup_event");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "after_setup_event");
 		WorldRenderEvents.AFTER_SETUP.invoker().afterSetup(eventContext);
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "updatechunks");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "updatechunks");
 		final int maxFps = mc.options.maxFps;
 		long maxFpsLimit;
 
@@ -422,10 +387,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			DiffuseLighting.disableForLevel(MatrixData.viewMatrix);
 		}
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
 		WorldRenderEvents.BEFORE_ENTITIES.invoker().beforeEntities(eventContext);
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "entities");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "entities");
 		int entityCount = 0;
 		int blockEntityCount = 0;
 
@@ -516,7 +481,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		contextState.setCurrentEntity(null);
 		SkyShadowRenderer.restoreEntityShadows(mc);
 
-		profileSwap(profiler, ProfilerGroup.StartWorld, "blockentities");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "blockentities");
 		final int visibleRegionCount = visibleRegions.size();
 		final Set<BlockEntity> noCullingBlockEntities = wr.canvas_noCullingBlockEntities();
 
@@ -550,7 +515,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				}
 
 				++blockEntityCount;
-				renderBlockEntitySafely(blockEntity, tickDelta, identityStack, outputConsumer);
+				WorldRenderDraws.renderBlockEntitySafely(blockEntity, tickDelta, identityStack, outputConsumer);
 				identityStack.pop();
 			}
 		}
@@ -565,7 +530,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				identityStack.push();
 				identityStack.translate(blockPos2.getX() - frameCameraX, blockPos2.getY() - frameCameraY, blockPos2.getZ() - frameCameraZ);
 				++blockEntityCount;
-				renderBlockEntitySafely(blockEntity2, tickDelta, identityStack, immediate);
+				WorldRenderDraws.renderBlockEntitySafely(blockEntity2, tickDelta, identityStack, immediate);
 				identityStack.pop();
 			}
 		}
@@ -577,21 +542,21 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
 			DrawableBuffer shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
 		) {
-			profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, frameCameraX, frameCameraY, frameCameraZ, entityBuffer, shadowExtrasBuffer);
 			shadowExtrasBuffer.close();
 
-			profileSwap(profiler, ProfilerGroup.EndWorld, "terrain_solid");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "terrain_solid");
 			MatrixState.set(MatrixState.REGION);
 			renderTerrainLayer(false, frameCameraX, frameCameraY, frameCameraZ);
 			MatrixState.set(MatrixState.CAMERA);
 
-			profileSwap(profiler, ProfilerGroup.EndWorld, "entity_draw_solid");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "entity_draw_solid");
 			entityBuffer.draw(false);
 			entityBuffer.close();
 		}
 
-		profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
@@ -601,7 +566,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			Pipeline.defaultFbo.bind();
 		}
 
-		profileSwap(profiler, ProfilerGroup.EndWorld, "destroyProgress");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "destroyProgress");
 
 		// honor damage render layer irrespective of model material
 		blockContext.collectors = null;
@@ -632,7 +597,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		blockContext.collectors = immediate.collectors;
 
-		profileSwap(profiler, ProfilerGroup.EndWorld, "outline");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "outline");
 		final HitResult hitResult = mc.crosshairTarget;
 
 		if (WorldRenderEvents.BEFORE_BLOCK_OUTLINE.invoker().beforeBlockOutline(eventContext, hitResult)) {
@@ -656,12 +621,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderState.disable();
 
 		// NB: view matrix is already applied to GL state before renderWorld is called
-		profileSwap(profiler, ProfilerGroup.EndWorld, "before_debug_event");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "before_debug_event");
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().beforeDebugRender(eventContext);
 		// We still pass in the transformed stack because that is what debug renderer normally gets
 		mc.debugRenderer.render(viewMatrixStack, immediate, frameCameraX, frameCameraY, frameCameraZ);
 
-		profileSwap(profiler, ProfilerGroup.EndWorld, "draw_solid");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "draw_solid");
 
 		// Should generally not have anything here but draw in case content injected in hooks
 		immediate.drawCollectors(MaterialTarget.MAIN);
@@ -683,7 +648,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		visibleRegions.scheduleResort(cameraVec3d);
 
 		if (advancedTranslucency) {
-			profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
 
 			Pipeline.translucentTerrainFbo.copyDepthFrom(Pipeline.defaultFbo);
 			Pipeline.translucentTerrainFbo.bind();
@@ -709,12 +674,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			Pipeline.translucentParticlesFbo.copyDepthFrom(Pipeline.defaultFbo);
 			Pipeline.translucentParticlesFbo.bind();
 
-			profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
 			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate.collectors, lightmapTextureManager, camera, tickDelta);
 
 			Pipeline.defaultFbo.bind();
 		} else {
-			profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
 			MatrixState.set(MatrixState.REGION);
 			renderTerrainLayer(true, frameCameraX, frameCameraY, frameCameraZ);
 			MatrixState.set(MatrixState.CAMERA);
@@ -729,7 +694,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
 
-			profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
 			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate.collectors, lightmapTextureManager, camera, tickDelta);
 		}
 
@@ -738,14 +703,14 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		RenderState.disable();
 
-		profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
 		WorldRenderEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(eventContext);
 
 		// TODO: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
 		if (Configurator.debugOcclusionBoxes) {
-			renderCullBoxes(viewMatrixStack, immediate, frameCameraX, frameCameraY, frameCameraZ, tickDelta);
+			WorldRenderDraws.renderCullBoxes(renderRegionStorage, viewMatrixStack, immediate, frameCameraX, frameCameraY, frameCameraZ, tickDelta);
 		}
 
 		RenderState.disable();
@@ -755,7 +720,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
-		profileSwap(profiler, ProfilerGroup.EndWorld, "weather");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "weather");
 
 		// Apply view transform locally for vanilla weather and world border rendering
 		renderSystemModelViewStack.push();
@@ -782,7 +747,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// doesn't make any sense with our chunk culling scheme
 		// this.renderChunkDebugInfo(camera);
-		profileSwap(profiler, ProfilerGroup.AfterFabulous, "render_last_event");
+		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.AfterFabulous, "render_last_event");
 		WorldRenderEvents.LAST.invoker().onLast(eventContext);
 
 		GFX.depthMask(true);
@@ -801,7 +766,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private void renderClouds(MinecraftClient mc, Profiler profiler, MatrixStack identityStack, Matrix4f projectionMatrix, float tickDelta, double cameraX, double cameraY, double cameraZ) {
 		if (mc.options.getCloudRenderMode() != CloudRenderMode.OFF) {
-			profileSwap(profiler, ProfilerGroup.EndWorld, "clouds");
+			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "clouds");
 
 			if (Pipeline.fabCloudsFbo > 0) {
 				GFX.bindFramebuffer(GFX.GL_FRAMEBUFFER, Pipeline.fabCloudsFbo);
@@ -814,131 +779,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				Pipeline.defaultFbo.bind();
 			}
 		}
-	}
-
-	private static void renderBlockEntitySafely(BlockEntity blockEntity, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider outputConsumer) {
-		try {
-			MinecraftClient.getInstance().getBlockEntityRenderDispatcher().render(blockEntity, tickDelta, matrixStack, outputConsumer);
-		} catch (final Exception e) {
-			if (CAUGHT_BER_ERRORS.add(blockEntity.getType())) {
-				CanvasMod.LOG.warn(String.format("Unhandled exception rendering while rendering BlockEntity %s @ %s.  Stack trace follows. Subsequent errors will be suppressed.",
-						Registry.BLOCK_ENTITY_TYPE.getId(blockEntity.getType()).toString(), blockEntity.getPos().toShortString()));
-
-				// Passing this to .(warn) causes "Negative index in crash report handler" spam, so printing separately
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private void renderCullBoxes(MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ, float tickDelta) {
-		@SuppressWarnings("resource") final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
-
-		final HitResult hit = entity.raycast(12 * 16, tickDelta, true);
-
-		if (hit.getType() != HitResult.Type.BLOCK) {
-			return;
-		}
-
-		final BlockPos pos = ((BlockHitResult) (hit)).getBlockPos();
-		final BuiltRenderRegion region = renderRegionStorage.getRegionIfExists(pos);
-
-		if (region == null) {
-			return;
-		}
-
-		final int[] boxes = region.getBuildData().getOcclusionData();
-
-		if (boxes == null || boxes.length < OcclusionRegion.CULL_DATA_FIRST_BOX) {
-			return;
-		}
-
-		GFX.enableBlend();
-		GFX.defaultBlendFunc();
-
-		final Tessellator tessellator = Tessellator.getInstance();
-		final BufferBuilder bufferBuilder = tessellator.getBuffer();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-
-		final int cb = boxes[0];
-		final int limit = boxes.length;
-
-		final double x = (pos.getX() & ~0xF) - cameraX;
-		final double y = (pos.getY() & ~0xF) - cameraY;
-		final double z = (pos.getZ() & ~0xF) - cameraZ;
-
-		RenderSystem.lineWidth(6.0F);
-		bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR);
-		final int regionRange = region.occlusionRange;
-
-		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
-
-		for (int i = OcclusionRegion.CULL_DATA_FIRST_BOX; i < limit; ++i) {
-			final int b = boxes[i];
-			final int range = PackedBox.range(b);
-
-			if (regionRange > range) {
-				break;
-			}
-
-			drawOutline(bufferBuilder, x + PackedBox.x0(b), y + PackedBox.y0(b), z + PackedBox.z0(b), x + PackedBox.x1(b), y + PackedBox.y1(b), z + PackedBox.z1(b), rangeColor(range));
-		}
-
-		tessellator.draw();
-		GFX.disableDepthTest();
-		RenderSystem.lineWidth(3.0F);
-		bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR);
-
-		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
-
-		for (int i = OcclusionRegion.CULL_DATA_FIRST_BOX; i < limit; ++i) {
-			final int b = boxes[i];
-			final int range = PackedBox.range(b);
-
-			if (regionRange > range) {
-				break;
-			}
-
-			drawOutline(bufferBuilder, x + PackedBox.x0(b), y + PackedBox.y0(b), z + PackedBox.z0(b), x + PackedBox.x1(b), y + PackedBox.y1(b), z + PackedBox.z1(b), rangeColor(range));
-		}
-
-		tessellator.draw();
-
-		GFX.enableDepthTest();
-		GFX.disableBlend();
-	}
-
-	private void drawOutline(BufferBuilder bufferBuilder, double x0, double y0, double z0, double x1, double y1, double z1, int color) {
-		final int a = (color >>> 24) & 0xFF;
-		final int r = (color >> 16) & 0xFF;
-		final int g = (color >> 8) & 0xFF;
-		final int b = color & 0xFF;
-
-		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
-
-		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
-
-		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
 	}
 
 	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
@@ -1050,7 +890,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public String getChunksDebugString() {
 		final int len = renderRegionStorage.regionCount();
 		final int count = getCompletedChunkCount();
-		final RenderRegionBuilder chunkBuilder = regionBuilder();
-		return String.format("C: %d/%d %sD: %d, %s", count, len, MinecraftClient.getInstance().chunkCullingEnabled ? "(s) " : "", chunkRenderDistance, chunkBuilder == null ? "null" : chunkBuilder.getDebugString());
+		return String.format("C: %d/%d %sD: %d, %s", count, len, MinecraftClient.getInstance().chunkCullingEnabled ? "(s) " : "", chunkRenderDistance, regionBuilder == null ? "null" : regionBuilder.getDebugString());
 	}
 }
