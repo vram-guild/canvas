@@ -58,6 +58,8 @@ dependencies {
 		exclude group: "net.fabricmc.fabric-loader"
 	}
 
+	implementation("grondag:bitraster:${bitraster_version}");
+	
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
 
@@ -72,6 +74,7 @@ dependencies {
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
 		include "me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}"
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
+		include "grondag:bitraster:${bitraster_version}"
 	}
 
 	//modImplementation("io.github.ladysnake:Satin:${satin_version}") {
