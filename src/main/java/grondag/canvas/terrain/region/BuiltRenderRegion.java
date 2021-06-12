@@ -247,6 +247,13 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	}
 
 	/**
+	 * Called for camera region because frustum checks on near plane appear to be a little wobbly.
+	 */
+	public void forceFrustumVisibility() {
+		frustumResult = true;
+	}
+
+	/**
 	 * We check here to know if the occlusion raster must be redrawn.
 	 *
 	 * <p>The check depends on classifying this region as one of:<ul>

@@ -372,7 +372,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final double frameCameraX = cameraVec3d.getX();
 		final double frameCameraY = cameraVec3d.getY();
 		final double frameCameraZ = cameraVec3d.getZ();
-		final TerrainFrustum frustum = terrainFrustum;
 		final MatrixStack identityStack = this.identityStack;
 
 		RenderSystem.setShaderGameTime(this.world.getTime(), tickDelta);
@@ -419,7 +418,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
-		eventContext.setFrustum(frustum);
+		eventContext.setFrustum(terrainFrustum);
 
 		profileSwap(profiler, ProfilerGroup.StartWorld, "after_setup_event");
 		WorldRenderEvents.AFTER_SETUP.invoker().afterSetup(eventContext);

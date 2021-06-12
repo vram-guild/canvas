@@ -22,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
 import grondag.canvas.CanvasMod;
@@ -53,7 +52,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private final AtomicInteger state = new AtomicInteger(IDLE);
 
 	private BuiltRenderRegion cameraRegion;
-	private Vec3d cameraPos;
+	/**
+	 * Will be a valid region origin even if the actual camera region is null because
+	 * camera is outside world range.  Otherwise will match the origin of the camera region.
+	 */
 	private long cameraChunkOrigin;
 	private int renderDistance;
 	private boolean chunkCullingEnabled = true;
@@ -67,9 +69,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public void prepare(@Nullable BuiltRenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
 		assert state.get() == IDLE;
 		this.cameraRegion = cameraRegion;
-		cameraPos = camera.getPos();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = BlockPos.asLong(cameraBlockPos.getX() & 0xFFFFFFF0, cameraBlockPos.getY() & 0xFFFFFFF0, cameraBlockPos.getZ() & 0xFFFFFFF0);
+		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.getOrigin().asLong();
 		terrainVisiblityState.occluder.updateFrustum(frustum);
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
@@ -100,7 +102,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final TerrainOccluder occluder = terrainVisiblityState.occluder;
 		updateRegions.clear();
 		renderRegionStorage.updateCameraDistanceAndVisibilityInfo(cameraChunkOrigin);
-		final boolean redrawOccluder = occluder.prepareScene(cameraPos);
+		final boolean redrawOccluder = occluder.prepareScene();
 		final int occluderVersion = occluder.version();
 
 		if (TRACE_OCCLUSION_OUTCOMES) {
@@ -123,6 +125,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				}
 			}
 		} else {
+			cameraRegion.forceFrustumVisibility();
 			cameraRegion.addToPvsIfValid();
 		}
 

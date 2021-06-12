@@ -772,7 +772,7 @@ public class TerrainOccluder {
 	 * Check if needs redrawn and prep for redraw if so.
 	 * When false, regions should be drawn only if their occluder version is not current.
 	 */
-	public boolean prepareScene(Vec3d cameraPos) {
+	public boolean prepareScene() {
 		final int viewVersion = occlusionFrustum.viewVersion();
 
 		if (this.viewVersion != viewVersion) {
@@ -789,6 +789,7 @@ public class TerrainOccluder {
 			tempMatrix.copyFrom(modelMatrix);
 			baseMvpMatrix.multiply(tempMatrix);
 
+			final Vec3d cameraPos = occlusionFrustum.lastCameraPos();
 			viewX = Math.round(cameraPos.getX() * CAMERA_PRECISION_UNITY);
 			viewY = Math.round(cameraPos.getY() * CAMERA_PRECISION_UNITY);
 			viewZ = Math.round(cameraPos.getZ() * CAMERA_PRECISION_UNITY);
