@@ -89,25 +89,8 @@ import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
  */
 public class ProtoRenderRegion extends AbstractRenderRegion {
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
-
-	/**
-	 * Signals that build was completed successfully, or has never been run. Nothing is scheduled.
-	 */
-	public static final ProtoRenderRegion IDLE = new DummyRegion();
-	/**
-	 * Signals that build is for resort only.
-	 */
-	public static final ProtoRenderRegion RESORT_ONLY = new DummyRegion();
-	/**
-	 * Signals that build has been cancelled or some other condition has made it unbuildable.
-	 */
-	public static final ProtoRenderRegion INVALID = new DummyRegion();
-	/**
-	 * Signals that build is for empty chunk.
-	 */
-	public static final ProtoRenderRegion EMPTY = new DummyRegion();
-
 	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
+
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 
 	final BlockState[] states = new BlockState[EXTERIOR_STATE_COUNT];
@@ -159,7 +142,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 
 		if (mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
 			release();
-			result = EMPTY;
+			result = SignalRegion.EMPTY;
 		} else {
 			captureBlockEntities(mainChunk);
 			chunks[1 | (1 << 2)] = mainChunk;
@@ -349,11 +332,5 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		renderData.clear();
 
 		release(this);
-	}
-
-	private static class DummyRegion extends ProtoRenderRegion {
-		@Override
-		public void release() {
-		}
 	}
 }

@@ -41,6 +41,7 @@ import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
+import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;

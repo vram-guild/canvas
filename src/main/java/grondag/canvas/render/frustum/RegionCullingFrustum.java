@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.render.frustum;
 
 import net.minecraft.util.math.MathHelper;
 

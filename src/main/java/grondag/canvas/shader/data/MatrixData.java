@@ -29,7 +29,7 @@ import net.minecraft.util.math.Matrix4f;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.render.FastFrustum;
+import grondag.canvas.render.frustum.FastFrustum;
 
 public final class MatrixData {
 	private MatrixData() { }

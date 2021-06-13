@@ -28,7 +28,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.render.TerrainFrustum;
+import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;

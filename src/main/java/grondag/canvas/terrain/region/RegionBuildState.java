@@ -25,5 +25,5 @@ class RegionBuildState {
 	 *
 	 * <p>Special values also signal the need for translucency sort and chunk reset.
 	 */
-	final AtomicReference<ProtoRenderRegion> protoRegion = new AtomicReference<>(ProtoRenderRegion.IDLE);
+	final AtomicReference<ProtoRenderRegion> protoRegion = new AtomicReference<>(SignalRegion.IDLE);
 }

@@ -30,7 +30,7 @@ import net.minecraft.util.math.Vec3d;
 import grondag.bitraster.BoxOccluder;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.render.TerrainFrustum;
+import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 
 public class TerrainOccluder extends BoxOccluder {

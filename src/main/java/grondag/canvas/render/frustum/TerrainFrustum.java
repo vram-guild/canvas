@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.render.frustum;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -59,7 +59,7 @@ public class TerrainFrustum extends CanvasFrustum {
 	private float lastCameraYaw = Float.MAX_VALUE;
 	private double fov;
 
-	void reload() {
+	public void reload() {
 		lastCameraX = Double.MAX_VALUE;
 		lastCameraY = Double.MAX_VALUE;
 		lastCameraZ = Double.MAX_VALUE;

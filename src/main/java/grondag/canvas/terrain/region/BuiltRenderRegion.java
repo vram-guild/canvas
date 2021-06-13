@@ -355,7 +355,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
 		// null region is signal to reschedule
-		if (buildState.protoRegion.getAndSet(region) == ProtoRenderRegion.IDLE) {
+		if (buildState.protoRegion.getAndSet(region) == SignalRegion.IDLE) {
 			renderRegionBuilder.executor.execute(this);
 		}
 	}
@@ -381,7 +381,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 		this.sortPositionVersion = sortPositionVersion;
 
-		if (regionData.translucentState != null && buildState.protoRegion.compareAndSet(ProtoRenderRegion.IDLE, ProtoRenderRegion.RESORT_ONLY)) {
+		if (regionData.translucentState != null && buildState.protoRegion.compareAndSet(SignalRegion.IDLE, SignalRegion.RESORT_ONLY)) {
 			// null means need to reschedule, otherwise was already scheduled for either
 			// resort or rebuild, or is invalid, not ready to be built.
 			renderRegionBuilder.executor.execute(this);
@@ -392,7 +392,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	}
 
 	protected void cancel() {
-		buildState.protoRegion.set(ProtoRenderRegion.INVALID);
+		buildState.protoRegion.set(SignalRegion.INVALID);
 		buildState = new RegionBuildState();
 	}
 
@@ -404,13 +404,13 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	@Override
 	public void run(TerrainRenderContext context) {
 		final RegionBuildState runningState = buildState;
-		final ProtoRenderRegion region = runningState.protoRegion.getAndSet(ProtoRenderRegion.IDLE);
+		final ProtoRenderRegion region = runningState.protoRegion.getAndSet(SignalRegion.IDLE);
 
-		if (region == null || region == ProtoRenderRegion.INVALID) {
+		if (region == null || region == SignalRegion.INVALID) {
 			return;
 		}
 
-		if (region == ProtoRenderRegion.EMPTY) {
+		if (region == SignalRegion.EMPTY) {
 			final RegionData chunkData = new RegionData();
 			chunkData.complete(OcclusionRegion.EMPTY_CULL_DATA);
 
@@ -441,7 +441,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 			return;
 		}
 
-		if (region == ProtoRenderRegion.RESORT_ONLY) {
+		if (region == SignalRegion.RESORT_ONLY) {
 			final RegionData regionData = buildData.get();
 			final int[] state = regionData.translucentState;
 
@@ -458,7 +458,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 				) {
 					regionData.translucentState = collector.saveState(state);
 
-					if (runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
+					if (runningState.protoRegion.get() != SignalRegion.INVALID) {
 						final UploadableChunk upload = collectors.toUploadableChunk(true);
 
 						if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
@@ -486,7 +486,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 			final VertexCollectorList collectors = context.collectors;
 
-			if (runningState.protoRegion.get() == ProtoRenderRegion.INVALID) {
+			if (runningState.protoRegion.get() == SignalRegion.INVALID) {
 				collectors.clear();
 				region.release();
 				return;
@@ -494,7 +494,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 			buildTerrain(context, chunkData);
 
-			if (runningState.protoRegion.get() != ProtoRenderRegion.INVALID) {
+			if (runningState.protoRegion.get() != SignalRegion.INVALID) {
 				final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
 				final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
 
@@ -655,7 +655,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	public void rebuildOnMainThread() {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
-		if (region == ProtoRenderRegion.EMPTY) {
+		if (region == SignalRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
 			regionData.complete(OcclusionRegion.EMPTY_CULL_DATA);
 

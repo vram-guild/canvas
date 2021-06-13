@@ -88,6 +88,8 @@ import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.render.frustum.RegionCullingFrustum;
+import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
