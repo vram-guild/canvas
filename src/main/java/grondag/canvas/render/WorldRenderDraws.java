@@ -41,7 +41,7 @@ import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.perf.Timekeeper.ProfilerGroup;
-import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.varia.GFX;
@@ -99,7 +99,7 @@ public class WorldRenderDraws {
 
 		final int[] boxes = region.getBuildData().getOcclusionData();
 
-		if (boxes == null || boxes.length < OcclusionRegion.CULL_DATA_FIRST_BOX) {
+		if (boxes == null || boxes.length < RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX) {
 			return;
 		}
 
@@ -123,7 +123,7 @@ public class WorldRenderDraws {
 
 		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
 
-		for (int i = OcclusionRegion.CULL_DATA_FIRST_BOX; i < limit; ++i) {
+		for (int i = RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX; i < limit; ++i) {
 			final int b = boxes[i];
 			final int range = PackedBox.range(b);
 
@@ -141,7 +141,7 @@ public class WorldRenderDraws {
 
 		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
 
-		for (int i = OcclusionRegion.CULL_DATA_FIRST_BOX; i < limit; ++i) {
+		for (int i = RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX; i < limit; ++i) {
 			final int b = boxes[i];
 			final int range = PackedBox.range(b);
 

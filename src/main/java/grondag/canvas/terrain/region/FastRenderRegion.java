@@ -42,11 +42,10 @@ import net.minecraft.world.level.ColorResolver;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
-// FIX: cache padding should be 2 instead of 1 to match vanilla behavior
 // FIX: should not allow direct world access, esp from non-main threads
 public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
 	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_STATE_COUNT];
@@ -64,7 +63,8 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();
 	protected final Object[] renderData = new Object[INTERIOR_STATE_COUNT];
 	private final BlockState[] states = new BlockState[TOTAL_STATE_COUNT];
-	public final OcclusionRegion occlusion = new OcclusionRegion() {
+
+	public final RegionOcclusionCalculator occlusion = new RegionOcclusionCalculator() {
 		@Override
 		protected BlockState blockStateAtIndex(int regionIndex) {
 			return states[regionIndex];
@@ -79,6 +79,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 			return blockState.isOpaqueFullCube(FastRenderRegion.this, searchPos.set(originX + x, originY + y, originZ + z));
 		}
 	};
+
 	// PERF: pack for reduced memory, better LOC
 	private final int[] aoCache = new int[TOTAL_STATE_COUNT];
 	private final int[] lightCache = new int[TOTAL_STATE_COUNT];

@@ -29,7 +29,7 @@ import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.frustum.TerrainFrustum;
-import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
 import grondag.canvas.terrain.region.RenderRegionStorage;
@@ -206,7 +206,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			} else {
 				occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
 
-				if (occluder.isBoxVisible(visData[OcclusionRegion.CULL_DATA_REGION_BOUNDS])) {
+				if (occluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
 					builtRegion.enqueueUnvistedNeighbors();
 					visibleRegions.add(builtRegion);
 					builtRegion.setOccluderResult(true, occluderVersion);

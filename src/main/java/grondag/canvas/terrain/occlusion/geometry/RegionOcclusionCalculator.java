@@ -32,10 +32,10 @@ import net.minecraft.block.Blocks;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.config.Configurator;
 
-public abstract class OcclusionRegion {
-	public static final int CULL_DATA_REGION_BOUNDS = 0;
-	public static final int CULL_DATA_FIRST_BOX = 1;
-	public static final int[] EMPTY_CULL_DATA = {PackedBox.EMPTY_BOX};
+public abstract class RegionOcclusionCalculator {
+	public static final int OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX = 0;
+	public static final int OCCLUSION_RESULT_FIRST_BOX_INDEX = 1;
+	public static final int[] EMPTY_OCCLUSION_RESULT = {PackedBox.EMPTY_BOX};
 
 	private static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
 	private static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
@@ -44,17 +44,6 @@ public abstract class OcclusionRegion {
 	private static final long[] EXTERIOR_MASK = new long[INTERIOR_CACHE_WORDS];
 
 	static {
-		//		final int[] open = {0, 0, 0, 16, 16, 16, 0};
-		//		ALL_OPEN = new RegionOcclusionData(open);
-		//		RegionOcclusionData.isVisibleFullChunk(open, true);
-		//		ALL_OPEN.fill(true);
-		//
-		//		final int[] closed = {0, 0, 0, 16, 16, 16, 0};
-		//		RegionOcclusionData.isVisibleFullChunk(open, true);
-		//		RegionOcclusionData.sameAsVisible(open, true);
-		//		ALL_CLOSED = new RegionOcclusionData(closed);
-		//		ALL_CLOSED.fill(false);
-
 		for (int i = 0; i < 4096; i++) {
 			final int x = i & 15;
 			final int y = (i >> 4) & 15;
@@ -458,10 +447,8 @@ public abstract class OcclusionRegion {
 	 */
 	private void hideInteriorClosedPositions() {
 		for (int i = 0; i < INTERIOR_STATE_COUNT; i++) {
-			// PERF: iterate by word vs recomputing mask each time
 			final long mask = (1L << (i & 63));
 			final int wordIndex = (i >> 6);
-
 			final int x = i & 0xF;
 			final int y = (i >> 4) & 0xF;
 			final int z = (i >> 8) & 0xF;
@@ -604,7 +591,7 @@ public abstract class OcclusionRegion {
 
 		final int[] result = new int[boxCount + 1];
 
-		int n = OcclusionRegion.CULL_DATA_FIRST_BOX;
+		int n = RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX;
 
 		if (boxCount > 0) {
 			for (int i = 0; i < boxCount; i++) {
@@ -613,21 +600,18 @@ public abstract class OcclusionRegion {
 		}
 
 		if (minRenderableX == Integer.MAX_VALUE) {
-			result[CULL_DATA_REGION_BOUNDS] = PackedBox.EMPTY_BOX;
+			result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.EMPTY_BOX;
 		} else {
 			if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
-				result[CULL_DATA_REGION_BOUNDS] = PackedBox.FULL_BOX;
+				result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.FULL_BOX;
 			} else {
-				result[CULL_DATA_REGION_BOUNDS] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
+				result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
 						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_EXTREME);
 			}
 		}
 
 		return result;
 	}
-
-	//	public static final RegionOcclusionData ALL_OPEN;
-	//	public static final RegionOcclusionData ALL_CLOSED;
 
 	public int[] build(boolean isNear) {
 		if (openCount == 0) {
@@ -636,11 +620,15 @@ public abstract class OcclusionRegion {
 
 			// PERF: should do this after hiding interior closed positions?
 			// PERF: should still compute render box instead of assuming it is full
+			//       because the only visible/renderable area could be quite small because of
+			//       adjacent regions occluding most of this region
 			adjustSurfaceVisibility();
 
 			final int[] result = new int[2];
-			result[CULL_DATA_REGION_BOUNDS] = PackedBox.FULL_BOX;
-			result[CULL_DATA_FIRST_BOX] = PackedBox.FULL_BOX;
+			result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.FULL_BOX;
+
+			// entire region acts as an occluder
+			result[OCCLUSION_RESULT_FIRST_BOX_INDEX] = PackedBox.FULL_BOX;
 			return result;
 		} else {
 			return computeOcclusion(isNear);

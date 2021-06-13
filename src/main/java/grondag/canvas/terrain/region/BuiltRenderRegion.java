@@ -59,7 +59,7 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
-import grondag.canvas.terrain.occlusion.geometry.OcclusionRegion;
+import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.terrain.util.RenderRegionAddressHelper;
@@ -421,7 +421,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 		if (region == SignalRegion.EMPTY) {
 			final RegionData chunkData = new RegionData();
-			chunkData.complete(OcclusionRegion.EMPTY_CULL_DATA);
+			chunkData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
 			final RegionData oldBuildData = buildData.getAndSet(chunkData);
@@ -571,7 +571,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		final Matrix3f normalMatrix = entry.getNormal();
 
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
-		final OcclusionRegion occlusionRegion = region.occlusion;
+		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
 
 		for (int i = 0; i < RenderRegionAddressHelper.INTERIOR_STATE_COUNT; i++) {
 			if (occlusionRegion.shouldRender(i)) {
@@ -666,7 +666,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 		if (region == SignalRegion.EMPTY) {
 			final RegionData regionData = new RegionData();
-			regionData.complete(OcclusionRegion.EMPTY_CULL_DATA);
+			regionData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
 			final RegionData oldBuildData = buildData.getAndSet(regionData);

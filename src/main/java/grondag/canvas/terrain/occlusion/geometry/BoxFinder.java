@@ -45,7 +45,7 @@ public class BoxFinder {
 	}
 
 	public void findBoxes(long[] sourceBits, int sourceIndex) {
-		System.arraycopy(OcclusionRegion.EMPTY_BITS, 0, filled, 0, INTERIOR_CACHE_WORDS);
+		System.arraycopy(RegionOcclusionCalculator.EMPTY_BITS, 0, filled, 0, INTERIOR_CACHE_WORDS);
 		System.arraycopy(sourceBits, sourceIndex, source, 0, INTERIOR_CACHE_WORDS);
 		boxes.clear();
 
