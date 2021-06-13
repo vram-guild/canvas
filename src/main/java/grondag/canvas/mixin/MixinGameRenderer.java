@@ -34,6 +34,7 @@ import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.shader.data.ScreenRenderState;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer implements GameRendererExt {
@@ -48,6 +49,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderHand", require = 1, at = @At("RETURN"))
 	private void afterRenderHand(CallbackInfo ci) {
+		ScreenRenderState.setRenderingHand(false);
 		PipelineManager.afterRenderHand();
 
 		if (Configurator.enableBufferDebug) {

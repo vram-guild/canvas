@@ -144,6 +144,13 @@ int frx_modelOriginType() {
 }
 
 /*
+ * True when rendering hand.
+ */
+bool frx_isHand() {
+    return frx_bitValue(_cvu_misc_flags, _CV_MISC_HAND) == 1;
+}
+
+/*
  * True when rendering to GUI.
  */
 bool frx_isGui() {

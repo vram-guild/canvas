@@ -28,6 +28,7 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.texture.SpriteIndex;
 import grondag.canvas.texture.TextureData;
+import grondag.fermion.bits.BitPacker32;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlMaterialProgram extends GlProgram {
@@ -39,8 +40,13 @@ public class GlMaterialProgram extends GlProgram {
 	public final UniformMatrix4fImpl guiViewProjMatrix;
 
 	private final ObjectArrayList<UniformSamplerImpl> configuredSamplers;
+	private final Uniform1uiImpl miscFlags;
 
 	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
+	private static final BitPacker32<Void> MISC_FLAGS = new BitPacker32<>(null, null);
+	private static final BitPacker32<Void>.BooleanElement FLAG_MISC_HAND = MISC_FLAGS.createBooleanElement();
+
+	private int miscFlagsData = 0;
 
 	GlMaterialProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
 		super(vertexShader, fragmentShader, format, programType);
@@ -48,9 +54,17 @@ public class GlMaterialProgram extends GlProgram {
 		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 3);
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		miscFlags = (Uniform1uiImpl) uniform1ui("_cvu_misc_flags", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		configuredSamplers = new ObjectArrayList<>();
 		reloadConfigurableSamplers();
 		guiViewProjMatrix = uniformMatrix4f("_cvu_guiViewProjMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
+	}
+
+	public void setMiscFlags(boolean isRenderingHand) {
+		miscFlagsData = FLAG_MISC_HAND.setValue(isRenderingHand, miscFlagsData);
+
+		miscFlags.set(miscFlagsData);
+		miscFlags.upload();
 	}
 
 	public void setModelOrigin(int x, int y, int z) {

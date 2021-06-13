@@ -126,7 +126,7 @@ const vec4[] cascadeColors = vec4[4](
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 
-	if (frx_isGui()) {
+	if (frx_isGui() && !frx_isHand()) {
 		if (fragData.diffuse) {
 			float df = p_diffuseGui(frx_normal);
 			df = df + (1.0 - df) * fragData.emissivity;

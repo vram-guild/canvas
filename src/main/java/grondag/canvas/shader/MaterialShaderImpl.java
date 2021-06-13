@@ -20,9 +20,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.util.math.Matrix4f;
 
-import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.data.MatrixState;
+import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.texture.SpriteIndex;
 
 public final class MaterialShaderImpl {
@@ -34,6 +34,7 @@ public final class MaterialShaderImpl {
 
 	public final ProgramType programType;
 	private GlMaterialProgram program;
+	private MatrixState lastMatrixState = null;
 
 	public MaterialShaderImpl(int index, int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
 		this.vertexShaderIndex = vertexShaderIndex;
@@ -58,19 +59,30 @@ public final class MaterialShaderImpl {
 	private static final Matrix4f guiMatrix = new Matrix4f();
 	private static final Matrix4fExt guiMatrixExt = (Matrix4fExt) (Object) guiMatrix;
 
-	// WIP: all of this activation stuff is trash code
-	// these should probably happen before program activation - change detection should upload as needed
-	private void updateCommonUniforms(RenderState renderState) {
+	public void updateCommonUniforms() {
+		getOrCreate().activate();
+
 		final MatrixState ms = MatrixState.get();
 
-		program.modelOriginType.set(ms.ordinal());
-		program.modelOriginType.upload();
+		if (lastMatrixState != ms) {
+			program.modelOriginType.set(ms.ordinal());
+			program.modelOriginType.upload();
 
-		if (ms == MatrixState.SCREEN) {
+			lastMatrixState = ms;
+		}
+
+		// updates once for hand.
+		// updates unlimited amount of times for GUI render because GUI translation is baked into view matrix.
+		if (ms == MatrixState.SCREEN && (ScreenRenderState.stateChanged() || !ScreenRenderState.renderingHand())) {
 			guiMatrixExt.set(RenderSystem.getProjectionMatrix());
 			guiMatrix.multiply(RenderSystem.getModelViewMatrix());
 			program.guiViewProjMatrix.set(guiMatrix);
 			program.guiViewProjMatrix.upload();
+		}
+
+		if (ScreenRenderState.stateChanged()) {
+			program.setMiscFlags(ScreenRenderState.renderingHand());
+			ScreenRenderState.clearStateChange();
 		}
 	}
 
@@ -83,11 +95,6 @@ public final class MaterialShaderImpl {
 		getOrCreate().activate();
 		program.cascade.set(cascade);
 		program.cascade.upload();
-	}
-
-	public void activate(RenderState renderState) {
-		getOrCreate().activate();
-		updateCommonUniforms(renderState);
 	}
 
 	public void setContextInfo(SpriteIndex atlasInfo, int targetIndex) {
