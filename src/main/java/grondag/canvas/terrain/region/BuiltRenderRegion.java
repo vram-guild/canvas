@@ -73,6 +73,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
+
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
@@ -82,6 +83,15 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	private final boolean isBottom;
 	private final boolean isTop;
 	private final BuiltRenderRegion[] neighbors = new BuiltRenderRegion[6];
+
+	/**
+	 * Set by main thread during schedule. Retrieved and set to null by worker
+	 * right before building.
+	 *
+	 * <p>Special values also signal the need for translucency sort and chunk reset.
+	 */
+	private volatile AtomicReference<ProtoRenderRegion> buildState = new AtomicReference<>(SignalRegion.IDLE);
+
 	public int occlusionRange;
 	private int occluderVersion;
 	private boolean occluderResult;
@@ -97,7 +107,6 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	private boolean isNear;
 	private boolean needsRebuild;
 	private boolean needsImportantRebuild;
-	private volatile RegionBuildState buildState = new RegionBuildState();
 	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private int occlusionFrustumVersion = -1;
@@ -355,7 +364,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
 		// null region is signal to reschedule
-		if (buildState.protoRegion.getAndSet(region) == SignalRegion.IDLE) {
+		if (buildState.getAndSet(region) == SignalRegion.IDLE) {
 			renderRegionBuilder.executor.execute(this);
 		}
 	}
@@ -381,7 +390,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 		this.sortPositionVersion = sortPositionVersion;
 
-		if (regionData.translucentState != null && buildState.protoRegion.compareAndSet(SignalRegion.IDLE, SignalRegion.RESORT_ONLY)) {
+		if (regionData.translucentState != null && buildState.compareAndSet(SignalRegion.IDLE, SignalRegion.RESORT_ONLY)) {
 			// null means need to reschedule, otherwise was already scheduled for either
 			// resort or rebuild, or is invalid, not ready to be built.
 			renderRegionBuilder.executor.execute(this);
@@ -392,8 +401,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	}
 
 	protected void cancel() {
-		buildState.protoRegion.set(SignalRegion.INVALID);
-		buildState = new RegionBuildState();
+		buildState.set(SignalRegion.INVALID);
+		buildState = new AtomicReference<>(SignalRegion.IDLE);
 	}
 
 	@Override
@@ -403,8 +412,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 	@Override
 	public void run(TerrainRenderContext context) {
-		final RegionBuildState runningState = buildState;
-		final ProtoRenderRegion region = runningState.protoRegion.getAndSet(SignalRegion.IDLE);
+		final AtomicReference<ProtoRenderRegion> runningState = buildState;
+		final ProtoRenderRegion region = runningState.getAndSet(SignalRegion.IDLE);
 
 		if (region == null || region == SignalRegion.INVALID) {
 			return;
@@ -458,7 +467,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 				) {
 					regionData.translucentState = collector.saveState(state);
 
-					if (runningState.protoRegion.get() != SignalRegion.INVALID) {
+					if (runningState.get() != SignalRegion.INVALID) {
 						final UploadableChunk upload = collectors.toUploadableChunk(true);
 
 						if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
@@ -486,7 +495,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 			final VertexCollectorList collectors = context.collectors;
 
-			if (runningState.protoRegion.get() == SignalRegion.INVALID) {
+			if (runningState.get() == SignalRegion.INVALID) {
 				collectors.clear();
 				region.release();
 				return;
@@ -494,7 +503,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 
 			buildTerrain(context, chunkData);
 
-			if (runningState.protoRegion.get() != SignalRegion.INVALID) {
+			if (runningState.get() != SignalRegion.INVALID) {
 				final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
 				final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
 
