@@ -10,8 +10,11 @@
 #define _CV_ATLAS_WIDTH 0
 #define _CV_ATLAS_HEIGHT 1
 #define _CV_TARGET_INDEX 2
+#define _CV_CONTEXT_FLAGS 3
 
-uniform int[3] _cvu_context;
+#define _CV_CONTEXT_FLAG_HAND 0
+
+uniform int[4] _cvu_context;
 
 #define _CV_MAX_SHADER_COUNT 0
 
@@ -40,7 +43,7 @@ bool _cv_programDiscard() {
 
 #ifdef VERTEX_SHADER
 void _cv_setupProgram() {
-	if (_cvu_context[_CV_ATLAS_WIDTH] == 0.0) {
+	if (_cvu_context[_CV_ATLAS_WIDTH] == 0) {
 		_cvu_program = texelFetch(_cvu_materialInfo, in_material);
 		_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
 		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);

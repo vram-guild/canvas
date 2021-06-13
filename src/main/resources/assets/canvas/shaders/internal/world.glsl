@@ -95,10 +95,6 @@ uniform int _cvu_model_origin_type;
 uniform mat3 _cvu_normal_model_matrix;
 uniform vec2 _cvu_fog_info;
 
-#define _CV_MISC_HAND 0
-
-uniform uint _cvu_misc_flags;
-
 #define _CV_MAT_VIEW 0
 #define _CV_MAT_VIEW_INVERSE 1
 #define _CV_MAT_VIEW_LAST 2
