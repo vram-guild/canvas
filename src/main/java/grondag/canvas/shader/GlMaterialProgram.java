@@ -47,8 +47,8 @@ public class GlMaterialProgram extends GlProgram {
 	private final ObjectArrayList<UniformSamplerImpl> configuredSamplers;
 
 	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
-	private static final BitPacker32<Void> MISC_FLAGS = new BitPacker32<>(null, null);
-	private static final BitPacker32<Void>.BooleanElement FLAG_MISC_HAND = MISC_FLAGS.createBooleanElement();
+	private static final BitPacker32<Void> CONTEXT_FLAGS = new BitPacker32<>(null, null);
+	private static final BitPacker32<Void>.BooleanElement CONTEXT_FLAG_HAND = CONTEXT_FLAGS.createBooleanElement();
 
 	GlMaterialProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
 		super(vertexShader, fragmentShader, format, programType);
@@ -157,7 +157,7 @@ public class GlMaterialProgram extends GlProgram {
 		}
 
 		contextInfoData[_CV_MATERIAL_TARGET] = targetIndex;
-		contextInfoData[_CV_CONTEXT_FLAGS] = FLAG_MISC_HAND.setValue(ScreenRenderState.renderingHand(), contextInfoData[_CV_CONTEXT_FLAGS]);
+		contextInfoData[_CV_CONTEXT_FLAGS] = CONTEXT_FLAG_HAND.setValue(ScreenRenderState.renderingHand(), contextInfoData[_CV_CONTEXT_FLAGS]);
 
 		contextInfo.set(contextInfoData);
 		contextInfo.upload();
