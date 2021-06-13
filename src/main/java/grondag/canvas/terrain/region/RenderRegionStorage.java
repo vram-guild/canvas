@@ -22,25 +22,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
+import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 
 public class RenderRegionStorage {
-	/**
-	 * Sorts regions within render distance from near to far relative to the camera.
-	 */
-	public final PotentiallyVisibleRegionSorter cameraDistanceSorter = new PotentiallyVisibleRegionSorter();
+	static final int CHUNK_COUNT = 128 * 128;
 
-	final AtomicInteger regionCount = new AtomicInteger();
-	final CanvasWorldRenderer cwr;
+	/**
+	 * Tracks which regions within render distance are potentially visible from the camera
+	 * and sorts them from near to far relative to the camera.  Supports terrain iteration
+	 * for the camera view.
+	 */
+	public final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = new CameraPotentiallyVisibleRegionSet();
+
+	private final AtomicInteger loadedRegionCount = new AtomicInteger();
+
 	private int lastCameraChunkX = Integer.MAX_VALUE;
 	private int lastCameraChunkY = Integer.MAX_VALUE;
 	private int lastCameraChunkZ = Integer.MAX_VALUE;
 
-	private boolean didInvalidateOccluder = false;
-	private int occluderVersion = 0;
-	private int maxSquaredChunkDistance;
+	final CanvasWorldRenderer cwr;
 
-	static final int CHUNK_COUNT = 128 * 128;
+	private boolean didInvalidateCameraOccluder = false;
+	private int cameraOccluderVersion = 0;
+	private int maxSquaredCameraChunkDistance;
+
 	private final RenderRegionChunk[] chunks = new RenderRegionChunk[CHUNK_COUNT];
 	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionStorage.CHUNK_COUNT);
 
@@ -52,16 +57,16 @@ public class RenderRegionStorage {
 		}
 	}
 
-	public int occluderVersion() {
-		return occluderVersion;
+	public int cameraOccluderVersion() {
+		return cameraOccluderVersion;
 	}
 
-	public void invalidateOccluder() {
-		didInvalidateOccluder = true;
+	public void invalidateCameraOccluder() {
+		didInvalidateCameraOccluder = true;
 	}
 
-	public int maxSquaredChunkDistance() {
-		return maxSquaredChunkDistance;
+	public int maxSquaredCameraChunkDistance() {
+		return maxSquaredCameraChunkDistance;
 	}
 
 	public synchronized void clear() {
@@ -99,9 +104,9 @@ public class RenderRegionStorage {
 		}
 	}
 
-	int chunkDistVersion = 1;
+	int cameraChunkDistVersion = 1;
 
-	public void updateCameraDistanceAndVisibilityInfo(long cameraChunkOrigin) {
+	public void updateCameraDistanceAndVisibility(long cameraChunkOrigin) {
 		final int cameraChunkX = BlockPos.unpackLongX(cameraChunkOrigin) >> 4;
 		final int cameraChunkY = BlockPos.unpackLongY(cameraChunkOrigin) >> 4;
 		final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkOrigin) >> 4;
@@ -110,27 +115,27 @@ public class RenderRegionStorage {
 			lastCameraChunkX = cameraChunkX;
 			lastCameraChunkY = cameraChunkY;
 			lastCameraChunkZ = cameraChunkZ;
-			++chunkDistVersion;
+			++cameraChunkDistVersion;
 			cameraDistanceSorter.clear();
 		} else {
 			cameraDistanceSorter.returnToStart();
 		}
 
-		occluderVersion = cwr.occluder.version();
-		maxSquaredChunkDistance = cwr.occluder.maxSquaredChunkDistance();
-		didInvalidateOccluder = false;
+		cameraOccluderVersion = cwr.cameraOccluder.version();
+		maxSquaredCameraChunkDistance = cwr.cameraOccluder.maxSquaredChunkDistance();
+		didInvalidateCameraOccluder = false;
 
 		for (int i = 0; i < CHUNK_COUNT; ++i) {
 			chunks[i].updateCameraDistanceAndVisibilityInfo();
 		}
 
-		if (didInvalidateOccluder) {
-			cwr.occluder.invalidate();
+		if (didInvalidateCameraOccluder) {
+			cwr.cameraOccluder.invalidate();
 		}
 	}
 
-	public int regionCount() {
-		return regionCount.get();
+	public int loadedRegionCount() {
+		return loadedRegionCount.get();
 	}
 
 	public BuiltRenderRegion getOrCreateRegion(int x, int y, int z) {
@@ -165,5 +170,13 @@ public class RenderRegionStorage {
 			chunk.close();
 			chunk = closeQueue.poll();
 		}
+	}
+
+	void trackRegionClosed() {
+		loadedRegionCount.decrementAndGet();
+	}
+
+	void trackRegionLoaded() {
+		loadedRegionCount.incrementAndGet();
 	}
 }

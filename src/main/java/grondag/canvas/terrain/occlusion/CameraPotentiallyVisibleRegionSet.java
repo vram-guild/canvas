@@ -30,7 +30,7 @@ import grondag.canvas.terrain.region.BuiltRenderRegion;
  * be at a finite number of distances from the origin chunk
  * and slots them into buckets using simple and fast array access.
  */
-public class PotentiallyVisibleRegionSorter {
+public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegionSet {
 	/** Max render chunk distance + 2 padding to allow for neighbor regions at edge. */
 	private static final int RADIUS = 34;
 
@@ -65,11 +65,6 @@ public class PotentiallyVisibleRegionSorter {
 	 */
 	private static final int REGION_LOOKUP_LENGTH;
 
-	/**
-	 * For fast clearing up the region lookup array.
-	 */
-	private static final BuiltRenderRegion[] EMPTY_REGIONS;
-
 	static {
 		final Int2IntOpenHashMap rings = new Int2IntOpenHashMap();
 
@@ -101,12 +96,11 @@ public class PotentiallyVisibleRegionSorter {
 		}
 
 		REGION_LOOKUP_LENGTH = index;
-
-		EMPTY_REGIONS = new BuiltRenderRegion[REGION_LOOKUP_LENGTH];
 	}
 
 	private int version = 1;
 
+	@Override
 	public int version() {
 		return version;
 	}
@@ -121,22 +115,25 @@ public class PotentiallyVisibleRegionSorter {
 	private int regionIndex = 0;
 	private int maxIndex = 0;
 
-	public PotentiallyVisibleRegionSorter() {
+	public CameraPotentiallyVisibleRegionSet() {
 		clear();
 	}
 
+	@Override
 	public void clear() {
 		System.arraycopy(SQ_DIST_TO_RING_MAP, 0, ringMap, 0, RING_MAP_LENGTH);
-		System.arraycopy(EMPTY_REGIONS, 0, regions, 0, REGION_LOOKUP_LENGTH);
+		Arrays.fill(regions, null);
 		maxIndex = -1;
 		++version;
 		returnToStart();
 	}
 
+	@Override
 	public void returnToStart() {
 		regionIndex = 0;
 	}
 
+	@Override
 	public void add(BuiltRenderRegion region) {
 		final int dist = region.squaredChunkDistance();
 
@@ -170,7 +167,8 @@ public class PotentiallyVisibleRegionSorter {
 		}
 	}
 
-	@Nullable BuiltRenderRegion next() {
+	@Override
+	@Nullable public BuiltRenderRegion next() {
 		final int maxIndex = this.maxIndex;
 
 		while (regionIndex <= maxIndex) {

@@ -16,8 +16,6 @@
 
 package grondag.canvas.terrain.region;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.ChunkStatus;
@@ -49,12 +47,9 @@ public class RenderRegionChunk {
 
 	public synchronized void close() {
 		if (regions != null) {
-			final AtomicInteger regionCount = storage.regionCount;
-
 			for (final BuiltRenderRegion region : regions) {
 				if (region != null) {
 					region.close();
-					regionCount.decrementAndGet();
 				}
 			}
 
@@ -80,8 +75,8 @@ public class RenderRegionChunk {
 	}
 
 	synchronized void updateCameraDistanceAndVisibilityInfo() {
-		if (storage.chunkDistVersion != chunkDistVersion) {
-			chunkDistVersion = storage.chunkDistVersion;
+		if (storage.cameraChunkDistVersion != chunkDistVersion) {
+			chunkDistVersion = storage.cameraChunkDistVersion;
 			final int cx = storage.cameraChunkX() - chunkX;
 			final int cz = storage.cameraChunkZ() - chunkZ;
 			horizontalSquaredDistance = cx * cx + cz * cz;
@@ -124,7 +119,6 @@ public class RenderRegionChunk {
 			final long k = BlockPos.asLong(x & 0xFFFFFFF0, y & 0xFFFFFFF0, z & 0xFFFFFFF0);
 			r = new BuiltRenderRegion(this, k);
 			regions[i] = r;
-			storage.regionCount.incrementAndGet();
 		}
 
 		return r;

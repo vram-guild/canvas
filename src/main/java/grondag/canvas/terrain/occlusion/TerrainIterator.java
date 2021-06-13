@@ -70,7 +70,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = BlockPos.asLong(cameraBlockPos.getX() & 0xFFFFFFF0, cameraBlockPos.getY() & 0xFFFFFFF0, cameraBlockPos.getZ() & 0xFFFFFFF0);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.getOrigin().asLong();
-		cwr.occluder.updateFrustum(frustum);
+		cwr.cameraOccluder.updateFrustum(frustum);
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
@@ -96,9 +96,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
 		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
-		final TerrainOccluder occluder = cwr.occluder;
+		final TerrainOccluder occluder = cwr.cameraOccluder;
 		updateRegions.clear();
-		regionStorage.updateCameraDistanceAndVisibilityInfo(cameraChunkOrigin);
+		regionStorage.updateCameraDistanceAndVisibility(cameraChunkOrigin);
 		final boolean redrawOccluder = occluder.prepareScene();
 		final int occluderVersion = occluder.version();
 
@@ -117,18 +117,18 @@ public class TerrainIterator implements TerrainExecutorTask {
 				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
 				final BuiltRenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
 
-				if (region != null && region.isInFrustum()) {
+				if (region != null && region.isInCameraFrustum()) {
 					region.addToCameraPvsIfValid();
 				}
 			}
 		} else {
-			cameraRegion.forceFrustumVisibility();
+			cameraRegion.forceCameraFrustumVisibility();
 			cameraRegion.addToCameraPvsIfValid();
 		}
 
 		// PERF: look for ways to improve branch prediction
 
-		final PotentiallyVisibleRegionSorter cameraDistanceSorter = regionStorage.cameraDistanceSorter;
+		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = regionStorage.cameraDistanceSorter;
 
 		while (!cancelled) {
 			final BuiltRenderRegion builtRegion = cameraDistanceSorter.next();
@@ -138,7 +138,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			}
 
 			// don't visit if not in frustum and within render distance
-			if (!builtRegion.isInFrustum()) {
+			if (!builtRegion.isInCameraFrustum()) {
 				continue;
 			}
 
@@ -167,17 +167,17 @@ public class TerrainIterator implements TerrainExecutorTask {
 			if (!regionData.canOcclude()) {
 				if (Configurator.cullEntityRender) {
 					// reuse prior test results
-					if (builtRegion.occluderVersion() != occluderVersion) {
+					if (builtRegion.cameraOccluderVersion() != occluderVersion) {
 						if (!chunkCullingEnabled || builtRegion.isNear() || occluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
 							builtRegion.enqueueUnvistedCameraNeighbors();
-							builtRegion.setOccluderResult(true, occluderVersion);
+							builtRegion.setCameraOccluderResult(true, occluderVersion);
 						} else {
-							builtRegion.setOccluderResult(false, occluderVersion);
+							builtRegion.setCameraOccluderResult(false, occluderVersion);
 						}
 					}
 				} else {
 					builtRegion.enqueueUnvistedCameraNeighbors();
-					builtRegion.setOccluderResult(false, occluderVersion);
+					builtRegion.setCameraOccluderResult(false, occluderVersion);
 				}
 
 				continue;
@@ -187,15 +187,15 @@ public class TerrainIterator implements TerrainExecutorTask {
 				builtRegion.enqueueUnvistedCameraNeighbors();
 				visibleRegions.add(builtRegion);
 
-				if (redrawOccluder || builtRegion.occluderVersion() != occluderVersion) {
+				if (redrawOccluder || builtRegion.cameraOccluderVersion() != occluderVersion) {
 					occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
 					occluder.occlude(visData);
 				}
 
-				builtRegion.setOccluderResult(true, occluderVersion);
-			} else if (builtRegion.occluderVersion() == occluderVersion) {
+				builtRegion.setCameraOccluderResult(true, occluderVersion);
+			} else if (builtRegion.cameraOccluderVersion() == occluderVersion) {
 				// reuse prior test results
-				if (builtRegion.occluderResult()) {
+				if (builtRegion.cameraOccluderResult()) {
 					builtRegion.enqueueUnvistedCameraNeighbors();
 					visibleRegions.add(builtRegion);
 
@@ -211,12 +211,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 				if (occluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
 					builtRegion.enqueueUnvistedCameraNeighbors();
 					visibleRegions.add(builtRegion);
-					builtRegion.setOccluderResult(true, occluderVersion);
+					builtRegion.setCameraOccluderResult(true, occluderVersion);
 
 					// these must always be drawn - will be additive if view hasn't changed
 					occluder.occlude(visData);
 				} else {
-					builtRegion.setOccluderResult(false, occluderVersion);
+					builtRegion.setCameraOccluderResult(false, occluderVersion);
 				}
 			}
 		}

@@ -111,7 +111,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	/** Tracks which regions had rebuilds requested, both camera and shadow view, and causes some to get built each frame. */
 	private final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 
-	public final TerrainOccluder occluder = new TerrainOccluder();
+	public final TerrainOccluder cameraOccluder = new TerrainOccluder();
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
 	private final TerrainIterator terrainIterator = new TerrainIterator(this);
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
@@ -831,7 +831,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		identityStack.peek().getNormal().loadIdentity();
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
-		terrainFrustum.prepare(viewMatrix, tickDelta, camera, occluder.hasNearOccluders());
+		terrainFrustum.prepare(viewMatrix, tickDelta, camera, cameraOccluder.hasNearOccluders());
 		cullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
@@ -864,7 +864,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		computeDistances();
 		terrainIterator.reset();
-		occluder.invalidate();
+		cameraOccluder.invalidate();
 		regionRebuildManager.clear();
 
 		if (regionBuilder != null) {
@@ -891,7 +891,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	@Override
 	@SuppressWarnings("resource")
 	public String getChunksDebugString() {
-		final int len = renderRegionStorage.regionCount();
+		final int len = renderRegionStorage.loadedRegionCount();
 		final int count = getCompletedChunkCount();
 		return String.format("C: %d/%d %sD: %d, %s", count, len, MinecraftClient.getInstance().chunkCullingEnabled ? "(s) " : "", chunkRenderDistance, regionBuilder == null ? "null" : regionBuilder.getDebugString());
 	}
