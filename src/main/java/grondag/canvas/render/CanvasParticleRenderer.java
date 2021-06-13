@@ -198,6 +198,7 @@ public class CanvasParticleRenderer {
 			.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = baseFinder()
+			.cutout(MaterialFinder.CUTOUT_ZERO)
 			.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
 			.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 			.find();
