@@ -22,8 +22,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 
 public class RenderRegionStorage {
+	/**
+	 * Sorts regions within render distance from near to far relative to the camera.
+	 */
+	public final PotentiallyVisibleRegionSorter cameraDistanceSorter = new PotentiallyVisibleRegionSorter();
+
 	final AtomicInteger regionCount = new AtomicInteger();
 	final CanvasWorldRenderer cwr;
 	private int lastCameraChunkX = Integer.MAX_VALUE;
@@ -59,6 +65,8 @@ public class RenderRegionStorage {
 	}
 
 	public synchronized void clear() {
+		cameraDistanceSorter.clear();
+
 		for (final RenderRegionChunk chunk : chunks) {
 			chunk.close();
 		}
@@ -103,9 +111,9 @@ public class RenderRegionStorage {
 			lastCameraChunkY = cameraChunkY;
 			lastCameraChunkZ = cameraChunkZ;
 			++chunkDistVersion;
-			cwr.potentiallVisibleRegionSorter.clear();
+			cameraDistanceSorter.clear();
 		} else {
-			cwr.potentiallVisibleRegionSorter.returnToStart();
+			cameraDistanceSorter.returnToStart();
 		}
 
 		occluderVersion = cwr.occluder.version();
@@ -141,9 +149,9 @@ public class RenderRegionStorage {
 		return chunks[chunkIndex(x, z)].getRegionIfExists(x, y, z);
 	}
 
-	public boolean wasSeen(int x, int y, int z) {
+	public boolean wasSeenFromCamera(int x, int y, int z) {
 		final BuiltRenderRegion r = getRegionIfExists(x, y, z);
-		return r != null && r.wasRecentlySeen();
+		return r != null && r.wasRecentlySeenFromCamera();
 	}
 
 	public void scheduleClose(RenderRegionChunk chunk) {

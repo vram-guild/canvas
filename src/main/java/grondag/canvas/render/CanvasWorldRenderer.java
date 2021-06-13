@@ -96,7 +96,6 @@ import grondag.canvas.shader.data.MatrixData;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
-import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegionSorter;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
@@ -109,8 +108,9 @@ import grondag.canvas.varia.GFX;
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
 
+	/** Tracks which regions had rebuilds requested, both camera and shadow view, and causes some to get built each frame. */
 	private final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
-	public final PotentiallyVisibleRegionSorter potentiallVisibleRegionSorter = new PotentiallyVisibleRegionSorter();
+
 	public final TerrainOccluder occluder = new TerrainOccluder();
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
 	private final TerrainIterator terrainIterator = new TerrainIterator(this);
@@ -378,7 +378,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
 		regionBuilder.upload();
-		regionRebuildManager.updateRegions(frameStartNanos + clampedBudget);
+		regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
@@ -865,7 +865,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		computeDistances();
 		terrainIterator.reset();
 		occluder.invalidate();
-		potentiallVisibleRegionSorter.clear();
 		regionRebuildManager.clear();
 
 		if (regionBuilder != null) {

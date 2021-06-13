@@ -122,7 +122,6 @@ public class GlMaterialProgram extends GlProgram {
 	private static final int _CV_MATERIAL_TARGET = 2;
 	private static final int _CV_CONTEXT_FLAGS = 3;
 
-	private int miscFlagsData = 0;
 	private MatrixState lastMatrixState = null;
 
 	private static final Matrix4f guiMatrix = new Matrix4f();

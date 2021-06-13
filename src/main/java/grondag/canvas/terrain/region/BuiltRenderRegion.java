@@ -193,8 +193,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		return frustumResult;
 	}
 
-	public boolean wasRecentlySeen() {
-		return cwr.potentiallVisibleRegionSorter.version() - lastSeenVisibility < 4 && occluderResult;
+	public boolean wasRecentlySeenFromCamera() {
+		return storage.cameraDistanceSorter.version() - lastSeenVisibility < 4 && occluderResult;
 	}
 
 	/**
@@ -360,7 +360,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		return needsRebuild && needsImportantRebuild;
 	}
 
-	public void scheduleRebuild() {
+	public void prepareAndExecuteRebuildTask() {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
 		// null region is signal to reschedule
@@ -766,29 +766,29 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		return isNear;
 	}
 
-	public void enqueueUnvistedNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).addToPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).addToPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).addToPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).addToPvsIfValid();
+	public void enqueueUnvistedCameraNeighbors() {
+		getNeighbor(FaceConstants.EAST_INDEX).addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).addToCameraPvsIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).addToPvsIfValid();
+			getNeighbor(FaceConstants.UP_INDEX).addToCameraPvsIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).addToPvsIfValid();
+			getNeighbor(FaceConstants.DOWN_INDEX).addToCameraPvsIfValid();
 		}
 	}
 
-	public void addToPvsIfValid() {
+	public void addToCameraPvsIfValid() {
 		// Previously checked for r.squaredChunkDistance > squaredChunkDistance
 		// but some progression patterns seem to require it or chunks are missed.
 		// This is probably because a nearer path has an occlude chunk and so it
 		// has to be found reaching around. This will cause some backtracking and
 		// thus redraw of the occluder, but that already happens and is handled.
 
-		final PotentiallyVisibleRegionSorter sorter = cwr.potentiallVisibleRegionSorter;
+		final PotentiallyVisibleRegionSorter sorter = storage.cameraDistanceSorter;
 		final int version = sorter.version();
 
 		// The frustum version check is necessary to skip regions without valid info.

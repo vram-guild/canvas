@@ -48,34 +48,34 @@ public class RegionCullingFrustum extends FastFrustum {
 
 				switch (flags) {
 					case 0b000:
-						return regions.wasSeen(rx0, ry0, rz0);
+						return regions.wasSeenFromCamera(rx0, ry0, rz0);
 
 					case 0b001:
-						return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0);
+						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx1, ry0, rz0);
 
 					case 0b010:
-						return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0);
+						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx0, ry1, rz0);
 
 					case 0b011:
-						return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-								|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0);
+						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx1, ry0, rz0)
+								|| regions.wasSeenFromCamera(rx0, ry1, rz0) || regions.wasSeenFromCamera(rx1, ry1, rz0);
 
 					case 0b100:
-						return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry0, rz1);
+						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx0, ry0, rz1);
 
 					case 0b101:
-						return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-								|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1);
+						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx1, ry0, rz0)
+								|| regions.wasSeenFromCamera(rx0, ry0, rz1) || regions.wasSeenFromCamera(rx1, ry0, rz1);
 
 					case 0b110:
-						return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx0, ry1, rz0)
-								|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx0, ry1, rz1);
+						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx0, ry1, rz0)
+								|| regions.wasSeenFromCamera(rx0, ry0, rz1) || regions.wasSeenFromCamera(rx0, ry1, rz1);
 
 					case 0b111:
-						return regions.wasSeen(rx0, ry0, rz0) || regions.wasSeen(rx1, ry0, rz0)
-								|| regions.wasSeen(rx0, ry1, rz0) || regions.wasSeen(rx1, ry1, rz0)
-								|| regions.wasSeen(rx0, ry0, rz1) || regions.wasSeen(rx1, ry0, rz1)
-								|| regions.wasSeen(rx0, ry1, rz1) || regions.wasSeen(rx1, ry1, rz1);
+						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx1, ry0, rz0)
+								|| regions.wasSeenFromCamera(rx0, ry1, rz0) || regions.wasSeenFromCamera(rx1, ry1, rz0)
+								|| regions.wasSeenFromCamera(rx0, ry0, rz1) || regions.wasSeenFromCamera(rx1, ry0, rz1)
+								|| regions.wasSeenFromCamera(rx0, ry1, rz1) || regions.wasSeenFromCamera(rx1, ry1, rz1);
 					default:
 						assert false : "Pathological spatial test result in RegionCullingFrustum";
 						return true;
