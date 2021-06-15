@@ -26,14 +26,14 @@ class RenderRegionAddressHelperTest {
 		}
 
 		for (int n = 0; n < TEST_COUNT; ++n) {
-			final var i = RenderRegionAddressHelper.computeRegionIndex(data[n], data[n + 1], data[n + 2]);
-			assert i == RenderRegionAddressHelper.regionIndex(data[n], data[n + 1], data[n + 2]);
+			final var i = RenderRegionStateIndexer.computeRegionIndex(data[n], data[n + 1], data[n + 2]);
+			assert i == RenderRegionStateIndexer.regionIndex(data[n], data[n + 1], data[n + 2]);
 		}
 
 		long start = System.nanoTime();
 
 		for (int n = 0; n < TEST_COUNT; ++n) {
-			RenderRegionAddressHelper.computeRegionIndex(data[n], data[n + 1], data[n + 2]);
+			RenderRegionStateIndexer.computeRegionIndex(data[n], data[n + 1], data[n + 2]);
 		}
 
 		System.out.println("Compute duration:       " + (System.nanoTime() - start));
@@ -41,7 +41,7 @@ class RenderRegionAddressHelperTest {
 		start = System.nanoTime();
 
 		for (int n = 0; n < TEST_COUNT; ++n) {
-			RenderRegionAddressHelper.regionIndex(data[n], data[n + 1], data[n + 2]);
+			RenderRegionStateIndexer.regionIndex(data[n], data[n + 1], data[n + 2]);
 		}
 
 		System.out.println("Lookup duration:        " + (System.nanoTime() - start));

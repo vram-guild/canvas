@@ -44,7 +44,7 @@ import grondag.canvas.light.LightSmoother;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.terrain.region.FastRenderRegion;
 import grondag.canvas.terrain.region.ProtoRenderRegion;
-import grondag.canvas.terrain.util.RenderRegionAddressHelper;
+import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
@@ -113,7 +113,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 
 		try {
-			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));
+			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;

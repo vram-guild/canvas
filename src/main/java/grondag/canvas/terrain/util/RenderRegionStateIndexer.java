@@ -22,7 +22,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 
-public abstract class RenderRegionAddressHelper {
+/*
+ * Static methods and definitions to efficiently
+ * address positions within a render region.
+ * A render region hold a 16x16x16 chunk section
+ * plus positions ("padding") from adjacent sections.
+ */
+public abstract class RenderRegionStateIndexer {
 	/**
 	 * Number of positions within a 16x16x16 render region, not including exterior padding.
 	 */
@@ -142,7 +148,7 @@ public abstract class RenderRegionAddressHelper {
 		}
 	}
 
-	private RenderRegionAddressHelper() {
+	private RenderRegionStateIndexer() {
 	}
 
 	// These are exposed so addressing in intensive region lookups can be directly computed

@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegionIndexer;
 
 /**
  * Sorts render regions by distance in a single array using
@@ -30,10 +31,7 @@ import grondag.canvas.terrain.region.BuiltRenderRegion;
  * be at a finite number of distances from the origin chunk
  * and slots them into buckets using simple and fast array access.
  */
-public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegionSet {
-	/** Max render chunk distance + 2 padding to allow for neighbor regions at edge. */
-	private static final int RADIUS = 34;
-
+public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegionSet<BuiltRenderRegion> {
 	/**
 	 * The number of unique squared distance values ("rings") that occur
 	 * in our voxelized sphere.
@@ -69,10 +67,10 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 		final Int2IntOpenHashMap rings = new Int2IntOpenHashMap();
 
 		// 34 to allow for padding
-		for (int x = -RADIUS; x <= RADIUS; ++x) {
-			for (int z = -RADIUS; z <= RADIUS; ++z) {
+		for (int x = -RenderRegionIndexer.MAX_LOADED_CHUNK_RADIUS; x <= RenderRegionIndexer.MAX_LOADED_CHUNK_RADIUS; ++x) {
+			for (int z = -RenderRegionIndexer.MAX_LOADED_CHUNK_RADIUS; z <= RenderRegionIndexer.MAX_LOADED_CHUNK_RADIUS; ++z) {
 				// not clamped on Y because player can be above or below world
-				for (int y = -RADIUS; y <= RADIUS; ++y) {
+				for (int y = -RenderRegionIndexer.MAX_LOADED_CHUNK_RADIUS; y <= RenderRegionIndexer.MAX_LOADED_CHUNK_RADIUS; ++y) {
 					final int d = x * x + y * y + z * z;
 					rings.addTo(d, 1);
 				}
@@ -112,7 +110,7 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	private final int[] ringMap = new int[RING_MAP_LENGTH];
 	private final BuiltRenderRegion[] regions = new BuiltRenderRegion[REGION_LOOKUP_LENGTH];
 
-	private int regionIndex = 0;
+	private int iterationIndex = 0;
 	private int maxIndex = 0;
 
 	public CameraPotentiallyVisibleRegionSet() {
@@ -130,12 +128,12 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 	@Override
 	public void returnToStart() {
-		regionIndex = 0;
+		iterationIndex = 0;
 	}
 
 	@Override
 	public void add(BuiltRenderRegion region) {
-		final int dist = region.squaredChunkDistance();
+		final int dist = region.squaredCameraChunkDistance();
 
 		if (dist >= 0 && dist <= MAX_SQ_DIST) {
 			final int index = ringMap[dist];
@@ -171,8 +169,8 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	@Nullable public BuiltRenderRegion next() {
 		final int maxIndex = this.maxIndex;
 
-		while (regionIndex <= maxIndex) {
-			final BuiltRenderRegion region = regions[regionIndex++];
+		while (iterationIndex <= maxIndex) {
+			final BuiltRenderRegion region = regions[iterationIndex++];
 
 			if (region != null) {
 				return region;

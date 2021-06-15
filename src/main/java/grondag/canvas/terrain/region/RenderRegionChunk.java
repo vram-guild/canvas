@@ -17,13 +17,9 @@
 package grondag.canvas.terrain.region;
 
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.ChunkStatus;
 
 public class RenderRegionChunk {
-	private static final int MAX_REGIONS = 24;
-	private static final int Y_OFFSET = 64;
-
 	final RenderRegionStorage storage;
 
 	private int chunkX;
@@ -40,7 +36,7 @@ public class RenderRegionChunk {
 	private void open(int chunkX, int chunkZ) {
 		this.chunkX = chunkX;
 		this.chunkZ = chunkZ;
-		regions = new BuiltRenderRegion[MAX_REGIONS];
+		regions = new BuiltRenderRegion[RenderRegionIndexer.MAX_Y_REGIONS];
 		areCornersLoadedCache = false;
 		chunkDistVersion = -1;
 	}
@@ -85,7 +81,7 @@ public class RenderRegionChunk {
 		final BuiltRenderRegion[] regions = this.regions;
 
 		if (regions != null) {
-			for (int i = 0; i < MAX_REGIONS; ++i) {
+			for (int i = 0; i < RenderRegionIndexer.MAX_Y_REGIONS; ++i) {
 				final BuiltRenderRegion r = regions[i];
 
 				if (r != null) {
@@ -100,9 +96,9 @@ public class RenderRegionChunk {
 	}
 
 	synchronized BuiltRenderRegion getOrCreateRegion(int x, int y, int z) {
-		final int i = (y + Y_OFFSET) >> 4;
+		final int i = (y + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
 
-		if (i < 0 || i >= MAX_REGIONS) {
+		if (i < 0 || i >= RenderRegionIndexer.MAX_Y_REGIONS) {
 			return null;
 		}
 
@@ -116,8 +112,7 @@ public class RenderRegionChunk {
 		BuiltRenderRegion r = regions[i];
 
 		if (r == null) {
-			final long k = BlockPos.asLong(x & 0xFFFFFFF0, y & 0xFFFFFFF0, z & 0xFFFFFFF0);
-			r = new BuiltRenderRegion(this, k);
+			r = new BuiltRenderRegion(this, RenderRegionIndexer.blockPosToRegionOrigin(x, y, z));
 			regions[i] = r;
 		}
 
@@ -125,9 +120,9 @@ public class RenderRegionChunk {
 	}
 
 	synchronized BuiltRenderRegion getRegionIfExists(int x, int y, int z) {
-		final int i = (y + Y_OFFSET) >> 4;
+		final int i = (y + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
 
-		if (i < 0 || i >= MAX_REGIONS) {
+		if (i < 0 || i >= RenderRegionIndexer.MAX_Y_REGIONS) {
 			return null;
 		}
 

@@ -16,12 +16,12 @@
 
 package grondag.canvas.terrain.region;
 
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.EXTERIOR_STATE_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_STATE_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.REGION_PADDING;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_STATE_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndexToXyz5;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.EXTERIOR_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.INTERIOR_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.REGION_PADDING;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.TOTAL_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.interiorIndex;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
 
 import java.util.Arrays;
 

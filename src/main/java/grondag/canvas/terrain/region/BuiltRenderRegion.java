@@ -62,7 +62,7 @@ import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
-import grondag.canvas.terrain.util.RenderRegionAddressHelper;
+import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
 import grondag.canvas.varia.BlockPosHelper;
 import grondag.frex.api.fluid.FluidQuadSupplier;
@@ -299,7 +299,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		}
 	}
 
-	public int squaredChunkDistance() {
+	public int squaredCameraChunkDistance() {
 		return squaredCameraChunkDistance;
 	}
 
@@ -575,7 +575,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
 
-		for (int i = 0; i < RenderRegionAddressHelper.INTERIOR_STATE_COUNT; i++) {
+		for (int i = 0; i < RenderRegionStateIndexer.INTERIOR_STATE_COUNT; i++) {
 			if (occlusionRegion.shouldRender(i)) {
 				final BlockState blockState = region.getLocalBlockState(i);
 				final FluidState fluidState = blockState.getFluidState();

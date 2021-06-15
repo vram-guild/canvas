@@ -58,7 +58,7 @@ dependencies {
 		exclude group: "net.fabricmc.fabric-loader"
 	}
 
-	implementation("grondag:bitraster:${bitraster_version}");
+	modImplementation("grondag:bitraster:${bitraster_version}");
 	
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"

@@ -32,6 +32,7 @@ import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
+import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -68,7 +69,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		assert state.get() == IDLE;
 		this.cameraRegion = cameraRegion;
 		final BlockPos cameraBlockPos = camera.getBlockPos();
-		cameraChunkOrigin = BlockPos.asLong(cameraBlockPos.getX() & 0xFFFFFFF0, cameraBlockPos.getY() & 0xFFFFFFF0, cameraBlockPos.getZ() & 0xFFFFFFF0);
+		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.getOrigin().asLong();
 		cwr.cameraOccluder.updateFrustum(frustum);
 		this.renderDistance = renderDistance;
@@ -188,7 +189,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				visibleRegions.add(builtRegion);
 
 				if (redrawOccluder || builtRegion.cameraOccluderVersion() != occluderVersion) {
-					occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
+					occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
 					occluder.occlude(visData);
 				}
 
@@ -201,12 +202,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
+						occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
 						occluder.occlude(visData);
 					}
 				}
 			} else {
-				occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredChunkDistance());
+				occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
 
 				if (occluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
 					builtRegion.enqueueUnvistedCameraNeighbors();

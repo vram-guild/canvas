@@ -25,8 +25,6 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 
 public class RenderRegionStorage {
-	static final int CHUNK_COUNT = 128 * 128;
-
 	/**
 	 * Tracks which regions within render distance are potentially visible from the camera
 	 * and sorts them from near to far relative to the camera.  Supports terrain iteration
@@ -46,13 +44,13 @@ public class RenderRegionStorage {
 	private int cameraOccluderVersion = 0;
 	private int maxSquaredCameraChunkDistance;
 
-	private final RenderRegionChunk[] chunks = new RenderRegionChunk[CHUNK_COUNT];
-	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionStorage.CHUNK_COUNT);
+	private final RenderRegionChunk[] chunks = new RenderRegionChunk[RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT];
+	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT);
 
 	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer) {
 		cwr = canvasWorldRenderer;
 
-		for (int i = 0; i < CHUNK_COUNT; ++i) {
+		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
 			chunks[i] = new RenderRegionChunk(this);
 		}
 	}
@@ -89,13 +87,6 @@ public class RenderRegionStorage {
 		return lastCameraChunkZ;
 	}
 
-	private static int chunkIndex(int x, int z) {
-		x = ((x + 30000000) >> 4) & 127;
-		z = ((z + 30000000) >> 4) & 127;
-
-		return x | (z << 7);
-	}
-
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
 		final BuiltRenderRegion region = getRegionIfExists(x, y, z);
 
@@ -125,7 +116,7 @@ public class RenderRegionStorage {
 		maxSquaredCameraChunkDistance = cwr.cameraOccluder.maxSquaredChunkDistance();
 		didInvalidateCameraOccluder = false;
 
-		for (int i = 0; i < CHUNK_COUNT; ++i) {
+		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
 			chunks[i].updateCameraDistanceAndVisibilityInfo();
 		}
 
@@ -139,7 +130,7 @@ public class RenderRegionStorage {
 	}
 
 	public BuiltRenderRegion getOrCreateRegion(int x, int y, int z) {
-		return chunks[chunkIndex(x, z)].getOrCreateRegion(x, y, z);
+		return chunks[RenderRegionIndexer.chunkIndex(x, z)].getOrCreateRegion(x, y, z);
 	}
 
 	public BuiltRenderRegion getOrCreateRegion(BlockPos pos) {
@@ -151,7 +142,7 @@ public class RenderRegionStorage {
 	}
 
 	public BuiltRenderRegion getRegionIfExists(int x, int y, int z) {
-		return chunks[chunkIndex(x, z)].getRegionIfExists(x, y, z);
+		return chunks[RenderRegionIndexer.chunkIndex(x, z)].getRegionIfExists(x, y, z);
 	}
 
 	public boolean wasSeenFromCamera(int x, int y, int z) {

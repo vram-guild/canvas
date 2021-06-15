@@ -16,8 +16,8 @@
 
 package grondag.canvas.terrain.occlusion.geometry;
 
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.SLICE_WORD_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.SLICE_WORD_COUNT;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;

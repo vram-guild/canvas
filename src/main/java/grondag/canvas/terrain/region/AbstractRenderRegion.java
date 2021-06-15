@@ -16,7 +16,7 @@
 
 package grondag.canvas.terrain.region;
 
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndex;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndex;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;

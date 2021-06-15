@@ -17,7 +17,7 @@
 package grondag.canvas.light;
 
 import static grondag.canvas.light.AoVertexClampFunction.clamp;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.signedXyzOffset5;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.signedXyzOffset5;
 import static net.minecraft.util.math.Direction.DOWN;
 import static net.minecraft.util.math.Direction.EAST;
 import static net.minecraft.util.math.Direction.NORTH;

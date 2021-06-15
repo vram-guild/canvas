@@ -16,11 +16,11 @@
 
 package grondag.canvas.terrain.occlusion.geometry;
 
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_STATE_COUNT;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.TOTAL_CACHE_WORDS;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.interiorIndex;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.regionIndex;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.INTERIOR_STATE_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.TOTAL_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.interiorIndex;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
