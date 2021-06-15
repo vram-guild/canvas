@@ -29,7 +29,6 @@ import net.minecraft.util.math.Matrix4f;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.render.frustum.FastFrustum;
 
 public final class MatrixData {
 	private MatrixData() { }
@@ -84,8 +83,8 @@ public final class MatrixData {
 		cleanViewProjMatrixInvExt.multiply(cleanProjMatrixInvExt);
 		cleanViewProjMatrixInvExt.writeToBuffer(CLEAN_VP_INVERSE * 16, MATRIX_DATA);
 
-		cleanFrustum.prepare(viewMatrix, tickDelta, camera, cleanProjMatrix);
-		cleanFrustum.computeCircumCenter(viewMatrixInv, cleanProjMatrixInv);
+		//cleanFrustum.prepare(viewMatrix, tickDelta, camera, cleanProjMatrix);
+		//cleanFrustum.computeCircumCenter(viewMatrixInv, cleanProjMatrixInv);
 	}
 
 	/**
@@ -135,9 +134,6 @@ public final class MatrixData {
 	private static final Matrix4fExt cleanViewProjMatrixInvExt = (Matrix4fExt) (Object) cleanViewProjMatrixInv;
 
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
-
-	// frustum without nausea or view bob
-	public static final FastFrustum cleanFrustum = new FastFrustum();
 
 	private static final int VIEW = 0;
 	private static final int VIEW_INVERSE = 1;

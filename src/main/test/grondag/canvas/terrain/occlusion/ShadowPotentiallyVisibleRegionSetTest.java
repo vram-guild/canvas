@@ -7,7 +7,7 @@ import net.minecraft.util.math.BlockPos;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
 class ShadowPotentiallyVisibleRegionSetTest {
-	private static record TestRegion(BlockPos origin) implements ShadowPotentiallyVisibleRegion {
+	private static record TestRegion(BlockPos origin) implements PotentiallyVisibleRegion {
 		TestRegion(int x, int y, int z) {
 			this(new BlockPos(x, y, z));
 		}

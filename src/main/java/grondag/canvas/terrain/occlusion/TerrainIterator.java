@@ -71,7 +71,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.getOrigin().asLong();
-		cwr.cameraOccluder.updateFrustum(frustum);
+		cwr.cameraOccluder.copyFrustum(frustum);
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
@@ -129,7 +129,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		// PERF: look for ways to improve branch prediction
 
-		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = regionStorage.cameraDistanceSorter;
+		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = regionStorage.cameraPVS;
 
 		while (!cancelled) {
 			final BuiltRenderRegion builtRegion = cameraDistanceSorter.next();

@@ -115,13 +115,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
 	private final TerrainIterator terrainIterator = new TerrainIterator(this);
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
-	private final RegionCullingFrustum cullingFrustum = new RegionCullingFrustum(renderRegionStorage);
+	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(renderRegionStorage);
 	public final VisibleRegionList visibleRegions = new VisibleRegionList();
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
 	private final CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
-	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(cullingFrustum);
+	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(entityCullingFrustum);
 	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
@@ -427,13 +427,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		renderSystemModelViewStack.method_34425(viewMatrixStack.peek().getModel());
 		RenderSystem.applyModelViewMatrix();
 
-		cullingFrustum.enableRegionCulling = Configurator.cullEntityRender;
+		entityCullingFrustum.enableRegionCulling = Configurator.cullEntityRender;
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 			boolean isFirstPersonPlayer = false;
 
-			if (!entityRenderDispatcher.shouldRender(entity, cullingFrustum, frameCameraX, frameCameraY, frameCameraZ) && !entity.hasPassengerDeep(mc.player)) {
+			if (!entityRenderDispatcher.shouldRender(entity, entityCullingFrustum, frameCameraX, frameCameraY, frameCameraZ) && !entity.hasPassengerDeep(mc.player)) {
 				continue;
 			}
 
@@ -832,7 +832,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
 		terrainFrustum.prepare(viewMatrix, tickDelta, camera, cameraOccluder.hasNearOccluders());
-		cullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
+		entityCullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
 

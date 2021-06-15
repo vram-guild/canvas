@@ -24,7 +24,7 @@ import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
-public class ShadowPotentiallyVisibleRegionSet<T extends ShadowPotentiallyVisibleRegion> implements PotentiallyVisibleRegionSet<T> {
+public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegion> implements PotentiallyVisibleRegionSet<T> {
 	private int version = 1;
 
 	private final T[] regions;

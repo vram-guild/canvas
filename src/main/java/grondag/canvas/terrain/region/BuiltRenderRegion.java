@@ -58,6 +58,7 @@ import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.render.DrawableChunk;
@@ -68,7 +69,7 @@ import grondag.canvas.varia.BlockPosHelper;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
-public class BuiltRenderRegion implements TerrainExecutorTask {
+public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegion {
 	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
 
 	private final RenderRegionBuilder renderRegionBuilder;
@@ -112,7 +113,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	private int occlusionFrustumVersion = -1;
 	private int positionVersion = -1;
 	private boolean cameraFrustumResult;
-	private int lastSeenCameraSortVersion;
+	private int lastSeenCameraPvsVersion;
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
 	private int buildCount = -1;
@@ -143,7 +144,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 			occlusionFrustumVersion,
 			cameraFrustumResult,
 			positionVersion,
-			lastSeenCameraSortVersion,
+			lastSeenCameraPvsVersion,
 			isInsideRenderDistance);
 	}
 
@@ -195,7 +196,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 	}
 
 	public boolean wasRecentlySeenFromCamera() {
-		return storage.cameraDistanceSorter.version() - lastSeenCameraSortVersion < 4 && cameraOccluderResult;
+		return storage.cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult;
 	}
 
 	/**
@@ -790,18 +791,23 @@ public class BuiltRenderRegion implements TerrainExecutorTask {
 		// has to be found reaching around. This will cause some backtracking and
 		// thus redraw of the occluder, but that already happens and is handled.
 
-		final CameraPotentiallyVisibleRegionSet sorter = storage.cameraDistanceSorter;
-		final int sortVersion = sorter.version();
+		final CameraPotentiallyVisibleRegionSet cameraPVS = storage.cameraPVS;
+		final int pvsVersion = cameraPVS.version();
 
 		// The frustum version check is necessary to skip regions without valid info.
-		if (lastSeenCameraSortVersion != sortVersion && occlusionFrustumVersion != -1) {
-			lastSeenCameraSortVersion = sortVersion;
-			sorter.add(this);
+		if (lastSeenCameraPvsVersion != pvsVersion && occlusionFrustumVersion != -1) {
+			lastSeenCameraPvsVersion = pvsVersion;
+			cameraPVS.add(this);
 		}
 	}
 
 	/** For debugging. */
 	public boolean sharesOriginWith(int blockX, int blockY, int blockZ) {
 		return origin.getX() >> 4 == blockX >> 4 && origin.getY() >> 4 == blockY >> 4 && origin.getZ() >> 4 == blockZ >> 4;
+	}
+
+	@Override
+	public BlockPos origin() {
+		return origin;
 	}
 }

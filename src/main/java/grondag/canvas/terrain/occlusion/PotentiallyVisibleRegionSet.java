@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * implementation-dependent and sorts them from near to far relative to that perspective.
  * Supports iteration in sorted order.
  */
-public interface PotentiallyVisibleRegionSet<T> {
+public interface PotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegion> {
 	/**
 	 * Increments every time {@link #clear()} is called.
 	 * Use for synchronization of dependent state.

@@ -18,6 +18,6 @@ package grondag.canvas.terrain.occlusion;
 
 import net.minecraft.util.math.BlockPos;
 
-public interface ShadowPotentiallyVisibleRegion {
+public interface PotentiallyVisibleRegion {
 	BlockPos origin();
 }

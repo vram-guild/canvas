@@ -30,7 +30,7 @@ public class RenderRegionStorage {
 	 * and sorts them from near to far relative to the camera.  Supports terrain iteration
 	 * for the camera view.
 	 */
-	public final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = new CameraPotentiallyVisibleRegionSet();
+	public final CameraPotentiallyVisibleRegionSet cameraPVS = new CameraPotentiallyVisibleRegionSet();
 
 	private final AtomicInteger loadedRegionCount = new AtomicInteger();
 
@@ -68,7 +68,7 @@ public class RenderRegionStorage {
 	}
 
 	public synchronized void clear() {
-		cameraDistanceSorter.clear();
+		cameraPVS.clear();
 
 		for (final RenderRegionChunk chunk : chunks) {
 			chunk.close();
@@ -107,9 +107,9 @@ public class RenderRegionStorage {
 			lastCameraChunkY = cameraChunkY;
 			lastCameraChunkZ = cameraChunkZ;
 			++cameraChunkDistVersion;
-			cameraDistanceSorter.clear();
+			cameraPVS.clear();
 		} else {
-			cameraDistanceSorter.returnToStart();
+			cameraPVS.returnToStart();
 		}
 
 		cameraOccluderVersion = cwr.cameraOccluder.version();

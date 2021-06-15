@@ -48,7 +48,7 @@ public class TerrainOccluder extends BoxOccluder {
 	 * Should be called from the main thread when the source is known to be stable and correct.
 	 * The snapshot will be used (potentially off thread) for all occlusion tests until the next update.
 	 */
-	public void updateFrustum(TerrainFrustum source) {
+	public void copyFrustum(TerrainFrustum source) {
 		occlusionFrustum.copy(source);
 	}
 
