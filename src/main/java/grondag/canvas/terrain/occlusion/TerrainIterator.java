@@ -46,6 +46,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public static final int RUNNING = 2;
 	public static final int COMPLETE = 3;
 
+	public final TerrainOccluder cameraOccluder = new TerrainOccluder();
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final VisibleRegionList visibleRegions = new VisibleRegionList();
 	private final AtomicInteger state = new AtomicInteger(IDLE);
@@ -71,7 +72,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.getOrigin().asLong();
-		cwr.cameraOccluder.copyFrustum(frustum);
+		cameraOccluder.copyFrustum(frustum);
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
@@ -87,6 +88,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		cancelled = true;
 		state.compareAndSet(COMPLETE, IDLE);
 		visibleRegions.clear();
+		cameraOccluder.invalidate();
 	}
 
 	@Override
@@ -97,11 +99,11 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
 		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
-		final TerrainOccluder occluder = cwr.cameraOccluder;
+		final TerrainOccluder cameraOccluder = this.cameraOccluder;
 		updateRegions.clear();
 		regionStorage.updateCameraDistanceAndVisibility(cameraChunkOrigin);
-		final boolean redrawOccluder = occluder.prepareScene();
-		final int occluderVersion = occluder.version();
+		final boolean redrawOccluder = cameraOccluder.prepareScene();
+		final int occluderVersion = cameraOccluder.version();
 
 		if (TRACE_OCCLUSION_OUTCOMES) {
 			CanvasMod.LOG.info("TerrainIterator Redraw Status: " + redrawOccluder);
@@ -169,7 +171,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				if (Configurator.cullEntityRender) {
 					// reuse prior test results
 					if (builtRegion.cameraOccluderVersion() != occluderVersion) {
-						if (!chunkCullingEnabled || builtRegion.isNear() || occluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
+						if (!chunkCullingEnabled || builtRegion.isNear() || cameraOccluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
 							builtRegion.enqueueUnvistedCameraNeighbors();
 							builtRegion.setCameraOccluderResult(true, occluderVersion);
 						} else {
@@ -189,8 +191,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 				visibleRegions.add(builtRegion);
 
 				if (redrawOccluder || builtRegion.cameraOccluderVersion() != occluderVersion) {
-					occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
-					occluder.occlude(visData);
+					cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
+					cameraOccluder.occlude(visData);
 				}
 
 				builtRegion.setCameraOccluderResult(true, occluderVersion);
@@ -202,20 +204,20 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
-						occluder.occlude(visData);
+						cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
+						cameraOccluder.occlude(visData);
 					}
 				}
 			} else {
-				occluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
+				cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
 
-				if (occluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
+				if (cameraOccluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
 					builtRegion.enqueueUnvistedCameraNeighbors();
 					visibleRegions.add(builtRegion);
 					builtRegion.setCameraOccluderResult(true, occluderVersion);
 
 					// these must always be drawn - will be additive if view hasn't changed
-					occluder.occlude(visData);
+					cameraOccluder.occlude(visData);
 				} else {
 					builtRegion.setCameraOccluderResult(false, occluderVersion);
 				}
@@ -230,7 +232,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			state.set(COMPLETE);
 
 			if (Configurator.debugOcclusionRaster) {
-				occluder.outputRaster();
+				cameraOccluder.outputRaster();
 			}
 		}
 	}

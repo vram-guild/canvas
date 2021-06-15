@@ -97,7 +97,6 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
@@ -111,12 +110,20 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	/** Tracks which regions had rebuilds requested, both camera and shadow view, and causes some to get built each frame. */
 	private final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 
-	public final TerrainOccluder cameraOccluder = new TerrainOccluder();
+	public final TerrainIterator terrainIterator = new TerrainIterator(this);
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	private final TerrainIterator terrainIterator = new TerrainIterator(this);
+
+	/**
+	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
+	 * Differs from vanilla in that it may not include FOV distortion in the frustum and can include
+	 * some padding to minimize edge tearing.
+	 *
+	 * <p>A snapshot of this is used for terrain culling - usually off thread. The snapshot lives inside TerrainOccluder.
+	 */
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
+
 	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(renderRegionStorage);
-	public final VisibleRegionList visibleRegions = new VisibleRegionList();
+	public final VisibleRegionList cameraVisibleRegions = new VisibleRegionList();
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
@@ -195,7 +202,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		// DitherTexture.instance().initializeIfNeeded();
 		world = clientWorld;
-		visibleRegions.clear();
+		cameraVisibleRegions.clear();
 		terrainIterator.reset();
 		renderRegionStorage.clear();
 		// we don't want to use our collector unless we are in a world
@@ -250,7 +257,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
-				visibleRegions.copyFrom(terrainIterator.visibleRegions);
+				cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 				state = TerrainIterator.IDLE;
@@ -274,7 +281,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				terrainIterator.run(null);
 
 				lastViewVersion = terrainFrustum.viewVersion();
-				visibleRegions.copyFrom(terrainIterator.visibleRegions);
+				cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 			}
@@ -414,7 +421,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final CanvasImmediate immediate = worldRenderImmediate;
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
-		final VisibleRegionList visibleRegions = this.visibleRegions;
+		final VisibleRegionList visibleRegions = this.cameraVisibleRegions;
 		entityBlockContext.tickDelta(tickDelta);
 		entityBlockContext.collectors = immediate.collectors;
 		blockContext.collectors = immediate.collectors;
@@ -785,7 +792,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
-		TerrainLayerRenderer.render(visibleRegions, x, y, z, isTranslucent);
+		TerrainLayerRenderer.render(cameraVisibleRegions, x, y, z, isTranslucent);
 	}
 
 	public int maxSquaredChunkRenderDistance() {
@@ -831,7 +838,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		identityStack.peek().getNormal().loadIdentity();
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
-		terrainFrustum.prepare(viewMatrix, tickDelta, camera, cameraOccluder.hasNearOccluders());
+		terrainFrustum.prepare(viewMatrix, tickDelta, camera, terrainIterator.cameraOccluder.hasNearOccluders());
 		entityCullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
@@ -864,7 +871,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		computeDistances();
 		terrainIterator.reset();
-		cameraOccluder.invalidate();
 		regionRebuildManager.clear();
 
 		if (regionBuilder != null) {
@@ -872,7 +878,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		renderRegionStorage.clear();
-		visibleRegions.clear();
+		cameraVisibleRegions.clear();
 		terrainFrustum.reload();
 
 		//ClassInspector.inspect();
@@ -885,7 +891,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public int getCompletedChunkCount() {
-		return visibleRegions.getActiveCount();
+		return cameraVisibleRegions.getActiveCount();
 	}
 
 	@Override

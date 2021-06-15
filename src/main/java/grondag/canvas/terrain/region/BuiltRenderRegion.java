@@ -60,6 +60,7 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
+import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
@@ -74,6 +75,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
+	private final TerrainOccluder cameraOccluder;
 
 	private final AtomicReference<RegionData> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
@@ -122,6 +124,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 	public BuiltRenderRegion(RenderRegionChunk chunk, long packedPos) {
 		cwr = chunk.storage.cwr;
+		cameraOccluder = cwr.terrainIterator.cameraOccluder;
 		renderRegionBuilder = cwr.regionBuilder();
 		storage = chunk.storage;
 		storage.trackRegionLoaded();
@@ -207,7 +210,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	}
 
 	void updateCameraDistanceAndVisibilityInfo() {
-		final int fv = cwr.cameraOccluder.frustumViewVersion();
+		final int fv = cameraOccluder.frustumViewVersion();
 
 		if (chunkDistVersion != renderRegionChunk.chunkDistVersion) {
 			chunkDistVersion = renderRegionChunk.chunkDistVersion;
@@ -233,7 +236,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 	private void computeFrustumChecks() {
 		// position version can only be different if overall frustum version is different
-		final int pv = cwr.cameraOccluder.frustumPositionVersion();
+		final int pv = cameraOccluder.frustumPositionVersion();
 
 		if (pv != positionVersion) {
 			positionVersion = pv;
@@ -241,7 +244,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			// these are needed by the frustum - only need to recompute when position moves
 			// not needed at all if outside of render distance
 			if (isInsideRenderDistance) {
-				final Vec3d cameraPos = cwr.cameraOccluder.frustumCameraPos();
+				final Vec3d cameraPos = cameraOccluder.frustumCameraPos();
 				final float dx = (float) (origin.getX() + 8 - cameraPos.x);
 				final float dy = (float) (origin.getY() + 8 - cameraPos.y);
 				final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
@@ -252,7 +255,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		}
 
 		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-		cameraFrustumResult = isInsideRenderDistance && cwr.cameraOccluder.isRegionVisible(this);
+		cameraFrustumResult = isInsideRenderDistance && cameraOccluder.isRegionVisible(this);
 	}
 
 	/**
@@ -460,7 +463,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			if (state != null) {
 				final VertexCollectorList collectors = context.collectors;
 				final ArrayVertexCollector collector = collectors.get(RenderLayerHelper.TRANSLUCENT_TERRAIN);
-				final Vec3d sortPos = cwr.visibleRegions.lastSortPos();
+				final Vec3d sortPos = cwr.cameraVisibleRegions.lastSortPos();
 				collector.loadState(state);
 
 				if (collector.sortQuads(
@@ -614,7 +617,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			}
 		}
 
-		final Vec3d sortPos = cwr.visibleRegions.lastSortPos();
+		final Vec3d sortPos = cwr.cameraVisibleRegions.lastSortPos();
 		regionData.endBuffering((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {

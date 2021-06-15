@@ -23,6 +23,7 @@ import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
+import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RenderRegionStorage {
 	/**
@@ -39,6 +40,7 @@ public class RenderRegionStorage {
 	private int lastCameraChunkZ = Integer.MAX_VALUE;
 
 	final CanvasWorldRenderer cwr;
+	final TerrainOccluder cameraOccluder;
 
 	private boolean didInvalidateCameraOccluder = false;
 	private int cameraOccluderVersion = 0;
@@ -49,6 +51,7 @@ public class RenderRegionStorage {
 
 	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer) {
 		cwr = canvasWorldRenderer;
+		cameraOccluder = cwr.terrainIterator.cameraOccluder;
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
 			chunks[i] = new RenderRegionChunk(this);
@@ -112,8 +115,8 @@ public class RenderRegionStorage {
 			cameraPVS.returnToStart();
 		}
 
-		cameraOccluderVersion = cwr.cameraOccluder.version();
-		maxSquaredCameraChunkDistance = cwr.cameraOccluder.maxSquaredChunkDistance();
+		cameraOccluderVersion = cameraOccluder.version();
+		maxSquaredCameraChunkDistance = cameraOccluder.maxSquaredChunkDistance();
 		didInvalidateCameraOccluder = false;
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
@@ -121,7 +124,7 @@ public class RenderRegionStorage {
 		}
 
 		if (didInvalidateCameraOccluder) {
-			cwr.cameraOccluder.invalidate();
+			cameraOccluder.invalidate();
 		}
 	}
 
