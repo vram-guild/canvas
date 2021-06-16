@@ -96,11 +96,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 		assert state.get() == READY;
 		state.set(RUNNING);
 
-		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final int renderDistance = this.renderDistance;
 		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
-		final TerrainOccluder cameraOccluder = this.cameraOccluder;
-		updateRegions.clear();
 		regionStorage.updateCameraDistanceAndVisibility(cameraChunkOrigin);
 		final boolean redrawOccluder = cameraOccluder.prepareScene();
 		final int occluderVersion = cameraOccluder.version();
@@ -120,19 +117,38 @@ public class TerrainIterator implements TerrainExecutorTask {
 				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
 				final BuiltRenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
 
-				if (region != null && region.isInCameraFrustum()) {
+				if (region != null && region.isPotentiallyVisibleFromCamera()) {
 					region.addToCameraPvsIfValid();
 				}
 			}
 		} else {
-			cameraRegion.forceCameraFrustumVisibility();
+			cameraRegion.forceCameraPotentialVisibility();
 			cameraRegion.addToCameraPvsIfValid();
 		}
 
-		// PERF: look for ways to improve branch prediction
+		iterateTerrain(occluderVersion, redrawOccluder);
 
+		if (cancelled) {
+			state.set(IDLE);
+			visibleRegions.clear();
+		} else {
+			assert state.get() == RUNNING;
+			state.set(COMPLETE);
+
+			if (Configurator.debugOcclusionRaster) {
+				cameraOccluder.outputRaster();
+			}
+		}
+	}
+
+	private void iterateTerrain(int occluderVersion, boolean redrawOccluder) {
+		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
+		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
 		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = regionStorage.cameraPVS;
 
+		updateRegions.clear();
+
+		// PERF: look for ways to improve branch prediction
 		while (!cancelled) {
 			final BuiltRenderRegion builtRegion = cameraDistanceSorter.next();
 
@@ -141,13 +157,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 			}
 
 			// don't visit if not in frustum and within render distance
-			if (!builtRegion.isInCameraFrustum()) {
+			if (!builtRegion.isPotentiallyVisibleFromCamera()) {
 				continue;
 			}
 
 			// don't visit if region is outside near distance and doesn't have all 4 neighbors loaded
-			// also checks for outside of render distance
-			if (!builtRegion.shouldBuild()) {
+			if (!builtRegion.isNearOrHasLoadedNeighbors()) {
 				continue;
 			}
 
@@ -157,12 +172,14 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			// If never built then don't do anything with it
 			if (regionData == RegionData.UNBUILT) {
+				builtRegion.markNeededForCameraVisibilityProgression();
 				updateRegions.add(builtRegion);
 				continue;
 			}
 
 			// If get to here has been built - if needs rebuilt we can use existing data this frame
 			if (builtRegion.needsRebuild()) {
+				builtRegion.markNeededForCameraVisibilityProgression();
 				updateRegions.add(builtRegion);
 			}
 
@@ -221,18 +238,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 				} else {
 					builtRegion.setCameraOccluderResult(false, occluderVersion);
 				}
-			}
-		}
-
-		if (cancelled) {
-			state.set(IDLE);
-			visibleRegions.clear();
-		} else {
-			assert state.get() == RUNNING;
-			state.set(COMPLETE);
-
-			if (Configurator.debugOcclusionRaster) {
-				cameraOccluder.outputRaster();
 			}
 		}
 	}

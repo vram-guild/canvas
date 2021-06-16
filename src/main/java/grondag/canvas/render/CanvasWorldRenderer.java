@@ -421,7 +421,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final CanvasImmediate immediate = worldRenderImmediate;
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
-		final VisibleRegionList visibleRegions = this.cameraVisibleRegions;
+		final VisibleRegionList visibleRegions = cameraVisibleRegions;
 		entityBlockContext.tickDelta(tickDelta);
 		entityBlockContext.collectors = immediate.collectors;
 		blockContext.collectors = immediate.collectors;

@@ -41,7 +41,7 @@ import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 public final class ShadowMatrixData {
 	private ShadowMatrixData() { }
 
-	private static final Matrix4f shadowViewMatrix = new Matrix4f();
+	public static final Matrix4f shadowViewMatrix = new Matrix4f();
 	private static final Matrix4fExt shadowViewMatrixExt = (Matrix4fExt) (Object) shadowViewMatrix;
 	private static final Matrix4f shadowViewMatrixInv = new Matrix4f();
 	private static final Matrix4fExt shadowViewMatrixInvExt = (Matrix4fExt) (Object) shadowViewMatrixInv;

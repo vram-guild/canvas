@@ -42,6 +42,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vector4f;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -57,6 +58,7 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
@@ -108,13 +110,21 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 	private int squaredCameraChunkDistance;
 	private boolean isNear;
+	private boolean isNeededForCameraVisibilityProgression = false;
+
+	/**
+	 * Indicates that a rebuild should be run OR scheduled.
+	 * Once scheduled, will be marked false.
+	 * This allows a region to be re-scheduled after it is already in the execution queue.
+	 * This is necessary because the region may have changed, invalidating the data cached in the execution queue.
+	 */
 	private boolean needsRebuild;
 	private boolean needsImportantRebuild;
 	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private int occlusionFrustumVersion = -1;
 	private int positionVersion = -1;
-	private boolean cameraFrustumResult;
+	private boolean isPotentiallyVisibleFromCamera;
 	private int lastSeenCameraPvsVersion;
 	private boolean isClosed = false;
 	private boolean isInsideRenderDistance;
@@ -145,7 +155,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			needsRebuild,
 			isClosed,
 			occlusionFrustumVersion,
-			cameraFrustumResult,
+			isPotentiallyVisibleFromCamera,
 			positionVersion,
 			lastSeenCameraPvsVersion,
 			isInsideRenderDistance);
@@ -187,15 +197,30 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	}
 
 	/**
-	 * Result is computed in {@link #updateCameraDistanceAndVisibilityInfo(TerrainVisibilityState)}.
+	 * True when region is within render distance and also within the camera frustum.
 	 *
 	 * <p>NB: tried a crude hierarchical scheme of checking chunk columns first
 	 * but didn't pay off.  Would probably  need to propagate per-plane results
 	 * over a more efficient region but that might not even help. Is already
 	 * quite fast and typically only one or a few regions per chunk must be tested.
 	 */
-	public boolean isInCameraFrustum() {
-		return cameraFrustumResult;
+	public boolean isPotentiallyVisibleFromCamera() {
+		return isPotentiallyVisibleFromCamera;
+	}
+
+	/**
+	 * Called by terrain iterator when this region is needed for terrain iteration to progress.
+	 * When this region completes building or when a build is cancelled, will trigger a visibility update.
+	 */
+	public void markNeededForCameraVisibilityProgression() {
+		isNeededForCameraVisibilityProgression = true;
+	}
+
+	private void notifyCameraVisibilityProgressionIfNeeded() {
+		if (isNeededForCameraVisibilityProgression) {
+			isNeededForCameraVisibilityProgression = false;
+			cwr.forceVisibilityUpdate();
+		}
 	}
 
 	public boolean wasRecentlySeenFromCamera() {
@@ -203,9 +228,10 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	}
 
 	/**
+	 * Regions should not be built unless or until this is true.
 	 * @return True if nearby or if all neighbors are loaded.
 	 */
-	public boolean shouldBuild() {
+	public boolean isNearOrHasLoadedNeighbors() {
 		return isNear || renderRegionChunk.areCornersLoaded();
 	}
 
@@ -255,14 +281,14 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		}
 
 		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-		cameraFrustumResult = isInsideRenderDistance && cameraOccluder.isRegionVisible(this);
+		isPotentiallyVisibleFromCamera = isInsideRenderDistance && cameraOccluder.isRegionVisible(this);
 	}
 
 	/**
 	 * Called for camera region because frustum checks on near plane appear to be a little wobbly.
 	 */
-	public void forceCameraFrustumVisibility() {
-		cameraFrustumResult = true;
+	public void forceCameraPotentialVisibility() {
+		isPotentiallyVisibleFromCamera = true;
 	}
 
 	/**
@@ -277,7 +303,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	 *   <li>An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing</ul>
 	 */
 	private void invalidateCameraOccluderIfNeeded() {
-		if (cameraFrustumResult && buildData.get().canOcclude()) {
+		if (isPotentiallyVisibleFromCamera && buildData.get().canOcclude()) {
 			if (cameraOccluderVersion == storage.cameraOccluderVersion()) {
 				// Existing - has been drawn in occlusion raster
 				if (buildCount != cameraOcclusionBuildCount) {
@@ -331,7 +357,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			positionVersion = -1;
 			isInsideRenderDistance = false;
 			isNear = false;
-			cameraFrustumResult = false;
+			isPotentiallyVisibleFromCamera = false;
 		}
 	}
 
@@ -353,7 +379,10 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		needsImportantRebuild = isImportant | (neededRebuild && needsImportantRebuild);
 	}
 
-	public void markBuilt() {
+	/**
+	 * To be called after rebuild on main thread or region added to the execution queue.
+	 */
+	private void markBuilt() {
 		needsRebuild = false;
 		needsImportantRebuild = false;
 	}
@@ -369,10 +398,14 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	public void prepareAndExecuteRebuildTask() {
 		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
 
-		// null region is signal to reschedule
+		// Idle region is signal to reschedule
+		// If region is something other than idle, we are already in the queue
+		// and we only need to update the input protoRegion (which we do here.)
 		if (buildState.getAndSet(region) == SignalRegion.IDLE) {
 			renderRegionBuilder.executor.execute(this);
 		}
+
+		markBuilt();
 	}
 
 	/**
@@ -419,13 +452,13 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	@Override
 	public void run(TerrainRenderContext context) {
 		final AtomicReference<ProtoRenderRegion> runningState = buildState;
-		final ProtoRenderRegion region = runningState.getAndSet(SignalRegion.IDLE);
+		final ProtoRenderRegion protoRegion = runningState.getAndSet(SignalRegion.IDLE);
 
-		if (region == null || region == SignalRegion.INVALID) {
+		if (protoRegion == null || protoRegion == SignalRegion.INVALID) {
 			return;
 		}
 
-		if (region == SignalRegion.EMPTY) {
+		if (protoRegion == SignalRegion.EMPTY) {
 			final RegionData chunkData = new RegionData();
 			chunkData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
@@ -442,21 +475,32 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 				}
 
 				// Even if empty the chunk may still be needed for visibility search to progress
-				cwr.forceVisibilityUpdate();
+				notifyCameraVisibilityProgressionIfNeeded();
 			}
 
 			return;
 		}
 
-		// check loaded neighbors and camera distance, abort rebuild and restore needsRebuild if out of view/not ready
-		if (!shouldBuild()) {
+		// If we are no longer in potentially visible region, abort build and restore needsRebuild.
+		// We also don't force a vis update here because, obviously, we can't affect it.
+		if (!isPotentiallyVisibleFromCamera() && !isPotentiallyVisibleFromSkylight()) {
+			protoRegion.release();
+			// Causes region to be rescheduled if/when it comes back into view
 			markForBuild(false);
-			region.release();
-			cwr.forceVisibilityUpdate();
 			return;
 		}
 
-		if (region == SignalRegion.RESORT_ONLY) {
+		// Abort rebuild and restore needsRebuild if not ready to build because neighbors aren't loaded
+		if (!isNearOrHasLoadedNeighbors()) {
+			// Causes region to be rescheduled when it becomes ready
+			markForBuild(false);
+			protoRegion.release();
+			// May need visibility to restart if it was waiting for this region to progress
+			notifyCameraVisibilityProgressionIfNeeded();
+			return;
+		}
+
+		if (protoRegion == SignalRegion.RESORT_ONLY) {
 			final RegionData regionData = buildData.get();
 			final int[] state = regionData.translucentState;
 
@@ -496,14 +540,14 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 				collectors.clear();
 			}
 		} else {
-			context.prepareRegion(region);
+			context.prepareRegion(protoRegion);
 			final RegionData chunkData = buildRegionData(context, isNear());
 
 			final VertexCollectorList collectors = context.collectors;
 
 			if (runningState.get() == SignalRegion.INVALID) {
 				collectors.clear();
-				region.release();
+				protoRegion.release();
 				return;
 			}
 
@@ -531,7 +575,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			}
 
 			collectors.clear();
-			region.release();
+			protoRegion.release();
 		}
 	}
 
@@ -552,7 +596,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 				buildCount = BUILD_COUNTER.incrementAndGet();
 			}
 
-			cwr.forceVisibilityUpdate();
+			notifyCameraVisibilityProgressionIfNeeded();
 		}
 
 		return regionData;
@@ -687,35 +731,35 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 				}
 
 				// Even if empty the chunk may still be needed for visibility search to progress
-				cwr.forceVisibilityUpdate();
+				notifyCameraVisibilityProgressionIfNeeded();
+			}
+		} else {
+			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
+			final RegionData regionData = buildRegionData(context, isNear());
+
+			buildTerrain(context, regionData);
+
+			if (ChunkRebuildCounters.ENABLED) {
+				ChunkRebuildCounters.startUpload();
 			}
 
-			return;
+			final VertexCollectorList collectors = context.collectors;
+			final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
+			final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
+
+			releaseDrawables();
+			solidDrawable = solidUpload.produceDrawable();
+			translucentDrawable = translucentUpload.produceDrawable();
+
+			if (ChunkRebuildCounters.ENABLED) {
+				ChunkRebuildCounters.completeUpload();
+			}
+
+			collectors.clear();
+			region.release();
 		}
 
-		final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
-		final RegionData regionData = buildRegionData(context, isNear());
-
-		buildTerrain(context, regionData);
-
-		if (ChunkRebuildCounters.ENABLED) {
-			ChunkRebuildCounters.startUpload();
-		}
-
-		final VertexCollectorList collectors = context.collectors;
-		final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
-		final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
-
-		releaseDrawables();
-		solidDrawable = solidUpload.produceDrawable();
-		translucentDrawable = translucentUpload.produceDrawable();
-
-		if (ChunkRebuildCounters.ENABLED) {
-			ChunkRebuildCounters.completeUpload();
-		}
-
-		collectors.clear();
-		region.release();
+		markBuilt();
 	}
 
 	public BuiltRenderRegion getNeighbor(int faceIndex) {
@@ -812,5 +856,26 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	@Override
 	public BlockPos origin() {
 		return origin;
+	}
+
+	private final Vector4f lightSpaceChunkCenter = new Vector4f();
+
+	public int shadowCascade() {
+		// WIP: elsewhere need to compute max radius of corners in skylight view
+
+		// Compute center position in light space
+
+		lightSpaceChunkCenter.set(cameraRelativeCenterX, cameraRelativeCenterY, cameraRelativeCenterZ, 1.0f);
+		lightSpaceChunkCenter.transform(ShadowMatrixData.shadowViewMatrix);
+
+		return 0;
+	}
+
+	/**
+	 * Always false when shadow map is disabled.
+	 */
+	private boolean isPotentiallyVisibleFromSkylight() {
+		// WIP: implement
+		return false;
 	}
 }

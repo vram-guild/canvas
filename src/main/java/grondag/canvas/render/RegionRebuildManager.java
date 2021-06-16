@@ -67,7 +67,6 @@ public class RegionRebuildManager {
 				if (region.needsImportantRebuild() || region.isNear()) {
 					regionsToRebuild.remove(region);
 					region.rebuildOnMainThread();
-					region.markBuilt();
 				} else {
 					regionsToRebuild.add(region);
 				}
@@ -88,7 +87,6 @@ public class RegionRebuildManager {
 		if (region.needsRebuild()) {
 			regionsToRebuild.remove(region);
 			region.rebuildOnMainThread();
-			region.markBuilt();
 		}
 	}
 
@@ -121,7 +119,6 @@ public class RegionRebuildManager {
 					builtRegion.prepareAndExecuteRebuildTask();
 				}
 
-				builtRegion.markBuilt();
 				iterator.remove();
 
 				// this seemed excessive
