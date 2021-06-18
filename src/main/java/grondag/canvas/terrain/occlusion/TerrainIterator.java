@@ -168,7 +168,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
 			final RegionData regionData = builtRegion.getBuildData();
-			final int[] visData = regionData.getOcclusionData();
 
 			// If never built then don't do anything with it
 			if (regionData == RegionData.UNBUILT) {
@@ -209,7 +208,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 				if (redrawOccluder || builtRegion.cameraOccluderVersion() != occluderVersion) {
 					cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
-					cameraOccluder.occlude(visData);
+					cameraOccluder.occlude(regionData.getOcclusionData());
 				}
 
 				builtRegion.setCameraOccluderResult(true, occluderVersion);
@@ -222,11 +221,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
 						cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
-						cameraOccluder.occlude(visData);
+						cameraOccluder.occlude(regionData.getOcclusionData());
 					}
 				}
 			} else {
 				cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
+				final int[] visData = regionData.getOcclusionData();
 
 				if (cameraOccluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
 					builtRegion.enqueueUnvistedCameraNeighbors();

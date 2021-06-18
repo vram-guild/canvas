@@ -113,10 +113,16 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	private boolean isNeededForCameraVisibilityProgression = false;
 
 	/**
-	 * Indicates that a rebuild should be run OR scheduled.
-	 * Once scheduled, will be marked false.
-	 * This allows a region to be re-scheduled after it is already in the execution queue.
+	 * Indicates the region is not current with world state.
+	 * This means, if the region needs to be rendered or used
+	 * for visibility testing, then a rebuild should be run OR scheduled.
+	 * Marked false as soon as a build is run on thread or when a rebuild it scheduled.
+	 * If a scheduled rebuild is cancelled, this is reset to true.
+	 *
+	 * <p>This behavior allows a region to be re-scheduled after it is already in the execution queue.
 	 * This is necessary because the region may have changed, invalidating the data cached in the execution queue.
+	 * Note that rescheduling will not result in multiple redundant tasks - the region
+	 * IS the task.  Rescheduling for a region already scheduled simply updates the input data.
 	 */
 	private boolean needsRebuild;
 	private boolean needsImportantRebuild;

@@ -117,7 +117,6 @@ public class RenderRegionStorage {
 
 		cameraOccluderVersion = cameraOccluder.version();
 		maxSquaredCameraChunkDistance = cameraOccluder.maxSquaredChunkDistance();
-		didInvalidateCameraOccluder = false;
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
 			chunks[i].updateCameraDistanceAndVisibilityInfo();
@@ -125,6 +124,7 @@ public class RenderRegionStorage {
 
 		if (didInvalidateCameraOccluder) {
 			cameraOccluder.invalidate();
+			didInvalidateCameraOccluder = false;
 		}
 	}
 

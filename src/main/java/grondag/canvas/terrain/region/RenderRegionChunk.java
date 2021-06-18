@@ -39,6 +39,7 @@ public class RenderRegionChunk {
 		regions = new BuiltRenderRegion[RenderRegionIndexer.MAX_Y_REGIONS];
 		areCornersLoadedCache = false;
 		chunkDistVersion = -1;
+		computeChunkDistanceMetrics();
 	}
 
 	public synchronized void close() {
@@ -72,10 +73,7 @@ public class RenderRegionChunk {
 
 	synchronized void updateCameraDistanceAndVisibilityInfo() {
 		if (storage.cameraChunkDistVersion != chunkDistVersion) {
-			chunkDistVersion = storage.cameraChunkDistVersion;
-			final int cx = storage.cameraChunkX() - chunkX;
-			final int cz = storage.cameraChunkZ() - chunkZ;
-			horizontalSquaredDistance = cx * cx + cz * cz;
+			computeChunkDistanceMetrics();
 		}
 
 		final BuiltRenderRegion[] regions = this.regions;
@@ -93,6 +91,13 @@ public class RenderRegionChunk {
 				storage.scheduleClose(this);
 			}
 		}
+	}
+
+	private void computeChunkDistanceMetrics() {
+		chunkDistVersion = storage.cameraChunkDistVersion;
+		final int cx = storage.cameraChunkX() - chunkX;
+		final int cz = storage.cameraChunkZ() - chunkZ;
+		horizontalSquaredDistance = cx * cx + cz * cz;
 	}
 
 	synchronized BuiltRenderRegion getOrCreateRegion(int x, int y, int z) {
@@ -113,6 +118,7 @@ public class RenderRegionChunk {
 
 		if (r == null) {
 			r = new BuiltRenderRegion(this, RenderRegionIndexer.blockPosToRegionOrigin(x, y, z));
+			r.updateCameraDistanceAndVisibilityInfo();
 			regions[i] = r;
 		}
 
