@@ -50,7 +50,7 @@ public class SkyShadowRenderer {
 	}
 
 	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
-		if (Pipeline.skyShadowFbo != null) {
+		if (Pipeline.shadowsEnabled()) {
 			begin();
 
 			for (cascade = 0; cascade < ShadowMatrixData.CASCADE_COUNT; ++cascade) {
@@ -68,9 +68,8 @@ public class SkyShadowRenderer {
 	private static void renderInner(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
 		Pipeline.skyShadowFbo.clear();
 
-		// WIP: will need purpose-specific methods for each frustum/render type
 		MatrixState.set(MatrixState.REGION);
-		canvasWorldRenderer.renderTerrainLayer(false, cameraX, cameraY, cameraZ);
+		canvasWorldRenderer.renderShadowLayer(cascade, cameraX, cameraY, cameraZ);
 		MatrixState.set(MatrixState.CAMERA);
 
 		if (Pipeline.config().skyShadow.allowEntities && MinecraftClient.getInstance().options.entityShadows) {
@@ -81,7 +80,7 @@ public class SkyShadowRenderer {
 
 	/** Preserves entityShadows option state, overwriting it temporarily if needed to prevent vanilla from rendering shadows. */
 	public static void suppressEntityShadows(MinecraftClient mc) {
-		if (Pipeline.skyShadowFbo != null) {
+		if (Pipeline.shadowsEnabled()) {
 			renderEntityShadows = mc.options.entityShadows;
 			mc.options.entityShadows = false;
 		}
@@ -89,7 +88,7 @@ public class SkyShadowRenderer {
 
 	/** Restores entityShadows option state. */
 	public static void restoreEntityShadows(MinecraftClient mc) {
-		if (Pipeline.skyShadowFbo != null) {
+		if (Pipeline.shadowsEnabled()) {
 			mc.options.entityShadows = renderEntityShadows;
 		}
 	}

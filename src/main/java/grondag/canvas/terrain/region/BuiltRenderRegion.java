@@ -42,7 +42,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vector4f;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -57,8 +56,8 @@ import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
@@ -137,6 +136,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	private int buildCount = -1;
 	// build count that was in effect last time drawn to occluder
 	private int cameraOcclusionBuildCount;
+	private int shadowCascadeFlags;
 
 	public BuiltRenderRegion(RenderRegionChunk chunk, long packedPos) {
 		cwr = chunk.storage.cwr;
@@ -255,6 +255,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		}
 
 		invalidateCameraOccluderIfNeeded();
+
+		shadowCascadeFlags = Pipeline.shadowsEnabled() ? cwr.terrainIterator.shadowOccluder.cascadeFlags(this) : 0;
 	}
 
 	private void computeDistanceChecks() {
@@ -864,24 +866,11 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		return origin;
 	}
 
-	private final Vector4f lightSpaceChunkCenter = new Vector4f();
-
-	public int shadowCascade() {
-		// WIP: elsewhere need to compute max radius of corners in skylight view
-
-		// Compute center position in light space
-
-		lightSpaceChunkCenter.set(cameraRelativeCenterX, cameraRelativeCenterY, cameraRelativeCenterZ, 1.0f);
-		lightSpaceChunkCenter.transform(ShadowMatrixData.shadowViewMatrix);
-
-		return 0;
+	public int shadowCascadeFlags() {
+		return shadowCascadeFlags;
 	}
 
-	/**
-	 * Always false when shadow map is disabled.
-	 */
 	private boolean isPotentiallyVisibleFromSkylight() {
-		// WIP: implement
-		return false;
+		return shadowCascadeFlags != 0;
 	}
 }

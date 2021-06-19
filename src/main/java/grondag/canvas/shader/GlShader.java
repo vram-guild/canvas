@@ -263,11 +263,11 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
 			}
 
-			if (Pipeline.skyShadowFbo == null) {
+			if (Pipeline.shadowsEnabled()) {
+				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "#define SHADOW_MAP_SIZE " + Pipeline.skyShadowSize);
+			} else {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_PRESENT", "//#define SHADOW_MAP_PRESENT");
 				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "//#define SHADOW_MAP_SIZE 1024");
-			} else {
-				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "#define SHADOW_MAP_SIZE " + Pipeline.skyShadowSize);
 			}
 
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);

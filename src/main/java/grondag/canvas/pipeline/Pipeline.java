@@ -88,6 +88,10 @@ public class Pipeline {
 
 	private static PipelineConfig config;
 
+	public static boolean shadowsEnabled() {
+		return skyShadowFbo != null;
+	}
+
 	public static PipelineConfig config() {
 		return config;
 	}

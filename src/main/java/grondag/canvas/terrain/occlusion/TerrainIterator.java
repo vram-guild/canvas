@@ -16,6 +16,11 @@
 
 package grondag.canvas.terrain.occlusion;
 
+import static grondag.canvas.shader.data.ShadowMatrixData.CASCADE_FLAG_0;
+import static grondag.canvas.shader.data.ShadowMatrixData.CASCADE_FLAG_1;
+import static grondag.canvas.shader.data.ShadowMatrixData.CASCADE_FLAG_2;
+import static grondag.canvas.shader.data.ShadowMatrixData.CASCADE_FLAG_3;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
@@ -27,8 +32,10 @@ import net.minecraft.util.math.Vec3i;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.frustum.TerrainFrustum;
+import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
 import grondag.canvas.terrain.region.RegionData;
@@ -47,8 +54,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public static final int COMPLETE = 3;
 
 	public final TerrainOccluder cameraOccluder = new TerrainOccluder();
+	public final ShadowOccluder shadowOccluder = new ShadowOccluder();
 	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final VisibleRegionList visibleRegions = new VisibleRegionList();
+	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
 	private final AtomicInteger state = new AtomicInteger(IDLE);
 	private final CanvasWorldRenderer cwr;
 
@@ -64,6 +73,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 	public TerrainIterator(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
+
+		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
+			shadowVisibleRegions[i] = new VisibleRegionList();
+		}
 	}
 
 	public void prepare(@Nullable BuiltRenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
@@ -73,6 +86,11 @@ public class TerrainIterator implements TerrainExecutorTask {
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.getOrigin().asLong();
 		cameraOccluder.copyFrustum(frustum);
+
+		if (Pipeline.shadowsEnabled()) {
+			shadowOccluder.copyState(frustum);
+		}
+
 		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
@@ -88,6 +106,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		cancelled = true;
 		state.compareAndSet(COMPLETE, IDLE);
 		visibleRegions.clear();
+		clearShadowRegions();
 		cameraOccluder.invalidate();
 	}
 
@@ -128,9 +147,14 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		iterateTerrain(occluderVersion, redrawOccluder);
 
+		if (Pipeline.shadowsEnabled()) {
+			classifyVisibleShadowRegions();
+		}
+
 		if (cancelled) {
 			state.set(IDLE);
 			visibleRegions.clear();
+			clearShadowRegions();
 		} else {
 			assert state.get() == RUNNING;
 			state.set(COMPLETE);
@@ -238,6 +262,69 @@ public class TerrainIterator implements TerrainExecutorTask {
 				} else {
 					builtRegion.setCameraOccluderResult(false, occluderVersion);
 				}
+			}
+		}
+	}
+
+	private void clearShadowRegions() {
+		shadowVisibleRegions[0].clear();
+		shadowVisibleRegions[1].clear();
+		shadowVisibleRegions[2].clear();
+		shadowVisibleRegions[3].clear();
+	}
+
+	private void classifyVisibleShadowRegions() {
+		final VisibleRegionList visibleRegions = this.visibleRegions;
+		final VisibleRegionList[] shadowVisibleRegions = this.shadowVisibleRegions;
+		final int limit = visibleRegions.size();
+
+		for (int i = 0; i < limit; ++i) {
+			BuiltRenderRegion r = visibleRegions.get(i);
+
+			switch (r.shadowCascadeFlags()) {
+				case CASCADE_FLAG_0:
+					shadowVisibleRegions[0].add(r);
+					break;
+				case CASCADE_FLAG_1:
+					shadowVisibleRegions[1].add(r);
+					break;
+				case CASCADE_FLAG_1 | CASCADE_FLAG_0:
+					shadowVisibleRegions[0].add(r);
+					shadowVisibleRegions[1].add(r);
+					break;
+				case CASCADE_FLAG_2:
+					shadowVisibleRegions[2].add(r);
+					break;
+				case CASCADE_FLAG_2 | CASCADE_FLAG_1:
+					shadowVisibleRegions[1].add(r);
+					shadowVisibleRegions[2].add(r);
+					break;
+				case CASCADE_FLAG_2 | CASCADE_FLAG_1 | CASCADE_FLAG_0:
+					shadowVisibleRegions[0].add(r);
+					shadowVisibleRegions[1].add(r);
+					shadowVisibleRegions[2].add(r);
+					break;
+				case CASCADE_FLAG_3:
+					shadowVisibleRegions[3].add(r);
+					break;
+				case CASCADE_FLAG_3 | CASCADE_FLAG_2:
+					shadowVisibleRegions[2].add(r);
+					shadowVisibleRegions[3].add(r);
+					break;
+				case CASCADE_FLAG_3 | CASCADE_FLAG_2 | CASCADE_FLAG_1:
+					shadowVisibleRegions[1].add(r);
+					shadowVisibleRegions[2].add(r);
+					shadowVisibleRegions[3].add(r);
+					break;
+				case CASCADE_FLAG_3 | CASCADE_FLAG_2 | CASCADE_FLAG_1 | CASCADE_FLAG_0:
+					shadowVisibleRegions[0].add(r);
+					shadowVisibleRegions[1].add(r);
+					shadowVisibleRegions[2].add(r);
+					shadowVisibleRegions[3].add(r);
+					break;
+				case 0:
+				default:
+					// NOOP
 			}
 		}
 	}

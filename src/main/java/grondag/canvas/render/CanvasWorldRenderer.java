@@ -96,6 +96,8 @@ import grondag.canvas.shader.data.MatrixData;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
+import grondag.canvas.shader.data.ShadowMatrixData;
+import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.BuiltRenderRegion;
@@ -123,7 +125,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
 
 	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(renderRegionStorage);
-	public final VisibleRegionList cameraVisibleRegions = new VisibleRegionList();
+	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
+	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
@@ -154,6 +157,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
+
+		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
+			shadowVisibleRegions[i] = new VisibleRegionList();
+		}
 
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
@@ -258,6 +265,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			if (state == TerrainIterator.COMPLETE) {
 				cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
+				shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
+				shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
+				shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
+				shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
 				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 				state = TerrainIterator.IDLE;
@@ -282,6 +293,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 				lastViewVersion = terrainFrustum.viewVersion();
 				cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
+				shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
+				shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
+				shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
+				shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
 				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 			}
@@ -421,7 +436,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final CanvasImmediate immediate = worldRenderImmediate;
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
-		final VisibleRegionList visibleRegions = cameraVisibleRegions;
+		final SortableVisibleRegionList visibleRegions = cameraVisibleRegions;
 		entityBlockContext.tickDelta(tickDelta);
 		entityBlockContext.collectors = immediate.collectors;
 		blockContext.collectors = immediate.collectors;
@@ -448,7 +463,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					|| !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
 					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)
 			) {
-				if (Pipeline.skyShadowFbo == null) {
+				if (!Pipeline.shadowsEnabled()) {
 					continue;
 				}
 
@@ -793,6 +808,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
 		TerrainLayerRenderer.render(cameraVisibleRegions, x, y, z, isTranslucent);
+	}
+
+	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
+		TerrainLayerRenderer.render(shadowVisibleRegions[cascadeIndex], x, y, z, false);
 	}
 
 	public int maxSquaredChunkRenderDistance() {

@@ -48,10 +48,21 @@ public final class ShadowMatrixData {
 
 	public static final int CASCADE_COUNT = 4;
 
+	public static final int CASCADE_FLAG_0 = 1;
+	public static final int CASCADE_FLAG_1 = 2;
+	public static final int CASCADE_FLAG_2 = 4;
+	public static final int CASCADE_FLAG_3 = 8;
+
 	private static final Matrix4f[] shadowProjMatrix = new Matrix4f[CASCADE_COUNT];
 	private static final Matrix4fExt[] shadowProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
 	private static final Matrix4f[] shadowViewProjMatrix = new Matrix4f[CASCADE_COUNT];
 	private static final Matrix4fExt[] shadowViewProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
+
+	public static final float[] cascadeCentersAndRadii = new float[16];
+
+	public static Matrix4f maxCascadeProjMatrix() {
+		return shadowProjMatrix[0];
+	}
 
 	static {
 		for (int i = 0; i < CASCADE_COUNT; ++i) {
@@ -67,6 +78,8 @@ public final class ShadowMatrixData {
 	private static float[] lastDx = new float[CASCADE_COUNT];
 	private static float[] lastDy = new float[CASCADE_COUNT];
 	private static double lastCameraX, lastCameraY, lastCameraZ;
+
+	private static float regionMaxExtent;
 
 	private static void computeShadowMatrices(Camera camera, float tickDelta, CelestialObjectOutput skyOutput) {
 		// We need to keep the skylight projection consistently aligned to
@@ -159,6 +172,24 @@ public final class ShadowMatrixData {
 		lastCameraX = cameraXd;
 		lastCameraY = cameraYd;
 		lastCameraZ = cameraZd;
+
+		testVec.set(8f, -8f, -8f, 0);
+		testVec.transform(shadowViewMatrix);
+		float rme = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY() + testVec.getZ() * testVec.getZ();
+
+		testVec.set(8f, -8f, 8f, 0);
+		testVec.transform(shadowViewMatrix);
+		rme = Math.max(rme, testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY() + testVec.getZ() * testVec.getZ());
+
+		testVec.set(8f, 8f, -8f, 0);
+		testVec.transform(shadowViewMatrix);
+		rme = Math.max(rme, testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY() + testVec.getZ() * testVec.getZ());
+
+		testVec.set(8f, 8f, 8f, 0);
+		testVec.transform(shadowViewMatrix);
+		rme = Math.max(rme, testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
+
+		regionMaxExtent = (float) Math.sqrt(rme);
 	}
 
 	/**
@@ -216,7 +247,13 @@ public final class ShadowMatrixData {
 			cy - radius, cy + radius,
 			-(cz + depthRadius), -(cz - depthRadius));
 
-		final int offset = SHADOW_CENTER + cascade * 4;
+		final int localOffset = cascade * 4;
+		final int offset = SHADOW_CENTER + localOffset;
+
+		cascadeCentersAndRadii[localOffset] = cx;
+		cascadeCentersAndRadii[localOffset + 1] = cy;
+		cascadeCentersAndRadii[localOffset + 2] = cz;
+		cascadeCentersAndRadii[localOffset + 3] = radius;
 
 		FloatData.FLOAT_VECTOR_DATA.put(offset, cx);
 		FloatData.FLOAT_VECTOR_DATA.put(offset + 1, cy);
@@ -245,5 +282,9 @@ public final class ShadowMatrixData {
 			shadowViewProjMatrixExt[i].multiply(shadowViewMatrixExt);
 			shadowViewProjMatrixExt[i].writeToBuffer((SHADOW_VIEW_PROJ_0 + i) * 16, MATRIX_DATA);
 		}
+	}
+
+	public static float regionMaxExtent() {
+		return regionMaxExtent;
 	}
 }
