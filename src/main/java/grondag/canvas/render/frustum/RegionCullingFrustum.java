@@ -43,8 +43,8 @@ public class RegionCullingFrustum extends FastFrustum {
 		super.prepare(modelMatrix, tickDelta, camera, projectionMatrix);
 
 		final ClientWorld world = regions.cwr.getWorld();
-		bottomY = world.getBottomY();
-		topY = world.getTopY();
+		worldBottomY = world.getBottomY();
+		worldTopY = world.getTopY();
 	}
 
 	@Override
