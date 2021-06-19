@@ -16,7 +16,10 @@
 
 package grondag.canvas.render.frustum;
 
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.terrain.region.RenderRegionStorage;
 
@@ -25,14 +28,34 @@ public class RegionCullingFrustum extends FastFrustum {
 
 	public boolean enableRegionCulling = false;
 
+	/** Exclusive world height upper limit. */
+	private int worldTopY;
+
+	/** Inclusive world height lower limit. */
+	private int worldBottomY;
+
 	public RegionCullingFrustum(RenderRegionStorage regions) {
 		this.regions = regions;
+	}
+
+	@Override
+	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, Matrix4f projectionMatrix) {
+		super.prepare(modelMatrix, tickDelta, camera, projectionMatrix);
+
+		final ClientWorld world = regions.cwr.getWorld();
+		bottomY = world.getBottomY();
+		topY = world.getTopY();
 	}
 
 	@Override
 	public boolean isVisible(double x0, double y0, double z0, double x1, double y1, double z1) {
 		if (super.isVisible(x0, y0, z0, x1, y1, z1)) {
 			if (enableRegionCulling) {
+				// Always assume entities outside world vertical range are visible
+				if (y1 >= worldTopY || y0 < worldBottomY) {
+					return true;
+				}
+
 				final int rx0 = MathHelper.floor(x0) & 0xFFFFFFF0;
 				final int ry0 = MathHelper.floor(y0) & 0xFFFFFFF0;
 				final int rz0 = MathHelper.floor(z0) & 0xFFFFFFF0;

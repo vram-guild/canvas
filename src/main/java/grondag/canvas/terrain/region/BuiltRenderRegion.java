@@ -261,9 +261,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 	private void computeDistanceChecks() {
 		final int cy = storage.cameraChunkY() - chunkY;
-		final int horizontalSquaredDistance = renderRegionChunk.horizontalSquaredDistance;
-		isInsideRenderDistance = horizontalSquaredDistance <= cwr.maxSquaredChunkRenderDistance();
-		squaredCameraChunkDistance = horizontalSquaredDistance + cy * cy;
+		squaredCameraChunkDistance = renderRegionChunk.horizontalSquaredDistance + cy * cy;
+		isInsideRenderDistance = squaredCameraChunkDistance <= cwr.maxSquaredChunkRenderDistance();
 		isNear = squaredCameraChunkDistance <= 3;
 		occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredCameraChunkDistance);
 	}

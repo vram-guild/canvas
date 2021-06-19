@@ -39,7 +39,7 @@ public class RenderRegionStorage {
 	private int lastCameraChunkY = Integer.MAX_VALUE;
 	private int lastCameraChunkZ = Integer.MAX_VALUE;
 
-	final CanvasWorldRenderer cwr;
+	public final CanvasWorldRenderer cwr;
 	final TerrainOccluder cameraOccluder;
 
 	private boolean didInvalidateCameraOccluder = false;
