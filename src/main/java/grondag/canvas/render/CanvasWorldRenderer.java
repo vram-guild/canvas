@@ -918,6 +918,17 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public String getChunksDebugString() {
 		final int len = renderRegionStorage.loadedRegionCount();
 		final int count = getCompletedChunkCount();
-		return String.format("C: %d/%d %sD: %d, %s", count, len, MinecraftClient.getInstance().chunkCullingEnabled ? "(s) " : "", chunkRenderDistance, regionBuilder == null ? "null" : regionBuilder.getDebugString());
+		String shadowRegionString = "";
+
+		if (Pipeline.shadowsEnabled()) {
+			int shadowCount = shadowVisibleRegions[0].getActiveCount()
+					+ shadowVisibleRegions[1].getActiveCount()
+					+ shadowVisibleRegions[2].getActiveCount()
+					+ shadowVisibleRegions[3].getActiveCount();
+
+			shadowRegionString = String.format("S: %d,", shadowCount);
+		}
+
+		return String.format("C: %d/%d %sD: %d, %s", count, len, MinecraftClient.getInstance().chunkCullingEnabled ? "(s) " : "", chunkRenderDistance, shadowRegionString);
 	}
 }

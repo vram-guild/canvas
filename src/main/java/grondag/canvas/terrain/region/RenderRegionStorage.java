@@ -22,7 +22,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
+import grondag.canvas.terrain.occlusion.ShadowOccluder;
+import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RenderRegionStorage {
@@ -33,6 +36,8 @@ public class RenderRegionStorage {
 	 */
 	public final CameraPotentiallyVisibleRegionSet cameraPVS = new CameraPotentiallyVisibleRegionSet();
 
+	public final ShadowPotentiallyVisibleRegionSet<BuiltRenderRegion> shadowPVS = new ShadowPotentiallyVisibleRegionSet<>(new BuiltRenderRegion[RenderRegionIndexer.PADDED_REGION_INDEX_COUNT]);
+
 	private final AtomicInteger loadedRegionCount = new AtomicInteger();
 
 	private int lastCameraChunkX = Integer.MAX_VALUE;
@@ -40,9 +45,9 @@ public class RenderRegionStorage {
 	private int lastCameraChunkZ = Integer.MAX_VALUE;
 
 	public final CanvasWorldRenderer cwr;
-	final TerrainOccluder cameraOccluder;
 
 	private boolean didInvalidateCameraOccluder = false;
+	private boolean didInvalidateShadowOccluder = false;
 	private int cameraOccluderVersion = 0;
 	private int maxSquaredCameraChunkDistance;
 
@@ -51,7 +56,6 @@ public class RenderRegionStorage {
 
 	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer) {
 		cwr = canvasWorldRenderer;
-		cameraOccluder = cwr.terrainIterator.cameraOccluder;
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
 			chunks[i] = new RenderRegionChunk(this);
@@ -66,12 +70,17 @@ public class RenderRegionStorage {
 		didInvalidateCameraOccluder = true;
 	}
 
+	public void invalidateShadowOccluder() {
+		didInvalidateShadowOccluder = true;
+	}
+
 	public int maxSquaredCameraChunkDistance() {
 		return maxSquaredCameraChunkDistance;
 	}
 
 	public synchronized void clear() {
 		cameraPVS.clear();
+		shadowPVS.clear();
 
 		for (final RenderRegionChunk chunk : chunks) {
 			chunk.close();
@@ -111,9 +120,15 @@ public class RenderRegionStorage {
 			lastCameraChunkZ = cameraChunkZ;
 			++cameraChunkDistVersion;
 			cameraPVS.clear();
+			cwr.renderRegionStorage.shadowPVS.setCameraChunkOriginAndClear(BlockPos.unpackLongX(cameraChunkOrigin), BlockPos.unpackLongZ(cameraChunkOrigin));
 		} else {
 			cameraPVS.returnToStart();
 		}
+
+		final TerrainOccluder cameraOccluder = cwr.terrainIterator.cameraOccluder;
+		final ShadowOccluder shadowOccluder = cwr.terrainIterator.shadowOccluder;
+		shadowOccluder.setLightVector(ShaderDataManager.skyLightVector);
+		shadowPVS.setLightVectorAndRestart(ShaderDataManager.skyLightVector);
 
 		cameraOccluderVersion = cameraOccluder.version();
 		maxSquaredCameraChunkDistance = cameraOccluder.maxSquaredChunkDistance();
@@ -125,6 +140,11 @@ public class RenderRegionStorage {
 		if (didInvalidateCameraOccluder) {
 			cameraOccluder.invalidate();
 			didInvalidateCameraOccluder = false;
+		}
+
+		if (didInvalidateShadowOccluder) {
+			shadowOccluder.invalidate();
+			didInvalidateShadowOccluder = false;
 		}
 	}
 

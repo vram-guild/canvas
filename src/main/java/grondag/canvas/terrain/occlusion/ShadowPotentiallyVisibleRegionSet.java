@@ -21,18 +21,19 @@ import java.util.Arrays;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3f;
 
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
 public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegion> implements PotentiallyVisibleRegionSet<T> {
 	private int version = 1;
-
+	private int regionCount = 0;
 	private final T[] regions;
 
 	int xBase;
 	int zBase;
 
-	protected ShadowPotentiallyVisibleRegionSet(T[] regions) {
+	public ShadowPotentiallyVisibleRegionSet(T[] regions) {
 		this.regions = regions;
 		assert regions.length == RenderRegionIndexer.PADDED_REGION_INDEX_COUNT;
 	}
@@ -151,6 +152,10 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 	private AxisIterator secondary = YPOS;
 	private AxisIterator tertiary = ZPOS;
 
+	public void setLightVectorAndRestart(Vec3f vec) {
+		setLightVectorAndRestart(vec.getX(), vec.getY(), vec.getZ());
+	}
+
 	/**
 	 * Points toward the light from any point in the scene.
 	 * (Assumes an orthogonal light/shadow projection.)
@@ -243,6 +248,7 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 	@Override
 	public void clear() {
 		Arrays.fill(regions, null);
+		regionCount = 0;
 		++version;
 		returnToStart();
 	}
@@ -276,10 +282,17 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 		int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
 
 		//System.out.println(String.format("Adding origin %s with region pos %d  %d  %d  with index %d", region.origin().toShortString(), rx, ry, rz, index(rx, ry, rz)));
-		regions[index(rx, ry, rz)] = region;
+		int i = index(rx, ry, rz);
+		assert regions[i] == null;
+		regions[i] = region;
+		++regionCount;
 	}
 
 	boolean complete = false;
+
+	public int regionCount() {
+		return regionCount;
+	}
 
 	@Override
 	public void returnToStart() {
@@ -295,7 +308,6 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 
 		if (!complete) {
 			while (result == null) {
-				System.out.println(x + ", " + y + ", " + z);
 				int i = index(x, y, z);
 				result = regions[i];
 

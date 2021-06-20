@@ -28,6 +28,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import grondag.bitraster.BoxOccluder;
+import grondag.bitraster.PerspectiveRasterizer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
@@ -42,6 +43,10 @@ public class TerrainOccluder extends BoxOccluder {
 	private final TerrainFrustum occlusionFrustum = new TerrainFrustum();
 
 	private long nextRasterOutputTime;
+
+	public TerrainOccluder() {
+		super(new PerspectiveRasterizer());
+	}
 
 	/**
 	 * Synchronizes our frustum snapshot with the input, typically the active terrain view frustum.
@@ -123,5 +128,15 @@ public class TerrainOccluder extends BoxOccluder {
 
 	public boolean isEmptyRegionVisible(BlockPos origin) {
 		return super.isEmptyRegionVisible(origin.getX(), origin.getY(), origin.getZ());
+	}
+
+	@Override
+	public boolean isBoxVisible(int packedBox) {
+		return isBoxVisibleFromPerspective(packedBox);
+	}
+
+	@Override
+	protected void occludeInner(int packedBox) {
+		occludeFromPerspective(packedBox);
 	}
 }

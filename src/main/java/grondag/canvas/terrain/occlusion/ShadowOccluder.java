@@ -16,8 +16,14 @@
 
 package grondag.canvas.terrain.occlusion;
 
+import static grondag.bitraster.Constants.DOWN;
+import static grondag.bitraster.Constants.EAST;
+import static grondag.bitraster.Constants.NORTH;
 import static grondag.bitraster.Constants.PIXEL_HEIGHT;
 import static grondag.bitraster.Constants.PIXEL_WIDTH;
+import static grondag.bitraster.Constants.SOUTH;
+import static grondag.bitraster.Constants.UP;
+import static grondag.bitraster.Constants.WEST;
 
 import java.io.File;
 
@@ -25,11 +31,15 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vector4f;
 
 import grondag.bitraster.BoxOccluder;
+import grondag.bitraster.OrthoRasterizer;
+import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
@@ -47,8 +57,14 @@ public class ShadowOccluder extends BoxOccluder {
 	private float r0, x0, y0, r1, x1, y1, r2, x2, y2, r3, x3, y3;
 	private int lastViewVersion;
 	private Vec3d lastCameraPos;
+	private grondag.bitraster.BoxOccluder.BoxTest test;
+	private grondag.bitraster.BoxOccluder.BoxDraw draw;
 
 	private long nextRasterOutputTime;
+
+	public ShadowOccluder() {
+		super(new OrthoRasterizer());
+	}
 
 	public void copyState(TerrainFrustum occlusionFrustum) {
 		shadowViewMatrixExt.set(ShadowMatrixData.shadowViewMatrix);
@@ -73,10 +89,6 @@ public class ShadowOccluder extends BoxOccluder {
 
 		lastCameraPos = occlusionFrustum.lastCameraPos();
 		lastViewVersion = occlusionFrustum.viewVersion();
-	}
-
-	public boolean isRegionVisible(BuiltRenderRegion builtRenderRegion) {
-		return true;
 	}
 
 	public void prepareRegion(BlockPos origin, int occlusionRange, int squaredChunkDistance) {
@@ -201,6 +213,49 @@ public class ShadowOccluder extends BoxOccluder {
 
 	public float maxRegionExtent() {
 		return maxRegionExtent;
+	}
+
+	@Override
+	public boolean isBoxVisible(int packedBox) {
+		final int x0 = PackedBox.x0(packedBox) - 1;
+		final int y0 = PackedBox.y0(packedBox) - 1;
+		final int z0 = PackedBox.z0(packedBox) - 1;
+		final int x1 = PackedBox.x1(packedBox) + 1;
+		final int y1 = PackedBox.y1(packedBox) + 1;
+		final int z1 = PackedBox.z1(packedBox) + 1;
+
+		return test.apply(x0, y0, z0, x1, y1, z1);
+	}
+
+	@Override
+	protected void occludeInner(int packedBox) {
+		final int x0 = PackedBox.x0(packedBox);
+		final int y0 = PackedBox.y0(packedBox);
+		final int z0 = PackedBox.z0(packedBox);
+		final int x1 = PackedBox.x1(packedBox);
+		final int y1 = PackedBox.y1(packedBox);
+		final int z1 = PackedBox.z1(packedBox);
+
+		draw.apply(x0, y0, z0, x1, y1, z1);
+	}
+
+	public void setLightVector(Vec3f skylightVector) {
+		int outcome = 0;
+
+		if (!MathHelper.approximatelyEquals(skylightVector.getX(), 0)) {
+			outcome |= skylightVector.getX() > 0 ? EAST : WEST;
+		}
+
+		if (!MathHelper.approximatelyEquals(skylightVector.getZ(), 0)) {
+			outcome |= skylightVector.getZ() > 0 ? SOUTH : NORTH;
+		}
+
+		if (!MathHelper.approximatelyEquals(skylightVector.getY(), 0)) {
+			outcome |= skylightVector.getY() > 0 ? UP : DOWN;
+		}
+
+		test = boxTests[outcome];
+		draw = boxDraws[outcome];
 	}
 }
 

@@ -60,6 +60,7 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
+import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
@@ -136,7 +137,12 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	private int buildCount = -1;
 	// build count that was in effect last time drawn to occluder
 	private int cameraOcclusionBuildCount;
+
 	private int shadowCascadeFlags;
+	private int lastSeenShadowPvsVersion;
+	private int shadowOccluderVersion;
+	private boolean shadowOccluderResult;
+	private int shadowOcclusionBuildCount;
 
 	public BuiltRenderRegion(RenderRegionChunk chunk, long packedPos) {
 		cwr = chunk.storage.cwr;
@@ -182,12 +188,30 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		}
 	}
 
+	public void setShadowOccluderResult(boolean occluderResult, int occluderVersion) {
+		if (shadowOccluderVersion == occluderVersion) {
+			assert occluderResult == shadowOccluderResult;
+		} else {
+			shadowOccluderResult = occluderResult;
+			shadowOccluderVersion = occluderVersion;
+			shadowOcclusionBuildCount = buildCount;
+		}
+	}
+
 	public boolean cameraOccluderResult() {
 		return cameraOccluderResult;
 	}
 
-	public int cameraOccluderVersion() {
-		return cameraOccluderVersion;
+	public boolean shadowOccluderResult() {
+		return shadowOccluderResult;
+	}
+
+	public boolean matchesCameraOccluderVersion(int occluderVersion) {
+		return cameraOccluderVersion == occluderVersion;
+	}
+
+	public boolean matchesShadowOccluderVersion(int occluderVersion) {
+		return shadowOccluderVersion == occluderVersion;
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -310,6 +334,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	 *   <li>An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing</ul>
 	 */
 	private void invalidateCameraOccluderIfNeeded() {
+		// WIP track shadow invalidation separately - may change without camera movement
+
 		if (isPotentiallyVisibleFromCamera && buildData.get().canOcclude()) {
 			if (cameraOccluderVersion == storage.cameraOccluderVersion()) {
 				// Existing - has been drawn in occlusion raster
@@ -319,6 +345,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 					}
 
 					storage.invalidateCameraOccluder();
+					storage.invalidateShadowOccluder();
 				}
 			} else if (squaredCameraChunkDistance < storage.maxSquaredCameraChunkDistance()) {
 				// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been
@@ -838,6 +865,21 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		}
 	}
 
+	public void enqueueUnvistedShadowNeighbors() {
+		getNeighbor(FaceConstants.EAST_INDEX).addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).addToShadowPvsIfValid();
+
+		if (!isTop) {
+			getNeighbor(FaceConstants.UP_INDEX).addToShadowPvsIfValid();
+		}
+
+		if (!isBottom) {
+			getNeighbor(FaceConstants.DOWN_INDEX).addToShadowPvsIfValid();
+		}
+	}
+
 	public void addToCameraPvsIfValid() {
 		// Previously checked for r.squaredChunkDistance > squaredChunkDistance
 		// but some progression patterns seem to require it or chunks are missed.
@@ -855,6 +897,17 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		}
 	}
 
+	public void addToShadowPvsIfValid() {
+		final ShadowPotentiallyVisibleRegionSet<BuiltRenderRegion> shadowPVS = storage.shadowPVS;
+		final int pvsVersion = shadowPVS.version();
+
+		// The frustum version check is necessary to skip regions without valid info.
+		if (lastSeenShadowPvsVersion != pvsVersion && occlusionFrustumVersion != -1) {
+			lastSeenShadowPvsVersion = pvsVersion;
+			shadowPVS.add(this);
+		}
+	}
+
 	/** For debugging. */
 	public boolean sharesOriginWith(int blockX, int blockY, int blockZ) {
 		return origin.getX() >> 4 == blockX >> 4 && origin.getY() >> 4 == blockY >> 4 && origin.getZ() >> 4 == blockZ >> 4;
@@ -869,7 +922,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		return shadowCascadeFlags;
 	}
 
-	private boolean isPotentiallyVisibleFromSkylight() {
-		return shadowCascadeFlags != 0;
+	public boolean isPotentiallyVisibleFromSkylight() {
+		return isInsideRenderDistance & shadowCascadeFlags != 0;
 	}
 }
