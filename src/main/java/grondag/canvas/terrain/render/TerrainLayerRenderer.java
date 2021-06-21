@@ -68,7 +68,7 @@ public class TerrainLayerRenderer {
 				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
 
 				if (delegates != null) {
-					final BlockPos modelOrigin = builtRegion.getOrigin();
+					final BlockPos modelOrigin = builtRegion.origin;
 					ox = modelOrigin.getX();
 					oy = modelOrigin.getY();
 					oz = modelOrigin.getZ();

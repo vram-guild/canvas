@@ -44,6 +44,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
+import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.terrain.region.RenderRegion;
 
 public class ShadowOccluder extends BoxOccluder {
@@ -91,8 +92,11 @@ public class ShadowOccluder extends BoxOccluder {
 		lastViewVersion = occlusionFrustum.viewVersion();
 	}
 
-	public void prepareRegion(BlockPos origin, int occlusionRange, int squaredChunkDistance) {
-		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), occlusionRange, squaredChunkDistance);
+	// WIP: use a rank indicator for shadow regions - camera distance is useless and plane distance doesn't match iteration order
+	private static final int DUMMY_DISTANCE = 1;
+
+	public void prepareRegion(RegionPosition origin) {
+		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), PackedBox.RANGE_NEAR, DUMMY_DISTANCE);
 	}
 
 	public void outputRaster() {

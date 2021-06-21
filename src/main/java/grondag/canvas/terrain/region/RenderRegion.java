@@ -46,7 +46,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
-import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
@@ -78,12 +77,11 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private final RenderRegionBuilder renderRegionBuilder;
 	final RenderRegionStorage storage;
 	private final TerrainOccluder cameraOccluder;
-	private final RenderRegionChunk renderRegionChunk;
+	final RenderRegionChunk renderRegionChunk;
 
 	private final AtomicReference<RegionBuildState> buildState;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
-	private final BlockPos origin;
-	private final int chunkY;
+	public final RegionPosition origin;
 
 	public final RenderRegionNeighbors neighbors;
 
@@ -95,7 +93,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	 */
 	private volatile AtomicReference<PackedInputRegion> inputState = new AtomicReference<>(SignalInputRegion.IDLE);
 
-	public int occlusionRange;
 	private int cameraOccluderVersion;
 	private boolean cameraOccluderResult;
 	private int chunkDistVersion = -1;
@@ -106,8 +103,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	public float cameraRelativeCenterY;
 	public float cameraRelativeCenterZ;
 
-	private int squaredCameraChunkDistance;
-	private boolean isNear;
 	private boolean isNeededForCameraVisibilityProgression = false;
 
 	/**
@@ -132,8 +127,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private int lastSeenCameraPvsVersion;
 	boolean isClosed = false;
 
-	private boolean isInsideRenderDistance;
-
 	/** Incremented when this region is built and the occlusion data changes (including first time). */
 	private int buildVersion = -1;
 
@@ -157,8 +150,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		renderRegionChunk = chunk;
 		buildState = new AtomicReference<>(RegionBuildState.UNBUILT);
 		needsRebuild = true;
-		origin = BlockPos.fromLong(packedPos);
-		chunkY = origin.getY() >> 4;
+		origin = new RegionPosition(packedPos, this);
 		neighbors = new RenderRegionNeighbors(this);
 	}
 
@@ -166,14 +158,14 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	public String toString() {
 		return String.format("%s  sqcd=%d  rebuild=%b  closed=%b  frustVer=%d  frustResult=%b  posVer=%d  lastSeenSortVer=%d  inRenderDist=%b",
 			origin.toShortString(),
-			squaredCameraChunkDistance,
+			origin.squaredCameraChunkDistance(),
 			needsRebuild,
 			isClosed,
 			occlusionFrustumVersion,
 			isPotentiallyVisibleFromCamera,
 			positionVersion,
 			lastSeenCameraPvsVersion,
-			isInsideRenderDistance);
+			origin.isInsideRenderDistance());
 	}
 
 	public void setCameraOccluderResult(boolean occluderResult, int occluderVersion) {
@@ -182,7 +174,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		} else {
 			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
 				final String prefix = buildState.get().canOcclude() ? "Occluding result " : "Empty result ";
-				CanvasMod.LOG.info(prefix + occluderResult + "  dist=" + squaredCameraChunkDistance + "  buildCounter=" + buildVersion + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
+				CanvasMod.LOG.info(prefix + occluderResult + "  dist=" + origin.squaredCameraChunkDistance() + "  buildCounter=" + buildVersion + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
 			}
 
 			cameraOccluderResult = occluderResult;
@@ -265,7 +257,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	 * @return True if nearby or if all neighbors are loaded.
 	 */
 	public boolean isNearOrHasLoadedNeighbors() {
-		return isNear || renderRegionChunk.areCornersLoaded();
+		return origin.isNear() || renderRegionChunk.areCornersLoaded();
 	}
 
 	void updateCameraDistanceAndVisibilityInfo() {
@@ -273,7 +265,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 		if (chunkDistVersion != renderRegionChunk.chunkDistVersion) {
 			chunkDistVersion = renderRegionChunk.chunkDistVersion;
-			computeDistanceChecks();
+			origin.computeDistanceChecks();
 		}
 
 		if (fv != occlusionFrustumVersion) {
@@ -286,14 +278,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		shadowCascadeFlags = Pipeline.shadowsEnabled() ? cwr.terrainIterator.shadowOccluder.cascadeFlags(this) : 0;
 	}
 
-	private void computeDistanceChecks() {
-		final int cy = storage.cameraChunkY() - chunkY;
-		squaredCameraChunkDistance = renderRegionChunk.horizontalSquaredDistance + cy * cy;
-		isInsideRenderDistance = squaredCameraChunkDistance <= cwr.maxSquaredChunkRenderDistance();
-		isNear = squaredCameraChunkDistance <= 3;
-		occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredCameraChunkDistance);
-	}
-
 	private void computeFrustumChecks() {
 		// position version can only be different if overall frustum version is different
 		final int pv = cameraOccluder.frustumPositionVersion();
@@ -303,7 +287,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 			// these are needed by the frustum - only need to recompute when position moves
 			// not needed at all if outside of render distance
-			if (isInsideRenderDistance) {
+			if (origin.isInsideRenderDistance()) {
 				final Vec3d cameraPos = cameraOccluder.frustumCameraPos();
 				final float dx = (float) (origin.getX() + 8 - cameraPos.x);
 				final float dy = (float) (origin.getY() + 8 - cameraPos.y);
@@ -315,7 +299,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		}
 
 		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-		isPotentiallyVisibleFromCamera = isInsideRenderDistance && cameraOccluder.isRegionVisible(this);
+		isPotentiallyVisibleFromCamera = origin.isInsideRenderDistance() && cameraOccluder.isRegionVisible(this);
 	}
 
 	/**
@@ -350,7 +334,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 					storage.invalidateCameraOccluder();
 					storage.invalidateShadowOccluder();
 				}
-			} else if (squaredCameraChunkDistance < storage.maxSquaredCameraChunkDistance()) {
+			} else if (origin.squaredCameraChunkDistance() < storage.maxSquaredCameraChunkDistance()) {
 				// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been
 				// Need to invalidate the occlusion raster if both things are true:
 				//   1) This region isn't empty (empty regions don't matter for culling)
@@ -358,16 +342,12 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
 					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + storage.maxSquaredCameraChunkDistance()
-						+ "  chunk max:" + squaredCameraChunkDistance + "  occluder version:" + storage.cameraOccluderVersion() + "  chunk version:" + cameraOccluderVersion);
+						+ "  chunk max:" + origin.squaredCameraChunkDistance() + "  occluder version:" + storage.cameraOccluderVersion() + "  chunk version:" + cameraOccluderVersion);
 				}
 
 				storage.invalidateCameraOccluder();
 			}
 		}
-	}
-
-	public int squaredCameraChunkDistance() {
-		return squaredCameraChunkDistance;
 	}
 
 	void close() {
@@ -385,8 +365,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			needsRebuild = true;
 			occlusionFrustumVersion = -1;
 			positionVersion = -1;
-			isInsideRenderDistance = false;
-			isNear = false;
+			origin.close();
 			isPotentiallyVisibleFromCamera = false;
 		}
 	}
@@ -397,10 +376,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 		translucentDrawable.close();
 		translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
-	}
-
-	public BlockPos getOrigin() {
-		return origin;
 	}
 
 	public void markForBuild(boolean isImportant) {
@@ -476,7 +451,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 	@Override
 	public int priority() {
-		return squaredCameraChunkDistance;
+		return origin.squaredCameraChunkDistance();
 	}
 
 	@Override
@@ -571,7 +546,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			}
 		} else {
 			context.prepareRegion(protoRegion);
-			final RegionBuildState chunkData = buildRegionData(context, isNear());
+			final RegionBuildState chunkData = buildRegionData(context, origin.isNear());
 
 			final VertexCollectorList collectors = context.collectors;
 
@@ -765,7 +740,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			}
 		} else {
 			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
-			final RegionBuildState regionData = buildRegionData(context, isNear());
+			final RegionBuildState regionData = buildRegionData(context, origin.isNear());
 
 			buildTerrain(context, regionData);
 
@@ -802,17 +777,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 	public DrawableChunk solidDrawable() {
 		return solidDrawable;
-	}
-
-	/**
-	 * Our logic for this is a little different than vanilla, which checks for squared distance
-	 * to chunk center from camera < 768.0.  Ours will always return true for all 26 chunks adjacent
-	 * (including diagonal) to the achunk containing the camera.
-	 *
-	 * <p>This logic is in {@link #updateCameraDistanceAndVisibilityInfo(TerrainVisibilityState)}.
-	 */
-	public boolean isNear() {
-		return isNear;
 	}
 
 	public void addToCameraPvsIfValid() {
@@ -858,6 +822,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	}
 
 	public boolean isPotentiallyVisibleFromSkylight() {
-		return isInsideRenderDistance & shadowCascadeFlags != 0;
+		return origin.isInsideRenderDistance() & shadowCascadeFlags != 0;
 	}
 }

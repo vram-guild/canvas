@@ -133,7 +133,7 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 	@Override
 	public void add(RenderRegion region) {
-		final int dist = region.squaredCameraChunkDistance();
+		final int dist = region.origin.squaredCameraChunkDistance();
 
 		if (dist >= 0 && dist <= MAX_SQ_DIST) {
 			final int index = ringMap[dist];

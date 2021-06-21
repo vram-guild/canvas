@@ -32,6 +32,7 @@ import grondag.bitraster.PerspectiveRasterizer;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
+import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.terrain.region.RenderRegion;
 
 public class TerrainOccluder extends BoxOccluder {
@@ -73,8 +74,8 @@ public class TerrainOccluder extends BoxOccluder {
 		return occlusionFrustum.isRegionVisible(builtRenderRegion);
 	}
 
-	public void prepareRegion(BlockPos origin, int occlusionRange, int squaredChunkDistance) {
-		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), occlusionRange, squaredChunkDistance);
+	public void prepareRegion(RegionPosition origin) {
+		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), origin.occlusionRange(), origin.squaredCameraChunkDistance());
 	}
 
 	public void outputRaster() {

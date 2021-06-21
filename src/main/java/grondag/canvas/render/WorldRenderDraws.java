@@ -119,7 +119,7 @@ public class WorldRenderDraws {
 
 		RenderSystem.lineWidth(6.0F);
 		bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR);
-		final int regionRange = region.occlusionRange;
+		final int regionRange = region.origin.occlusionRange();
 
 		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
 

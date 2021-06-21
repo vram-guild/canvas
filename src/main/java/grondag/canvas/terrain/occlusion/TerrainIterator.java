@@ -29,7 +29,6 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 
-import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.config.Configurator;
@@ -87,7 +86,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		this.cameraRegion = cameraRegion;
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
-		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.getOrigin().asLong();
+		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.origin.asLong();
 		cameraOccluder.copyFrustum(frustum);
 		regionBoundingSphere.update(renderDistance);
 
@@ -221,7 +220,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				if (Configurator.cullEntityRender) {
 					// reuse prior test results
 					if (!builtRegion.matchesCameraOccluderVersion(occluderVersion)) {
-						if (!chunkCullingEnabled || builtRegion.isNear() || cameraOccluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
+						if (!chunkCullingEnabled || builtRegion.origin.isNear() || cameraOccluder.isEmptyRegionVisible(builtRegion.origin)) {
 							builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 							builtRegion.setCameraOccluderResult(true, occluderVersion);
 						} else {
@@ -236,12 +235,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 				continue;
 			}
 
-			if (!chunkCullingEnabled || builtRegion.isNear()) {
+			if (!chunkCullingEnabled || builtRegion.origin.isNear()) {
 				builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 				visibleRegions.add(builtRegion);
 
 				if (redrawOccluder || !builtRegion.matchesCameraOccluderVersion(occluderVersion)) {
-					cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
+					cameraOccluder.prepareRegion(builtRegion.origin);
 					cameraOccluder.occlude(regionData.getOcclusionData());
 				}
 
@@ -254,12 +253,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
+						cameraOccluder.prepareRegion(builtRegion.origin);
 						cameraOccluder.occlude(regionData.getOcclusionData());
 					}
 				}
 			} else {
-				cameraOccluder.prepareRegion(builtRegion.getOrigin(), builtRegion.occlusionRange, builtRegion.squaredCameraChunkDistance());
+				cameraOccluder.prepareRegion(builtRegion.origin);
 				final int[] visData = regionData.getOcclusionData();
 
 				if (cameraOccluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
@@ -275,9 +274,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 			}
 		}
 	}
-
-	// WIP: use a rank indicator for shadow regions - camera distance is useless and plane distance doesn't match iteration order
-	private static final int DUMMY_DISTANCE = 1;
 
 	private void iterateShadows(boolean redrawOccluder) {
 		final int occluderVersion = shadowOccluder.version();
@@ -354,12 +350,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 					// will already have beens drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						shadowOccluder.prepareRegion(builtRegion.getOrigin(), PackedBox.RANGE_NEAR, DUMMY_DISTANCE);
+						shadowOccluder.prepareRegion(builtRegion.origin);
 						shadowOccluder.occlude(regionData.getOcclusionData());
 					}
 				}
 			} else {
-				shadowOccluder.prepareRegion(builtRegion.getOrigin(), PackedBox.RANGE_NEAR, DUMMY_DISTANCE);
+				shadowOccluder.prepareRegion(builtRegion.origin);
 				final int[] visData = regionData.getOcclusionData();
 
 				if (shadowOccluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {

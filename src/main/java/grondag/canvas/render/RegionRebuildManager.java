@@ -64,7 +64,7 @@ public class RegionRebuildManager {
 			final RenderRegion region = updateRegions.get(i);
 
 			if (region.needsRebuild()) {
-				if (region.needsImportantRebuild() || region.isNear()) {
+				if (region.needsImportantRebuild() || region.origin.isNear()) {
 					regionsToRebuild.remove(region);
 					region.rebuildOnMainThread();
 				} else {

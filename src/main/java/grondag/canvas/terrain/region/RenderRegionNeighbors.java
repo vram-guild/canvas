@@ -71,7 +71,7 @@ public class RenderRegionNeighbors {
 			}
 
 			final Direction face = ModelHelper.faceFromIndex(faceIndex);
-			BlockPos origin = owner.getOrigin();
+			BlockPos origin = owner.origin;
 			region = owner.storage.getOrCreateRegion(origin.getX() + face.getOffsetX() * 16, origin.getY() + face.getOffsetY() * 16, origin.getZ() + face.getOffsetZ() * 16);
 			neighbors[faceIndex] = region;
 			region.neighbors.attachOrConfirmVisitingNeighbor(BlockPosHelper.oppositeFaceIndex(faceIndex), owner);
