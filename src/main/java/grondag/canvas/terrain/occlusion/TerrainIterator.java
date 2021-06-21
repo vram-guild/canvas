@@ -38,8 +38,8 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
-import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RegionBuildState;
+import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
@@ -222,14 +222,14 @@ public class TerrainIterator implements TerrainExecutorTask {
 					// reuse prior test results
 					if (!builtRegion.matchesCameraOccluderVersion(occluderVersion)) {
 						if (!chunkCullingEnabled || builtRegion.isNear() || cameraOccluder.isEmptyRegionVisible(builtRegion.getOrigin())) {
-							builtRegion.enqueueUnvistedCameraNeighbors();
+							builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 							builtRegion.setCameraOccluderResult(true, occluderVersion);
 						} else {
 							builtRegion.setCameraOccluderResult(false, occluderVersion);
 						}
 					}
 				} else {
-					builtRegion.enqueueUnvistedCameraNeighbors();
+					builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 					builtRegion.setCameraOccluderResult(false, occluderVersion);
 				}
 
@@ -237,7 +237,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			}
 
 			if (!chunkCullingEnabled || builtRegion.isNear()) {
-				builtRegion.enqueueUnvistedCameraNeighbors();
+				builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 				visibleRegions.add(builtRegion);
 
 				if (redrawOccluder || !builtRegion.matchesCameraOccluderVersion(occluderVersion)) {
@@ -249,7 +249,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			} else if (builtRegion.matchesCameraOccluderVersion(occluderVersion)) {
 				// reuse prior test results
 				if (builtRegion.cameraOccluderResult()) {
-					builtRegion.enqueueUnvistedCameraNeighbors();
+					builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 					visibleRegions.add(builtRegion);
 
 					// will already have been drawn if occluder view version hasn't changed
@@ -263,7 +263,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				final int[] visData = regionData.getOcclusionData();
 
 				if (cameraOccluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
-					builtRegion.enqueueUnvistedCameraNeighbors();
+					builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 					visibleRegions.add(builtRegion);
 					builtRegion.setCameraOccluderResult(true, occluderVersion);
 
@@ -340,7 +340,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			if (!regionData.canOcclude()) {
 				//System.out.println("Empty region @ "  + builtRegion.origin().toShortString());
 				// WIP: try to avoid re-running this for regions already in PVS - neighbors should be there already
-				builtRegion.enqueueUnvistedShadowNeighbors();
+				builtRegion.neighbors.enqueueUnvistedShadowNeighbors();
 				builtRegion.setShadowOccluderResult(false, occluderVersion);
 
 				continue;
@@ -349,7 +349,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			if (builtRegion.matchesShadowOccluderVersion(occluderVersion)) {
 				// reuse prior test results
 				if (builtRegion.shadowOccluderResult()) {
-					builtRegion.enqueueUnvistedShadowNeighbors();
+					builtRegion.neighbors.enqueueUnvistedShadowNeighbors();
 					addShadowRegion(builtRegion);
 
 					// will already have beens drawn if occluder view version hasn't changed
@@ -363,7 +363,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				final int[] visData = regionData.getOcclusionData();
 
 				if (shadowOccluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
-					builtRegion.enqueueUnvistedShadowNeighbors();
+					builtRegion.neighbors.enqueueUnvistedShadowNeighbors();
 					addShadowRegion(builtRegion);
 					builtRegion.setShadowOccluderResult(true, occluderVersion);
 

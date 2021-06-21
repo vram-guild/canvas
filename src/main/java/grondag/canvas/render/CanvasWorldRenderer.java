@@ -246,14 +246,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		if (cameraRegion != null) {
 			regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
-
-			for (int i = 0; i < 6; ++i) {
-				final RenderRegion r = cameraRegion.getNeighbor(i);
-
-				if (r != null) {
-					regionRebuildManager.buildNearRegionIfNeeded(r);
-				}
-			}
+			cameraRegion.neighbors.forEachNonNull(regionRebuildManager::buildNearRegionIfNeeded);
 		}
 
 		Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));

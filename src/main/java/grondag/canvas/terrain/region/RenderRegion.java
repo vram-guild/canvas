@@ -38,7 +38,6 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
@@ -46,12 +45,10 @@ import net.minecraft.util.math.Vec3d;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
@@ -71,26 +68,24 @@ import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
-import grondag.canvas.varia.BlockPosHelper;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegion {
 	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
 
+	final CanvasWorldRenderer cwr;
 	private final RenderRegionBuilder renderRegionBuilder;
-	private final RenderRegionStorage storage;
+	final RenderRegionStorage storage;
 	private final TerrainOccluder cameraOccluder;
+	private final RenderRegionChunk renderRegionChunk;
 
-	private final AtomicReference<RegionBuildState> buildData;
+	private final AtomicReference<RegionBuildState> buildState;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
 	private final int chunkY;
-	private final RenderRegionChunk renderRegionChunk;
-	private final CanvasWorldRenderer cwr;
-	private final boolean isBottom;
-	private final boolean isTop;
-	private final RenderRegion[] neighbors = new RenderRegion[6];
+
+	public final RenderRegionNeighbors neighbors;
 
 	/**
 	 * Set by main thread during schedule. Retrieved and set to null by worker
@@ -135,7 +130,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private int positionVersion = -1;
 	private boolean isPotentiallyVisibleFromCamera;
 	private int lastSeenCameraPvsVersion;
-	private boolean isClosed = false;
+	boolean isClosed = false;
 
 	private boolean isInsideRenderDistance;
 
@@ -160,12 +155,11 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		storage = chunk.storage;
 		storage.trackRegionLoaded();
 		renderRegionChunk = chunk;
-		buildData = new AtomicReference<>(RegionBuildState.UNBUILT);
+		buildState = new AtomicReference<>(RegionBuildState.UNBUILT);
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
 		chunkY = origin.getY() >> 4;
-		isBottom = origin.getY() == cwr.getWorld().getBottomY();
-		isTop = origin.getY() == cwr.getWorld().getTopY() - 16;
+		neighbors = new RenderRegionNeighbors(this);
 	}
 
 	@Override
@@ -187,7 +181,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			assert occluderResult == cameraOccluderResult;
 		} else {
 			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-				final String prefix = buildData.get().canOcclude() ? "Occluding result " : "Empty result ";
+				final String prefix = buildState.get().canOcclude() ? "Occluding result " : "Empty result ";
 				CanvasMod.LOG.info(prefix + occluderResult + "  dist=" + squaredCameraChunkDistance + "  buildCounter=" + buildVersion + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
 			}
 
@@ -345,7 +339,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private void invalidateCameraOccluderIfNeeded() {
 		// WIP track shadow invalidation separately - may change without camera movement
 
-		if (isPotentiallyVisibleFromCamera && buildData.get().canOcclude()) {
+		if (isPotentiallyVisibleFromCamera && buildState.get().canOcclude()) {
 			if (cameraOccluderVersion == storage.cameraOccluderVersion()) {
 				// Existing - has been drawn in occlusion raster
 				if (buildVersion != cameraOcclusionBuildVersion) {
@@ -384,17 +378,10 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 			isClosed = true;
 
-			for (int i = 0; i < 6; ++i) {
-				final RenderRegion nr = neighbors[i];
-
-				if (nr != null) {
-					nr.notifyNeighborClosed(BlockPosHelper.oppositeFaceIndex(i), this);
-				}
-			}
-
+			neighbors.close();
 			storage.trackRegionClosed();
 			cancel();
-			buildData.set(RegionBuildState.UNBUILT);
+			buildState.set(RegionBuildState.UNBUILT);
 			needsRebuild = true;
 			occlusionFrustumVersion = -1;
 			positionVersion = -1;
@@ -464,7 +451,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	 * @return true if a resort was scheduled
 	 */
 	public boolean scheduleSort(int sortPositionVersion) {
-		final RegionBuildState regionData = buildData.get();
+		final RegionBuildState regionData = buildState.get();
 
 		if (sortPositionVersion == this.sortPositionVersion) {
 			return false;
@@ -506,7 +493,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			chunkData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
-			final RegionBuildState oldBuildData = buildData.getAndSet(chunkData);
+			final RegionBuildState oldBuildData = buildState.getAndSet(chunkData);
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
@@ -544,7 +531,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		}
 
 		if (protoRegion == SignalInputRegion.RESORT_ONLY) {
-			final RegionBuildState regionData = buildData.get();
+			final RegionBuildState regionData = buildState.get();
 			final int[] state = regionData.translucentState;
 
 			if (state != null) {
@@ -628,7 +615,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		handleBlockEntities(regionData, context);
 
 		// don't rebuild occlusion if occlusion did not change
-		final RegionBuildState oldBuildData = buildData.getAndSet(regionData);
+		final RegionBuildState oldBuildData = buildState.getAndSet(regionData);
 
 		if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
 			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
@@ -762,7 +749,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			regionData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
-			final RegionBuildState oldBuildData = buildData.getAndSet(regionData);
+			final RegionBuildState oldBuildData = buildState.getAndSet(regionData);
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
@@ -805,39 +792,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		markBuilt();
 	}
 
-	public RenderRegion getNeighbor(int faceIndex) {
-		RenderRegion region = neighbors[faceIndex];
-
-		if (region == null || region.isClosed) {
-			if ((faceIndex == FaceConstants.UP_INDEX && isTop) || (faceIndex == FaceConstants.DOWN_INDEX && isBottom)) {
-				return null;
-			}
-
-			final Direction face = ModelHelper.faceFromIndex(faceIndex);
-			region = storage.getOrCreateRegion(origin.getX() + face.getOffsetX() * 16, origin.getY() + face.getOffsetY() * 16, origin.getZ() + face.getOffsetZ() * 16);
-			neighbors[faceIndex] = region;
-			region.attachOrConfirmVisitingNeighbor(BlockPosHelper.oppositeFaceIndex(faceIndex), this);
-		}
-
-		return region;
-	}
-
-	private void attachOrConfirmVisitingNeighbor(int visitingFaceIndex, RenderRegion visitingNeighbor) {
-		assert neighbors[visitingFaceIndex] == null || neighbors[visitingFaceIndex] == visitingNeighbor
-			: "Visting render region is attaching to a position that already has a non-null region";
-
-		neighbors[visitingFaceIndex] = visitingNeighbor;
-	}
-
-	private void notifyNeighborClosed(int closedFaceIndex, RenderRegion closingNeighbor) {
-		assert neighbors[closedFaceIndex] == closingNeighbor
-			: "Closing neighbor render region does not match current attachment";
-
-		neighbors[closedFaceIndex] = null;
-	}
-
 	public RegionBuildState getBuildState() {
-		return buildData.get();
+		return buildState.get();
 	}
 
 	public DrawableChunk translucentDrawable() {
@@ -857,36 +813,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	 */
 	public boolean isNear() {
 		return isNear;
-	}
-
-	public void enqueueUnvistedCameraNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).addToCameraPvsIfValid();
-
-		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).addToCameraPvsIfValid();
-		}
-
-		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).addToCameraPvsIfValid();
-		}
-	}
-
-	public void enqueueUnvistedShadowNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).addToShadowPvsIfValid();
-
-		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).addToShadowPvsIfValid();
-		}
-
-		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).addToShadowPvsIfValid();
-		}
 	}
 
 	public void addToCameraPvsIfValid() {
