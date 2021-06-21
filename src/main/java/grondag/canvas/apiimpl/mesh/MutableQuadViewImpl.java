@@ -178,6 +178,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
 		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
+		material(material);
 		convertVanillaUvPrecision();
 		normalizeSprite();
 		isSpriteInterpolated = false;
@@ -185,7 +186,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		nominalFaceId = ModelHelper.toFaceIndex(quad.getFace());
 		data[baseIndex + HEADER_COLOR_INDEX] = quad.getColorIndex();
 		data[baseIndex + HEADER_TAG] = 0;
-		material(material);
 		isGeometryInvalid = true;
 		packedFaceNormal = -1;
 		return this;
