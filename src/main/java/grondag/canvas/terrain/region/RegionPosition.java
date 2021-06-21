@@ -17,17 +17,54 @@
 package grondag.canvas.terrain.region;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 import grondag.bitraster.PackedBox;
+import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RegionPosition extends BlockPos {
+	/** Region that holds this position as its origin. Provides access to world render state. */
 	private final RenderRegion owner;
+
+	/**
+	 * The y coordinate of this position in chunks (16 blocks each), relative to world Y = 0. (Can be negative.)
+	 * Sole purpose is to make camera chunk distance computation slightly faster.
+	 */
 	private final int chunkY;
 
+	/**  See {@link RenderRegionStorage#cameraRegionVersion()}. */
+	private int cameraRegionVersion = -1;
+
+	/** Tracks the version of the camera occluder view transform to know when we must recompute dependent values. */
+	private int cameraOccluderViewVersion = -1;
+
+	/**
+	 * Tracks the version of the camera occluder position to know when we must recompute dependent values.
+	 * The occlusion position is much more sensitive and changes more frequently than {@link #chunkDistVersion}.
+	 *
+	 * <p>Position cannot change without view also changing, so there is no need to check this unless
+	 * {@link #cameraOccluderViewVersion} has changed.
+	 */
+	private int cameraOccluderPositionVersion = -1;
+
+	/** See {@link #occlusionRange()}. */
 	private int occlusionRange;
+
+	/** See {@link #squaredCameraChunkDistance()}. */
 	private int squaredCameraChunkDistance;
+
+	/** See {@link #isNear()}. */
 	private boolean isNear;
+
+	/** See {@link #isInsideRenderDistance()}. */
 	private boolean isInsideRenderDistance;
+
+	/** Used by frustum tests. Will be current only if region is within render distance. */
+	private float cameraRelativeCenterX;
+	private float cameraRelativeCenterY;
+	private float cameraRelativeCenterZ;
+
+	private boolean isPotentiallyVisibleFromCamera;
 
 	public RegionPosition(long packedPos, RenderRegion owner) {
 		super(unpackLongX(packedPos), unpackLongY(packedPos), unpackLongZ(packedPos));
@@ -35,19 +72,68 @@ public class RegionPosition extends BlockPos {
 		chunkY = getY() >> 4;
 	}
 
-	void computeDistanceChecks() {
-		final int cy = owner.storage.cameraChunkY() - chunkY;
-		squaredCameraChunkDistance = owner.renderRegionChunk.horizontalSquaredDistance + cy * cy;
-		isInsideRenderDistance = squaredCameraChunkDistance <= owner.cwr.maxSquaredChunkRenderDistance();
-		isNear = squaredCameraChunkDistance <= 3;
-		occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredCameraChunkDistance);
+	public void update() {
+		computeRegionDependentValues();
+		computeViewDependentValues();
+	}
+
+	private void computeRegionDependentValues() {
+		final int cameraRegionVersion = owner.renderRegionChunk.cameraRegionVersion();
+
+		if (this.cameraRegionVersion != cameraRegionVersion) {
+			this.cameraRegionVersion = cameraRegionVersion;
+			final int cy = owner.storage.cameraChunkY() - chunkY;
+			squaredCameraChunkDistance = owner.renderRegionChunk.horizontalSquaredDistance + cy * cy;
+			isInsideRenderDistance = squaredCameraChunkDistance <= owner.cwr.maxSquaredChunkRenderDistance();
+			isNear = squaredCameraChunkDistance <= 3;
+			occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredCameraChunkDistance);
+		}
+	}
+
+	private void computeViewDependentValues() {
+		final TerrainOccluder cameraOccluder = owner.cameraOccluder;
+		final int viewVersion = cameraOccluder.frustumViewVersion();
+
+		if (viewVersion != cameraOccluderViewVersion) {
+			cameraOccluderViewVersion = viewVersion;
+
+			final int positionVersion = cameraOccluder.frustumPositionVersion();
+
+			// These checks depend on the camera occluder position version,
+			// which may not necessarily change when view version change.
+			if (positionVersion != cameraOccluderPositionVersion) {
+				cameraOccluderPositionVersion = positionVersion;
+
+				// These are needed by frustum tests, which happen below, after this update.
+				// not needed at all if outside of render distance
+				if (isInsideRenderDistance()) {
+					final Vec3d cameraPos = cameraOccluder.frustumCameraPos();
+					final float dx = (float) (getX() + 8 - cameraPos.x);
+					final float dy = (float) (getY() + 8 - cameraPos.y);
+					final float dz = (float) (getZ() + 8 - cameraPos.z);
+					cameraRelativeCenterX = dx;
+					cameraRelativeCenterY = dy;
+					cameraRelativeCenterZ = dz;
+				}
+			}
+
+			//  PERF: implement hierarchical tests with propagation of per-plane inside test results
+			isPotentiallyVisibleFromCamera = isInsideRenderDistance() && cameraOccluder.isRegionVisible(this);
+		}
 	}
 
 	public void close() {
 		isInsideRenderDistance = false;
 		isNear = false;
+		cameraOccluderPositionVersion = -1;
+		cameraOccluderViewVersion = -1;
+		cameraRegionVersion = -1;
+		isPotentiallyVisibleFromCamera = false;
 	}
 
+	/**
+	 * Square of distance of this region from the camera region measured in chunks. (16, blocks each.)
+	 */
 	public int squaredCameraChunkDistance() {
 		return squaredCameraChunkDistance;
 	}
@@ -63,11 +149,57 @@ public class RegionPosition extends BlockPos {
 		return isNear;
 	}
 
+	/**
+	 * Means what the name suggests.  Note that retention distance is longer.
+	 * Does not mean region is visible or within the view frustum.
+	 */
 	public boolean isInsideRenderDistance() {
 		return isInsideRenderDistance;
 	}
 
+	/**
+	 * True when region is within render distance and also within the camera frustum.
+	 *
+	 * <p>NB: tried a crude hierarchical scheme of checking chunk columns first
+	 * but didn't pay off.  Would probably  need to propagate per-plane results
+	 * over a more efficient region but that might not even help. Is already
+	 * quite fast and typically only one or a few regions per chunk must be tested.
+	 */
+	public boolean isPotentiallyVisibleFromCamera() {
+		return isPotentiallyVisibleFromCamera;
+	}
+
+	/**
+	 * Called for camera region because frustum checks on near plane appear to be a little wobbly.
+	 */
+	public void forceCameraPotentialVisibility() {
+		isPotentiallyVisibleFromCamera = true;
+	}
+
+	/**
+	 * Classifies this region with one of the {@link PackedBox} constants for region ranges,
+	 * based on distance from the camera. Used by the occluder to select level of detail used.
+	 */
 	public int occlusionRange() {
 		return occlusionRange;
+	}
+
+	public float cameraRelativeCenterX() {
+		return cameraRelativeCenterX;
+	}
+
+	public float cameraRelativeCenterY() {
+		return cameraRelativeCenterY;
+	}
+
+	public float cameraRelativeCenterZ() {
+		return cameraRelativeCenterZ;
+	}
+
+	/**
+	 * True when view-dependent values have been computed at least once and should be reasonable, if not completely current.
+	 */
+	public boolean hasValidFrustumVersion() {
+		return cameraOccluderViewVersion != -1;
 	}
 }

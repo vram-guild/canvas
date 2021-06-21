@@ -86,7 +86,7 @@ public final class SortableVisibleRegionList extends VisibleRegionList {
 			int count = 0;
 			int i;
 
-			// PERF: probably a way to sort more distance regions less frequently
+			// PERF: probably a way to sort more distant regions less frequently
 			for (i = 0; i < limit; i++) {
 				if (visibleRegions[i].scheduleSort(positionVersion)) {
 					if (++count > 16) {

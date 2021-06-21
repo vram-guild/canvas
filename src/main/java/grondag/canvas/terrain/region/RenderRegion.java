@@ -76,13 +76,9 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	final CanvasWorldRenderer cwr;
 	private final RenderRegionBuilder renderRegionBuilder;
 	final RenderRegionStorage storage;
-	private final TerrainOccluder cameraOccluder;
+	final TerrainOccluder cameraOccluder;
 	final RenderRegionChunk renderRegionChunk;
-
-	private final AtomicReference<RegionBuildState> buildState;
-	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	public final RegionPosition origin;
-
 	public final RenderRegionNeighbors neighbors;
 
 	/**
@@ -93,15 +89,12 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	 */
 	private volatile AtomicReference<PackedInputRegion> inputState = new AtomicReference<>(SignalInputRegion.IDLE);
 
-	private int cameraOccluderVersion;
-	private boolean cameraOccluderResult;
-	private int chunkDistVersion = -1;
-	private int sortPositionVersion = -1;
+	private final AtomicReference<RegionBuildState> buildState;
+	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 
-	/** Used by frustum tests. Will be current only if region is within render distance. */
-	public float cameraRelativeCenterX;
-	public float cameraRelativeCenterY;
-	public float cameraRelativeCenterZ;
+	private int cameraOcclusionVersion;
+	private boolean cameraOccluderResult;
+	private int sortPositionVersion = -1;
 
 	private boolean isNeededForCameraVisibilityProgression = false;
 
@@ -121,9 +114,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private boolean needsImportantRebuild;
 	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
-	private int occlusionFrustumVersion = -1;
-	private int positionVersion = -1;
-	private boolean isPotentiallyVisibleFromCamera;
 	private int lastSeenCameraPvsVersion;
 	boolean isClosed = false;
 
@@ -154,22 +144,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		neighbors = new RenderRegionNeighbors(this);
 	}
 
-	@Override
-	public String toString() {
-		return String.format("%s  sqcd=%d  rebuild=%b  closed=%b  frustVer=%d  frustResult=%b  posVer=%d  lastSeenSortVer=%d  inRenderDist=%b",
-			origin.toShortString(),
-			origin.squaredCameraChunkDistance(),
-			needsRebuild,
-			isClosed,
-			occlusionFrustumVersion,
-			isPotentiallyVisibleFromCamera,
-			positionVersion,
-			lastSeenCameraPvsVersion,
-			origin.isInsideRenderDistance());
-	}
-
 	public void setCameraOccluderResult(boolean occluderResult, int occluderVersion) {
-		if (cameraOccluderVersion == occluderVersion) {
+		if (cameraOcclusionVersion == occluderVersion) {
 			assert occluderResult == cameraOccluderResult;
 		} else {
 			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
@@ -178,7 +154,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			}
 
 			cameraOccluderResult = occluderResult;
-			cameraOccluderVersion = occluderVersion;
+			cameraOcclusionVersion = occluderVersion;
 			cameraOcclusionBuildVersion = buildVersion;
 		}
 	}
@@ -202,7 +178,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	}
 
 	public boolean matchesCameraOccluderVersion(int occluderVersion) {
-		return cameraOccluderVersion == occluderVersion;
+		return cameraOcclusionVersion == occluderVersion;
 	}
 
 	public boolean matchesShadowOccluderVersion(int occluderVersion) {
@@ -219,18 +195,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 				globalEntities.add(blockEntity);
 			}
 		}
-	}
-
-	/**
-	 * True when region is within render distance and also within the camera frustum.
-	 *
-	 * <p>NB: tried a crude hierarchical scheme of checking chunk columns first
-	 * but didn't pay off.  Would probably  need to propagate per-plane results
-	 * over a more efficient region but that might not even help. Is already
-	 * quite fast and typically only one or a few regions per chunk must be tested.
-	 */
-	public boolean isPotentiallyVisibleFromCamera() {
-		return isPotentiallyVisibleFromCamera;
 	}
 
 	/**
@@ -261,52 +225,9 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	}
 
 	void updateCameraDistanceAndVisibilityInfo() {
-		final int fv = cameraOccluder.frustumViewVersion();
-
-		if (chunkDistVersion != renderRegionChunk.chunkDistVersion) {
-			chunkDistVersion = renderRegionChunk.chunkDistVersion;
-			origin.computeDistanceChecks();
-		}
-
-		if (fv != occlusionFrustumVersion) {
-			occlusionFrustumVersion = fv;
-			computeFrustumChecks();
-		}
-
+		origin.update();
 		invalidateCameraOccluderIfNeeded();
-
-		shadowCascadeFlags = Pipeline.shadowsEnabled() ? cwr.terrainIterator.shadowOccluder.cascadeFlags(this) : 0;
-	}
-
-	private void computeFrustumChecks() {
-		// position version can only be different if overall frustum version is different
-		final int pv = cameraOccluder.frustumPositionVersion();
-
-		if (pv != positionVersion) {
-			positionVersion = pv;
-
-			// these are needed by the frustum - only need to recompute when position moves
-			// not needed at all if outside of render distance
-			if (origin.isInsideRenderDistance()) {
-				final Vec3d cameraPos = cameraOccluder.frustumCameraPos();
-				final float dx = (float) (origin.getX() + 8 - cameraPos.x);
-				final float dy = (float) (origin.getY() + 8 - cameraPos.y);
-				final float dz = (float) (origin.getZ() + 8 - cameraPos.z);
-				cameraRelativeCenterX = dx;
-				cameraRelativeCenterY = dy;
-				cameraRelativeCenterZ = dz;
-			}
-		}
-
-		//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-		isPotentiallyVisibleFromCamera = origin.isInsideRenderDistance() && cameraOccluder.isRegionVisible(this);
-	}
-
-	/**
-	 * Called for camera region because frustum checks on near plane appear to be a little wobbly.
-	 */
-	public void forceCameraPotentialVisibility() {
-		isPotentiallyVisibleFromCamera = true;
+		shadowCascadeFlags = Pipeline.shadowsEnabled() ? cwr.terrainIterator.shadowOccluder.cascadeFlags(origin) : 0;
 	}
 
 	/**
@@ -323,12 +244,12 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private void invalidateCameraOccluderIfNeeded() {
 		// WIP track shadow invalidation separately - may change without camera movement
 
-		if (isPotentiallyVisibleFromCamera && buildState.get().canOcclude()) {
-			if (cameraOccluderVersion == storage.cameraOccluderVersion()) {
+		if (origin.isPotentiallyVisibleFromCamera() && buildState.get().canOcclude()) {
+			if (cameraOcclusionVersion == storage.cameraOcclusionVersion()) {
 				// Existing - has been drawn in occlusion raster
 				if (buildVersion != cameraOcclusionBuildVersion) {
 					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-						CanvasMod.LOG.info("Invalidate - redraw: " + origin.toShortString() + "  occluder version:" + cameraOccluderVersion);
+						CanvasMod.LOG.info("Invalidate - redraw: " + origin.toShortString() + "  occluder version:" + cameraOcclusionVersion);
 					}
 
 					storage.invalidateCameraOccluder();
@@ -342,7 +263,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
 					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + storage.maxSquaredCameraChunkDistance()
-						+ "  chunk max:" + origin.squaredCameraChunkDistance() + "  occluder version:" + storage.cameraOccluderVersion() + "  chunk version:" + cameraOccluderVersion);
+						+ "  chunk max:" + origin.squaredCameraChunkDistance() + "  occlusion version:" + storage.cameraOcclusionVersion() + "  chunk version:" + cameraOcclusionVersion);
 				}
 
 				storage.invalidateCameraOccluder();
@@ -363,10 +284,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			cancel();
 			buildState.set(RegionBuildState.UNBUILT);
 			needsRebuild = true;
-			occlusionFrustumVersion = -1;
-			positionVersion = -1;
 			origin.close();
-			isPotentiallyVisibleFromCamera = false;
 		}
 	}
 
@@ -488,7 +406,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 		// If we are no longer in potentially visible region, abort build and restore needsRebuild.
 		// We also don't force a vis update here because, obviously, we can't affect it.
-		if (!isPotentiallyVisibleFromCamera() && !isPotentiallyVisibleFromSkylight()) {
+		if (!origin.isPotentiallyVisibleFromCamera() && !isPotentiallyVisibleFromSkylight()) {
 			protoRegion.release();
 			// Causes region to be rescheduled if/when it comes back into view
 			markForBuild(false);
@@ -790,7 +708,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		final int pvsVersion = cameraPVS.version();
 
 		// The frustum version check is necessary to skip regions without valid info.
-		if (lastSeenCameraPvsVersion != pvsVersion && occlusionFrustumVersion != -1) {
+		// WIP: is frustum version check still correct/needed?
+		if (lastSeenCameraPvsVersion != pvsVersion && origin.hasValidFrustumVersion()) {
 			lastSeenCameraPvsVersion = pvsVersion;
 			cameraPVS.add(this);
 		}
@@ -801,7 +720,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		final int pvsVersion = shadowPVS.version();
 
 		// The frustum version check is necessary to skip regions without valid info.
-		if (lastSeenShadowPvsVersion != pvsVersion && occlusionFrustumVersion != -1) {
+		// WIP: is frustum version check still correct/needed?
+		if (lastSeenShadowPvsVersion != pvsVersion && origin.hasValidFrustumVersion()) {
 			lastSeenShadowPvsVersion = pvsVersion;
 			shadowPVS.add(this);
 		}

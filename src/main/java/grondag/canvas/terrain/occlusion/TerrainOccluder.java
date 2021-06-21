@@ -33,7 +33,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.terrain.region.RegionPosition;
-import grondag.canvas.terrain.region.RenderRegion;
 
 public class TerrainOccluder extends BoxOccluder {
 	/**
@@ -70,8 +69,8 @@ public class TerrainOccluder extends BoxOccluder {
 		return occlusionFrustum.lastCameraPos();
 	}
 
-	public boolean isRegionVisible(RenderRegion builtRenderRegion) {
-		return occlusionFrustum.isRegionVisible(builtRenderRegion);
+	public boolean isRegionVisible(RegionPosition regionPosition) {
+		return occlusionFrustum.isRegionVisible(regionPosition);
 	}
 
 	public void prepareRegion(RegionPosition origin) {

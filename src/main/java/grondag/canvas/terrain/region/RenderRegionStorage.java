@@ -48,8 +48,10 @@ public class RenderRegionStorage {
 
 	private boolean didInvalidateCameraOccluder = false;
 	private boolean didInvalidateShadowOccluder = false;
-	private int cameraOccluderVersion = 0;
+	private int cameraOcclusionVersion = 0;
 	private int maxSquaredCameraChunkDistance;
+
+	private int cameraRegionVersion = 1;
 
 	private final RenderRegionChunk[] chunks = new RenderRegionChunk[RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT];
 	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT);
@@ -62,8 +64,8 @@ public class RenderRegionStorage {
 		}
 	}
 
-	public int cameraOccluderVersion() {
-		return cameraOccluderVersion;
+	public int cameraOcclusionVersion() {
+		return cameraOcclusionVersion;
 	}
 
 	public void invalidateCameraOccluder() {
@@ -107,20 +109,18 @@ public class RenderRegionStorage {
 		}
 	}
 
-	int cameraChunkDistVersion = 1;
-
-	public void updateCameraDistanceAndVisibility(long cameraChunkOrigin) {
-		final int cameraChunkX = BlockPos.unpackLongX(cameraChunkOrigin) >> 4;
-		final int cameraChunkY = BlockPos.unpackLongY(cameraChunkOrigin) >> 4;
-		final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkOrigin) >> 4;
+	public void updateCameraDistanceAndVisibility(long cameraRegionOrigin) {
+		final int cameraChunkX = BlockPos.unpackLongX(cameraRegionOrigin) >> 4;
+		final int cameraChunkY = BlockPos.unpackLongY(cameraRegionOrigin) >> 4;
+		final int cameraChunkZ = BlockPos.unpackLongZ(cameraRegionOrigin) >> 4;
 
 		if (!(cameraChunkX == lastCameraChunkX && cameraChunkY == lastCameraChunkY && cameraChunkZ == lastCameraChunkZ)) {
 			lastCameraChunkX = cameraChunkX;
 			lastCameraChunkY = cameraChunkY;
 			lastCameraChunkZ = cameraChunkZ;
-			++cameraChunkDistVersion;
+			++cameraRegionVersion;
 			cameraPVS.clear();
-			cwr.renderRegionStorage.shadowPVS.setCameraChunkOriginAndClear(BlockPos.unpackLongX(cameraChunkOrigin), BlockPos.unpackLongZ(cameraChunkOrigin));
+			cwr.renderRegionStorage.shadowPVS.setCameraChunkOriginAndClear(cameraChunkX, cameraChunkZ);
 		} else {
 			cameraPVS.returnToStart();
 		}
@@ -130,7 +130,7 @@ public class RenderRegionStorage {
 		shadowOccluder.setLightVector(ShaderDataManager.skyLightVector);
 		shadowPVS.setLightVectorAndRestart(ShaderDataManager.skyLightVector);
 
-		cameraOccluderVersion = cameraOccluder.version();
+		cameraOcclusionVersion = cameraOccluder.occlusionVersion();
 		maxSquaredCameraChunkDistance = cameraOccluder.maxSquaredChunkDistance();
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
@@ -192,5 +192,17 @@ public class RenderRegionStorage {
 
 	void trackRegionLoaded() {
 		loadedRegionCount.incrementAndGet();
+	}
+
+	/**
+	 * Increments every time the camera moves to a different region.
+	 * Non-loadable regions (outside world boundaries) trigger changes
+	 * the same as loadable regions.
+	 *
+	 * <p>Chunk and Region instances track this value to trigger refresh of
+	 * computations that depend on which region contains the camera.
+	 */
+	public int cameraRegionVersion() {
+		return cameraRegionVersion;
 	}
 }

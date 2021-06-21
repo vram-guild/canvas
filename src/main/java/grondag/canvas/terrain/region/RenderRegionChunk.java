@@ -26,7 +26,10 @@ public class RenderRegionChunk {
 	private int chunkZ;
 	private RenderRegion[] regions = null;
 	private boolean areCornersLoadedCache = false;
-	int chunkDistVersion = -1;
+
+	/**  See {@link RenderRegionStorage#cameraRegionVersion()}. */
+	private int cameraRegionVersion = -1;
+
 	int horizontalSquaredDistance;
 
 	public RenderRegionChunk(RenderRegionStorage storage) {
@@ -38,7 +41,7 @@ public class RenderRegionChunk {
 		this.chunkZ = chunkZ;
 		regions = new RenderRegion[RenderRegionIndexer.MAX_Y_REGIONS];
 		areCornersLoadedCache = false;
-		chunkDistVersion = -1;
+		cameraRegionVersion = -1;
 		computeChunkDistanceMetrics();
 	}
 
@@ -72,9 +75,7 @@ public class RenderRegionChunk {
 	}
 
 	synchronized void updateCameraDistanceAndVisibilityInfo() {
-		if (storage.cameraChunkDistVersion != chunkDistVersion) {
-			computeChunkDistanceMetrics();
-		}
+		computeChunkDistanceMetrics();
 
 		final RenderRegion[] regions = this.regions;
 
@@ -94,10 +95,14 @@ public class RenderRegionChunk {
 	}
 
 	private void computeChunkDistanceMetrics() {
-		chunkDistVersion = storage.cameraChunkDistVersion;
-		final int cx = storage.cameraChunkX() - chunkX;
-		final int cz = storage.cameraChunkZ() - chunkZ;
-		horizontalSquaredDistance = cx * cx + cz * cz;
+		final int cameraRegionVersion = storage.cameraRegionVersion();
+
+		if (this.cameraRegionVersion != cameraRegionVersion) {
+			this.cameraRegionVersion = cameraRegionVersion;
+			final int cx = storage.cameraChunkX() - chunkX;
+			final int cz = storage.cameraChunkZ() - chunkZ;
+			horizontalSquaredDistance = cx * cx + cz * cz;
+		}
 	}
 
 	synchronized RenderRegion getOrCreateRegion(int x, int y, int z) {
@@ -134,5 +139,10 @@ public class RenderRegionChunk {
 
 		final RenderRegion[] regions = this.regions;
 		return regions == null ? null : regions[i];
+	}
+
+	/**  See {@link RenderRegionStorage#cameraRegionVersion()}. */
+	public int cameraRegionVersion() {
+		return cameraRegionVersion;
 	}
 }
