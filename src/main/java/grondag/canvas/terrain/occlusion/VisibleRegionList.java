@@ -18,10 +18,10 @@ package grondag.canvas.terrain.occlusion;
 
 import java.util.Arrays;
 
-import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegion;
 
 public class VisibleRegionList {
-	protected BuiltRenderRegion[] visibleRegions = new BuiltRenderRegion[4096];
+	protected RenderRegion[] visibleRegions = new RenderRegion[4096];
 	protected volatile int visibleRegionCount = 0;
 
 	public void clear() {
@@ -29,12 +29,12 @@ public class VisibleRegionList {
 		Arrays.fill(visibleRegions, null);
 	}
 
-	public final void add(BuiltRenderRegion builtRegion) {
+	public final void add(RenderRegion builtRegion) {
 		int index = visibleRegionCount++;
-		BuiltRenderRegion[] visibleRegions = this.visibleRegions;
+		RenderRegion[] visibleRegions = this.visibleRegions;
 
 		if (index >= visibleRegions.length) {
-			BuiltRenderRegion[] newRegions = new BuiltRenderRegion[visibleRegions.length * 2];
+			RenderRegion[] newRegions = new RenderRegion[visibleRegions.length * 2];
 			System.arraycopy(visibleRegions, 0, newRegions, 0, visibleRegions.length);
 			this.visibleRegions = newRegions;
 			visibleRegions = newRegions;
@@ -48,7 +48,7 @@ public class VisibleRegionList {
 		visibleRegionCount = count;
 
 		if (count > visibleRegions.length) {
-			visibleRegions = new BuiltRenderRegion[source.visibleRegions.length];
+			visibleRegions = new RenderRegion[source.visibleRegions.length];
 		}
 
 		System.arraycopy(source.visibleRegions, 0, visibleRegions, 0, count);
@@ -58,7 +58,7 @@ public class VisibleRegionList {
 		return visibleRegionCount;
 	}
 
-	public final BuiltRenderRegion get(int index) {
+	public final RenderRegion get(int index) {
 		return visibleRegions[index];
 	}
 
@@ -67,7 +67,7 @@ public class VisibleRegionList {
 		final int limit = visibleRegionCount;
 
 		for (int i = 0; i < limit; i++) {
-			final BuiltRenderRegion region = visibleRegions[i];
+			final RenderRegion region = visibleRegions[i];
 
 			if (!region.solidDrawable().isClosed() || !region.translucentDrawable().isClosed()) {
 				++result;

@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.region;
+package grondag.canvas.terrain.region.input;
 
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndex;
 
@@ -24,9 +24,9 @@ import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.WorldChunk;
 
 /**
- * Tries to prevent FastRenderRegion from being unreadably big. Fails.
+ * Tries to prevent InputRegion from being unreadably big. Fails.
  */
-abstract class AbstractRenderRegion {
+abstract class AbstractInputRegion {
 	// larger than needed to speed up indexing
 	protected final WorldChunk[] chunks = new WorldChunk[16];
 	protected int originX;

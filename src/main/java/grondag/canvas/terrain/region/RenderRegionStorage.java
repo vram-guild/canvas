@@ -36,7 +36,7 @@ public class RenderRegionStorage {
 	 */
 	public final CameraPotentiallyVisibleRegionSet cameraPVS = new CameraPotentiallyVisibleRegionSet();
 
-	public final ShadowPotentiallyVisibleRegionSet<BuiltRenderRegion> shadowPVS = new ShadowPotentiallyVisibleRegionSet<>(new BuiltRenderRegion[RenderRegionIndexer.PADDED_REGION_INDEX_COUNT]);
+	public final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS = new ShadowPotentiallyVisibleRegionSet<>(new RenderRegion[RenderRegionIndexer.PADDED_REGION_INDEX_COUNT]);
 
 	private final AtomicInteger loadedRegionCount = new AtomicInteger();
 
@@ -100,7 +100,7 @@ public class RenderRegionStorage {
 	}
 
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
-		final BuiltRenderRegion region = getRegionIfExists(x, y, z);
+		final RenderRegion region = getRegionIfExists(x, y, z);
 
 		if (region != null) {
 			region.markForBuild(urgent);
@@ -152,24 +152,24 @@ public class RenderRegionStorage {
 		return loadedRegionCount.get();
 	}
 
-	public BuiltRenderRegion getOrCreateRegion(int x, int y, int z) {
+	public RenderRegion getOrCreateRegion(int x, int y, int z) {
 		return chunks[RenderRegionIndexer.chunkIndex(x, z)].getOrCreateRegion(x, y, z);
 	}
 
-	public BuiltRenderRegion getOrCreateRegion(BlockPos pos) {
+	public RenderRegion getOrCreateRegion(BlockPos pos) {
 		return getOrCreateRegion(pos.getX(), pos.getY(), pos.getZ());
 	}
 
-	public BuiltRenderRegion getRegionIfExists(BlockPos pos) {
+	public RenderRegion getRegionIfExists(BlockPos pos) {
 		return getRegionIfExists(pos.getX(), pos.getY(), pos.getZ());
 	}
 
-	public BuiltRenderRegion getRegionIfExists(int x, int y, int z) {
+	public RenderRegion getRegionIfExists(int x, int y, int z) {
 		return chunks[RenderRegionIndexer.chunkIndex(x, z)].getRegionIfExists(x, y, z);
 	}
 
 	public boolean wasSeenFromCamera(int x, int y, int z) {
-		final BuiltRenderRegion r = getRegionIfExists(x, y, z);
+		final RenderRegion r = getRegionIfExists(x, y, z);
 		return r != null && r.wasRecentlySeenFromCamera();
 	}
 

@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.region;
+package grondag.canvas.terrain.region.input;
 
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.CORNER_INDEX_000;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.CORNER_INDEX_002;
@@ -87,9 +87,9 @@ import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
  *
  * <p>Also serves as a state indicator for rebuild activity.
  */
-public class ProtoRenderRegion extends AbstractRenderRegion {
+public class PackedInputRegion extends AbstractInputRegion {
 	private static final BlockState AIR = Blocks.AIR.getDefaultState();
-	private static final ArrayBlockingQueue<ProtoRenderRegion> POOL = new ArrayBlockingQueue<>(256);
+	private static final ArrayBlockingQueue<PackedInputRegion> POOL = new ArrayBlockingQueue<>(256);
 
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 
@@ -99,12 +99,12 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 	final ShortArrayList blockEntityPos = new ShortArrayList();
 	PaletteCopy mainSectionCopy;
 
-	public static ProtoRenderRegion claim(ClientWorld world, BlockPos origin) {
-		final ProtoRenderRegion result = POOL.poll();
-		return (result == null ? new ProtoRenderRegion() : result).prepare(world, origin);
+	public static PackedInputRegion claim(ClientWorld world, BlockPos origin) {
+		final PackedInputRegion result = POOL.poll();
+		return (result == null ? new PackedInputRegion() : result).prepare(world, origin);
 	}
 
-	private static void release(ProtoRenderRegion region) {
+	private static void release(PackedInputRegion region) {
 		POOL.offer(region);
 	}
 
@@ -113,7 +113,7 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		POOL.clear();
 	}
 
-	private ProtoRenderRegion prepare(ClientWorld world, BlockPos origin) {
+	private PackedInputRegion prepare(ClientWorld world, BlockPos origin) {
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startCopy();
 		}
@@ -138,11 +138,11 @@ public class ProtoRenderRegion extends AbstractRenderRegion {
 		final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
 		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, originY);
 
-		final ProtoRenderRegion result;
+		final PackedInputRegion result;
 
 		if (mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
 			release();
-			result = SignalRegion.EMPTY;
+			result = SignalInputRegion.EMPTY;
 		} else {
 			captureBlockEntities(mainChunk);
 			chunks[1 | (1 << 2)] = mainChunk;

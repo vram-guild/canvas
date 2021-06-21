@@ -100,7 +100,7 @@ import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
-import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
@@ -240,7 +240,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		MaterialConditionImpl.update();
 		GlProgramManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
-		final BuiltRenderRegion cameraRegion = world == null || world.isOutOfHeightLimit(cameraBlockPos) ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
+		final RenderRegion cameraRegion = world == null || world.isOutOfHeightLimit(cameraBlockPos) ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
 		mc.getProfiler().swap("buildnear");
 
@@ -248,7 +248,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
 
 			for (int i = 0; i < 6; ++i) {
-				final BuiltRenderRegion r = cameraRegion.getNeighbor(i);
+				final RenderRegion r = cameraRegion.getNeighbor(i);
 
 				if (r != null) {
 					regionRebuildManager.buildNearRegionIfNeeded(r);
@@ -511,7 +511,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final Set<BlockEntity> noCullingBlockEntities = wr.canvas_noCullingBlockEntities();
 
 		for (int regionIndex = 0; regionIndex < visibleRegionCount; ++regionIndex) {
-			final List<BlockEntity> list = visibleRegions.get(regionIndex).getBuildData().getBlockEntities();
+			final List<BlockEntity> list = visibleRegions.get(regionIndex).getBuildState().getBlockEntities();
 
 			final Iterator<BlockEntity> itBER = list.iterator();
 

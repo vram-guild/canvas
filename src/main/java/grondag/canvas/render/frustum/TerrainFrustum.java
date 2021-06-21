@@ -31,7 +31,7 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegion;
 
 @Environment(EnvType.CLIENT)
 public class TerrainFrustum extends CanvasFrustum {
@@ -278,7 +278,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		occlusionProjMat.multiply(Matrix4f.viewboxMatrix(fov + padding, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
 	}
 
-	public boolean isRegionVisible(BuiltRenderRegion region) {
+	public boolean isRegionVisible(RenderRegion region) {
 		final float cx = region.cameraRelativeCenterX;
 		final float cy = region.cameraRelativeCenterY;
 		final float cz = region.cameraRelativeCenterZ;

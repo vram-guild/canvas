@@ -22,7 +22,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
 /**
@@ -31,7 +31,7 @@ import grondag.canvas.terrain.region.RenderRegionIndexer;
  * be at a finite number of distances from the origin chunk
  * and slots them into buckets using simple and fast array access.
  */
-public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegionSet<BuiltRenderRegion> {
+public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegionSet<RenderRegion> {
 	/**
 	 * The number of unique squared distance values ("rings") that occur
 	 * in our voxelized sphere.
@@ -108,7 +108,7 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	 * Starting state is a copy of {@link #SQ_DIST_TO_RING_MAP}.
 	 */
 	private final int[] ringMap = new int[RING_MAP_LENGTH];
-	private final BuiltRenderRegion[] regions = new BuiltRenderRegion[REGION_LOOKUP_LENGTH];
+	private final RenderRegion[] regions = new RenderRegion[REGION_LOOKUP_LENGTH];
 
 	private int iterationIndex = 0;
 	private int maxIndex = 0;
@@ -132,7 +132,7 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	}
 
 	@Override
-	public void add(BuiltRenderRegion region) {
+	public void add(RenderRegion region) {
 		final int dist = region.squaredCameraChunkDistance();
 
 		if (dist >= 0 && dist <= MAX_SQ_DIST) {
@@ -147,7 +147,7 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 		}
 	}
 
-	private boolean isSaneAddition(BuiltRenderRegion region, int dist, int targetIndex) {
+	private boolean isSaneAddition(RenderRegion region, int dist, int targetIndex) {
 		final int limit = SQ_DIST_TO_RING_MAP[dist + 1];
 
 		if (dist < MAX_SQ_DIST && targetIndex >= limit) {
@@ -166,11 +166,11 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	}
 
 	@Override
-	@Nullable public BuiltRenderRegion next() {
+	@Nullable public RenderRegion next() {
 		final int maxIndex = this.maxIndex;
 
 		while (iterationIndex <= maxIndex) {
-			final BuiltRenderRegion region = regions[iterationIndex++];
+			final RenderRegion region = regions[iterationIndex++];
 
 			if (region != null) {
 				return region;

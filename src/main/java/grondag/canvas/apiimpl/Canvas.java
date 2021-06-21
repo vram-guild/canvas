@@ -46,7 +46,7 @@ import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.shader.data.ShaderDataManager;
-import grondag.canvas.terrain.region.ProtoRenderRegion;
+import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
@@ -100,7 +100,7 @@ public class Canvas implements Renderer {
 
 	public void reload() {
 		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
-		ProtoRenderRegion.reload();
+		PackedInputRegion.reload();
 		BlockRenderContext.reload();
 		EntityBlockRenderContext.reload();
 		ItemRenderContext.reload();

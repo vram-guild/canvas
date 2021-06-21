@@ -38,8 +38,8 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
-import grondag.canvas.terrain.region.BuiltRenderRegion;
-import grondag.canvas.terrain.region.RegionData;
+import grondag.canvas.terrain.region.RenderRegion;
+import grondag.canvas.terrain.region.RegionBuildState;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
@@ -57,13 +57,13 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public final TerrainOccluder cameraOccluder = new TerrainOccluder();
 	public final ShadowOccluder shadowOccluder = new ShadowOccluder();
 	private final RegionBoundingSphere regionBoundingSphere = new RegionBoundingSphere();
-	public final SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
+	public final SimpleUnorderedArrayList<RenderRegion> updateRegions = new SimpleUnorderedArrayList<>();
 	public final VisibleRegionList visibleRegions = new VisibleRegionList();
 	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
 	private final AtomicInteger state = new AtomicInteger(IDLE);
 	private final CanvasWorldRenderer cwr;
 
-	private BuiltRenderRegion cameraRegion;
+	private RenderRegion cameraRegion;
 
 	/**
 	 * Will be a valid region origin even if the actual camera region is null because
@@ -82,7 +82,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		}
 	}
 
-	public void prepare(@Nullable BuiltRenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
+	public void prepare(@Nullable RenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
 		assert state.get() == IDLE;
 		this.cameraRegion = cameraRegion;
 		final BlockPos cameraBlockPos = camera.getBlockPos();
@@ -138,7 +138,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			for (int i = 0; i < limit; ++i) {
 				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
-				final BuiltRenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
+				final RenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
 
 				if (region != null && region.isPotentiallyVisibleFromCamera()) {
 					region.addToCameraPvsIfValid();
@@ -184,7 +184,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		// PERF: look for ways to improve branch prediction
 		while (!cancelled) {
-			final BuiltRenderRegion builtRegion = cameraDistanceSorter.next();
+			final RenderRegion builtRegion = cameraDistanceSorter.next();
 
 			if (builtRegion == null) {
 				break;
@@ -201,10 +201,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 			}
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
-			final RegionData regionData = builtRegion.getBuildData();
+			final RegionBuildState regionData = builtRegion.getBuildState();
 
 			// If never built then don't do anything with it
-			if (regionData == RegionData.UNBUILT) {
+			if (regionData == RegionBuildState.UNBUILT) {
 				builtRegion.markNeededForCameraVisibilityProgression();
 				updateRegions.add(builtRegion);
 				continue;
@@ -282,7 +282,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private void iterateShadows(boolean redrawOccluder) {
 		final int occluderVersion = shadowOccluder.version();
 		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
-		final ShadowPotentiallyVisibleRegionSet<BuiltRenderRegion> shadowPvs = regionStorage.shadowPVS;
+		final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPvs = regionStorage.shadowPVS;
 		// prime visible when above or below world and camera region is null
 		final int y = BlockPos.unpackLongY(cameraChunkOrigin);
 		final int x = BlockPos.unpackLongX(cameraChunkOrigin);
@@ -291,7 +291,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		for (int i = 0; i < limit; ++i) {
 			final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
-			final BuiltRenderRegion region = regionStorage.getOrCreateRegion(
+			final RenderRegion region = regionStorage.getOrCreateRegion(
 					(offset.getX() << 4) + x,
 					// WIP: deal with variable world height / under lighting
 					Math.min(240, (regionBoundingSphere.getY(i) << 4) + y),
@@ -303,7 +303,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		}
 
 		while (!cancelled) {
-			final BuiltRenderRegion builtRegion = shadowPvs.next();
+			final RenderRegion builtRegion = shadowPvs.next();
 
 			if (builtRegion == null) {
 				break;
@@ -321,10 +321,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 			}
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
-			final RegionData regionData = builtRegion.getBuildData();
+			final RegionBuildState regionData = builtRegion.getBuildState();
 
 			// If never built then don't do anything with it
-			if (regionData == RegionData.UNBUILT) {
+			if (regionData == RegionBuildState.UNBUILT) {
 				builtRegion.markNeededForCameraVisibilityProgression();
 				updateRegions.add(builtRegion);
 				continue;
@@ -392,7 +392,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		}
 	}
 
-	private void addShadowRegion(BuiltRenderRegion r) {
+	private void addShadowRegion(RenderRegion r) {
 		final VisibleRegionList[] shadowVisibleRegions = this.shadowVisibleRegions;
 
 		switch (r.shadowCascadeFlags()) {

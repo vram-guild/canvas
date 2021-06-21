@@ -32,9 +32,9 @@ import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 
 @Environment(EnvType.CLIENT)
-public class RegionData {
+public class RegionBuildState {
 	/** value for new regions that never been built or have been built and then closed. */
-	public static final RegionData UNBUILT = new RegionData();
+	public static final RegionBuildState UNBUILT = new RegionBuildState();
 
 	final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
 	int[] occlusionData = RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT;

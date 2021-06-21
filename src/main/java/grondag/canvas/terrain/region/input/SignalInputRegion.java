@@ -14,28 +14,28 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.region;
+package grondag.canvas.terrain.region.input;
 
-public class SignalRegion extends ProtoRenderRegion {
+public class SignalInputRegion extends PackedInputRegion {
 	/**
 	 * Signals that build was completed successfully, or has never been run. Nothing is scheduled.
 	 */
-	public static final ProtoRenderRegion IDLE = new SignalRegion();
+	public static final PackedInputRegion IDLE = new SignalInputRegion();
 
 	/**
 	 * Signals that build is for resort only.
 	 */
-	public static final ProtoRenderRegion RESORT_ONLY = new SignalRegion();
+	public static final PackedInputRegion RESORT_ONLY = new SignalInputRegion();
 
 	/**
 	 * Signals that build has been cancelled or some other condition has made it unbuildable.
 	 */
-	public static final ProtoRenderRegion INVALID = new SignalRegion();
+	public static final PackedInputRegion INVALID = new SignalInputRegion();
 
 	/**
 	 * Signals that build is for empty chunk.
 	 */
-	public static final ProtoRenderRegion EMPTY = new SignalRegion();
+	public static final PackedInputRegion EMPTY = new SignalInputRegion();
 
 	@Override
 	public void release() { }

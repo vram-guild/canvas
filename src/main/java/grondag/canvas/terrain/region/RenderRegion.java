@@ -64,6 +64,9 @@ import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
+import grondag.canvas.terrain.region.input.InputRegion;
+import grondag.canvas.terrain.region.input.PackedInputRegion;
+import grondag.canvas.terrain.region.input.SignalInputRegion;
 import grondag.canvas.terrain.render.DrawableChunk;
 import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
@@ -72,14 +75,14 @@ import grondag.canvas.varia.BlockPosHelper;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
-public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegion {
+public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegion {
 	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
 
 	private final RenderRegionBuilder renderRegionBuilder;
 	private final RenderRegionStorage storage;
 	private final TerrainOccluder cameraOccluder;
 
-	private final AtomicReference<RegionData> buildData;
+	private final AtomicReference<RegionBuildState> buildData;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
 	private final BlockPos origin;
 	private final int chunkY;
@@ -87,7 +90,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	private final CanvasWorldRenderer cwr;
 	private final boolean isBottom;
 	private final boolean isTop;
-	private final BuiltRenderRegion[] neighbors = new BuiltRenderRegion[6];
+	private final RenderRegion[] neighbors = new RenderRegion[6];
 
 	/**
 	 * Set by main thread during schedule. Retrieved and set to null by worker
@@ -95,7 +98,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	 *
 	 * <p>Special values also signal the need for translucency sort and chunk reset.
 	 */
-	private volatile AtomicReference<ProtoRenderRegion> buildState = new AtomicReference<>(SignalRegion.IDLE);
+	private volatile AtomicReference<PackedInputRegion> inputState = new AtomicReference<>(SignalInputRegion.IDLE);
 
 	public int occlusionRange;
 	private int cameraOccluderVersion;
@@ -133,25 +136,31 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	private boolean isPotentiallyVisibleFromCamera;
 	private int lastSeenCameraPvsVersion;
 	private boolean isClosed = false;
-	private boolean isInsideRenderDistance;
-	private int buildCount = -1;
-	// build count that was in effect last time drawn to occluder
-	private int cameraOcclusionBuildCount;
 
+	private boolean isInsideRenderDistance;
+
+	/** Incremented when this region is built and the occlusion data changes (including first time). */
+	private int buildVersion = -1;
+
+	/** Build version that was in effect last time drawn to occluder. */
+	private int cameraOcclusionBuildVersion;
+
+	/** Concatenated bit flags marking the shadow cascades that include this region. */
 	private int shadowCascadeFlags;
+
 	private int lastSeenShadowPvsVersion;
 	private int shadowOccluderVersion;
 	private boolean shadowOccluderResult;
-	private int shadowOcclusionBuildCount;
+	private int shadowOcclusionBuildVersion;
 
-	public BuiltRenderRegion(RenderRegionChunk chunk, long packedPos) {
+	public RenderRegion(RenderRegionChunk chunk, long packedPos) {
 		cwr = chunk.storage.cwr;
 		cameraOccluder = cwr.terrainIterator.cameraOccluder;
 		renderRegionBuilder = cwr.regionBuilder();
 		storage = chunk.storage;
 		storage.trackRegionLoaded();
 		renderRegionChunk = chunk;
-		buildData = new AtomicReference<>(RegionData.UNBUILT);
+		buildData = new AtomicReference<>(RegionBuildState.UNBUILT);
 		needsRebuild = true;
 		origin = BlockPos.fromLong(packedPos);
 		chunkY = origin.getY() >> 4;
@@ -179,12 +188,12 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		} else {
 			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
 				final String prefix = buildData.get().canOcclude() ? "Occluding result " : "Empty result ";
-				CanvasMod.LOG.info(prefix + occluderResult + "  dist=" + squaredCameraChunkDistance + "  buildCounter=" + buildCount + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
+				CanvasMod.LOG.info(prefix + occluderResult + "  dist=" + squaredCameraChunkDistance + "  buildCounter=" + buildVersion + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
 			}
 
 			cameraOccluderResult = occluderResult;
 			cameraOccluderVersion = occluderVersion;
-			cameraOcclusionBuildCount = buildCount;
+			cameraOcclusionBuildVersion = buildVersion;
 		}
 	}
 
@@ -194,7 +203,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		} else {
 			shadowOccluderResult = occluderResult;
 			shadowOccluderVersion = occluderVersion;
-			shadowOcclusionBuildCount = buildCount;
+			shadowOcclusionBuildVersion = buildVersion;
 		}
 	}
 
@@ -339,7 +348,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		if (isPotentiallyVisibleFromCamera && buildData.get().canOcclude()) {
 			if (cameraOccluderVersion == storage.cameraOccluderVersion()) {
 				// Existing - has been drawn in occlusion raster
-				if (buildCount != cameraOcclusionBuildCount) {
+				if (buildVersion != cameraOcclusionBuildVersion) {
 					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
 						CanvasMod.LOG.info("Invalidate - redraw: " + origin.toShortString() + "  occluder version:" + cameraOccluderVersion);
 					}
@@ -376,7 +385,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			isClosed = true;
 
 			for (int i = 0; i < 6; ++i) {
-				final BuiltRenderRegion nr = neighbors[i];
+				final RenderRegion nr = neighbors[i];
 
 				if (nr != null) {
 					nr.notifyNeighborClosed(BlockPosHelper.oppositeFaceIndex(i), this);
@@ -385,7 +394,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 			storage.trackRegionClosed();
 			cancel();
-			buildData.set(RegionData.UNBUILT);
+			buildData.set(RegionBuildState.UNBUILT);
 			needsRebuild = true;
 			occlusionFrustumVersion = -1;
 			positionVersion = -1;
@@ -430,12 +439,12 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	}
 
 	public void prepareAndExecuteRebuildTask() {
-		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
+		final PackedInputRegion region = PackedInputRegion.claim(cwr.getWorld(), origin);
 
 		// Idle region is signal to reschedule
 		// If region is something other than idle, we are already in the queue
 		// and we only need to update the input protoRegion (which we do here.)
-		if (buildState.getAndSet(region) == SignalRegion.IDLE) {
+		if (inputState.getAndSet(region) == SignalInputRegion.IDLE) {
 			renderRegionBuilder.executor.execute(this);
 		}
 
@@ -455,7 +464,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	 * @return true if a resort was scheduled
 	 */
 	public boolean scheduleSort(int sortPositionVersion) {
-		final RegionData regionData = buildData.get();
+		final RegionBuildState regionData = buildData.get();
 
 		if (sortPositionVersion == this.sortPositionVersion) {
 			return false;
@@ -463,7 +472,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 		this.sortPositionVersion = sortPositionVersion;
 
-		if (regionData.translucentState != null && buildState.compareAndSet(SignalRegion.IDLE, SignalRegion.RESORT_ONLY)) {
+		if (regionData.translucentState != null && inputState.compareAndSet(SignalInputRegion.IDLE, SignalInputRegion.RESORT_ONLY)) {
 			// null means need to reschedule, otherwise was already scheduled for either
 			// resort or rebuild, or is invalid, not ready to be built.
 			renderRegionBuilder.executor.execute(this);
@@ -474,8 +483,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	}
 
 	protected void cancel() {
-		buildState.set(SignalRegion.INVALID);
-		buildState = new AtomicReference<>(SignalRegion.IDLE);
+		inputState.set(SignalInputRegion.INVALID);
+		inputState = new AtomicReference<>(SignalInputRegion.IDLE);
 	}
 
 	@Override
@@ -485,27 +494,27 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 	@Override
 	public void run(TerrainRenderContext context) {
-		final AtomicReference<ProtoRenderRegion> runningState = buildState;
-		final ProtoRenderRegion protoRegion = runningState.getAndSet(SignalRegion.IDLE);
+		final AtomicReference<PackedInputRegion> runningState = inputState;
+		final PackedInputRegion protoRegion = runningState.getAndSet(SignalInputRegion.IDLE);
 
-		if (protoRegion == null || protoRegion == SignalRegion.INVALID) {
+		if (protoRegion == null || protoRegion == SignalInputRegion.INVALID) {
 			return;
 		}
 
-		if (protoRegion == SignalRegion.EMPTY) {
-			final RegionData chunkData = new RegionData();
+		if (protoRegion == SignalInputRegion.EMPTY) {
+			final RegionBuildState chunkData = new RegionBuildState();
 			chunkData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
-			final RegionData oldBuildData = buildData.getAndSet(chunkData);
+			final RegionBuildState oldBuildData = buildData.getAndSet(chunkData);
 
-			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
+			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-					final int oldCounter = buildCount;
-					buildCount = BUILD_COUNTER.incrementAndGet();
-					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (WT empty)");
+					final int oldCounter = buildVersion;
+					buildVersion = BUILD_COUNTER.incrementAndGet();
+					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildVersion + " @" + origin.toShortString() + "  (WT empty)");
 				} else {
-					buildCount = BUILD_COUNTER.incrementAndGet();
+					buildVersion = BUILD_COUNTER.incrementAndGet();
 				}
 
 				// Even if empty the chunk may still be needed for visibility search to progress
@@ -534,8 +543,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			return;
 		}
 
-		if (protoRegion == SignalRegion.RESORT_ONLY) {
-			final RegionData regionData = buildData.get();
+		if (protoRegion == SignalInputRegion.RESORT_ONLY) {
+			final RegionBuildState regionData = buildData.get();
 			final int[] state = regionData.translucentState;
 
 			if (state != null) {
@@ -551,7 +560,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 				) {
 					regionData.translucentState = collector.saveState(state);
 
-					if (runningState.get() != SignalRegion.INVALID) {
+					if (runningState.get() != SignalInputRegion.INVALID) {
 						final UploadableChunk upload = collectors.toUploadableChunk(true);
 
 						if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
@@ -575,11 +584,11 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			}
 		} else {
 			context.prepareRegion(protoRegion);
-			final RegionData chunkData = buildRegionData(context, isNear());
+			final RegionBuildState chunkData = buildRegionData(context, isNear());
 
 			final VertexCollectorList collectors = context.collectors;
 
-			if (runningState.get() == SignalRegion.INVALID) {
+			if (runningState.get() == SignalInputRegion.INVALID) {
 				collectors.clear();
 				protoRegion.release();
 				return;
@@ -587,7 +596,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 
 			buildTerrain(context, chunkData);
 
-			if (runningState.get() != SignalRegion.INVALID) {
+			if (runningState.get() != SignalInputRegion.INVALID) {
 				final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
 				final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
 
@@ -613,21 +622,21 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		}
 	}
 
-	private RegionData buildRegionData(TerrainRenderContext context, boolean isNear) {
-		final RegionData regionData = new RegionData();
+	private RegionBuildState buildRegionData(TerrainRenderContext context, boolean isNear) {
+		final RegionBuildState regionData = new RegionBuildState();
 		regionData.complete(context.region.occlusion.build(isNear));
 		handleBlockEntities(regionData, context);
 
 		// don't rebuild occlusion if occlusion did not change
-		final RegionData oldBuildData = buildData.getAndSet(regionData);
+		final RegionBuildState oldBuildData = buildData.getAndSet(regionData);
 
-		if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+		if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
 			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-				final int oldCounter = buildCount;
-				buildCount = BUILD_COUNTER.incrementAndGet();
-				CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString());
+				final int oldCounter = buildVersion;
+				buildVersion = BUILD_COUNTER.incrementAndGet();
+				CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildVersion + " @" + origin.toShortString());
 			} else {
-				buildCount = BUILD_COUNTER.incrementAndGet();
+				buildVersion = BUILD_COUNTER.incrementAndGet();
 			}
 
 			notifyCameraVisibilityProgressionIfNeeded();
@@ -636,7 +645,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		return regionData;
 	}
 
-	private void buildTerrain(TerrainRenderContext context, RegionData regionData) {
+	private void buildTerrain(TerrainRenderContext context, RegionBuildState regionData) {
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startChunk();
 		}
@@ -648,7 +657,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		final int yOrigin = origin.getY();
 		final int zOrigin = origin.getZ();
 
-		final FastRenderRegion region = context.region;
+		final InputRegion region = context.region;
 		final MatrixStack matrixStack = new MatrixStack();
 		final MatrixStack.Entry entry = matrixStack.peek();
 		final Matrix4f modelMatrix = entry.getModel();
@@ -703,7 +712,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		}
 	}
 
-	private void handleBlockEntities(RegionData regionData, TerrainRenderContext context) {
+	private void handleBlockEntities(RegionBuildState regionData, TerrainRenderContext context) {
 		final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = context.nonCullBlockEntities;
 		final ObjectArrayList<BlockEntity> regionDataBlockEntities = regionData.blockEntities;
 
@@ -746,22 +755,22 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	}
 
 	public void rebuildOnMainThread() {
-		final ProtoRenderRegion region = ProtoRenderRegion.claim(cwr.getWorld(), origin);
+		final PackedInputRegion region = PackedInputRegion.claim(cwr.getWorld(), origin);
 
-		if (region == SignalRegion.EMPTY) {
-			final RegionData regionData = new RegionData();
+		if (region == SignalInputRegion.EMPTY) {
+			final RegionBuildState regionData = new RegionBuildState();
 			regionData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
-			final RegionData oldBuildData = buildData.getAndSet(regionData);
+			final RegionBuildState oldBuildData = buildData.getAndSet(regionData);
 
-			if (oldBuildData == RegionData.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
 				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-					final int oldCounter = buildCount;
-					buildCount = BUILD_COUNTER.incrementAndGet();
-					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildCount + " @" + origin.toShortString() + "  (MTR empty)");
+					final int oldCounter = buildVersion;
+					buildVersion = BUILD_COUNTER.incrementAndGet();
+					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildVersion + " @" + origin.toShortString() + "  (MTR empty)");
 				} else {
-					buildCount = BUILD_COUNTER.incrementAndGet();
+					buildVersion = BUILD_COUNTER.incrementAndGet();
 				}
 
 				// Even if empty the chunk may still be needed for visibility search to progress
@@ -769,7 +778,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 			}
 		} else {
 			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
-			final RegionData regionData = buildRegionData(context, isNear());
+			final RegionBuildState regionData = buildRegionData(context, isNear());
 
 			buildTerrain(context, regionData);
 
@@ -796,8 +805,8 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		markBuilt();
 	}
 
-	public BuiltRenderRegion getNeighbor(int faceIndex) {
-		BuiltRenderRegion region = neighbors[faceIndex];
+	public RenderRegion getNeighbor(int faceIndex) {
+		RenderRegion region = neighbors[faceIndex];
 
 		if (region == null || region.isClosed) {
 			if ((faceIndex == FaceConstants.UP_INDEX && isTop) || (faceIndex == FaceConstants.DOWN_INDEX && isBottom)) {
@@ -813,21 +822,21 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 		return region;
 	}
 
-	private void attachOrConfirmVisitingNeighbor(int visitingFaceIndex, BuiltRenderRegion visitingNeighbor) {
+	private void attachOrConfirmVisitingNeighbor(int visitingFaceIndex, RenderRegion visitingNeighbor) {
 		assert neighbors[visitingFaceIndex] == null || neighbors[visitingFaceIndex] == visitingNeighbor
 			: "Visting render region is attaching to a position that already has a non-null region";
 
 		neighbors[visitingFaceIndex] = visitingNeighbor;
 	}
 
-	private void notifyNeighborClosed(int closedFaceIndex, BuiltRenderRegion closingNeighbor) {
+	private void notifyNeighborClosed(int closedFaceIndex, RenderRegion closingNeighbor) {
 		assert neighbors[closedFaceIndex] == closingNeighbor
 			: "Closing neighbor render region does not match current attachment";
 
 		neighbors[closedFaceIndex] = null;
 	}
 
-	public RegionData getBuildData() {
+	public RegionBuildState getBuildState() {
 		return buildData.get();
 	}
 
@@ -898,7 +907,7 @@ public class BuiltRenderRegion implements TerrainExecutorTask, PotentiallyVisibl
 	}
 
 	public void addToShadowPvsIfValid() {
-		final ShadowPotentiallyVisibleRegionSet<BuiltRenderRegion> shadowPVS = storage.shadowPVS;
+		final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS = storage.shadowPVS;
 		final int pvsVersion = shadowPVS.version();
 
 		// The frustum version check is necessary to skip regions without valid info.

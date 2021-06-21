@@ -23,7 +23,7 @@ import com.google.common.collect.Sets;
 
 import net.minecraft.util.Util;
 
-import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegion;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 /**
@@ -33,7 +33,7 @@ import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
  * are exclusively a camera-view concept.
  */
 public class RegionRebuildManager {
-	private final Set<BuiltRenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
+	private final Set<RenderRegion> regionsToRebuild = Sets.newLinkedHashSet();
 
 	/**
 	 * Iterates the given list of regions and if a region requires an urgent
@@ -52,16 +52,16 @@ public class RegionRebuildManager {
 	 *
 	 * @param updateRegions list of regions potentially needing rebuilt
 	 */
-	void scheduleOrBuild(SimpleUnorderedArrayList<BuiltRenderRegion> updateRegions) {
+	void scheduleOrBuild(SimpleUnorderedArrayList<RenderRegion> updateRegions) {
 		final int limit = updateRegions.size();
-		final Set<BuiltRenderRegion> regionsToRebuild = this.regionsToRebuild;
+		final Set<RenderRegion> regionsToRebuild = this.regionsToRebuild;
 
 		if (limit == 0) {
 			return;
 		}
 
 		for (int i = 0; i < limit; ++i) {
-			final BuiltRenderRegion region = updateRegions.get(i);
+			final RenderRegion region = updateRegions.get(i);
 
 			if (region.needsRebuild()) {
 				if (region.needsImportantRebuild() || region.isNear()) {
@@ -83,7 +83,7 @@ public class RegionRebuildManager {
 	 *
 	 * @param region Region to be checked and rebuilt.
 	 */
-	void buildNearRegionIfNeeded(BuiltRenderRegion region) {
+	void buildNearRegionIfNeeded(RenderRegion region) {
 		if (region.needsRebuild()) {
 			regionsToRebuild.remove(region);
 			region.rebuildOnMainThread();
@@ -102,16 +102,16 @@ public class RegionRebuildManager {
 	 * Processing will end when the system nanotime exceeds this value.
 	 */
 	void processScheduledRegions(long endNanos) {
-		final Set<BuiltRenderRegion> regionsToRebuild = this.regionsToRebuild;
+		final Set<RenderRegion> regionsToRebuild = this.regionsToRebuild;
 
 		//final long start = Util.getMeasuringTimeNano();
 		//int builtCount = 0;
 
 		if (!regionsToRebuild.isEmpty()) {
-			final Iterator<BuiltRenderRegion> iterator = regionsToRebuild.iterator();
+			final Iterator<RenderRegion> iterator = regionsToRebuild.iterator();
 
 			while (iterator.hasNext()) {
-				final BuiltRenderRegion builtRegion = iterator.next();
+				final RenderRegion builtRegion = iterator.next();
 
 				if (builtRegion.needsImportantRebuild()) {
 					builtRegion.rebuildOnMainThread();

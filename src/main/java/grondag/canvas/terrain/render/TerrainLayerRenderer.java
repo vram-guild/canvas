@@ -24,7 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
-import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.varia.GFX;
 
 public class TerrainLayerRenderer {
@@ -56,7 +56,7 @@ public class TerrainLayerRenderer {
 		int ox = 0, oy = 0, oz = 0;
 
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
-			final BuiltRenderRegion builtRegion = visibleRegions.get(regionIndex);
+			final RenderRegion builtRegion = visibleRegions.get(regionIndex);
 
 			if (builtRegion == null) {
 				continue;

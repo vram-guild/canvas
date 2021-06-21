@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.region;
+package grondag.canvas.terrain.region.input;
 
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.EXTERIOR_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.INTERIOR_STATE_COUNT;
@@ -47,7 +47,7 @@ import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
 // FIX: should not allow direct world access, esp from non-main threads
-public class FastRenderRegion extends AbstractRenderRegion implements RenderAttachedBlockView {
+public class InputRegion extends AbstractInputRegion implements RenderAttachedBlockView {
 	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_STATE_COUNT];
 	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_STATE_COUNT];
 	private static final Object[] EMPTY_RENDER_DATA = new Object[INTERIOR_STATE_COUNT];
@@ -76,7 +76,7 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 			final int x = (xyz5 & 31) - REGION_PADDING;
 			final int y = ((xyz5 >> 5) & 31) - REGION_PADDING;
 			final int z = ((xyz5 >> 10) & 31) - REGION_PADDING;
-			return blockState.isOpaqueFullCube(FastRenderRegion.this, searchPos.set(originX + x, originY + y, originZ + z));
+			return blockState.isOpaqueFullCube(InputRegion.this, searchPos.set(originX + x, originY + y, originZ + z));
 		}
 	};
 
@@ -84,28 +84,28 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 	private final int[] aoCache = new int[TOTAL_STATE_COUNT];
 	private final int[] lightCache = new int[TOTAL_STATE_COUNT];
 
-	public FastRenderRegion(TerrainRenderContext terrainContext) {
+	public InputRegion(TerrainRenderContext terrainContext) {
 		this.terrainContext = terrainContext;
 	}
 
-	public void prepare(ProtoRenderRegion protoRegion) {
-		System.arraycopy(protoRegion.chunks, 0, chunks, 0, 16);
+	public void prepare(PackedInputRegion packedRegion) {
+		System.arraycopy(packedRegion.chunks, 0, chunks, 0, 16);
 		System.arraycopy(EMPTY_BLOCK_ENTITIES, 0, blockEntities, 0, INTERIOR_STATE_COUNT);
 		System.arraycopy(EMPTY_RENDER_DATA, 0, renderData, 0, INTERIOR_STATE_COUNT);
 		System.arraycopy(EMPTY_AO_CACHE, 0, aoCache, 0, TOTAL_STATE_COUNT);
 		System.arraycopy(EMPTY_LIGHT_CACHE, 0, lightCache, 0, TOTAL_STATE_COUNT);
 
-		world = protoRegion.world;
+		world = packedRegion.world;
 
-		originX = protoRegion.originX;
-		originY = protoRegion.originY;
-		originZ = protoRegion.originZ;
+		originX = packedRegion.originX;
+		originY = packedRegion.originY;
+		originZ = packedRegion.originZ;
 
-		chunkBaseX = protoRegion.chunkBaseX;
-		baseSectionIndex = protoRegion.baseSectionIndex;
-		chunkBaseZ = protoRegion.chunkBaseZ;
+		chunkBaseX = packedRegion.chunkBaseX;
+		baseSectionIndex = packedRegion.baseSectionIndex;
+		chunkBaseZ = packedRegion.chunkBaseZ;
 
-		final PaletteCopy pc = protoRegion.takePaletteCopy();
+		final PaletteCopy pc = packedRegion.takePaletteCopy();
 
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {
@@ -117,14 +117,14 @@ public class FastRenderRegion extends AbstractRenderRegion implements RenderAtta
 
 		pc.release();
 
-		System.arraycopy(protoRegion.states, 0, states, INTERIOR_STATE_COUNT, EXTERIOR_STATE_COUNT);
+		System.arraycopy(packedRegion.states, 0, states, INTERIOR_STATE_COUNT, EXTERIOR_STATE_COUNT);
 
-		copyBeData(protoRegion);
+		copyBeData(packedRegion);
 
 		occlusion.prepare();
 	}
 
-	private void copyBeData(ProtoRenderRegion protoRegion) {
+	private void copyBeData(PackedInputRegion protoRegion) {
 		final ShortArrayList blockEntityPos = protoRegion.blockEntityPos;
 
 		if (!blockEntityPos.isEmpty()) {

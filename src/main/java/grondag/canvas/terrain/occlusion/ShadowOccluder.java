@@ -44,7 +44,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
-import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegion;
 
 public class ShadowOccluder extends BoxOccluder {
 	private final Matrix4f shadowViewMatrix = new Matrix4f();
@@ -144,7 +144,7 @@ public class ShadowOccluder extends BoxOccluder {
 		return super.isEmptyRegionVisible(origin.getX(), origin.getY(), origin.getZ());
 	}
 
-	public int cascadeFlags(BuiltRenderRegion region) {
+	public int cascadeFlags(RenderRegion region) {
 		// Compute center position in light space
 		final Vector4f lightSpaceRegionCenter = new Vector4f();
 		lightSpaceRegionCenter.set(region.cameraRelativeCenterX, region.cameraRelativeCenterY, region.cameraRelativeCenterZ, 1.0f);

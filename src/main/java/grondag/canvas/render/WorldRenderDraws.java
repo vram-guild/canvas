@@ -42,7 +42,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
-import grondag.canvas.terrain.region.BuiltRenderRegion;
+import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.varia.GFX;
 
@@ -91,13 +91,13 @@ public class WorldRenderDraws {
 		}
 
 		final BlockPos pos = ((BlockHitResult) (hit)).getBlockPos();
-		final BuiltRenderRegion region = renderRegionStorage.getRegionIfExists(pos);
+		final RenderRegion region = renderRegionStorage.getRegionIfExists(pos);
 
 		if (region == null) {
 			return;
 		}
 
-		final int[] boxes = region.getBuildData().getOcclusionData();
+		final int[] boxes = region.getBuildState().getOcclusionData();
 
 		if (boxes == null || boxes.length < RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX) {
 			return;

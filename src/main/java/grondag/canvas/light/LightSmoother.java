@@ -20,7 +20,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.terrain.region.FastRenderRegion;
+import grondag.canvas.terrain.region.input.InputRegion;
 
 // TODO: look at VoxelShapes.method_1080 as a way to not propagate thru slabs
 // Also BlockState.hasSidedTransparency seems promising
@@ -38,7 +38,7 @@ public class LightSmoother {
 	private static final int OUTER_DIST = (0xFFFF - INNER_DIST) / 2;
 	private static final int INNER_PLUS = INNER_DIST + OUTER_DIST;
 
-	public static void computeSmoothedBrightness(FastRenderRegion region) {
+	public static void computeSmoothedBrightness(InputRegion region) {
 		final Helper help = helpers.get();
 		final BlockPos.Mutable smoothPos = help.smoothPos;
 		final int[] sky = help.a;
