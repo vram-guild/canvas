@@ -91,8 +91,6 @@ class ConfigData {
 	boolean debugOcclusionBoxes = false;
 	@Comment("White stained glass occludes terrain. Use to debug terrain occlusion.")
 	boolean renderWhiteGlassAsOccluder = false;
-	@Comment("Log various region/occluder tests and status changes. Highly verbose and WILL spam the log. Requires restart.")
-	boolean traceOcclusionOutcomes = false;
 	@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
 	boolean traceOcclusionEdgeCases = false;
 	@Comment("Log uniforms not found in shaders. Sometimes useful for shader debug. Will spam the log.")

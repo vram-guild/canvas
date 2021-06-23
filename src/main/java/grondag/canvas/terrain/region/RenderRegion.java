@@ -46,18 +46,13 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasWorldRenderer;
-import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
-import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
-import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.region.input.InputRegion;
@@ -73,13 +68,16 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegion {
 	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
 
-	final CanvasWorldRenderer cwr;
 	private final RenderRegionBuilder renderRegionBuilder;
+
+	final CanvasWorldRenderer cwr;
 	final RenderRegionStorage storage;
 	final TerrainOccluder cameraOccluder;
-	final RenderRegionChunk renderRegionChunk;
+	final RenderChunk renderChunk;
+
 	public final RegionPosition origin;
-	public final RenderRegionNeighbors neighbors;
+	public final RegionVisibility visibility;
+	public final NeighborRegions neighbors;
 
 	/**
 	 * Set by main thread during schedule. Retrieved and set to null by worker
@@ -91,12 +89,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 	private final AtomicReference<RegionBuildState> buildState;
 	private final ObjectOpenHashSet<BlockEntity> localNoCullingBlockEntities = new ObjectOpenHashSet<>();
-
-	private int cameraOcclusionVersion;
-	private boolean cameraOccluderResult;
-	private int sortPositionVersion = -1;
-
-	private boolean isNeededForCameraVisibilityProgression = false;
 
 	/**
 	 * Indicates the region is not current with world state.
@@ -114,75 +106,24 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private boolean needsImportantRebuild;
 	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
-	private int lastSeenCameraPvsVersion;
+
 	boolean isClosed = false;
 
 	/** Incremented when this region is built and the occlusion data changes (including first time). */
 	private int buildVersion = -1;
 
-	/** Build version that was in effect last time drawn to occluder. */
-	private int cameraOcclusionBuildVersion;
-
-	/** Concatenated bit flags marking the shadow cascades that include this region. */
-	private int shadowCascadeFlags;
-
-	private int lastSeenShadowPvsVersion;
-	private int shadowOccluderVersion;
-	private boolean shadowOccluderResult;
-	private int shadowOcclusionBuildVersion;
-
-	public RenderRegion(RenderRegionChunk chunk, long packedPos) {
+	public RenderRegion(RenderChunk chunk, long packedPos) {
 		cwr = chunk.storage.cwr;
 		cameraOccluder = cwr.terrainIterator.cameraOccluder;
 		renderRegionBuilder = cwr.regionBuilder();
 		storage = chunk.storage;
 		storage.trackRegionLoaded();
-		renderRegionChunk = chunk;
+		renderChunk = chunk;
 		buildState = new AtomicReference<>(RegionBuildState.UNBUILT);
 		needsRebuild = true;
 		origin = new RegionPosition(packedPos, this);
-		neighbors = new RenderRegionNeighbors(this);
-	}
-
-	public void setCameraOccluderResult(boolean occluderResult, int occluderVersion) {
-		if (cameraOcclusionVersion == occluderVersion) {
-			assert occluderResult == cameraOccluderResult;
-		} else {
-			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-				final String prefix = buildState.get().canOcclude() ? "Occluding result " : "Empty result ";
-				CanvasMod.LOG.info(prefix + occluderResult + "  dist=" + origin.squaredCameraChunkDistance() + "  buildCounter=" + buildVersion + "  occluderVersion=" + occluderVersion + "  @" + origin.toShortString());
-			}
-
-			cameraOccluderResult = occluderResult;
-			cameraOcclusionVersion = occluderVersion;
-			cameraOcclusionBuildVersion = buildVersion;
-		}
-	}
-
-	public void setShadowOccluderResult(boolean occluderResult, int occluderVersion) {
-		if (shadowOccluderVersion == occluderVersion) {
-			assert occluderResult == shadowOccluderResult;
-		} else {
-			shadowOccluderResult = occluderResult;
-			shadowOccluderVersion = occluderVersion;
-			shadowOcclusionBuildVersion = buildVersion;
-		}
-	}
-
-	public boolean cameraOccluderResult() {
-		return cameraOccluderResult;
-	}
-
-	public boolean shadowOccluderResult() {
-		return shadowOccluderResult;
-	}
-
-	public boolean matchesCameraOccluderVersion(int occluderVersion) {
-		return cameraOcclusionVersion == occluderVersion;
-	}
-
-	public boolean matchesShadowOccluderVersion(int occluderVersion) {
-		return shadowOccluderVersion == occluderVersion;
+		neighbors = new NeighborRegions(this);
+		visibility = new RegionVisibility(this);
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -198,77 +139,16 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	}
 
 	/**
-	 * Called by terrain iterator when this region is needed for terrain iteration to progress.
-	 * When this region completes building or when a build is cancelled, will trigger a visibility update.
-	 */
-	public void markNeededForCameraVisibilityProgression() {
-		isNeededForCameraVisibilityProgression = true;
-	}
-
-	private void notifyCameraVisibilityProgressionIfNeeded() {
-		if (isNeededForCameraVisibilityProgression) {
-			isNeededForCameraVisibilityProgression = false;
-			cwr.forceVisibilityUpdate();
-		}
-	}
-
-	public boolean wasRecentlySeenFromCamera() {
-		return storage.cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult;
-	}
-
-	/**
 	 * Regions should not be built unless or until this is true.
 	 * @return True if nearby or if all neighbors are loaded.
 	 */
 	public boolean isNearOrHasLoadedNeighbors() {
-		return origin.isNear() || renderRegionChunk.areCornersLoaded();
+		return origin.isNear() || renderChunk.areCornersLoaded();
 	}
 
-	void updateCameraDistanceAndVisibilityInfo() {
+	void updatePositionAndVisibility() {
 		origin.update();
-		invalidateCameraOccluderIfNeeded();
-		shadowCascadeFlags = Pipeline.shadowsEnabled() ? cwr.terrainIterator.shadowOccluder.cascadeFlags(origin) : 0;
-	}
-
-	/**
-	 * We check here to know if the occlusion raster must be redrawn.
-	 *
-	 * <p>The check depends on classifying this region as one of:<ul>
-	 *   <li>new - has not been drawn in raster - occluder version doesn't match
-	 *   <li>existing - has been drawn in rater - occluder version matches</ul>
-	 *
-	 * <p>The raster must be redrawn if either is true:<ul>
-	 *   <li>A new chunk has a chunk distance less than the current max drawn (we somehow went backwards towards the camera)
-	 *   <li>An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing</ul>
-	 */
-	private void invalidateCameraOccluderIfNeeded() {
-		// WIP track shadow invalidation separately - may change without camera movement
-
-		if (origin.isPotentiallyVisibleFromCamera() && buildState.get().canOcclude()) {
-			if (cameraOcclusionVersion == storage.cameraOcclusionVersion()) {
-				// Existing - has been drawn in occlusion raster
-				if (buildVersion != cameraOcclusionBuildVersion) {
-					if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-						CanvasMod.LOG.info("Invalidate - redraw: " + origin.toShortString() + "  occluder version:" + cameraOcclusionVersion);
-					}
-
-					storage.invalidateCameraOccluder();
-					storage.invalidateShadowOccluder();
-				}
-			} else if (origin.squaredCameraChunkDistance() < storage.maxSquaredCameraChunkDistance()) {
-				// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been
-				// Need to invalidate the occlusion raster if both things are true:
-				//   1) This region isn't empty (empty regions don't matter for culling)
-				//   2) This region is in the view frustum
-
-				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-					CanvasMod.LOG.info("Invalidate - backtrack: " + origin.toShortString() + "  occluder max:" + storage.maxSquaredCameraChunkDistance()
-						+ "  chunk max:" + origin.squaredCameraChunkDistance() + "  occlusion version:" + storage.cameraOcclusionVersion() + "  chunk version:" + cameraOcclusionVersion);
-				}
-
-				storage.invalidateCameraOccluder();
-			}
-		}
+		visibility.update();
 	}
 
 	void close() {
@@ -346,11 +226,9 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	public boolean scheduleSort(int sortPositionVersion) {
 		final RegionBuildState regionData = buildState.get();
 
-		if (sortPositionVersion == this.sortPositionVersion) {
+		if (!origin.checkAndUpdateSortNeeded(sortPositionVersion)) {
 			return false;
 		}
-
-		this.sortPositionVersion = sortPositionVersion;
 
 		if (regionData.translucentState != null && inputState.compareAndSet(SignalInputRegion.IDLE, SignalInputRegion.RESORT_ONLY)) {
 			// null means need to reschedule, otherwise was already scheduled for either
@@ -389,16 +267,10 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			final RegionBuildState oldBuildData = buildState.getAndSet(chunkData);
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
-				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-					final int oldCounter = buildVersion;
-					buildVersion = BUILD_COUNTER.incrementAndGet();
-					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildVersion + " @" + origin.toShortString() + "  (WT empty)");
-				} else {
-					buildVersion = BUILD_COUNTER.incrementAndGet();
-				}
+				buildVersion = BUILD_COUNTER.incrementAndGet();
 
 				// Even if empty the chunk may still be needed for visibility search to progress
-				notifyCameraVisibilityProgressionIfNeeded();
+				visibility.notifyOfOcclusionChange();
 			}
 
 			return;
@@ -406,7 +278,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 		// If we are no longer in potentially visible region, abort build and restore needsRebuild.
 		// We also don't force a vis update here because, obviously, we can't affect it.
-		if (!origin.isPotentiallyVisibleFromCamera() && !isPotentiallyVisibleFromSkylight()) {
+		if (!origin.isPotentiallyVisibleFromCamera() && !visibility.isPotentiallyVisibleFromSkylight()) {
 			protoRegion.release();
 			// Causes region to be rescheduled if/when it comes back into view
 			markForBuild(false);
@@ -419,7 +291,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			markForBuild(false);
 			protoRegion.release();
 			// May need visibility to restart if it was waiting for this region to progress
-			notifyCameraVisibilityProgressionIfNeeded();
+			// WIP: is this really needed here if the rebuild is being rescheduled?
+			visibility.notifyOfOcclusionChange();
 			return;
 		}
 
@@ -463,8 +336,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 				collectors.clear();
 			}
 		} else {
-			context.prepareRegion(protoRegion);
-			final RegionBuildState chunkData = buildRegionData(context, origin.isNear());
+			context.prepareForRegion(protoRegion);
+			final RegionBuildState chunkData = captureBuildState(context, origin.isNear());
 
 			final VertexCollectorList collectors = context.collectors;
 
@@ -502,27 +375,20 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		}
 	}
 
-	private RegionBuildState buildRegionData(TerrainRenderContext context, boolean isNear) {
-		final RegionBuildState regionData = new RegionBuildState();
-		regionData.complete(context.region.occlusion.build(isNear));
-		handleBlockEntities(regionData, context);
+	private RegionBuildState captureBuildState(TerrainRenderContext context, boolean isNear) {
+		final RegionBuildState newBuildState = new RegionBuildState();
+		newBuildState.complete(context.region.occlusion.build(isNear));
+		handleBlockEntities(newBuildState, context);
 
 		// don't rebuild occlusion if occlusion did not change
-		final RegionBuildState oldBuildData = buildState.getAndSet(regionData);
+		final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
-		if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
-			if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-				final int oldCounter = buildVersion;
-				buildVersion = BUILD_COUNTER.incrementAndGet();
-				CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildVersion + " @" + origin.toShortString());
-			} else {
-				buildVersion = BUILD_COUNTER.incrementAndGet();
-			}
-
-			notifyCameraVisibilityProgressionIfNeeded();
+		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
+			buildVersion = BUILD_COUNTER.incrementAndGet();
+			visibility.notifyOfOcclusionChange();
 		}
 
-		return regionData;
+		return newBuildState;
 	}
 
 	private void buildTerrain(TerrainRenderContext context, RegionBuildState regionData) {
@@ -645,20 +511,14 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			final RegionBuildState oldBuildData = buildState.getAndSet(regionData);
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
-				if (TerrainIterator.TRACE_OCCLUSION_OUTCOMES) {
-					final int oldCounter = buildVersion;
-					buildVersion = BUILD_COUNTER.incrementAndGet();
-					CanvasMod.LOG.info("Updating build counter from " + oldCounter + " to " + buildVersion + " @" + origin.toShortString() + "  (MTR empty)");
-				} else {
-					buildVersion = BUILD_COUNTER.incrementAndGet();
-				}
+				buildVersion = BUILD_COUNTER.incrementAndGet();
 
 				// Even if empty the chunk may still be needed for visibility search to progress
-				notifyCameraVisibilityProgressionIfNeeded();
+				visibility.notifyOfOcclusionChange();
 			}
 		} else {
-			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareRegion(region);
-			final RegionBuildState regionData = buildRegionData(context, origin.isNear());
+			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(region);
+			final RegionBuildState regionData = captureBuildState(context, origin.isNear());
 
 			buildTerrain(context, regionData);
 
@@ -697,51 +557,12 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		return solidDrawable;
 	}
 
-	public void addToCameraPvsIfValid() {
-		// Previously checked for r.squaredChunkDistance > squaredChunkDistance
-		// but some progression patterns seem to require it or chunks are missed.
-		// This is probably because a nearer path has an occlude chunk and so it
-		// has to be found reaching around. This will cause some backtracking and
-		// thus redraw of the occluder, but that already happens and is handled.
-
-		final CameraPotentiallyVisibleRegionSet cameraPVS = storage.cameraPVS;
-		final int pvsVersion = cameraPVS.version();
-
-		// The frustum version check is necessary to skip regions without valid info.
-		// WIP: is frustum version check still correct/needed?
-		if (lastSeenCameraPvsVersion != pvsVersion && origin.hasValidFrustumVersion()) {
-			lastSeenCameraPvsVersion = pvsVersion;
-			cameraPVS.add(this);
-		}
-	}
-
-	public void addToShadowPvsIfValid() {
-		final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS = storage.shadowPVS;
-		final int pvsVersion = shadowPVS.version();
-
-		// The frustum version check is necessary to skip regions without valid info.
-		// WIP: is frustum version check still correct/needed?
-		if (lastSeenShadowPvsVersion != pvsVersion && origin.hasValidFrustumVersion()) {
-			lastSeenShadowPvsVersion = pvsVersion;
-			shadowPVS.add(this);
-		}
-	}
-
-	/** For debugging. */
-	public boolean sharesOriginWith(int blockX, int blockY, int blockZ) {
-		return origin.getX() >> 4 == blockX >> 4 && origin.getY() >> 4 == blockY >> 4 && origin.getZ() >> 4 == blockZ >> 4;
-	}
-
 	@Override
 	public BlockPos origin() {
 		return origin;
 	}
 
-	public int shadowCascadeFlags() {
-		return shadowCascadeFlags;
-	}
-
-	public boolean isPotentiallyVisibleFromSkylight() {
-		return origin.isInsideRenderDistance() & shadowCascadeFlags != 0;
+	public int buildVersion() {
+		return buildVersion;
 	}
 }

@@ -53,14 +53,14 @@ public class RenderRegionStorage {
 
 	private int cameraRegionVersion = 1;
 
-	private final RenderRegionChunk[] chunks = new RenderRegionChunk[RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT];
-	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT);
+	private final RenderChunk[] chunks = new RenderChunk[RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT];
+	private final ArrayBlockingQueue<RenderChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT);
 
 	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer) {
 		cwr = canvasWorldRenderer;
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
-			chunks[i] = new RenderRegionChunk(this);
+			chunks[i] = new RenderChunk(this);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class RenderRegionStorage {
 		cameraPVS.clear();
 		shadowPVS.clear();
 
-		for (final RenderRegionChunk chunk : chunks) {
+		for (final RenderChunk chunk : chunks) {
 			chunk.close();
 		}
 	}
@@ -134,7 +134,7 @@ public class RenderRegionStorage {
 		maxSquaredCameraChunkDistance = cameraOccluder.maxSquaredChunkDistance();
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
-			chunks[i].updateCameraDistanceAndVisibilityInfo();
+			chunks[i].updatePositionAndVisibility();
 		}
 
 		if (didInvalidateCameraOccluder) {
@@ -170,15 +170,15 @@ public class RenderRegionStorage {
 
 	public boolean wasSeenFromCamera(int x, int y, int z) {
 		final RenderRegion r = getRegionIfExists(x, y, z);
-		return r != null && r.wasRecentlySeenFromCamera();
+		return r != null && r.visibility.wasRecentlySeenFromCamera();
 	}
 
-	public void scheduleClose(RenderRegionChunk chunk) {
+	public void scheduleClose(RenderChunk chunk) {
 		closeQueue.offer(chunk);
 	}
 
 	public void closeRegionsOnRenderThread() {
-		RenderRegionChunk chunk = closeQueue.poll();
+		RenderChunk chunk = closeQueue.poll();
 
 		while (chunk != null) {
 			chunk.close();

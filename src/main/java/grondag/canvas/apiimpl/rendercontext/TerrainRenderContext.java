@@ -81,7 +81,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		collectors = new VertexCollectorList();
 	}
 
-	public TerrainRenderContext prepareRegion(PackedInputRegion protoRegion) {
+	public TerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {
 		nonCullBlockEntities.clear();
 		addedBlockEntities.clear();
 		removedBlockEntities.clear();

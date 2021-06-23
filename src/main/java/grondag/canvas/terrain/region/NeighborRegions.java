@@ -28,13 +28,13 @@ import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.varia.BlockPosHelper;
 
 /** Caches directly adjacent regions for fast access and provides visitor operations for terrain iteration. */
-public class RenderRegionNeighbors {
+public class NeighborRegions {
 	private final RenderRegion owner;
 	private final boolean isBottom;
 	private final boolean isTop;
 	private final RenderRegion[] neighbors = new RenderRegion[6];
 
-	RenderRegionNeighbors(RenderRegion owner) {
+	NeighborRegions(RenderRegion owner) {
 		this.owner = owner;
 		BlockPos origin = owner.origin();
 		ClientWorld world = owner.cwr.getWorld();
@@ -52,13 +52,18 @@ public class RenderRegionNeighbors {
 		}
 	}
 
-	public void forEachNonNull(Consumer<RenderRegion> operation) {
-		for (int i = 0; i < 6; ++i) {
-			final RenderRegion r = getNeighbor(i);
+	public void forEachAvailable(Consumer<RenderRegion> operation) {
+		operation.accept(getNeighbor(FaceConstants.EAST_INDEX));
+		operation.accept(getNeighbor(FaceConstants.WEST_INDEX));
+		operation.accept(getNeighbor(FaceConstants.NORTH_INDEX));
+		operation.accept(getNeighbor(FaceConstants.SOUTH_INDEX));
 
-			if (r != null) {
-				operation.accept(r);
-			}
+		if (!isTop) {
+			operation.accept(getNeighbor(FaceConstants.UP_INDEX));
+		}
+
+		if (!isBottom) {
+			operation.accept(getNeighbor(FaceConstants.DOWN_INDEX));
 		}
 	}
 
@@ -66,9 +71,10 @@ public class RenderRegionNeighbors {
 		RenderRegion region = neighbors[faceIndex];
 
 		if (region == null || region.isClosed) {
-			if ((faceIndex == FaceConstants.UP_INDEX && isTop) || (faceIndex == FaceConstants.DOWN_INDEX && isBottom)) {
-				return null;
-			}
+			// this check is now done in all callers
+			//if ((faceIndex == FaceConstants.UP_INDEX && isTop) || (faceIndex == FaceConstants.DOWN_INDEX && isBottom)) {
+			//	return null;
+			//}
 
 			final Direction face = ModelHelper.faceFromIndex(faceIndex);
 			BlockPos origin = owner.origin;
@@ -95,32 +101,32 @@ public class RenderRegionNeighbors {
 	}
 
 	public void enqueueUnvistedCameraNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.EAST_INDEX).visibility.addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).visibility.addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).visibility.addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).visibility.addToCameraPvsIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).addToCameraPvsIfValid();
+			getNeighbor(FaceConstants.UP_INDEX).visibility.addToCameraPvsIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).addToCameraPvsIfValid();
+			getNeighbor(FaceConstants.DOWN_INDEX).visibility.addToCameraPvsIfValid();
 		}
 	}
 
 	public void enqueueUnvistedShadowNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.EAST_INDEX).visibility.addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).visibility.addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).visibility.addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).visibility.addToShadowPvsIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).addToShadowPvsIfValid();
+			getNeighbor(FaceConstants.UP_INDEX).visibility.addToShadowPvsIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).addToShadowPvsIfValid();
+			getNeighbor(FaceConstants.DOWN_INDEX).visibility.addToShadowPvsIfValid();
 		}
 	}
 }

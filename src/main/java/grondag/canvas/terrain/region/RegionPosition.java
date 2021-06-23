@@ -66,6 +66,9 @@ public class RegionPosition extends BlockPos {
 
 	private boolean isPotentiallyVisibleFromCamera;
 
+	/** See {@link #checkAndUpdateSortNeeded(int)}. */
+	private int sortPositionVersion = -1;
+
 	public RegionPosition(long packedPos, RenderRegion owner) {
 		super(unpackLongX(packedPos), unpackLongY(packedPos), unpackLongZ(packedPos));
 		this.owner = owner;
@@ -78,12 +81,12 @@ public class RegionPosition extends BlockPos {
 	}
 
 	private void computeRegionDependentValues() {
-		final int cameraRegionVersion = owner.renderRegionChunk.cameraRegionVersion();
+		final int cameraRegionVersion = owner.renderChunk.cameraRegionVersion();
 
 		if (this.cameraRegionVersion != cameraRegionVersion) {
 			this.cameraRegionVersion = cameraRegionVersion;
 			final int cy = owner.storage.cameraChunkY() - chunkY;
-			squaredCameraChunkDistance = owner.renderRegionChunk.horizontalSquaredDistance + cy * cy;
+			squaredCameraChunkDistance = owner.renderChunk.horizontalSquaredDistance + cy * cy;
 			isInsideRenderDistance = squaredCameraChunkDistance <= owner.cwr.maxSquaredChunkRenderDistance();
 			isNear = squaredCameraChunkDistance <= 3;
 			occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredCameraChunkDistance);
@@ -201,5 +204,28 @@ public class RegionPosition extends BlockPos {
 	 */
 	public boolean hasValidFrustumVersion() {
 		return cameraOccluderViewVersion != -1;
+	}
+
+	/**
+	 * Tracks the given sort counter and returns true when the input value was different.
+	 * Used to identify regions that require a translucency resort.
+	 * The sort version is incremented elsewhere based on camera movement.
+	 *
+	 * <p>Here because it is nominally related to position even if not related
+	 * to other feature of this class. (It has to live somewhere.) Future optimizations
+	 * might make more use of region-specific position information.
+	 */
+	public boolean checkAndUpdateSortNeeded(int sortPositionVersion) {
+		if (this.sortPositionVersion == sortPositionVersion) {
+			return false;
+		} else {
+			this.sortPositionVersion = sortPositionVersion;
+			return true;
+		}
+	}
+
+	/** For debugging. */
+	public boolean sharesOriginWith(int blockX, int blockY, int blockZ) {
+		return getX() >> 4 == blockX >> 4 && getY() >> 4 == blockY >> 4 && getZ() >> 4 == blockZ >> 4;
 	}
 }

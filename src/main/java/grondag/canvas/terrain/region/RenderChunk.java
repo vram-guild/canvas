@@ -19,7 +19,7 @@ package grondag.canvas.terrain.region;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.world.chunk.ChunkStatus;
 
-public class RenderRegionChunk {
+public class RenderChunk {
 	final RenderRegionStorage storage;
 
 	private int chunkX;
@@ -32,7 +32,7 @@ public class RenderRegionChunk {
 
 	int horizontalSquaredDistance;
 
-	public RenderRegionChunk(RenderRegionStorage storage) {
+	public RenderChunk(RenderRegionStorage storage) {
 		this.storage = storage;
 	}
 
@@ -74,7 +74,7 @@ public class RenderRegionChunk {
 		return result;
 	}
 
-	synchronized void updateCameraDistanceAndVisibilityInfo() {
+	synchronized void updatePositionAndVisibility() {
 		computeChunkDistanceMetrics();
 
 		final RenderRegion[] regions = this.regions;
@@ -84,7 +84,7 @@ public class RenderRegionChunk {
 				final RenderRegion r = regions[i];
 
 				if (r != null) {
-					r.updateCameraDistanceAndVisibilityInfo();
+					r.updatePositionAndVisibility();
 				}
 			}
 
@@ -123,7 +123,7 @@ public class RenderRegionChunk {
 
 		if (r == null) {
 			r = new RenderRegion(this, RenderRegionIndexer.blockPosToRegionOrigin(x, y, z));
-			r.updateCameraDistanceAndVisibilityInfo();
+			r.updatePositionAndVisibility();
 			regions[i] = r;
 		}
 

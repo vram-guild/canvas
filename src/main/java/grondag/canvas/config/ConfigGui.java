@@ -53,7 +53,6 @@ import static grondag.canvas.config.Configurator.shaderDebug;
 import static grondag.canvas.config.Configurator.staticFrustumPadding;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
-import static grondag.canvas.config.Configurator.traceOcclusionOutcomes;
 import static grondag.canvas.config.Configurator.wavyGrass;
 
 import java.lang.ref.WeakReference;
@@ -395,14 +394,6 @@ public class ConfigGui {
 				.setDefaultValue(DEFAULTS.traceOcclusionEdgeCases)
 				.setTooltip(parse("config.canvas.help.trace_occlusion_edge_cases"))
 				.setSaveConsumer(b -> traceOcclusionEdgeCases = b)
-				.build());
-
-		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.trace_occlusion_outcomes"), traceOcclusionOutcomes)
-				.setDefaultValue(DEFAULTS.traceOcclusionOutcomes)
-				.requireRestart()
-				.setTooltip(parse("config.canvas.help.trace_occlusion_outcomes"))
-				.setSaveConsumer(b -> traceOcclusionOutcomes = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
