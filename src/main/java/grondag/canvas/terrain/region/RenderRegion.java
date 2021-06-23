@@ -19,7 +19,6 @@ package grondag.canvas.terrain.region;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -66,8 +65,6 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegion {
-	private static final AtomicInteger BUILD_COUNTER = new AtomicInteger();
-
 	private final RenderRegionBuilder renderRegionBuilder;
 
 	final CanvasWorldRenderer cwr;
@@ -108,9 +105,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
 
 	boolean isClosed = false;
-
-	/** Incremented when this region is built and the occlusion data changes (including first time). */
-	private int buildVersion = -1;
 
 	public RenderRegion(RenderChunk chunk, long packedPos) {
 		cwr = chunk.storage.cwr;
@@ -267,8 +261,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			final RegionBuildState oldBuildData = buildState.getAndSet(chunkData);
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
-				buildVersion = BUILD_COUNTER.incrementAndGet();
-
 				// Even if empty the chunk may still be needed for visibility search to progress
 				visibility.notifyOfOcclusionChange();
 			}
@@ -384,7 +376,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
 		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
-			buildVersion = BUILD_COUNTER.incrementAndGet();
 			visibility.notifyOfOcclusionChange();
 		}
 
@@ -511,8 +502,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			final RegionBuildState oldBuildData = buildState.getAndSet(regionData);
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
-				buildVersion = BUILD_COUNTER.incrementAndGet();
-
 				// Even if empty the chunk may still be needed for visibility search to progress
 				visibility.notifyOfOcclusionChange();
 			}
@@ -560,9 +549,5 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	@Override
 	public BlockPos origin() {
 		return origin;
-	}
-
-	public int buildVersion() {
-		return buildVersion;
 	}
 }

@@ -32,16 +32,19 @@ public class RegionVisibility {
 	private int lastSeenCameraPvsVersion;
 	private boolean cameraOccluderResult;
 
-	/** Build version that was in effect last time drawn to occluder. */
-	private int cameraOcclusionBuildVersion;
+	/** Occlusion data version that was in effect last time drawn to occluder. */
+	private int cameraOcclusionDataVersion;
 
 	private int shadowOccluderVersion;
 	private int lastSeenShadowPvsVersion;
 	private boolean shadowOccluderResult;
-	private int shadowOcclusionBuildVersion;
+	private int shadowOcclusionDataVersion;
 
 	/** Concatenated bit flags marking the shadow cascades that include this region. */
 	private int shadowCascadeFlags;
+
+	/** Incremented when occlusion data changes (including first time built). */
+	private int occlusionDataVersion = -1;
 
 	public void setCameraOccluderResult(boolean occluderResult, int occluderVersion) {
 		if (cameraOcclusionVersion == occluderVersion) {
@@ -49,7 +52,7 @@ public class RegionVisibility {
 		} else {
 			cameraOccluderResult = occluderResult;
 			cameraOcclusionVersion = occluderVersion;
-			cameraOcclusionBuildVersion = owner.buildVersion();
+			cameraOcclusionDataVersion = occlusionDataVersion;
 		}
 	}
 
@@ -85,7 +88,7 @@ public class RegionVisibility {
 		} else {
 			shadowOccluderResult = occluderResult;
 			shadowOccluderVersion = occluderVersion;
-			shadowOcclusionBuildVersion = owner.buildVersion();
+			shadowOcclusionDataVersion = occlusionDataVersion;
 		}
 	}
 
@@ -137,7 +140,7 @@ public class RegionVisibility {
 		if (origin.isPotentiallyVisibleFromCamera() && owner.getBuildState().canOcclude()) {
 			if (cameraOcclusionVersion == storage.cameraOcclusionVersion()) {
 				// Existing - has been drawn in occlusion raster
-				if (owner.buildVersion() != cameraOcclusionBuildVersion) {
+				if (occlusionDataVersion != cameraOcclusionDataVersion) {
 					storage.invalidateCameraOccluder();
 					storage.invalidateShadowOccluder();
 				}
@@ -164,8 +167,13 @@ public class RegionVisibility {
 	 * Called when this region's occlusion data has changed (or is newly available)
 	 * and marks camera iteration and/or shadow iteration for refresh if this region
 	 * was part of the most recent visibility iteration.
+	 *
+	 * <p>Not thread-safe, but can be called from threads in a pool so long as none of
+	 * them try to call for the same region.
 	 */
 	void notifyOfOcclusionChange() {
+		++occlusionDataVersion;
+
 		// WIP: actually check version and track camera and shadow visibility rebuilt separately
 		// use pvs versions for this test, not occluder versions
 		owner.cwr.forceVisibilityUpdate();
