@@ -206,8 +206,19 @@ public class RegionVisibility {
 	void notifyOfOcclusionChange() {
 		++regionOcclusionDataVersion;
 
-		// WIP: actually check version and track camera and shadow visibility rebuilt separately
 		// use pvs versions for this test, not occluder versions
-		visibilityStatus.forceVisibilityUpdate();
+		int flags = VisibilityStatus.CURRENT;
+
+		if (lastSeenCameraPvsVersion != cameraPVS.version()) {
+			flags |= VisibilityStatus.CAMERA_INVALID;
+		}
+
+		if (Pipeline.shadowsEnabled() && lastSeenShadowPvsVersion != shadowPVS.version()) {
+			flags |= VisibilityStatus.SHADOW_INVALID;
+		}
+
+		if (flags != VisibilityStatus.CURRENT) {
+			visibilityStatus.invalidateOcclusionData(flags);
+		}
 	}
 }

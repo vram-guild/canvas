@@ -40,6 +40,7 @@ import grondag.canvas.terrain.region.RegionBuildState;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
+import grondag.canvas.terrain.region.VisibilityStatus;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
@@ -69,6 +70,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private int renderDistance;
 	private boolean chunkCullingEnabled = true;
 	private volatile boolean cancelled = false;
+	private int visibilityStatus;
 
 	public TerrainIterator(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
@@ -78,9 +80,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 		}
 	}
 
-	public void prepare(@Nullable RenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled) {
+	public void prepare(@Nullable RenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled, int visibilityStatus) {
 		assert state.get() == IDLE;
 		this.cameraRegion = cameraRegion;
+		this.visibilityStatus = visibilityStatus;
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.origin.asLong();
@@ -114,37 +117,20 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public void run(TerrainRenderContext ignored) {
 		assert state.get() == READY;
 		state.set(RUNNING);
-
-		final int renderDistance = this.renderDistance;
-		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
-		regionStorage.updateCameraDistanceAndVisibility(cameraChunkOrigin);
+		cwr.renderRegionStorage.updateCameraDistanceAndVisibility(cameraChunkOrigin);
 		final boolean redrawOccluder = cameraOccluder.prepareScene();
 		final boolean redrawShadowOccluder = Pipeline.shadowsEnabled() ? shadowOccluder.prepareScene() : false;
 
-		if (cameraRegion == null) {
-			// prime visible when above or below world and camera region is null
-			final int y = BlockPos.unpackLongY(cameraChunkOrigin) > 0 ? 248 : 8;
-			final int x = BlockPos.unpackLongX(cameraChunkOrigin);
-			final int z = BlockPos.unpackLongZ(cameraChunkOrigin);
-			final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
-
-			for (int i = 0; i < limit; ++i) {
-				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
-				final RenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
-
-				if (region != null && region.origin.isPotentiallyVisibleFromCamera()) {
-					region.visibility.addToCameraPvsIfValid();
-				}
-			}
-		} else {
-			cameraRegion.origin.forceCameraPotentialVisibility();
-			cameraRegion.visibility.addToCameraPvsIfValid();
-		}
-
 		updateRegions.clear();
 
-		iterateTerrain(redrawOccluder);
+		if ((visibilityStatus & VisibilityStatus.CAMERA_INVALID) == VisibilityStatus.CAMERA_INVALID) {
+			primeCameraRegions();
+			iterateTerrain(redrawOccluder);
+		}
 
+		// We always reiterate shadows if enabled because if terrain iteration ran
+		// then shadows are impacted.  And if terrain iteration didn't run, the only
+		// reason we are here is that shadows were not current.
 		if (Pipeline.shadowsEnabled()) {
 			iterateShadows(redrawShadowOccluder);
 			//classifyVisibleShadowRegions();
@@ -165,6 +151,29 @@ public class TerrainIterator implements TerrainExecutorTask {
 					shadowOccluder.outputRaster();
 				}
 			}
+		}
+	}
+
+	private void primeCameraRegions() {
+		if (cameraRegion == null) {
+			// prime visible when above or below world and camera region is null
+			final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
+			final int y = BlockPos.unpackLongY(cameraChunkOrigin) > 0 ? 248 : 8;
+			final int x = BlockPos.unpackLongX(cameraChunkOrigin);
+			final int z = BlockPos.unpackLongZ(cameraChunkOrigin);
+			final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
+
+			for (int i = 0; i < limit; ++i) {
+				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
+				final RenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
+
+				if (region != null && region.origin.isPotentiallyVisibleFromCamera()) {
+					region.visibility.addToCameraPvsIfValid();
+				}
+			}
+		} else {
+			cameraRegion.origin.forceCameraPotentialVisibility();
+			cameraRegion.visibility.addToCameraPvsIfValid();
 		}
 	}
 

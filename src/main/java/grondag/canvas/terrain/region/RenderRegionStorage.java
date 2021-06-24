@@ -106,8 +106,11 @@ public class RenderRegionStorage {
 
 		if (region != null) {
 			region.markForBuild(urgent);
-			// WIP: is this really needed here? Seems like would be done when region is built.
-			visibilityStatus.forceVisibilityUpdate();
+			// Marking the region for rebuild doesn't cause iteration to be rerun.
+			// We don't know if the change would have affected occlusion so we
+			// have to assume that it did and if it was within the potential visible
+			// set we need to rerun iteration.
+			region.visibility.notifyOfOcclusionChange();
 		}
 	}
 

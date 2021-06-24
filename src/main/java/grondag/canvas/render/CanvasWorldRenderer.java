@@ -102,6 +102,7 @@ import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
+import grondag.canvas.terrain.region.VisibilityStatus;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
 
@@ -121,7 +122,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 *
 	 * <p>A snapshot of this is used for terrain culling - usually off thread. The snapshot lives inside TerrainOccluder.
 	 */
-	private final TerrainFrustum terrainFrustum = new TerrainFrustum();
+	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
 
 	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(renderRegionStorage);
 	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
@@ -145,7 +146,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private int chunkRenderDistance;
 	private int squaredChunkRenderDistance;
 	private int squaredChunkRetentionDistance;
-	private int lastViewVersion = -1;
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
@@ -255,19 +255,22 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				state = TerrainIterator.IDLE;
 			}
 
-			if (state == TerrainIterator.IDLE && (terrainFrustum.viewVersion() != lastViewVersion || renderRegionStorage.visibilityStatus.checkForIterationNeededAndReset())) {
-				lastViewVersion = terrainFrustum.viewVersion();
-				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
-				regionBuilder.executor.execute(terrainIterator);
+			if (state == TerrainIterator.IDLE) {
+				final int visibilityStatus = renderRegionStorage.visibilityStatus.getAndClearStatus();
+
+				if (visibilityStatus != VisibilityStatus.CURRENT) {
+					terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, visibilityStatus);
+					regionBuilder.executor.execute(terrainIterator);
+				}
 			}
 		} else {
 			// Run iteration on main thread
+			final int visibilityStatus = renderRegionStorage.visibilityStatus.getAndClearStatus();
 
-			if (terrainFrustum.viewVersion() != lastViewVersion || renderRegionStorage.visibilityStatus.checkForIterationNeededAndReset()) {
-				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
+			if (visibilityStatus != VisibilityStatus.CURRENT) {
+				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, visibilityStatus);
 				terrainIterator.run(null);
 
-				lastViewVersion = terrainFrustum.viewVersion();
 				cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 				shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
 				shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
