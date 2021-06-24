@@ -200,13 +200,6 @@ public class RegionPosition extends BlockPos {
 	}
 
 	/**
-	 * True when view-dependent values have been computed at least once and should be reasonable, if not completely current.
-	 */
-	public boolean hasValidFrustumVersion() {
-		return cameraOccluderViewVersion != -1;
-	}
-
-	/**
 	 * Tracks the given sort counter and returns true when the input value was different.
 	 * Used to identify regions that require a translucency resort.
 	 * The sort version is incremented elsewhere based on camera movement.

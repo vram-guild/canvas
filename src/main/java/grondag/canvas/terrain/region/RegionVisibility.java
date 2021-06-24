@@ -96,9 +96,7 @@ public class RegionVisibility {
 
 		final int pvsVersion = cameraPVS.version();
 
-		// The frustum version check is necessary to skip regions without valid info.
-		// WIP: is frustum version check still correct/needed?
-		if (lastSeenCameraPvsVersion != pvsVersion && owner.origin.hasValidFrustumVersion()) {
+		if (lastSeenCameraPvsVersion != pvsVersion) {
 			lastSeenCameraPvsVersion = pvsVersion;
 			cameraPVS.add(owner);
 		}
@@ -133,9 +131,7 @@ public class RegionVisibility {
 	public void addToShadowPvsIfValid() {
 		final int pvsVersion = shadowPVS.version();
 
-		// The frustum version check is necessary to skip regions without valid info.
-		// WIP: is frustum version check still correct/needed?
-		if (lastSeenShadowPvsVersion != pvsVersion && owner.origin.hasValidFrustumVersion()) {
+		if (lastSeenShadowPvsVersion != pvsVersion) {
 			lastSeenShadowPvsVersion = pvsVersion;
 			shadowPVS.add(owner);
 		}
