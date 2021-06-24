@@ -35,8 +35,8 @@ public class RenderRegionStorage {
 	 * for the camera view.
 	 */
 	public final CameraPotentiallyVisibleRegionSet cameraPVS = new CameraPotentiallyVisibleRegionSet();
-
 	public final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS = new ShadowPotentiallyVisibleRegionSet<>(new RenderRegion[RenderRegionIndexer.PADDED_REGION_INDEX_COUNT]);
+	public final VisibilityStatus visibilityStatus = new VisibilityStatus(this);
 
 	private final AtomicInteger loadedRegionCount = new AtomicInteger();
 
@@ -106,6 +106,8 @@ public class RenderRegionStorage {
 
 		if (region != null) {
 			region.markForBuild(urgent);
+			// WIP: is this really needed here? Seems like would be done when region is built.
+			visibilityStatus.forceVisibilityUpdate();
 		}
 	}
 

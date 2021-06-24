@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
@@ -137,12 +136,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
 	private final MatrixStack identityStack = new MatrixStack();
 
-	/**
-	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
-	 * Distinct from occluder state, which indicates if/when occluder must be reset or redrawn.
-	 */
-	private final AtomicInteger regionDataVersion = new AtomicInteger();
-
 	private final WorldRendererExt vanillaWorldRenderer;
 
 	private RenderRegionBuilder regionBuilder;
@@ -152,7 +145,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private int chunkRenderDistance;
 	private int squaredChunkRenderDistance;
 	private int squaredChunkRetentionDistance;
-	private int lastRegionDataVersion = -1;
 	private int lastViewVersion = -1;
 
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
@@ -182,10 +174,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		squaredChunkRenderDistance = renderDistance * renderDistance;
 		renderDistance += 2;
 		squaredChunkRetentionDistance = renderDistance * renderDistance;
-	}
-
-	public void forceVisibilityUpdate() {
-		regionDataVersion.incrementAndGet();
 	}
 
 	public void updateProjection(Camera camera, float tickDelta, double fov) {
@@ -267,20 +255,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				state = TerrainIterator.IDLE;
 			}
 
-			final int newRegionDataVersion = regionDataVersion.get();
-
-			if (state == TerrainIterator.IDLE && (terrainFrustum.viewVersion() != lastViewVersion || lastRegionDataVersion != newRegionDataVersion)) {
-				lastRegionDataVersion = newRegionDataVersion;
+			if (state == TerrainIterator.IDLE && (terrainFrustum.viewVersion() != lastViewVersion || renderRegionStorage.visibilityStatus.checkForIterationNeededAndReset())) {
 				lastViewVersion = terrainFrustum.viewVersion();
 				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
 				regionBuilder.executor.execute(terrainIterator);
 			}
 		} else {
 			// Run iteration on main thread
-			final int newRegionDataVersion = regionDataVersion.get();
 
-			if (terrainFrustum.viewVersion() != lastViewVersion || newRegionDataVersion != lastRegionDataVersion) {
-				lastRegionDataVersion = newRegionDataVersion;
+			if (terrainFrustum.viewVersion() != lastViewVersion || renderRegionStorage.visibilityStatus.checkForIterationNeededAndReset()) {
 				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks);
 				terrainIterator.run(null);
 
@@ -821,7 +804,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public void scheduleRegionRender(int x, int y, int z, boolean urgent) {
 		renderRegionStorage.scheduleRebuild(x << 4, y << 4, z << 4, urgent);
-		forceVisibilityUpdate();
 	}
 
 	@Override
@@ -898,7 +880,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public boolean isTerrainRenderComplete() {
-		return regionRebuildManager.isEmpty() && regionBuilder.isEmpty() && regionDataVersion.get() == lastRegionDataVersion;
+		return regionRebuildManager.isEmpty() && regionBuilder.isEmpty() && renderRegionStorage.visibilityStatus.isCurrent();
 	}
 
 	@Override

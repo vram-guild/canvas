@@ -24,27 +24,50 @@ public class RegionVisibility {
 	/** Region for which we track visibility. Provides access to world render state. */
 	private final RenderRegion owner;
 
-	public RegionVisibility(RenderRegion owner) {
-		this.owner = owner;
-	}
+	// Here to save some pointer chases
+	private final CameraPotentiallyVisibleRegionSet cameraPVS;
+	private final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS;
+	private final VisibilityStatus visibilityStatus;
 
+	/**
+	 * Version of the camera occluder when this region was last drawn.
+	 * If it matches the current camera occluder version, then the
+	 * occluder state depends on this region's occlusion data.
+	 */
 	private int cameraOcclusionVersion;
+
 	private int lastSeenCameraPvsVersion;
 	private boolean cameraOccluderResult;
 
-	/** Occlusion data version that was in effect last time drawn to occluder. */
-	private int cameraOcclusionDataVersion;
+	/** Occlusion data version that was in effect last time drawn to camera occluder. */
+	private int cameraRegionDataVersion;
 
+	/**
+	 * Version of the shadow occluder when this region was last drawn.
+	 * If it matches the current shadow occluder version, then the
+	 * occluder state depends on this region's occlusion data.
+	 */
 	private int shadowOccluderVersion;
+
 	private int lastSeenShadowPvsVersion;
+
 	private boolean shadowOccluderResult;
-	private int shadowOcclusionDataVersion;
+
+	/** Occlusion data version that was in effect last time drawn to camera occluder. */
+	private int shadowRegionDataVersion;
 
 	/** Concatenated bit flags marking the shadow cascades that include this region. */
 	private int shadowCascadeFlags;
 
 	/** Incremented when occlusion data changes (including first time built). */
-	private int occlusionDataVersion = -1;
+	private int regionOcclusionDataVersion = -1;
+
+	public RegionVisibility(RenderRegion owner) {
+		this.owner = owner;
+		cameraPVS = owner.storage.cameraPVS;
+		shadowPVS = owner.storage.shadowPVS;
+		visibilityStatus = owner.storage.visibilityStatus;
+	}
 
 	public void setCameraOccluderResult(boolean occluderResult, int occluderVersion) {
 		if (cameraOcclusionVersion == occluderVersion) {
@@ -52,7 +75,7 @@ public class RegionVisibility {
 		} else {
 			cameraOccluderResult = occluderResult;
 			cameraOcclusionVersion = occluderVersion;
-			cameraOcclusionDataVersion = occlusionDataVersion;
+			cameraRegionDataVersion = regionOcclusionDataVersion;
 		}
 	}
 
@@ -71,7 +94,6 @@ public class RegionVisibility {
 		// has to be found reaching around. This will cause some backtracking and
 		// thus redraw of the occluder, but that already happens and is handled.
 
-		final CameraPotentiallyVisibleRegionSet cameraPVS = owner.storage.cameraPVS;
 		final int pvsVersion = cameraPVS.version();
 
 		// The frustum version check is necessary to skip regions without valid info.
@@ -88,7 +110,7 @@ public class RegionVisibility {
 		} else {
 			shadowOccluderResult = occluderResult;
 			shadowOccluderVersion = occluderVersion;
-			shadowOcclusionDataVersion = occlusionDataVersion;
+			shadowRegionDataVersion = regionOcclusionDataVersion;
 		}
 	}
 
@@ -109,7 +131,6 @@ public class RegionVisibility {
 	}
 
 	public void addToShadowPvsIfValid() {
-		final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS = owner.storage.shadowPVS;
 		final int pvsVersion = shadowPVS.version();
 
 		// The frustum version check is necessary to skip regions without valid info.
@@ -140,7 +161,7 @@ public class RegionVisibility {
 		if (origin.isPotentiallyVisibleFromCamera() && owner.getBuildState().canOcclude()) {
 			if (cameraOcclusionVersion == storage.cameraOcclusionVersion()) {
 				// Existing - has been drawn in occlusion raster
-				if (occlusionDataVersion != cameraOcclusionDataVersion) {
+				if (regionOcclusionDataVersion != cameraRegionDataVersion) {
 					storage.invalidateCameraOccluder();
 					storage.invalidateShadowOccluder();
 				}
@@ -158,6 +179,13 @@ public class RegionVisibility {
 		return owner.storage.cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult;
 	}
 
+	/**
+	 * Handles occluder invalidation and shadow cascade classification.
+	 * Called when new regions are created and at the start of terrain iteration.
+	 *
+	 * <p>NB: PVS invalidation can't be done here because PVS invalidation is
+	 * what triggers terrain iteration.
+	 */
 	public void update() {
 		invalidateCameraOccluderIfNeeded();
 		shadowCascadeFlags = Pipeline.shadowsEnabled() ? owner.cwr.terrainIterator.shadowOccluder.cascadeFlags(owner.origin) : 0;
@@ -168,14 +196,18 @@ public class RegionVisibility {
 	 * and marks camera iteration and/or shadow iteration for refresh if this region
 	 * was part of the most recent visibility iteration.
 	 *
+	 * <p>Will also trigger invalidation of camera or shadow occlusion raster if
+	 * this region was drawn in the current version(s) AND iteration has progressed
+	 * past this region's distance/tier.
+	 *
 	 * <p>Not thread-safe, but can be called from threads in a pool so long as none of
 	 * them try to call for the same region.
 	 */
 	void notifyOfOcclusionChange() {
-		++occlusionDataVersion;
+		++regionOcclusionDataVersion;
 
 		// WIP: actually check version and track camera and shadow visibility rebuilt separately
 		// use pvs versions for this test, not occluder versions
-		owner.cwr.forceVisibilityUpdate();
+		visibilityStatus.forceVisibilityUpdate();
 	}
 }
