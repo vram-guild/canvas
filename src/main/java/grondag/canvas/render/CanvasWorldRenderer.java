@@ -247,11 +247,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
-				cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
-				shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
-				shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
-				shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
-				shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
+				copyVisibleRegionsFromIterator();
 				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 				state = TerrainIterator.IDLE;
@@ -272,13 +268,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			if (visibilityStatus != VisibilityStatus.CURRENT) {
 				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, visibilityStatus);
 				terrainIterator.run(null);
-
-				cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
-				shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
-				shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
-				shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
-				shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
-				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
+				copyVisibleRegionsFromIterator();
 				terrainIterator.reset();
 			}
 		}
@@ -286,6 +276,18 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().pop();
 	}
 
+	private void copyVisibleRegionsFromIterator() {
+		if (terrainIterator.includeCamera()) {
+			cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
+		}
+
+		if (terrainIterator.includeShadow()) {
+			shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
+			shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
+			shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
+			shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
+		}
+	}
 	private boolean shouldCullChunks(BlockPos pos) {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 		boolean result = mc.chunkCullingEnabled;

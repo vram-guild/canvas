@@ -265,9 +265,9 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 	 */
 	private static int index(int rx, int ry, int rz) {
 		assert rx >= 0;
-		assert rx < RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
+		assert rx <= RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
 		assert rz >= 0;
-		assert rz < RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
+		assert rz <= RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
 		assert ry >= 0;
 		assert ry < RenderRegionIndexer.MAX_Y_REGIONS;
 

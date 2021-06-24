@@ -61,6 +61,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private final CanvasWorldRenderer cwr;
 
 	private RenderRegion cameraRegion;
+	private boolean includeCamera = false;
+	private boolean includeShadow = false;
 
 	/**
 	 * Will be a valid region origin even if the actual camera region is null because
@@ -70,7 +72,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private int renderDistance;
 	private boolean chunkCullingEnabled = true;
 	private volatile boolean cancelled = false;
-	private int visibilityStatus;
 
 	public TerrainIterator(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
@@ -83,7 +84,13 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public void prepare(@Nullable RenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled, int visibilityStatus) {
 		assert state.get() == IDLE;
 		this.cameraRegion = cameraRegion;
-		this.visibilityStatus = visibilityStatus;
+		includeCamera = (visibilityStatus & VisibilityStatus.CAMERA_INVALID) == VisibilityStatus.CAMERA_INVALID;
+
+		// We always reiterate shadows if enabled because if terrain iteration ran
+		// then shadows are impacted.  And if terrain iteration didn't run, the only
+		// reason we are here is that shadows were not current.
+		includeShadow = Pipeline.shadowsEnabled();
+
 		final BlockPos cameraBlockPos = camera.getBlockPos();
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.origin.asLong();
@@ -105,8 +112,18 @@ public class TerrainIterator implements TerrainExecutorTask {
 		return state.get();
 	}
 
+	public boolean includeCamera() {
+		return includeCamera;
+	}
+
+	public boolean includeShadow() {
+		return includeShadow;
+	}
+
 	public void reset() {
 		cancelled = true;
+		includeCamera = false;
+		includeShadow = false;
 		state.compareAndSet(COMPLETE, IDLE);
 		visibleRegions.clear();
 		clearShadowRegions();
@@ -123,15 +140,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		updateRegions.clear();
 
-		if ((visibilityStatus & VisibilityStatus.CAMERA_INVALID) == VisibilityStatus.CAMERA_INVALID) {
+		if (includeCamera) {
 			primeCameraRegions();
 			iterateTerrain(redrawOccluder);
 		}
 
-		// We always reiterate shadows if enabled because if terrain iteration ran
-		// then shadows are impacted.  And if terrain iteration didn't run, the only
-		// reason we are here is that shadows were not current.
-		if (Pipeline.shadowsEnabled()) {
+		if (includeShadow) {
 			iterateShadows(redrawShadowOccluder);
 			//classifyVisibleShadowRegions();
 		}
