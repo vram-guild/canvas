@@ -110,7 +110,10 @@ public class RenderRegionStorage {
 			// We don't know if the change would have affected occlusion so we
 			// have to assume that it did and if it was within the potential visible
 			// set we need to rerun iteration.
-			region.visibility.notifyOfOcclusionChange();
+
+			if (region.visibility.isInCurrentPVS()) {
+				cwr.regionRebuildManager.acceptExternalBuildRequest(region);
+			}
 		}
 	}
 

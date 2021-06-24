@@ -110,7 +110,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
 
 	/** Tracks which regions had rebuilds requested, both camera and shadow view, and causes some to get built each frame. */
-	private final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
+	public final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
@@ -236,6 +236,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
 			cameraRegion.neighbors.forEachAvailable(regionRebuildManager::buildNearRegionIfNeeded);
 		}
+
+		regionRebuildManager.processExternalBuildRequests();
 
 		Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));
 

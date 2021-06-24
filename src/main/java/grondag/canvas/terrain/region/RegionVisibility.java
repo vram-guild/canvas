@@ -191,6 +191,10 @@ public class RegionVisibility {
 		shadowCascadeFlags = Pipeline.shadowsEnabled() ? owner.cwr.terrainIterator.shadowOccluder.cascadeFlags(owner.origin) : 0;
 	}
 
+	boolean isInCurrentPVS() {
+		return lastSeenCameraPvsVersion == cameraPVS.version() || ((Pipeline.shadowsEnabled() && lastSeenShadowPvsVersion == shadowPVS.version()));
+	}
+
 	/**
 	 * Called when this region's occlusion data has changed (or is newly available)
 	 * and marks camera iteration and/or shadow iteration for refresh if this region
@@ -209,11 +213,11 @@ public class RegionVisibility {
 		// use pvs versions for this test, not occluder versions
 		int flags = VisibilityStatus.CURRENT;
 
-		if (lastSeenCameraPvsVersion != cameraPVS.version()) {
+		if (lastSeenCameraPvsVersion == cameraPVS.version()) {
 			flags |= VisibilityStatus.CAMERA_INVALID;
 		}
 
-		if (Pipeline.shadowsEnabled() && lastSeenShadowPvsVersion != shadowPVS.version()) {
+		if (Pipeline.shadowsEnabled() && lastSeenShadowPvsVersion == shadowPVS.version()) {
 			flags |= VisibilityStatus.SHADOW_INVALID;
 		}
 

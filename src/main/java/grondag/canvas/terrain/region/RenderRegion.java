@@ -174,8 +174,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		final boolean neededRebuild = needsRebuild;
 		needsRebuild = true;
 		needsImportantRebuild = isImportant | (neededRebuild && needsImportantRebuild);
-
-		visibility.notifyOfOcclusionChange();
 	}
 
 	/**
@@ -286,6 +284,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			protoRegion.release();
 			// Marking the region for rebuild doesn't cause iteration to restart and we
 			// may need visibility to restart if it was waiting for this region to progress.
+			// WIP: better way to handle that won't force excessive reiteration?
 			visibility.notifyOfOcclusionChange();
 			return;
 		}

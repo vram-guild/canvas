@@ -55,7 +55,7 @@ public class VisibilityStatus {
 	}
 
 	public boolean isCurrent() {
-		return cameraDataVersion.get() == lastCameraDataVersion;
+		return cameraDataVersion.get() == lastCameraDataVersion && (!Pipeline.shadowsEnabled() || shadowDataVersion.get() == lastShadowDataVersion);
 	}
 
 	public int getAndClearStatus() {
