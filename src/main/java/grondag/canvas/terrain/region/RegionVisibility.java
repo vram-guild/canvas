@@ -21,13 +21,16 @@ import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
 
 public class RegionVisibility {
-	/** Region for which we track visibility. Provides access to world render state. */
+	/** Region for which we track visibility information. Provides access to world render state. */
 	private final RenderRegion owner;
 
 	// Here to save some pointer chases
 	private final CameraPotentiallyVisibleRegionSet cameraPVS;
 	private final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS;
 	private final VisibilityStatus visibilityStatus;
+
+	/** Incremented when occlusion data changes (including first time built). */
+	private int regionOcclusionDataVersion = -1;
 
 	/**
 	 * Version of the camera occluder when this region was last drawn.
@@ -39,8 +42,13 @@ public class RegionVisibility {
 	private int lastSeenCameraPvsVersion;
 	private boolean cameraOccluderResult;
 
-	/** Occlusion data version that was in effect last time drawn to camera occluder. */
-	private int cameraRegionDataVersion;
+	/**
+	 * Occlusion data version that was in effect last time drawn to camera occluder.
+	 * If this does not match the current data version and the camera occluder has not
+	 * been reset since it was last drawn (meaning this region is still in it)
+	 * then the camera occluder state is invalid.
+	 */
+	private int cameraOcclusionDataVersion;
 
 	/**
 	 * Version of the shadow occluder when this region was last drawn.
@@ -53,14 +61,16 @@ public class RegionVisibility {
 
 	private boolean shadowOccluderResult;
 
-	/** Occlusion data version that was in effect last time drawn to camera occluder. */
-	private int shadowRegionDataVersion;
+	/**
+	 * Occlusion data version that was in effect last time drawn to shadow occluder.
+	 * If this does not match the current data version and the shadow occluder has not
+	 * been reset since it was last drawn (meaning this region is still in it)
+	 * then the shadow occluder state is invalid.
+	 */
+	private int shadowOcclusionDataVersion;
 
 	/** Concatenated bit flags marking the shadow cascades that include this region. */
 	private int shadowCascadeFlags;
-
-	/** Incremented when occlusion data changes (including first time built). */
-	private int regionOcclusionDataVersion = -1;
 
 	public RegionVisibility(RenderRegion owner) {
 		this.owner = owner;
@@ -75,15 +85,24 @@ public class RegionVisibility {
 		} else {
 			cameraOccluderResult = occluderResult;
 			cameraOcclusionVersion = occluderVersion;
-			cameraRegionDataVersion = regionOcclusionDataVersion;
+			cameraOcclusionDataVersion = regionOcclusionDataVersion;
 		}
 	}
 
+	/**
+	 * Cached result of last camera occlusion test for this region.
+	 * Only valid if the camera occluder has not been reset since,
+	 * which must be confirmed using {@link #isCameraOcclusionCurrent(int)}.
+	 */
 	public boolean cameraOccluderResult() {
 		return cameraOccluderResult;
 	}
 
-	public boolean matchesCameraOccluderVersion(int occluderVersion) {
+	/**
+	 * True if the given occluder version matches the last call to {@link #setCameraOccluderResult(boolean, int)}
+	 * which means {@link #cameraOccluderResult} is still valid.
+	 */
+	public boolean isCameraOcclusionCurrent(int occluderVersion) {
 		return cameraOcclusionVersion == occluderVersion;
 	}
 
@@ -102,21 +121,30 @@ public class RegionVisibility {
 		}
 	}
 
+	/**
+	 * Same as {@link #setCameraOccluderResult(boolean, int)} except for shadow occlusion.
+	 */
 	public void setShadowOccluderResult(boolean occluderResult, int occluderVersion) {
 		if (shadowOccluderVersion == occluderVersion) {
 			assert occluderResult == shadowOccluderResult;
 		} else {
 			shadowOccluderResult = occluderResult;
 			shadowOccluderVersion = occluderVersion;
-			shadowRegionDataVersion = regionOcclusionDataVersion;
+			shadowOcclusionDataVersion = regionOcclusionDataVersion;
 		}
 	}
 
+	/**
+	 * Same as {@link #cameraOccluderResult} except for shadow occlusion.
+	 */
 	public boolean shadowOccluderResult() {
 		return shadowOccluderResult;
 	}
 
-	public boolean matchesShadowOccluderVersion(int occluderVersion) {
+	/**
+	 * Same as {@link #isCameraOcclusionCurrent(int)} except for shadow occlusion.
+	 */
+	public boolean isShadowOcclusionCurrent(int occluderVersion) {
 		return shadowOccluderVersion == occluderVersion;
 	}
 
@@ -138,35 +166,64 @@ public class RegionVisibility {
 	}
 
 	/**
-	 * We check here to know if the occlusion raster must be redrawn.
+	 * We check here to know if any inputs affecting occlusion raster(s)
+	 * have changed and invalidate them as needed.
 	 *
-	 * <p>The check depends on classifying this region as one of:<ul>
-	 *   <li>new - has not been drawn in raster - occluder version doesn't match
-	 *   <li>existing - has been drawn in rater - occluder version matches</ul>
-	 *
-	 * <p>The raster must be redrawn if either is true:<ul>
-	 *   <li>A new chunk has a chunk distance less than the current max drawn (we somehow went backwards towards the camera)
-	 *   <li>An existing chunk has been reloaded - the buildCounter doesn't match the buildCounter when it was marked existing</ul>
+	 * <p>This runs outside of and before terrain iteration so
+	 * the occluder versions used for comparison are "live."
 	 */
 	private void invalidateCameraOccluderIfNeeded() {
-		// WIP track shadow invalidation separately - may change without camera movement
 		final RegionPosition origin = owner.origin;
 		final RenderRegionStorage storage = owner.storage;
 
-		// WIP: second part of this check seems incorect - if could occlude before and now it can't then a redraw may be needed
-		if (origin.isPotentiallyVisibleFromCamera() && owner.getBuildState().canOcclude()) {
-			if (cameraOcclusionVersion == storage.cameraOcclusionVersion()) {
-				// Existing - has been drawn in occlusion raster
-				if (regionOcclusionDataVersion != cameraRegionDataVersion) {
-					storage.invalidateCameraOccluder();
-					storage.invalidateShadowOccluder();
-				}
-			} else if (origin.squaredCameraChunkDistance() < storage.maxSquaredCameraChunkDistance()) {
-				// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been
-				// Need to invalidate the occlusion raster if both things are true:
-				//   1) This region isn't empty (empty regions don't matter for culling)
-				//   2) This region is in the view frustum
+		// Check camera occluder
+		if (cameraOcclusionVersion == storage.cameraOcclusionVersion()) {
+			// Existing - has been drawn in occlusion raster
+
+			// We don't need to check if region is still in view here because
+			// a view change will invalidate the occluder on its own.
+
+			// We also don't check if the region can occlude here because it
+			// may have been an occluder previously and empty now.
+
+			// The only check needed here is for a change in the region occlusion used for the draw.
+			if (regionOcclusionDataVersion != cameraOcclusionDataVersion) {
 				storage.invalidateCameraOccluder();
+			}
+		} else if (origin.squaredCameraChunkDistance() < storage.maxSquaredCameraChunkDistance()) {
+			// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been.
+
+			// Need to invalidate the occlusion raster if both things are true:
+			//   1) This region isn't empty (empty regions don't matter for culling)
+			//   2) This region is in the view frustum
+			if (origin.isPotentiallyVisibleFromCamera() && owner.getBuildState().canOcclude()) {
+				storage.invalidateCameraOccluder();
+			}
+		}
+
+		// Check shadow occluder
+		if (shadowOccluderVersion == storage.shadowOcclusionVersion()) {
+			// Existing - has been drawn in occlusion raster
+
+			// We don't need to check if region is still in view here because
+			// a view change will invalidate the occluder on its own.
+
+			// We also don't check if the region can occlude here because it
+			// may have been an occluder previously and empty now.
+
+			// The only check needed here is for a change in the region occlusion used for the draw.
+			if (regionOcclusionDataVersion != shadowOcclusionDataVersion) {
+				storage.invalidateShadowOccluder();
+			}
+		// WIP: implement correct test and only invalidate if could be nearer than a chunk already drawn
+		} else if (isPotentiallyVisibleFromSkylight()) {
+			// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been.
+
+			// Need to invalidate the occlusion raster if both things are true:
+			//   1) This region isn't empty (empty regions don't matter for culling)
+			//   2) This region is in the view frustum
+			if (owner.getBuildState().canOcclude()) {
+				storage.invalidateShadowOccluder();
 			}
 		}
 	}

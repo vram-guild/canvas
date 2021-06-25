@@ -49,6 +49,7 @@ public class RenderRegionStorage {
 	private boolean didInvalidateCameraOccluder = false;
 	private boolean didInvalidateShadowOccluder = false;
 	private int cameraOcclusionVersion = 0;
+	private int shadowOcclusionVersion = 0;
 	private int maxSquaredCameraChunkDistance;
 
 	private int cameraRegionVersion = 1;
@@ -64,12 +65,25 @@ public class RenderRegionStorage {
 		}
 	}
 
+	/**
+	 * The version of the camera occluder in effect when region visibility is being updated.
+	 * This is NOT necessarily the version in effect while iteration is being run.
+	 * Indeed, if occlusion state is invalidated the version during iteration will not
+	 * match, causing regions to be re-tested and redrawn, which is the main point of this process.
+	 */
 	public int cameraOcclusionVersion() {
 		return cameraOcclusionVersion;
 	}
 
 	public void invalidateCameraOccluder() {
 		didInvalidateCameraOccluder = true;
+	}
+
+	/**
+	 * Like {@link #cameraOcclusionVersion} but for shadow occluder.
+	 */
+	public int shadowOcclusionVersion() {
+		return shadowOcclusionVersion;
 	}
 
 	public void invalidateShadowOccluder() {
@@ -139,6 +153,7 @@ public class RenderRegionStorage {
 		shadowPVS.setLightVectorAndRestart(ShaderDataManager.skyLightVector);
 
 		cameraOcclusionVersion = cameraOccluder.occlusionVersion();
+		shadowOcclusionVersion = shadowOccluder.occlusionVersion();
 		maxSquaredCameraChunkDistance = cameraOccluder.maxSquaredChunkDistance();
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {

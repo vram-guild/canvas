@@ -288,6 +288,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
 		}
 	}
+
 	private boolean shouldCullChunks(BlockPos pos) {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 		boolean result = mc.chunkCullingEnabled;

@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
@@ -172,7 +173,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 		if (cameraRegion == null) {
 			// prime visible when above or below world and camera region is null
 			final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
-			final int y = BlockPos.unpackLongY(cameraChunkOrigin) > 0 ? 248 : 8;
+			// WIP: deal with variable world height
+			final int y = BlockPos.unpackLongY(cameraChunkOrigin) > 0 ? 240 : 0;
 			final int x = BlockPos.unpackLongX(cameraChunkOrigin);
 			final int z = BlockPos.unpackLongZ(cameraChunkOrigin);
 			final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
@@ -233,7 +235,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			if (!regionData.canOcclude()) {
 				if (Configurator.cullEntityRender) {
 					// reuse prior test results
-					if (!builtRegion.visibility.matchesCameraOccluderVersion(occlusionVersion)) {
+					if (!builtRegion.visibility.isCameraOcclusionCurrent(occlusionVersion)) {
 						if (!chunkCullingEnabled || builtRegion.origin.isNear() || cameraOccluder.isEmptyRegionVisible(builtRegion.origin)) {
 							builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 							builtRegion.visibility.setCameraOccluderResult(true, occlusionVersion);
@@ -253,13 +255,13 @@ public class TerrainIterator implements TerrainExecutorTask {
 				builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
 				visibleRegions.add(builtRegion);
 
-				if (redrawOccluder || !builtRegion.visibility.matchesCameraOccluderVersion(occlusionVersion)) {
+				if (redrawOccluder || !builtRegion.visibility.isCameraOcclusionCurrent(occlusionVersion)) {
 					cameraOccluder.prepareRegion(builtRegion.origin);
 					cameraOccluder.occlude(regionData.getOcclusionData());
 				}
 
 				builtRegion.visibility.setCameraOccluderResult(true, occlusionVersion);
-			} else if (builtRegion.visibility.matchesCameraOccluderVersion(occlusionVersion)) {
+			} else if (builtRegion.visibility.isCameraOcclusionCurrent(occlusionVersion)) {
 				// reuse prior test results
 				if (builtRegion.visibility.cameraOccluderResult()) {
 					builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
@@ -303,8 +305,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 			final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
 			final RenderRegion region = regionStorage.getOrCreateRegion(
 					(offset.getX() << 4) + x,
-					// WIP: deal with variable world height / under lighting
-					Math.min(240, (regionBoundingSphere.getY(i) << 4) + y),
+					// WIP: deal with variable world height
+					MathHelper.clamp((regionBoundingSphere.getY(i) << 4) + y, 0, 240),
 					(offset.getZ() << 4) + z);
 
 			if (region != null && region.visibility.isPotentiallyVisibleFromSkylight()) {
@@ -354,7 +356,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				continue;
 			}
 
-			if (builtRegion.visibility.matchesShadowOccluderVersion(occluderVersion)) {
+			if (builtRegion.visibility.isShadowOcclusionCurrent(occluderVersion)) {
 				// reuse prior test results
 				if (builtRegion.visibility.shadowOccluderResult()) {
 					builtRegion.neighbors.enqueueUnvistedShadowNeighbors();
