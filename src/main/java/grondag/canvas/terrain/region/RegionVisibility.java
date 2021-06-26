@@ -18,6 +18,7 @@ package grondag.canvas.terrain.region;
 
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
+import grondag.canvas.terrain.occlusion.OcclusionInputStatus;
 import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
 
 public class RegionVisibility {
@@ -74,8 +75,8 @@ public class RegionVisibility {
 
 	public RegionVisibility(RenderRegion owner) {
 		this.owner = owner;
-		cameraPVS = owner.cwr.viewTracker.cameraPVS;
-		shadowPVS = owner.cwr.viewTracker.shadowPVS;
+		cameraPVS = owner.cwr.potentiallyVisibleSetManager.cameraPVS;
+		shadowPVS = owner.cwr.potentiallyVisibleSetManager.shadowPVS;
 		occlusionInputStatus = owner.cwr.occlusionInputStatus;
 	}
 
@@ -229,7 +230,7 @@ public class RegionVisibility {
 	}
 
 	public boolean wasRecentlySeenFromCamera() {
-		return owner.cwr.viewTracker.cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult;
+		return cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult;
 	}
 
 	/**

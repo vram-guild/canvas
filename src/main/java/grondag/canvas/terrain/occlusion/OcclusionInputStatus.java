@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.region;
+package grondag.canvas.terrain.occlusion;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

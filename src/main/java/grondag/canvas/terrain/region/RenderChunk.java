@@ -17,25 +17,23 @@
 package grondag.canvas.terrain.region;
 
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.ChunkStatus;
 
 public class RenderChunk {
 	final RenderRegionStorage storage;
-	final ViewTracker viewTracker;
 
 	private int chunkX;
 	private int chunkZ;
 	private RenderRegion[] regions = null;
 	private boolean areCornersLoadedCache = false;
 
-	/**  See {@link VisiblityTracker#cameraRegionOriginVersion()}. */
-	private int cameraRegionOriginVersion = -1;
+	private long cameraRegionOrigin = -1;
 
 	int horizontalSquaredDistance;
 
 	public RenderChunk(RenderRegionStorage storage) {
 		this.storage = storage;
-		viewTracker = storage.cwr.viewTracker;
 	}
 
 	private void open(int chunkX, int chunkZ) {
@@ -43,7 +41,7 @@ public class RenderChunk {
 		this.chunkZ = chunkZ;
 		regions = new RenderRegion[RenderRegionIndexer.MAX_Y_REGIONS];
 		areCornersLoadedCache = false;
-		cameraRegionOriginVersion = -1;
+		cameraRegionOrigin = -1;
 		computeChunkDistanceMetrics();
 	}
 
@@ -97,12 +95,12 @@ public class RenderChunk {
 	}
 
 	private void computeChunkDistanceMetrics() {
-		final int cameraRegionOriginVersion = viewTracker.cameraRegionOriginVersion();
+		final long cameraRegionOrigin = storage.cwr.terrainIterator.cameraRegionOrigin();
 
-		if (this.cameraRegionOriginVersion != cameraRegionOriginVersion) {
-			this.cameraRegionOriginVersion = cameraRegionOriginVersion;
-			final int cx = viewTracker.cameraChunkX() - chunkX;
-			final int cz = viewTracker.cameraChunkZ() - chunkZ;
+		if (this.cameraRegionOrigin != cameraRegionOrigin) {
+			this.cameraRegionOrigin = cameraRegionOrigin;
+			final int cx = (BlockPos.unpackLongX(cameraRegionOrigin) >> 4) - chunkX;
+			final int cz = (BlockPos.unpackLongZ(cameraRegionOrigin) >> 4) - chunkZ;
 			horizontalSquaredDistance = cx * cx + cz * cz;
 		}
 	}
@@ -143,8 +141,7 @@ public class RenderChunk {
 		return regions == null ? null : regions[i];
 	}
 
-	/**  See {@link RenderRegionStorage#cameraRegionVersion()}. */
-	public int cameraRegionVersion() {
-		return cameraRegionOriginVersion;
+	public long cameraRegionOrigin() {
+		return cameraRegionOrigin;
 	}
 }

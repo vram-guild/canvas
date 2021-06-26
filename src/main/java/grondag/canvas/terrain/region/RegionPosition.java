@@ -32,8 +32,7 @@ public class RegionPosition extends BlockPos {
 	 */
 	private final int chunkY;
 
-	/**  See {@link RenderRegionStorage#cameraRegionVersion()}. */
-	private int cameraRegionVersion = -1;
+	private long cameraRegionOrigin = -1;
 
 	/** Tracks the version of the camera occluder view transform to know when we must recompute dependent values. */
 	private int cameraOccluderViewVersion = -1;
@@ -81,11 +80,11 @@ public class RegionPosition extends BlockPos {
 	}
 
 	private void computeRegionDependentValues() {
-		final int cameraRegionVersion = owner.renderChunk.cameraRegionVersion();
+		final long cameraRegionOrigin = owner.cwr.terrainIterator.cameraRegionOrigin();
 
-		if (this.cameraRegionVersion != cameraRegionVersion) {
-			this.cameraRegionVersion = cameraRegionVersion;
-			final int cy = owner.cwr.viewTracker.cameraChunkY() - chunkY;
+		if (this.cameraRegionOrigin != cameraRegionOrigin) {
+			this.cameraRegionOrigin = cameraRegionOrigin;
+			final int cy = (BlockPos.unpackLongY(cameraRegionOrigin) >> 4) - chunkY;
 			squaredCameraChunkDistance = owner.renderChunk.horizontalSquaredDistance + cy * cy;
 			isInsideRenderDistance = squaredCameraChunkDistance <= owner.cwr.maxSquaredChunkRenderDistance();
 			isNear = squaredCameraChunkDistance <= 3;
@@ -130,7 +129,7 @@ public class RegionPosition extends BlockPos {
 		isNear = false;
 		cameraOccluderPositionVersion = -1;
 		cameraOccluderViewVersion = -1;
-		cameraRegionVersion = -1;
+		cameraRegionOrigin = -1;
 		isPotentiallyVisibleFromCamera = false;
 	}
 

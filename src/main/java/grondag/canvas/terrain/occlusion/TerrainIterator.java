@@ -37,7 +37,6 @@ import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
-import grondag.canvas.terrain.region.OcclusionInputStatus;
 import grondag.canvas.terrain.region.RegionBuildState;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
@@ -80,6 +79,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
 			shadowVisibleRegions[i] = new VisibleRegionList();
 		}
+	}
+
+	public long cameraRegionOrigin() {
+		return cameraChunkOrigin;
 	}
 
 	public void prepare(@Nullable RenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled, int occlusionInputFlags) {
@@ -135,7 +138,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public void run(TerrainRenderContext ignored) {
 		assert state.get() == READY;
 		state.set(RUNNING);
-		cwr.viewTracker.update(cameraChunkOrigin);
+		cwr.potentiallyVisibleSetManager.update(cameraChunkOrigin);
 		cwr.renderRegionStorage.update(cameraChunkOrigin);
 		final boolean redrawOccluder = cameraOccluder.prepareScene();
 		final boolean redrawShadowOccluder = Pipeline.shadowsEnabled() ? shadowOccluder.prepareScene() : false;
@@ -197,7 +200,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private void iterateTerrain(boolean redrawOccluder) {
 		final int occlusionVersion = cameraOccluder.occlusionVersion();
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
-		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = cwr.viewTracker.cameraPVS;
+		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = cwr.potentiallyVisibleSetManager.cameraPVS;
 
 		// PERF: look for ways to improve branch prediction
 		while (!cancelled) {
@@ -294,7 +297,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private void iterateShadows(boolean redrawOccluder) {
 		final int occluderVersion = shadowOccluder.occlusionVersion();
 		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
-		final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPvs = cwr.viewTracker.shadowPVS;
+		final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPvs = cwr.potentiallyVisibleSetManager.shadowPVS;
 		// prime visible when above or below world and camera region is null
 		final int y = BlockPos.unpackLongY(cameraChunkOrigin);
 		final int x = BlockPos.unpackLongX(cameraChunkOrigin);

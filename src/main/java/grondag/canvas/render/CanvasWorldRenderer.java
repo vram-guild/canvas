@@ -96,14 +96,14 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
+import grondag.canvas.terrain.occlusion.OcclusionInputStatus;
+import grondag.canvas.terrain.occlusion.PotentiallyVisibleSetManager;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
-import grondag.canvas.terrain.region.OcclusionInputStatus;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.terrain.region.ViewTracker;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
 
@@ -114,7 +114,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
-	public final ViewTracker viewTracker = new ViewTracker();
+	public final PotentiallyVisibleSetManager potentiallyVisibleSetManager = new PotentiallyVisibleSetManager();
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
 	public final OcclusionInputStatus occlusionInputStatus = new OcclusionInputStatus(this);
 
@@ -202,7 +202,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		world = clientWorld;
 		cameraVisibleRegions.clear();
 		terrainIterator.reset();
-		viewTracker.clear();
+		potentiallyVisibleSetManager.clear();
 		renderRegionStorage.clear();
 		// we don't want to use our collector unless we are in a world
 		((BufferBuilderStorageExt) vanillaWorldRenderer.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
@@ -883,7 +883,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			regionBuilder.reset();
 		}
 
-		viewTracker.clear();
+		potentiallyVisibleSetManager.clear();
 		renderRegionStorage.clear();
 		cameraVisibleRegions.clear();
 		terrainFrustum.reload();
