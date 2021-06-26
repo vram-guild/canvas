@@ -96,7 +96,8 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
-import grondag.canvas.terrain.occlusion.OcclusionInputStatus;
+import grondag.canvas.terrain.occlusion.OcclusionInputManager;
+import grondag.canvas.terrain.occlusion.OcclusionResultManager;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleSetManager;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
@@ -116,7 +117,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
 	public final PotentiallyVisibleSetManager potentiallyVisibleSetManager = new PotentiallyVisibleSetManager();
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	public final OcclusionInputStatus occlusionInputStatus = new OcclusionInputStatus(this);
+	public final OcclusionInputManager occlusionInputStatus = new OcclusionInputManager(this);
+	public final OcclusionResultManager occlusionStateManager = new OcclusionResultManager(this);
 
 	/**
 	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
@@ -126,10 +128,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 * <p>A snapshot of this is used for terrain culling - usually off thread. The snapshot lives inside TerrainOccluder.
 	 */
 	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
-
-	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(renderRegionStorage);
 	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
 	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
+
+	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(renderRegionStorage);
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
@@ -260,7 +262,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			if (state == TerrainIterator.IDLE) {
 				final int occlusionInputFlags = occlusionInputStatus.getAndClearStatus();
 
-				if (occlusionInputFlags != OcclusionInputStatus.CURRENT) {
+				if (occlusionInputFlags != OcclusionInputManager.CURRENT) {
 					terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
 					regionBuilder.executor.execute(terrainIterator);
 				}
@@ -269,7 +271,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// Run iteration on main thread
 			final int occlusionInputFlags = occlusionInputStatus.getAndClearStatus();
 
-			if (occlusionInputFlags != OcclusionInputStatus.CURRENT) {
+			if (occlusionInputFlags != OcclusionInputManager.CURRENT) {
 				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
 				terrainIterator.run(null);
 				copyVisibleRegionsFromIterator();

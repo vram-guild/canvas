@@ -73,7 +73,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	final RenderChunk renderChunk;
 
 	public final RegionPosition origin;
-	public final RegionVisibility visibility;
+	public final RegionOcclusionState occlusionState;
 	public final NeighborRegions neighbors;
 
 	/**
@@ -117,7 +117,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		needsRebuild = true;
 		origin = new RegionPosition(packedPos, this);
 		neighbors = new NeighborRegions(this);
-		visibility = new RegionVisibility(this);
+		occlusionState = new RegionOcclusionState(this);
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -142,7 +142,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 	void updatePositionAndVisibility() {
 		origin.update();
-		visibility.update();
+		occlusionState.update();
 	}
 
 	void close() {
@@ -262,7 +262,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
 				// Even if empty the chunk may still be needed for visibility search to progress
-				visibility.notifyOfOcclusionChange();
+				occlusionState.notifyOfOcclusionChange();
 			}
 
 			return;
@@ -270,7 +270,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 		// If we are no longer in potentially visible region, abort build and restore needsRebuild.
 		// We also don't force a vis update here because, obviously, we can't affect it.
-		if (!origin.isPotentiallyVisibleFromCamera() && !visibility.isPotentiallyVisibleFromSkylight()) {
+		if (!origin.isPotentiallyVisibleFromCamera() && !occlusionState.isPotentiallyVisibleFromSkylight()) {
 			protoRegion.release();
 			// Causes region to be rescheduled if/when it comes back into view
 			markForBuild(false);
@@ -285,7 +285,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			// Marking the region for rebuild doesn't cause iteration to restart and we
 			// may need visibility to restart if it was waiting for this region to progress.
 			// WIP: better way to handle that won't force excessive reiteration?
-			visibility.notifyOfOcclusionChange();
+			occlusionState.notifyOfOcclusionChange();
 			return;
 		}
 
@@ -377,7 +377,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
 		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
-			visibility.notifyOfOcclusionChange();
+			occlusionState.notifyOfOcclusionChange();
 		}
 
 		return newBuildState;
@@ -504,7 +504,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
 				// Even if empty the chunk may still be needed for visibility search to progress
-				visibility.notifyOfOcclusionChange();
+				occlusionState.notifyOfOcclusionChange();
 			}
 		} else {
 			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(region);

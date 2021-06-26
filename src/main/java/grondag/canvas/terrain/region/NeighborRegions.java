@@ -101,32 +101,32 @@ public class NeighborRegions {
 	}
 
 	public void enqueueUnvistedCameraNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).visibility.addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).visibility.addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).visibility.addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).visibility.addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.EAST_INDEX).occlusionState.addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).occlusionState.addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).occlusionState.addToCameraPvsIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).occlusionState.addToCameraPvsIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).visibility.addToCameraPvsIfValid();
+			getNeighbor(FaceConstants.UP_INDEX).occlusionState.addToCameraPvsIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).visibility.addToCameraPvsIfValid();
+			getNeighbor(FaceConstants.DOWN_INDEX).occlusionState.addToCameraPvsIfValid();
 		}
 	}
 
 	public void enqueueUnvistedShadowNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).visibility.addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).visibility.addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).visibility.addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).visibility.addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.EAST_INDEX).occlusionState.addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).occlusionState.addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).occlusionState.addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).occlusionState.addToShadowPvsIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).visibility.addToShadowPvsIfValid();
+			getNeighbor(FaceConstants.UP_INDEX).occlusionState.addToShadowPvsIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).visibility.addToShadowPvsIfValid();
+			getNeighbor(FaceConstants.DOWN_INDEX).occlusionState.addToShadowPvsIfValid();
 		}
 	}
 }

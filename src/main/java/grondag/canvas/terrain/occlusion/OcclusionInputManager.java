@@ -21,13 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasWorldRenderer;
 
-public class OcclusionInputStatus {
+public class OcclusionInputManager {
 	public static final int CURRENT = 0;
 	public static final int CAMERA_INVALID = 1;
 	public static final int SHADOW_INVALID = 2;
 	public static final int BOTH_INVALID = CAMERA_INVALID | SHADOW_INVALID;
 
-	final CanvasWorldRenderer cwr;
+	private final CanvasWorldRenderer cwr;
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
@@ -41,7 +41,7 @@ public class OcclusionInputStatus {
 
 	private int lastViewVersion = -1;
 
-	public OcclusionInputStatus(CanvasWorldRenderer cwr) {
+	public OcclusionInputManager(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
 	}
 
