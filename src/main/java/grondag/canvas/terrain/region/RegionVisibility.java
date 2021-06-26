@@ -27,7 +27,7 @@ public class RegionVisibility {
 	// Here to save some pointer chases
 	private final CameraPotentiallyVisibleRegionSet cameraPVS;
 	private final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS;
-	private final VisibilityStatus visibilityStatus;
+	private final OcclusionInputStatus occlusionInputStatus;
 
 	/** Incremented when occlusion data changes (including first time built). */
 	private int regionOcclusionDataVersion = -1;
@@ -74,9 +74,9 @@ public class RegionVisibility {
 
 	public RegionVisibility(RenderRegion owner) {
 		this.owner = owner;
-		cameraPVS = owner.storage.cameraPVS;
-		shadowPVS = owner.storage.shadowPVS;
-		visibilityStatus = owner.storage.visibilityStatus;
+		cameraPVS = owner.cwr.viewTracker.cameraPVS;
+		shadowPVS = owner.cwr.viewTracker.shadowPVS;
+		occlusionInputStatus = owner.cwr.occlusionInputStatus;
 	}
 
 	public void setCameraOccluderResult(boolean occluderResult, int occluderVersion) {
@@ -229,7 +229,7 @@ public class RegionVisibility {
 	}
 
 	public boolean wasRecentlySeenFromCamera() {
-		return owner.storage.cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult;
+		return owner.cwr.viewTracker.cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult;
 	}
 
 	/**
@@ -264,18 +264,18 @@ public class RegionVisibility {
 		++regionOcclusionDataVersion;
 
 		// use pvs versions for this test, not occluder versions
-		int flags = VisibilityStatus.CURRENT;
+		int flags = OcclusionInputStatus.CURRENT;
 
 		if (lastSeenCameraPvsVersion == cameraPVS.version()) {
-			flags |= VisibilityStatus.CAMERA_INVALID;
+			flags |= OcclusionInputStatus.CAMERA_INVALID;
 		}
 
 		if (Pipeline.shadowsEnabled() && lastSeenShadowPvsVersion == shadowPVS.version()) {
-			flags |= VisibilityStatus.SHADOW_INVALID;
+			flags |= OcclusionInputStatus.SHADOW_INVALID;
 		}
 
-		if (flags != VisibilityStatus.CURRENT) {
-			visibilityStatus.invalidateOcclusionData(flags);
+		if (flags != OcclusionInputStatus.CURRENT) {
+			occlusionInputStatus.invalidateOcclusionInputs(flags);
 		}
 	}
 }

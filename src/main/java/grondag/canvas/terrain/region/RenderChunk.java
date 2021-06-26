@@ -21,19 +21,21 @@ import net.minecraft.world.chunk.ChunkStatus;
 
 public class RenderChunk {
 	final RenderRegionStorage storage;
+	final ViewTracker viewTracker;
 
 	private int chunkX;
 	private int chunkZ;
 	private RenderRegion[] regions = null;
 	private boolean areCornersLoadedCache = false;
 
-	/**  See {@link RenderRegionStorage#cameraRegionVersion()}. */
-	private int cameraRegionVersion = -1;
+	/**  See {@link VisiblityTracker#cameraRegionOriginVersion()}. */
+	private int cameraRegionOriginVersion = -1;
 
 	int horizontalSquaredDistance;
 
 	public RenderChunk(RenderRegionStorage storage) {
 		this.storage = storage;
+		viewTracker = storage.cwr.viewTracker;
 	}
 
 	private void open(int chunkX, int chunkZ) {
@@ -41,7 +43,7 @@ public class RenderChunk {
 		this.chunkZ = chunkZ;
 		regions = new RenderRegion[RenderRegionIndexer.MAX_Y_REGIONS];
 		areCornersLoadedCache = false;
-		cameraRegionVersion = -1;
+		cameraRegionOriginVersion = -1;
 		computeChunkDistanceMetrics();
 	}
 
@@ -95,12 +97,12 @@ public class RenderChunk {
 	}
 
 	private void computeChunkDistanceMetrics() {
-		final int cameraRegionVersion = storage.cameraRegionVersion();
+		final int cameraRegionOriginVersion = viewTracker.cameraRegionOriginVersion();
 
-		if (this.cameraRegionVersion != cameraRegionVersion) {
-			this.cameraRegionVersion = cameraRegionVersion;
-			final int cx = storage.cameraChunkX() - chunkX;
-			final int cz = storage.cameraChunkZ() - chunkZ;
+		if (this.cameraRegionOriginVersion != cameraRegionOriginVersion) {
+			this.cameraRegionOriginVersion = cameraRegionOriginVersion;
+			final int cx = viewTracker.cameraChunkX() - chunkX;
+			final int cz = viewTracker.cameraChunkZ() - chunkZ;
 			horizontalSquaredDistance = cx * cx + cz * cz;
 		}
 	}
@@ -143,6 +145,6 @@ public class RenderChunk {
 
 	/**  See {@link RenderRegionStorage#cameraRegionVersion()}. */
 	public int cameraRegionVersion() {
-		return cameraRegionVersion;
+		return cameraRegionOriginVersion;
 	}
 }

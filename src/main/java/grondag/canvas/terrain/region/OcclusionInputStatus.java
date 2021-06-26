@@ -19,65 +19,66 @@ package grondag.canvas.terrain.region;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.render.CanvasWorldRenderer;
 
-public class VisibilityStatus {
+public class OcclusionInputStatus {
 	public static final int CURRENT = 0;
 	public static final int CAMERA_INVALID = 1;
 	public static final int SHADOW_INVALID = 2;
 	public static final int BOTH_INVALID = CAMERA_INVALID | SHADOW_INVALID;
 
-	final RenderRegionStorage storage;
+	final CanvasWorldRenderer cwr;
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
 	 * Distinct from occluder state, which indicates if/when occluder must be reset or redrawn.
 	 */
-	private final AtomicInteger cameraDataVersion = new AtomicInteger();
-	private int lastCameraDataVersion = -1;
+	private final AtomicInteger cameraInputVersion = new AtomicInteger();
+	private int lastCameraInputVersion = -1;
 
-	private final AtomicInteger shadowDataVersion = new AtomicInteger();
-	private int lastShadowDataVersion = -1;
+	private final AtomicInteger shadowInputVersion = new AtomicInteger();
+	private int lastShadowInputVersion = -1;
 
 	private int lastViewVersion = -1;
 
-	public VisibilityStatus(RenderRegionStorage renderRegionStorage) {
-		storage = renderRegionStorage;
+	public OcclusionInputStatus(CanvasWorldRenderer cwr) {
+		this.cwr = cwr;
 	}
 
-	public void invalidateOcclusionData(int flags) {
+	public void invalidateOcclusionInputs(int flags) {
 		if ((flags & CAMERA_INVALID) == CAMERA_INVALID) {
-			cameraDataVersion.incrementAndGet();
+			cameraInputVersion.incrementAndGet();
 		}
 
 		if ((flags & SHADOW_INVALID) == SHADOW_INVALID) {
-			shadowDataVersion.incrementAndGet();
+			shadowInputVersion.incrementAndGet();
 		}
 	}
 
 	public boolean isCurrent() {
-		return cameraDataVersion.get() == lastCameraDataVersion && (!Pipeline.shadowsEnabled() || shadowDataVersion.get() == lastShadowDataVersion);
+		return cameraInputVersion.get() == lastCameraInputVersion && (!Pipeline.shadowsEnabled() || shadowInputVersion.get() == lastShadowInputVersion);
 	}
 
 	public int getAndClearStatus() {
 		int result = CURRENT;
 
-		final int newRegionDataVersion = cameraDataVersion.get();
+		final int newRegionDataVersion = cameraInputVersion.get();
 
-		if (lastCameraDataVersion != newRegionDataVersion) {
-			lastCameraDataVersion = newRegionDataVersion;
+		if (lastCameraInputVersion != newRegionDataVersion) {
+			lastCameraInputVersion = newRegionDataVersion;
 			result |= CAMERA_INVALID;
 		}
 
 		if (Pipeline.shadowsEnabled()) {
-			final int newShadowDataVersion = shadowDataVersion.get();
+			final int newShadowDataVersion = shadowInputVersion.get();
 
-			if (lastShadowDataVersion != newShadowDataVersion) {
-				lastShadowDataVersion = newShadowDataVersion;
+			if (lastShadowInputVersion != newShadowDataVersion) {
+				lastShadowInputVersion = newShadowDataVersion;
 				result |= SHADOW_INVALID;
 			}
 		}
 
-		final int newViewVersion = storage.cwr.terrainFrustum.viewVersion();
+		final int newViewVersion = cwr.terrainFrustum.viewVersion();
 
 		if (lastViewVersion != newViewVersion) {
 			lastViewVersion = newViewVersion;

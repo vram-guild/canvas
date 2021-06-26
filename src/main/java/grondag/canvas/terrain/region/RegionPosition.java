@@ -85,7 +85,7 @@ public class RegionPosition extends BlockPos {
 
 		if (this.cameraRegionVersion != cameraRegionVersion) {
 			this.cameraRegionVersion = cameraRegionVersion;
-			final int cy = owner.storage.cameraChunkY() - chunkY;
+			final int cy = owner.cwr.viewTracker.cameraChunkY() - chunkY;
 			squaredCameraChunkDistance = owner.renderChunk.horizontalSquaredDistance + cy * cy;
 			isInsideRenderDistance = squaredCameraChunkDistance <= owner.cwr.maxSquaredChunkRenderDistance();
 			isNear = squaredCameraChunkDistance <= 3;

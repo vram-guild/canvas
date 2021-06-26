@@ -23,36 +23,19 @@ import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.shader.data.ShaderDataManager;
-import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.ShadowOccluder;
-import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RenderRegionStorage {
-	/**
-	 * Tracks which regions within render distance are potentially visible from the camera
-	 * and sorts them from near to far relative to the camera.  Supports terrain iteration
-	 * for the camera view.
-	 */
-	public final CameraPotentiallyVisibleRegionSet cameraPVS = new CameraPotentiallyVisibleRegionSet();
-	public final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS = new ShadowPotentiallyVisibleRegionSet<>(new RenderRegion[RenderRegionIndexer.PADDED_REGION_INDEX_COUNT]);
-	public final VisibilityStatus visibilityStatus = new VisibilityStatus(this);
-
 	private final AtomicInteger loadedRegionCount = new AtomicInteger();
-
-	private int lastCameraChunkX = Integer.MAX_VALUE;
-	private int lastCameraChunkY = Integer.MAX_VALUE;
-	private int lastCameraChunkZ = Integer.MAX_VALUE;
 
 	public final CanvasWorldRenderer cwr;
 
-	private boolean didInvalidateCameraOccluder = false;
-	private boolean didInvalidateShadowOccluder = false;
-	private int cameraOcclusionVersion = 0;
-	private int shadowOcclusionVersion = 0;
+	private boolean didInvalidateCameraOcclusionRaster = false;
+	private boolean didInvalidateShadowOcclusionRaster = false;
+	private int cameraOcclusionRasterVersion = 0;
+	private int shadowOcclusionRasterVersion = 0;
 	private int maxSquaredCameraChunkDistance;
-
-	private int cameraRegionVersion = 1;
 
 	private final RenderChunk[] chunks = new RenderChunk[RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT];
 	private final ArrayBlockingQueue<RenderChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT);
@@ -72,22 +55,22 @@ public class RenderRegionStorage {
 	 * match, causing regions to be re-tested and redrawn, which is the main point of this process.
 	 */
 	public int cameraOcclusionVersion() {
-		return cameraOcclusionVersion;
+		return cameraOcclusionRasterVersion;
 	}
 
 	public void invalidateCameraOccluder() {
-		didInvalidateCameraOccluder = true;
+		didInvalidateCameraOcclusionRaster = true;
 	}
 
 	/**
-	 * Like {@link #cameraOcclusionVersion} but for shadow occluder.
+	 * Like {@link #cameraOcclusionRasterVersion} but for shadow occluder.
 	 */
 	public int shadowOcclusionVersion() {
-		return shadowOcclusionVersion;
+		return shadowOcclusionRasterVersion;
 	}
 
 	public void invalidateShadowOccluder() {
-		didInvalidateShadowOccluder = true;
+		didInvalidateShadowOcclusionRaster = true;
 	}
 
 	public int maxSquaredCameraChunkDistance() {
@@ -95,24 +78,9 @@ public class RenderRegionStorage {
 	}
 
 	public synchronized void clear() {
-		cameraPVS.clear();
-		shadowPVS.clear();
-
 		for (final RenderChunk chunk : chunks) {
 			chunk.close();
 		}
-	}
-
-	public int cameraChunkX() {
-		return lastCameraChunkX;
-	}
-
-	public int cameraChunkY() {
-		return lastCameraChunkY;
-	}
-
-	public int cameraChunkZ() {
-		return lastCameraChunkZ;
 	}
 
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
@@ -131,43 +99,27 @@ public class RenderRegionStorage {
 		}
 	}
 
-	public void updateCameraDistanceAndVisibility(long cameraRegionOrigin) {
-		final int cameraChunkX = BlockPos.unpackLongX(cameraRegionOrigin) >> 4;
-		final int cameraChunkY = BlockPos.unpackLongY(cameraRegionOrigin) >> 4;
-		final int cameraChunkZ = BlockPos.unpackLongZ(cameraRegionOrigin) >> 4;
-
-		if (!(cameraChunkX == lastCameraChunkX && cameraChunkY == lastCameraChunkY && cameraChunkZ == lastCameraChunkZ)) {
-			lastCameraChunkX = cameraChunkX;
-			lastCameraChunkY = cameraChunkY;
-			lastCameraChunkZ = cameraChunkZ;
-			++cameraRegionVersion;
-			cameraPVS.clear();
-			cwr.renderRegionStorage.shadowPVS.setCameraChunkOriginAndClear(cameraChunkX, cameraChunkZ);
-		} else {
-			cameraPVS.returnToStart();
-		}
-
+	public void update(long cameraRegionOrigin) {
 		final TerrainOccluder cameraOccluder = cwr.terrainIterator.cameraOccluder;
 		final ShadowOccluder shadowOccluder = cwr.terrainIterator.shadowOccluder;
 		shadowOccluder.setLightVector(ShaderDataManager.skyLightVector);
-		shadowPVS.setLightVectorAndRestart(ShaderDataManager.skyLightVector);
 
-		cameraOcclusionVersion = cameraOccluder.occlusionVersion();
-		shadowOcclusionVersion = shadowOccluder.occlusionVersion();
+		cameraOcclusionRasterVersion = cameraOccluder.occlusionVersion();
+		shadowOcclusionRasterVersion = shadowOccluder.occlusionVersion();
 		maxSquaredCameraChunkDistance = cameraOccluder.maxSquaredChunkDistance();
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
 			chunks[i].updatePositionAndVisibility();
 		}
 
-		if (didInvalidateCameraOccluder) {
+		if (didInvalidateCameraOcclusionRaster) {
 			cameraOccluder.invalidate();
-			didInvalidateCameraOccluder = false;
+			didInvalidateCameraOcclusionRaster = false;
 		}
 
-		if (didInvalidateShadowOccluder) {
+		if (didInvalidateShadowOcclusionRaster) {
 			shadowOccluder.invalidate();
-			didInvalidateShadowOccluder = false;
+			didInvalidateShadowOcclusionRaster = false;
 		}
 	}
 
@@ -215,17 +167,5 @@ public class RenderRegionStorage {
 
 	void trackRegionLoaded() {
 		loadedRegionCount.incrementAndGet();
-	}
-
-	/**
-	 * Increments every time the camera moves to a different region.
-	 * Non-loadable regions (outside world boundaries) trigger changes
-	 * the same as loadable regions.
-	 *
-	 * <p>Chunk and Region instances track this value to trigger refresh of
-	 * computations that depend on which region contains the camera.
-	 */
-	public int cameraRegionVersion() {
-		return cameraRegionVersion;
 	}
 }

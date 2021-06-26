@@ -99,10 +99,11 @@ import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
+import grondag.canvas.terrain.region.OcclusionInputStatus;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.terrain.region.VisibilityStatus;
+import grondag.canvas.terrain.region.ViewTracker;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
 
@@ -113,7 +114,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	public final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
+	public final ViewTracker viewTracker = new ViewTracker();
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
+	public final OcclusionInputStatus occlusionInputStatus = new OcclusionInputStatus(this);
 
 	/**
 	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
@@ -199,6 +202,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		world = clientWorld;
 		cameraVisibleRegions.clear();
 		terrainIterator.reset();
+		viewTracker.clear();
 		renderRegionStorage.clear();
 		// we don't want to use our collector unless we are in a world
 		((BufferBuilderStorageExt) vanillaWorldRenderer.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
@@ -254,19 +258,19 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 
 			if (state == TerrainIterator.IDLE) {
-				final int visibilityStatus = renderRegionStorage.visibilityStatus.getAndClearStatus();
+				final int occlusionInputFlags = occlusionInputStatus.getAndClearStatus();
 
-				if (visibilityStatus != VisibilityStatus.CURRENT) {
-					terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, visibilityStatus);
+				if (occlusionInputFlags != OcclusionInputStatus.CURRENT) {
+					terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
 					regionBuilder.executor.execute(terrainIterator);
 				}
 			}
 		} else {
 			// Run iteration on main thread
-			final int visibilityStatus = renderRegionStorage.visibilityStatus.getAndClearStatus();
+			final int occlusionInputFlags = occlusionInputStatus.getAndClearStatus();
 
-			if (visibilityStatus != VisibilityStatus.CURRENT) {
-				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, visibilityStatus);
+			if (occlusionInputFlags != OcclusionInputStatus.CURRENT) {
+				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
 				terrainIterator.run(null);
 				copyVisibleRegionsFromIterator();
 				terrainIterator.reset();
@@ -879,6 +883,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			regionBuilder.reset();
 		}
 
+		viewTracker.clear();
 		renderRegionStorage.clear();
 		cameraVisibleRegions.clear();
 		terrainFrustum.reload();
@@ -888,7 +893,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public boolean isTerrainRenderComplete() {
-		return regionRebuildManager.isEmpty() && regionBuilder.isEmpty() && renderRegionStorage.visibilityStatus.isCurrent();
+		return regionRebuildManager.isEmpty() && regionBuilder.isEmpty() && occlusionInputStatus.isCurrent();
 	}
 
 	@Override
