@@ -14,36 +14,36 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.render;
+package grondag.canvas.render.region;
 
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 
-public class UploadableChunk {
-	public static final UploadableChunk EMPTY_UPLOADABLE = new UploadableChunk() {
+public class UploadableRegion {
+	public static final UploadableRegion EMPTY_UPLOADABLE = new UploadableRegion() {
 		@Override
-		public DrawableChunk produceDrawable() {
-			return DrawableChunk.EMPTY_DRAWABLE;
+		public DrawableRegion produceDrawable() {
+			return DrawableRegion.EMPTY_DRAWABLE;
 		}
 	};
 	protected final VboBuffer vboBuffer;
-	protected final DrawableChunk drawable;
+	protected final DrawableRegion drawable;
 
-	public UploadableChunk(VertexCollectorList collectorList, boolean sorted, int bytes) {
+	public UploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes) {
 		vboBuffer = new VboBuffer(bytes, CanvasVertexFormats.MATERIAL_FORMAT);
-		drawable = DrawableChunk.pack(collectorList, vboBuffer, sorted);
+		drawable = DrawableRegion.pack(collectorList, vboBuffer, sorted);
 	}
 
-	private UploadableChunk() {
+	private UploadableRegion() {
 		vboBuffer = null;
-		drawable = DrawableChunk.EMPTY_DRAWABLE;
+		drawable = DrawableRegion.EMPTY_DRAWABLE;
 	}
 
 	/**
 	 * Will be called from client thread - is where flush/unmap needs to happen.
 	 */
-	public DrawableChunk produceDrawable() {
+	public DrawableRegion produceDrawable() {
 		vboBuffer.upload();
 		return drawable;
 	}

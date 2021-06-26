@@ -58,8 +58,8 @@ import net.minecraft.util.shape.VoxelShape;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.WorldRendererExt;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.FabulousFrameBuffer;
+import grondag.canvas.render.world.CanvasWorldRenderer;
 
 @Mixin(WorldRenderer.class)
 public class MixinWorldRenderer implements WorldRendererExt {

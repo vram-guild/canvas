@@ -14,13 +14,13 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.render;
+package grondag.canvas.render.region;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-public class DelegateLists {
+class DelegateLists {
 	private static final ArrayBlockingQueue<ObjectArrayList<DrawableDelegate>> delegateLists = new ArrayBlockingQueue<>(
 			4096);
 

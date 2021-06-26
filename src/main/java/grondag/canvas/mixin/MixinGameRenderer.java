@@ -33,7 +33,7 @@ import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.shader.data.ScreenRenderState;
 
 @Mixin(GameRenderer.class)

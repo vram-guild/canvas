@@ -31,7 +31,7 @@ import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
-import grondag.canvas.render.SkyShadowRenderer;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.data.MatrixState;

@@ -21,7 +21,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 
-import grondag.canvas.render.WorldRenderState;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 
 public class RegionCullingFrustum extends FastFrustum {

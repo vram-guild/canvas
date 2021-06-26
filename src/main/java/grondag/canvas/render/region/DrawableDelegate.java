@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.render;
+package grondag.canvas.render.region;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -23,7 +23,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
 
-public class DrawableDelegate {
+class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
 	private RenderState renderState;
 	private int vertexOffset;

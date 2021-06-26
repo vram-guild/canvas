@@ -16,7 +16,7 @@
 
 package grondag.canvas.terrain.occlusion;
 
-import grondag.canvas.render.WorldRenderState;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
 
 public class OcclusionResultManager {

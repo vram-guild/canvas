@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.render.world;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +29,7 @@ import grondag.canvas.terrain.occlusion.PotentiallyVisibleSetManager;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
+import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 

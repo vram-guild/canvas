@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.render;
+package grondag.canvas.render.region;
 
 import java.nio.IntBuffer;
 import java.util.function.Predicate;
@@ -27,13 +27,13 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderState;
 
-public class DrawableChunk {
-	public static DrawableChunk EMPTY_DRAWABLE = new DrawableChunk.Dummy();
+public class DrawableRegion {
+	public static DrawableRegion EMPTY_DRAWABLE = new DrawableRegion.Dummy();
 	public final VboBuffer vboBuffer;
 	protected boolean isClosed = false;
 	protected ObjectArrayList<DrawableDelegate> delegates;
 
-	protected DrawableChunk(VboBuffer vboBuffer, ObjectArrayList<DrawableDelegate> delegates) {
+	protected DrawableRegion(VboBuffer vboBuffer, ObjectArrayList<DrawableDelegate> delegates) {
 		this.vboBuffer = vboBuffer;
 		this.delegates = delegates;
 	}
@@ -79,7 +79,7 @@ public class DrawableChunk {
 		return isClosed;
 	}
 
-	private static class Dummy extends DrawableChunk {
+	private static class Dummy extends DrawableRegion {
 		private final ObjectArrayList<DrawableDelegate> nothing = new ObjectArrayList<>();
 
 		protected Dummy() {
@@ -101,7 +101,7 @@ public class DrawableChunk {
 	private static final Predicate<RenderState> TRANSLUCENT = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
 	private static final Predicate<RenderState> SOLID = m -> !TRANSLUCENT.test(m);
 
-	public static DrawableChunk pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
+	public static DrawableRegion pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
 		final IntBuffer intBuffer = vboBuffer.intBuffer();
 		intBuffer.position(0);
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
@@ -124,7 +124,7 @@ public class DrawableChunk {
 			DelegateLists.releaseDelegateList(delegates);
 			return EMPTY_DRAWABLE;
 		} else {
-			return new DrawableChunk(vboBuffer, delegates);
+			return new DrawableRegion(vboBuffer, delegates);
 		}
 	}
 }

@@ -32,8 +32,8 @@ import net.minecraft.util.thread.ReentrantThreadExecutor;
 
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.canvas.render.CanvasWorldRenderer;
 import grondag.canvas.render.PrimaryFrameBuffer;
+import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.varia.CanvasGlHelper;
 
 @Mixin(MinecraftClient.class)

@@ -50,15 +50,15 @@ import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.render.WorldRenderState;
+import grondag.canvas.render.region.DrawableRegion;
+import grondag.canvas.render.region.UploadableRegion;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.region.input.SignalInputRegion;
-import grondag.canvas.terrain.render.DrawableChunk;
-import grondag.canvas.terrain.render.UploadableChunk;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
 import grondag.frex.api.fluid.FluidQuadSupplier;
@@ -101,8 +101,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	 */
 	private boolean needsRebuild;
 	private boolean needsImportantRebuild;
-	private DrawableChunk translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
-	private DrawableChunk solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
+	private DrawableRegion translucentDrawable = DrawableRegion.EMPTY_DRAWABLE;
+	private DrawableRegion solidDrawable = DrawableRegion.EMPTY_DRAWABLE;
 
 	boolean isClosed = false;
 
@@ -164,10 +164,10 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 	private void releaseDrawables() {
 		solidDrawable.close();
-		solidDrawable = DrawableChunk.EMPTY_DRAWABLE;
+		solidDrawable = DrawableRegion.EMPTY_DRAWABLE;
 
 		translucentDrawable.close();
-		translucentDrawable = DrawableChunk.EMPTY_DRAWABLE;
+		translucentDrawable = DrawableRegion.EMPTY_DRAWABLE;
 	}
 
 	public void markForBuild(boolean isImportant) {
@@ -307,9 +307,9 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 					regionData.translucentState = collector.saveState(state);
 
 					if (runningState.get() != SignalInputRegion.INVALID) {
-						final UploadableChunk upload = collectors.toUploadableChunk(true);
+						final UploadableRegion upload = collectors.toUploadableChunk(true);
 
-						if (upload != UploadableChunk.EMPTY_UPLOADABLE) {
+						if (upload != UploadableRegion.EMPTY_UPLOADABLE) {
 							renderRegionBuilder.scheduleUpload(() -> {
 								if (ChunkRebuildCounters.ENABLED) {
 									ChunkRebuildCounters.startUpload();
@@ -343,10 +343,10 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			buildTerrain(context, chunkData);
 
 			if (runningState.get() != SignalInputRegion.INVALID) {
-				final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
-				final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
+				final UploadableRegion solidUpload = collectors.toUploadableChunk(false);
+				final UploadableRegion translucentUpload = collectors.toUploadableChunk(true);
 
-				if (solidUpload != UploadableChunk.EMPTY_UPLOADABLE || translucentUpload != UploadableChunk.EMPTY_UPLOADABLE) {
+				if (solidUpload != UploadableRegion.EMPTY_UPLOADABLE || translucentUpload != UploadableRegion.EMPTY_UPLOADABLE) {
 					renderRegionBuilder.scheduleUpload(() -> {
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.startUpload();
@@ -517,8 +517,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			}
 
 			final VertexCollectorList collectors = context.collectors;
-			final UploadableChunk solidUpload = collectors.toUploadableChunk(false);
-			final UploadableChunk translucentUpload = collectors.toUploadableChunk(true);
+			final UploadableRegion solidUpload = collectors.toUploadableChunk(false);
+			final UploadableRegion translucentUpload = collectors.toUploadableChunk(true);
 
 			releaseDrawables();
 			solidDrawable = solidUpload.produceDrawable();
@@ -539,11 +539,11 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		return buildState.get();
 	}
 
-	public DrawableChunk translucentDrawable() {
+	public DrawableRegion translucentDrawable() {
 		return translucentDrawable;
 	}
 
-	public DrawableChunk solidDrawable() {
+	public DrawableRegion solidDrawable() {
 		return solidDrawable;
 	}
 

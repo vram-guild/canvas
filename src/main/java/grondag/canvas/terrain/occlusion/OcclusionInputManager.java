@@ -19,7 +19,7 @@ package grondag.canvas.terrain.occlusion;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.render.WorldRenderState;
+import grondag.canvas.render.world.WorldRenderState;
 
 public class OcclusionInputManager {
 	public static final int CURRENT = 0;

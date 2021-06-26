@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.render.world;
 
 import java.util.Iterator;
 import java.util.List;
@@ -88,6 +88,7 @@ import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
+import grondag.canvas.render.region.RegionRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
@@ -97,9 +98,9 @@ import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.occlusion.OcclusionInputManager;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
+import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
 
 public class CanvasWorldRenderer extends WorldRenderer {
@@ -725,11 +726,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
-		TerrainLayerRenderer.render(worldRenderState.cameraVisibleRegions, x, y, z, isTranslucent);
+		RegionRenderer.render(worldRenderState.cameraVisibleRegions, x, y, z, isTranslucent);
 	}
 
 	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
-		TerrainLayerRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], x, y, z, false);
+		RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], x, y, z, false);
 	}
 
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {

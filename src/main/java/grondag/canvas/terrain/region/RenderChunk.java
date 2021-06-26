@@ -20,7 +20,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.ChunkStatus;
 
-import grondag.canvas.render.WorldRenderState;
+import grondag.canvas.render.world.WorldRenderState;
 
 public class RenderChunk {
 	final WorldRenderState worldRenderState;

@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.terrain.region;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -24,7 +24,6 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import net.minecraft.util.Util;
 
-import grondag.canvas.terrain.region.RenderRegion;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 /**
@@ -85,7 +84,7 @@ public class RegionRebuildManager {
 	 *
 	 * @param updateRegions list of regions potentially needing rebuilt
 	 */
-	void scheduleOrBuild(SimpleUnorderedArrayList<RenderRegion> updateRegions) {
+	public void scheduleOrBuild(SimpleUnorderedArrayList<RenderRegion> updateRegions) {
 		final int limit = updateRegions.size();
 		final Set<RenderRegion> regionsToRebuild = this.regionsToRebuild;
 
@@ -116,7 +115,7 @@ public class RegionRebuildManager {
 	 *
 	 * @param region Region to be checked and rebuilt.
 	 */
-	void buildNearRegionIfNeeded(RenderRegion region) {
+	public void buildNearRegionIfNeeded(RenderRegion region) {
 		if (region.needsRebuild()) {
 			regionsToRebuild.remove(region);
 			region.rebuildOnMainThread();
@@ -134,7 +133,7 @@ public class RegionRebuildManager {
 	 * @param endNanos The max end time for this task. (NOT the duration.)
 	 * Processing will end when the system nanotime exceeds this value.
 	 */
-	void processScheduledRegions(long endNanos) {
+	public void processScheduledRegions(long endNanos) {
 		final Set<RenderRegion> regionsToRebuild = this.regionsToRebuild;
 
 		//final long start = Util.getMeasuringTimeNano();

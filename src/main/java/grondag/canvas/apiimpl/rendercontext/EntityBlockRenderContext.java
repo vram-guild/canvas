@@ -37,7 +37,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 import grondag.frex.api.material.MaterialMap;
 

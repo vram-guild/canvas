@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.render.WorldRenderState;
+import grondag.canvas.render.world.WorldRenderState;
 
 public class RenderRegionStorage {
 	private final AtomicInteger loadedRegionCount = new AtomicInteger();

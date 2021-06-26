@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render;
+package grondag.canvas.render.world;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;

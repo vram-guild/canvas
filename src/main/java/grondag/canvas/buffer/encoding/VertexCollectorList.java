@@ -29,7 +29,7 @@ import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.terrain.render.UploadableChunk;
+import grondag.canvas.render.region.UploadableRegion;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
@@ -138,9 +138,9 @@ public class VertexCollectorList {
 		return intSize * 4;
 	}
 
-	public UploadableChunk toUploadableChunk(boolean sorted) {
+	public UploadableRegion toUploadableChunk(boolean sorted) {
 		final int bytes = totalBytes(sorted);
-		return bytes == 0 ? UploadableChunk.EMPTY_UPLOADABLE : new UploadableChunk(this, sorted, bytes);
+		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : new UploadableRegion(this, sorted, bytes);
 	}
 
 	/**

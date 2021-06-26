@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.render;
+package grondag.canvas.render.region;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -22,12 +22,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.SkyShadowRenderer;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.varia.GFX;
 
-public class TerrainLayerRenderer {
+public class RegionRenderer {
 	public static final void render(final VisibleRegionList visibleRegions, double x, double y, double z, boolean isTranslucent) {
 		final int visibleRegionCount = visibleRegions.size();
 
@@ -62,7 +62,7 @@ public class TerrainLayerRenderer {
 				continue;
 			}
 
-			final DrawableChunk drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
+			final DrawableRegion drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
 			if (!drawable.isClosed()) {
 				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
