@@ -81,17 +81,17 @@ public class RegionPosition extends BlockPos {
 	public void update() {
 		computeRegionDependentValues();
 		computeViewDependentValues();
-		shadowCascadeFlags = Pipeline.shadowsEnabled() ? owner.cwr.terrainIterator.shadowOccluder.cascadeFlags(this) : 0;
+		shadowCascadeFlags = Pipeline.shadowsEnabled() ? owner.worldRenderState.terrainIterator.shadowOccluder.cascadeFlags(this) : 0;
 	}
 
 	private void computeRegionDependentValues() {
-		final long cameraRegionOrigin = owner.cwr.terrainIterator.cameraRegionOrigin();
+		final long cameraRegionOrigin = owner.worldRenderState.terrainIterator.cameraRegionOrigin();
 
 		if (this.cameraRegionOrigin != cameraRegionOrigin) {
 			this.cameraRegionOrigin = cameraRegionOrigin;
 			final int cy = (BlockPos.unpackLongY(cameraRegionOrigin) >> 4) - chunkY;
 			squaredCameraChunkDistance = owner.renderChunk.horizontalSquaredDistance + cy * cy;
-			isInsideRenderDistance = squaredCameraChunkDistance <= owner.cwr.maxSquaredChunkRenderDistance();
+			isInsideRenderDistance = squaredCameraChunkDistance <= owner.worldRenderState.maxSquaredChunkRenderDistance();
 			isNear = squaredCameraChunkDistance <= 3;
 			occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredCameraChunkDistance);
 		}

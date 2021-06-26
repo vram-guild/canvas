@@ -74,9 +74,9 @@ public class RegionOcclusionState {
 
 	public RegionOcclusionState(RenderRegion owner) {
 		this.owner = owner;
-		cameraPVS = owner.cwr.potentiallyVisibleSetManager.cameraPVS;
-		shadowPVS = owner.cwr.potentiallyVisibleSetManager.shadowPVS;
-		occlusionInputStatus = owner.cwr.occlusionInputStatus;
+		cameraPVS = owner.worldRenderState.potentiallyVisibleSetManager.cameraPVS;
+		shadowPVS = owner.worldRenderState.potentiallyVisibleSetManager.shadowPVS;
+		occlusionInputStatus = owner.worldRenderState.occlusionInputStatus;
 	}
 
 	public void setCameraOccluderResult(boolean occluderResult, int occluderResultVersion) {
@@ -166,7 +166,7 @@ public class RegionOcclusionState {
 	 */
 	private void invalidateOcclusionResultIfNeeded() {
 		final RegionPosition origin = owner.origin;
-		final OcclusionResultManager occlusionResultManager = owner.cwr.occlusionStateManager;
+		final OcclusionResultManager occlusionResultManager = owner.worldRenderState.occlusionStateManager;
 
 		// Check camera occluder
 		if (cameraOcclusionResultVersion == occlusionResultManager.cameraOcclusionResultVersion()) {

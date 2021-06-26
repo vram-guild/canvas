@@ -16,11 +16,11 @@
 
 package grondag.canvas.terrain.occlusion;
 
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.WorldRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
 
 public class OcclusionResultManager {
-	private final CanvasWorldRenderer cwr;
+	private final WorldRenderState worldRenderState;
 
 	private boolean didInvalidateCameraOcclusionResult = false;
 	private boolean didInvalidateShadowOcclusionResult = false;
@@ -28,8 +28,8 @@ public class OcclusionResultManager {
 	private int shadowOcclusionResultVersion = 0;
 	private int maxSquaredCameraChunkDistance;
 
-	public OcclusionResultManager(CanvasWorldRenderer canvasWorldRenderer) {
-		cwr = canvasWorldRenderer;
+	public OcclusionResultManager(WorldRenderState worldRenderState) {
+		this.worldRenderState = worldRenderState;
 	}
 
 	/**
@@ -62,8 +62,8 @@ public class OcclusionResultManager {
 	}
 
 	public void beforeRegionUpdate() {
-		final TerrainOccluder cameraOccluder = cwr.terrainIterator.cameraOccluder;
-		final ShadowOccluder shadowOccluder = cwr.terrainIterator.shadowOccluder;
+		final TerrainOccluder cameraOccluder = worldRenderState.terrainIterator.cameraOccluder;
+		final ShadowOccluder shadowOccluder = worldRenderState.terrainIterator.shadowOccluder;
 		shadowOccluder.setLightVector(ShaderDataManager.skyLightVector);
 
 		cameraOcclusionResultVersion = cameraOccluder.occlusionVersion();
@@ -73,12 +73,12 @@ public class OcclusionResultManager {
 
 	public void afterRegionUpdate() {
 		if (didInvalidateCameraOcclusionResult) {
-			cwr.terrainIterator.cameraOccluder.invalidate();
+			worldRenderState.terrainIterator.cameraOccluder.invalidate();
 			didInvalidateCameraOcclusionResult = false;
 		}
 
 		if (didInvalidateShadowOcclusionResult) {
-			cwr.terrainIterator.shadowOccluder.invalidate();
+			worldRenderState.terrainIterator.shadowOccluder.invalidate();
 			didInvalidateShadowOcclusionResult = false;
 		}
 	}

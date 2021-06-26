@@ -21,10 +21,11 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 
+import grondag.canvas.render.WorldRenderState;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 
 public class RegionCullingFrustum extends FastFrustum {
-	private final RenderRegionStorage regions;
+	private final WorldRenderState worldRenderState;
 
 	public boolean enableRegionCulling = false;
 
@@ -34,15 +35,15 @@ public class RegionCullingFrustum extends FastFrustum {
 	/** Inclusive world height lower limit. */
 	private int worldBottomY;
 
-	public RegionCullingFrustum(RenderRegionStorage regions) {
-		this.regions = regions;
+	public RegionCullingFrustum(WorldRenderState worldRenderState) {
+		this.worldRenderState = worldRenderState;
 	}
 
 	@Override
 	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, Matrix4f projectionMatrix) {
 		super.prepare(modelMatrix, tickDelta, camera, projectionMatrix);
 
-		final ClientWorld world = regions.cwr.getWorld();
+		final ClientWorld world = worldRenderState.getWorld();
 		worldBottomY = world.getBottomY();
 		worldTopY = world.getTopY();
 	}
@@ -67,7 +68,7 @@ public class RegionCullingFrustum extends FastFrustum {
 				if (ry0 != ry1) flags |= 2;
 				if (rz0 != rz1) flags |= 4;
 
-				final RenderRegionStorage regions = this.regions;
+				final RenderRegionStorage regions = worldRenderState.renderRegionStorage;
 
 				switch (flags) {
 					case 0b000:

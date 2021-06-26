@@ -33,7 +33,7 @@ import net.minecraft.util.math.Vec3i;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.WorldRenderState;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
@@ -58,7 +58,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public final VisibleRegionList visibleRegions = new VisibleRegionList();
 	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
 	private final AtomicInteger state = new AtomicInteger(IDLE);
-	private final CanvasWorldRenderer cwr;
+	private final WorldRenderState worldRenderState;
 
 	private RenderRegion cameraRegion;
 	private boolean includeCamera = false;
@@ -73,8 +73,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private boolean chunkCullingEnabled = true;
 	private volatile boolean cancelled = false;
 
-	public TerrainIterator(CanvasWorldRenderer cwr) {
-		this.cwr = cwr;
+	public TerrainIterator(WorldRenderState worldRenderState) {
+		this.worldRenderState = worldRenderState;
 
 		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
 			shadowVisibleRegions[i] = new VisibleRegionList();
@@ -138,10 +138,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public void run(TerrainRenderContext ignored) {
 		assert state.get() == READY;
 		state.set(RUNNING);
-		cwr.potentiallyVisibleSetManager.update(cameraChunkOrigin);
-		cwr.occlusionStateManager.beforeRegionUpdate();
-		cwr.renderRegionStorage.updateRegionPositionAndVisibility();
-		cwr.occlusionStateManager.afterRegionUpdate();
+		worldRenderState.potentiallyVisibleSetManager.update(cameraChunkOrigin);
+		worldRenderState.occlusionStateManager.beforeRegionUpdate();
+		worldRenderState.renderRegionStorage.updateRegionPositionAndVisibility();
+		worldRenderState.occlusionStateManager.afterRegionUpdate();
 		final boolean redrawOccluder = cameraOccluder.prepareScene();
 		final boolean redrawShadowOccluder = Pipeline.shadowsEnabled() ? shadowOccluder.prepareScene() : false;
 
@@ -178,7 +178,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private void primeCameraRegions() {
 		if (cameraRegion == null) {
 			// prime visible when above or below world and camera region is null
-			final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
+			final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
 			// WIP: deal with variable world height
 			final int y = BlockPos.unpackLongY(cameraChunkOrigin) > 0 ? 240 : 0;
 			final int x = BlockPos.unpackLongX(cameraChunkOrigin);
@@ -202,7 +202,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private void iterateTerrain(boolean redrawOccluder) {
 		final int occlusionResultVersion = cameraOccluder.occlusionVersion();
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
-		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = cwr.potentiallyVisibleSetManager.cameraPVS;
+		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = worldRenderState.potentiallyVisibleSetManager.cameraPVS;
 
 		// PERF: look for ways to improve branch prediction
 		while (!cancelled) {
@@ -298,8 +298,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 	private void iterateShadows(boolean redrawOccluder) {
 		final int occlusionResultVersion = shadowOccluder.occlusionVersion();
-		final RenderRegionStorage regionStorage = cwr.renderRegionStorage;
-		final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPvs = cwr.potentiallyVisibleSetManager.shadowPVS;
+		final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
+		final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPvs = worldRenderState.potentiallyVisibleSetManager.shadowPVS;
 		// prime visible when above or below world and camera region is null
 		final int y = BlockPos.unpackLongY(cameraChunkOrigin);
 		final int x = BlockPos.unpackLongX(cameraChunkOrigin);

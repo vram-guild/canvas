@@ -88,22 +88,16 @@ import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
-import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
-import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.OcclusionInputManager;
-import grondag.canvas.terrain.occlusion.OcclusionResultManager;
-import grondag.canvas.terrain.occlusion.PotentiallyVisibleSetManager;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
-import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
-import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.render.TerrainLayerRenderer;
 import grondag.canvas.varia.GFX;
@@ -111,27 +105,9 @@ import grondag.canvas.varia.GFX;
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
 
-	/** Tracks which regions had rebuilds requested, both camera and shadow view, and causes some to get built each frame. */
-	public final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
+	public final WorldRenderState worldRenderState = new WorldRenderState(this);
 
-	public final TerrainIterator terrainIterator = new TerrainIterator(this);
-	public final PotentiallyVisibleSetManager potentiallyVisibleSetManager = new PotentiallyVisibleSetManager();
-	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	public final OcclusionInputManager occlusionInputStatus = new OcclusionInputManager(this);
-	public final OcclusionResultManager occlusionStateManager = new OcclusionResultManager(this);
-
-	/**
-	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
-	 * Differs from vanilla in that it may not include FOV distortion in the frustum and can include
-	 * some padding to minimize edge tearing.
-	 *
-	 * <p>A snapshot of this is used for terrain culling - usually off thread. The snapshot lives inside TerrainOccluder.
-	 */
-	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
-	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
-	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
-
-	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(renderRegionStorage);
+	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(worldRenderState);
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
@@ -144,20 +120,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	private final WorldRendererExt vanillaWorldRenderer;
 
-	private RenderRegionBuilder regionBuilder;
-	private ClientWorld world;
-
-	// these are measured in chunks, not blocks
-	private int chunkRenderDistance;
-	private int squaredChunkRenderDistance;
-	private int squaredChunkRetentionDistance;
-
 	public CanvasWorldRenderer(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
 		super(client, bufferBuilders);
-
-		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
-			shadowVisibleRegions[i] = new VisibleRegionList();
-		}
 
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
@@ -165,47 +129,21 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		vanillaWorldRenderer = (WorldRendererExt) this;
 		instance = this;
-		computeDistances();
+		worldRenderState.computeDistances();
 	}
 
 	public static CanvasWorldRenderer instance() {
 		return instance;
 	}
 
-	private void computeDistances() {
-		@SuppressWarnings("resource")
-		int renderDistance = MinecraftClient.getInstance().options.viewDistance;
-		chunkRenderDistance = renderDistance;
-		squaredChunkRenderDistance = renderDistance * renderDistance;
-		renderDistance += 2;
-		squaredChunkRetentionDistance = renderDistance * renderDistance;
-	}
-
 	public void updateProjection(Camera camera, float tickDelta, double fov) {
-		terrainFrustum.updateProjection(camera, tickDelta, fov);
-	}
-
-	public RenderRegionBuilder regionBuilder() {
-		return regionBuilder;
-	}
-
-	public ClientWorld getWorld() {
-		return world;
+		worldRenderState.terrainFrustum.updateProjection(camera, tickDelta, fov);
 	}
 
 	@Override
 	public void setWorld(@Nullable ClientWorld clientWorld) {
-		// happens here to avoid creating before renderer is initialized
-		if (regionBuilder == null) {
-			regionBuilder = new RenderRegionBuilder();
-		}
+		worldRenderState.setWorld(clientWorld);
 
-		// DitherTexture.instance().initializeIfNeeded();
-		world = clientWorld;
-		cameraVisibleRegions.clear();
-		terrainIterator.reset();
-		potentiallyVisibleSetManager.clear();
-		renderRegionStorage.clear();
 		// we don't want to use our collector unless we are in a world
 		((BufferBuilderStorageExt) vanillaWorldRenderer.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
 		// Mixins mostly disable what this does
@@ -223,10 +161,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	 * or
 	 */
 	public void setupTerrain(Camera camera, int frameCounter, boolean shouldCullChunks) {
-		final int renderDistance = chunkRenderDistance;
-		final RenderRegionStorage regionStorage = renderRegionStorage;
-		final TerrainIterator terrainIterator = this.terrainIterator;
+		final int renderDistance = worldRenderState.chunkRenderDistance();
+		final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
+		final TerrainIterator terrainIterator = worldRenderState.terrainIterator;
 		final MinecraftClient mc = MinecraftClient.getInstance();
+		final RegionRebuildManager regionRebuildManager = worldRenderState.regionRebuildManager;
 
 		regionStorage.closeRegionsOnRenderThread();
 
@@ -234,6 +173,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		MaterialConditionImpl.update();
 		GlProgramManager.INSTANCE.onRenderTick();
 		final BlockPos cameraBlockPos = camera.getBlockPos();
+		final ClientWorld world = worldRenderState.getWorld();
 		final RenderRegion cameraRegion = world == null || world.isOutOfHeightLimit(cameraBlockPos) ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
 		mc.getProfiler().swap("buildnear");
@@ -253,28 +193,28 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
-				copyVisibleRegionsFromIterator();
+				worldRenderState.copyVisibleRegionsFromIterator();
 				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.reset();
 				state = TerrainIterator.IDLE;
 			}
 
 			if (state == TerrainIterator.IDLE) {
-				final int occlusionInputFlags = occlusionInputStatus.getAndClearStatus();
+				final int occlusionInputFlags = worldRenderState.occlusionInputStatus.getAndClearStatus();
 
 				if (occlusionInputFlags != OcclusionInputManager.CURRENT) {
-					terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
-					regionBuilder.executor.execute(terrainIterator);
+					terrainIterator.prepare(cameraRegion, camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
+					worldRenderState.regionBuilder().executor.execute(terrainIterator);
 				}
 			}
 		} else {
 			// Run iteration on main thread
-			final int occlusionInputFlags = occlusionInputStatus.getAndClearStatus();
+			final int occlusionInputFlags = worldRenderState.occlusionInputStatus.getAndClearStatus();
 
 			if (occlusionInputFlags != OcclusionInputManager.CURRENT) {
-				terrainIterator.prepare(cameraRegion, camera, terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
+				terrainIterator.prepare(cameraRegion, camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
 				terrainIterator.run(null);
-				copyVisibleRegionsFromIterator();
+				worldRenderState.copyVisibleRegionsFromIterator();
 				terrainIterator.reset();
 			}
 		}
@@ -282,22 +222,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().pop();
 	}
 
-	private void copyVisibleRegionsFromIterator() {
-		if (terrainIterator.includeCamera()) {
-			cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
-		}
-
-		if (terrainIterator.includeShadow()) {
-			shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
-			shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
-			shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
-			shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
-		}
-	}
-
 	private boolean shouldCullChunks(BlockPos pos) {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 		boolean result = mc.chunkCullingEnabled;
+		final ClientWorld world = worldRenderState.getWorld();
 
 		if (mc.player.isSpectator() && !world.isOutOfHeightLimit(pos.getY()) && world.getBlockState(pos).isOpaqueFullCube(world, pos)) {
 			result = false;
@@ -313,7 +241,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final Framebuffer mcfb = mc.getFramebuffer();
 		final BlockRenderContext blockContext = BlockRenderContext.get();
 		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
-		final ClientWorld world = this.world;
+		final ClientWorld world = worldRenderState.getWorld();
 		final BufferBuilderStorage bufferBuilders = wr.canvas_bufferBuilders();
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();
 		final boolean advancedTranslucency = Pipeline.isFabulous();
@@ -323,7 +251,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final double frameCameraZ = cameraVec3d.getZ();
 		final MatrixStack identityStack = this.identityStack;
 
-		RenderSystem.setShaderGameTime(this.world.getTime(), tickDelta);
+		RenderSystem.setShaderGameTime(world.getTime(), tickDelta);
 		MinecraftClient.getInstance().getBlockEntityRenderDispatcher().configure(world, camera, mc.crosshairTarget);
 		entityRenderDispatcher.configure(world, camera, mc.targetedEntity);
 		final Profiler profiler = world.getProfiler();
@@ -367,7 +295,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
-		eventContext.setFrustum(terrainFrustum);
+		eventContext.setFrustum(worldRenderState.terrainFrustum);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "after_setup_event");
 		WorldRenderEvents.AFTER_SETUP.invoker().afterSetup(eventContext);
@@ -389,12 +317,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final long updateBudget = wr.canvas_chunkUpdateSmoother().getTargetUsedTime(usedTime) * 3L / 2L;
 		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
-		regionBuilder.upload();
-		regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
+		worldRenderState.regionBuilder().upload();
+		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
-		if (this.world.getSkyProperties().isDarkened()) {
+		if (world.getSkyProperties().isDarkened()) {
 			// True for nether - yarn names here are not great
 			// Causes lower face to be lit like top face
 			DiffuseLighting.enableForLevel(MatrixData.viewMatrix);
@@ -426,7 +354,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final CanvasImmediate immediate = worldRenderImmediate;
 		final Iterator<Entity> entities = world.getEntities().iterator();
 		final ShaderEffect entityOutlineShader = wr.canvas_entityOutlineShader();
-		final SortableVisibleRegionList visibleRegions = cameraVisibleRegions;
+		final SortableVisibleRegionList visibleRegions = worldRenderState.cameraVisibleRegions;
 		entityBlockContext.tickDelta(tickDelta);
 		entityBlockContext.collectors = immediate.collectors;
 		blockContext.collectors = immediate.collectors;
@@ -725,7 +653,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
 		if (Configurator.debugOcclusionBoxes) {
-			WorldRenderDraws.renderCullBoxes(renderRegionStorage, viewMatrixStack, immediate, frameCameraX, frameCameraY, frameCameraZ, tickDelta);
+			WorldRenderDraws.renderCullBoxes(worldRenderState.renderRegionStorage, viewMatrixStack, immediate, frameCameraX, frameCameraY, frameCameraZ, tickDelta);
 		}
 
 		RenderState.disable();
@@ -797,19 +725,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
-		TerrainLayerRenderer.render(cameraVisibleRegions, x, y, z, isTranslucent);
+		TerrainLayerRenderer.render(worldRenderState.cameraVisibleRegions, x, y, z, isTranslucent);
 	}
 
 	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
-		TerrainLayerRenderer.render(shadowVisibleRegions[cascadeIndex], x, y, z, false);
-	}
-
-	public int maxSquaredChunkRenderDistance() {
-		return squaredChunkRenderDistance;
-	}
-
-	public int maxSquaredChunkRetentionDistance() {
-		return squaredChunkRetentionDistance;
+		TerrainLayerRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], x, y, z, false);
 	}
 
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {
@@ -817,7 +737,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	public void scheduleRegionRender(int x, int y, int z, boolean urgent) {
-		renderRegionStorage.scheduleRebuild(x << 4, y << 4, z << 4, urgent);
+		worldRenderState.renderRegionStorage.scheduleRebuild(x << 4, y << 4, z << 4, urgent);
 	}
 
 	@Override
@@ -831,7 +751,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			vanillaWorldRenderer.canvas_setupFabulousBuffers();
 		}
 
-		if (mc.options.viewDistance != chunkRenderDistance) {
+		if (mc.options.viewDistance != worldRenderState.chunkRenderDistance()) {
 			reload();
 		}
 
@@ -846,12 +766,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		identityStack.peek().getNormal().loadIdentity();
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
-		terrainFrustum.prepare(viewMatrix, tickDelta, camera, terrainIterator.cameraOccluder.hasNearOccluders());
+		worldRenderState.terrainFrustum.prepare(viewMatrix, tickDelta, camera, worldRenderState.terrainIterator.cameraOccluder.hasNearOccluders());
 		entityCullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
 
-		eventContext.prepare(this, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, mc.getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), world);
+		eventContext.prepare(this, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, mc.getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), worldRenderState.getWorld());
 
 		WorldRenderEvents.START.invoker().onStart(eventContext);
 		PipelineManager.beforeWorldRender();
@@ -877,48 +797,37 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// has the logic from super.reload() that requires private access
 		vanillaWorldRenderer.canvas_reload();
 
-		computeDistances();
-		terrainIterator.reset();
-		regionRebuildManager.clear();
-
-		if (regionBuilder != null) {
-			regionBuilder.reset();
-		}
-
-		potentiallyVisibleSetManager.clear();
-		renderRegionStorage.clear();
-		cameraVisibleRegions.clear();
-		terrainFrustum.reload();
+		worldRenderState.clear();
 
 		//ClassInspector.inspect();
 	}
 
 	@Override
 	public boolean isTerrainRenderComplete() {
-		return regionRebuildManager.isEmpty() && regionBuilder.isEmpty() && occlusionInputStatus.isCurrent();
+		return worldRenderState.regionRebuildManager.isEmpty() && worldRenderState.regionBuilder().isEmpty() && worldRenderState.occlusionInputStatus.isCurrent();
 	}
 
 	@Override
 	public int getCompletedChunkCount() {
-		return cameraVisibleRegions.getActiveCount();
+		return worldRenderState.cameraVisibleRegions.getActiveCount();
 	}
 
 	@Override
 	@SuppressWarnings("resource")
 	public String getChunksDebugString() {
-		final int len = renderRegionStorage.loadedRegionCount();
+		final int len = worldRenderState.renderRegionStorage.loadedRegionCount();
 		final int count = getCompletedChunkCount();
 		String shadowRegionString = "";
 
 		if (Pipeline.shadowsEnabled()) {
-			int shadowCount = shadowVisibleRegions[0].getActiveCount()
-					+ shadowVisibleRegions[1].getActiveCount()
-					+ shadowVisibleRegions[2].getActiveCount()
-					+ shadowVisibleRegions[3].getActiveCount();
+			int shadowCount = worldRenderState.shadowVisibleRegions[0].getActiveCount()
+					+ worldRenderState.shadowVisibleRegions[1].getActiveCount()
+					+ worldRenderState.shadowVisibleRegions[2].getActiveCount()
+					+ worldRenderState.shadowVisibleRegions[3].getActiveCount();
 
 			shadowRegionString = String.format("S: %d,", shadowCount);
 		}
 
-		return String.format("C: %d/%d %sD: %d, %s", count, len, MinecraftClient.getInstance().chunkCullingEnabled ? "(s) " : "", chunkRenderDistance, shadowRegionString);
+		return String.format("C: %d/%d %sD: %d, %s", count, len, MinecraftClient.getInstance().chunkCullingEnabled ? "(s) " : "", worldRenderState.chunkRenderDistance(), shadowRegionString);
 	}
 }

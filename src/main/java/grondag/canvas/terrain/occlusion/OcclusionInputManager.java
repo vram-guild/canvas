@@ -19,7 +19,7 @@ package grondag.canvas.terrain.occlusion;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.WorldRenderState;
 
 public class OcclusionInputManager {
 	public static final int CURRENT = 0;
@@ -27,7 +27,7 @@ public class OcclusionInputManager {
 	public static final int SHADOW_INVALID = 2;
 	public static final int BOTH_INVALID = CAMERA_INVALID | SHADOW_INVALID;
 
-	private final CanvasWorldRenderer cwr;
+	private final WorldRenderState worldRenderState;
 
 	/**
 	 * Incremented whenever regions are built so visibility search can progress or to indicate visibility might be changed.
@@ -41,8 +41,8 @@ public class OcclusionInputManager {
 
 	private int lastViewVersion = -1;
 
-	public OcclusionInputManager(CanvasWorldRenderer cwr) {
-		this.cwr = cwr;
+	public OcclusionInputManager(WorldRenderState worldRenderState) {
+		this.worldRenderState = worldRenderState;
 	}
 
 	public void invalidateOcclusionInputs(int flags) {
@@ -78,7 +78,7 @@ public class OcclusionInputManager {
 			}
 		}
 
-		final int newViewVersion = cwr.terrainFrustum.viewVersion();
+		final int newViewVersion = worldRenderState.terrainFrustum.viewVersion();
 
 		if (lastViewVersion != newViewVersion) {
 			lastViewVersion = newViewVersion;

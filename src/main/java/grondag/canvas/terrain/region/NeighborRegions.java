@@ -37,7 +37,7 @@ public class NeighborRegions {
 	NeighborRegions(RenderRegion owner) {
 		this.owner = owner;
 		BlockPos origin = owner.origin();
-		ClientWorld world = owner.cwr.getWorld();
+		ClientWorld world = owner.worldRenderState.getWorld();
 		isBottom = origin.getY() == world.getBottomY();
 		isTop = origin.getY() == world.getTopY() - 16;
 	}

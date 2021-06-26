@@ -21,21 +21,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.WorldRenderState;
 
 public class RenderRegionStorage {
 	private final AtomicInteger loadedRegionCount = new AtomicInteger();
 
-	public final CanvasWorldRenderer cwr;
+	private final WorldRenderState worldRenderState;
 
 	private final RenderChunk[] chunks = new RenderChunk[RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT];
 	private final ArrayBlockingQueue<RenderChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT);
 
-	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer) {
-		cwr = canvasWorldRenderer;
+	public RenderRegionStorage(WorldRenderState worldRenderState) {
+		this.worldRenderState = worldRenderState;
 
 		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
-			chunks[i] = new RenderChunk(this);
+			chunks[i] = new RenderChunk(worldRenderState);
 		}
 	}
 
@@ -56,7 +56,7 @@ public class RenderRegionStorage {
 			// set we need to rerun iteration.
 
 			if (region.occlusionState.isInCurrentPVS()) {
-				cwr.regionRebuildManager.acceptExternalBuildRequest(region);
+				worldRenderState.regionRebuildManager.acceptExternalBuildRequest(region);
 			}
 		}
 	}

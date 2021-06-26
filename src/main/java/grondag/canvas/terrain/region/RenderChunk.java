@@ -20,8 +20,10 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.ChunkStatus;
 
+import grondag.canvas.render.WorldRenderState;
+
 public class RenderChunk {
-	final RenderRegionStorage storage;
+	final WorldRenderState worldRenderState;
 
 	private int chunkX;
 	private int chunkZ;
@@ -32,8 +34,8 @@ public class RenderChunk {
 
 	int horizontalSquaredDistance;
 
-	public RenderChunk(RenderRegionStorage storage) {
-		this.storage = storage;
+	public RenderChunk(WorldRenderState worldRenderState) {
+		this.worldRenderState = worldRenderState;
 	}
 
 	private void open(int chunkX, int chunkZ) {
@@ -62,7 +64,7 @@ public class RenderChunk {
 	}
 
 	private boolean areCornerChunksLoaded() {
-		final ClientWorld world = storage.cwr.getWorld();
+		final ClientWorld world = worldRenderState.getWorld();
 
 		final boolean result = world.getChunk(chunkX - 1, chunkZ - 1, ChunkStatus.FULL, false) != null
 				&& world.getChunk(chunkX - 1, chunkZ + 1, ChunkStatus.FULL, false) != null
@@ -88,14 +90,14 @@ public class RenderChunk {
 				}
 			}
 
-			if (horizontalSquaredDistance > storage.cwr.maxSquaredChunkRetentionDistance()) {
-				storage.scheduleClose(this);
+			if (horizontalSquaredDistance > worldRenderState.maxSquaredChunkRetentionDistance()) {
+				worldRenderState.renderRegionStorage.scheduleClose(this);
 			}
 		}
 	}
 
 	private void computeChunkDistanceMetrics() {
-		final long cameraRegionOrigin = storage.cwr.terrainIterator.cameraRegionOrigin();
+		final long cameraRegionOrigin = worldRenderState.terrainIterator.cameraRegionOrigin();
 
 		if (this.cameraRegionOrigin != cameraRegionOrigin) {
 			this.cameraRegionOrigin = cameraRegionOrigin;

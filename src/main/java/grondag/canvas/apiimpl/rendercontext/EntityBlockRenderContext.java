@@ -96,26 +96,28 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	/**
 	 * Assumes region and block pos set earlier via {@link #setPosAndWorldFromEntity(Entity)}.
 	 */
+	@SuppressWarnings("resource")
 	public void render(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider consumers, int overlay, int light) {
 		defaultConsumer = consumers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 		this.light = light;
 		this.overlay = overlay;
-		region = CanvasWorldRenderer.instance().getWorld();
+		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42);
 		((FabricBakedModel) model).emitBlockQuads(region, state, pos, randomSupplier, this);
 		defaultConsumer = null;
 	}
 
 	// item frames don't have a block state but render like a block
+	@SuppressWarnings("resource")
 	public void renderItemFrame(BlockModelRenderer modelRenderer, BakedModel model, MatrixStack matrixStack, VertexConsumerProvider consumers, int overlay, int light, ItemFrameEntity itemFrameEntity) {
 		defaultConsumer = consumers.getBuffer(TexturedRenderLayers.getEntitySolid());
 		matrix = matrixStack.peek().getModel();
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 		this.light = light;
 		this.overlay = overlay;
-		region = CanvasWorldRenderer.instance().getWorld();
+		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
 
 		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());
 		blockPos = pos;

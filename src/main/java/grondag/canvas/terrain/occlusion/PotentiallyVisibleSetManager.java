@@ -42,7 +42,7 @@ public class PotentiallyVisibleSetManager {
 		if (lastCameraRegionOrigin != cameraRegionOrigin) {
 			lastCameraRegionOrigin = cameraRegionOrigin;
 			cameraPVS.clear();
-			shadowPVS.setCameraChunkOriginAndClear(BlockPos.unpackLongX(cameraRegionOrigin) >> 4, BlockPos.unpackLongZ(cameraRegionOrigin) >> 4);
+			shadowPVS.setCameraChunkOriginAndClear(BlockPos.unpackLongX(cameraRegionOrigin), BlockPos.unpackLongZ(cameraRegionOrigin));
 		} else {
 			cameraPVS.returnToStart();
 		}

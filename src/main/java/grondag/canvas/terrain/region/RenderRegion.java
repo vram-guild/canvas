@@ -50,7 +50,7 @@ import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.WorldRenderState;
 import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
@@ -67,7 +67,7 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegion {
 	private final RenderRegionBuilder renderRegionBuilder;
 
-	final CanvasWorldRenderer cwr;
+	final WorldRenderState worldRenderState;
 	final RenderRegionStorage storage;
 	final TerrainOccluder cameraOccluder;
 	final RenderChunk renderChunk;
@@ -107,10 +107,10 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	boolean isClosed = false;
 
 	public RenderRegion(RenderChunk chunk, long packedPos) {
-		cwr = chunk.storage.cwr;
-		cameraOccluder = cwr.terrainIterator.cameraOccluder;
-		renderRegionBuilder = cwr.regionBuilder();
-		storage = chunk.storage;
+		worldRenderState = chunk.worldRenderState;
+		cameraOccluder = worldRenderState.terrainIterator.cameraOccluder;
+		renderRegionBuilder = worldRenderState.regionBuilder();
+		storage = worldRenderState.renderRegionStorage;
 		storage.trackRegionLoaded();
 		renderChunk = chunk;
 		buildState = new AtomicReference<>(RegionBuildState.UNBUILT);
@@ -193,7 +193,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	}
 
 	public void prepareAndExecuteRebuildTask() {
-		final PackedInputRegion region = PackedInputRegion.claim(cwr.getWorld(), origin);
+		final PackedInputRegion region = PackedInputRegion.claim(worldRenderState.getWorld(), origin);
 
 		// Idle region is signal to reschedule
 		// If region is something other than idle, we are already in the queue
@@ -296,7 +296,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			if (state != null) {
 				final VertexCollectorList collectors = context.collectors;
 				final ArrayVertexCollector collector = collectors.get(RenderLayerHelper.TRANSLUCENT_TERRAIN);
-				final Vec3d sortPos = cwr.cameraVisibleRegions.lastSortPos();
+				final Vec3d sortPos = worldRenderState.cameraVisibleRegions.lastSortPos();
 				collector.loadState(state);
 
 				if (collector.sortQuads(
@@ -442,7 +442,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			}
 		}
 
-		final Vec3d sortPos = cwr.cameraVisibleRegions.lastSortPos();
+		final Vec3d sortPos = worldRenderState.cameraVisibleRegions.lastSortPos();
 		regionData.endBuffering((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {
@@ -489,11 +489,11 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 			}
 		}
 
-		cwr.updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
+		worldRenderState.cwr.updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
 	}
 
 	public void rebuildOnMainThread() {
-		final PackedInputRegion region = PackedInputRegion.claim(cwr.getWorld(), origin);
+		final PackedInputRegion region = PackedInputRegion.claim(worldRenderState.getWorld(), origin);
 
 		if (region == SignalInputRegion.EMPTY) {
 			final RegionBuildState regionData = new RegionBuildState();
