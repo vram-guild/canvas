@@ -20,6 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import grondag.bitraster.PackedBox;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RegionPosition extends BlockPos {
@@ -68,6 +69,9 @@ public class RegionPosition extends BlockPos {
 	/** See {@link #checkAndUpdateSortNeeded(int)}. */
 	private int sortPositionVersion = -1;
 
+	/** Concatenated bit flags marking the shadow cascades that include this region. */
+	private int shadowCascadeFlags;
+
 	public RegionPosition(long packedPos, RenderRegion owner) {
 		super(unpackLongX(packedPos), unpackLongY(packedPos), unpackLongZ(packedPos));
 		this.owner = owner;
@@ -77,6 +81,7 @@ public class RegionPosition extends BlockPos {
 	public void update() {
 		computeRegionDependentValues();
 		computeViewDependentValues();
+		shadowCascadeFlags = Pipeline.shadowsEnabled() ? owner.cwr.terrainIterator.shadowOccluder.cascadeFlags(this) : 0;
 	}
 
 	private void computeRegionDependentValues() {
@@ -219,5 +224,13 @@ public class RegionPosition extends BlockPos {
 	/** For debugging. */
 	public boolean sharesOriginWith(int blockX, int blockY, int blockZ) {
 		return getX() >> 4 == blockX >> 4 && getY() >> 4 == blockY >> 4 && getZ() >> 4 == blockZ >> 4;
+	}
+
+	public int shadowCascadeFlags() {
+		return shadowCascadeFlags;
+	}
+
+	public boolean isPotentiallyVisibleFromSkylight() {
+		return owner.origin.isInsideRenderDistance() & shadowCascadeFlags != 0;
 	}
 }

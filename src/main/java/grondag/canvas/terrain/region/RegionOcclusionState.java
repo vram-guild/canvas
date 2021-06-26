@@ -41,8 +41,9 @@ public class RegionOcclusionState {
 	 */
 	private int cameraOcclusionResultVersion;
 
-	private int lastSeenCameraPvsVersion;
 	private boolean cameraOccluderResult;
+
+	private int lastSeenCameraPvsVersion;
 
 	/**
 	 * Occlusion data version that was in effect last time drawn to camera occluder.
@@ -59,9 +60,9 @@ public class RegionOcclusionState {
 	 */
 	private int shadowOccluderResultVersion;
 
-	private int lastSeenShadowPvsVersion;
-
 	private boolean shadowOccluderResult;
+
+	private int lastSeenShadowPvsVersion;
 
 	/**
 	 * Occlusion data version that was in effect last time drawn to shadow occluder.
@@ -70,9 +71,6 @@ public class RegionOcclusionState {
 	 * then the shadow occluder state is invalid.
 	 */
 	private int shadowOcclusionInputVersion;
-
-	/** Concatenated bit flags marking the shadow cascades that include this region. */
-	private int shadowCascadeFlags;
 
 	public RegionOcclusionState(RenderRegion owner) {
 		this.owner = owner;
@@ -150,14 +148,6 @@ public class RegionOcclusionState {
 		return shadowOccluderResultVersion == occluderResultVersion;
 	}
 
-	public int shadowCascadeFlags() {
-		return shadowCascadeFlags;
-	}
-
-	public boolean isPotentiallyVisibleFromSkylight() {
-		return owner.origin.isInsideRenderDistance() & shadowCascadeFlags != 0;
-	}
-
 	public void addToShadowPvsIfValid() {
 		final int pvsVersion = shadowPVS.version();
 
@@ -174,7 +164,7 @@ public class RegionOcclusionState {
 	 * <p>This runs outside of and before terrain iteration so
 	 * the occluder versions used for comparison are "live."
 	 */
-	private void invalidateCameraOcclusionResultIfNeeded() {
+	private void invalidateOcclusionResultIfNeeded() {
 		final RegionPosition origin = owner.origin;
 		final OcclusionResultManager occlusionResultManager = owner.cwr.occlusionStateManager;
 
@@ -218,7 +208,7 @@ public class RegionOcclusionState {
 				occlusionResultManager.invalidateShadowOcclusionResult();
 			}
 		// WIP: implement correct test and only invalidate if could be nearer than a chunk already drawn
-		} else if (isPotentiallyVisibleFromSkylight()) {
+		} else if (origin.isPotentiallyVisibleFromSkylight()) {
 			// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been.
 
 			// Need to invalidate the occlusion raster if both things are true:
@@ -242,8 +232,7 @@ public class RegionOcclusionState {
 	 * what triggers terrain iteration.
 	 */
 	public void update() {
-		invalidateCameraOcclusionResultIfNeeded();
-		shadowCascadeFlags = Pipeline.shadowsEnabled() ? owner.cwr.terrainIterator.shadowOccluder.cascadeFlags(owner.origin) : 0;
+		invalidateOcclusionResultIfNeeded();
 	}
 
 	boolean isInCurrentPVS() {

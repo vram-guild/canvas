@@ -270,7 +270,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 		// If we are no longer in potentially visible region, abort build and restore needsRebuild.
 		// We also don't force a vis update here because, obviously, we can't affect it.
-		if (!origin.isPotentiallyVisibleFromCamera() && !occlusionState.isPotentiallyVisibleFromSkylight()) {
+		if (!origin.isPotentiallyVisibleFromCamera() && !origin.isPotentiallyVisibleFromSkylight()) {
 			protoRegion.release();
 			// Causes region to be rescheduled if/when it comes back into view
 			markForBuild(false);

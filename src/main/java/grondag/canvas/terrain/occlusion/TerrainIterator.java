@@ -314,7 +314,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 					MathHelper.clamp((regionBoundingSphere.getY(i) << 4) + y, 0, 240),
 					(offset.getZ() << 4) + z);
 
-			if (region != null && region.occlusionState.isPotentiallyVisibleFromSkylight()) {
+			if (region != null && region.origin.isPotentiallyVisibleFromSkylight()) {
 				region.occlusionState.addToShadowPvsIfValid();
 			}
 		}
@@ -328,7 +328,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			// WIP: can remove this check?  Seems redundant of above
 			// don't visit if not in shadow frustum and within render distance
-			if (!builtRegion.occlusionState.isPotentiallyVisibleFromSkylight()) {
+			if (!builtRegion.origin.isPotentiallyVisibleFromSkylight()) {
 				continue;
 			}
 
@@ -410,7 +410,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private void addShadowRegion(RenderRegion r) {
 		final VisibleRegionList[] shadowVisibleRegions = this.shadowVisibleRegions;
 
-		switch (r.occlusionState.shadowCascadeFlags()) {
+		switch (r.origin.shadowCascadeFlags()) {
 			case CASCADE_FLAG_0:
 				shadowVisibleRegions[0].add(r);
 				break;
