@@ -150,8 +150,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		if (includeCamera) {
 			if (redrawOccluder) {
-				// WIP: remove
-				System.out.println("Clearing camera PVS due to redraw");
 				worldRenderState.potentiallyVisibleSetManager.cameraPVS.clear();
 			}
 
@@ -161,8 +159,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		if (includeShadow) {
 			if (redrawShadowOccluder) {
-				// WIP: remove
-				System.out.println("Clearing shadow PVS due to redraw");
 				worldRenderState.potentiallyVisibleSetManager.shadowPVS.clear();
 			}
 
