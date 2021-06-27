@@ -33,18 +33,9 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 	int xBase;
 	int zBase;
 
-	public ShadowPotentiallyVisibleRegionSet(T[] regions) {
-		this.regions = regions;
-		assert regions.length == RenderRegionIndexer.PADDED_REGION_INDEX_COUNT;
-	}
-
-	private interface AxisIterator {
-		boolean next();
-
-		void reset();
-	}
-
 	private int x, y, z;
+
+	private DirectionFunction xDir = DIRECTION_NORMAL, yDir = DIRECTION_NORMAL, zDir = DIRECTION_NORMAL;
 
 	private final AxisIterator XPOS = new AxisIterator() {
 		@Override
@@ -152,6 +143,13 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 	private AxisIterator secondary = YPOS;
 	private AxisIterator tertiary = ZPOS;
 
+	private DistanceRankFunction distanceRankFunction = RANK_XYZ;
+
+	public ShadowPotentiallyVisibleRegionSet(T[] regions) {
+		this.regions = regions;
+		assert regions.length == RenderRegionIndexer.PADDED_REGION_INDEX_COUNT;
+	}
+
 	public void setLightVectorAndRestart(Vec3f vec) {
 		setLightVectorAndRestart(vec.getX(), vec.getY(), vec.getZ());
 	}
@@ -174,16 +172,23 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 		final float ay = Math.abs(y);
 		final float az = Math.abs(z);
 
+		// Signs are flipped because farther from light = higher distance rank
+		xDir = x < 0 ? DIRECTION_NORMAL : DIRECTION_FLIPPED;
+		yDir = y < 0 ? DIRECTION_NORMAL : DIRECTION_FLIPPED;
+		zDir = z < 0 ? DIRECTION_NORMAL : DIRECTION_FLIPPED;
+
 		if (ax > ay) {
 			if (ax > az) {
 				// X primary
 				if (ay > az) {
 					// ORDER XYZ
+					distanceRankFunction = RANK_XYZ;
 					primary = x > 0 ? XNEG : XPOS;
 					secondary = y > 0 ? YNEG : YPOS;
 					tertiary = z > 0 ? ZNEG : ZPOS;
 				} else {
 					// ORDER XZY
+					distanceRankFunction = RANK_XZY;
 					primary = x > 0 ? XNEG : XPOS;
 					secondary = z > 0 ? ZNEG : ZPOS;
 					tertiary = y > 0 ? YNEG : YPOS;
@@ -191,6 +196,7 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 			} else {
 				// Z primary, because X > Y and Z >= X
 				// ORDER ZXY
+				distanceRankFunction = RANK_ZXY;
 				primary = z > 0 ? ZNEG : ZPOS;
 				secondary = x > 0 ? XNEG : XPOS;
 				tertiary = y > 0 ? YNEG : YPOS;
@@ -201,11 +207,13 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 				// Y primary, XZ order undetermined
 				if (ax > az) {
 					// ORDER YXZ
+					distanceRankFunction = RANK_YXZ;
 					primary = y > 0 ? YNEG : YPOS;
 					secondary = x > 0 ? XNEG : XPOS;
 					tertiary = z > 0 ? ZNEG : ZPOS;
 				} else {
 					// ORDER YZX
+					distanceRankFunction = RANK_YZX;
 					primary = y > 0 ? YNEG : YPOS;
 					secondary = z > 0 ? ZNEG : ZPOS;
 					tertiary = x > 0 ? XNEG : XPOS;
@@ -213,6 +221,7 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 			} else {
 				// Z primary, because Y >= X and Z >= Y
 				// ORDER ZYX
+				distanceRankFunction = RANK_ZYX;
 				primary = z > 0 ? ZNEG : ZPOS;
 				secondary = y > 0 ? YNEG : YPOS;
 				tertiary = x > 0 ? XNEG : XPOS;
@@ -251,27 +260,6 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 		regionCount = 0;
 		++version;
 		returnToStart();
-	}
-
-	/**
-	 * Computes index given normalized x, y, z region coordinates.
-	 *
-	 * <p>These are chunk-type coordinates, not block coordinates. (>> 4).
-	 *
-	 * @param rx chunk coordinate relative to xBase (0 to MAX_CHUNK_DIAMETER - 1)
-	 * @param ry chunk coordinate relative to Y_BLOCKPOS_OFFSET
-	 * @param rz chunk coordinate relative to zBase (0 to MAX_CHUNK_DIAMETER - 1)
-	 * @return index to region array, will be within {@link RenderRegionIndexer#REGION_INDEX_COUNT}
-	 */
-	private static int index(int rx, int ry, int rz) {
-		assert rx >= 0;
-		assert rx <= RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
-		assert rz >= 0;
-		assert rz <= RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
-		assert ry >= 0;
-		assert ry < RenderRegionIndexer.MAX_Y_REGIONS;
-
-		return rx | (rz << RenderRegionIndexer.CHUNK_DIAMETER_BITS) | (ry << (RenderRegionIndexer.CHUNK_DIAMETER_BITS * 2));
 	}
 
 	@Override
@@ -324,4 +312,62 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 
 		return result;
 	}
+
+	public int distanceRank(T region) {
+		BlockPos origin = region.origin();
+		int rx = (origin.getX() >> 4) + xBase;
+		int rz = (origin.getZ() >> 4) + zBase;
+		int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
+		return distanceRankFunction.distanceRank(xDir.apply(rx), yDir.apply(ry), zDir.apply(rz));
+	}
+
+	/**
+	 * Computes index given normalized x, y, z region coordinates.
+	 *
+	 * <p>These are chunk-type coordinates, not block coordinates. (>> 4).
+	 *
+	 * @param rx chunk coordinate relative to xBase (0 to MAX_CHUNK_DIAMETER - 1)
+	 * @param ry chunk coordinate relative to Y_BLOCKPOS_OFFSET
+	 * @param rz chunk coordinate relative to zBase (0 to MAX_CHUNK_DIAMETER - 1)
+	 * @return index to region array, will be within {@link RenderRegionIndexer#REGION_INDEX_COUNT}
+	 */
+	private static int index(int rx, int ry, int rz) {
+		assert ry < RenderRegionIndexer.MAX_Y_REGIONS;
+		return rankIndex(ry, rz, rx);
+	}
+
+	private static int rankIndex(int primary, int secondary, int tertiary) {
+		assert primary >= 0;
+		assert primary <= RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
+		assert secondary >= 0;
+		assert secondary <= RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
+		assert tertiary >= 0;
+		assert tertiary < RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
+
+		return tertiary | (secondary << RenderRegionIndexer.CHUNK_DIAMETER_BITS) | (primary << (RenderRegionIndexer.CHUNK_DIAMETER_BITS * 2));
+	}
+
+	private interface AxisIterator {
+		boolean next();
+
+		void reset();
+	}
+
+	private interface DirectionFunction {
+		int apply(int val);
+	}
+
+	private static final DirectionFunction DIRECTION_NORMAL = n -> n;
+	private static final DirectionFunction DIRECTION_FLIPPED = n -> RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER - n;
+
+	private interface DistanceRankFunction {
+		int distanceRank(int x, int y, int z);
+	}
+
+	private static final DistanceRankFunction RANK_XYZ = (x, y, z) -> rankIndex(x, y, z);
+	private static final DistanceRankFunction RANK_XZY = (x, y, z) -> rankIndex(x, z, y);
+	private static final DistanceRankFunction RANK_YXZ = (x, y, z) -> rankIndex(y, x, z);
+	private static final DistanceRankFunction RANK_YZX = (x, y, z) -> rankIndex(y, z, x);
+	private static final DistanceRankFunction RANK_ZXY = (x, y, z) -> rankIndex(z, x, y);
+	private static final DistanceRankFunction RANK_ZYX = (x, y, z) -> rankIndex(z, y, x);
 }

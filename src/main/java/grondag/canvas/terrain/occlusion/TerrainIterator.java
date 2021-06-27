@@ -131,7 +131,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 		state.compareAndSet(COMPLETE, IDLE);
 		visibleRegions.clear();
 		clearShadowRegions();
-		cameraOccluder.invalidate();
+		// WIP: confirm removal
+		//cameraOccluder.invalidate();
 	}
 
 	@Override
@@ -148,11 +149,23 @@ public class TerrainIterator implements TerrainExecutorTask {
 		updateRegions.clear();
 
 		if (includeCamera) {
+			if (redrawOccluder) {
+				// WIP: remove
+				System.out.println("Clearing camera PVS due to redraw");
+				worldRenderState.potentiallyVisibleSetManager.cameraPVS.clear();
+			}
+
 			primeCameraRegions();
 			iterateTerrain(redrawOccluder);
 		}
 
 		if (includeShadow) {
+			if (redrawShadowOccluder) {
+				// WIP: remove
+				System.out.println("Clearing shadow PVS due to redraw");
+				worldRenderState.potentiallyVisibleSetManager.shadowPVS.clear();
+			}
+
 			iterateShadows(redrawShadowOccluder);
 			//classifyVisibleShadowRegions();
 		}
@@ -189,7 +202,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
 				final RenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
 
-				if (region != null && region.origin.isPotentiallyVisibleFromCamera()) {
+				if (region != null) {
 					region.occlusionState.addToCameraPvsIfValid();
 				}
 			}
@@ -206,91 +219,88 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		// PERF: look for ways to improve branch prediction
 		while (!cancelled) {
-			final RenderRegion builtRegion = cameraDistanceSorter.next();
+			final RenderRegion region = cameraDistanceSorter.next();
 
-			if (builtRegion == null) {
+			if (region == null) {
 				break;
 			}
 
-			// don't visit if not in frustum and within render distance
-			if (!builtRegion.origin.isPotentiallyVisibleFromCamera()) {
-				continue;
-			}
+			assert region.origin.isPotentiallyVisibleFromCamera() || region.origin.isNear();
 
 			// don't visit if region is outside near distance and doesn't have all 4 neighbors loaded
-			if (!builtRegion.isNearOrHasLoadedNeighbors()) {
+			if (!region.isNearOrHasLoadedNeighbors()) {
 				continue;
 			}
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
-			final RegionBuildState regionData = builtRegion.getBuildState();
+			final RegionBuildState buildState = region.getBuildState();
 
 			// If never built then don't do anything with it
-			if (regionData == RegionBuildState.UNBUILT) {
-				updateRegions.add(builtRegion);
+			if (buildState == RegionBuildState.UNBUILT) {
+				updateRegions.add(region);
 				continue;
 			}
 
 			// If get to here has been built - if needs rebuilt we can use existing data this frame
-			if (builtRegion.needsRebuild()) {
-				updateRegions.add(builtRegion);
+			if (region.needsRebuild()) {
+				updateRegions.add(region);
 			}
 
 			// for empty regions, check neighbors if visible but don't add to visible set
-			if (!regionData.canOcclude()) {
+			if (!buildState.canOcclude()) {
 				if (Configurator.cullEntityRender) {
 					// reuse prior test results
-					if (!builtRegion.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
-						if (!chunkCullingEnabled || builtRegion.origin.isNear() || cameraOccluder.isEmptyRegionVisible(builtRegion.origin)) {
-							builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
-							builtRegion.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
+					if (!region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
+						if (!chunkCullingEnabled || region.origin.isNear() || cameraOccluder.isEmptyRegionVisible(region.origin)) {
+							region.neighbors.enqueueUnvistedCameraNeighbors();
+							region.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
 						} else {
-							builtRegion.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
+							region.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
 						}
 					}
 				} else {
-					builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
-					builtRegion.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
+					region.neighbors.enqueueUnvistedCameraNeighbors();
+					region.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
 				}
 
 				continue;
 			}
 
-			if (!chunkCullingEnabled || builtRegion.origin.isNear()) {
-				builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
-				visibleRegions.add(builtRegion);
+			if (!chunkCullingEnabled || region.origin.isNear()) {
+				region.neighbors.enqueueUnvistedCameraNeighbors();
+				visibleRegions.add(region);
 
-				if (redrawOccluder || !builtRegion.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
-					cameraOccluder.prepareRegion(builtRegion.origin);
-					cameraOccluder.occlude(regionData.getOcclusionData());
+				if (redrawOccluder || !region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
+					cameraOccluder.prepareRegion(region.origin);
+					cameraOccluder.occlude(buildState.getOcclusionData());
 				}
 
-				builtRegion.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
-			} else if (builtRegion.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
+				region.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
+			} else if (region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
 				// reuse prior test results
-				if (builtRegion.occlusionState.cameraOccluderResult()) {
-					builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
-					visibleRegions.add(builtRegion);
+				if (region.occlusionState.cameraOccluderResult()) {
+					region.neighbors.enqueueUnvistedCameraNeighbors();
+					visibleRegions.add(region);
 
 					// will already have been drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						cameraOccluder.prepareRegion(builtRegion.origin);
-						cameraOccluder.occlude(regionData.getOcclusionData());
+						cameraOccluder.prepareRegion(region.origin);
+						cameraOccluder.occlude(buildState.getOcclusionData());
 					}
 				}
 			} else {
-				cameraOccluder.prepareRegion(builtRegion.origin);
-				final int[] visData = regionData.getOcclusionData();
+				cameraOccluder.prepareRegion(region.origin);
+				final int[] occlusionData = buildState.getOcclusionData();
 
-				if (cameraOccluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
-					builtRegion.neighbors.enqueueUnvistedCameraNeighbors();
-					visibleRegions.add(builtRegion);
-					builtRegion.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
+				if (cameraOccluder.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
+					region.neighbors.enqueueUnvistedCameraNeighbors();
+					visibleRegions.add(region);
+					region.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
 
 					// these must always be drawn - will be additive if view hasn't changed
-					cameraOccluder.occlude(visData);
+					cameraOccluder.occlude(occlusionData);
 				} else {
-					builtRegion.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
+					region.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
 				}
 			}
 		}
@@ -314,78 +324,78 @@ public class TerrainIterator implements TerrainExecutorTask {
 					MathHelper.clamp((regionBoundingSphere.getY(i) << 4) + y, 0, 240),
 					(offset.getZ() << 4) + z);
 
-			if (region != null && region.origin.isPotentiallyVisibleFromSkylight()) {
+			if (region != null) {
 				region.occlusionState.addToShadowPvsIfValid();
 			}
 		}
 
 		while (!cancelled) {
-			final RenderRegion builtRegion = shadowPvs.next();
+			final RenderRegion region = shadowPvs.next();
 
-			if (builtRegion == null) {
+			if (region == null) {
 				break;
 			}
 
-			// WIP: can remove this check?  Seems redundant of above
-			// don't visit if not in shadow frustum and within render distance
-			if (!builtRegion.origin.isPotentiallyVisibleFromSkylight()) {
+			// WIP: why we need this?
+			//assert region.origin.isPotentiallyVisibleFromSkylight();
+			if (!region.origin.isPotentiallyVisibleFromSkylight()) {
 				continue;
 			}
 
 			// don't visit if region is outside near distance and doesn't have all 4 neighbors loaded
-			if (!builtRegion.isNearOrHasLoadedNeighbors()) {
+			if (!region.isNearOrHasLoadedNeighbors()) {
 				continue;
 			}
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
-			final RegionBuildState regionData = builtRegion.getBuildState();
+			final RegionBuildState buildState = region.getBuildState();
 
 			// If never built then don't do anything with it
-			if (regionData == RegionBuildState.UNBUILT) {
-				updateRegions.add(builtRegion);
+			if (buildState == RegionBuildState.UNBUILT) {
+				updateRegions.add(region);
 				continue;
 			}
 
 			// If get to here has been built - if needs rebuilt we can use existing data this frame
-			if (builtRegion.needsRebuild()) {
-				updateRegions.add(builtRegion);
+			if (region.needsRebuild()) {
+				updateRegions.add(region);
 			}
 
 			// for empty regions, check neighbors if visible but don't add to visible set
-			if (!regionData.canOcclude()) {
+			if (!buildState.canOcclude()) {
 				//System.out.println("Empty region @ "  + builtRegion.origin().toShortString());
 				// WIP: try to avoid re-running this for regions already in PVS - neighbors should be there already
-				builtRegion.neighbors.enqueueUnvistedShadowNeighbors();
-				builtRegion.occlusionState.setShadowOccluderResult(false, occlusionResultVersion);
+				region.neighbors.enqueueUnvistedShadowNeighbors();
+				region.occlusionState.setShadowOccluderResult(false, occlusionResultVersion);
 
 				continue;
 			}
 
-			if (builtRegion.occlusionState.isShadowOcclusionResultCurrent(occlusionResultVersion)) {
+			if (region.occlusionState.isShadowOcclusionResultCurrent(occlusionResultVersion)) {
 				// reuse prior test results
-				if (builtRegion.occlusionState.shadowOccluderResult()) {
-					builtRegion.neighbors.enqueueUnvistedShadowNeighbors();
-					addShadowRegion(builtRegion);
+				if (region.occlusionState.shadowOccluderResult()) {
+					region.neighbors.enqueueUnvistedShadowNeighbors();
+					addShadowRegion(region);
 
 					// will already have beens drawn if occluder view version hasn't changed
 					if (redrawOccluder) {
-						shadowOccluder.prepareRegion(builtRegion.origin);
-						shadowOccluder.occlude(regionData.getOcclusionData());
+						shadowOccluder.prepareRegion(region.origin);
+						shadowOccluder.occlude(buildState.getOcclusionData());
 					}
 				}
 			} else {
-				shadowOccluder.prepareRegion(builtRegion.origin);
-				final int[] visData = regionData.getOcclusionData();
+				shadowOccluder.prepareRegion(region.origin);
+				final int[] occlusionData = buildState.getOcclusionData();
 
-				if (shadowOccluder.isBoxVisible(visData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
-					builtRegion.neighbors.enqueueUnvistedShadowNeighbors();
-					addShadowRegion(builtRegion);
-					builtRegion.occlusionState.setShadowOccluderResult(true, occlusionResultVersion);
+				if (shadowOccluder.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
+					region.neighbors.enqueueUnvistedShadowNeighbors();
+					addShadowRegion(region);
+					region.occlusionState.setShadowOccluderResult(true, occlusionResultVersion);
 
 					// these must always be drawn - will be additive if view hasn't changed
-					shadowOccluder.occlude(visData);
+					shadowOccluder.occlude(occlusionData);
 				} else {
-					builtRegion.occlusionState.setShadowOccluderResult(false, occlusionResultVersion);
+					region.occlusionState.setShadowOccluderResult(false, occlusionResultVersion);
 				}
 			}
 		}

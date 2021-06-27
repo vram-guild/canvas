@@ -91,11 +91,9 @@ public class ShadowOccluder extends BoxOccluder {
 		lastViewVersion = occlusionFrustum.viewVersion();
 	}
 
-	// WIP: use a rank indicator for shadow regions - camera distance is useless and plane distance doesn't match iteration order
-	private static final int DUMMY_DISTANCE = 1;
-
 	public void prepareRegion(RegionPosition origin) {
-		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), PackedBox.RANGE_NEAR, DUMMY_DISTANCE);
+		// WIP: NOT RANGE_NEAR
+		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), PackedBox.RANGE_NEAR, origin.shadowDistanceRank());
 	}
 
 	public void outputRaster() {

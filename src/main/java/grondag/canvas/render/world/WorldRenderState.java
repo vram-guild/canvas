@@ -33,7 +33,14 @@ import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 
+/**
+ * Holds most of the state needed by the world renderer, allowing that
+ * class to be simpler. The relationship between member components
+ * is a network, not a hierarchy - each component manages a particular set of
+ * concerns and talks with other components directly as needed.
+ */
 public class WorldRenderState {
+	/** Provides access to world renderer state/functions that can't live here. */
 	public final CanvasWorldRenderer cwr;
 
 	/** Tracks which regions had rebuilds requested, both camera and shadow view, and causes some to get built each frame. */

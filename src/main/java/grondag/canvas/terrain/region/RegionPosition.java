@@ -72,6 +72,8 @@ public class RegionPosition extends BlockPos {
 	/** Concatenated bit flags marking the shadow cascades that include this region. */
 	private int shadowCascadeFlags;
 
+	private int shadowDistanceRank;
+
 	public RegionPosition(long packedPos, RenderRegion owner) {
 		super(unpackLongX(packedPos), unpackLongY(packedPos), unpackLongZ(packedPos));
 		this.owner = owner;
@@ -81,7 +83,14 @@ public class RegionPosition extends BlockPos {
 	public void update() {
 		computeRegionDependentValues();
 		computeViewDependentValues();
-		shadowCascadeFlags = Pipeline.shadowsEnabled() ? owner.worldRenderState.terrainIterator.shadowOccluder.cascadeFlags(this) : 0;
+
+		if (Pipeline.shadowsEnabled()) {
+			// PERF: pointer chase hell
+			shadowCascadeFlags = owner.worldRenderState.terrainIterator.shadowOccluder.cascadeFlags(this);
+			shadowDistanceRank = shadowCascadeFlags == 0 ? -1 : owner.worldRenderState.potentiallyVisibleSetManager.shadowPVS.distanceRank(owner);
+		} else {
+			shadowCascadeFlags = 0;
+		}
 	}
 
 	private void computeRegionDependentValues() {
@@ -228,6 +237,10 @@ public class RegionPosition extends BlockPos {
 
 	public int shadowCascadeFlags() {
 		return shadowCascadeFlags;
+	}
+
+	public int shadowDistanceRank() {
+		return shadowDistanceRank;
 	}
 
 	public boolean isPotentiallyVisibleFromSkylight() {
