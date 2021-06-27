@@ -20,7 +20,9 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.terrain.occlusion.CameraPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.OcclusionInputManager;
 import grondag.canvas.terrain.occlusion.OcclusionResultManager;
+import grondag.canvas.terrain.occlusion.ShadowOccluder;
 import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
+import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RegionOcclusionState {
 	/** Region for which we track visibility information. Provides access to world render state. */
@@ -29,6 +31,8 @@ public class RegionOcclusionState {
 	// Here to save some pointer chases
 	private final CameraPotentiallyVisibleRegionSet cameraPVS;
 	private final ShadowPotentiallyVisibleRegionSet<RenderRegion> shadowPVS;
+	private final TerrainOccluder cameraOccluder;
+	private final ShadowOccluder shadowOccluder;
 	private final OcclusionInputManager occlusionInputStatus;
 
 	/** Incremented when occlusion data changes (including first time built). */
@@ -76,6 +80,8 @@ public class RegionOcclusionState {
 		this.owner = owner;
 		cameraPVS = owner.worldRenderState.potentiallyVisibleSetManager.cameraPVS;
 		shadowPVS = owner.worldRenderState.potentiallyVisibleSetManager.shadowPVS;
+		cameraOccluder = owner.worldRenderState.terrainIterator.cameraOccluder;
+		shadowOccluder = owner.worldRenderState.terrainIterator.shadowOccluder;
 		occlusionInputStatus = owner.worldRenderState.occlusionInputStatus;
 	}
 
@@ -104,6 +110,25 @@ public class RegionOcclusionState {
 	 */
 	public boolean isCameraOcclusionResultCurrent(int occluderResultVersion) {
 		return cameraOcclusionResultVersion == occluderResultVersion;
+	}
+
+	/**
+	 * Accepts the squared chunk distance of the region from which this region was reached.
+	 * If this region's distance is less than the input distance, it will not be added.
+	 *
+	 * <p>This prevents the addition of invisible regions that "backtrack" during camera iteration.
+	 * We know such regions must be invisible because camera terrain iteration always proceeds in
+	 * near-to-far order and if the region was visible from a nearer region, then that region
+	 * would have already been added and checked.
+	 *
+	 * <p>If we are going backwards, then this region is not visible from a nearer region,
+	 * which means all nearer regions must fully occlude it, and we are "wrapping around"
+	 * from a more distance region.
+	 */
+	public void addToCameraPvsIfValid(int fromSquaredDistance) {
+		if (owner.origin.squaredCameraChunkDistance() >= fromSquaredDistance) {
+			addToCameraPvsIfValid();
+		}
 	}
 
 	public void addToCameraPvsIfValid() {
@@ -165,83 +190,32 @@ public class RegionOcclusionState {
 	 * We check here to know if any inputs affecting occlusion raster(s)
 	 * have changed and invalidate them as needed.
 	 *
-	 * <p>This runs outside of and before terrain iteration so
-	 * the occluder versions used for comparison are "live."
+	 * <p>This runs at the start of terrain iteration on whatever thread it runs on.
+	 * Can also run on main thread when regions are created in response to external
+	 * requests. This latter case still uses the occluder state within the terrain
+	 * iterator for for comparison.
 	 */
 	private void invalidateOcclusionResultIfNeeded() {
 		final OcclusionResultManager occlusionResultManager = owner.worldRenderState.occlusionStateManager;
 
+		// We need to invalidate if:
+		// 1) This region was drawn in the occluder (first comparison, below)
+		// 2) The region's occlusion inputs no longer match when it was drawn (second comparison)
+
+		// We don't need to check if region is still in view here because
+		// a view change will invalidate the occluder on its own.
+
+		// We also don't check if the region can occlude here because it
+		// may have been an occluder previously and empty now.
+
 		// Check camera occluder
-		if (cameraOcclusionResultVersion == occlusionResultManager.cameraOcclusionResultVersion()) {
-			// Existing - has been drawn in occlusion raster
-
-			// We don't need to check if region is still in view here because
-			// a view change will invalidate the occluder on its own.
-
-			// We also don't check if the region can occlude here because it
-			// may have been an occluder previously and empty now.
-
-			// The only check needed here is for a change in the region occlusion used for the draw.
-			if (regionOcclusionInputVersion != cameraOcclusionInputVersion) {
-				occlusionResultManager.invalidateCameraOcclusionResult();
-			}
+		if (cameraOcclusionResultVersion == cameraOccluder.occlusionVersion() && regionOcclusionInputVersion != cameraOcclusionInputVersion) {
+			occlusionResultManager.invalidateCameraOcclusionResult();
 		}
 
-		// WIP: confirm
-		// This logic appears to be useless because the regions that trigger it are never reached by
-		// the iterator and never added to the occluder.  The correct check needs to be added when
-		// regions are encountered in iteration that represent a back track.
-
-		//		} else if (origin.squaredCameraChunkDistance() < occlusionResultManager.maxSquaredCameraChunkDistance()) {
-		//			// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been.
-		//
-		//			// Need to invalidate the occlusion raster if both things are true:
-		//			//   1) This region isn't empty (empty regions don't matter for culling)
-		//			//   2) This region is in the view frustum
-		//			if (origin.isPotentiallyVisibleFromCamera() && owner.getBuildState().canOcclude()) {
-		//				//WIP: remove
-		//				System.out.println("invalidateCameraOcclusionResult due to backtrack from " + occlusionResultManager.maxSquaredCameraChunkDistance() + " to " + origin.squaredCameraChunkDistance() + " with origin " + origin.toShortString());
-		//
-		//				if (owner.origin.getX() == -48 && owner.origin.getY() == 0 && owner.origin.getZ() == 96) {
-		//					System.out.println("boop");
-		//				}
-		//
-		//				occlusionResultManager.invalidateCameraOcclusionResult();
-		//			}
-		//		}
-
-		// Check shadow occluder
-		if (shadowOccluderResultVersion == occlusionResultManager.shadowOcclusionResultVersion()) {
-			// Existing - has been drawn in occlusion raster
-
-			// We don't need to check if region is still in view here because
-			// a view change will invalidate the occluder on its own.
-
-			// We also don't check if the region can occlude here because it
-			// may have been an occluder previously and empty now.
-
-			// The only check needed here is for a change in the region occlusion used for the draw.
-			if (regionOcclusionInputVersion != shadowOcclusionInputVersion) {
-				occlusionResultManager.invalidateShadowOcclusionResult();
-			}
+		if (Pipeline.shadowsEnabled() && shadowOccluderResultVersion == shadowOccluder.occlusionVersion() && regionOcclusionInputVersion != shadowOcclusionInputVersion) {
+			occlusionResultManager.invalidateShadowOcclusionResult();
 		}
-
-		// WIP: confirm
-		// This logic appears to be useless because the regions that trigger it are never reached by
-		// the iterator and never added to the occluder.  The correct check needs to be added when
-		// regions are encountered in iteration that represent a back track.
-
-		//		// WIP: implement correct test and only invalidate if could be nearer than a chunk already drawn
-		//		} else if (origin.isPotentiallyVisibleFromSkylight()) {
-		//			// Not yet drawn in current occlusion raster and could be nearer than a chunk that has been.
-		//
-		//			// Need to invalidate the occlusion raster if both things are true:
-		//			//   1) This region isn't empty (empty regions don't matter for culling)
-		//			//   2) This region is in the view frustum
-		//			if (owner.getBuildState().canOcclude()) {
-		//				occlusionResultManager.invalidateShadowOcclusionResult();
-		//			}
-		//		}
 	}
 
 	public boolean wasRecentlySeenFromCamera() {

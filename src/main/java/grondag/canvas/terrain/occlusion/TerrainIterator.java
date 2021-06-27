@@ -35,6 +35,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.region.RegionBuildState;
@@ -131,8 +132,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 		state.compareAndSet(COMPLETE, IDLE);
 		visibleRegions.clear();
 		clearShadowRegions();
-		// WIP: confirm removal
-		//cameraOccluder.invalidate();
 	}
 
 	@Override
@@ -140,7 +139,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		assert state.get() == READY;
 		state.set(RUNNING);
 		worldRenderState.potentiallyVisibleSetManager.update(cameraChunkOrigin);
-		worldRenderState.occlusionStateManager.beforeRegionUpdate();
+		shadowOccluder.setLightVector(ShaderDataManager.skyLightVector);
 		worldRenderState.renderRegionStorage.updateRegionPositionAndVisibility();
 		worldRenderState.occlusionStateManager.afterRegionUpdate();
 		final boolean redrawOccluder = cameraOccluder.prepareScene();
@@ -153,7 +152,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 				worldRenderState.potentiallyVisibleSetManager.cameraPVS.clear();
 			}
 
+			// WIP: shouldn't this be needed only on redraw?
 			primeCameraRegions();
+
 			iterateTerrain(redrawOccluder);
 		}
 
@@ -213,7 +214,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = worldRenderState.potentiallyVisibleSetManager.cameraPVS;
 
-		// PERF: look for ways to improve branch prediction
+		boolean isOccluderValid = true;
+
 		while (!cancelled) {
 			final RenderRegion region = cameraDistanceSorter.next();
 
@@ -223,6 +225,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			assert region.origin.isPotentiallyVisibleFromCamera() || region.origin.isNear();
 
+			// WIP: why is this really needed if we are checking build state and checking render distance?
 			// don't visit if region is outside near distance and doesn't have all 4 neighbors loaded
 			if (!region.isNearOrHasLoadedNeighbors()) {
 				continue;
@@ -272,19 +275,19 @@ public class TerrainIterator implements TerrainExecutorTask {
 				}
 
 				region.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
-			} else if (region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
+			} else if (!redrawOccluder && region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
 				// reuse prior test results
 				if (region.occlusionState.cameraOccluderResult()) {
 					region.neighbors.enqueueUnvistedCameraNeighbors();
 					visibleRegions.add(region);
-
-					// will already have been drawn if occluder view version hasn't changed
-					if (redrawOccluder) {
-						cameraOccluder.prepareRegion(region.origin);
-						cameraOccluder.occlude(buildState.getOcclusionData());
-					}
 				}
 			} else {
+				if (isOccluderValid && region.origin.squaredCameraChunkDistance() < cameraOccluder.maxSquaredChunkDistance()) {
+					//System.out.println("invalidateCameraOcclusionResult due to backtrack from " + cameraOccluder.maxSquaredChunkDistance() + " to " + region.origin.squaredCameraChunkDistance() + " with origin " + region.origin.toShortString());
+					worldRenderState.occlusionStateManager.invalidateCameraOcclusionResult();
+					isOccluderValid = false;
+				}
+
 				cameraOccluder.prepareRegion(region.origin);
 				final int[] occlusionData = buildState.getOcclusionData();
 
@@ -359,8 +362,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			// for empty regions, check neighbors if visible but don't add to visible set
 			if (!buildState.canOcclude()) {
-				//System.out.println("Empty region @ "  + builtRegion.origin().toShortString());
-				// WIP: try to avoid re-running this for regions already in PVS - neighbors should be there already
 				region.neighbors.enqueueUnvistedShadowNeighbors();
 				region.occlusionState.setShadowOccluderResult(false, occlusionResultVersion);
 

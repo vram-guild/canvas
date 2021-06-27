@@ -17,58 +17,23 @@
 package grondag.canvas.terrain.occlusion;
 
 import grondag.canvas.render.world.WorldRenderState;
-import grondag.canvas.shader.data.ShaderDataManager;
 
 public class OcclusionResultManager {
 	private final WorldRenderState worldRenderState;
 
 	private boolean didInvalidateCameraOcclusionResult = false;
 	private boolean didInvalidateShadowOcclusionResult = false;
-	private int cameraOcclusionResultVersion = 0;
-	private int shadowOcclusionResultVersion = 0;
-	private int maxSquaredCameraChunkDistance;
 
 	public OcclusionResultManager(WorldRenderState worldRenderState) {
 		this.worldRenderState = worldRenderState;
-	}
-
-	/**
-	 * The version of the camera occluder in effect when region visibility is being updated.
-	 * This is NOT necessarily the version in effect while iteration is being run.
-	 * Indeed, if occlusion state is invalidated the version during iteration will not
-	 * match, causing regions to be re-tested and redrawn, which is the main point of this process.
-	 */
-	public int cameraOcclusionResultVersion() {
-		return cameraOcclusionResultVersion;
 	}
 
 	public void invalidateCameraOcclusionResult() {
 		didInvalidateCameraOcclusionResult = true;
 	}
 
-	/**
-	 * Like {@link #cameraOcclusionResultVersion} but for shadow occluder.
-	 */
-	public int shadowOcclusionResultVersion() {
-		return shadowOcclusionResultVersion;
-	}
-
 	public void invalidateShadowOcclusionResult() {
 		didInvalidateShadowOcclusionResult = true;
-	}
-
-	public int maxSquaredCameraChunkDistance() {
-		return maxSquaredCameraChunkDistance;
-	}
-
-	public void beforeRegionUpdate() {
-		final TerrainOccluder cameraOccluder = worldRenderState.terrainIterator.cameraOccluder;
-		final ShadowOccluder shadowOccluder = worldRenderState.terrainIterator.shadowOccluder;
-		shadowOccluder.setLightVector(ShaderDataManager.skyLightVector);
-
-		cameraOcclusionResultVersion = cameraOccluder.occlusionVersion();
-		shadowOcclusionResultVersion = shadowOccluder.occlusionVersion();
-		maxSquaredCameraChunkDistance = cameraOccluder.maxSquaredChunkDistance();
 	}
 
 	public void afterRegionUpdate() {

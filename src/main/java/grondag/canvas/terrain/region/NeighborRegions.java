@@ -101,17 +101,19 @@ public class NeighborRegions {
 	}
 
 	public void enqueueUnvistedCameraNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).occlusionState.addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).occlusionState.addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).occlusionState.addToCameraPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).occlusionState.addToCameraPvsIfValid();
+		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
+
+		getNeighbor(FaceConstants.EAST_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
+		getNeighbor(FaceConstants.WEST_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
+		getNeighbor(FaceConstants.NORTH_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
+		getNeighbor(FaceConstants.SOUTH_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).occlusionState.addToCameraPvsIfValid();
+			getNeighbor(FaceConstants.UP_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).occlusionState.addToCameraPvsIfValid();
+			getNeighbor(FaceConstants.DOWN_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
 		}
 	}
 

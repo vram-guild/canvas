@@ -137,8 +137,10 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 		if (dist >= 0 && dist <= MAX_SQ_DIST) {
 			final int index = ringMap[dist];
-			regions[index] = region;
 			assert isSaneAddition(region, dist, index) : "Region ring index overrun into next (more distant) region.";
+			assert index >= iterationIndex || region.origin.isNear() || !region.getBuildState().canOcclude() : "Region added before PVS iteration pointer";
+
+			regions[index] = region;
 			ringMap[dist] = index + 1;
 
 			if (index > maxIndex) {
