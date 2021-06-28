@@ -48,11 +48,6 @@ public final class ShadowMatrixData {
 
 	public static final int CASCADE_COUNT = 4;
 
-	public static final int CASCADE_FLAG_0 = 1;
-	public static final int CASCADE_FLAG_1 = 2;
-	public static final int CASCADE_FLAG_2 = 4;
-	public static final int CASCADE_FLAG_3 = 8;
-
 	private static final Matrix4f[] shadowProjMatrix = new Matrix4f[CASCADE_COUNT];
 	private static final Matrix4fExt[] shadowProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
 	private static final Matrix4f[] shadowViewProjMatrix = new Matrix4f[CASCADE_COUNT];

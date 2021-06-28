@@ -69,8 +69,8 @@ public class RegionPosition extends BlockPos {
 	/** See {@link #checkAndUpdateSortNeeded(int)}. */
 	private int sortPositionVersion = -1;
 
-	/** Concatenated bit flags marking the shadow cascades that include this region. */
-	private int shadowCascadeFlags;
+	/** The smallest cascade on which this region can potentially cast a shadow. */
+	private int shadowCascade;
 
 	private int shadowDistanceRank;
 
@@ -86,10 +86,10 @@ public class RegionPosition extends BlockPos {
 
 		if (Pipeline.shadowsEnabled()) {
 			// PERF: pointer chase hell
-			shadowCascadeFlags = owner.worldRenderState.terrainIterator.shadowOccluder.cascadeFlags(this);
-			shadowDistanceRank = shadowCascadeFlags == 0 ? -1 : owner.worldRenderState.potentiallyVisibleSetManager.shadowPVS.distanceRank(owner);
+			shadowCascade = owner.worldRenderState.terrainIterator.shadowOccluder.cascade(this);
+			shadowDistanceRank = shadowCascade == -1 ? -1 : owner.worldRenderState.potentiallyVisibleSetManager.shadowPVS.distanceRank(owner);
 		} else {
-			shadowCascadeFlags = 0;
+			shadowCascade = -1;
 		}
 	}
 
@@ -235,8 +235,8 @@ public class RegionPosition extends BlockPos {
 		return getX() >> 4 == blockX >> 4 && getY() >> 4 == blockY >> 4 && getZ() >> 4 == blockZ >> 4;
 	}
 
-	public int shadowCascadeFlags() {
-		return shadowCascadeFlags;
+	public int shadowCascade() {
+		return shadowCascade;
 	}
 
 	public int shadowDistanceRank() {
@@ -244,6 +244,6 @@ public class RegionPosition extends BlockPos {
 	}
 
 	public boolean isPotentiallyVisibleFromSkylight() {
-		return owner.origin.isInsideRenderDistance() & shadowCascadeFlags != 0;
+		return owner.origin.isInsideRenderDistance() & shadowCascade != -1;
 	}
 }

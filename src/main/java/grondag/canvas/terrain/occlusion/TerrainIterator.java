@@ -16,11 +16,6 @@
 
 package grondag.canvas.terrain.occlusion;
 
-import static grondag.canvas.shader.data.ShadowMatrixData.CASCADE_FLAG_0;
-import static grondag.canvas.shader.data.ShadowMatrixData.CASCADE_FLAG_1;
-import static grondag.canvas.shader.data.ShadowMatrixData.CASCADE_FLAG_2;
-import static grondag.canvas.shader.data.ShadowMatrixData.CASCADE_FLAG_3;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jetbrains.annotations.Nullable;
@@ -417,48 +412,26 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private void addShadowRegion(RenderRegion r) {
 		final VisibleRegionList[] shadowVisibleRegions = this.shadowVisibleRegions;
 
-		switch (r.origin.shadowCascadeFlags()) {
-			case CASCADE_FLAG_0:
-				shadowVisibleRegions[0].add(r);
-				break;
-			case CASCADE_FLAG_1:
-				shadowVisibleRegions[1].add(r);
-				break;
-			case CASCADE_FLAG_1 | CASCADE_FLAG_0:
-				shadowVisibleRegions[0].add(r);
-				shadowVisibleRegions[1].add(r);
-				break;
-			case CASCADE_FLAG_2:
-				shadowVisibleRegions[2].add(r);
-				break;
-			case CASCADE_FLAG_2 | CASCADE_FLAG_1:
-				shadowVisibleRegions[1].add(r);
-				shadowVisibleRegions[2].add(r);
-				break;
-			case CASCADE_FLAG_2 | CASCADE_FLAG_1 | CASCADE_FLAG_0:
-				shadowVisibleRegions[0].add(r);
-				shadowVisibleRegions[1].add(r);
-				shadowVisibleRegions[2].add(r);
-				break;
-			case CASCADE_FLAG_3:
-				shadowVisibleRegions[3].add(r);
-				break;
-			case CASCADE_FLAG_3 | CASCADE_FLAG_2:
-				shadowVisibleRegions[2].add(r);
-				shadowVisibleRegions[3].add(r);
-				break;
-			case CASCADE_FLAG_3 | CASCADE_FLAG_2 | CASCADE_FLAG_1:
-				shadowVisibleRegions[1].add(r);
-				shadowVisibleRegions[2].add(r);
-				shadowVisibleRegions[3].add(r);
-				break;
-			case CASCADE_FLAG_3 | CASCADE_FLAG_2 | CASCADE_FLAG_1 | CASCADE_FLAG_0:
-				shadowVisibleRegions[0].add(r);
-				shadowVisibleRegions[1].add(r);
-				shadowVisibleRegions[2].add(r);
-				shadowVisibleRegions[3].add(r);
-				break;
+		switch (r.origin.shadowCascade()) {
 			case 0:
+				shadowVisibleRegions[0].add(r);
+				break;
+			case 1:
+				shadowVisibleRegions[0].add(r);
+				shadowVisibleRegions[1].add(r);
+				break;
+			case 2:
+				shadowVisibleRegions[0].add(r);
+				shadowVisibleRegions[1].add(r);
+				shadowVisibleRegions[2].add(r);
+				break;
+			case 3:
+				shadowVisibleRegions[0].add(r);
+				shadowVisibleRegions[1].add(r);
+				shadowVisibleRegions[2].add(r);
+				shadowVisibleRegions[3].add(r);
+				break;
+			case -1:
 			default:
 				// NOOP
 		}
