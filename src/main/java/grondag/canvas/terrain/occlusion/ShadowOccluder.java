@@ -220,14 +220,18 @@ public class ShadowOccluder extends BoxOccluder {
 		return maxRegionExtent;
 	}
 
+	/**
+	 * Does not pad region, unlike terrain.
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean isBoxVisible(int packedBox) {
-		final int x0 = PackedBox.x0(packedBox) - 1;
-		final int y0 = PackedBox.y0(packedBox) - 1;
-		final int z0 = PackedBox.z0(packedBox) - 1;
-		final int x1 = PackedBox.x1(packedBox) + 1;
-		final int y1 = PackedBox.y1(packedBox) + 1;
-		final int z1 = PackedBox.z1(packedBox) + 1;
+		final int x0 = PackedBox.x0(packedBox);
+		final int y0 = PackedBox.y0(packedBox);
+		final int z0 = PackedBox.z0(packedBox);
+		final int x1 = PackedBox.x1(packedBox);
+		final int y1 = PackedBox.y1(packedBox);
+		final int z1 = PackedBox.z1(packedBox);
 
 		return clearTest.apply(x0, y0, z0, x1, y1, z1);
 	}
