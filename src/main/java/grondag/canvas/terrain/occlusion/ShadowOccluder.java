@@ -57,13 +57,16 @@ public class ShadowOccluder extends BoxOccluder {
 	private float r0, x0, y0, z0, r1, x1, y1, z1, r2, x2, y2, z2, r3, x3, y3, z3;
 	private int lastViewVersion;
 	private Vec3d lastCameraPos;
-	private grondag.bitraster.BoxOccluder.BoxTest test;
+	private grondag.bitraster.BoxOccluder.BoxTest clearTest;
+	private grondag.bitraster.BoxOccluder.BoxTest occludedTest;
 	private grondag.bitraster.BoxOccluder.BoxDraw draw;
 
 	private long nextRasterOutputTime;
+	private final String rasterName;
 
-	public ShadowOccluder() {
+	public ShadowOccluder(String rasterName) {
 		super(new OrthoRasterizer());
+		this.rasterName = rasterName;
 	}
 
 	public void copyState(TerrainFrustum occlusionFrustum) {
@@ -101,7 +104,7 @@ public class ShadowOccluder extends BoxOccluder {
 	}
 
 	public void outputRaster() {
-		outputRaster("canvas_shadow_occlusion_raster.png", false);
+		outputRaster(rasterName, false);
 	}
 
 	public void outputRaster(String fileName, boolean force) {
@@ -117,7 +120,7 @@ public class ShadowOccluder extends BoxOccluder {
 
 			for (int x = 0; x < PIXEL_WIDTH; x++) {
 				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelColor(x, y, raster.testPixel(x, y) ? -1 : 0xFF000000);
+					nativeImage.setPixelColor(x, y, raster.isPixelClear(x, y) ? -1 : 0xFF000000);
 				}
 			}
 
@@ -226,11 +229,23 @@ public class ShadowOccluder extends BoxOccluder {
 		final int y1 = PackedBox.y1(packedBox) + 1;
 		final int z1 = PackedBox.z1(packedBox) + 1;
 
-		return test.apply(x0, y0, z0, x1, y1, z1);
+		return clearTest.apply(x0, y0, z0, x1, y1, z1);
+	}
+
+	/** True if box is partially or fully occluded. */
+	public boolean isBoxOccluded(int packedBox) {
+		final int x0 = PackedBox.x0(packedBox);
+		final int y0 = PackedBox.y0(packedBox);
+		final int z0 = PackedBox.z0(packedBox);
+		final int x1 = PackedBox.x1(packedBox);
+		final int y1 = PackedBox.y1(packedBox);
+		final int z1 = PackedBox.z1(packedBox);
+
+		return occludedTest.apply(x0, y0, z0, x1, y1, z1);
 	}
 
 	@Override
-	protected void occludeInner(int packedBox) {
+	public void occludeBox(int packedBox) {
 		final int x0 = PackedBox.x0(packedBox);
 		final int y0 = PackedBox.y0(packedBox);
 		final int z0 = PackedBox.z0(packedBox);
@@ -256,7 +271,8 @@ public class ShadowOccluder extends BoxOccluder {
 			outcome |= skylightVector.getY() > 0 ? UP : DOWN;
 		}
 
-		test = boxTests[outcome];
+		clearTest = partiallyClearTests[outcome];
+		occludedTest = partiallyOccludedTests[outcome];
 		draw = boxDraws[outcome];
 	}
 }

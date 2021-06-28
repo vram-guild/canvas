@@ -94,7 +94,7 @@ public class TerrainOccluder extends BoxOccluder {
 
 			for (int x = 0; x < PIXEL_WIDTH; x++) {
 				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelColor(x, y, raster.testPixel(x, y) ? -1 : 0xFF000000);
+					nativeImage.setPixelColor(x, y, raster.isPixelClear(x, y) ? -1 : 0xFF000000);
 				}
 			}
 
@@ -136,7 +136,7 @@ public class TerrainOccluder extends BoxOccluder {
 	}
 
 	@Override
-	protected void occludeInner(int packedBox) {
+	public void occludeBox(int packedBox) {
 		occludeFromPerspective(packedBox);
 	}
 }

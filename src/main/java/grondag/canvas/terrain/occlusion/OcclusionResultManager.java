@@ -39,7 +39,9 @@ public class OcclusionResultManager {
 	public void afterRegionUpdate() {
 		if (didInvalidateCameraOcclusionResult) {
 			worldRenderState.terrainIterator.cameraOccluder.invalidate();
+			worldRenderState.terrainIterator.targetOccluder.invalidate();
 			didInvalidateCameraOcclusionResult = false;
+			didInvalidateShadowOcclusionResult = true;
 		}
 
 		if (didInvalidateShadowOcclusionResult) {
