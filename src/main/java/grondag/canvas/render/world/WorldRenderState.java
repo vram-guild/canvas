@@ -101,6 +101,7 @@ public class WorldRenderState {
 		terrainIterator.reset();
 		potentiallyVisibleSetManager.clear();
 		renderRegionStorage.clear();
+		occlusionInputStatus.invalidateOcclusionInputs(OcclusionInputManager.BOTH_INVALID);
 	}
 
 	public ClientWorld getWorld() {

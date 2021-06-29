@@ -70,8 +70,8 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	final WorldRenderState worldRenderState;
 	final RenderRegionStorage storage;
 	final TerrainOccluder cameraOccluder;
-	final RenderChunk renderChunk;
 
+	public final RenderChunk renderChunk;
 	public final RegionPosition origin;
 	public final RegionOcclusionState occlusionState;
 	public final NeighborRegions neighbors;

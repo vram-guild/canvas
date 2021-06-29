@@ -132,13 +132,7 @@ public class RegionOcclusionState {
 	}
 
 	public void addToCameraPvsIfValid() {
-		// Previously checked for r.squaredChunkDistance > squaredChunkDistance
-		// but some progression patterns seem to require it or chunks are missed.
-		// This is probably because a nearer path has an occlude chunk and so it
-		// has to be found reaching around. This will cause some backtracking and
-		// thus redraw of the occluder, but that already happens and is handled.
-
-		if (owner.origin.isPotentiallyVisibleFromCamera()) {
+		if (owner.origin.isPotentiallyVisibleFromCamera() && !owner.isClosed() && owner.isNearOrHasLoadedNeighbors()) {
 			final int pvsVersion = cameraPVS.version();
 
 			if (lastSeenCameraPvsVersion != pvsVersion) {
@@ -176,7 +170,7 @@ public class RegionOcclusionState {
 	}
 
 	public void addToShadowPvsIfValid() {
-		if (owner.origin.isPotentiallyVisibleFromSkylight()) {
+		if (owner.origin.isPotentiallyVisibleFromSkylight() && !owner.isClosed() && owner.renderChunk.areCornersLoaded()) {
 			final int pvsVersion = shadowPVS.version();
 
 			if (lastSeenShadowPvsVersion != pvsVersion) {

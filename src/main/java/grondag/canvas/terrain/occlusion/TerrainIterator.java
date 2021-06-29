@@ -148,6 +148,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 		includeCamera = false;
 		includeShadow = false;
 		state.compareAndSet(COMPLETE, IDLE);
+		cameraOccluder.invalidate();
+		targetOccluder.invalidate();
+		shadowOccluder.invalidate();
 		visibleRegions.clear();
 		clearShadowRegions();
 	}
@@ -193,7 +196,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 			}
 
 			iterateShadows(redrawShadowOccluder);
-			//classifyVisibleShadowRegions();
 		}
 
 		if (cancelled) {
@@ -252,13 +254,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 				break;
 			}
 
-			assert region.origin.isPotentiallyVisibleFromCamera() || region.origin.isNear();
-
-			// WIP: why is this really needed if we are checking build state and checking render distance?
-			// don't visit if region is outside near distance and doesn't have all 4 neighbors loaded
-			if (!region.isNearOrHasLoadedNeighbors()) {
-				continue;
-			}
+			assert region.origin.isPotentiallyVisibleFromCamera();
+			assert region.isNearOrHasLoadedNeighbors();
+			assert !region.isClosed();
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
 			final RegionBuildState buildState = region.getBuildState();
@@ -381,16 +379,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 				break;
 			}
 
-			// WIP: why we need this?
-			//assert region.origin.isPotentiallyVisibleFromSkylight();
-			if (!region.origin.isPotentiallyVisibleFromSkylight()) {
-				continue;
-			}
-
-			// don't visit if region is outside near distance and doesn't have all 4 neighbors loaded
-			if (!region.isNearOrHasLoadedNeighbors()) {
-				continue;
-			}
+			assert region.origin.isPotentiallyVisibleFromSkylight();
+			assert region.renderChunk.areCornersLoaded();
+			assert !region.isClosed();
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
 			final RegionBuildState buildState = region.getBuildState();
