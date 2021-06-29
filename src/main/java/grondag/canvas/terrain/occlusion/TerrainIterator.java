@@ -313,6 +313,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 					occludeTerrainRegion(region, buildState.getOcclusionData());
 					cameraOccluder.occlude(occlusionData);
 				} else {
+					// need to progress through the region if part of it is visible
+					if (cameraOccluder.isBoxVisible(PackedBox.FULL_BOX)) {
+						region.neighbors.enqueueUnvistedCameraNeighbors();
+					}
+
+					// FIX: this really won't work with entity culling
 					region.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
 				}
 			}
