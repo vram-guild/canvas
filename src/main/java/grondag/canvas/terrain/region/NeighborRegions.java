@@ -70,7 +70,7 @@ public class NeighborRegions {
 	private RenderRegion getNeighbor(int faceIndex) {
 		RenderRegion region = neighbors[faceIndex];
 
-		if (region == null || region.isClosed) {
+		if (region == null || region.isClosed()) {
 			// this check is now done in all callers
 			//if ((faceIndex == FaceConstants.UP_INDEX && isTop) || (faceIndex == FaceConstants.DOWN_INDEX && isBottom)) {
 			//	return null;

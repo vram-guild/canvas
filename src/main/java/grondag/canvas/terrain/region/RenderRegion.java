@@ -104,7 +104,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	private DrawableRegion translucentDrawable = DrawableRegion.EMPTY_DRAWABLE;
 	private DrawableRegion solidDrawable = DrawableRegion.EMPTY_DRAWABLE;
 
-	boolean isClosed = false;
+	private boolean isClosed = false;
 
 	public RenderRegion(RenderChunk chunk, long packedPos) {
 		worldRenderState = chunk.worldRenderState;
@@ -278,14 +278,13 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		}
 
 		// Abort rebuild and restore needsRebuild if not ready to build because neighbors aren't loaded
+		// Note that we don't do anything here to restart iteration or invalidate occlusion state
+		// because regions shouldn't be scheduled if neighbors aren't available and this should never happen.
 		if (!isNearOrHasLoadedNeighbors()) {
-			// Causes region to be rescheduled when it becomes ready
+			// Causes region to be rescheduled when it is next encountered
 			markForBuild(false);
 			protoRegion.release();
-			// Marking the region for rebuild doesn't cause iteration to restart and we
-			// may need visibility to restart if it was waiting for this region to progress.
-			// WIP: better way to handle that won't force excessive reiteration?
-			occlusionState.notifyOfOcclusionChange();
+			assert false : "Region without loaded neighbors encountered in off-thread execution.";
 			return;
 		}
 
@@ -550,5 +549,9 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	@Override
 	public BlockPos origin() {
 		return origin;
+	}
+
+	public boolean isClosed() {
+		return isClosed;
 	}
 }

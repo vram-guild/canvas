@@ -54,7 +54,7 @@ public class RegionRebuildManager {
 		}
 
 		for (RenderRegion region : externalBuildRequests) {
-			if (region.needsRebuild()) {
+			if (region.needsRebuild() && !region.isClosed()) {
 				if (region.needsImportantRebuild() || region.origin.isNear()) {
 					regionsToRebuild.remove(region);
 					region.rebuildOnMainThread();
@@ -143,15 +143,17 @@ public class RegionRebuildManager {
 			final Iterator<RenderRegion> iterator = regionsToRebuild.iterator();
 
 			while (iterator.hasNext()) {
-				final RenderRegion builtRegion = iterator.next();
+				final RenderRegion region = iterator.next();
 
-				if (builtRegion.needsImportantRebuild()) {
-					builtRegion.rebuildOnMainThread();
-				} else {
-					builtRegion.prepareAndExecuteRebuildTask();
+				if (region.isClosed()) {
+					iterator.remove();
+				} else if (region.needsImportantRebuild()) {
+					region.rebuildOnMainThread();
+					iterator.remove();
+				} else if (region.renderChunk.areCornersLoaded()) {
+					region.prepareAndExecuteRebuildTask();
+					iterator.remove();
 				}
-
-				iterator.remove();
 
 				// this seemed excessive
 				//				++builtCount;
