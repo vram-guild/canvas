@@ -57,7 +57,6 @@ public class GlMaterialProgram extends GlProgram {
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		configuredSamplers = new ObjectArrayList<>();
-		reloadConfigurableSamplers();
 		guiViewProjMatrix = uniformMatrix4f("_cvu_guiViewProjMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 	}
 
@@ -162,7 +161,13 @@ public class GlMaterialProgram extends GlProgram {
 		contextInfo.upload();
 	}
 
-	public void reloadConfigurableSamplers() {
+	@Override
+	public void load() {
+		loadConfigurableSamplers();
+		super.load();
+	}
+
+	private void loadConfigurableSamplers() {
 		configuredSamplers.forEach(this::removeUniform);
 		configuredSamplers.clear();
 

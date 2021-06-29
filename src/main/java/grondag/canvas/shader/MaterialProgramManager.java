@@ -52,7 +52,6 @@ public enum MaterialProgramManager {
 	public void reload() {
 		for (final GlMaterialProgram prog : materialPrograms) {
 			if (prog != null) {
-				prog.reloadConfigurableSamplers();
 				prog.forceReload();
 			}
 		}
