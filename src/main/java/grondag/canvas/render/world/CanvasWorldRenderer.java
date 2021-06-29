@@ -173,18 +173,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		MaterialConditionImpl.update();
 		GlProgramManager.INSTANCE.onRenderTick();
 
-		// WIP: do the thing
-		//terrainIterator.updateViewDependencies(camera, worldRenderState.terrainFrustum, renderDistance);
-
-		//		final RenderRegion cameraRegion = world == null || world.isOutOfHeightLimit(cameraBlockPos) ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
-
-		//		mc.getProfiler().swap("buildnear");
-		//
-		//		if (cameraRegion != null) {
-		//			regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
-		//			cameraRegion.neighbors.forEachAvailable(regionRebuildManager::buildNearRegionIfNeeded);
-		//		}
-
 		regionRebuildManager.processExternalBuildRequests();
 
 		Entity.setRenderDistanceMultiplier(MathHelper.clamp(mc.options.viewDistance / 8.0D, 1.0D, 2.5D));

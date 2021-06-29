@@ -219,8 +219,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		if (cameraRegion == null) {
 			// prime visible when above or below world and camera region is null
 			final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
-			// WIP: deal with variable world height
-			final int y = BlockPos.unpackLongY(cameraChunkOrigin) > 0 ? 240 : 0;
+			final int y = BlockPos.unpackLongY(cameraChunkOrigin) > 0 ? (worldRenderState.getWorld().getTopY() - 1) & 0xFFFFFFF0 : worldRenderState.getWorld().getBottomY() & 0xFFFFFFF0;
 			final int x = BlockPos.unpackLongX(cameraChunkOrigin);
 			final int z = BlockPos.unpackLongZ(cameraChunkOrigin);
 			final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
@@ -360,13 +359,14 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final int x = BlockPos.unpackLongX(cameraChunkOrigin);
 		final int z = BlockPos.unpackLongZ(cameraChunkOrigin);
 		final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
+		final int yMin = worldRenderState.getWorld().getBottomY() & 0xFFFFFFF0;
+		final int yMax = (worldRenderState.getWorld().getTopY() - 1) & 0xFFFFFFF0;
 
 		for (int i = 0; i < limit; ++i) {
 			final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
 			final RenderRegion region = regionStorage.getOrCreateRegion(
 					(offset.getX() << 4) + x,
-					// WIP: deal with variable world height
-					MathHelper.clamp((regionBoundingSphere.getY(i) << 4) + y, 0, 240),
+					MathHelper.clamp((regionBoundingSphere.getY(i) << 4) + y, yMin, yMax),
 					(offset.getZ() << 4) + z);
 
 			if (region != null) {
