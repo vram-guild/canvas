@@ -453,15 +453,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 		shadowVisibleRegions[3].clear();
 	}
 
-	private void classifyVisibleShadowRegions() {
-		final VisibleRegionList visibleRegions = this.visibleRegions;
-		final int limit = visibleRegions.size();
-
-		for (int i = 0; i < limit; ++i) {
-			addShadowRegion(visibleRegions.get(i));
-		}
-	}
-
 	private void addShadowRegion(RenderRegion r) {
 		final VisibleRegionList[] shadowVisibleRegions = this.shadowVisibleRegions;
 

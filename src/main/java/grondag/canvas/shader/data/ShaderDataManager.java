@@ -317,7 +317,7 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(SMOOTHED_RAIN_STRENGTH, (float) smoothedRainStrength);
 	}
 
-	// WIP: make configurable by dimension, add smoothing
+	// FEAT: make configurable by dimension, add smoothing
 	/**
 	 * Creates smooth transition between sun / moon direct lighting.
 	 * @param tickTime 0 - 23999
@@ -435,7 +435,7 @@ public class ShaderDataManager {
 
 				final float skyAngle = world.getSkyAngleRadians(tickDelta);
 
-				// WIP: fully implement celestial object model
+				// FEAT: fully implement celestial object model
 				// should compute all objects and choose brightest as the skylight
 				// and also apply dimension/pack settings
 				ShaderDataManager.world = world;
