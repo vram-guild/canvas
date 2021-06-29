@@ -99,7 +99,6 @@ import grondag.canvas.terrain.occlusion.OcclusionInputManager;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.region.RegionRebuildManager;
-import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.varia.GFX;
 
@@ -173,16 +172,18 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		mc.getProfiler().push("camera");
 		MaterialConditionImpl.update();
 		GlProgramManager.INSTANCE.onRenderTick();
-		final BlockPos cameraBlockPos = camera.getBlockPos();
-		final ClientWorld world = worldRenderState.getWorld();
-		final RenderRegion cameraRegion = world == null || world.isOutOfHeightLimit(cameraBlockPos) ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
 
-		mc.getProfiler().swap("buildnear");
+		// WIP: do the thing
+		//terrainIterator.updateViewDependencies(camera, worldRenderState.terrainFrustum, renderDistance);
 
-		if (cameraRegion != null) {
-			regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
-			cameraRegion.neighbors.forEachAvailable(regionRebuildManager::buildNearRegionIfNeeded);
-		}
+		//		final RenderRegion cameraRegion = world == null || world.isOutOfHeightLimit(cameraBlockPos) ? null : regionStorage.getOrCreateRegion(cameraBlockPos);
+
+		//		mc.getProfiler().swap("buildnear");
+		//
+		//		if (cameraRegion != null) {
+		//			regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
+		//			cameraRegion.neighbors.forEachAvailable(regionRebuildManager::buildNearRegionIfNeeded);
+		//		}
 
 		regionRebuildManager.processExternalBuildRequests();
 
@@ -204,19 +205,27 @@ public class CanvasWorldRenderer extends WorldRenderer {
 				final int occlusionInputFlags = worldRenderState.occlusionInputStatus.getAndClearStatus();
 
 				if (occlusionInputFlags != OcclusionInputManager.CURRENT) {
-					terrainIterator.prepare(cameraRegion, camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
+					terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
 					worldRenderState.regionBuilder().executor.execute(terrainIterator);
 				}
+			} else {
+				// If we kicked off a new iteration this will happen automatically, but if we are waiting
+				// for completion we want near regions to be updated right away.
+				terrainIterator.buildNearIfNeeded();
 			}
 		} else {
 			// Run iteration on main thread
 			final int occlusionInputFlags = worldRenderState.occlusionInputStatus.getAndClearStatus();
 
 			if (occlusionInputFlags != OcclusionInputManager.CURRENT) {
-				terrainIterator.prepare(cameraRegion, camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
+				terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
 				terrainIterator.run(null);
 				worldRenderState.copyVisibleRegionsFromIterator();
 				terrainIterator.reset();
+			} else {
+				// If we kicked off a new iteration this will happen automatically.
+				// Otherwise we want near regions to be updated right away.
+				terrainIterator.buildNearIfNeeded();
 			}
 		}
 
@@ -799,7 +808,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		vanillaWorldRenderer.canvas_reload();
 
 		worldRenderState.clear();
-
 		//ClassInspector.inspect();
 	}
 

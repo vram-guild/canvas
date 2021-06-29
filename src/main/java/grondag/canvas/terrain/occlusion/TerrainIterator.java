@@ -18,8 +18,7 @@ package grondag.canvas.terrain.occlusion;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.jetbrains.annotations.Nullable;
-
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -83,9 +82,38 @@ public class TerrainIterator implements TerrainExecutorTask {
 		return cameraChunkOrigin;
 	}
 
-	public void prepare(@Nullable RenderRegion cameraRegion, Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled, int occlusionInputFlags) {
+	public void updateViewDependencies(Camera camera, TerrainFrustum frustum, int renderDistance) {
+		final BlockPos cameraBlockPos = camera.getBlockPos();
+		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
+		cameraOccluder.copyFrustum(frustum);
+		regionBoundingSphere.update(renderDistance);
+		worldRenderState.potentiallyVisibleSetManager.update(cameraChunkOrigin);
+
+		if (includeShadow) {
+			shadowOccluder.copyState(frustum);
+			shadowOccluder.setLightVector(ShaderDataManager.skyLightVector);
+			targetOccluder.copyState(frustum);
+			targetOccluder.setLightVector(ShaderDataManager.skyLightVector);
+		}
+
+		this.renderDistance = renderDistance;
+
+		cameraRegion = worldRenderState.getWorld() == null || worldRenderState.getWorld().isOutOfHeightLimit(cameraBlockPos) ? null : worldRenderState.renderRegionStorage.getOrCreateRegion(cameraBlockPos);
+		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.origin.asLong();
+	}
+
+	public void buildNearIfNeeded() {
+		MinecraftClient.getInstance().getProfiler().swap("buildnear");
+
+		if (cameraRegion != null) {
+			worldRenderState.regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
+			cameraRegion.neighbors.forEachAvailable(worldRenderState.regionRebuildManager::buildNearRegionIfNeeded);
+		}
+	}
+
+	public void prepare(Camera camera, TerrainFrustum frustum, int renderDistance, boolean chunkCullingEnabled, int occlusionInputFlags) {
 		assert state.get() == IDLE;
-		this.cameraRegion = cameraRegion;
+
 		includeCamera = (occlusionInputFlags & OcclusionInputManager.CAMERA_INVALID) == OcclusionInputManager.CAMERA_INVALID;
 
 		// We always reiterate shadows if enabled because if terrain iteration ran
@@ -93,18 +121,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 		// reason we are here is that shadows were not current.
 		includeShadow = Pipeline.shadowsEnabled();
 
-		final BlockPos cameraBlockPos = camera.getBlockPos();
-		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
-		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.origin.asLong();
-		cameraOccluder.copyFrustum(frustum);
-		regionBoundingSphere.update(renderDistance);
+		updateViewDependencies(camera, frustum, renderDistance);
 
-		if (Pipeline.shadowsEnabled()) {
-			shadowOccluder.copyState(frustum);
-			targetOccluder.copyState(frustum);
-		}
+		buildNearIfNeeded();
 
-		this.renderDistance = renderDistance;
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
 		state.set(READY);
@@ -136,9 +156,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 	public void run(TerrainRenderContext ignored) {
 		assert state.get() == READY;
 		state.set(RUNNING);
-		worldRenderState.potentiallyVisibleSetManager.update(cameraChunkOrigin);
-		shadowOccluder.setLightVector(ShaderDataManager.skyLightVector);
-		targetOccluder.setLightVector(ShaderDataManager.skyLightVector);
 		worldRenderState.renderRegionStorage.updateRegionPositionAndVisibility();
 		worldRenderState.occlusionStateManager.afterRegionUpdate();
 		final boolean redrawOccluder = cameraOccluder.prepareScene();

@@ -85,9 +85,14 @@ public class RegionPosition extends BlockPos {
 		computeViewDependentValues();
 
 		if (Pipeline.shadowsEnabled()) {
-			// PERF: pointer chase hell
-			shadowCascade = owner.worldRenderState.terrainIterator.shadowOccluder.cascade(this);
-			shadowDistanceRank = shadowCascade == -1 ? -1 : owner.worldRenderState.potentiallyVisibleSetManager.shadowPVS.distanceRank(owner);
+			if (isInsideRenderDistance) {
+				// PERF: pointer chase hell
+				shadowCascade = owner.worldRenderState.terrainIterator.shadowOccluder.cascade(this);
+				shadowDistanceRank = shadowCascade == -1 ? -1 : owner.worldRenderState.potentiallyVisibleSetManager.shadowPVS.distanceRank(owner);
+			} else {
+				shadowCascade = -1;
+				shadowDistanceRank = -1;
+			}
 		} else {
 			shadowCascade = -1;
 		}
