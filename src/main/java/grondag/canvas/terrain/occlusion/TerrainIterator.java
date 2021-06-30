@@ -361,10 +361,18 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final int yMax = (worldRenderState.getWorld().getTopY() - 1) & 0xFFFFFFF0;
 
 		for (int i = 0; i < limit; ++i) {
+			final int ySphere = regionBoundingSphere.getY(i);
+
+			// values < 0 indicate regions not within render distance
+			if (ySphere < 0) {
+				continue;
+			}
+
 			final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
+
 			final RenderRegion region = regionStorage.getOrCreateRegion(
 					(offset.getX() << 4) + x,
-					MathHelper.clamp((regionBoundingSphere.getY(i) << 4) + y, yMin, yMax),
+					MathHelper.clamp((ySphere << 4) + y, yMin, yMax),
 					(offset.getZ() << 4) + z);
 
 			if (region != null) {

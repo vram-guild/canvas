@@ -42,9 +42,10 @@ public class RegionBoundingSphere {
 
 				int ysq = maxSqDist - x * x - z * z;
 
-				// WIP: should filter these out in iteration - incl camera iteration
 				if (ysq <= 0) {
-					yDist[i] = 0;
+					// Implies outside render distance.
+					// Negative value lets us filter these out in iteration
+					yDist[i] = -1;
 				} else {
 					int y = (int) Math.floor(Math.sqrt(ysq));
 
@@ -57,6 +58,9 @@ public class RegionBoundingSphere {
 		}
 	}
 
+	/**
+	 * Negative value implies outside render distance.
+	 */
 	public int getY(int index) {
 		assert index < indexLimit;
 		return yDist[index];
