@@ -16,7 +16,7 @@
 
 package grondag.canvas.shader.data;
 
-// WIP2: populate modelToCamera and matricies in GUI state
+// WIP: populate modelToCamera and matricies in GUI state
 
 /**
  * Describes how vertex coordinates relate to world and camera geometry.

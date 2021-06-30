@@ -49,8 +49,6 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 //PERF: disable animated textures when not in view
 //PERF: improve light smoothing performance
 //FEAT: colored lights
-//FEAT: per chunk occlusion mesh - for sky shadow mask
-//FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //FEAT: weather uniforms
 //FEAT: biome texture in shader
 

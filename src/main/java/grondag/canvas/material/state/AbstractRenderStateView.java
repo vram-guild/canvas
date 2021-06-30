@@ -217,7 +217,7 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.BooleanElement EMISSIVE = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_DIFFUSE = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_AO = PACKER.createBooleanElement();
-	// WIP2: doesn't handle alpha type cutout - only used for ender dragon currently
+	// WIP: doesn't handle alpha type cutout - only used for ender dragon currently
 	static final BitPacker64<Void>.IntElement CUTOUT = PACKER.createIntElement(4);
 	static final BitPacker64<Void>.BooleanElement UNMIPPED = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();

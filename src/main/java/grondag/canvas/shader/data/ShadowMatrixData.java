@@ -91,17 +91,8 @@ public final class ShadowMatrixData {
 
 		// As the sun moves, the shape and size of individual pixels changes.  This
 		// can also cause aliasing and shimmering and cannot be fully countered.
-		// To minimize the effect, we do two things:
-		// 1) Keep pixel center near the camera.  This reduces the apparent warping
-		// of pixel size on surfaces nearest the viewer.
-		// 2) Clamp the angles of sun position to angles that result in an integer
-		// number of pixels in the projected radius. Without this, there is constant
-		// movement of pixel boundaries for shadows away from the camera.
-
-		// WIP: correct these docs
-		// Was previously using half the distance from the camera to the far plane, but that
-		// isn't an accurate enough center position of a view frustum when the field of view is wide.
-		// PERF: could be a little tighter by accounting for view distance - far corners aren't actually visible
+		// To minimize the effect, we keep pixel center near the camera.
+		// This reduces the apparent warping of pixel size on surfaces nearest the viewer.
 
 		@SuppressWarnings("resource")
 		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
@@ -149,7 +140,7 @@ public final class ShadowMatrixData {
 		shadowViewMatrixInv.invert();
 
 		if (Pipeline.config().skyShadow != null) {
-			// // Compute how much camera has moved in view x/y space.
+			// Compute how much camera has moved in view x/y space.
 			testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
 			testVec.transform(shadowViewMatrix);
 
