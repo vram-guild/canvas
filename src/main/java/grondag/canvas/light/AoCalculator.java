@@ -20,9 +20,9 @@ import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
 import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 import static grondag.canvas.light.AoFaceData.OPAQUE;
-import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.fastOffsetRegionIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.offsetInteriorIndex;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
 
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
@@ -353,7 +353,7 @@ public abstract class AoCalculator {
 		final float[] w = this.w;
 		final float[] aoResult = quad.ao;
 
-		//TODO: currently no way to handle 3d interpolation shader-side
+		//MAYBE: currently no way to handle 3d interpolation shader-side
 		//quad.hdLight = null;
 
 		for (int i = 0; i < 4; i++) {

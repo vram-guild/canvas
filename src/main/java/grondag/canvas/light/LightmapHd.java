@@ -27,7 +27,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 
 class LightmapHd {
-	// PERF: use Fermion cache
+	// MAYBE: use Fermion cache
 	static final Object2ObjectOpenHashMap<AoFaceData, LightmapHd> MAP = new Object2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float) MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
 	private static final AtomicInteger nextIndex = new AtomicInteger();
 	private static boolean errorNoticeNeeded = true;
@@ -49,17 +49,17 @@ class LightmapHd {
 				errorNoticeNeeded = false;
 			}
 		} else {
-			// PERF: pool these and the main array - not needed after upload
+			// MAYBE: pool these and the main array - not needed after upload
 
 			final int[] aoLight = new int[LightmapSizer.lightmapPixels];
 			final int[] skyLight = new int[LightmapSizer.lightmapPixels];
 			final int[] blockLight = new int[LightmapSizer.lightmapPixels];
 
-			// TODO: make this an option for AO debugging
+			// MAYBE: make this an option for AO debugging
 			//			Arrays.fill(skyLight, 255);
 			//			Arrays.fill(blockLight, 255);
 
-			// PERF: skips steps when all unit value or same  value
+			// MAYBE: skips steps when all unit value or same  value
 			LightmapHdCalc.computeAo(aoLight, faceData);
 			LightmapHdCalc.computeLight(blockLight, faceData, false);
 			LightmapHdCalc.computeLight(skyLight, faceData, true);
@@ -90,7 +90,7 @@ class LightmapHd {
 		return v * LightmapSizer.paddedSize + u;
 	}
 
-	// PERF: can reduce texture consumption 8X by reusing rotations/inversions
+	// MAYBE: can reduce texture consumption 8X by reusing rotations/inversions
 	public static LightmapHd find(AoFaceData faceData) {
 		LightmapHd result = MAP.get(faceData);
 

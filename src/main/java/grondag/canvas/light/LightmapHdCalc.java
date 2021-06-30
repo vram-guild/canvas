@@ -26,7 +26,7 @@ final class LightmapHdCalc {
 	}
 
 	static void computeLight(int[] light, AoFaceData faceData, boolean isSky) {
-		// PERF: use integer math
+		// MAYBE: use integer math
 		final float center = input(faceData.center, isSky);
 		final float top = input(faceData.top, isSky);
 		final float bottom = input(faceData.bottom, isSky);
@@ -45,7 +45,7 @@ final class LightmapHdCalc {
 	}
 
 	private static void computeQuadrant(float center, float uSide, float vSide, float corner, int[] light, Int2IntFunction uFunc, Int2IntFunction vFunc) {
-		//FIX: handle error case when center is missing
+		//MAYBE: handle error case when center is missing
 		if (uSide == AoFaceData.OPAQUE) {
 			if (vSide == AoFaceData.OPAQUE) {
 				// fully enclosed
@@ -255,7 +255,7 @@ final class LightmapHdCalc {
 	}
 
 	//	private static void computeQuadrantAo(float center, float uSide, float vSide, float corner, int light[], Int2IntFunction uFunc, Int2IntFunction vFunc) {
-	//		//FIX: handle error case when center is missing
+	//		//MAYBE: handle error case when center is missing
 	//		if(uSide == AoFaceData.OPAQUE) {
 	//			if(vSide == AoFaceData.OPAQUE) {
 	//				// fully enclosed
