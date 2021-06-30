@@ -25,6 +25,7 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.TextureBase;
 import net.minecraft.client.render.TexturedRenderLayers;
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
@@ -72,7 +73,8 @@ public final class RenderLayerHelper {
 	}
 
 	public static boolean isExcluded(RenderLayer layer) {
-		return EXCLUSIONS.contains(layer);
+		// currently we only handle quads
+		return layer.getDrawMode() != DrawMode.QUADS || EXCLUSIONS.contains(layer);
 	}
 
 	private static void copyFromLayer(MaterialFinderImpl finder, MultiPhaseExt layer) {
@@ -81,7 +83,6 @@ public final class RenderLayerHelper {
 
 		final MojangShaderData sd = ((ShaderExt) params.getShader()).canvas_shaderData();
 		finder.sorted(layer.canvas_isTranslucent());
-		//finder.primitive(GL11.GL_QUADS);
 
 		if (texBase != null && texBase instanceof AccessTexture) {
 			final AccessTexture tex = (AccessTexture) params.getTexture();

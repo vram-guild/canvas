@@ -99,7 +99,6 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("fog: ").append(fog).append("\n");
 
 		sb.append("sorted: ").append(sorted).append("\n");
-		sb.append("primitive: ").append(primitive).append("\n");
 		final MaterialShaderId sid = shaderId;
 		sb.append("vertexShader: ").append(sid.vertexId.toString()).append(" (").append(sid.vertexIndex).append(")\n");
 		sb.append("fragmentShader: ").append(sid.fragmentId.toString()).append(" (").append(sid.fragmentIndex).append(")\n");

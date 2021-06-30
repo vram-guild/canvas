@@ -16,7 +16,6 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -86,11 +85,6 @@ abstract class AbstractRenderStateView {
 
 	public boolean disableAo() {
 		return DISABLE_AO.getValue(bits);
-	}
-
-	public DrawMode primitive() {
-		return DrawMode.QUADS;
-		//return PRIMITIVE.getValue(bits);
 	}
 
 	public MaterialTextureState textureState() {

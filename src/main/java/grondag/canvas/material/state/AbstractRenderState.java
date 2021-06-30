@@ -16,7 +16,6 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -35,18 +34,6 @@ import grondag.canvas.shader.ProgramType;
 
 abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;
-
-	/**
-	 * OpenGL primitive constant. Determines number of vertices.
-	 *
-	 * <p>Currently used in vanilla are...
-	 * GL_LINES
-	 * GL_LINE_STRIP (currently GUI only)
-	 * GL_TRIANGLE_STRIP (currently GUI only)
-	 * GL_TRIANGLE_FAN (currently GUI only)
-	 * GL_QUADS
-	 */
-	public final DrawMode primitive;
 
 	public final MaterialTextureState texture;
 	public final String textureIdString;
@@ -103,7 +90,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	protected AbstractRenderState(int index, long bits) {
 		super(bits);
 		this.index = index;
-		primitive = primitive();
 		texture = textureState();
 		textureIdString = texture == null ? "null" : texture.id.toString();
 		blur = blur();

@@ -340,7 +340,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public void next() {
-		// TODO: handle Triangles
+		// NB: We don't worry about triangles here because we only
+		// use this for API calls (which accept quads) or to transcode
+		// render layers that have quads as the primitive type.
 
 		// Auto-emit when we finish a quad.
 		// NB: emit will call complete which will set vertex index to zero
@@ -353,12 +355,18 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public void fixedColor(int i, int j, int k, int l) {
-		// TODO Auto-generated method stub
+		// Mojang currently only uses this for outline rendering and
+		// also it would be needlessly complicated to implement here.
+		// We only render quads so should never see it.
+		assert false : "fixedColor call encountered in quad rendering";
 	}
 
 	@Override
 	public void unfixColor() {
-		// TODO Auto-generated method stub
+		// Mojang currently only uses this for outline rendering and
+		// also it would be needlessly complicated to implement here.
+		// We only render quads so should never see it.
+		assert false : "unfixColor call encountered in quad rendering";
 	}
 
 	@Override

@@ -20,6 +20,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.minecraft.client.render.VertexFormat.DrawMode;
+
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
 
@@ -63,11 +65,11 @@ class DrawableDelegate {
 		assert !isReleased;
 
 		final int triVertexCount = vertexCount / 4 * 6;
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(renderState.primitive, triVertexCount);
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
 		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
 		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
 		//GFX.drawElements(materialState.primitive.mode, triVertexCount, elementType, 0);
-		GFX.drawElementsBaseVertex(renderState.primitive.mode, triVertexCount, elementType, 0L, vertexOffset);
+		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
 		//GlStateManager.drawArrays(GL11.GL_QUADS, vertexOffset, vertexCount);
 	}
 

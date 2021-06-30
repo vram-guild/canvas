@@ -123,13 +123,14 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		texture.materialIndexProvider().enable();
 
-		// WIP: can probably remove many of these
-
 		texture.enable(blur);
 		transparency.enable();
 		depthTest.enable();
 		writeMask.enable();
-		// WIP: disable decal renders in depth pass
+
+		// NB: Could probably disable decal renders in depth pass for most use cases
+		// but there's nothing to prevent anyone from rendering stacked cutout decals.
+		// Decals aren't super common so left in for now.
 		decal.enable();
 
 		CULL_STATE.setEnabled(cull);
