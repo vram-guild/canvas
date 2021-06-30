@@ -180,10 +180,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 		if (includeCamera) {
 			if (redrawOccluder) {
 				worldRenderState.potentiallyVisibleSetManager.cameraPVS.clear();
+				primeCameraRegions();
 			}
-
-			// WIP: shouldn't this be needed only on redraw?
-			primeCameraRegions();
 
 			iterateTerrain(redrawOccluder);
 		}
