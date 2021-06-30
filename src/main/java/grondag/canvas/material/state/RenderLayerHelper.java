@@ -57,7 +57,7 @@ public final class RenderLayerHelper {
 		EXCLUSIONS.add(RenderLayer.getArmorEntityGlint());
 		EXCLUSIONS.add(RenderLayer.getGlint());
 		EXCLUSIONS.add(RenderLayer.getDirectGlint());
-		EXCLUSIONS.add(RenderLayer.method_30676());
+		EXCLUSIONS.add(RenderLayer.getGlintTranslucent());
 		EXCLUSIONS.add(RenderLayer.getEntityGlint());
 		EXCLUSIONS.add(RenderLayer.getDirectEntityGlint());
 		EXCLUSIONS.add(RenderLayer.getLines());

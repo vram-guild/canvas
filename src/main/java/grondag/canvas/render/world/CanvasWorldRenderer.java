@@ -577,7 +577,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		immediate.draw(RenderLayer.getArmorEntityGlint());
 		immediate.draw(RenderLayer.getGlint());
 		immediate.draw(RenderLayer.getDirectGlint());
-		immediate.draw(RenderLayer.method_30676());
+		immediate.draw(RenderLayer.getGlintTranslucent());
 		immediate.draw(RenderLayer.getEntityGlint());
 		immediate.draw(RenderLayer.getDirectEntityGlint());
 

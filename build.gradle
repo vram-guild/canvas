@@ -189,7 +189,8 @@ curseforge {
 	if(project.hasProperty("curseforge_id")) {
 		project {
 			id = project.properties.curseforge_id
-			releaseType = project.release_type
+			//releaseType = project.release_type
+			releaseType = "beta"
 			addGameVersion project.release_version
 			addGameVersion "Fabric"
 			changelog = "A changelog can be found at https://github.com/${github_repository_owner}/${github_repository}/commits"
