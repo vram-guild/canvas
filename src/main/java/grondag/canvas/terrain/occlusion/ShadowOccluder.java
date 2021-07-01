@@ -99,8 +99,7 @@ public class ShadowOccluder extends BoxOccluder {
 	}
 
 	public void prepareRegion(RegionPosition origin) {
-		// WIP: NOT RANGE_NEAR
-		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), PackedBox.RANGE_NEAR, origin.shadowDistanceRank());
+		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), PackedBox.RANGE_MID, origin.shadowDistanceRank());
 	}
 
 	public void outputRaster() {

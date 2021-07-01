@@ -84,7 +84,7 @@ public class PipelineFramebuffer {
 			GFX.glDrawBuffers(attachmentPoints);
 		}
 
-		// TODO: needs better handling of arrays, 3D and other target type
+		// FEAT: needs better handling of arrays, 3D and other target type
 		// and attachments need a way to specify level
 
 		for (int i = 0; i < config.colorAttachments.length; ++i) {

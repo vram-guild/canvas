@@ -647,7 +647,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
 		WorldRenderEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(eventContext);
 
-		// TODO: need a new event here for weather/cloud targets that has matrix applies to render state
+		// FEAT: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
 		if (Configurator.debugOcclusionBoxes) {

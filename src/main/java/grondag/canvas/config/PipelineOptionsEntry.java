@@ -47,7 +47,7 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 
 		@Override
 		public void appendNarrations(NarrationMessageBuilder builder) {
-			// TODO Auto-generated method stub
+			// Currently unimplemented
 		}
 	};
 
@@ -95,7 +95,7 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 
 	@Override
 	public List<? extends Selectable> narratables() {
-		// TODO implement
+		// Nothing for now
 		return Collections.emptyList();
 	}
 }
