@@ -15,22 +15,22 @@
 #endif
 #endif
 
+const vec3 LIGHT1      = vec3 ( 0.104196384,  0.947239857, -0.303116754);
+const vec3 LIGHT2      = vec3 (-0.104196384,  0.947239857,  0.303116754);
+const vec3 LIGHT2_DARK = vec3 (-0.104196384, -0.947239857,  0.303116754);
+
 /**
  * Formula mimics vanilla lighting for plane-aligned quads and is vaguely
  * consistent with Phong lighting ambient + diffuse for others.
  */
 float p_diffuseBaked(vec3 normal) {
-	// TODO: encode as constants here and below
-	vec3 lv1 = normalize(vec3(0.1, 1.0, -0.3));
-
 	// in nether underside is lit like top
-	vec3 secondaryVec = frx_isSkyDarkened() ? vec3(-0.1, -1.0, 0.3) : vec3(-0.1, 1.0, 0.3);
-	vec3 lv2 = normalize(secondaryVec);
+	vec3 secondaryVec = frx_isSkyDarkened() ? LIGHT2_DARK : LIGHT2;
 
-	float l1 = max(0.0, dot(lv1, normal));
-	float l2 = max(0.0, dot(lv2, normal));
+	float l1 = max(0.0, dot(LIGHT1, normal));
+	float l2 = max(0.0, dot(secondaryVec, normal));
 
-	return 0.4 + min(0.6, l1 + l2);
+	return 0.5 + min(0.5, l1 + l2);
 }
 
 // for testing - not a good way to do it
