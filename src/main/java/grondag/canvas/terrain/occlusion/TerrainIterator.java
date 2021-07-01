@@ -34,6 +34,7 @@ import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.region.RegionBuildState;
+import grondag.canvas.terrain.region.RegionOcclusionState.OcclusionResult;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
@@ -179,11 +180,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		if (includeCamera) {
 			if (redrawOccluder) {
+				// Clearing PVS will force regions to be redrawn
 				worldRenderState.potentiallyVisibleSetManager.cameraPVS.clear();
 				primeCameraRegions();
 			}
 
-			iterateTerrain(redrawOccluder);
+			iterateTerrain();
 		}
 
 		if (includeShadow) {
@@ -238,7 +240,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		}
 	}
 
-	private void iterateTerrain(boolean redrawOccluder) {
+	private void iterateTerrain() {
 		final int occlusionResultVersion = cameraOccluder.occlusionVersion();
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
 		final CameraPotentiallyVisibleRegionSet cameraDistanceSorter = worldRenderState.potentiallyVisibleSetManager.cameraPVS;
@@ -270,43 +272,43 @@ public class TerrainIterator implements TerrainExecutorTask {
 				updateRegions.add(region);
 			}
 
-			// for empty regions, check neighbors if visible but don't add to visible set
-			if (!buildState.canOcclude()) {
-				if (Configurator.cullEntityRender) {
-					// reuse prior test results
-					if (!region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
-						if (!chunkCullingEnabled || region.origin.isNear() || cameraOccluder.isEmptyRegionVisible(region.origin)) {
-							region.neighbors.enqueueUnvistedCameraNeighbors();
-							region.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
-						} else {
-							region.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
-						}
-					}
-				} else {
+			if (region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
+				// if prior test results still good just enqueue any neighbors we missed last
+				// time if the result indicates we should.
+
+				if (region.occlusionState.cameraOccluderResult() != OcclusionResult.REGION_NOT_VISIBLE) {
 					region.neighbors.enqueueUnvistedCameraNeighbors();
-					region.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
 				}
 
 				continue;
 			}
 
+			// If we get to here, we need to classify the region and possibly draw it to the rasterizer
+
+			// for empty regions, check neighbors if visible but don't add to visible set
+			if (!buildState.canOcclude()) {
+				if (!chunkCullingEnabled || region.origin.isNear() || cameraOccluder.isEmptyRegionVisible(region.origin)) {
+					region.neighbors.enqueueUnvistedCameraNeighbors();
+					region.occlusionState.setCameraOccluderResult(OcclusionResult.ENTITIES_VISIBLE, occlusionResultVersion);
+				} else {
+					region.occlusionState.setCameraOccluderResult(OcclusionResult.REGION_NOT_VISIBLE, occlusionResultVersion);
+				}
+
+				continue;
+			}
+
+			// If we get to here, region is not empty
+
 			if (!chunkCullingEnabled || region.origin.isNear()) {
+				// We are aren't culling, just add it.
 				region.neighbors.enqueueUnvistedCameraNeighbors();
 				visibleRegions.add(region);
-
-				if (redrawOccluder || !region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
-					cameraOccluder.prepareRegion(region.origin);
-					occludeTerrainRegion(region, buildState.getOcclusionData());
-				}
-
-				region.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
-			} else if (!redrawOccluder && region.occlusionState.isCameraOcclusionResultCurrent(occlusionResultVersion)) {
-				// reuse prior test results
-				if (region.occlusionState.cameraOccluderResult()) {
-					region.neighbors.enqueueUnvistedCameraNeighbors();
-					visibleRegions.add(region);
-				}
+				cameraOccluder.prepareRegion(region.origin);
+				occludeTerrainRegion(region, buildState.getOcclusionData());
+				region.occlusionState.setCameraOccluderResult(OcclusionResult.REGION_VISIBLE, occlusionResultVersion);
 			} else {
+				// Check for backtracking and invalidate occluder if we detect it.
+				// Will force redraw on the next pass.
 				if (isOccluderValid && region.origin.squaredCameraChunkDistance() < cameraOccluder.maxSquaredChunkDistance()) {
 					//System.out.println("invalidateCameraOcclusionResult due to backtrack from " + cameraOccluder.maxSquaredChunkDistance() + " to " + region.origin.squaredCameraChunkDistance() + " with origin " + region.origin.toShortString());
 					worldRenderState.occlusionStateManager.invalidateCameraOcclusionResult();
@@ -317,21 +319,22 @@ public class TerrainIterator implements TerrainExecutorTask {
 				final int[] occlusionData = buildState.getOcclusionData();
 
 				if (cameraOccluder.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
+					// Renderable portion is visible
+					// Continue search, mark visible, add to render list and draw to occluder
 					region.neighbors.enqueueUnvistedCameraNeighbors();
 					visibleRegions.add(region);
-					region.occlusionState.setCameraOccluderResult(true, occlusionResultVersion);
-
-					// these must always be drawn - will be additive if view hasn't changed
+					region.occlusionState.setCameraOccluderResult(OcclusionResult.REGION_VISIBLE, occlusionResultVersion);
 					occludeTerrainRegion(region, buildState.getOcclusionData());
-					cameraOccluder.occlude(occlusionData);
 				} else {
-					// need to progress through the region if part of it is visible
 					if (cameraOccluder.isBoxVisible(PackedBox.FULL_BOX)) {
+						// need to progress through the region if part of it is visible
+						// Like renderable, but we don't need to draw or add to render list
 						region.neighbors.enqueueUnvistedCameraNeighbors();
+						region.occlusionState.setCameraOccluderResult(OcclusionResult.ENTITIES_VISIBLE, occlusionResultVersion);
+					} else {
+						// no portion is visible
+						region.occlusionState.setCameraOccluderResult(OcclusionResult.REGION_NOT_VISIBLE, occlusionResultVersion);
 					}
-
-					// FIX: this really won't work with entity culling
-					region.occlusionState.setCameraOccluderResult(false, occlusionResultVersion);
 				}
 			}
 		}

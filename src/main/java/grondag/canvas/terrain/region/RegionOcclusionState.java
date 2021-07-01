@@ -25,6 +25,15 @@ import grondag.canvas.terrain.occlusion.ShadowPotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.occlusion.TerrainOccluder;
 
 public class RegionOcclusionState {
+	public enum OcclusionResult {
+		/** No part of region is visible. */
+		REGION_NOT_VISIBLE,
+		/** Renderable content in region is visible. */
+		REGION_VISIBLE,
+		/** No renderable content visible, but some empty space is visible. */
+		ENTITIES_VISIBLE
+	}
+
 	/** Region for which we track visibility information. Provides access to world render state. */
 	private final RenderRegion owner;
 
@@ -45,7 +54,7 @@ public class RegionOcclusionState {
 	 */
 	private int cameraOcclusionResultVersion;
 
-	private boolean cameraOccluderResult;
+	private OcclusionResult cameraOccluderResult;
 
 	private int lastSeenCameraPvsVersion;
 
@@ -85,7 +94,7 @@ public class RegionOcclusionState {
 		occlusionInputStatus = owner.worldRenderState.occlusionInputStatus;
 	}
 
-	public void setCameraOccluderResult(boolean occluderResult, int occluderResultVersion) {
+	public void setCameraOccluderResult(OcclusionResult occluderResult, int occluderResultVersion) {
 		if (cameraOcclusionResultVersion == occluderResultVersion) {
 			assert occluderResult == cameraOccluderResult;
 		} else {
@@ -100,7 +109,7 @@ public class RegionOcclusionState {
 	 * Only valid if the camera occluder has not been reset since,
 	 * which must be confirmed using {@link #isCameraOcclusionResultCurrent(int)}.
 	 */
-	public boolean cameraOccluderResult() {
+	public OcclusionResult cameraOccluderResult() {
 		return cameraOccluderResult;
 	}
 
@@ -212,8 +221,12 @@ public class RegionOcclusionState {
 		}
 	}
 
+	/**
+	 * Used for entity visibility testing and true even if only empty portions are visible.
+	 * Should not be used to determine if a region should be rendered.
+	 */
 	public boolean wasRecentlySeenFromCamera() {
-		return cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult;
+		return cameraPVS.version() - lastSeenCameraPvsVersion < 4 && cameraOccluderResult != OcclusionResult.REGION_NOT_VISIBLE;
 	}
 
 	/**
