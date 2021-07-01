@@ -23,7 +23,7 @@ void main() {
 		in_uv,
 		in_color,
 		in_normal,
-		in_lightmap.rg * 0.00390625 + 0.03125,
+		clamp(in_lightmap.rg * 0.00390625, 0.03125, 0.96875),
 		in_ao
 	);
 #else
