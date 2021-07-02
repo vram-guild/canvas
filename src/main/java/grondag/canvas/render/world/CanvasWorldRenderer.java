@@ -95,7 +95,6 @@ import grondag.canvas.shader.data.MatrixData;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
-import grondag.canvas.terrain.occlusion.OcclusionInputManager;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.region.RegionRebuildManager;
@@ -185,15 +184,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			if (state == TerrainIterator.COMPLETE) {
 				worldRenderState.copyVisibleRegionsFromIterator();
 				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
-				terrainIterator.reset();
+				terrainIterator.idle();
 				state = TerrainIterator.IDLE;
 			}
 
 			if (state == TerrainIterator.IDLE) {
-				final int occlusionInputFlags = worldRenderState.occlusionInputStatus.getAndClearStatus();
-
-				if (occlusionInputFlags != OcclusionInputManager.CURRENT) {
-					terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
+				if (terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks)) {
 					worldRenderState.regionBuilder().executor.execute(terrainIterator);
 				}
 			} else {
@@ -203,13 +199,10 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		} else {
 			// Run iteration on main thread
-			final int occlusionInputFlags = worldRenderState.occlusionInputStatus.getAndClearStatus();
-
-			if (occlusionInputFlags != OcclusionInputManager.CURRENT) {
-				terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks, occlusionInputFlags);
+			if (terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks)) {
 				terrainIterator.run(null);
 				worldRenderState.copyVisibleRegionsFromIterator();
-				terrainIterator.reset();
+				terrainIterator.idle();
 			} else {
 				// If we kicked off a new iteration this will happen automatically.
 				// Otherwise we want near regions to be updated right away.
@@ -379,7 +372,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					|| !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
 					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)
 			) {
-				if (!Pipeline.shadowsEnabled()) {
+				if (!worldRenderState.shadowsEnabled()) {
 					continue;
 				}
 
@@ -764,7 +757,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		identityStack.peek().getNormal().loadIdentity();
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
-		worldRenderState.terrainFrustum.prepare(viewMatrix, tickDelta, camera, worldRenderState.terrainIterator.cameraOccluder.hasNearOccluders());
+		worldRenderState.terrainFrustum.prepare(viewMatrix, tickDelta, camera, worldRenderState.terrainIterator.cameraVisibility.hasNearOccluders());
 		entityCullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
@@ -801,7 +794,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public boolean isTerrainRenderComplete() {
-		return worldRenderState.regionRebuildManager.isEmpty() && worldRenderState.regionBuilder().isEmpty() && worldRenderState.occlusionInputStatus.isCurrent();
+		return worldRenderState.regionRebuildManager.isEmpty() && worldRenderState.regionBuilder().isEmpty() && !worldRenderState.terrainIterator.hasWork();
 	}
 
 	@Override
@@ -816,7 +809,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final int count = getCompletedChunkCount();
 		String shadowRegionString = "";
 
-		if (Pipeline.shadowsEnabled()) {
+		if (worldRenderState.shadowsEnabled()) {
 			int shadowCount = worldRenderState.shadowVisibleRegions[0].getActiveCount()
 					+ worldRenderState.shadowVisibleRegions[1].getActiveCount()
 					+ worldRenderState.shadowVisibleRegions[2].getActiveCount()

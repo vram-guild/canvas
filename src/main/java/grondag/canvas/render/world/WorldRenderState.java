@@ -21,11 +21,9 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
-import grondag.canvas.terrain.occlusion.OcclusionInputManager;
-import grondag.canvas.terrain.occlusion.OcclusionResultManager;
-import grondag.canvas.terrain.occlusion.PotentiallyVisibleSetManager;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
@@ -47,10 +45,8 @@ public class WorldRenderState {
 	public final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
-	public final PotentiallyVisibleSetManager potentiallyVisibleSetManager = new PotentiallyVisibleSetManager();
+	//public final PotentiallyVisibleSetManager potentiallyVisibleSetManager = new PotentiallyVisibleSetManager();
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	public final OcclusionInputManager occlusionInputStatus = new OcclusionInputManager(this);
-	public final OcclusionResultManager occlusionStateManager = new OcclusionResultManager(this);
 
 	/**
 	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
@@ -66,6 +62,7 @@ public class WorldRenderState {
 
 	private RenderRegionBuilder regionBuilder;
 	private ClientWorld world;
+	private boolean hasSkylight;
 
 	// these are measured in chunks, not blocks
 	private int chunkRenderDistance;
@@ -99,13 +96,16 @@ public class WorldRenderState {
 		world = clientWorld;
 		cameraVisibleRegions.clear();
 		terrainIterator.reset();
-		potentiallyVisibleSetManager.clear();
 		renderRegionStorage.clear();
-		occlusionInputStatus.invalidateOcclusionInputs(OcclusionInputManager.BOTH_INVALID);
+		hasSkylight = world != null && world.getDimension().hasSkyLight();
 	}
 
 	public ClientWorld getWorld() {
 		return world;
+	}
+
+	public boolean shadowsEnabled() {
+		return Pipeline.shadowsEnabled() && hasSkylight;
 	}
 
 	public int chunkRenderDistance() {
@@ -127,11 +127,9 @@ public class WorldRenderState {
 	void copyVisibleRegionsFromIterator() {
 		final TerrainIterator terrainIterator = this.terrainIterator;
 
-		if (terrainIterator.includeCamera()) {
-			cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
-		}
+		cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 
-		if (terrainIterator.includeShadow()) {
+		if (shadowsEnabled()) {
 			shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
 			shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
 			shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
@@ -148,7 +146,6 @@ public class WorldRenderState {
 			regionBuilder.reset();
 		}
 
-		potentiallyVisibleSetManager.clear();
 		renderRegionStorage.clear();
 		cameraVisibleRegions.clear();
 		terrainFrustum.reload();

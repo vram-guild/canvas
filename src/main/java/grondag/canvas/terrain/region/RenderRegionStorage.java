@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.terrain.occlusion.OcclusionResult;
 
 public class RenderRegionStorage {
 	private final AtomicInteger loadedRegionCount = new AtomicInteger();
@@ -55,7 +56,7 @@ public class RenderRegionStorage {
 			// have to assume that it did and if it was within the potential visible
 			// set we need to rerun iteration.
 
-			if (region.occlusionState.isInCurrentPVS()) {
+			if (region.cameraVisibility.getResult() != OcclusionResult.UNDETERMINED || ((worldRenderState.shadowsEnabled() && region.shadowVisibility.getResult() != OcclusionResult.UNDETERMINED))) {
 				worldRenderState.regionRebuildManager.acceptExternalBuildRequest(region);
 			}
 		}
@@ -89,7 +90,7 @@ public class RenderRegionStorage {
 
 	public boolean wasSeenFromCamera(int x, int y, int z) {
 		final RenderRegion r = getRegionIfExists(x, y, z);
-		return r != null && r.occlusionState.wasRecentlySeenFromCamera();
+		return r != null && r.cameraVisibility.wasRecentlySeen();
 	}
 
 	public void scheduleClose(RenderChunk chunk) {

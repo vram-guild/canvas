@@ -14,27 +14,17 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion;
+package grondag.canvas.terrain.occlusion.camera;
 
-import static grondag.bitraster.Constants.PIXEL_HEIGHT;
-import static grondag.bitraster.Constants.PIXEL_WIDTH;
-
-import java.io.File;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-import grondag.bitraster.BoxOccluder;
 import grondag.bitraster.PerspectiveRasterizer;
-import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
+import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
 
-public class TerrainOccluder extends BoxOccluder {
+public class CameraOccluder extends AbstractOccluder {
 	/**
 	 * This frustum is a snapshot of the view frustum and may lag behind for a frame or two.
 	 * A snapshot is used because occlusion test can happen off the main render thread and we
@@ -42,10 +32,8 @@ public class TerrainOccluder extends BoxOccluder {
 	 */
 	private final TerrainFrustum occlusionFrustum = new TerrainFrustum();
 
-	private long nextRasterOutputTime;
-
-	public TerrainOccluder() {
-		super(new PerspectiveRasterizer());
+	public CameraOccluder() {
+		super(new PerspectiveRasterizer(), "canvas_occlusion_raster.png");
 	}
 
 	/**
@@ -73,61 +61,22 @@ public class TerrainOccluder extends BoxOccluder {
 		return occlusionFrustum.isRegionVisible(regionPosition);
 	}
 
+	@Override
 	public void prepareRegion(RegionPosition origin) {
 		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), origin.occlusionRange(), origin.squaredCameraChunkDistance());
-	}
-
-	public void outputRaster() {
-		outputRaster("canvas_occlusion_raster.png", false);
-	}
-
-	public void outputRaster(String fileName, boolean force) {
-		final long t = System.currentTimeMillis();
-
-		if (!force && t >= nextRasterOutputTime) {
-			force = true;
-			nextRasterOutputTime = t + 1000;
-		}
-
-		if (force) {
-			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
-
-			for (int x = 0; x < PIXEL_WIDTH; x++) {
-				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelColor(x, y, raster.isPixelClear(x, y) ? -1 : 0xFF000000);
-				}
-			}
-
-			nativeImage.mirrorVertically();
-
-			@SuppressWarnings("resource") final File file = new File(MinecraftClient.getInstance().runDirectory, fileName);
-
-			Util.getIoWorkerExecutor().execute(() -> {
-				try {
-					nativeImage.writeFile(file);
-				} catch (final Exception e) {
-					CanvasMod.LOG.warn("Couldn't save occluder image", e);
-				} finally {
-					nativeImage.close();
-				}
-			});
-		}
 	}
 
 	/**
 	 * Check if needs redrawn and prep for redraw if so.
 	 * When false, regions should be drawn only if their occluder version is not current.
 	 */
+	@Override
 	public boolean prepareScene() {
 		final int viewVersion = occlusionFrustum.viewVersion();
 		final Vec3d cameraPos = occlusionFrustum.lastCameraPos();
 		final Matrix4fExt projectionMatrix = occlusionFrustum.projectionMatrix();
 		final Matrix4fExt modelMatrix = occlusionFrustum.modelMatrix();
 		return super.prepareScene(viewVersion, cameraPos.x, cameraPos.y, cameraPos.z, modelMatrix::copyTo, projectionMatrix::copyTo);
-	}
-
-	public boolean isEmptyRegionVisible(BlockPos origin) {
-		return super.isEmptyRegionVisible(origin.getX(), origin.getY(), origin.getZ());
 	}
 
 	@Override

@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion;
+package grondag.canvas.terrain.occlusion.shadow;
 
 import net.minecraft.util.math.Vec3i;
 

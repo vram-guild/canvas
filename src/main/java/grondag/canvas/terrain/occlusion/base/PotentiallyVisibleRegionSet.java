@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion;
+package grondag.canvas.terrain.occlusion.base;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * implementation-dependent and sorts them from near to far relative to that perspective.
  * Supports iteration in sorted order.
  */
-public interface PotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegion> {
+public interface PotentiallyVisibleRegionSet<S extends PotentiallyVisibleRegionSet<S, U>, U extends AbstractRegionVisibility<?, U>> {
 	/**
 	 * Increments every time {@link #clear()} is called.
 	 * Use for synchronization of dependent state.
@@ -41,7 +41,7 @@ public interface PotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegion>
 	 * Adds region to set in sorted position according to implementation.
 	 * Requires but does NOT check that region is not already in the set.
 	 */
-	void add(T region);
+	void add(U region);
 
 	/**
 	 * Restarts the iteration from the beginning.
@@ -52,5 +52,5 @@ public interface PotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegion>
 	 * Returns next region in sorted iteration and advances for next call.
 	 * Returns null if at end or if set is empty.
 	 */
-	@Nullable T next();
+	@Nullable U next();
 }

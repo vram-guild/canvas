@@ -14,39 +14,30 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion;
+package grondag.canvas.terrain.occlusion.shadow;
 
 import static grondag.bitraster.Constants.DOWN;
 import static grondag.bitraster.Constants.EAST;
 import static grondag.bitraster.Constants.NORTH;
-import static grondag.bitraster.Constants.PIXEL_HEIGHT;
-import static grondag.bitraster.Constants.PIXEL_WIDTH;
 import static grondag.bitraster.Constants.SOUTH;
 import static grondag.bitraster.Constants.UP;
 import static grondag.bitraster.Constants.WEST;
 
-import java.io.File;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vector4f;
 
-import grondag.bitraster.BoxOccluder;
 import grondag.bitraster.OrthoRasterizer;
 import grondag.bitraster.PackedBox;
-import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
+import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
 
-public class ShadowOccluder extends BoxOccluder {
+public class ShadowOccluder extends AbstractOccluder {
 	private final Matrix4f shadowViewMatrix = new Matrix4f();
 	private final Matrix4fExt shadowViewMatrixExt = (Matrix4fExt) (Object) shadowViewMatrix;
 
@@ -61,12 +52,8 @@ public class ShadowOccluder extends BoxOccluder {
 	private grondag.bitraster.BoxOccluder.BoxTest occludedTest;
 	private grondag.bitraster.BoxOccluder.BoxDraw draw;
 
-	private long nextRasterOutputTime;
-	private final String rasterName;
-
 	public ShadowOccluder(String rasterName) {
-		super(new OrthoRasterizer());
-		this.rasterName = rasterName;
+		super(new OrthoRasterizer(), rasterName);
 	}
 
 	public void copyState(TerrainFrustum occlusionFrustum) {
@@ -98,57 +85,18 @@ public class ShadowOccluder extends BoxOccluder {
 		lastViewVersion = occlusionFrustum.viewVersion();
 	}
 
+	@Override
 	public void prepareRegion(RegionPosition origin) {
 		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), PackedBox.RANGE_MID, origin.shadowDistanceRank());
-	}
-
-	public void outputRaster() {
-		outputRaster(rasterName, false);
-	}
-
-	public void outputRaster(String fileName, boolean force) {
-		final long t = System.currentTimeMillis();
-
-		if (!force && t >= nextRasterOutputTime) {
-			force = true;
-			nextRasterOutputTime = t + 1000;
-		}
-
-		if (force) {
-			final NativeImage nativeImage = new NativeImage(PIXEL_WIDTH, PIXEL_HEIGHT, false);
-
-			for (int x = 0; x < PIXEL_WIDTH; x++) {
-				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelColor(x, y, raster.isPixelClear(x, y) ? -1 : 0xFF000000);
-				}
-			}
-
-			nativeImage.mirrorVertically();
-
-			@SuppressWarnings("resource") final File file = new File(MinecraftClient.getInstance().runDirectory, fileName);
-
-			Util.getIoWorkerExecutor().execute(() -> {
-				try {
-					nativeImage.writeFile(file);
-				} catch (final Exception e) {
-					CanvasMod.LOG.warn("Couldn't save occluder image", e);
-				} finally {
-					nativeImage.close();
-				}
-			});
-		}
 	}
 
 	/**
 	 * Check if needs redrawn and prep for redraw if so.
 	 * When false, regions should be drawn only if their occluder version is not current.
 	 */
+	@Override
 	public boolean prepareScene() {
 		return super.prepareScene(lastViewVersion, lastCameraPos.x, lastCameraPos.y, lastCameraPos.z, shadowViewMatrixExt::copyTo, shadowProjMatrixExt::copyTo);
-	}
-
-	public boolean isEmptyRegionVisible(BlockPos origin) {
-		return super.isEmptyRegionVisible(origin.getX(), origin.getY(), origin.getZ());
 	}
 
 	/**

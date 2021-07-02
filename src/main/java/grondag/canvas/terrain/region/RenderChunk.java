@@ -86,7 +86,7 @@ public class RenderChunk {
 				final RenderRegion r = regions[i];
 
 				if (r != null) {
-					r.updatePositionAndVisibility();
+					r.origin.update();
 				}
 			}
 
@@ -125,7 +125,6 @@ public class RenderChunk {
 
 		if (r == null) {
 			r = new RenderRegion(this, RenderRegionIndexer.blockPosToRegionOrigin(x, y, z));
-			r.updatePositionAndVisibility();
 			regions[i] = r;
 		}
 

@@ -53,9 +53,9 @@ import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.world.WorldRenderState;
-import grondag.canvas.terrain.occlusion.PotentiallyVisibleRegion;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
+import grondag.canvas.terrain.occlusion.camera.CameraRegionVisibility;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
+import grondag.canvas.terrain.occlusion.shadow.ShadowRegionVisibility;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.region.input.SignalInputRegion;
@@ -64,16 +64,16 @@ import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
-public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegion {
+public class RenderRegion implements TerrainExecutorTask {
 	private final RenderRegionBuilder renderRegionBuilder;
 
 	final WorldRenderState worldRenderState;
 	final RenderRegionStorage storage;
-	final TerrainOccluder cameraOccluder;
 
 	public final RenderChunk renderChunk;
 	public final RegionPosition origin;
-	public final RegionOcclusionState occlusionState;
+	public final CameraRegionVisibility cameraVisibility;
+	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
 
 	/**
@@ -108,7 +108,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 	public RenderRegion(RenderChunk chunk, long packedPos) {
 		worldRenderState = chunk.worldRenderState;
-		cameraOccluder = worldRenderState.terrainIterator.cameraOccluder;
 		renderRegionBuilder = worldRenderState.regionBuilder();
 		storage = worldRenderState.renderRegionStorage;
 		storage.trackRegionLoaded();
@@ -117,7 +116,9 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		needsRebuild = true;
 		origin = new RegionPosition(packedPos, this);
 		neighbors = new NeighborRegions(this);
-		occlusionState = new RegionOcclusionState(this);
+		cameraVisibility = worldRenderState.terrainIterator.cameraVisibility.createRegionState(this);
+		shadowVisibility = worldRenderState.terrainIterator.shadowVisibility.createRegionState(this);
+		origin.update();
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -138,11 +139,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 	 */
 	public boolean isNearOrHasLoadedNeighbors() {
 		return origin.isNear() || renderChunk.areCornersLoaded();
-	}
-
-	void updatePositionAndVisibility() {
-		origin.update();
-		occlusionState.update();
 	}
 
 	void close() {
@@ -244,6 +240,11 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		return origin.squaredCameraChunkDistance();
 	}
 
+	private void notifyOcclusionChange() {
+		cameraVisibility.notifyOfOcclusionChange();
+		shadowVisibility.notifyOfOcclusionChange();
+	}
+
 	@Override
 	public void run(TerrainRenderContext context) {
 		final AtomicReference<PackedInputRegion> runningState = inputState;
@@ -262,7 +263,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
 				// Even if empty the chunk may still be needed for visibility search to progress
-				occlusionState.notifyOfOcclusionChange();
+				notifyOcclusionChange();
 			}
 
 			return;
@@ -376,7 +377,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 		final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
 		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
-			occlusionState.notifyOfOcclusionChange();
+			notifyOcclusionChange();
 		}
 
 		return newBuildState;
@@ -503,7 +504,7 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
 				// Even if empty the chunk may still be needed for visibility search to progress
-				occlusionState.notifyOfOcclusionChange();
+				notifyOcclusionChange();
 			}
 		} else {
 			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(region);
@@ -544,11 +545,6 @@ public class RenderRegion implements TerrainExecutorTask, PotentiallyVisibleRegi
 
 	public DrawableRegion solidDrawable() {
 		return solidDrawable;
-	}
-
-	@Override
-	public BlockPos origin() {
-		return origin;
 	}
 
 	public boolean isClosed() {

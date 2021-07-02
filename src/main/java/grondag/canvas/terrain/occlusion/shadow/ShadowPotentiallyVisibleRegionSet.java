@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.terrain.occlusion;
+package grondag.canvas.terrain.occlusion.shadow;
 
 import java.util.Arrays;
 
@@ -23,12 +23,13 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3f;
 
+import grondag.canvas.terrain.occlusion.base.PotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
-public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegion> implements PotentiallyVisibleRegionSet<T> {
+public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegionSet<ShadowPotentiallyVisibleRegionSet, ShadowRegionVisibility> {
 	private int version = 1;
 	private int regionCount = 0;
-	private final T[] regions;
+	private final ShadowRegionVisibility[] states = new ShadowRegionVisibility[RenderRegionIndexer.PADDED_REGION_INDEX_COUNT];
 
 	int xBase;
 	int zBase;
@@ -145,11 +146,6 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 
 	private DistanceRankFunction distanceRankFunction = RANK_XYZ;
 
-	public ShadowPotentiallyVisibleRegionSet(T[] regions) {
-		this.regions = regions;
-		assert regions.length == RenderRegionIndexer.PADDED_REGION_INDEX_COUNT;
-	}
-
 	public void setLightVectorAndRestart(Vec3f vec) {
 		setLightVectorAndRestart(vec.getX(), vec.getY(), vec.getZ());
 	}
@@ -256,23 +252,23 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 
 	@Override
 	public void clear() {
-		Arrays.fill(regions, null);
+		Arrays.fill(states, null);
 		regionCount = 0;
 		++version;
 		returnToStart();
 	}
 
 	@Override
-	public void add(T region) {
-		BlockPos origin = region.origin();
+	public void add(ShadowRegionVisibility state) {
+		BlockPos origin = state.region.origin;
 		int rx = (origin.getX() >> 4) + xBase;
 		int rz = (origin.getZ() >> 4) + zBase;
 		int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
 
 		//System.out.println(String.format("Adding origin %s with region pos %d  %d  %d  with index %d", region.origin().toShortString(), rx, ry, rz, index(rx, ry, rz)));
 		int i = index(rx, ry, rz);
-		assert regions[i] == null;
-		regions[i] = region;
+		assert states[i] == null;
+		states[i] = state;
 		++regionCount;
 	}
 
@@ -291,13 +287,13 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 	}
 
 	@Override
-	public @Nullable T next() {
-		T result = null;
+	public @Nullable ShadowRegionVisibility next() {
+		ShadowRegionVisibility result = null;
 
 		if (!complete) {
 			while (result == null) {
 				int i = index(x, y, z);
-				result = regions[i];
+				result = states[i];
 
 				if (!tertiary.next()) {
 					if (!secondary.next()) {
@@ -313,8 +309,8 @@ public class ShadowPotentiallyVisibleRegionSet<T extends PotentiallyVisibleRegio
 		return result;
 	}
 
-	public int distanceRank(T region) {
-		BlockPos origin = region.origin();
+	public int distanceRank(ShadowRegionVisibility state) {
+		BlockPos origin = state.region.origin;
 		int rx = (origin.getX() >> 4) + xBase;
 		int rz = (origin.getZ() >> 4) + zBase;
 		int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;

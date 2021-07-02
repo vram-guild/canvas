@@ -36,7 +36,7 @@ public class NeighborRegions {
 
 	NeighborRegions(RenderRegion owner) {
 		this.owner = owner;
-		BlockPos origin = owner.origin();
+		BlockPos origin = owner.origin;
 		ClientWorld world = owner.worldRenderState.getWorld();
 		isBottom = origin.getY() == world.getBottomY();
 		isTop = origin.getY() == world.getTopY() - 16;
@@ -103,32 +103,32 @@ public class NeighborRegions {
 	public void enqueueUnvistedCameraNeighbors() {
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 
-		getNeighbor(FaceConstants.EAST_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.WEST_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.NORTH_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.SOUTH_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
+		getNeighbor(FaceConstants.EAST_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+		getNeighbor(FaceConstants.WEST_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+		getNeighbor(FaceConstants.NORTH_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+		getNeighbor(FaceConstants.SOUTH_INDEX).cameraVisibility.addIfValid(mySquaredDist);
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
+			getNeighbor(FaceConstants.UP_INDEX).cameraVisibility.addIfValid(mySquaredDist);
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).occlusionState.addToCameraPvsIfValid(mySquaredDist);
+			getNeighbor(FaceConstants.DOWN_INDEX).cameraVisibility.addIfValid(mySquaredDist);
 		}
 	}
 
 	public void enqueueUnvistedShadowNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).occlusionState.addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).occlusionState.addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).occlusionState.addToShadowPvsIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).occlusionState.addToShadowPvsIfValid();
+		getNeighbor(FaceConstants.EAST_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).shadowVisibility.addIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).occlusionState.addToShadowPvsIfValid();
+			getNeighbor(FaceConstants.UP_INDEX).shadowVisibility.addIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).occlusionState.addToShadowPvsIfValid();
+			getNeighbor(FaceConstants.DOWN_INDEX).shadowVisibility.addIfValid();
 		}
 	}
 }

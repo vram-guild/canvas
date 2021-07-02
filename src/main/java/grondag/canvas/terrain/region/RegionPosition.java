@@ -20,8 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import grondag.bitraster.PackedBox;
-import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.terrain.occlusion.TerrainOccluder;
+import grondag.canvas.terrain.occlusion.camera.CameraVisibility;
 
 public class RegionPosition extends BlockPos {
 	/** Region that holds this position as its origin. Provides access to world render state. */
@@ -84,11 +83,11 @@ public class RegionPosition extends BlockPos {
 		computeRegionDependentValues();
 		computeViewDependentValues();
 
-		if (Pipeline.shadowsEnabled()) {
+		if (owner.worldRenderState.shadowsEnabled()) {
 			if (isInsideRenderDistance) {
 				// PERF: pointer chase hell
-				shadowCascade = owner.worldRenderState.terrainIterator.shadowOccluder.cascade(this);
-				shadowDistanceRank = shadowCascade == -1 ? -1 : owner.worldRenderState.potentiallyVisibleSetManager.shadowPVS.distanceRank(owner);
+				shadowCascade = owner.worldRenderState.terrainIterator.shadowVisibility.cascade(this);
+				shadowDistanceRank = shadowCascade == -1 ? -1 : owner.worldRenderState.terrainIterator.shadowVisibility.distanceRank(owner);
 			} else {
 				shadowCascade = -1;
 				shadowDistanceRank = -1;
@@ -112,13 +111,13 @@ public class RegionPosition extends BlockPos {
 	}
 
 	private void computeViewDependentValues() {
-		final TerrainOccluder cameraOccluder = owner.cameraOccluder;
-		final int viewVersion = cameraOccluder.frustumViewVersion();
+		final CameraVisibility cameraPVS = owner.worldRenderState.terrainIterator.cameraVisibility;
+		final int viewVersion = cameraPVS.frustumViewVersion();
 
 		if (viewVersion != cameraOccluderViewVersion) {
 			cameraOccluderViewVersion = viewVersion;
 
-			final int positionVersion = cameraOccluder.frustumPositionVersion();
+			final int positionVersion = cameraPVS.frustumPositionVersion();
 
 			// These checks depend on the camera occluder position version,
 			// which may not necessarily change when view version change.
@@ -128,7 +127,7 @@ public class RegionPosition extends BlockPos {
 				// These are needed by frustum tests, which happen below, after this update.
 				// not needed at all if outside of render distance
 				if (isInsideRenderDistance()) {
-					final Vec3d cameraPos = cameraOccluder.frustumCameraPos();
+					final Vec3d cameraPos = cameraPVS.frustumCameraPos();
 					final float dx = (float) (getX() + 8 - cameraPos.x);
 					final float dy = (float) (getY() + 8 - cameraPos.y);
 					final float dz = (float) (getZ() + 8 - cameraPos.z);
@@ -139,7 +138,7 @@ public class RegionPosition extends BlockPos {
 			}
 
 			//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-			isPotentiallyVisibleFromCamera = isInsideRenderDistance() && cameraOccluder.isRegionVisible(this);
+			isPotentiallyVisibleFromCamera = isInsideRenderDistance() && cameraPVS.isRegionInFrustum(this);
 		}
 	}
 

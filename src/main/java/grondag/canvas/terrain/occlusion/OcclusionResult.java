@@ -16,8 +16,19 @@
 
 package grondag.canvas.terrain.occlusion;
 
-import net.minecraft.util.math.BlockPos;
+public enum OcclusionResult {
+	/** Not visited or classified in current version - visibility unknown. */
+	UNDETERMINED,
 
-public interface PotentiallyVisibleRegion {
-	BlockPos origin();
+	/** Visited but not classified in current version. Visibility testing still needed. */
+	VISITED,
+
+	/** No part of region is visible. */
+	REGION_NOT_VISIBLE,
+
+	/** Renderable content in region is visible. */
+	REGION_VISIBLE,
+
+	/** No renderable content visible, but some empty space is visible. */
+	ENTITIES_VISIBLE
 }
