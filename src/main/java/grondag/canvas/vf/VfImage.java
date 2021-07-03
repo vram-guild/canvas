@@ -16,6 +16,7 @@
 
 package grondag.canvas.vf;
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -29,19 +30,22 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public final class VfImage {
+public final class VfImage<T extends VfElement<T>> {
 	private final AtomicInteger tail = new AtomicInteger();
 	private final int intsPerElement;
 	private final int bytesPerElement;
+	private final Class<T> clazz;
 
 	private int bufferId;
-	private volatile VfElement[] elements;
+	private volatile T[] elements;
 	private int head = 0;
 	private int imageCapacity;
 
-	public VfImage(int expectedCapacity, int intsPerElement) {
+	@SuppressWarnings("unchecked")
+	public VfImage(int expectedCapacity, int intsPerElement, Class<T> clazz) {
 		imageCapacity = expectedCapacity;
-		elements = new VfElement[expectedCapacity];
+		this.clazz = clazz;
+		elements = (T[]) Array.newInstance(clazz, expectedCapacity);
 		this.intsPerElement = intsPerElement;
 		bytesPerElement = intsPerElement * 4;
 	}
@@ -64,7 +68,7 @@ public final class VfImage {
 		return bufferId;
 	}
 
-	public void add(VfElement element) {
+	public void add(T element) {
 		final int index = tail.getAndIncrement();
 		element.setIndex(index);
 
@@ -79,10 +83,11 @@ public final class VfImage {
 		//		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private synchronized void expand(int newCapacity) {
 		if (newCapacity > elements.length) {
-			VfElement[] oldElements = elements;
-			elements = new VfElement[newCapacity];
+			VfElement<?>[] oldElements = elements;
+			elements = (T[]) Array.newInstance(clazz, newCapacity);
 			System.arraycopy(oldElements, 0, elements, 0, oldElements.length);
 		}
 	}
@@ -96,7 +101,7 @@ public final class VfImage {
 		}
 
 		boolean didRecreate = false;
-		final VfElement[] elements = this.elements;
+		final T[] elements = this.elements;
 
 		if (bufferId == 0) {
 			// never buffered, adjust capacity if needed before we create it
@@ -133,7 +138,7 @@ public final class VfImage {
 			final IntBuffer iBuff = bBuff.asIntBuffer();
 
 			for (int i = 0; i < len; ++i) {
-				VfElement element = elements[i + head];
+				T element = elements[i + head];
 				element.write(iBuff, i * intsPerElement);
 			}
 

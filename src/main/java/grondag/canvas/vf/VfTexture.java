@@ -16,6 +16,11 @@
 
 package grondag.canvas.vf;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+
+import it.unimi.dsi.fastutil.HashCommon;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -25,16 +30,27 @@ import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public class VfTexture {
+public class VfTexture<T extends VfElement<T>> {
+	protected final ConcurrentHashMap<T, T> MAP = new ConcurrentHashMap<>();
 	private final int textureUnit;
+
 	private int glId = 0;
-	protected VfImage image = null;
+	protected VfImage<T> image = null;
 	private boolean active = false;
 	private int imageFormat;
+	private Class<T> clazz;
 
-	public VfTexture(int textureUnit, int imageFormat) {
+	protected final Function<T, T> mapFunc = k -> {
+		createImageIfNeeded();
+		T result = k.copy();
+		image.add(result);
+		return result;
+	};
+
+	public VfTexture(int textureUnit, int imageFormat, Class<T> clazz) {
 		this.textureUnit = textureUnit;
 		this.imageFormat = imageFormat;
+		this.clazz = clazz;
 	}
 
 	public void clear() {
@@ -55,7 +71,7 @@ public class VfTexture {
 	protected void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new VfImage(0x10000, 4);
+				image = new VfImage<>(0x10000, 4, clazz);
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create vf texture due to error:", e);
 				image = null;
@@ -110,5 +126,9 @@ public class VfTexture {
 			createImageIfNeeded();
 			uploadAndActivate();
 		}
+	}
+
+	protected static int hash4(int c0, int c1, int c2, int c3) {
+		return (((HashCommon.mix(c0) * 31 + HashCommon.mix(c1)) * 31) + HashCommon.mix(c2)) * 31 + HashCommon.mix(c3);
 	}
 }

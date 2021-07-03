@@ -18,10 +18,12 @@ package grondag.canvas.vf;
 
 import java.nio.IntBuffer;
 
-public interface VfElement {
+public interface VfElement<T extends VfElement<T>> {
 	void setIndex(int index);
 
 	int getIndex();
 
 	void write(IntBuffer buff, int startIndex);
+
+	T copy();
 }
