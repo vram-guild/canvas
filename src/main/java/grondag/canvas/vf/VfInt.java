@@ -19,22 +19,23 @@ package grondag.canvas.vf;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
-public class VfColor extends VfTexture<ColorElement> {
-	public static final VfColor INSTANCE = new VfColor();
+public class VfInt extends VfTexture<IntElement> {
+	public static final VfInt UV = new VfInt(TextureData.VF_UV, GFX.GL_RG16);
+	public static final VfInt COLOR = new VfInt(TextureData.VF_COLOR, GFX.GL_RGBA8);
 
 	//final AtomicInteger count = new AtomicInteger();
 
-	private final ThreadLocal<ColorElement> SEARCH_KEY = ThreadLocal.withInitial(ColorElement::new);
+	private static final ThreadLocal<IntElement> SEARCH_KEY = ThreadLocal.withInitial(IntElement::new);
 
-	private VfColor() {
-		super(TextureData.VF_COLOR, GFX.GL_RGBA8, ColorElement.class);
+	private VfInt(int textureUnit, int imageFormat) {
+		super(textureUnit, imageFormat, IntElement.class);
 	}
 
 	public int index(int c0, int c1, int c2, int c3) {
 		//count.incrementAndGet();
 
 		// WIP: avoid threadlocal
-		final ColorElement k = SEARCH_KEY.get();
+		final IntElement k = SEARCH_KEY.get();
 		k.set(c0, c1, c2, c3);
 		return MAP.computeIfAbsent(k, mapFunc).index;
 	}

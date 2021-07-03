@@ -11,11 +11,12 @@ in vec3 in_vertex;
 
 #ifdef CV_VF
 in int in_color;
+in int in_uv;
 #else
 in vec4 in_color;
+in vec2 in_uv;
 #endif
 
-in vec2 in_uv;
 in int in_material;
 
 #ifdef VANILLA_LIGHTING

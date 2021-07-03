@@ -24,6 +24,7 @@ uniform isamplerBuffer _cvu_materialInfo;
 
 	#ifdef CV_VF
 		uniform samplerBuffer _cvu_vfColor;
+		uniform samplerBuffer _cvu_vfUV;
 	#endif
 
 	flat out ivec4 _cvu_program;

@@ -2,7 +2,7 @@ package grondag.canvas.vf;
 
 import java.nio.IntBuffer;
 
-class ColorElement implements VfElement<ColorElement> {
+class IntElement implements VfElement<IntElement> {
 	private int c0, c1, c2, c3, hashCode;
 	int index;
 
@@ -11,12 +11,12 @@ class ColorElement implements VfElement<ColorElement> {
 		this.c1 = c1;
 		this.c2 = c2;
 		this.c3 = c3;
-		hashCode = VfColor.hash4(c0, c1, c2, c3);
+		hashCode = VfTexture.hash4(c0, c1, c2, c3);
 	}
 
 	@Override
-	public ColorElement copy() {
-		ColorElement result = new ColorElement();
+	public IntElement copy() {
+		IntElement result = new IntElement();
 		result.set(c0, c1, c2, c3);
 		return result;
 	}
@@ -46,8 +46,8 @@ class ColorElement implements VfElement<ColorElement> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof ColorElement) {
-			final ColorElement k = (ColorElement) obj;
+		if (obj instanceof IntElement) {
+			final IntElement k = (IntElement) obj;
 			return k.c0 == c0 && k.c1 == c1 && k.c2 == c2 && k.c3 == c3;
 		} else {
 			return false;

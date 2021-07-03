@@ -21,6 +21,7 @@ import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_4
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2F;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2US;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B;
@@ -35,7 +36,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.vf.VfColor;
+import grondag.canvas.vf.VfInt;
 
 public final class CanvasVertexFormats {
 	static {
@@ -57,7 +58,7 @@ public final class CanvasVertexFormats {
 	 */
 	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
-	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_VF, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
 
@@ -180,14 +181,20 @@ public final class CanvasVertexFormats {
 		int k = buff.allocate(COMPACT_QUAD_STRIDE);
 		final int[] target = buff.data();
 
-		final int vfColor = VfColor.INSTANCE.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3)) << 2;
+		final int vfColor = VfInt.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3)) << 2;
+		final int vfUv = VfInt.UV.index(
+				quad.spriteBufferU(0) | (quad.spriteBufferV(0) << 16),
+				quad.spriteBufferU(1) | (quad.spriteBufferV(1) << 16),
+				quad.spriteBufferU(2) | (quad.spriteBufferV(2) << 16),
+				quad.spriteBufferU(3) | (quad.spriteBufferV(3) << 16)
+		) << 2;
 
 		for (int i = 0; i < 4; i++) {
 			quad.transformAndAppendVertex(i, matrix, target, k);
 			k += 3;
 
 			target[k++] = vfColor | i;
-			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
+			target[k++] = vfUv | i;
 
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFF);

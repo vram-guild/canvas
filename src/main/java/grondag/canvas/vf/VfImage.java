@@ -31,13 +31,13 @@ import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
 public final class VfImage<T extends VfElement<T>> {
-	private final AtomicInteger tail = new AtomicInteger();
+	final AtomicInteger tail = new AtomicInteger();
 	private final int intsPerElement;
 	private final int bytesPerElement;
 	private final Class<T> clazz;
 
 	private int bufferId;
-	private volatile T[] elements;
+	protected volatile T[] elements;
 	private int head = 0;
 	private int imageCapacity;
 
@@ -78,13 +78,13 @@ public final class VfImage<T extends VfElement<T>> {
 
 		elements[index] = element;
 
-		//		if ((index & 0xFF) == 0xFF) {
-		//			System.out.println("vfColor count: " + index + " / " + VfColor.INSTANCE.count.get());
-		//		}
+		//if ((index & 0xFF) == 0xFF) {
+		//	System.out.println("vfUV count: " + index + " / " + VfInt.UV.count.get());
+		//}
 	}
 
 	@SuppressWarnings("unchecked")
-	private synchronized void expand(int newCapacity) {
+	protected synchronized void expand(int newCapacity) {
 		if (newCapacity > elements.length) {
 			VfElement<?>[] oldElements = elements;
 			elements = (T[]) Array.newInstance(clazz, newCapacity);

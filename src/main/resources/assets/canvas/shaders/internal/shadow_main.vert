@@ -20,13 +20,15 @@ void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 void main() {
 #ifdef CV_VF
 	vec4 inputColor = texelFetch(_cvu_vfColor, in_color);
+	vec2 inputUV = texelFetch(_cvu_vfUV, in_uv).rg;
 #else
 	vec4 inputColor = in_color;
+	vec2 inputUV = in_uv;
 #endif
 
 	frx_VertexData data = frx_VertexData(
 		vec4(in_vertex, 1.0),
-		in_uv,
+		inputUV,
 		inputColor,
 		in_normal
 	);

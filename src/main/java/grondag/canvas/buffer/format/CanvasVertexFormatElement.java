@@ -35,6 +35,10 @@ public class CanvasVertexFormatElement {
 	public static final CanvasVertexFormatElement BASE_TEX_2US = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.USHORT, 2, "in_uv", true, false);
 
+	// WIP: remove at end
+	public static final CanvasVertexFormatElement BASE_TEX_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_uv", true, false);
+
 	public static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap", false, false);
 
