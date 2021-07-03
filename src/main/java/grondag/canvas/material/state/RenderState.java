@@ -22,6 +22,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -38,6 +39,7 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
+import grondag.canvas.vf.VfColor;
 import grondag.fermion.bits.BitPacker64;
 
 /**
@@ -123,6 +125,10 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		texture.materialIndexProvider().enable();
 
+		if (Configurator.vf) {
+			VfColor.INSTANCE.enable();
+		}
+
 		texture.enable(blur);
 		transparency.enable();
 		depthTest.enable();
@@ -165,6 +171,10 @@ public final class RenderState extends AbstractRenderState {
 		active = this;
 		shadowActive = null;
 		texture.materialIndexProvider().enable();
+
+		if (Configurator.vf) {
+			VfColor.INSTANCE.enable();
+		}
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
@@ -244,6 +254,10 @@ public final class RenderState extends AbstractRenderState {
 		MaterialTextureState.disable();
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		MaterialIndexTexture.disable();
+
+		if (Configurator.vf) {
+			VfColor.INSTANCE.disable();
+		}
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);

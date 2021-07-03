@@ -53,7 +53,7 @@ public class VfTexture {
 	protected void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new VfImage();
+				image = new VfImage(0x10000, 4);
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create vf texture due to error:", e);
 				image = null;

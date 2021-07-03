@@ -25,5 +25,5 @@ public interface VfElement {
 
 	int getIndex();
 
-	void write(IntBuffer buff);
+	void write(IntBuffer buff, int startIndex);
 }

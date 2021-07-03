@@ -80,12 +80,11 @@ public class VfColor extends VfTexture {
 		}
 
 		@Override
-		public void write(IntBuffer buff) {
-			final int index = this.index;
-			buff.put(index, c0);
-			buff.put(index + 1, c1);
-			buff.put(index + 2, c2);
-			buff.put(index + 3, c3);
+		public void write(IntBuffer buff, final int startIndex) {
+			buff.put(startIndex, c0);
+			buff.put(startIndex + 1, c1);
+			buff.put(startIndex + 2, c2);
+			buff.put(startIndex + 3, c3);
 		}
 
 		@Override
