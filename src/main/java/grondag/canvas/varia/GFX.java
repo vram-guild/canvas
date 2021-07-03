@@ -851,4 +851,9 @@ public class GFX extends GL46C {
 		glFlushMappedBufferRange(target, offset, length);
 		assert logError("glFlushMappedBufferRange");
 	}
+
+	public static void copyBufferSubData(int readTarget, int writeTarget, long readOffset, long writeOffset, long size) {
+		glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
+		assert logError("glCopyBufferSubData");
+	}
 }

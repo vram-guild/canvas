@@ -28,6 +28,7 @@ public class TextureData {
 	public static final int HD_LIGHTMAP = GL21.GL_TEXTURE4;
 	public static final int DITHER = GL21.GL_TEXTURE5;
 	public static final int MATERIAL_INFO = GL21.GL_TEXTURE7;
+	public static final int VF_COLOR = GL21.GL_TEXTURE8;
 	// want these outside of the range managed by Mojang's damn GlStateManager
 	public static final int SHADOWMAP = GL21.GL_TEXTURE12;
 	public static final int SHADOWMAP_TEXTURE = GL21.GL_TEXTURE13;
