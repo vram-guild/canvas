@@ -18,6 +18,7 @@ package grondag.canvas.buffer.format;
 
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.AO_1UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_4UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2F;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2US;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
@@ -55,6 +56,8 @@ public final class CanvasVertexFormats {
 	 * and vertex state flags.  AO is carried in last octet of normal.
 	 */
 	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+
+	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_VF, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
 
@@ -206,6 +209,7 @@ public final class CanvasVertexFormats {
 	};
 
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
+	public static CanvasVertexFormat MATERIAL_FORMAT_VF = COMPACT_MATERIAL_VF;
 	public static final int MATERIAL_INT_VERTEX_STRIDE = MATERIAL_FORMAT.vertexStrideInts;
 	public static final int MATERIAL_INT_QUAD_STRIDE = MATERIAL_FORMAT.quadStrideInts;
 	public static QuadTranscoder MATERIAL_TRANSCODER = COMPACT_TRANSCODER;

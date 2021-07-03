@@ -31,19 +31,19 @@ import grondag.canvas.varia.GFX;
 @Environment(EnvType.CLIENT)
 public final class VfImage {
 	private final AtomicInteger tail = new AtomicInteger();
-	private final int intsPerTexel;
-	private final int bytesPerTexel;
+	private final int intsPerElement;
+	private final int bytesPerElement;
 
 	private int bufferId;
 	private volatile VfElement[] elements;
 	private int head = 0;
 	private int imageCapacity;
 
-	public VfImage(int expectedCapacity, int intsPerTexel) {
+	public VfImage(int expectedCapacity, int intsPerElement) {
 		imageCapacity = expectedCapacity;
 		elements = new VfElement[expectedCapacity];
-		this.intsPerTexel = intsPerTexel;
-		bytesPerTexel = intsPerTexel * 4;
+		this.intsPerElement = intsPerElement;
+		bytesPerElement = intsPerElement * 4;
 	}
 
 	public void close() {
@@ -89,7 +89,7 @@ public final class VfImage {
 
 	public synchronized boolean upload() {
 		final int tail = this.tail.get();
-		int len = tail - head;
+		final int len = tail - head;
 
 		if (len == 0) {
 			return false;
@@ -104,7 +104,7 @@ public final class VfImage {
 
 			bufferId = GFX.genBuffer();
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
-			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacity * bytesPerTexel, GFX.GL_STATIC_DRAW);
+			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacity * bytesPerElement, GFX.GL_STATIC_DRAW);
 			didRecreate = true;
 		} else if (elements.length > imageCapacity) {
 			// have a buffer but it is too small
@@ -112,10 +112,10 @@ public final class VfImage {
 
 			final int newBufferId = GFX.genBuffer();
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, newBufferId);
-			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacity * bytesPerTexel, GFX.GL_STATIC_DRAW);
+			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacity * bytesPerElement, GFX.GL_STATIC_DRAW);
 
 			GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, bufferId);
-			GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, GFX.GL_TEXTURE_BUFFER, 0, 0, head * bytesPerTexel);
+			GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, GFX.GL_TEXTURE_BUFFER, 0, 0, head * bytesPerElement);
 			GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
 
 			GFX.deleteBuffers(bufferId);
@@ -126,20 +126,21 @@ public final class VfImage {
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 		}
 
-		final ByteBuffer bBuff = GFX.mapBufferRange(GFX.GL_TEXTURE_BUFFER, head * bytesPerTexel, len * bytesPerTexel, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT);
+		final ByteBuffer bBuff = GFX.mapBufferRange(GFX.GL_TEXTURE_BUFFER, head * bytesPerElement, len * bytesPerElement,
+				GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_INVALIDATE_RANGE_BIT);
 
 		if (bBuff != null) {
 			final IntBuffer iBuff = bBuff.asIntBuffer();
 
-			for (int i = head; i < tail; ++i) {
-				VfElement element = elements[i];
-				element.write(iBuff, (i - head) * intsPerTexel);
+			for (int i = 0; i < len; ++i) {
+				VfElement element = elements[i + head];
+				element.write(iBuff, i * intsPerElement);
 			}
 
 			head = tail;
 		}
 
-		GFX.flushMappedBufferRange(GFX.GL_TEXTURE_BUFFER, 0, len * bytesPerTexel);
+		GFX.flushMappedBufferRange(GFX.GL_TEXTURE_BUFFER, 0, len * bytesPerElement);
 		GFX.unmapBuffer(GFX.GL_TEXTURE_BUFFER);
 		GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
 

@@ -19,8 +19,6 @@ package grondag.canvas.vf;
 import java.nio.IntBuffer;
 
 public interface VfElement {
-	int length();
-
 	void setIndex(int index);
 
 	int getIndex();

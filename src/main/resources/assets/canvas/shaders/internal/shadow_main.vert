@@ -13,17 +13,21 @@
   canvas:shaders/internal/shadow_main.vert
 ******************************************************/
 
-//#define CV_VF
-
 void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 #include canvas:startvertex
 }
 
 void main() {
+#ifdef CV_VF
+	vec4 inputColor = texelFetch(_cvu_vfColor, in_color);
+#else
+	vec4 inputColor = in_color;
+#endif
+
 	frx_VertexData data = frx_VertexData(
 		vec4(in_vertex, 1.0),
 		in_uv,
-		in_color,
+		inputColor,
 		in_normal
 	);
 

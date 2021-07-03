@@ -187,8 +187,9 @@ public final class RenderState extends AbstractRenderState {
 		shadowActive = null;
 		texture.materialIndexProvider().enable();
 
-		if (Configurator.vf) {
+		if (shader.programType.vf) {
 			VfColor.INSTANCE.enable();
+			assert MatrixState.get() == MatrixState.REGION;
 		}
 
 		if (Pipeline.shadowMapDepth != -1) {

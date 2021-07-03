@@ -25,6 +25,10 @@ public class CanvasVertexFormatElement {
 	public static final CanvasVertexFormatElement BASE_RGBA_4UB = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.UBYTE, 4, "in_color", true, false);
 
+	// WIP: remove at end
+	public static final CanvasVertexFormatElement BASE_RGBA_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_color", false, true);
+
 	public static final CanvasVertexFormatElement BASE_TEX_2F = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.FLOAT, 2, "in_uv", true, false);
 

@@ -23,6 +23,7 @@ import java.util.function.Function;
 import it.unimi.dsi.fastutil.HashCommon;
 
 import grondag.canvas.texture.TextureData;
+import grondag.canvas.varia.GFX;
 
 public class VfColor extends VfTexture {
 	public static final VfColor INSTANCE = new VfColor();
@@ -31,8 +32,9 @@ public class VfColor extends VfTexture {
 
 	private final ConcurrentHashMap<Key, Key> MAP = new ConcurrentHashMap<>();
 	private final ThreadLocal<Key> SEARCH_KEY = ThreadLocal.withInitial(Key::new);
+
 	private VfColor() {
-		super(TextureData.VF_COLOR);
+		super(TextureData.VF_COLOR, GFX.GL_RGBA8);
 	}
 
 	private final Function<Key, Key> mapFunc = k -> {
@@ -70,11 +72,6 @@ public class VfColor extends VfTexture {
 		}
 
 		@Override
-		public int length() {
-			return 4;
-		}
-
-		@Override
 		public void setIndex(int index) {
 			this.index = index;
 		}
@@ -86,6 +83,10 @@ public class VfColor extends VfTexture {
 
 		@Override
 		public void write(IntBuffer buff, final int startIndex) {
+			//buff.put(startIndex, -1);
+			//buff.put(startIndex + 1, -1);
+			//buff.put(startIndex + 2, -1);
+			//buff.put(startIndex + 3, -1);
 			buff.put(startIndex, c0);
 			buff.put(startIndex + 1, c1);
 			buff.put(startIndex + 2, c2);

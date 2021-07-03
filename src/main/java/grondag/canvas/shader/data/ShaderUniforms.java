@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 
 import org.lwjgl.opengl.GL21;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.texture.TextureData;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -38,6 +39,10 @@ public class ShaderUniforms {
 		//program.uniformSampler2d("frxs_hdLightmap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.HD_LIGHTMAP - GL21.GL_TEXTURE0));
 
 		program.uniformSampler("isamplerBuffer", "_cvu_materialInfo", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.MATERIAL_INFO - GL21.GL_TEXTURE0));
+
+		if (Configurator.vf) {
+			program.uniformSampler("samplerBuffer", "_cvu_vfColor", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.VF_COLOR - GL21.GL_TEXTURE0));
+		}
 	};
 
 	public static final Consumer<GlProgram> COMMON_UNIFORM_SETUP = program -> {

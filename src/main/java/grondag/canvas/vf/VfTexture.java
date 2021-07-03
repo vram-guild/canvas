@@ -30,9 +30,11 @@ public class VfTexture {
 	private int glId = 0;
 	protected VfImage image = null;
 	private boolean active = false;
+	private int imageFormat;
 
-	public VfTexture(int textureUnit) {
+	public VfTexture(int textureUnit, int imageFormat) {
 		this.textureUnit = textureUnit;
+		this.imageFormat = imageFormat;
 	}
 
 	public void clear() {
@@ -85,7 +87,7 @@ public class VfTexture {
 
 			CanvasTextureState.activeTextureUnit(textureUnit);
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
-			GFX.texBuffer(GFX.GL_RGBA32UI, image.bufferId());
+			GFX.texBuffer(imageFormat, image.bufferId());
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
 			CanvasMod.LOG.warn("Unable to create vf texture due to error:", e);
