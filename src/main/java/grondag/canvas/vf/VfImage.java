@@ -18,6 +18,7 @@ package grondag.canvas.vf;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.util.math.MathHelper;
@@ -52,6 +53,13 @@ public final class VfImage {
 		}
 	}
 
+	public synchronized void clear() {
+		close();
+		Arrays.fill(elements, null);
+		head = 0;
+		tail.set(0);
+	}
+
 	int bufferId() {
 		return bufferId;
 	}
@@ -65,6 +73,10 @@ public final class VfImage {
 		}
 
 		elements[index] = element;
+
+		//		if ((index & 0xFF) == 0xFF) {
+		//			System.out.println("vfColor count: " + index + " / " + VfColor.INSTANCE.count.get());
+		//		}
 	}
 
 	private synchronized void expand(int newCapacity) {

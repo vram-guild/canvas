@@ -251,7 +251,11 @@ public class GlShader implements Shader {
 		if (result == null) {
 			result = getCombinedShaderSource();
 
-			if (programType == ProgramType.MATERIAL_COLOR) {
+			if (programType.vf) {
+				result = StringUtils.replace(result, "//#define CV_VF", "#define CV_VF");
+			}
+
+			if (programType.hasVertexProgramControl) {
 				result = StringUtils.replace(result, "#define PROGRAM_BY_UNIFORM", "//#define PROGRAM_BY_UNIFORM");
 			}
 

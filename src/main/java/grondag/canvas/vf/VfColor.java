@@ -26,6 +26,9 @@ import grondag.canvas.texture.TextureData;
 
 public class VfColor extends VfTexture {
 	public static final VfColor INSTANCE = new VfColor();
+
+	//final AtomicInteger count = new AtomicInteger();
+
 	private final ConcurrentHashMap<Key, Key> MAP = new ConcurrentHashMap<>();
 	private final ThreadLocal<Key> SEARCH_KEY = ThreadLocal.withInitial(Key::new);
 	private VfColor() {
@@ -40,6 +43,8 @@ public class VfColor extends VfTexture {
 	};
 
 	public int index(int c0, int c1, int c2, int c3) {
+		//count.incrementAndGet();
+
 		// WIP: avoid threadlocal
 		final Key k = SEARCH_KEY.get();
 		k.set(c0, c1, c2, c3);

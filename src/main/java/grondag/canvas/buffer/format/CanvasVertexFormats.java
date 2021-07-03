@@ -149,45 +149,6 @@ public final class CanvasVertexFormats {
 		}
 	};
 
-	private static final QuadEncoder VF_ENCODER = (quad, buff) -> {
-		final RenderMaterialImpl mat = quad.material();
-
-		int packedNormal = 0;
-		final boolean useNormals = quad.hasVertexNormals();
-
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-		}
-
-		final int material = mat.dongle().index(quad.spriteId()) << 16;
-
-		int k = buff.allocate(COMPACT_QUAD_STRIDE);
-		final int[] target = buff.data();
-
-		VfColor.INSTANCE.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3));
-
-		for (int i = 0; i < 4; i++) {
-			quad.appendVertex(i, target, k);
-			k += 3;
-
-			target[k++] = quad.vertexColor(i);
-			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
-
-			final int packedLight = quad.lightmap(i);
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
-			target[k++] = blockLight | (skyLight << 8) | material;
-
-			if (useNormals) {
-				packedNormal = quad.packedNormal(i);
-			}
-
-			target[k++] = packedNormal | 0xFF000000;
-		}
-	};
-
 	private static final QuadTranscoder VF_TRANSCODER = (quad, context, buff) -> {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
@@ -216,13 +177,13 @@ public final class CanvasVertexFormats {
 		int k = buff.allocate(COMPACT_QUAD_STRIDE);
 		final int[] target = buff.data();
 
-		VfColor.INSTANCE.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3));
+		final int vfColor = VfColor.INSTANCE.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3)) << 2;
 
 		for (int i = 0; i < 4; i++) {
 			quad.transformAndAppendVertex(i, matrix, target, k);
 			k += 3;
 
-			target[k++] = quad.vertexColor(i);
+			target[k++] = vfColor | i;
 			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
 
 			final int packedLight = quad.lightmap(i);
@@ -247,6 +208,7 @@ public final class CanvasVertexFormats {
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
 	public static final int MATERIAL_INT_VERTEX_STRIDE = MATERIAL_FORMAT.vertexStrideInts;
 	public static final int MATERIAL_INT_QUAD_STRIDE = MATERIAL_FORMAT.quadStrideInts;
-	public static QuadTranscoder MATERIAL_TRANSCODER = Configurator.vf ? VF_TRANSCODER : COMPACT_TRANSCODER;
-	public static QuadEncoder MATERIAL_ENCODER = Configurator.vf ? VF_ENCODER : COMPACT_ENCODER;
+	public static QuadTranscoder MATERIAL_TRANSCODER = COMPACT_TRANSCODER;
+	public static QuadEncoder MATERIAL_ENCODER = COMPACT_ENCODER;
+	public static QuadTranscoder TERRAIN_TRANSCODER = Configurator.vf ? VF_TRANSCODER : COMPACT_TRANSCODER;
 }

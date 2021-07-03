@@ -35,11 +35,11 @@ public class VfTexture {
 		this.textureUnit = textureUnit;
 	}
 
-	public void reset() {
+	public void clear() {
 		disable();
 
 		if (image != null) {
-			image.close();
+			image.clear();
 			image = null;
 		}
 
