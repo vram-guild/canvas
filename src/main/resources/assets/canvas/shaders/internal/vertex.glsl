@@ -10,8 +10,10 @@
 in vec3 in_vertex;
 
 #ifdef CV_VF
-in int in_color;
-in int in_uv;
+in int in_color_vf;
+in int in_uv_vf;
+#define in_color texelFetch(_cvu_vfColor, in_color_vf)
+#define in_uv texelFetch(_cvu_vfUV, in_uv_vf).rg
 #else
 in vec4 in_color;
 in vec2 in_uv;
