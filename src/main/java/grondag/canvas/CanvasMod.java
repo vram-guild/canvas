@@ -40,7 +40,7 @@ import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
-import grondag.canvas.texture.ResourceCache;
+import grondag.canvas.texture.ResourceCacheManager;
 import grondag.frex.api.RendererFeature;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
@@ -94,6 +94,6 @@ public class CanvasMod implements ClientModInitializer {
 		});
 
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(PipelineLoader.INSTANCE);
-		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(ResourceCache.cacheReloader);
+		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(ResourceCacheManager.cacheReloader);
 	}
 }

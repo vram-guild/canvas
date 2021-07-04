@@ -111,10 +111,14 @@ public abstract class MaterialIndexProvider {
 		}
 	}
 
-	private static final Object2ObjectOpenHashMap<Identifier, ResourceCache<AtlasIndexProvider>> ATLAS_PROVIDERS = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+	private static final Object2ObjectOpenHashMap<Identifier, AtlasIndexProvider> ATLAS_PROVIDERS = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 
 	public static final synchronized MaterialIndexProvider getOrCreateForAtlas(Identifier id) {
-		return ATLAS_PROVIDERS.getOrDefault(id, new ResourceCache<>(() -> new AtlasIndexProvider(id))).getOrLoad();
+		return ATLAS_PROVIDERS.computeIfAbsent(id, AtlasIndexProvider::new);
+	}
+
+	public static void reload() {
+		ATLAS_PROVIDERS.clear();
 	}
 
 	public static final MaterialIndexProvider GENERIC = new SimpleIndexProvider();
