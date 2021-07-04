@@ -93,21 +93,25 @@ public abstract class Timekeeper {
 			switch (frameSinceReload) {
 				// Setting up container is done at start of frame 0
 				// This prevents multiple setup calls from config reload with multiple config vars
-				case CONTAINER_SETUP_FRAME -> {
-					cpuElapsed = new Object2LongOpenHashMap<>();
+				case CONTAINER_SETUP_FRAME:
 					final ProfilerGroup[] enumVals = ProfilerGroup.values();
+
+					cpuElapsed = new Object2LongOpenHashMap<>();
 					groups = new Group[enumVals.length];
+
 					for (int i = 0; i < enumVals.length; i++) {
 						groups[i] = new Group(enumVals[i]);
 					}
-				}
+
+					break;
 
 				// Setting up time queries is done at start of frame 1 after all steps of each groups are populated
-				case GPU_SETUP_FRAME -> {
+				case GPU_SETUP_FRAME:
 					if (gpuEnabled) {
 						generateQueries();
 					}
-				}
+
+					break;
 			}
 
 			swap(group, token);
@@ -165,6 +169,7 @@ public abstract class Timekeeper {
 			// Wait until all query result is ready (shouldn't cause infinite loop, but..?)
 			while (ready < numQueries) {
 				ready = 0;
+
 				for (int i = 0; i < numQueries; i++) {
 					GFX.glGetQueryObjectiv(gpuQueryId[i], GFX.GL_QUERY_RESULT_AVAILABLE, temp);
 					ready += temp[0];
@@ -174,7 +179,7 @@ public abstract class Timekeeper {
 			long[] elapsed = new long[1];
 			int i = 0;
 
-			for(int j = 0; j < groups.length; j++) {
+			for (int j = 0; j < groups.length; j++) {
 				for (String token:groups[j].steps) {
 					GFX.glGetQueryObjecti64v(gpuQueryId[i], GFX.GL_QUERY_RESULT, elapsed);
 					gpuElapsed.put(token, elapsed[0]);
@@ -278,8 +283,8 @@ public abstract class Timekeeper {
 		final boolean enabled = Configurator.displayRenderProfiler || Configurator.logRenderLagSpikes;
 
 		// make sure to always delete queries on reload
-		if (instance instanceof Active active) {
-			active.deleteQueries();
+		if (instance instanceof Active) {
+			((Active) instance).deleteQueries();
 		}
 
 		if (!enabled) {
@@ -351,7 +356,7 @@ public abstract class Timekeeper {
 		final String s;
 
 		if (gpu == 0L) {
-			s = String.format("%s: %f ms", label, cpu/1000000f);
+			s = String.format("%s: cpu %f ms", label, cpu/1000000f);
 		} else {
 			s = String.format("%s: cpu %f ms, gpu %f ms", label, cpu/1000000f, gpu/1000000f);
 		}
