@@ -29,11 +29,13 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.vf.VfVertex;
 
 public class ArrayVertexCollector implements VertexCollector {
 	private int capacity = 1024;
 	private int[] vertexData = new int[capacity];
 	private float[] perQuadDistance = new float[512];
+
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	private int integerSize = 0;
 
@@ -105,15 +107,21 @@ public class ArrayVertexCollector implements VertexCollector {
 		integerSize = 0;
 	}
 
-	public boolean sortQuads(float x, float y, float z) {
+	public boolean sortQuads(float x, float y, float z, boolean vf) {
 		final int quadCount = vertexCount() / 4;
 
 		if (perQuadDistance.length < quadCount) {
 			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
 		}
 
-		for (int j = 0; j < quadCount; ++j) {
-			perQuadDistance[j] = getDistanceSq(x, y, z, MATERIAL_INT_VERTEX_STRIDE, j);
+		if (vf) {
+			for (int j = 0; j < quadCount; ++j) {
+				perQuadDistance[j] = getDistanceSqVf(x, y, z, MATERIAL_INT_VERTEX_STRIDE, j);
+			}
+		} else {
+			for (int j = 0; j < quadCount; ++j) {
+				perQuadDistance[j] = getDistanceSq(x, y, z, MATERIAL_INT_VERTEX_STRIDE, j);
+			}
 		}
 
 		didSwap = false;
@@ -185,6 +193,42 @@ public class ArrayVertexCollector implements VertexCollector {
 		return dx * dx + dy * dy + dz * dz;
 	}
 
+	private float getDistanceSqVf(float x, float y, float z, int integerStride, int vertexIndex) {
+		// unpack vertex coordinates
+		final int i = vertexIndex * integerStride * 4;
+
+		// WIP: correct these offsets when format changs
+		final int blockOffset = vertexData[i];
+		final int bx = blockOffset & 0xF;
+		final int by = (blockOffset >> 4) & 0xF;
+		final int bz = (blockOffset >> 8) & 0xF;
+
+		final int[] vfData = VfVertex.VERTEX.fromIndex(vertexData[i + 1] >> 2).data;
+
+		final float x0 = bx + Float.intBitsToFloat(vfData[0]);
+		final float y0 = by + Float.intBitsToFloat(vfData[1]);
+		final float z0 = bz + Float.intBitsToFloat(vfData[2]);
+
+		final float x1 = bx + Float.intBitsToFloat(vfData[4]);
+		final float y1 = by + Float.intBitsToFloat(vfData[5]);
+		final float z1 = bz + Float.intBitsToFloat(vfData[6]);
+
+		final float x2 = bx + Float.intBitsToFloat(vfData[8]);
+		final float y2 = by + Float.intBitsToFloat(vfData[9]);
+		final float z2 = bz + Float.intBitsToFloat(vfData[10]);
+
+		final float x3 = bx + Float.intBitsToFloat(vfData[12]);
+		final float y3 = by + Float.intBitsToFloat(vfData[13]);
+		final float z3 = bz + Float.intBitsToFloat(vfData[14]);
+
+		// compute average distance by component
+		final float dx = (x0 + x1 + x2 + x3) * 0.25f - x;
+		final float dy = (y0 + y1 + y2 + y3) * 0.25f - y;
+		final float dz = (z0 + z1 + z2 + z3) * 0.25f - z;
+
+		return dx * dx + dy * dy + dz * dz;
+	}
+
 	public int[] saveState(int[] priorState) {
 		final int integerSize = this.integerSize;
 
@@ -231,7 +275,7 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	void sortIfNeeded() {
 		if (renderState.sorted) {
-			sortQuads(0, 0, 0);
+			sortQuads(0, 0, 0, false);
 		}
 	}
 

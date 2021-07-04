@@ -19,8 +19,8 @@ package grondag.canvas.vf;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 
-class VertexElement implements VfElement<VertexElement> {
-	final int[] data = new int[16];
+public class VertexElement implements VfElement<VertexElement> {
+	public final int[] data = new int[16];
 	private int hashCode;
 	int index;
 

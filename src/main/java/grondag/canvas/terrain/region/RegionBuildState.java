@@ -28,6 +28,7 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 
@@ -50,7 +51,7 @@ public class RegionBuildState {
 		final ArrayVertexCollector buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null && !buffer.isEmpty()) {
-			buffer.sortQuads(x, y, z);
+			buffer.sortQuads(x, y, z, Configurator.vf);
 			translucentState = buffer.saveState(translucentState);
 		}
 	}

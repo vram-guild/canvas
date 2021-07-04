@@ -42,4 +42,8 @@ public class VfVertex extends VfTexture<VertexElement> {
 		k.compute();
 		return MAP.computeIfAbsent(k, mapFunc).index;
 	}
+
+	public VertexElement fromIndex(int index) {
+		return image.elements[index];
+	}
 }
