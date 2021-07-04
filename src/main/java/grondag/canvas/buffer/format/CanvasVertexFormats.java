@@ -236,7 +236,6 @@ public final class CanvasVertexFormats {
 		}
 	};
 
-	public static final int VERTEX_PACKING_BITS = 0xFFFFF;
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
 	public static CanvasVertexFormat MATERIAL_FORMAT_VF = COMPACT_MATERIAL_VF;
 	public static final int MATERIAL_INT_VERTEX_STRIDE = MATERIAL_FORMAT.vertexStrideInts;

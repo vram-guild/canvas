@@ -29,7 +29,6 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VAL
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
-import static grondag.canvas.buffer.format.CanvasVertexFormats.VERTEX_PACKING_BITS;
 
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.texture.Sprite;
@@ -497,9 +496,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
 			final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
 
-			target[targetIndex++] = Math.round(xOut * VERTEX_PACKING_BITS);
-			target[targetIndex++] = Math.round(yOut * VERTEX_PACKING_BITS);
-			target[targetIndex++] = Math.round(zOut * VERTEX_PACKING_BITS);
+			target[targetIndex++] = Float.floatToRawIntBits(xOut);
+			target[targetIndex++] = Float.floatToRawIntBits(yOut);
+			target[targetIndex++] = Float.floatToRawIntBits(zOut);
 
 			if (hasNormals) {
 				final int p = packedNormal(vertexIndex);

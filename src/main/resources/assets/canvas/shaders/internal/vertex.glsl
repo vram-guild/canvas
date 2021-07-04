@@ -36,7 +36,7 @@
 		void _cv_prepareForVertex() {
 			in_material = (in_header_vf >> 16) & 0xFFFF;
 			ivec4 vfv = texelFetch(_cvu_vfVertex, in_vertex_vf);
-			in_vertex = vec3(vfv.xyz) * VERTEX_MULTIPLIER + vec3(in_header_vf & 0xF, (in_header_vf >> 4) & 0xF, (in_header_vf >> 8) & 0xF);
+			in_vertex = intBitsToFloat(vfv.xyz) + vec3(in_header_vf & 0xF, (in_header_vf >> 4) & 0xF, (in_header_vf >> 8) & 0xF);
 			in_normal = (vec3(vfv.w & 0xFF, (vfv.w >> 8) & 0xFF, (vfv.w >> 16) & 0xFF) - 127.0) / 127.0;
 		}
 
