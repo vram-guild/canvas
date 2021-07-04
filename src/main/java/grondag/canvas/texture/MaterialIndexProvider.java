@@ -117,5 +117,9 @@ public abstract class MaterialIndexProvider {
 		return ATLAS_PROVIDERS.computeIfAbsent(id, AtlasIndexProvider::new);
 	}
 
+	public static void reload() {
+		ATLAS_PROVIDERS.clear();
+	}
+
 	public static final MaterialIndexProvider GENERIC = new SimpleIndexProvider();
 }

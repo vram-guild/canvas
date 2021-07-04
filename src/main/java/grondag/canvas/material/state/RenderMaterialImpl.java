@@ -28,6 +28,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.texture.MaterialIndexer;
+import grondag.canvas.texture.ResourceCache;
 import grondag.frex.api.material.RenderMaterial;
 
 public final class RenderMaterialImpl extends AbstractRenderState implements RenderMaterial {
@@ -36,7 +37,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	public final int collectorIndex;
 	public final RenderState renderState;
 	public final int shaderFlags;
-	private MaterialIndexer dongle;
+	private ResourceCache<MaterialIndexer> dongle;
 
 	/** Vanilla render layer name if we derived from a vanilla render layer. */
 	public final String renderLayerName;
@@ -73,6 +74,12 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 
 	public static RenderMaterialImpl fromIndex(int index) {
 		return VALUES[index];
+	}
+
+	public static void resourceReload() {
+		for (RenderMaterialImpl e:MAP.values()) {
+			e.dongle = null;
+		}
 	}
 
 	@Override
@@ -121,14 +128,11 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	public MaterialIndexer dongle() {
-		MaterialIndexer result = dongle;
-
-		if (result == null) {
-			result = texture.materialIndexProvider().getIndexer(this);
-			dongle = result;
+		if (dongle == null) {
+			dongle = new ResourceCache<>(() -> texture.materialIndexProvider().getIndexer(this));
 		}
 
-		return result;
+		return dongle.getOrLoad();
 	}
 
 	@Override
