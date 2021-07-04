@@ -25,7 +25,9 @@ import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_VF
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.HEADER_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US_PAD_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B_PAD_FV;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.PAD0_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.VERTEX_VF;
@@ -64,7 +66,7 @@ public final class CanvasVertexFormats {
 
 	// WIP: remove at end
 	//private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
-	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, PAD0_VF, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, PAD0_VF, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US_PAD_VF, NORMAL_3B_PAD_FV, AO_1UB);
 	// MATERIAL_REGION_POS
 	// POS_NORMAL
 	// PADDING 1
@@ -219,7 +221,7 @@ public final class CanvasVertexFormats {
 			final int blockLight = (packedLight & 0xFF);
 			final int skyLight = ((packedLight >> 16) & 0xFF);
 			final int ao = aoData == null ? 255 : (Math.round(aoData[i] * 255));
-			target[k++] = blockLight | (skyLight << 8) | material;
+			target[k++] = blockLight | (skyLight << 8);
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);

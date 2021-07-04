@@ -35,6 +35,12 @@ public class CanvasVertexFormatElement {
 	public static final CanvasVertexFormatElement BASE_TEX_VF = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.UINT, 1, "in_uv_vf", false, true);
 
+	public static final CanvasVertexFormatElement MATERIAL_1US_PAD_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.USHORT, 1, "in_material_pad_vf", false, true);
+
+	public static final CanvasVertexFormatElement NORMAL_3B_PAD_FV = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.BYTE, 3, "in_normal_pad_vf", true, false);
+
 	/////
 
 	public static final CanvasVertexFormatElement POSITION_3F = new CanvasVertexFormatElement(

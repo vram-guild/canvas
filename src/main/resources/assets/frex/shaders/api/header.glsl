@@ -1,3 +1,3 @@
-#version 150
+#version 330
 
 #define VERTEX_SHADER
