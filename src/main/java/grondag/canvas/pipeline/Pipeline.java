@@ -40,6 +40,7 @@ public class Pipeline {
 	private static boolean reload = true;
 	private static int lastWidth;
 	private static int lastHeight;
+	private static ProgramTextureData materialTextures;
 	static Pass[] onWorldRenderStart = { };
 	static Pass[] afterRenderHand = { };
 	static Pass[] fabulous = { };
@@ -87,6 +88,10 @@ public class Pipeline {
 
 	private static PipelineConfig config;
 
+	public static boolean shadowsEnabled() {
+		return skyShadowFbo != null;
+	}
+
 	public static PipelineConfig config() {
 		return config;
 	}
@@ -101,6 +106,10 @@ public class Pipeline {
 
 	public static PipelineFramebuffer getFramebuffer(String name) {
 		return FRAMEBUFFERS.get(name);
+	}
+
+	public static ProgramTextureData materialTextures() {
+		return materialTextures;
 	}
 
 	static boolean needsReload() {
@@ -228,6 +237,8 @@ public class Pipeline {
 		} else {
 			defaultZenithAngle = 0f;
 		}
+
+		materialTextures = new ProgramTextureData(config.materialProgram.samplerImages);
 
 		isFabulous = config.fabulosity != null;
 

@@ -66,5 +66,5 @@ public interface AccessMultiPhaseParameters {
 	ImmutableList<RenderPhase> getPhases();
 
 	@Accessor
-	RenderPhase.Shader getField_29461();
+	RenderPhase.Shader getShader();
 }

@@ -21,124 +21,96 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.terrain.occlusion.OcclusionResult;
 
 public class RenderRegionStorage {
-	final AtomicInteger regionCount = new AtomicInteger();
-	public final RenderRegionPruner regionPruner;
-	final CanvasWorldRenderer cwr;
-	private int lastCameraChunkX = Integer.MAX_VALUE;
-	private int lastCameraChunkY = Integer.MAX_VALUE;
-	private int lastCameraChunkZ = Integer.MAX_VALUE;
+	private final AtomicInteger loadedRegionCount = new AtomicInteger();
 
-	static final int CHUNK_COUNT = 128 * 128;
-	private final RenderRegionChunk[] chunks = new RenderRegionChunk[CHUNK_COUNT];
-	private final ArrayBlockingQueue<RenderRegionChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionStorage.CHUNK_COUNT);
+	private final WorldRenderState worldRenderState;
 
-	public RenderRegionStorage(CanvasWorldRenderer canvasWorldRenderer, RenderRegionPruner pruner) {
-		cwr = canvasWorldRenderer;
-		regionPruner = pruner;
+	private final RenderChunk[] chunks = new RenderChunk[RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT];
+	private final ArrayBlockingQueue<RenderChunk> closeQueue = new ArrayBlockingQueue<>(RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT);
 
-		for (int i = 0; i < CHUNK_COUNT; ++i) {
-			chunks[i] = new RenderRegionChunk(this);
+	public RenderRegionStorage(WorldRenderState worldRenderState) {
+		this.worldRenderState = worldRenderState;
+
+		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
+			chunks[i] = new RenderChunk(worldRenderState);
 		}
 	}
 
 	public synchronized void clear() {
-		for (final RenderRegionChunk chunk : chunks) {
+		for (final RenderChunk chunk : chunks) {
 			chunk.close();
 		}
 	}
 
-	public int cameraChunkX() {
-		return lastCameraChunkX;
-	}
-
-	public int cameraChunkY() {
-		return lastCameraChunkY;
-	}
-
-	public int cameraChunkZ() {
-		return lastCameraChunkZ;
-	}
-
-	private static int chunkIndex(int x, int z) {
-		x = ((x + 30000000) >> 4) & 127;
-		z = ((z + 30000000) >> 4) & 127;
-
-		return x | (z << 7);
-	}
-
 	public void scheduleRebuild(int x, int y, int z, boolean urgent) {
-		final BuiltRenderRegion region = getRegionIfExists(x, y, z);
+		final RenderRegion region = getRegionIfExists(x, y, z);
 
 		if (region != null) {
 			region.markForBuild(urgent);
+			// Marking the region for rebuild doesn't cause iteration to be rerun.
+			// We don't know if the change would have affected occlusion so we
+			// have to assume that it did and if it was within the potential visible
+			// set we need to rerun iteration.
+
+			if (region.cameraVisibility.getResult() != OcclusionResult.UNDETERMINED || ((worldRenderState.shadowsEnabled() && region.shadowVisibility.getResult() != OcclusionResult.UNDETERMINED))) {
+				worldRenderState.regionRebuildManager.acceptExternalBuildRequest(region);
+			}
 		}
 	}
 
-	int chunkDistVersion = 1;
-
-	public void updateCameraDistanceAndVisibilityInfo(long cameraChunkOrigin) {
-		final int cameraChunkX = BlockPos.unpackLongX(cameraChunkOrigin) >> 4;
-		final int cameraChunkY = BlockPos.unpackLongY(cameraChunkOrigin) >> 4;
-		final int cameraChunkZ = BlockPos.unpackLongZ(cameraChunkOrigin) >> 4;
-		boolean clearVisibility = false;
-
-		if (!(cameraChunkX == lastCameraChunkX && cameraChunkY == lastCameraChunkY && cameraChunkZ == lastCameraChunkZ)) {
-			lastCameraChunkX = cameraChunkX;
-			lastCameraChunkY = cameraChunkY;
-			lastCameraChunkZ = cameraChunkZ;
-			++chunkDistVersion;
-			clearVisibility = true;
-		}
-
-		regionPruner.prepare(clearVisibility);
-
-		for (int i = 0; i < CHUNK_COUNT; ++i) {
-			chunks[i].updateCameraDistanceAndVisibilityInfo();
-		}
-
-		if (regionPruner.didInvalidateOccluder()) {
-			regionPruner.occluder.invalidate();
+	public void updateRegionPositionAndVisibility() {
+		for (int i = 0; i < RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT; ++i) {
+			chunks[i].updatePositionAndVisibility();
 		}
 	}
 
-	public int regionCount() {
-		return regionCount.get();
+	public int loadedRegionCount() {
+		return loadedRegionCount.get();
 	}
 
-	public BuiltRenderRegion getOrCreateRegion(int x, int y, int z) {
-		return chunks[chunkIndex(x, z)].getOrCreateRegion(x, y, z);
+	public RenderRegion getOrCreateRegion(int x, int y, int z) {
+		return chunks[RenderRegionIndexer.chunkIndex(x, z)].getOrCreateRegion(x, y, z);
 	}
 
-	public BuiltRenderRegion getOrCreateRegion(BlockPos pos) {
+	public RenderRegion getOrCreateRegion(BlockPos pos) {
 		return getOrCreateRegion(pos.getX(), pos.getY(), pos.getZ());
 	}
 
-	public BuiltRenderRegion getRegionIfExists(BlockPos pos) {
+	public RenderRegion getRegionIfExists(BlockPos pos) {
 		return getRegionIfExists(pos.getX(), pos.getY(), pos.getZ());
 	}
 
-	public BuiltRenderRegion getRegionIfExists(int x, int y, int z) {
-		return chunks[chunkIndex(x, z)].getRegionIfExists(x, y, z);
+	public RenderRegion getRegionIfExists(int x, int y, int z) {
+		return chunks[RenderRegionIndexer.chunkIndex(x, z)].getRegionIfExists(x, y, z);
 	}
 
-	public boolean wasSeen(int x, int y, int z) {
-		final BuiltRenderRegion r = getRegionIfExists(x, y, z);
-		return r != null && r.wasRecentlySeen();
+	public boolean wasSeenFromCamera(int x, int y, int z) {
+		final RenderRegion r = getRegionIfExists(x, y, z);
+		return r != null && r.cameraVisibility.wasRecentlySeen();
 	}
 
-	public void scheduleClose(RenderRegionChunk chunk) {
+	public void scheduleClose(RenderChunk chunk) {
 		closeQueue.offer(chunk);
 	}
 
 	public void closeRegionsOnRenderThread() {
-		RenderRegionChunk chunk = closeQueue.poll();
+		RenderChunk chunk = closeQueue.poll();
 
 		while (chunk != null) {
 			chunk.close();
 			chunk = closeQueue.poll();
 		}
+	}
+
+	void trackRegionClosed() {
+		loadedRegionCount.decrementAndGet();
+	}
+
+	void trackRegionLoaded() {
+		loadedRegionCount.incrementAndGet();
 	}
 }

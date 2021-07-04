@@ -33,6 +33,7 @@ import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.state.MaterialFinderImpl;
@@ -45,9 +46,10 @@ import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
-import grondag.canvas.terrain.region.ProtoRenderRegion;
+import grondag.canvas.shader.data.ShaderDataManager;
+import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
-import grondag.canvas.varia.WorldDataManager;
+import grondag.canvas.vf.VfInt;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 
@@ -92,15 +94,27 @@ public class Canvas implements Renderer {
 		return true;
 	}
 
+	@Override
+	public boolean registerOrUpdateMaterial(Identifier id, RenderMaterial material) {
+		// cast to prevent acceptance of impostor implementations
+		return materialMap.put(id, (RenderMaterialImpl) material) == null;
+	}
+
 	public void reload() {
 		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
-		ProtoRenderRegion.reload();
+		PackedInputRegion.reload();
 		BlockRenderContext.reload();
 		EntityBlockRenderContext.reload();
 		ItemRenderContext.reload();
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
+
+		if (Configurator.vf) {
+			VfInt.UV.clear();
+			VfInt.COLOR.clear();
+		}
+
 		recompile();
 	}
 
@@ -114,7 +128,7 @@ public class Canvas implements Renderer {
 		// LightmapHdTexture.reload();
 		// LightmapHd.reload();
 		MaterialTextureState.reload();
-		WorldDataManager.reload();
+		ShaderDataManager.reload();
 		Timekeeper.configOrPipelineReload();
 	}
 

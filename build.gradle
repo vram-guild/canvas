@@ -6,20 +6,13 @@ plugins {
 	id "maven-publish"
 	id "com.github.breadmoirai.github-release" version "2.2.12"
 	id 'org.cadixdev.licenser' version '0.5.0'
-	id "org.ajoberstar.grgit" version "3.1.1"
+	id "org.ajoberstar.grgit" version "4.1.0"
 	id "com.matthewprenger.cursegradle" version "1.4.0"
 	id "checkstyle"
 }
 
-tasks.withType(JavaCompile).configureEach {
-	def targetVersion = 8
-	if (JavaVersion.current().isJava9Compatible()) {
-		it.options.release = targetVersion
-	} else {
-		sourceCompatibility = JavaVersion.toVersion(targetVersion)
-		targetCompatibility = JavaVersion.toVersion(targetVersion)
-	}
-}
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
 
 def ENV = System.getenv()
 
@@ -54,13 +47,8 @@ if (grgit == null) {
 processResources {
 	inputs.property "version", project.version
 
-	from(sourceSets.main.resources.srcDirs) {
-		include "fabric.mod.json"
+	filesMatching("fabric.mod.json") {
 		expand "version": project.version
-	}
-
-	from(sourceSets.main.resources.srcDirs) {
-		exclude "fabric.mod.json"
 	}
 }
 
@@ -82,11 +70,9 @@ eclipse {
 	}
 }
 
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
 tasks.withType(JavaCompile) {
-	options.encoding = "UTF-8"
+	it.options.encoding = "UTF-8"
+	it.options.release = 16
 }
 
 jar {
@@ -188,8 +174,8 @@ githubRelease {
 
 	body changelog()
 
-	tagName project.version + "-unstable"
-	targetCommitish { org.ajoberstar.grgit.Grgit.open(dir: ".").branch.current().name }
+	tagName project.mc_tag + "-" + grgit.branch.current().name + "-" + project.version + "-unstable"
+	targetCommitish { grgit.branch.current().name }
 	releaseName project.version + " Unstable"
 	prerelease true
 	releaseAssets = remapJar
@@ -203,7 +189,8 @@ curseforge {
 	if(project.hasProperty("curseforge_id")) {
 		project {
 			id = project.properties.curseforge_id
-			releaseType = project.release_type
+			//releaseType = project.release_type
+			releaseType = "beta"
 			addGameVersion project.release_version
 			addGameVersion "Fabric"
 			changelog = "A changelog can be found at https://github.com/${github_repository_owner}/${github_repository}/commits"

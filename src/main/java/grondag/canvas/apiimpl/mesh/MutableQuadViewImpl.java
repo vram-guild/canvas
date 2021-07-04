@@ -42,8 +42,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.NormalHelper;
 import grondag.canvas.apiimpl.util.TextureHelper;
+import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.material.state.RenderStateData;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -60,7 +60,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final float[] v = new float[4];
 	// vanilla light outputs
 	public final float[] ao = new float[4];
-	protected int overlayFlags;
 	protected RenderMaterialImpl defaultMaterial = Canvas.MATERIAL_STANDARD;
 
 	private int vertexIndex = 0;
@@ -98,7 +97,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		material(defaultMaterial);
 		isSpriteInterpolated = false;
 		vertexIndex = 0;
-		overlayFlags = 0;
 	}
 
 	@Override
@@ -180,6 +178,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
 		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
+		material(material);
 		convertVanillaUvPrecision();
 		normalizeSprite();
 		isSpriteInterpolated = false;
@@ -187,7 +186,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		nominalFaceId = ModelHelper.toFaceIndex(quad.getFace());
 		data[baseIndex + HEADER_COLOR_INDEX] = quad.getColorIndex();
 		data[baseIndex + HEADER_TAG] = 0;
-		material(material);
 		isGeometryInvalid = true;
 		packedFaceNormal = -1;
 		return this;
@@ -342,7 +340,9 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public void next() {
-		// TODO: handle Triangles
+		// NB: We don't worry about triangles here because we only
+		// use this for API calls (which accept quads) or to transcode
+		// render layers that have quads as the primitive type.
 
 		// Auto-emit when we finish a quad.
 		// NB: emit will call complete which will set vertex index to zero
@@ -355,12 +355,18 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public void fixedColor(int i, int j, int k, int l) {
-		// TODO Auto-generated method stub
+		// Mojang currently only uses this for outline rendering and
+		// also it would be needlessly complicated to implement here.
+		// We only render quads so should never see it.
+		assert false : "fixedColor call encountered in quad rendering";
 	}
 
 	@Override
-	public void method_35666() {
-		// TODO Auto-generated method stub
+	public void unfixColor() {
+		// Mojang currently only uses this for outline rendering and
+		// also it would be needlessly complicated to implement here.
+		// We only render quads so should never see it.
+		assert false : "unfixColor call encountered in quad rendering";
 	}
 
 	@Override
@@ -409,13 +415,15 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	protected void setOverlay (int u, int v) {
-		if (v == 3) {
-			// NB: these are pre-shifted to msb
-			overlayFlags = RenderStateData.HURT_OVERLAY_FLAG;
-		} else if (v == 10) {
-			overlayFlags = u > 7 ? RenderStateData.FLASH_OVERLAY_FLAG : 0;
-		} else {
-			overlayFlags = 0;
+		final boolean hurtOverlay = v == 3;
+		final boolean flashOverlay = (v == 10 && u > 7);
+
+		if (hurtOverlay || flashOverlay) {
+			final MaterialFinderImpl materialFinder = new MaterialFinderImpl();
+			materialFinder.copyFrom(material());
+			materialFinder.hurtOverlay(hurtOverlay);
+			materialFinder.flashOverlay(flashOverlay);
+			material(materialFinder.find());
 		}
 	}
 

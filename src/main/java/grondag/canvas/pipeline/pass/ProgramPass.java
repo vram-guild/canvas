@@ -16,21 +16,17 @@
 
 package grondag.canvas.pipeline.pass;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
 
-import grondag.canvas.pipeline.Image;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.ProgramTextureData;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.varia.GFX;
 
 class ProgramPass extends Pass {
-	final int[] binds;
-	final int[] bindTargets;
+	final ProgramTextureData textures;
 
 	ProcessShader shader;
 
@@ -38,34 +34,7 @@ class ProgramPass extends Pass {
 		super(config);
 
 		shader = Pipeline.getShader(config.program.name);
-
-		binds = new int[config.samplerImages.length];
-		bindTargets = new int[config.samplerImages.length];
-
-		for (int i = 0; i < config.samplerImages.length; ++i) {
-			final String imageName = config.samplerImages[i].name;
-
-			int imageBind = 0;
-			int bindTarget = GFX.GL_TEXTURE_2D;
-
-			if (imageName.contains(":")) {
-				final AbstractTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(new Identifier(imageName));
-
-				if (tex != null) {
-					imageBind = tex.getGlId();
-				}
-			} else {
-				final Image img = Pipeline.getImage(imageName);
-
-				if (img != null) {
-					imageBind = img.glId();
-					bindTarget = img.config.target;
-				}
-			}
-
-			binds[i] = imageBind;
-			bindTargets[i] = bindTarget;
-		}
+		textures = new ProgramTextureData(config.samplerImages);
 	}
 
 	@Override
@@ -86,11 +55,11 @@ class ProgramPass extends Pass {
 		final Matrix4f orthoMatrix = Matrix4f.projectionMatrix(width, -height, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, width, height);
 
-		final int slimit = binds.length;
+		final int slimit = textures.texIds.length;
 
 		for (int i = 0; i < slimit; ++i) {
 			CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0 + i);
-			CanvasTextureState.bindTexture(bindTargets[i], binds[i]);
+			CanvasTextureState.bindTexture(textures.texTargets[i], textures.texIds[i]);
 		}
 
 		shader.activate().lod(config.lod).size(width, height).projection(orthoMatrix);

@@ -22,6 +22,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -31,13 +32,14 @@ import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
-import grondag.canvas.render.SkyShadowRenderer;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialShaderImpl;
+import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.varia.MatrixState;
+import grondag.canvas.vf.VfInt;
 import grondag.fermion.bits.BitPacker64;
 
 /**
@@ -108,6 +110,8 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	private void enableDepthPass(int x, int y, int z, int cascade) {
+		final MaterialShaderImpl depthShader = Configurator.vf ? vfDepthShader : this.depthShader;
+
 		if (shadowActive == this) {
 			depthShader.setModelOrigin(x, y, z);
 			depthShader.setCascade(cascade);
@@ -123,21 +127,26 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		texture.materialIndexProvider().enable();
 
-		// WIP: can probably remove many of these
+		if (Configurator.vf) {
+			VfInt.COLOR.enable();
+			VfInt.UV.enable();
+		}
 
 		texture.enable(blur);
 		transparency.enable();
 		depthTest.enable();
 		writeMask.enable();
-		// WIP: disable decal renders in depth pass
+
+		// NB: Could probably disable decal renders in depth pass for most use cases
+		// but there's nothing to prevent anyone from rendering stacked cutout decals.
+		// Decals aren't super common so left in for now.
 		decal.enable();
 
 		CULL_STATE.setEnabled(cull);
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
-		depthShader.activate(this);
-		depthShader.setContextInfo(texture.atlasInfo(), target.index);
+		depthShader.updateContextInfo(texture.atlasInfo(), target.index);
 		depthShader.setModelOrigin(x, y, z);
 		depthShader.setCascade(cascade);
 
@@ -147,7 +156,20 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	private void enableMaterial(int x, int y, int z) {
-		final MaterialShaderImpl shader = MatrixState.get() == MatrixState.SCREEN ? guiShader : this.shader;
+		final MaterialShaderImpl shader;
+
+		switch (MatrixState.get()) {
+			case REGION:
+				shader = Configurator.vf ? vfShader : this.shader;
+				break;
+			case SCREEN:
+				shader = guiShader;
+				break;
+			case CAMERA:
+			default:
+				shader = this.shader;
+				break;
+		}
 
 		if (active == this) {
 			shader.setModelOrigin(x, y, z);
@@ -166,6 +188,12 @@ public final class RenderState extends AbstractRenderState {
 		shadowActive = null;
 		texture.materialIndexProvider().enable();
 
+		if (shader.programType.vf) {
+			VfInt.COLOR.enable();
+			VfInt.UV.enable();
+			assert MatrixState.get() == MatrixState.REGION;
+		}
+
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
@@ -174,6 +202,18 @@ public final class RenderState extends AbstractRenderState {
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
 			// Was seeing stray invalid operations errors in GL without.
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		}
+
+		if (Pipeline.config().materialProgram.samplerNames.length > 0) {
+			// Activate non-frex material program textures
+			for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
+				final int bindTarget = Pipeline.materialTextures().texTargets[i];
+				final int bind = Pipeline.materialTextures().texIds[i];
+				CanvasTextureState.activeTextureUnit(TextureData.PROGRAM_SAMPLERS + i);
+				CanvasTextureState.bindTexture(bindTarget, bind);
+			}
+
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 
@@ -187,8 +227,7 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
-		shader.activate(this);
-		shader.setContextInfo(texture.atlasInfo(), target.index);
+		shader.updateContextInfo(texture.atlasInfo(), target.index);
 		shader.setModelOrigin(x, y, z);
 	}
 
@@ -233,6 +272,11 @@ public final class RenderState extends AbstractRenderState {
 		MaterialTextureState.disable();
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		MaterialIndexTexture.disable();
+
+		if (Configurator.vf) {
+			VfInt.COLOR.disable();
+			VfInt.UV.disable();
+		}
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);

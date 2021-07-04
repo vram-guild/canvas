@@ -115,7 +115,7 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorEntityGlint());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getGlint());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getDirectGlint());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.method_30676());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getGlintTranslucent());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getEntityGlint());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getDirectEntityGlint());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getWaterMask());

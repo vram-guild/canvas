@@ -34,16 +34,16 @@ import grondag.canvas.varia.GFX;
  */
 @Mixin(BufferRenderer.class)
 public class MixinBufferRenderer {
-	@Shadow private static int currentVertexArrayObject;
-	@Shadow private static int currentVertexBufferObject;
-	@Shadow private static int currentElementBufferObject;
-	@Shadow private static VertexFormat field_29334;
+	@Shadow private static int currentVertexArray;
+	@Shadow private static int currentVertexBuffer;
+	@Shadow private static int currentElementBuffer;
+	@Shadow private static VertexFormat vertexFormat;
 
 	private static void retoreBindings() {
-		if (field_29334 != null) {
-			GFX.bindVertexArray(currentVertexArrayObject);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, currentVertexBufferObject);
-			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, currentElementBufferObject);
+		if (vertexFormat != null) {
+			GFX.bindVertexArray(currentVertexArray);
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, currentVertexBuffer);
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, currentElementBuffer);
 		}
 	}
 
@@ -57,13 +57,13 @@ public class MixinBufferRenderer {
 		retoreBindings();
 	}
 
-	@Inject(at = @At("HEAD"), method = "method_34422")
-	private static void onSomethingSomething(CallbackInfo ci) {
+	@Inject(at = @At("HEAD"), method = "draw")
+	private static void onDraw(CallbackInfo ci) {
 		retoreBindings();
 	}
 
-	@Inject(at = @At("HEAD"), method = "method_34424")
-	private static void onSomeOtherSomething(CallbackInfo ci) {
+	@Inject(at = @At("HEAD"), method = "postDraw")
+	private static void onPostDraw(CallbackInfo ci) {
 		retoreBindings();
 	}
 }

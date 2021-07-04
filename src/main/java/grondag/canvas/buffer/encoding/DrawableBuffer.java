@@ -22,6 +22,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.client.render.VertexFormat.DrawMode;
+
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderState;
@@ -83,10 +85,10 @@ public class DrawableBuffer implements AutoCloseable {
 				if (state.castShadows || !isShadow) {
 					state.enable();
 					final int elementCount = vertexCount / 4 * 6;
-					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(state.primitive, elementCount);
+					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, elementCount);
 					GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-					final int elementType = indexBuffer.getVertexFormat().field_27374;
-					GFX.drawElementsBaseVertex(state.primitive.mode, elementCount, elementType, 0L, startIndex);
+					final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
+					GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, elementCount, elementType, 0L, startIndex);
 				}
 
 				startIndex += vertexCount;

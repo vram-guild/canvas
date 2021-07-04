@@ -35,14 +35,14 @@ public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
 	@Shadow
 	private int size;
 	@Shadow
-	private int field_24079;
+	private int elementsPerLong;
 
 	@Override
 	public void canvas_fastForEach(IntArrayList list) {
 		int i = 0;
 		final long[] bits = storage;
 		final int wordLimit = bits.length;
-		final int elementsPerWord = field_24079;
+		final int elementsPerWord = elementsPerLong;
 
 		for (int wordIndex = 0; wordIndex < wordLimit; ++wordIndex) {
 			long l = bits[wordIndex];

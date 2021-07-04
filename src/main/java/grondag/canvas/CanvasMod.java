@@ -40,6 +40,7 @@ import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
+import grondag.frex.api.RendererFeature;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 //FEAT: weather rendering
@@ -48,8 +49,6 @@ import grondag.frex.api.fluid.FluidQuadSupplier;
 //PERF: disable animated textures when not in view
 //PERF: improve light smoothing performance
 //FEAT: colored lights
-//FEAT: per chunk occlusion mesh - for sky shadow mask
-//FEAT: per chunk depth mesh - addendum to occlusion mesh to render for depth pass - includes translucent cutout
 //FEAT: weather uniforms
 //FEAT: biome texture in shader
 
@@ -65,6 +64,7 @@ public class CanvasMod implements ClientModInitializer {
 	public void onInitializeClient() {
 		ConfigManager.init();
 		RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
+		RendererFeature.registerFeatures(RendererFeature.UPDATE_MATERIAL_REGISTRATION);
 		FluidQuadSupplier.setReloadHandler(FluidHandler.HANDLER);
 		InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
 

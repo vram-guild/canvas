@@ -16,7 +16,6 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -35,18 +34,6 @@ import grondag.canvas.shader.ProgramType;
 
 abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;
-
-	/**
-	 * OpenGL primitive constant. Determines number of vertices.
-	 *
-	 * <p>Currently used in vanilla are...
-	 * GL_LINES
-	 * GL_LINE_STRIP (currently GUI only)
-	 * GL_TRIANGLE_STRIP (currently GUI only)
-	 * GL_TRIANGLE_FAN (currently GUI only)
-	 * GL_QUADS
-	 */
-	public final DrawMode primitive;
 
 	public final MaterialTextureState texture;
 	public final String textureIdString;
@@ -71,6 +58,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final String fragmentShader;
 	public final MaterialShaderImpl shader;
 	public final MaterialShaderImpl guiShader;
+	public final MaterialShaderImpl vfShader;
 
 	public final int depthVertexShaderIndex;
 	public final Identifier depthVertexShaderId;
@@ -79,7 +67,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final Identifier depthFragmentShaderId;
 	public final String depthFragmentShader;
 	public final MaterialShaderImpl depthShader;
-
+	public final MaterialShaderImpl vfDepthShader;
 	/**
 	 * Will be always visible condition in vertex-controlled render state.
 	 * This is ensured by the state mask.
@@ -103,7 +91,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	protected AbstractRenderState(int index, long bits) {
 		super(bits);
 		this.index = index;
-		primitive = primitive();
 		texture = textureState();
 		textureIdString = texture == null ? "null" : texture.id.toString();
 		blur = blur();
@@ -135,8 +122,10 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 
 		primaryTargetTransparency = primaryTargetTransparency();
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		vfShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_VF);
 		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
 		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
+		vfDepthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_VF);
 		blendMode = blendMode();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();

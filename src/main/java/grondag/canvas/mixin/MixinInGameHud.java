@@ -31,7 +31,7 @@ import grondag.canvas.pipeline.BufferDebug;
 public class MixinInGameHud {
 	@Inject(method = "render", at = @At("RETURN"), cancellable = false, require = 1)
 	private void afterRender(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
-		BufferDebug.renderOverlay(matrices, ((InGameHud) (Object) this).getFontRenderer());
-		Timekeeper.renderOverlay(matrices, ((InGameHud) (Object) this).getFontRenderer());
+		BufferDebug.renderOverlay(matrices, ((InGameHud) (Object) this).getTextRenderer());
+		Timekeeper.renderOverlay(matrices, ((InGameHud) (Object) this).getTextRenderer());
 	}
 }

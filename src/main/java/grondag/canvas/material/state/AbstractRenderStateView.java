@@ -16,7 +16,6 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -30,7 +29,7 @@ import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
-import grondag.canvas.shader.ShaderData;
+import grondag.canvas.shader.data.ShaderStrings;
 import grondag.fermion.bits.BitPacker64;
 import grondag.frex.api.material.MaterialFinder;
 
@@ -86,11 +85,6 @@ abstract class AbstractRenderStateView {
 
 	public boolean disableAo() {
 		return DISABLE_AO.getValue(bits);
-	}
-
-	public DrawMode primitive() {
-		return DrawMode.QUADS;
-		//return PRIMITIVE.getValue(bits);
 	}
 
 	public MaterialTextureState textureState() {
@@ -217,7 +211,7 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.BooleanElement EMISSIVE = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_DIFFUSE = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_AO = PACKER.createBooleanElement();
-	// WIP2: doesn't handle alpha type cutout - only used for ender dragon currently
+	// WIP: doesn't handle alpha type cutout - only used for ender dragon currently
 	static final BitPacker64<Void>.IntElement CUTOUT = PACKER.createIntElement(4);
 	static final BitPacker64<Void>.BooleanElement UNMIPPED = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
@@ -225,9 +219,6 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void>.BooleanElement FOG = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
 	static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
-
-	public static final long HURT_OVERLAY_FLAG = HURT_OVERLAY.comparisonMask() >>> FLAG_SHIFT;
-	public static final long FLASH_OVERLAY_FLAG = FLASH_OVERLAY.comparisonMask() >>> FLAG_SHIFT;
 
 	static final long DEFAULT_BITS;
 
@@ -239,7 +230,7 @@ abstract class AbstractRenderStateView {
 
 		long defaultBits = 0; //PRIMITIVE.setValue(GL11.GL_QUADS, 0);
 
-		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE, ShaderData.DEFAULT_VERTEX_SOURCE, ShaderData.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
+		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE, ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
 		defaultBits = BLENDMODE.setValue(BlendMode.DEFAULT, defaultBits);
 		defaultBits = CULL.setValue(true, defaultBits);
 		defaultBits = DEPTH_TEST.setValue(MaterialFinder.DEPTH_TEST_LEQUAL, defaultBits);

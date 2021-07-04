@@ -89,8 +89,8 @@ class ConfigData {
 	boolean debugOcclusionRaster = false;
 	@Comment("Render active occlusion boxes of targeted render region. Will have performance impact and looks strange.")
 	boolean debugOcclusionBoxes = false;
-	@Comment("Log various region/occluder tests and status changes. Highly verbose and WILL spam the log. Requires restart.")
-	boolean traceOcclusionOutcomes = false;
+	@Comment("White stained glass occludes terrain. Use to debug terrain occlusion.")
+	boolean renderWhiteGlassAsOccluder = false;
 	@Comment("Log clipping or other non-critical failures detected by terrain occluder. May spam the log.")
 	boolean traceOcclusionEdgeCases = false;
 	@Comment("Log uniforms not found in shaders. Sometimes useful for shader debug. Will spam the log.")
@@ -109,4 +109,6 @@ class ConfigData {
 	int profilerDetailLevel = 0;
 	@Comment("Size of the profiler overlay relative to GUI scale.")
 	float profilerOverlayScale = 0.5f;
+	//WIP: remove
+	boolean vf = false;
 }

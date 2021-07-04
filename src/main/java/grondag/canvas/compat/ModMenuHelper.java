@@ -16,22 +16,14 @@
 
 package grondag.canvas.compat;
 
-// TODO: restore when ModMenu available on 1.17
+import com.terraformersmc.modmenu.api.ConfigScreenFactory;
+import com.terraformersmc.modmenu.api.ModMenuApi;
 
-//import io.github.prospector.modmenu.api.ConfigScreenFactory;
-//import io.github.prospector.modmenu.api.ModMenuApi;
-//
-//import grondag.canvas.CanvasMod;
-//import grondag.canvas.config.ConfigGui;
-//
-//public class ModMenuHelper implements ModMenuApi {
-//	@Override
-//	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-//		return ConfigGui::display;
-//	}
-//
-//	@Override
-//	public String getModId() {
-//		return CanvasMod.MODID;
-//	}
-//}
+import grondag.canvas.config.ConfigGui;
+
+public class ModMenuHelper implements ModMenuApi {
+	@Override
+	public ConfigScreenFactory<?> getModConfigScreenFactory() {
+		return ConfigGui::display;
+	}
+}

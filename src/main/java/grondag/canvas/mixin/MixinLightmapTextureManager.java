@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import net.minecraft.client.render.LightmapTextureManager;
 
-import grondag.canvas.varia.WorldDataManager;
+import grondag.canvas.shader.data.ShaderDataManager;
 
 @Mixin(LightmapTextureManager.class)
 public abstract class MixinLightmapTextureManager {
@@ -30,7 +30,7 @@ public abstract class MixinLightmapTextureManager {
 			target = "Lnet/minecraft/client/texture/NativeImage;setPixelColor(III)V"))
 	private int onSetPixelRgba(int i, int j, int color) {
 		if (i == 15 && j == 15) {
-			WorldDataManager.updateEmissiveColor(color);
+			ShaderDataManager.updateEmissiveColor(color);
 		}
 
 		return color;

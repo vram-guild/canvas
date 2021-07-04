@@ -16,14 +16,54 @@
 
 package grondag.canvas.terrain.region;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.List;
 
-class RegionBuildState {
-	/**
-	 * Set by main thread during schedule. Retrieved and set to null by worker
-	 * right before building.
-	 *
-	 * <p>Special values also signal the need for translucency sort and chunk reset.
-	 */
-	final AtomicReference<ProtoRenderRegion> protoRegion = new AtomicReference<>(ProtoRenderRegion.IDLE);
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.block.entity.BlockEntity;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
+
+@Environment(EnvType.CLIENT)
+public class RegionBuildState {
+	/** value for new regions that never been built or have been built and then closed. */
+	public static final RegionBuildState UNBUILT = new RegionBuildState();
+
+	final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
+	int[] occlusionData = RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT;
+
+	@Nullable
+	int[] translucentState;
+
+	public List<BlockEntity> getBlockEntities() {
+		return blockEntities;
+	}
+
+	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
+		final ArrayVertexCollector buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
+
+		if (buffer != null && !buffer.isEmpty()) {
+			buffer.sortQuads(x, y, z);
+			translucentState = buffer.saveState(translucentState);
+		}
+	}
+
+	public int[] getOcclusionData() {
+		return occlusionData;
+	}
+
+	public void complete(int[] occlusionData) {
+		this.occlusionData = occlusionData;
+	}
+
+	public boolean canOcclude() {
+		return occlusionData != RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT;
+	}
 }

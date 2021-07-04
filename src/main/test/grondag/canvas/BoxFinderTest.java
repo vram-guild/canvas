@@ -5,9 +5,9 @@ import java.util.Arrays;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import org.junit.jupiter.api.Test;
 
+import grondag.bitraster.PackedBox;
 import grondag.canvas.terrain.occlusion.geometry.AreaFinder;
 import grondag.canvas.terrain.occlusion.geometry.BoxFinder;
-import grondag.canvas.terrain.occlusion.geometry.PackedBox;
 
 class BoxFinderTest {
 	final long[] words = new long[4096];

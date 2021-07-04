@@ -33,7 +33,8 @@ import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
-import grondag.canvas.render.CanvasWorldRenderer;
+import grondag.canvas.render.world.CanvasWorldRenderer;
+import grondag.canvas.shader.data.ScreenRenderState;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer implements GameRendererExt {
@@ -48,6 +49,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "renderHand", require = 1, at = @At("RETURN"))
 	private void afterRenderHand(CallbackInfo ci) {
+		ScreenRenderState.setRenderingHand(false);
 		PipelineManager.afterRenderHand();
 
 		if (Configurator.enableBufferDebug) {
@@ -57,8 +59,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "getFov", require = 1, at = @At("RETURN"))
 	private void onGetFov(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Double> ci) {
-		((CanvasWorldRenderer) client.worldRenderer).terrainFrustum.updateProjection(camera, tickDelta);
-		((CanvasWorldRenderer) client.worldRenderer).terrainFrustum.setFov(ci.getReturnValueD());
+		((CanvasWorldRenderer) client.worldRenderer).updateProjection(camera, tickDelta, ci.getReturnValueD());
 	}
 
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))

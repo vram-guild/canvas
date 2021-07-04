@@ -56,7 +56,7 @@ public class Configurator {
 	public static boolean enablePerformanceTrace = DEFAULTS.enablePerformanceTrace;
 	public static boolean debugOcclusionRaster = DEFAULTS.debugOcclusionRaster;
 	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
-	public static boolean traceOcclusionOutcomes = DEFAULTS.traceOcclusionOutcomes;
+	public static boolean renderWhiteGlassAsOccluder = DEFAULTS.renderWhiteGlassAsOccluder;
 	public static boolean traceOcclusionEdgeCases = DEFAULTS.traceOcclusionEdgeCases;
 	public static boolean enableBufferDebug = DEFAULTS.enableBufferDebug;
 	public static boolean enableLifeCycleDebug = DEFAULTS.enableLifeCycleDebug;
@@ -68,6 +68,7 @@ public class Configurator {
 	public static boolean profileProcessShaders = DEFAULTS.profileProcessShaders;
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
+	public static boolean vf = DEFAULTS.vf;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -75,7 +76,6 @@ public class Configurator {
 	public static boolean fancyFluids = false;
 	static boolean reload = false;
 	// static boolean hdLightmaps = DEFAULTS.hdLightmaps;
-
 	public static boolean hdLightmaps() {
 		return false;
 	}
@@ -125,8 +125,8 @@ public class Configurator {
 		enablePerformanceTrace = config.enablePerformanceTrace;
 		debugOcclusionBoxes = config.debugOcclusionBoxes;
 		debugOcclusionRaster = config.debugOcclusionRaster;
+		renderWhiteGlassAsOccluder = config.renderWhiteGlassAsOccluder;
 		traceOcclusionEdgeCases = config.traceOcclusionEdgeCases;
-		traceOcclusionOutcomes = config.traceOcclusionOutcomes;
 		enableBufferDebug = config.enableBufferDebug;
 		enableLifeCycleDebug = config.enableLifeCycleDebug;
 		logMissingUniforms = config.logMissingUniforms;
@@ -137,6 +137,7 @@ public class Configurator {
 		profileProcessShaders = config.profileProcessShaders;
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
+		vf = config.vf;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -174,7 +175,7 @@ public class Configurator {
 		config.enablePerformanceTrace = enablePerformanceTrace;
 		config.debugOcclusionBoxes = debugOcclusionBoxes;
 		config.debugOcclusionRaster = debugOcclusionRaster;
-		config.traceOcclusionOutcomes = traceOcclusionOutcomes;
+		config.renderWhiteGlassAsOccluder = renderWhiteGlassAsOccluder;
 		config.traceOcclusionEdgeCases = traceOcclusionEdgeCases;
 		config.enableBufferDebug = enableBufferDebug;
 		config.enableLifeCycleDebug = enableLifeCycleDebug;
@@ -186,5 +187,6 @@ public class Configurator {
 		config.profileProcessShaders = profileProcessShaders;
 		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
+		config.vf = vf;
 	}
 }

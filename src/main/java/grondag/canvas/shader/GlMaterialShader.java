@@ -23,6 +23,7 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.shader.data.ShaderStrings;
 
 // PERF: emit switch statements on non-Mac
 public class GlMaterialShader extends GlShader {
@@ -103,8 +104,8 @@ public class GlMaterialShader extends GlShader {
 			: Pipeline.config().materialProgram.fragmentSource;
 
 		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
-		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);
-		baseSource = StringUtils.replace(baseSource, ShaderData.FRAGMENT_START, starts);
+		baseSource = StringUtils.replace(baseSource, ShaderStrings.API_TARGET, impl + pipelineSource);
+		baseSource = StringUtils.replace(baseSource, ShaderStrings.FRAGMENT_START, starts);
 		return baseSource;
 	}
 
@@ -168,8 +169,8 @@ public class GlMaterialShader extends GlShader {
 				: Pipeline.config().materialProgram.vertexSource;
 
 		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
-		baseSource = StringUtils.replace(baseSource, ShaderData.API_TARGET, impl + pipelineSource);
-		baseSource = StringUtils.replace(baseSource, ShaderData.VERTEX_START, starts);
+		baseSource = StringUtils.replace(baseSource, ShaderStrings.API_TARGET, impl + pipelineSource);
+		baseSource = StringUtils.replace(baseSource, ShaderStrings.VERTEX_START, starts);
 		return baseSource;
 	}
 }

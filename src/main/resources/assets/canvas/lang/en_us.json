@@ -158,5 +158,7 @@
   "pipeline.canvas_dev.name": "Canvas Dev",
   "pipeline.canvas_dev.desc": "Work-in progess features. May break, unsupported.",
   "config.canvas.value.shadow_debug": "Render Shadowmap Debug",
-  "config.canvas.help.shadow_debug": "Renders a colorized grid to indicate;shadowmap cascade and resolution."
+  "config.canvas.help.shadow_debug": "Renders a colorized grid to indicate;shadowmap cascade and resolution.",
+  "config.canvas.value.white_glass_occludes_terrain": "White Glass Occluder",
+  "config.canvas.help.white_glass_occludes_terrain": "White stained glass occludes terrain.;Use to debug terrain occlusion."
 }

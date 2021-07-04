@@ -308,7 +308,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 		if (params.getTransparency() == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
 			return BlendMode.TRANSLUCENT;
-		} else if (((ShaderExt) params.getField_29461()).canvas_shaderData().cutout != MaterialFinder.CUTOUT_NONE) {
+		} else if (((ShaderExt) params.getShader()).canvas_shaderData().cutout != MaterialFinder.CUTOUT_NONE) {
 			final AccessTexture tex = (AccessTexture) params.getTexture();
 			return tex.getMipmap() ? BlendMode.CUTOUT_MIPPED : BlendMode.CUTOUT;
 		} else {

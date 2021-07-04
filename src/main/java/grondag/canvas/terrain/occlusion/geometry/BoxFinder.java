@@ -16,12 +16,14 @@
 
 package grondag.canvas.terrain.occlusion.geometry;
 
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.INTERIOR_CACHE_WORDS;
-import static grondag.canvas.terrain.util.RenderRegionAddressHelper.SLICE_WORD_COUNT;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.INTERIOR_CACHE_WORDS;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.SLICE_WORD_COUNT;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+
+import grondag.bitraster.PackedBox;
 
 public class BoxFinder {
 	public final IntArrayList boxes = new IntArrayList();
@@ -43,7 +45,7 @@ public class BoxFinder {
 	}
 
 	public void findBoxes(long[] sourceBits, int sourceIndex) {
-		System.arraycopy(OcclusionRegion.EMPTY_BITS, 0, filled, 0, INTERIOR_CACHE_WORDS);
+		System.arraycopy(RegionOcclusionCalculator.EMPTY_BITS, 0, filled, 0, INTERIOR_CACHE_WORDS);
 		System.arraycopy(sourceBits, sourceIndex, source, 0, INTERIOR_CACHE_WORDS);
 		boxes.clear();
 

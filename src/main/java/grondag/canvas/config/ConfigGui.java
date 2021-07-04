@@ -47,13 +47,13 @@ import static grondag.canvas.config.Configurator.profilerOverlayScale;
 import static grondag.canvas.config.Configurator.reduceResolutionOnMac;
 import static grondag.canvas.config.Configurator.reload;
 import static grondag.canvas.config.Configurator.renderLagSpikeFps;
+import static grondag.canvas.config.Configurator.renderWhiteGlassAsOccluder;
 import static grondag.canvas.config.Configurator.safeNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.semiFlatLighting;
 import static grondag.canvas.config.Configurator.shaderDebug;
 import static grondag.canvas.config.Configurator.staticFrustumPadding;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
-import static grondag.canvas.config.Configurator.traceOcclusionOutcomes;
 import static grondag.canvas.config.Configurator.wavyGrass;
 
 import java.lang.ref.WeakReference;
@@ -69,8 +69,8 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.perf.Timekeeper;
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
@@ -116,7 +116,7 @@ public class ConfigGui {
 				.setTooltipSupplier(o -> Optional.of(parse(o.descriptionKey)))
 				.setSaveConsumer(b -> {
 					if (!b.id.toString().equals(pipelineId)) {
-						Pipeline.reload();
+						Canvas.INSTANCE.recompile();
 						reload = true;
 						pipelineId = b.id.toString();
 					}
@@ -381,18 +381,20 @@ public class ConfigGui {
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.white_glass_occludes_terrain"), renderWhiteGlassAsOccluder)
+				.setDefaultValue(DEFAULTS.renderWhiteGlassAsOccluder)
+				.setTooltip(parse("config.canvas.help.white_glass_occludes_terrain"))
+				.setSaveConsumer(b -> {
+					reload |= renderWhiteGlassAsOccluder != b;
+					renderWhiteGlassAsOccluder = b;
+				})
+				.build());
+
+		debug.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.trace_occlusion_edge_cases"), traceOcclusionEdgeCases)
 				.setDefaultValue(DEFAULTS.traceOcclusionEdgeCases)
 				.setTooltip(parse("config.canvas.help.trace_occlusion_edge_cases"))
 				.setSaveConsumer(b -> traceOcclusionEdgeCases = b)
-				.build());
-
-		debug.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.trace_occlusion_outcomes"), traceOcclusionOutcomes)
-				.setDefaultValue(DEFAULTS.traceOcclusionOutcomes)
-				.requireRestart()
-				.setTooltip(parse("config.canvas.help.trace_occlusion_outcomes"))
-				.setSaveConsumer(b -> traceOcclusionOutcomes = b)
 				.build());
 
 		debug.addEntry(ENTRY_BUILDER

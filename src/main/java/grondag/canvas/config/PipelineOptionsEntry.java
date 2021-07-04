@@ -16,6 +16,7 @@
 
 package grondag.canvas.config;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,14 +25,15 @@ import me.shedaniel.clothconfig2.gui.entries.TooltipListEntry;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.widget.AbstractButtonWidget;
-import net.minecraft.client.gui.widget.AbstractPressableButtonWidget;
+import net.minecraft.client.gui.Selectable;
+import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
+import net.minecraft.client.gui.widget.PressableWidget;
 import net.minecraft.client.util.NarratorManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.TranslatableText;
 
 public class PipelineOptionsEntry extends TooltipListEntry<Void> {
-	private final AbstractButtonWidget buttonWidget = new AbstractPressableButtonWidget(0, 0, 115, 20, NarratorManager.EMPTY) {
+	private final PressableWidget buttonWidget = new PressableWidget(0, 0, 115, 20, NarratorManager.EMPTY) {
 		@Override
 		public void onPress() {
 			MinecraftClient.getInstance().openScreen(PipelineOptionGui.display(ConfigGui.pipeline()));
@@ -41,6 +43,11 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 		public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
 			setMessage(new TranslatableText("config.canvas.value.pipeline_config"));
 			super.render(matrices, mouseX, mouseY, delta);
+		}
+
+		@Override
+		public void appendNarrations(NarrationMessageBuilder builder) {
+			// Currently unimplemented
 		}
 	};
 
@@ -84,5 +91,11 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 		}
 
 		buttonWidget.render(matrices, mouseX, mouseY, delta);
+	}
+
+	@Override
+	public List<? extends Selectable> narratables() {
+		// Nothing for now
+		return Collections.emptyList();
 	}
 }

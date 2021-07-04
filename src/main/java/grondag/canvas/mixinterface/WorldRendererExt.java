@@ -23,7 +23,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderEffect;
 import net.minecraft.client.render.BlockBreakingInfo;
@@ -41,10 +40,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 
 public interface WorldRendererExt {
-	MinecraftClient canvas_mc();
-
-	int canvas_renderDistance();
-
 	void canvas_reload();
 
 	ClientWorld canvas_world();

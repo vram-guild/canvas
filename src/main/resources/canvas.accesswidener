@@ -101,3 +101,17 @@ accessible   field   net/minecraft/client/gl/Framebuffer       colorAttachment I
 accessible   field   net/minecraft/client/gl/Framebuffer       depthAttachment I
 
 accessible class net/minecraft/client/render/RenderLayer$OutlineMode
+accessible class net/minecraft/client/render/RenderLayer$MultiPhaseParameters
+accessible class net/minecraft/client/render/RenderPhase$Texture
+accessible class net/minecraft/client/render/RenderPhase$Shader
+accessible class net/minecraft/client/render/RenderPhase$Layering
+accessible class net/minecraft/client/render/RenderPhase$DepthTest
+accessible class net/minecraft/client/render/RenderPhase$Target
+accessible class net/minecraft/client/render/RenderPhase$Transparency
+accessible class net/minecraft/client/render/RenderPhase$WriteMaskState
+accessible class net/minecraft/client/render/RenderPhase$TextureBase
+accessible class net/minecraft/client/render/RenderPhase$Cull
+accessible class net/minecraft/client/render/RenderPhase$Lightmap
+accessible class net/minecraft/client/render/RenderPhase$Overlay
+accessible class net/minecraft/client/render/RenderPhase$Texturing
+accessible class net/minecraft/client/render/RenderPhase$LineWidth

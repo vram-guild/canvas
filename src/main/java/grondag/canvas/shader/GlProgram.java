@@ -34,6 +34,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.shader.data.ShaderUniforms;
 import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.Uniform;
 import grondag.frex.api.material.Uniform.Uniform1f;
@@ -82,7 +83,7 @@ public class GlProgram {
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
 		vertexFormat = format;
-		ShaderData.COMMON_UNIFORM_SETUP.accept(this);
+		ShaderUniforms.COMMON_UNIFORM_SETUP.accept(this);
 	}
 
 	public static void deactivate() {
@@ -166,6 +167,12 @@ public class GlProgram {
 
 	public UniformArrayui uniformArrayui(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayui> initializer, int size) {
 		return new UniformArrayuiImpl(name, initializer, frequency, size);
+	}
+
+	protected void removeUniform(UniformImpl<?> uniform) {
+		assert uniforms.contains(uniform);
+		uniform.unload();
+		uniforms.remove(uniform);
 	}
 
 	public final void activate() {

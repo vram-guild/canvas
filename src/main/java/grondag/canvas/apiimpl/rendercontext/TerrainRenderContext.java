@@ -42,16 +42,16 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.terrain.region.FastRenderRegion;
-import grondag.canvas.terrain.region.ProtoRenderRegion;
-import grondag.canvas.terrain.util.RenderRegionAddressHelper;
+import grondag.canvas.terrain.region.input.InputRegion;
+import grondag.canvas.terrain.region.input.PackedInputRegion;
+import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
 /**
  * Implementation of {@link RenderContext} used during terrain rendering.
  * Dispatches calls from models during chunk rebuild to the appropriate consumer,
  * and holds/manages all of the state needed by them.
  */
-public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderRegion> {
+public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion> {
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
@@ -77,11 +77,11 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
-		region = new FastRenderRegion(this);
+		region = new InputRegion(this);
 		collectors = new VertexCollectorList();
 	}
 
-	public TerrainRenderContext prepareRegion(ProtoRenderRegion protoRegion) {
+	public TerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {
 		nonCullBlockEntities.clear();
 		addedBlockEntities.clear();
 		removedBlockEntities.clear();
@@ -113,7 +113,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
 
 		try {
-			aoCalc.prepare(RenderRegionAddressHelper.interiorIndex(blockPos));
+			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;
@@ -182,6 +182,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<FastRenderR
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		CanvasVertexFormats.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
+		CanvasVertexFormats.TERRAIN_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
 	}
 }

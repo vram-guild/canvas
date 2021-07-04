@@ -197,16 +197,23 @@ public abstract class GeometryHelper {
 	 * <p>Derived from the quad face normal and expects convex quads with all points co-planar.
 	 */
 	public static int lightFaceId(QuadView quad) {
-		final Vec3f normal = quad.faceNormal();
-		switch (GeometryHelper.longestAxis(normal)) {
+		return closestFaceFromNormal(quad.faceNormal());
+	}
+
+	public static int closestFaceFromNormal(Vec3f normal) {
+		return closestFaceFromNormal(normal.getX(), normal.getY(), normal.getZ());
+	}
+
+	public static int closestFaceFromNormal(float x, float y, float z) {
+		switch (GeometryHelper.longestAxis(x, y, z)) {
 			case X:
-				return normal.getX() > 0 ? DirectionIds.EAST : DirectionIds.WEST;
+				return x > 0 ? DirectionIds.EAST : DirectionIds.WEST;
 
 			case Y:
-				return normal.getY() > 0 ? DirectionIds.UP : DirectionIds.DOWN;
+				return y > 0 ? DirectionIds.UP : DirectionIds.DOWN;
 
 			case Z:
-				return normal.getZ() > 0 ? DirectionIds.SOUTH : DirectionIds.NORTH;
+				return z > 0 ? DirectionIds.SOUTH : DirectionIds.NORTH;
 
 			default:
 				// handle WTF case

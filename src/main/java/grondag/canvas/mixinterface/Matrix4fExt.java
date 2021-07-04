@@ -24,6 +24,8 @@ import net.minecraft.util.math.Vec3f;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.bitraster.Matrix4L;
+
 @Environment(EnvType.CLIENT)
 public interface Matrix4fExt {
 	float a00();
@@ -279,5 +281,17 @@ public interface Matrix4fExt {
 		a31(0.0f);
 		a32(0.0f);
 		a33(1.0f);
+	}
+
+	static void copy(Matrix4f src, Matrix4L target) {
+		((Matrix4fExt) (Object) src).copyTo(target);
+	}
+
+	default void copyTo(Matrix4L target) {
+		target.set(
+				this.a00(), this.a01(), this.a02(), this.a03(),
+				this.a10(), this.a11(), this.a12(), this.a13(),
+				this.a20(), this.a21(), this.a22(), this.a23(),
+				this.a30(), this.a31(), this.a32(), this.a33());
 	}
 }

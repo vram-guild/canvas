@@ -126,7 +126,7 @@ const vec4[] cascadeColors = vec4[4](
 void frx_writePipelineFragment(in frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 
-	if (frx_isGui()) {
+	if (frx_isGui() && !frx_isHand()) {
 		if (fragData.diffuse) {
 			float df = p_diffuseGui(frx_normal);
 			df = df + (1.0 - df) * fragData.emissivity;
@@ -175,7 +175,7 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		light += shadow * vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
 
 	#ifdef SHADOW_DEBUG
-		shadowCoords = abs(fract(shadowCoords * SHADOW_MAP_RESOLUTION));
+		shadowCoords = abs(fract(shadowCoords * SHADOW_MAP_SIZE));
 
 		if (!(shadowCoords.x > 0.05 && shadowCoords.x < 0.95 && shadowCoords.y > 0.05 && shadowCoords.y < 0.95)) {
 			light = vec4(1.0);

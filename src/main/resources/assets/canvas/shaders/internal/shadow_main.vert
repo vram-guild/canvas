@@ -10,7 +10,7 @@
 #include canvas:apitarget
 
 /******************************************************
-  canvas:shaders/internal/material_main.vert
+  canvas:shaders/internal/shadow_main.vert
 ******************************************************/
 
 void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {

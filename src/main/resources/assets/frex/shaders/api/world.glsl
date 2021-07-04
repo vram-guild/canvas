@@ -28,8 +28,8 @@ float frx_renderSeconds() {
  *
  * Use this for effects that need a discrete increasing counter.
  */
-int frx_renderFrames() {
-    return int(_cvu_world[_CV_RENDER_INFO].x);
+uint frx_renderFrames() {
+    return _cvu_world_uint[_CV_RENDER_FRAMES];
 }
 
 /*

@@ -105,7 +105,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		integerSize = 0;
 	}
 
-	public void sortQuads(float x, float y, float z) {
+	public boolean sortQuads(float x, float y, float z) {
 		final int quadCount = vertexCount() / 4;
 
 		if (perQuadDistance.length < quadCount) {
@@ -116,11 +116,15 @@ public class ArrayVertexCollector implements VertexCollector {
 			perQuadDistance[j] = getDistanceSq(x, y, z, MATERIAL_INT_VERTEX_STRIDE, j);
 		}
 
+		didSwap = false;
+
 		// sort the indexes by distance - farthest first
 		// mergesort is important here - quicksort causes problems
 		// PERF: consider sorting primitive packed long array with distance in high bits
 		// and then use result to reorder the array. Will need to copy vertex data.
 		it.unimi.dsi.fastutil.Arrays.mergeSort(0, quadCount, comparator, swapper);
+
+		return didSwap;
 	}
 
 	private final IntComparator comparator = new IntComparator() {
@@ -131,10 +135,12 @@ public class ArrayVertexCollector implements VertexCollector {
 	};
 
 	private final int[] swapData = new int[MATERIAL_INT_QUAD_STRIDE * 2];
+	private boolean didSwap = false;
 
 	private final Swapper swapper = new Swapper() {
 		@Override
 		public void swap(int a, int b) {
+			didSwap = true;
 			final float distSwap = perQuadDistance[a];
 			perQuadDistance[a] = perQuadDistance[b];
 			perQuadDistance[b] = distSwap;
