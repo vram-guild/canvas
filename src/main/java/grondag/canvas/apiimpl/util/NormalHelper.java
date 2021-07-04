@@ -56,6 +56,17 @@ public abstract class NormalHelper {
 	}
 
 	/**
+	 * This format is easier to convert to a float vector in GLSL when received as an int.
+	 */
+	public static int shaderPackedNormal(int packedNormal) {
+		byte x = ((byte) (packedNormal & 0xFF));
+		byte y = ((byte) ((packedNormal >>> 8) & 0xFF));
+		byte z = ((byte) ((packedNormal >>> 16) & 0xFF));
+
+		return (x + 127) | ((y + 127) << 8) | ((z + 127) << 16);
+	}
+
+	/**
 	 * Computes the face normal of the given quad and saves it in the provided non-null vector.
 	 * If {@link QuadView#nominalFace()} is set will optimize by confirming quad is parallel to that
 	 * face and, if so, use the standard normal for that face direction.

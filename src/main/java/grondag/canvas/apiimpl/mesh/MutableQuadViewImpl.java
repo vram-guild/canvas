@@ -484,7 +484,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			populateMissingNormals();
 		} else {
 			packedNormal = packedFaceNormal();
-			transformedNormal = normalMatrix.canvas_transform(packedNormal);
+			transformedNormal = NormalHelper.shaderPackedNormal(normalMatrix.canvas_transform(packedNormal));
 		}
 
 		for (int vertexIndex = 0; vertexIndex < 4; ++vertexIndex) {
@@ -506,7 +506,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 				if (p != packedNormal) {
 					packedNormal = p;
-					transformedNormal = normalMatrix.canvas_transform(packedNormal);
+					transformedNormal = NormalHelper.shaderPackedNormal(normalMatrix.canvas_transform(packedNormal));
 				}
 			}
 
