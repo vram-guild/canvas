@@ -19,25 +19,35 @@ package grondag.canvas.buffer.format;
 import net.minecraft.client.render.VertexFormatElement;
 
 public class CanvasVertexFormatElement {
+	// WIP: remove at end
+	public static final CanvasVertexFormatElement HEADER_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_header_vf", false, true);
+
+	public static final CanvasVertexFormatElement VERTEX_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_vertex_vf", false, true);
+
+	public static final CanvasVertexFormatElement PAD0_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_pad0_vf", false, true);
+
+	public static final CanvasVertexFormatElement BASE_RGBA_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_color_vf", false, true);
+
+	public static final CanvasVertexFormatElement BASE_TEX_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_uv_vf", false, true);
+
+	/////
+
 	public static final CanvasVertexFormatElement POSITION_3F = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.FLOAT, 3, "in_vertex", true, false);
 
 	public static final CanvasVertexFormatElement BASE_RGBA_4UB = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.UBYTE, 4, "in_color", true, false);
 
-	// WIP: remove at end
-	public static final CanvasVertexFormatElement BASE_RGBA_VF = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.UINT, 1, "in_color", false, true);
-
 	public static final CanvasVertexFormatElement BASE_TEX_2F = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.FLOAT, 2, "in_uv", true, false);
 
 	public static final CanvasVertexFormatElement BASE_TEX_2US = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.USHORT, 2, "in_uv", true, false);
-
-	// WIP: remove at end
-	public static final CanvasVertexFormatElement BASE_TEX_VF = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.UINT, 1, "in_uv", false, true);
 
 	public static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap", false, false);

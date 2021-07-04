@@ -273,4 +273,9 @@ public abstract class AbstractRenderContext implements RenderContext {
 				assert false : "Unhandled blend mode";
 		}
 	}
+
+	public int packedRelativeBlockPos() {
+		assert false : "packedRelativeBlockPos unsupported outside of terrain rendering";
+		return 0;
+	}
 }

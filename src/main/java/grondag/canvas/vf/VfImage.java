@@ -72,20 +72,20 @@ public final class VfImage<T extends VfElement<T>> {
 		final int index = tail.getAndIncrement();
 		element.setIndex(index);
 
-		if (index > elements.length) {
-			expand(MathHelper.smallestEncompassingPowerOfTwo(index));
+		if (index >= elements.length) {
+			expand(MathHelper.smallestEncompassingPowerOfTwo(index + 1));
 		}
 
 		elements[index] = element;
 
-		//if ((index & 0xFF) == 0xFF) {
-		//	System.out.println("vfUV count: " + index + " / " + VfInt.UV.count.get());
+		//if (this.intsPerElement == 16 && (index & 0xFF) == 0xFF) {
+		//	System.out.println("vfVertex count: " + index + " / " + VfVertex.VERTEX.count.get());
 		//}
 	}
 
 	@SuppressWarnings("unchecked")
 	protected synchronized void expand(int newCapacity) {
-		if (newCapacity > elements.length) {
+		if (newCapacity >= elements.length) {
 			VfElement<?>[] oldElements = elements;
 			elements = (T[]) Array.newInstance(clazz, newCapacity);
 			System.arraycopy(oldElements, 0, elements, 0, oldElements.length);
@@ -93,15 +93,26 @@ public final class VfImage<T extends VfElement<T>> {
 	}
 
 	public synchronized boolean upload() {
-		final int tail = this.tail.get();
+		final T[] elements = this.elements;
+		// could have threads waiting on expand so tail can overrun our array
+		final int limit = Math.min(elements.length - 1, this.tail.get());
+		int tail = head;
+
+		for (; tail < limit; ++tail) {
+			if (elements[tail] == null) {
+				break;
+			}
+		}
+
 		final int len = tail - head;
+
+		assert len >= 0;
 
 		if (len == 0) {
 			return false;
 		}
 
 		boolean didRecreate = false;
-		final T[] elements = this.elements;
 
 		if (bufferId == 0) {
 			// never buffered, adjust capacity if needed before we create it
@@ -139,6 +150,12 @@ public final class VfImage<T extends VfElement<T>> {
 
 			for (int i = 0; i < len; ++i) {
 				T element = elements[i + head];
+
+				// WIP: remove
+				if (element == null) {
+					System.out.println("the badness has happened");
+				}
+
 				element.write(iBuff, i * intsPerElement);
 			}
 

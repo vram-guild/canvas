@@ -56,6 +56,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
+
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
 		protected int ao(int cacheIndex) {
@@ -72,8 +73,16 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			return region.isClosed(cacheIndex);
 		}
 	};
+
 	private int cullCompletionFlags;
 	private int cullResultFlags;
+
+	private int packedRelativeBlockPos;
+
+	@Override
+	public int packedRelativeBlockPos() {
+		return packedRelativeBlockPos;
+	}
 
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
@@ -115,6 +124,11 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		try {
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
+
+			if (Configurator.vf) {
+				packedRelativeBlockPos = (blockPos.getX() & 0xF) | ((blockPos.getY() & 0xF) << 4) | ((blockPos.getZ() & 0xF) << 8);
+			}
+
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;
 			model.emitBlockQuads(region, blockState, blockPos, randomSupplier, this);

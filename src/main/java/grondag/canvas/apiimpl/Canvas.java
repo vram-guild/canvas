@@ -50,6 +50,7 @@ import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.vf.VfInt;
+import grondag.canvas.vf.VfVertex;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 
@@ -113,6 +114,7 @@ public class Canvas implements Renderer {
 		if (Configurator.vf) {
 			VfInt.UV.clear();
 			VfInt.COLOR.clear();
+			VfVertex.VERTEX.clear();
 		}
 
 		recompile();

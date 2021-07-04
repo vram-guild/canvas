@@ -33,6 +33,7 @@ import grondag.canvas.varia.GFX;
 public class VfTexture<T extends VfElement<T>> {
 	protected final ConcurrentHashMap<T, T> MAP = new ConcurrentHashMap<>();
 	private final int textureUnit;
+	private final int intsPerElement;
 
 	private int glId = 0;
 	protected VfImage<T> image = null;
@@ -47,9 +48,10 @@ public class VfTexture<T extends VfElement<T>> {
 		return result;
 	};
 
-	public VfTexture(int textureUnit, int imageFormat, Class<T> clazz) {
+	public VfTexture(int textureUnit, int imageFormat, int intsPerElement, Class<T> clazz) {
 		this.textureUnit = textureUnit;
 		this.imageFormat = imageFormat;
+		this.intsPerElement = intsPerElement;
 		this.clazz = clazz;
 	}
 
@@ -71,7 +73,7 @@ public class VfTexture<T extends VfElement<T>> {
 	protected void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new VfImage<>(0x10000, 4, clazz);
+				image = new VfImage<>(0x10000, intsPerElement, clazz);
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create vf texture due to error:", e);
 				image = null;

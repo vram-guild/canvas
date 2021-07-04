@@ -40,6 +40,7 @@ import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.vf.VfInt;
+import grondag.canvas.vf.VfVertex;
 import grondag.fermion.bits.BitPacker64;
 
 /**
@@ -130,6 +131,7 @@ public final class RenderState extends AbstractRenderState {
 		if (Configurator.vf) {
 			VfInt.COLOR.enable();
 			VfInt.UV.enable();
+			VfVertex.VERTEX.enable();
 		}
 
 		texture.enable(blur);
@@ -191,6 +193,7 @@ public final class RenderState extends AbstractRenderState {
 		if (shader.programType.vf) {
 			VfInt.COLOR.enable();
 			VfInt.UV.enable();
+			VfVertex.VERTEX.enable();
 			assert MatrixState.get() == MatrixState.REGION;
 		}
 
@@ -276,6 +279,7 @@ public final class RenderState extends AbstractRenderState {
 		if (Configurator.vf) {
 			VfInt.COLOR.disable();
 			VfInt.UV.disable();
+			VfVertex.VERTEX.disable();
 		}
 
 		if (Pipeline.shadowMapDepth != -1) {

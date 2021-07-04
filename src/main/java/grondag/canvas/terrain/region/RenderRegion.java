@@ -48,6 +48,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.region.DrawableRegion;
@@ -419,7 +420,11 @@ public class RenderRegion implements TerrainExecutorTask {
 				if (hasFluid || hasBlock) {
 					// Vanilla does a push/pop for each block but that creates needless allocation spam.
 					modelMatrix.loadIdentity();
-					modelMatrix.multiplyByTranslation(x, y, z);
+
+					if (!Configurator.vf) {
+						modelMatrix.multiplyByTranslation(x, y, z);
+					}
+
 					normalMatrix.loadIdentity();
 
 					if (hasFluid) {

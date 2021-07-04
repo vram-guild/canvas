@@ -22,10 +22,13 @@ import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_V
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2F;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2US;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_VF;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.HEADER_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.PAD0_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.VERTEX_VF;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
@@ -37,6 +40,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.vf.VfInt;
+import grondag.canvas.vf.VfVertex;
 
 public final class CanvasVertexFormats {
 	static {
@@ -58,7 +62,16 @@ public final class CanvasVertexFormats {
 	 */
 	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
-	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+	// WIP: remove at end
+	//private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, PAD0_VF, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+	// MATERIAL_REGION_POS
+	// POS_NORMAL
+	// PADDING 1
+	// +BASE_RGBA_VF
+	// +BASE_TEX_VF
+	// LIGHT
+	// PADDING 2
 
 	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
 
@@ -189,9 +202,15 @@ public final class CanvasVertexFormats {
 				quad.spriteBufferU(3) | (quad.spriteBufferV(3) << 16)
 		) << 2;
 
+		final int vfVertex = VfVertex.VERTEX.index(matrix, normalMatrix, quad) << 2;
+
 		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppendVertex(i, matrix, target, k);
-			k += 3;
+			target[k++] = material | context.packedRelativeBlockPos();
+			target[k++] = vfVertex | i;
+			target[k++] = 0;
+
+			//quad.transformAndAppendVertex(i, matrix, target, k);
+			//k += 3;
 
 			target[k++] = vfColor | i;
 			target[k++] = vfUv | i;
@@ -215,6 +234,7 @@ public final class CanvasVertexFormats {
 		}
 	};
 
+	public static final int VERTEX_PACKING_BITS = 0xFFFFF;
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
 	public static CanvasVertexFormat MATERIAL_FORMAT_VF = COMPACT_MATERIAL_VF;
 	public static final int MATERIAL_INT_VERTEX_STRIDE = MATERIAL_FORMAT.vertexStrideInts;

@@ -29,6 +29,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VAL
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.VERTEX_PACKING_BITS;
 
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.texture.Sprite;
@@ -470,5 +471,46 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		final float tz = mat.a20() * x + mat.a21() * y + mat.a22() * z;
 
 		return this.normal(tx, ty, tz);
+	}
+
+	public void transformAndAppendPackedVertices(final Matrix4fExt matrix, Matrix3fExt normalMatrix, int[] target, int targetIndex) {
+		final int[] data = this.data;
+		final boolean hasNormals = hasVertexNormals();
+
+		int packedNormal = 0;
+		int transformedNormal = 0;
+
+		if (hasNormals) {
+			populateMissingNormals();
+		} else {
+			packedNormal = packedFaceNormal();
+			transformedNormal = normalMatrix.canvas_transform(packedNormal);
+		}
+
+		for (int vertexIndex = 0; vertexIndex < 4; ++vertexIndex) {
+			final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+			final float x = Float.intBitsToFloat(data[index]);
+			final float y = Float.intBitsToFloat(data[index + 1]);
+			final float z = Float.intBitsToFloat(data[index + 2]);
+
+			final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
+			final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
+			final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
+
+			target[targetIndex++] = Math.round(xOut * VERTEX_PACKING_BITS);
+			target[targetIndex++] = Math.round(yOut * VERTEX_PACKING_BITS);
+			target[targetIndex++] = Math.round(zOut * VERTEX_PACKING_BITS);
+
+			if (hasNormals) {
+				final int p = packedNormal(vertexIndex);
+
+				if (p != packedNormal) {
+					packedNormal = p;
+					transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				}
+			}
+
+			target[targetIndex++] = transformedNormal;
+		}
 	}
 }

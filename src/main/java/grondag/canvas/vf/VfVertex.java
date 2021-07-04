@@ -16,27 +16,30 @@
 
 package grondag.canvas.vf;
 
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
-public class VfInt extends VfTexture<IntElement> {
-	public static final VfInt UV = new VfInt(TextureData.VF_UV, GFX.GL_RG16);
-	public static final VfInt COLOR = new VfInt(TextureData.VF_COLOR, GFX.GL_RGBA8);
+public class VfVertex extends VfTexture<VertexElement> {
+	public static final VfVertex VERTEX = new VfVertex(TextureData.VF_VERTEX, GFX.GL_RGBA32I);
 
 	//final AtomicInteger count = new AtomicInteger();
 
-	private static final ThreadLocal<IntElement> SEARCH_KEY = ThreadLocal.withInitial(IntElement::new);
+	private static final ThreadLocal<VertexElement> SEARCH_KEY = ThreadLocal.withInitial(VertexElement::new);
 
-	private VfInt(int textureUnit, int imageFormat) {
-		super(textureUnit, imageFormat, 4, IntElement.class);
+	private VfVertex(int textureUnit, int imageFormat) {
+		super(textureUnit, imageFormat, 16, VertexElement.class);
 	}
 
-	public int index(int c0, int c1, int c2, int c3) {
+	public int index(final Matrix4fExt matrix, Matrix3fExt normalMatrix, MutableQuadViewImpl quad) {
 		//count.incrementAndGet();
 
 		// WIP: avoid threadlocal
-		final IntElement k = SEARCH_KEY.get();
-		k.set(c0, c1, c2, c3);
+		final VertexElement k = SEARCH_KEY.get();
+		quad.transformAndAppendPackedVertices(matrix, normalMatrix, k.data, 0);
+		k.compute();
 		return MAP.computeIfAbsent(k, mapFunc).index;
 	}
 }

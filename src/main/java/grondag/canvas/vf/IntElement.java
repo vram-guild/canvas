@@ -17,7 +17,11 @@ class IntElement implements VfElement<IntElement> {
 	@Override
 	public IntElement copy() {
 		IntElement result = new IntElement();
-		result.set(c0, c1, c2, c3);
+		result.c0 = c0;
+		result.c1 = c1;
+		result.c2 = c2;
+		result.c3 = c3;
+		result.hashCode = hashCode;
 		return result;
 	}
 

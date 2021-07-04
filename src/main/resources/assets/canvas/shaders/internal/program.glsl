@@ -21,12 +21,6 @@ uniform int[4] _cvu_context;
 uniform isamplerBuffer _cvu_materialInfo;
 
 #ifdef VERTEX_SHADER
-
-	#ifdef CV_VF
-		uniform samplerBuffer _cvu_vfColor;
-		uniform samplerBuffer _cvu_vfUV;
-	#endif
-
 	flat out ivec4 _cvu_program;
 	flat out vec4 _cvv_spriteBounds;
 #else
