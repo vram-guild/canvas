@@ -111,7 +111,8 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	private void enableDepthPass(int x, int y, int z, int cascade) {
-		final MaterialShaderImpl depthShader = Configurator.vf ? vfDepthShader : this.depthShader;
+		final boolean vf = Configurator.vf && MatrixState.get() == MatrixState.REGION;
+		final MaterialShaderImpl depthShader = vf ? vfDepthShader : this.depthShader;
 
 		if (shadowActive == this) {
 			depthShader.setModelOrigin(x, y, z);
@@ -128,7 +129,7 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		texture.materialIndexProvider().enable();
 
-		if (Configurator.vf) {
+		if (vf) {
 			VfInt.COLOR.enable();
 			VfInt.UV.enable();
 			VfVertex.VERTEX.enable();
