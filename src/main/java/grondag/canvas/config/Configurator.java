@@ -65,7 +65,7 @@ public class Configurator {
 	public static boolean logRenderLagSpikes = DEFAULTS.logRenderLagSpikes;
 	public static int renderLagSpikeFps = DEFAULTS.renderLagSpikeFps;
 	public static boolean displayRenderProfiler = DEFAULTS.displayRenderProfiler;
-	public static boolean profileProcessShaders = DEFAULTS.profileProcessShaders;
+	public static boolean profileGpuTime = DEFAULTS.profileGpuTime;
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 	public static boolean vf = DEFAULTS.vf;
@@ -134,7 +134,7 @@ public class Configurator {
 		logRenderLagSpikes = config.logRenderLagSpikes;
 		renderLagSpikeFps = MathHelper.clamp(config.renderLagSpikeFps, 30, 120);
 		displayRenderProfiler = config.displayRenderProfiler;
-		profileProcessShaders = config.profileProcessShaders;
+		profileGpuTime = config.profileGpuTime;
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
 		vf = config.vf;
@@ -184,7 +184,7 @@ public class Configurator {
 		config.logRenderLagSpikes = logRenderLagSpikes;
 		config.renderLagSpikeFps = renderLagSpikeFps;
 		config.displayRenderProfiler = displayRenderProfiler;
-		config.profileProcessShaders = profileProcessShaders;
+		config.profileGpuTime = profileGpuTime;
 		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
 		config.vf = vf;

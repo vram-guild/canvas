@@ -103,8 +103,8 @@ class ConfigData {
 	int renderLagSpikeFps = 30;
 	@Comment("Enable and display render profiler data.")
 	boolean displayRenderProfiler = false;
-	@Comment("Profile process shaders in GPU time.")
-	boolean profileProcessShaders = false;
+	@Comment("Also profile each render steps in GPU time.")
+	boolean profileGpuTime = false;
 	@Comment("Profiler level of detail. 0=Collapse all, 1=Expand program passes, 2=Expand all")
 	int profilerDetailLevel = 0;
 	@Comment("Size of the profiler overlay relative to GUI scale.")
