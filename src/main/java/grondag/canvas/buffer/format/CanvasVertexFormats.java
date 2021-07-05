@@ -33,6 +33,7 @@ import static grondag.canvas.buffer.format.CanvasVertexFormatElement.VERTEX_VF;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.QuadEncoder;
 import grondag.canvas.buffer.encoding.QuadTranscoder;
 import grondag.canvas.config.Configurator;
@@ -176,6 +177,9 @@ public final class CanvasVertexFormats {
 		int k = buff.allocate(VF_QUAD_STRIDE);
 		final int[] target = buff.data();
 
+		final int[] quadTarget = ((ArrayVertexCollector) buff).vfTestHackData;
+		int n = k / 4;
+
 		final int vfColor = VfInt.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3)) << 2;
 		final int vfUv = VfInt.UV.index(
 				quad.spriteBufferU(0) | (quad.spriteBufferV(0) << 16),
@@ -199,6 +203,12 @@ public final class CanvasVertexFormats {
 		final int light3 = (packedLight3 & 0xFF) | ((packedLight3 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[3] * 255))) << 16);
 
 		final int vfLight = VfInt.LIGHT.index(light0, light1, light2, light3) << 2;
+
+		quadTarget[n++] = material | context.packedRelativeBlockPos();
+		quadTarget[n++] = vfVertex;
+		quadTarget[n++] = vfLight;
+		quadTarget[n++] = vfColor;
+		quadTarget[n++] = vfUv;
 
 		for (int i = 0; i < 4; i++) {
 			target[k++] = material | context.packedRelativeBlockPos();

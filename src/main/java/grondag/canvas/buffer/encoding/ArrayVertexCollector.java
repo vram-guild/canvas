@@ -38,6 +38,9 @@ public class ArrayVertexCollector implements VertexCollector {
 	private final int[] swapData;
 	private boolean didSwap = false;
 
+	// WIP: remove
+	public int[] vfTestHackData;
+
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	private int integerSize = 0;
 
@@ -46,6 +49,7 @@ public class ArrayVertexCollector implements VertexCollector {
 	public ArrayVertexCollector(RenderState renderState, boolean vf) {
 		this.renderState = renderState;
 		this.vf = vf;
+		vfTestHackData = vf ? new int[capacity / 4] : null;
 		quadStrideInts = vf ? CanvasVertexFormats.MATERIAL_FORMAT_VF.quadStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
@@ -53,13 +57,21 @@ public class ArrayVertexCollector implements VertexCollector {
 	}
 
 	protected void grow(int newSize) {
-		if (newSize > capacity) {
+		final int oldCapacity = capacity;
+
+		if (newSize > oldCapacity) {
 			final int newCapacity = MathHelper.smallestEncompassingPowerOfTwo(newSize);
 			final int[] newData = new int[newCapacity];
-			System.arraycopy(vertexData, 0, newData, 0, capacity);
-			arryBytes.addAndGet(newCapacity - capacity);
+			System.arraycopy(vertexData, 0, newData, 0, oldCapacity);
+			arryBytes.addAndGet(newCapacity - oldCapacity);
 			capacity = newCapacity;
 			vertexData = newData;
+
+			if (vf) {
+				final int[] newHackData = new int[newCapacity / 4];
+				System.arraycopy(vfTestHackData, 0, newHackData, 0, oldCapacity / 4);
+				vfTestHackData = newHackData;
+			}
 		}
 	}
 
@@ -192,11 +204,11 @@ public class ArrayVertexCollector implements VertexCollector {
 		return dx * dx + dy * dy + dz * dz;
 	}
 
+	// WIP: correct after switch
 	private float getDistanceSqVf(float x, float y, float z, int integerStride, int vertexIndex) {
 		// unpack vertex coordinates
 		final int i = vertexIndex * integerStride * 4;
 
-		// WIP: correct these offsets when format changs
 		final int blockOffset = vertexData[i];
 		final int bx = blockOffset & 0xF;
 		final int by = (blockOffset >> 4) & 0xF;
