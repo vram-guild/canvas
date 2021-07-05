@@ -98,23 +98,23 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	public void enable() {
-		enable(0, 0, 0);
+		enable(0, 0, 0, 0);
 	}
 
-	public void enable(int x, int y, int z) {
+	public void enable(int x, int y, int z, int vfHack) {
 		if (SkyShadowRenderer.isActive()) {
-			enableDepthPass(x, y, z, SkyShadowRenderer.cascade());
+			enableDepthPass(x, y, z, SkyShadowRenderer.cascade(), vfHack);
 		} else {
-			enableMaterial(x, y, z);
+			enableMaterial(x, y, z, vfHack);
 		}
 	}
 
-	private void enableDepthPass(int x, int y, int z, int cascade) {
+	private void enableDepthPass(int x, int y, int z, int cascade, int vfHack) {
 		final boolean vf = Configurator.vf && MatrixState.get() == MatrixState.REGION;
 		final MaterialShaderImpl depthShader = vf ? vfDepthShader : this.depthShader;
 
 		if (shadowActive == this) {
-			depthShader.setModelOrigin(x, y, z);
+			depthShader.setModelOrigin(x, y, z, vfHack);
 			depthShader.setCascade(cascade);
 			return;
 		}
@@ -145,7 +145,7 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.setEnabled(lines);
 
 		depthShader.updateContextInfo(texture.atlasInfo(), target.index);
-		depthShader.setModelOrigin(x, y, z);
+		depthShader.setModelOrigin(x, y, z, vfHack);
 		depthShader.setCascade(cascade);
 
 		GFX.enable(GFX.GL_POLYGON_OFFSET_FILL);
@@ -153,7 +153,7 @@ public final class RenderState extends AbstractRenderState {
 		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 
-	private void enableMaterial(int x, int y, int z) {
+	private void enableMaterial(int x, int y, int z, int vfHack) {
 		final MaterialShaderImpl shader;
 
 		switch (MatrixState.get()) {
@@ -170,7 +170,7 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		if (active == this) {
-			shader.setModelOrigin(x, y, z);
+			shader.setModelOrigin(x, y, z, vfHack);
 			return;
 		}
 
@@ -225,7 +225,7 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.setEnabled(lines);
 
 		shader.updateContextInfo(texture.atlasInfo(), target.index);
-		shader.setModelOrigin(x, y, z);
+		shader.setModelOrigin(x, y, z, vfHack);
 	}
 
 	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(GFX::enableCull, GFX::disableCull);

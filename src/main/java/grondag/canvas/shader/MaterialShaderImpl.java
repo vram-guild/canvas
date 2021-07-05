@@ -16,6 +16,7 @@
 
 package grondag.canvas.shader;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.texture.SpriteIndex;
 
 public final class MaterialShaderImpl {
@@ -48,9 +49,14 @@ public final class MaterialShaderImpl {
 		return result;
 	}
 
-	public void setModelOrigin(int x, int y, int z) {
+	public void setModelOrigin(int x, int y, int z, int vfHack) {
 		getOrCreate().activate();
 		program.setModelOrigin(x, y, z);
+
+		if (Configurator.vf) {
+			program.vfHack.set(vfHack);
+			program.vfHack.upload();
+		}
 	}
 
 	public void setCascade(int cascade) {

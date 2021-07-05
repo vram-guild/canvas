@@ -19,6 +19,7 @@ package grondag.canvas.render.region;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
@@ -53,6 +54,8 @@ public class RegionRenderer {
 
 		int ox = 0, oy = 0, oz = 0;
 
+		GFX.bindVertexArray(0);
+
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final RenderRegion builtRegion = visibleRegions.get(regionIndex);
 
@@ -76,9 +79,12 @@ public class RegionRenderer {
 					final boolean notShadowPass = !SkyShadowRenderer.isActive();
 					final RenderState mat = delegate.renderState();
 
+					// WIP remove or make not crappy
+					final int vfHack = Configurator.vf ? delegate.vfbr().getByteAddress() / 16 : 0;
+
 					if (!mat.condition.affectBlocks || mat.condition.compute()) {
 						if (notShadowPass || mat.castShadows) {
-							mat.enable(ox, oy, oz);
+							mat.enable(ox, oy, oz, vfHack);
 							delegate.draw();
 						}
 					}

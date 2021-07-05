@@ -22,6 +22,7 @@ import java.nio.IntBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.GFX;
 
 public class VboBuffer {
@@ -75,10 +76,13 @@ public class VboBuffer {
 		if (vaoBufferId == VAO_NONE) {
 			vaoBufferId = GFX.genVertexArray();
 			GFX.bindVertexArray(vaoBufferId);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			format.enableAttributes();
-			format.bindAttributeLocations(0);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
+
+			if (!Configurator.vf) {
+				GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
+				format.enableAttributes();
+				format.bindAttributeLocations(0);
+				GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
+			}
 		} else {
 			GFX.bindVertexArray(vaoBufferId);
 		}

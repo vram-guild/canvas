@@ -44,6 +44,8 @@ public class GlMaterialProgram extends GlProgram {
 	private final UniformArrayiImpl contextInfo;
 	private final Uniform1iImpl modelOriginType;
 	private final UniformMatrix4fImpl guiViewProjMatrix;
+	// WIP: remove
+	public final Uniform1iImpl vfHack;
 	private final ObjectArrayList<UniformSamplerImpl> configuredSamplers;
 
 	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
@@ -58,6 +60,8 @@ public class GlMaterialProgram extends GlProgram {
 		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		configuredSamplers = new ObjectArrayList<>();
 		guiViewProjMatrix = uniformMatrix4f("_cvu_guiViewProjMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
+
+		vfHack = (Uniform1iImpl) uniform1i("_cvu_vf_hack", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 	}
 
 	public void setModelOrigin(int x, int y, int z) {
