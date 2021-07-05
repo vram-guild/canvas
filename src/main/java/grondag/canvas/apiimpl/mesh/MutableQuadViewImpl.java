@@ -31,6 +31,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 
 import net.minecraft.client.render.model.BakedQuad;
+import net.minecraft.client.texture.MissingSprite;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix3f;
@@ -310,7 +311,14 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			v += spriteFloatV(i);
 		}
 
-		return material().texture.atlasInfo().spriteFinder().find(u * 0.25f, v * 0.25f);
+		final Sprite result = material().texture.atlasInfo().spriteFinder().find(u * 0.25f, v * 0.25f);
+
+		// Handle bug in SpriteFinder that can return sprite for the wrong atlas
+		if (result instanceof MissingSprite) {
+			return material().texture.atlasInfo().atlas().getSprite(MissingSprite.getMissingSpriteId());
+		} else {
+			return result;
+		}
 	}
 
 	@Override

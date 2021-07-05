@@ -67,7 +67,7 @@ vec4 light(frx_FragmentData fragData) {
 #if HANDHELD_LIGHT_RADIUS != 0
 	vec4 held = frx_heldLight();
 
-	if (held.w > 0.0 && !frx_isGui()) {
+	if (held.w > 0.0 && (!frx_isGui() || frx_isHand())) {
 		float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 		d = 1.0 - d * d;
 

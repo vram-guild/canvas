@@ -43,13 +43,18 @@ public class SpriteIndex {
 
 	private ObjectArrayList<Sprite> spriteIndex = null;
 	private SpriteAtlasTexture atlas;
-	private SpriteFinder spriteFinder;
+	private ResourceCache<SpriteFinder> spriteFinder;
 	private int atlasWidth;
 	private int atlasHeight;
 	public final Identifier id;
 
 	private SpriteIndex(Identifier id) {
 		this.id = id;
+		spriteFinder = new ResourceCache<>(this::loadSpriteFinder);
+	}
+
+	private SpriteFinder loadSpriteFinder() {
+		return SpriteFinder.get(atlas);
 	}
 
 	public void reset(Data dataIn, ObjectArrayList<Sprite> spriteIndexIn, SpriteAtlasTexture atlasIn) {
@@ -58,7 +63,6 @@ public class SpriteIndex {
 		}
 
 		atlas = atlasIn;
-		spriteFinder = SpriteFinder.get(atlas);
 		spriteIndex = spriteIndexIn;
 		atlasWidth = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasWidth();
 		atlasHeight = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasHeight();
@@ -93,6 +97,6 @@ public class SpriteIndex {
 	}
 
 	public SpriteFinder spriteFinder() {
-		return spriteFinder;
+		return spriteFinder.getOrLoad();
 	}
 }
