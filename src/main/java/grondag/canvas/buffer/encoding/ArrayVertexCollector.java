@@ -16,9 +16,6 @@
 
 package grondag.canvas.buffer.encoding;
 
-import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_INT_QUAD_STRIDE;
-import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_INT_VERTEX_STRIDE;
-
 import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,21 +25,29 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.vf.VfVertex;
 
 public class ArrayVertexCollector implements VertexCollector {
+	private final int quadStrideInts;
+	public final boolean vf;
 	private int capacity = 1024;
 	private int[] vertexData = new int[capacity];
 	private float[] perQuadDistance = new float[512];
+	private final int[] swapData;
+	private boolean didSwap = false;
 
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	private int integerSize = 0;
 
 	public final RenderState renderState;
 
-	public ArrayVertexCollector(RenderState renderState) {
+	public ArrayVertexCollector(RenderState renderState, boolean vf) {
 		this.renderState = renderState;
+		this.vf = vf;
+		quadStrideInts = vf ? CanvasVertexFormats.MATERIAL_FORMAT_VF.quadStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
+		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
 	}
@@ -66,12 +71,8 @@ public class ArrayVertexCollector implements VertexCollector {
 		return integerSize * 4;
 	}
 
-	public int vertexCount() {
-		return integerSize / MATERIAL_INT_VERTEX_STRIDE;
-	}
-
 	public int quadCount() {
-		return vertexCount() / 4;
+		return integerSize / quadStrideInts;
 	}
 
 	public boolean isEmpty() {
@@ -108,7 +109,8 @@ public class ArrayVertexCollector implements VertexCollector {
 	}
 
 	public boolean sortQuads(float x, float y, float z, boolean vf) {
-		final int quadCount = vertexCount() / 4;
+		final int quadCount = quadCount();
+		final int vertexStrideInts = quadStrideInts / 4;
 
 		if (perQuadDistance.length < quadCount) {
 			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
@@ -116,11 +118,11 @@ public class ArrayVertexCollector implements VertexCollector {
 
 		if (vf) {
 			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = getDistanceSqVf(x, y, z, MATERIAL_INT_VERTEX_STRIDE, j);
+				perQuadDistance[j] = getDistanceSqVf(x, y, z, vertexStrideInts, j);
 			}
 		} else {
 			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = getDistanceSq(x, y, z, MATERIAL_INT_VERTEX_STRIDE, j);
+				perQuadDistance[j] = getDistanceSq(x, y, z, vertexStrideInts, j);
 			}
 		}
 
@@ -142,9 +144,6 @@ public class ArrayVertexCollector implements VertexCollector {
 		}
 	};
 
-	private final int[] swapData = new int[MATERIAL_INT_QUAD_STRIDE * 2];
-	private boolean didSwap = false;
-
 	private final Swapper swapper = new Swapper() {
 		@Override
 		public void swap(int a, int b) {
@@ -153,13 +152,13 @@ public class ArrayVertexCollector implements VertexCollector {
 			perQuadDistance[a] = perQuadDistance[b];
 			perQuadDistance[b] = distSwap;
 
-			final int aIndex = a * MATERIAL_INT_QUAD_STRIDE;
-			final int bIndex = b * MATERIAL_INT_QUAD_STRIDE;
+			final int aIndex = a * quadStrideInts;
+			final int bIndex = b * quadStrideInts;
 
-			System.arraycopy(vertexData, aIndex, swapData, 0, MATERIAL_INT_QUAD_STRIDE);
-			System.arraycopy(vertexData, bIndex, swapData, MATERIAL_INT_QUAD_STRIDE, MATERIAL_INT_QUAD_STRIDE);
-			System.arraycopy(swapData, 0, vertexData, bIndex, MATERIAL_INT_QUAD_STRIDE);
-			System.arraycopy(swapData, MATERIAL_INT_QUAD_STRIDE, vertexData, aIndex, MATERIAL_INT_QUAD_STRIDE);
+			System.arraycopy(vertexData, aIndex, swapData, 0, quadStrideInts);
+			System.arraycopy(vertexData, bIndex, swapData, quadStrideInts, quadStrideInts);
+			System.arraycopy(swapData, 0, vertexData, bIndex, quadStrideInts);
+			System.arraycopy(swapData, quadStrideInts, vertexData, aIndex, quadStrideInts);
 		}
 	};
 

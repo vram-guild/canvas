@@ -38,6 +38,11 @@ public class VertexCollectorList {
 	private final ObjectArrayList<ArrayVertexCollector> active = new ObjectArrayList<>();
 	private final ArrayVertexCollector[] collectors = new ArrayVertexCollector[RenderState.MAX_COUNT];
 	private final ObjectArrayList<ArrayVertexCollector> drawList = new ObjectArrayList<>();
+	public final boolean vf;
+
+	public VertexCollectorList(boolean vf) {
+		this.vf = vf;
+	}
 
 	/**
 	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
@@ -101,7 +106,7 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			result = new ArrayVertexCollector(materialState.renderState);
+			result = new ArrayVertexCollector(materialState.renderState, vf);
 			collectors[index] = result;
 			active.add(result);
 		}

@@ -57,7 +57,7 @@ public class DrawableBuffer implements AutoCloseable {
 		for (int i = 0; i < limit; ++i) {
 			final ArrayVertexCollector collector = drawList.get(i);
 			collector.toBuffer(intBuffer);
-			counts[i] = collector.vertexCount();
+			counts[i] = collector.quadCount() * 4;
 			states[i] = collector.renderState;
 			collector.clear();
 		}
