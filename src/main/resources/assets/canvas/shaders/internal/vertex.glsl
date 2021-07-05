@@ -20,8 +20,6 @@
 		in int in_light_vf;
 		in int in_color_vf;
 		in int in_uv_vf;
-		in int in_pad0_vf;
-		in int in_pad1_vf;
 
 		#define in_color texelFetch(_cvu_vfColor, in_color_vf)
 		#define in_uv texelFetch(_cvu_vfUV, in_uv_vf).rg

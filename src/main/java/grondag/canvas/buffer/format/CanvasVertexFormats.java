@@ -27,8 +27,6 @@ import static grondag.canvas.buffer.format.CanvasVertexFormatElement.HEADER_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.PAD0_VF;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.PAD1_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.VERTEX_VF;
 
@@ -65,9 +63,10 @@ public final class CanvasVertexFormats {
 	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	// WIP: remove at end
-	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_LIGHT_VF, BASE_RGBA_VF, BASE_TEX_VF, PAD0_VF, PAD1_VF);
+	private static final CanvasVertexFormat VF_MATERIAL = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_LIGHT_VF, BASE_RGBA_VF, BASE_TEX_VF);
 
 	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
+	private static final int VF_QUAD_STRIDE = VF_MATERIAL.quadStrideInts;
 
 	private static final QuadEncoder COMPACT_ENCODER = (quad, buff) -> {
 		final RenderMaterialImpl mat = quad.material();
@@ -174,7 +173,7 @@ public final class CanvasVertexFormats {
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
-		int k = buff.allocate(COMPACT_QUAD_STRIDE);
+		int k = buff.allocate(VF_QUAD_STRIDE);
 		final int[] target = buff.data();
 
 		final int vfColor = VfInt.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3)) << 2;
@@ -207,13 +206,11 @@ public final class CanvasVertexFormats {
 			target[k++] = vfLight | i;
 			target[k++] = vfColor | i;
 			target[k++] = vfUv | i;
-			target[k++] = 0;
-			target[k++] = 0;
 		}
 	};
 
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
-	public static CanvasVertexFormat MATERIAL_FORMAT_VF = COMPACT_MATERIAL_VF;
+	public static CanvasVertexFormat MATERIAL_FORMAT_VF = VF_MATERIAL;
 	public static QuadTranscoder MATERIAL_TRANSCODER = COMPACT_TRANSCODER;
 	public static QuadEncoder MATERIAL_ENCODER = COMPACT_ENCODER;
 	public static QuadTranscoder TERRAIN_TRANSCODER = Configurator.vf ? VF_TRANSCODER : COMPACT_TRANSCODER;

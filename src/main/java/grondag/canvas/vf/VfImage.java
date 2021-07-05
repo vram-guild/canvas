@@ -77,9 +77,7 @@ public final class VfImage<T extends VfElement<T>> {
 		int tryCount = 0;
 
 		while (result == null) {
-			if ((++tryCount & 0xF) == 0xF) {
-				CanvasMod.LOG.info("Excessive retries in buffer texture page acquisition: " + tryCount);
-			}
+			assert checkTryCount(++tryCount);
 
 			final int lastPage = lastPageIndex.get();
 
@@ -95,6 +93,15 @@ public final class VfImage<T extends VfElement<T>> {
 		}
 
 		return result;
+	}
+
+	/** Always true. Done this way to fully shortcut when assertions are off. */
+	private boolean checkTryCount(final int tryCount) {
+		if ((tryCount & 0xF) == 0xF) {
+			CanvasMod.LOG.info("Excessive retries in buffer texture page acquisition: " + tryCount);
+		}
+
+		return true;
 	}
 
 	/**
