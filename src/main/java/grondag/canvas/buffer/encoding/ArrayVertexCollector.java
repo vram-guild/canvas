@@ -214,7 +214,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		final int by = (blockOffset >> 4) & 0xF;
 		final int bz = (blockOffset >> 8) & 0xF;
 
-		final int[] vfData = Vf.VERTEX.fromIndex(vertexData[i + 1] >> 2).data;
+		final int[] vfData = Vf.VERTEX.fromIndex(vertexData[i + 1] & 0xFFFFFF).data;
 
 		final float x0 = bx + Float.intBitsToFloat(vfData[0]);
 		final float y0 = by + Float.intBitsToFloat(vfData[1]);

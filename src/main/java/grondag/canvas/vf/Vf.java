@@ -27,7 +27,7 @@ public class Vf {
 	public static final VfInt COLOR = new VfInt(TextureData.VF_COLOR, GFX.GL_RGBA8);
 	public static final VfInt LIGHT = new VfInt(TextureData.VF_LIGHT, GFX.GL_RGBA8);
 	public static final VfVertex VERTEX = new VfVertex(TextureData.VF_VERTEX, GFX.GL_RGBA32I);
-	public static final VfBufferTexture<VfBufferReference> QUADS = new VfBufferTexture<>(TextureData.VF_QUADS, GFX.GL_RGBA32I, 0x4000000);
+	public static final VfBufferTexture<VfBufferReference> QUADS = new VfBufferTexture<>(TextureData.VF_QUADS, GFX.GL_RGBA32I, 0x8000000);
 
 	public static void upload() {
 		if (Configurator.vf) {

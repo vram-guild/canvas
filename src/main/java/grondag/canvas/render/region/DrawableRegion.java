@@ -48,6 +48,7 @@ public class DrawableRegion {
 
 	protected void closeInner() {
 		assert delegate != null;
+		delegate.release();
 		delegate = null;
 	}
 

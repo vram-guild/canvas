@@ -17,7 +17,6 @@
 package grondag.canvas.buffer.format;
 
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.AO_1UB;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_LIGHT_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2F;
@@ -63,7 +62,7 @@ public final class CanvasVertexFormats {
 	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	// WIP: remove at end
-	private static final CanvasVertexFormat VF_MATERIAL = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_LIGHT_VF, BASE_RGBA_VF, BASE_TEX_VF);
+	private static final CanvasVertexFormat VF_MATERIAL = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_RGBA_VF, BASE_TEX_VF);
 
 	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
 	private static final int VF_QUAD_STRIDE = VF_MATERIAL.quadStrideInts;
@@ -171,7 +170,7 @@ public final class CanvasVertexFormats {
 
 		assert mat.blendMode != BlendMode.DEFAULT;
 
-		final int material = mat.dongle().index(quad.spriteId()) << 16;
+		final int material = mat.dongle().index(quad.spriteId()) << 12;
 
 		int k = buff.allocate(VF_QUAD_STRIDE);
 		final int[] target = buff.data();
@@ -179,15 +178,16 @@ public final class CanvasVertexFormats {
 		final int[] quadTarget = ((ArrayVertexCollector) buff).vfTestHackData;
 		int n = k / 4;
 
-		final int vfColor = Vf.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3)) << 2;
+		final int vfColor = Vf.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3));
+
 		final int vfUv = Vf.UV.index(
 				quad.spriteBufferU(0) | (quad.spriteBufferV(0) << 16),
 				quad.spriteBufferU(1) | (quad.spriteBufferV(1) << 16),
 				quad.spriteBufferU(2) | (quad.spriteBufferV(2) << 16),
 				quad.spriteBufferU(3) | (quad.spriteBufferV(3) << 16)
-		) << 2;
+		);
 
-		final int vfVertex = Vf.VERTEX.index(matrix, normalMatrix, quad) << 2;
+		final int vfVertex = Vf.VERTEX.index(matrix, normalMatrix, quad);
 
 		final int packedLight0 = quad.lightmap(0);
 		final int light0 = (packedLight0 & 0xFF) | ((packedLight0 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[0] * 255))) << 16);
@@ -201,20 +201,31 @@ public final class CanvasVertexFormats {
 		final int packedLight3 = quad.lightmap(3);
 		final int light3 = (packedLight3 & 0xFF) | ((packedLight3 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[3] * 255))) << 16);
 
-		final int vfLight = Vf.LIGHT.index(light0, light1, light2, light3) << 2;
+		final int vfLight = Vf.LIGHT.index(light0, light1, light2, light3);
 
-		quadTarget[n++] = material | context.packedRelativeBlockPos();
-		quadTarget[n++] = vfVertex;
-		quadTarget[n++] = vfLight;
-		quadTarget[n++] = vfColor;
-		quadTarget[n++] = vfUv;
+		final int l0 = (vfLight & 0x0000FF) << 24;
+		final int l1 = (vfLight & 0x00FF00) << 16;
+		final int l2 = (vfLight & 0xFF0000) << 8;
+
+		assert vfVertex < 0x1000000;
+		assert vfColor < 0x1000000;
+		assert vfUv < 0x1000000;
+		assert vfLight < 0x1000000;
+
+		final int packedRelPos = context.packedRelativeBlockPos();
+
+		// Light is striped across the last three components so we can stay within four int components.
+		// This is also convenient if we ever want to skip sending light.
+		quadTarget[n++] = material | packedRelPos;
+		quadTarget[n++] = vfVertex | l0;
+		quadTarget[n++] = vfColor | l1;
+		quadTarget[n++] = vfUv | l2;
 
 		for (int i = 0; i < 4; i++) {
-			target[k++] = material | context.packedRelativeBlockPos();
-			target[k++] = vfVertex | i;
-			target[k++] = vfLight | i;
-			target[k++] = vfColor | i;
-			target[k++] = vfUv | i;
+			target[k++] = material | packedRelPos | (i << 28);
+			target[k++] = vfVertex | l0;
+			target[k++] = vfColor | l1;
+			target[k++] = vfUv | l2;
 		}
 	};
 

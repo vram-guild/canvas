@@ -52,11 +52,12 @@ public final class VfBufferImage<T extends VfBufferElement<T>> {
 		}
 
 		elements.clear();
+		queue.clear();
+		headByteOffset = 0;
 	}
 
 	public synchronized void clear() {
 		close();
-		headByteOffset = 0;
 	}
 
 	int bufferId() {
@@ -126,6 +127,7 @@ public final class VfBufferImage<T extends VfBufferElement<T>> {
 		GFX.unmapBuffer(GFX.GL_TEXTURE_BUFFER);
 		GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
 
+		elements.addAll(addedElements);
 		addedElements.clear();
 
 		return didRecreate;
