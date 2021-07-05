@@ -33,7 +33,7 @@ public class UploadableRegion {
 
 	public UploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes) {
 		vboBuffer = new VboBuffer(bytes, Configurator.vf ? CanvasVertexFormats.MATERIAL_FORMAT_VF : CanvasVertexFormats.MATERIAL_FORMAT);
-		drawable = DrawableRegion.pack(collectorList, vboBuffer, sorted);
+		drawable = DrawableRegion.pack(collectorList, vboBuffer, sorted, bytes);
 	}
 
 	private UploadableRegion() {

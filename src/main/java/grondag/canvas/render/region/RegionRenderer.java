@@ -16,8 +16,6 @@
 
 package grondag.canvas.render.region;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
@@ -65,9 +63,9 @@ public class RegionRenderer {
 			final DrawableRegion drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
 			if (!drawable.isClosed()) {
-				final ObjectArrayList<DrawableDelegate> delegates = drawable.delegates();
+				final DrawableDelegate delegate = drawable.delegate();
 
-				if (delegates != null) {
+				if (delegate != null) {
 					final BlockPos modelOrigin = builtRegion.origin;
 					ox = modelOrigin.getX();
 					oy = modelOrigin.getY();
@@ -75,18 +73,13 @@ public class RegionRenderer {
 
 					drawable.vboBuffer.bind();
 
-					final int limit = delegates.size();
 					final boolean notShadowPass = !SkyShadowRenderer.isActive();
+					final RenderState mat = delegate.renderState();
 
-					for (int i = 0; i < limit; ++i) {
-						final DrawableDelegate d = delegates.get(i);
-						final RenderState mat = d.renderState();
-
-						if (!mat.condition.affectBlocks || mat.condition.compute()) {
-							if (notShadowPass || mat.castShadows) {
-								mat.enable(ox, oy, oz);
-								d.draw();
-							}
+					if (!mat.condition.affectBlocks || mat.condition.compute()) {
+						if (notShadowPass || mat.castShadows) {
+							mat.enable(ox, oy, oz);
+							delegate.draw();
 						}
 					}
 

@@ -31,35 +31,20 @@ public class DrawableRegion {
 	public static DrawableRegion EMPTY_DRAWABLE = new DrawableRegion.Dummy();
 	public final VboBuffer vboBuffer;
 	protected boolean isClosed = false;
-	protected ObjectArrayList<DrawableDelegate> delegates;
+	protected DrawableDelegate delegate;
 
-	protected DrawableRegion(VboBuffer vboBuffer, ObjectArrayList<DrawableDelegate> delegates) {
+	protected DrawableRegion(VboBuffer vboBuffer, DrawableDelegate delegate) {
 		this.vboBuffer = vboBuffer;
-		this.delegates = delegates;
+		this.delegate = delegate;
 	}
 
-	public ObjectArrayList<DrawableDelegate> delegates() {
-		return delegates;
+	public DrawableDelegate delegate() {
+		return delegate;
 	}
 
 	protected void closeInner() {
-		assert delegates != null;
-		clearDelegateList(delegates);
-		delegates = null;
-	}
-
-	private static void clearDelegateList(ObjectArrayList<DrawableDelegate> delegates) {
-		if (!delegates.isEmpty()) {
-			final int limit = delegates.size();
-
-			for (int i = 0; i < limit; i++) {
-				delegates.get(i).release();
-			}
-
-			delegates.clear();
-		}
-
-		DelegateLists.releaseDelegateList(delegates);
+		assert delegate != null;
+		delegate = null;
 	}
 
 	/**
@@ -80,16 +65,14 @@ public class DrawableRegion {
 	}
 
 	private static class Dummy extends DrawableRegion {
-		private final ObjectArrayList<DrawableDelegate> nothing = new ObjectArrayList<>();
-
 		protected Dummy() {
 			super(null, null);
 			isClosed = true;
 		}
 
 		@Override
-		public ObjectArrayList<DrawableDelegate> delegates() {
-			return nothing;
+		public DrawableDelegate delegate() {
+			return null;
 		}
 
 		@Override
@@ -101,30 +84,22 @@ public class DrawableRegion {
 	private static final Predicate<RenderState> TRANSLUCENT = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
 	private static final Predicate<RenderState> SOLID = m -> !TRANSLUCENT.test(m);
 
-	public static DrawableRegion pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent) {
+	public static DrawableRegion pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent, int byteCount) {
 		final IntBuffer intBuffer = vboBuffer.intBuffer();
 		intBuffer.position(0);
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
-		final int limit = drawList.size();
-		int position = 0;
-		final ObjectArrayList<DrawableDelegate> delegates = DelegateLists.getReadyDelegateList();
 
-		for (int i = 0; i < limit; ++i) {
-			final ArrayVertexCollector collector = drawList.get(i);
-
-			if (collector.renderState.sorted == translucent) {
-				final int vertexCount = collector.quadCount() * 4;
-				collector.toBuffer(intBuffer);
-				delegates.add(DrawableDelegate.claim(collector.renderState, position, vertexCount));
-				position += vertexCount;
-			}
-		}
-
-		if (delegates.isEmpty()) {
-			DelegateLists.releaseDelegateList(delegates);
+		if (drawList.isEmpty()) {
 			return EMPTY_DRAWABLE;
-		} else {
-			return new DrawableRegion(vboBuffer, delegates);
 		}
+
+		assert drawList.size() == 1;
+
+		final ArrayVertexCollector collector = drawList.get(0);
+		assert collector.renderState.sorted == translucent;
+		final int vertexCount = collector.quadCount() * 4;
+		collector.toBuffer(intBuffer);
+		final DrawableDelegate delegate = DrawableDelegate.claim(collector.renderState, 0, vertexCount);
+		return new DrawableRegion(vboBuffer, delegate);
 	}
 }

@@ -168,7 +168,7 @@ public class VertexCollectorList {
 			}
 		}
 
-		if (!drawList.isEmpty()) {
+		if (drawList.size() > 1) {
 			drawList.sort(DRAW_SORT);
 		}
 
