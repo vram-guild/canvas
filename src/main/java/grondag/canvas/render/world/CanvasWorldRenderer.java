@@ -632,13 +632,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate.collectors, lightmapTextureManager, camera, tickDelta);
 		}
 
-		renderSystemModelViewStack.pop();
-		RenderSystem.applyModelViewMatrix();
-
 		RenderState.disable();
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
+
+		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
 		WorldRenderEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(eventContext);
+
+		// Move these up if otherwise.
+		renderSystemModelViewStack.pop();
+		RenderSystem.applyModelViewMatrix();
 
 		// FEAT: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
@@ -676,17 +679,19 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			GFX.depthMask(true);
 		}
 
-		renderSystemModelViewStack.pop();
-		RenderSystem.applyModelViewMatrix();
-
 		// doesn't make any sense with our chunk culling scheme
 		// this.renderChunkDebugInfo(camera);
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.AfterFabulous, "render_last_event");
+
+		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
 		WorldRenderEvents.LAST.invoker().onLast(eventContext);
+
+		// Move these up if otherwise.
+		renderSystemModelViewStack.pop();
+		RenderSystem.applyModelViewMatrix();
 
 		GFX.depthMask(true);
 		GFX.disableBlend();
-		RenderSystem.applyModelViewMatrix();
 		BackgroundRenderer.method_23792();
 		entityBlockContext.collectors = null;
 		blockContext.collectors = null;
@@ -762,7 +767,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
 
-		eventContext.prepare(this, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, mc.getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), worldRenderState.getWorld());
+		eventContext.prepare(this, viewMatrixStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, mc.getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), worldRenderState.getWorld());
 
 		WorldRenderEvents.START.invoker().onStart(eventContext);
 		PipelineManager.beforeWorldRender();
