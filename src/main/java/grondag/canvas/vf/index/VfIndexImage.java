@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.index;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -28,7 +28,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public final class VfImage<T extends VfElement<T>> {
+public final class VfIndexImage<T extends VfIndexElement<T>> {
 	private static final int PAGE_SIZE = 0x10000;
 
 	final AtomicInteger tail = new AtomicInteger();
@@ -43,7 +43,7 @@ public final class VfImage<T extends VfElement<T>> {
 	private int imageCapacity;
 	boolean logging = false;
 
-	public VfImage(int intsPerElement) {
+	public VfIndexImage(int intsPerElement) {
 		elements[0] = new Object[PAGE_SIZE];
 		imageCapacity = PAGE_SIZE;
 		this.intsPerElement = intsPerElement;

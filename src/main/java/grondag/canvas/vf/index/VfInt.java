@@ -14,16 +14,9 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.index;
 
-import grondag.canvas.texture.TextureData;
-import grondag.canvas.varia.GFX;
-
-public class VfInt extends VfTexture<IntElement> {
-	public static final VfInt UV = new VfInt(TextureData.VF_UV, GFX.GL_RG16);
-	public static final VfInt COLOR = new VfInt(TextureData.VF_COLOR, GFX.GL_RGBA8);
-	public static final VfInt LIGHT = new VfInt(TextureData.VF_LIGHT, GFX.GL_RGBA8);
-
+public class VfInt extends VfIndexTexture<IntElement> {
 	//static {
 	//	LIGHT.logging = true;
 	//}
@@ -32,7 +25,7 @@ public class VfInt extends VfTexture<IntElement> {
 
 	private static final ThreadLocal<IntElement> SEARCH_KEY = ThreadLocal.withInitial(IntElement::new);
 
-	private VfInt(int textureUnit, int imageFormat) {
+	public VfInt(int textureUnit, int imageFormat) {
 		super(textureUnit, imageFormat, 4);
 	}
 

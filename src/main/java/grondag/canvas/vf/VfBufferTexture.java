@@ -16,11 +16,6 @@
 
 package grondag.canvas.vf;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-
-import it.unimi.dsi.fastutil.HashCommon;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -30,29 +25,21 @@ import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public class VfTexture<T extends VfElement<T>> {
-	protected final ConcurrentHashMap<T, T> MAP = new ConcurrentHashMap<>();
+public class VfBufferTexture<T extends VfBufferElement<T>> {
 	private final int textureUnit;
-	private final int intsPerElement;
+	private final int expectedCapacity;
 
 	private int glId = 0;
-	protected VfImage<T> image = null;
+	protected VfBufferImage<T> image = null;
 	private boolean active = false;
 	private int imageFormat;
 
 	boolean logging = false;
 
-	protected final Function<T, T> mapFunc = k -> {
-		createImageIfNeeded();
-		T result = k.copy();
-		image.add(result);
-		return result;
-	};
-
-	public VfTexture(int textureUnit, int imageFormat, int intsPerElement) {
+	public VfBufferTexture(int textureUnit, int imageFormat, int expectedCapacity) {
 		this.textureUnit = textureUnit;
 		this.imageFormat = imageFormat;
-		this.intsPerElement = intsPerElement;
+		this.expectedCapacity = expectedCapacity;
 	}
 
 	public void clear() {
@@ -70,10 +57,15 @@ public class VfTexture<T extends VfElement<T>> {
 		}
 	}
 
+	public void enqueue(T element) {
+		createImageIfNeeded();
+		image.enqueue(element);
+	}
+
 	protected void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new VfImage<>(intsPerElement);
+				image = new VfBufferImage<>(expectedCapacity);
 				image.logging = logging;
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create vf texture due to error:", e);
@@ -91,7 +83,9 @@ public class VfTexture<T extends VfElement<T>> {
 		}
 	}
 
-	private void uploadAndActivate() {
+	public void upload() {
+		createImageIfNeeded();
+
 		try {
 			boolean recreate = image.upload();
 
@@ -103,11 +97,6 @@ public class VfTexture<T extends VfElement<T>> {
 			if (glId == 0) {
 				glId = GFX.genTexture();
 			}
-
-			CanvasTextureState.activeTextureUnit(textureUnit);
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
-			GFX.texBuffer(imageFormat, image.bufferId());
-			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		} catch (final Exception e) {
 			CanvasMod.LOG.warn("Unable to create vf texture due to error:", e);
 
@@ -126,12 +115,10 @@ public class VfTexture<T extends VfElement<T>> {
 	public void enable() {
 		if (!active) {
 			active = true;
-			createImageIfNeeded();
-			uploadAndActivate();
+			CanvasTextureState.activeTextureUnit(textureUnit);
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, glId);
+			GFX.texBuffer(imageFormat, image.bufferId());
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
-	}
-
-	protected static int hash4(int c0, int c1, int c2, int c3) {
-		return (((HashCommon.mix(c0) * 31 + HashCommon.mix(c1)) * 31) + HashCommon.mix(c2)) * 31 + HashCommon.mix(c3);
 	}
 }

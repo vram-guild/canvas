@@ -14,22 +14,18 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.index;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.texture.TextureData;
-import grondag.canvas.varia.GFX;
 
-public class VfVertex extends VfTexture<VertexElement> {
-	public static final VfVertex VERTEX = new VfVertex(TextureData.VF_VERTEX, GFX.GL_RGBA32I);
-
+public class VfVertex extends VfIndexTexture<VertexElement> {
 	//final AtomicInteger count = new AtomicInteger();
 
 	private static final ThreadLocal<VertexElement> SEARCH_KEY = ThreadLocal.withInitial(VertexElement::new);
 
-	private VfVertex(int textureUnit, int imageFormat) {
+	public VfVertex(int textureUnit, int imageFormat) {
 		super(textureUnit, imageFormat, 16);
 	}
 

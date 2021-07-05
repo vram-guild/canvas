@@ -40,8 +40,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.vf.VfInt;
-import grondag.canvas.vf.VfVertex;
+import grondag.canvas.vf.Vf;
 
 public final class CanvasVertexFormats {
 	static {
@@ -180,15 +179,15 @@ public final class CanvasVertexFormats {
 		final int[] quadTarget = ((ArrayVertexCollector) buff).vfTestHackData;
 		int n = k / 4;
 
-		final int vfColor = VfInt.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3)) << 2;
-		final int vfUv = VfInt.UV.index(
+		final int vfColor = Vf.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3)) << 2;
+		final int vfUv = Vf.UV.index(
 				quad.spriteBufferU(0) | (quad.spriteBufferV(0) << 16),
 				quad.spriteBufferU(1) | (quad.spriteBufferV(1) << 16),
 				quad.spriteBufferU(2) | (quad.spriteBufferV(2) << 16),
 				quad.spriteBufferU(3) | (quad.spriteBufferV(3) << 16)
 		) << 2;
 
-		final int vfVertex = VfVertex.VERTEX.index(matrix, normalMatrix, quad) << 2;
+		final int vfVertex = Vf.VERTEX.index(matrix, normalMatrix, quad) << 2;
 
 		final int packedLight0 = quad.lightmap(0);
 		final int light0 = (packedLight0 & 0xFF) | ((packedLight0 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[0] * 255))) << 16);
@@ -202,7 +201,7 @@ public final class CanvasVertexFormats {
 		final int packedLight3 = quad.lightmap(3);
 		final int light3 = (packedLight3 & 0xFF) | ((packedLight3 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[3] * 255))) << 16);
 
-		final int vfLight = VfInt.LIGHT.index(light0, light1, light2, light3) << 2;
+		final int vfLight = Vf.LIGHT.index(light0, light1, light2, light3) << 2;
 
 		quadTarget[n++] = material | context.packedRelativeBlockPos();
 		quadTarget[n++] = vfVertex;

@@ -26,7 +26,8 @@ public class TextureData {
 
 	// NB: texture 3 seems to be used by something
 	public static final int HD_LIGHTMAP = GL21.GL_TEXTURE4;
-	public static final int DITHER = GL21.GL_TEXTURE5;
+	//public static final int DITHER = GL21.GL_TEXTURE5;
+	public static final int VF_QUADS = GL21.GL_TEXTURE6;
 	public static final int MATERIAL_INFO = GL21.GL_TEXTURE7;
 	public static final int VF_COLOR = GL21.GL_TEXTURE8;
 	public static final int VF_UV = GL21.GL_TEXTURE9;

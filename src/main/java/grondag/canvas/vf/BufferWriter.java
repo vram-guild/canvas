@@ -18,12 +18,7 @@ package grondag.canvas.vf;
 
 import java.nio.IntBuffer;
 
-public interface VfElement<T extends VfElement<T>> {
-	void setIndex(int index);
-
-	int getIndex();
-
+@FunctionalInterface
+public interface BufferWriter {
 	void write(IntBuffer buff, int startIndex);
-
-	T copy();
 }

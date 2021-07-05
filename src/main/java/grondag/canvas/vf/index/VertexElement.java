@@ -14,12 +14,12 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.index;
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
 
-public class VertexElement implements VfElement<VertexElement> {
+public class VertexElement implements VfIndexElement<VertexElement> {
 	public final int[] data = new int[16];
 	private int hashCode;
 	int index;

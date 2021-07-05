@@ -14,11 +14,11 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.index;
 
 import java.nio.IntBuffer;
 
-class IntElement implements VfElement<IntElement> {
+class IntElement implements VfIndexElement<IntElement> {
 	private int c0, c1, c2, c3, hashCode;
 	int index;
 
@@ -27,7 +27,7 @@ class IntElement implements VfElement<IntElement> {
 		this.c1 = c1;
 		this.c2 = c2;
 		this.c3 = c3;
-		hashCode = VfTexture.hash4(c0, c1, c2, c3);
+		hashCode = VfIndexTexture.hash4(c0, c1, c2, c3);
 	}
 
 	@Override

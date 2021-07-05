@@ -100,6 +100,7 @@ import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.varia.GFX;
+import grondag.canvas.vf.Vf;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
@@ -310,6 +311,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		worldRenderState.regionBuilder().upload();
 		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
+
+		Vf.upload();
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
