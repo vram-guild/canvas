@@ -37,7 +37,7 @@ public class Compat {
 		});
 
 		WorldRenderEvents.BEFORE_ENTITIES.register(ctx -> {
-			LitematicaHolder.litematicaRenderSolids.accept(ctx.matrixStack());
+			LitematicaHolder.litematicaRenderSolids.accept(ctx.matrixStack(), ctx.projectionMatrix());
 			//SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 		});
 
@@ -56,8 +56,8 @@ public class Compat {
 
 		WorldRenderEvents.AFTER_TRANSLUCENT.register(ctx -> {
 			JustMapHolder.justMapRender.renderWaypoints(ctx.matrixStack(), ctx.camera(), ctx.tickDelta());
-			LitematicaHolder.litematicaRenderTranslucent.accept(ctx.matrixStack());
-			LitematicaHolder.litematicaRenderOverlay.accept(ctx.matrixStack());
+			LitematicaHolder.litematicaRenderTranslucent.accept(ctx.matrixStack(), ctx.projectionMatrix());
+			LitematicaHolder.litematicaRenderOverlay.accept(ctx.matrixStack(), ctx.projectionMatrix());
 			final Vec3d cameraPos = ctx.camera().getPos();
 			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderLayer.getTranslucent(), ctx.matrixStack(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
 
@@ -65,7 +65,7 @@ public class Compat {
 			// It expects view matrix to be pre-applied because it normally happens in weather render
 			// But Canvas already does that for unmanaged draws so no action needed.
 			if (ctx.advancedTranslucency()) {
-				MaliLibHolder.litematicaRenderWorldLast.render(ctx.matrixStack(), MinecraftClient.getInstance(), ctx.tickDelta());
+				MaliLibHolder.maliLibRenderWorldLast.render(ctx.matrixStack(), ctx.projectionMatrix(), MinecraftClient.getInstance());
 			}
 		});
 
@@ -75,7 +75,7 @@ public class Compat {
 
 			// litematica overlay expects to render on top of translucency when fabulous is off
 			if (!ctx.advancedTranslucency()) {
-				MaliLibHolder.litematicaRenderWorldLast.render(ctx.matrixStack(), MinecraftClient.getInstance(), ctx.tickDelta());
+				MaliLibHolder.maliLibRenderWorldLast.render(ctx.matrixStack(), ctx.projectionMatrix(), MinecraftClient.getInstance());
 			}
 		});
 

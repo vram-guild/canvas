@@ -22,13 +22,14 @@ import java.lang.reflect.Method;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
 class MaliLibHolder {
-	static HandleRenderWorldLast litematicaRenderWorldLast = (s, mc, t) -> { };
+	static HandleRenderWorldLast maliLibRenderWorldLast = (s, mc, t) -> { };
 	private static boolean warnRender = true;
 
 	static {
@@ -40,13 +41,13 @@ class MaliLibHolder {
 				final Method getInstance = clazz.getDeclaredMethod("getInstance");
 				final Object instance = getInstance.invoke(null);
 
-				final Method renderLast = clazz.getDeclaredMethod("onRenderWorldLast", MatrixStack.class, MinecraftClient.class, float.class);
+				final Method renderLast = clazz.getDeclaredMethod("onRenderWorldLast", MatrixStack.class, Matrix4f.class, MinecraftClient.class);
 				final MethodHandle renderLastHandler = lookup.unreflect(renderLast);
 				final MethodHandle boundRenderLastHandler = renderLastHandler.bindTo(instance);
 
-				litematicaRenderWorldLast = (s, mc, t) -> {
+				maliLibRenderWorldLast = (s, pm, mc) -> {
 					try {
-						boundRenderLastHandler.invokeExact(s, mc, t);
+						boundRenderLastHandler.invokeExact(s, pm, mc);
 					} catch (final Throwable e) {
 						if (warnRender) {
 							CanvasMod.LOG.warn("Unable to call MaliLib onRenderWorldLast hook due to exception:", e);
@@ -64,6 +65,6 @@ class MaliLibHolder {
 	}
 
 	interface HandleRenderWorldLast {
-		void render(MatrixStack matrixStack, MinecraftClient mc, float partialTicks);
+		void render(MatrixStack matrixStack, Matrix4f projMatrix, MinecraftClient mc);
 	}
 }
