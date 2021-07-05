@@ -24,8 +24,12 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.vf.Vf;
+import grondag.canvas.vf.VfBufferReference;
 
 public class DrawableRegion {
 	public static DrawableRegion EMPTY_DRAWABLE = new DrawableRegion.Dummy();
@@ -99,7 +103,19 @@ public class DrawableRegion {
 		assert collector.renderState.sorted == translucent;
 		final int vertexCount = collector.quadCount() * 4;
 		collector.toBuffer(intBuffer);
-		final DrawableDelegate delegate = DrawableDelegate.claim(collector.renderState, 0, vertexCount);
+
+		// WIP: ugly
+		VfBufferReference vfbr = null;
+
+		if (Configurator.vf) {
+			final int quadIntCount = collector.quadCount() * CanvasVertexFormats.MATERIAL_FORMAT_VF.vertexStrideInts;
+			final int[] vfData = new int[quadIntCount];
+			System.arraycopy(collector.vfTestHackData, 0, vfData, 0, quadIntCount);
+			vfbr = VfBufferReference.of(vfData);
+			Vf.QUADS.enqueue(vfbr);
+		}
+
+		final DrawableDelegate delegate = DrawableDelegate.claim(collector.renderState, 0, vertexCount, vfbr);
 		return new DrawableRegion(vboBuffer, delegate);
 	}
 }

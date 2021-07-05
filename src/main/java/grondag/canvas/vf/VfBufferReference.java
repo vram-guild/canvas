@@ -17,21 +17,16 @@
 package grondag.canvas.vf;
 
 import java.nio.IntBuffer;
-import java.util.function.BooleanSupplier;
 
-public class VfBufferReference implements VfBufferElement<VfBufferReference> {
+public abstract class VfBufferReference implements VfBufferElement<VfBufferReference>, AutoCloseable {
 	protected final int byteSize;
-	protected final BooleanSupplier closeFunc;
+	protected boolean isClosed = false;
 
 	protected int byteAddress;
-	protected BufferWriter writer;
 
-	public VfBufferReference(BufferWriter writer, int byteSize, BooleanSupplier closeFunc) {
-		this.writer = writer;
+	public VfBufferReference(int byteSize) {
 		this.byteSize = byteSize;
-		this.closeFunc = closeFunc;
 
-		assert writer != null;
 		assert byteSize != 0;
 		assert (byteSize & 3) == 0 : "Buffer size must be int-aligned";
 	}
@@ -47,26 +42,65 @@ public class VfBufferReference implements VfBufferElement<VfBufferReference> {
 	}
 
 	@Override
-	public void write(IntBuffer buff, int startIndex) {
-		if (writer != null) {
-			writer.write(buff, startIndex);
-			writer = null;
-		} else {
-			assert false : "Buffer write attempted more than once";
-		}
-	}
-
-	@Override
 	public int byteSize() {
 		return byteSize;
 	}
 
 	@Override
 	public boolean isClosed() {
-		return closeFunc.getAsBoolean();
+		return isClosed;
 	}
 
-	public static VfBufferReference of(BufferWriter writer, int byteSize, BooleanSupplier closeFunc) {
-		return new VfBufferReference(writer, byteSize, closeFunc);
+	@Override
+	public void close() {
+		isClosed = true;
+	}
+
+	private static class VfArrayBackedBufferReference extends VfBufferReference {
+		int[] data;
+
+		VfArrayBackedBufferReference(int[] data) {
+			super(data.length * 4);
+			this.data = data;
+		}
+
+		@Override
+		public void write(IntBuffer buff, int startIndex) {
+			if (data != null) {
+				buff.put(startIndex, data);
+				data = null;
+			} else {
+				assert false : "Buffer write attempted more than once";
+			}
+		}
+	}
+
+	private static class VfWriterBackedBufferReference extends VfBufferReference {
+		protected BufferWriter writer;
+
+		VfWriterBackedBufferReference(int byteSize, BufferWriter writer) {
+			super(byteSize);
+			this.writer = writer;
+
+			assert writer != null;
+		}
+
+		@Override
+		public void write(IntBuffer buff, int startIndex) {
+			if (writer != null) {
+				writer.write(buff, startIndex);
+				writer = null;
+			} else {
+				assert false : "Buffer write attempted more than once";
+			}
+		}
+	}
+
+	public static VfBufferReference of(int byteSize, BufferWriter writer) {
+		return new VfWriterBackedBufferReference(byteSize, writer);
+	}
+
+	public static VfBufferReference of(int[] data) {
+		return new VfArrayBackedBufferReference(data);
 	}
 }

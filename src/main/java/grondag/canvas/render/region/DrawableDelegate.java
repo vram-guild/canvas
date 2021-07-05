@@ -24,10 +24,13 @@ import net.minecraft.client.render.VertexFormat.DrawMode;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
+import grondag.canvas.vf.VfBufferReference;
 
 class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
 	private RenderState renderState;
+	private VfBufferReference vfbr;
+
 	private int vertexOffset;
 	private int vertexCount;
 	private boolean isReleased = false;
@@ -36,7 +39,7 @@ class DrawableDelegate {
 		super();
 	}
 
-	public static DrawableDelegate claim(RenderState renderState, int vertexOffset, int vertexCount) {
+	public static DrawableDelegate claim(RenderState renderState, int vertexOffset, int vertexCount, VfBufferReference vfbr) {
 		DrawableDelegate result = store.poll();
 
 		if (result == null) {
@@ -47,7 +50,12 @@ class DrawableDelegate {
 		result.vertexOffset = vertexOffset;
 		result.vertexCount = vertexCount;
 		result.isReleased = false;
+		result.vfbr = vfbr;
 		return result;
+	}
+
+	public VfBufferReference vfbr() {
+		return vfbr;
 	}
 
 	/**
@@ -79,6 +87,12 @@ class DrawableDelegate {
 		if (!isReleased) {
 			isReleased = true;
 			renderState = null;
+
+			if (vfbr != null) {
+				vfbr.close();
+				vfbr = null;
+			}
+
 			store.offer(this);
 		}
 	}
