@@ -113,7 +113,7 @@ public class DrawableRegion {
 			final ArrayVertexCollector collector = drawList.get(i);
 
 			if (collector.renderState.sorted == translucent) {
-				final int vertexCount = collector.vertexCount();
+				final int vertexCount = collector.quadCount() * 4;
 				collector.toBuffer(intBuffer);
 				delegates.add(DrawableDelegate.claim(collector.renderState, position, vertexCount));
 				position += vertexCount;

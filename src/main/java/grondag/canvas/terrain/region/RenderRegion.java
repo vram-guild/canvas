@@ -257,7 +257,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		if (protoRegion == SignalInputRegion.EMPTY) {
 			final RegionBuildState chunkData = new RegionBuildState();
-			chunkData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
+			chunkData.setOcclusionData(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
 			final RegionBuildState oldBuildData = buildState.getAndSet(chunkData);
@@ -372,7 +372,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 	private RegionBuildState captureBuildState(TerrainRenderContext context, boolean isNear) {
 		final RegionBuildState newBuildState = new RegionBuildState();
-		newBuildState.complete(context.region.occlusion.build(isNear));
+		newBuildState.setOcclusionData(context.region.occlusion.build(isNear));
 		handleBlockEntities(newBuildState, context);
 
 		// don't rebuild occlusion if occlusion did not change
@@ -449,7 +449,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		}
 
 		final Vec3d sortPos = worldRenderState.cameraVisibleRegions.lastSortPos();
-		regionData.endBuffering((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
+		regionData.prepareTranslucentIfNeeded((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();
@@ -503,7 +503,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		if (region == SignalInputRegion.EMPTY) {
 			final RegionBuildState regionData = new RegionBuildState();
-			regionData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
+			regionData.setOcclusionData(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
 			final RegionBuildState oldBuildData = buildState.getAndSet(regionData);

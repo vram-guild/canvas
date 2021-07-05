@@ -87,7 +87,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new InputRegion(this);
-		collectors = new VertexCollectorList();
+		collectors = new VertexCollectorList(Configurator.vf);
 	}
 
 	public TerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {

@@ -214,8 +214,6 @@ public final class CanvasVertexFormats {
 
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
 	public static CanvasVertexFormat MATERIAL_FORMAT_VF = COMPACT_MATERIAL_VF;
-	public static final int MATERIAL_INT_VERTEX_STRIDE = MATERIAL_FORMAT.vertexStrideInts;
-	public static final int MATERIAL_INT_QUAD_STRIDE = MATERIAL_FORMAT.quadStrideInts;
 	public static QuadTranscoder MATERIAL_TRANSCODER = COMPACT_TRANSCODER;
 	public static QuadEncoder MATERIAL_ENCODER = COMPACT_ENCODER;
 	public static QuadTranscoder TERRAIN_TRANSCODER = Configurator.vf ? VF_TRANSCODER : COMPACT_TRANSCODER;

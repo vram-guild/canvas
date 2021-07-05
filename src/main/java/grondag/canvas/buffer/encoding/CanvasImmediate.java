@@ -39,7 +39,7 @@ import grondag.frex.api.material.FrexVertexConsumerProvider;
 import grondag.frex.api.material.RenderMaterial;
 
 public class CanvasImmediate extends Immediate implements FrexVertexConsumerProvider {
-	public final VertexCollectorList collectors = new VertexCollectorList();
+	public final VertexCollectorList collectors = new VertexCollectorList(false);
 	public final RenderContextState contextState;
 
 	public CanvasImmediate(BufferBuilder fallbackBuffer, Map<RenderLayer, BufferBuilder> layerBuffers, RenderContextState contextState) {

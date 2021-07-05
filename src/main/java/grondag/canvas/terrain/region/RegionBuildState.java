@@ -47,8 +47,12 @@ public class RegionBuildState {
 		return blockEntities;
 	}
 
-	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
-		final ArrayVertexCollector buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
+	/**
+	 * Persists data for translucency resort if needed, also performing initial sort.
+	 * Should be called after vertex collection is complete.
+	 */
+	public void prepareTranslucentIfNeeded(float x, float y, float z, VertexCollectorList collectors) {
+		final ArrayVertexCollector buffer = collectors.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null && !buffer.isEmpty()) {
 			buffer.sortQuads(x, y, z, Configurator.vf);
@@ -60,7 +64,7 @@ public class RegionBuildState {
 		return occlusionData;
 	}
 
-	public void complete(int[] occlusionData) {
+	public void setOcclusionData(int[] occlusionData) {
 		this.occlusionData = occlusionData;
 	}
 
