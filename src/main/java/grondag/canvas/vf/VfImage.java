@@ -16,36 +16,36 @@
 
 package grondag.canvas.vf;
 
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.minecraft.util.math.MathHelper;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
 public final class VfImage<T extends VfElement<T>> {
+	private static final int PAGE_SIZE = 0x10000;
+
 	final AtomicInteger tail = new AtomicInteger();
+	final AtomicInteger lastPageIndex = new AtomicInteger();
+
 	private final int intsPerElement;
 	private final int bytesPerElement;
-	private final Class<T> clazz;
 
 	private int bufferId;
-	protected volatile T[] elements;
+	protected Object[][] elements = new Object[4096][];
 	private int head = 0;
 	private int imageCapacity;
+	boolean logging = false;
 
-	@SuppressWarnings("unchecked")
-	public VfImage(int expectedCapacity, int intsPerElement, Class<T> clazz) {
-		imageCapacity = expectedCapacity;
-		this.clazz = clazz;
-		elements = (T[]) Array.newInstance(clazz, expectedCapacity);
+	public VfImage(int intsPerElement) {
+		elements[0] = new Object[PAGE_SIZE];
+		imageCapacity = PAGE_SIZE;
 		this.intsPerElement = intsPerElement;
 		bytesPerElement = intsPerElement * 4;
 	}
@@ -55,56 +55,75 @@ public final class VfImage<T extends VfElement<T>> {
 			GFX.deleteBuffers(bufferId);
 			bufferId = 0;
 		}
+
+		Arrays.fill(elements, null);
 	}
 
 	public synchronized void clear() {
 		close();
 		Arrays.fill(elements, null);
+		elements[0] = new Object[PAGE_SIZE];
 		head = 0;
 		tail.set(0);
+		lastPageIndex.set(0);
 	}
 
 	int bufferId() {
 		return bufferId;
 	}
 
+	private Object[] getOrCreatePage(final int pageIndex) {
+		Object[] result = elements[pageIndex];
+		int tryCount = 0;
+
+		while (result == null) {
+			if ((++tryCount & 0xF) == 0xF) {
+				CanvasMod.LOG.info("Excessive retries in buffer texture page acquisition: " + tryCount);
+			}
+
+			final int lastPage = lastPageIndex.get();
+
+			if (lastPage < pageIndex) {
+				final int newPage = lastPage + 1;
+
+				if (lastPageIndex.compareAndSet(lastPage, newPage)) {
+					elements[newPage] = new Object[PAGE_SIZE];
+				}
+			}
+
+			result = elements[pageIndex];
+		}
+
+		return result;
+	}
+
+	/**
+	 * Thread-safe.
+	 */
 	public void add(T element) {
 		final int index = tail.getAndIncrement();
 		element.setIndex(index);
+		getOrCreatePage(index >> 16)[index & 0xFFFF] = element;
 
-		if (index >= elements.length) {
-			expand(MathHelper.smallestEncompassingPowerOfTwo(index + 1));
-		}
-
-		elements[index] = element;
-
-		//if (this.intsPerElement == 16 && (index & 0xFF) == 0xFF) {
-		//	System.out.println("vfVertex count: " + index + " / " + VfVertex.VERTEX.count.get());
+		//if (logging && (index & 0xFF) == 0xFF) {
+		//	System.out.println("vfLight count: " + index + " / " + VfInt.LIGHT.count.get());
 		//}
 	}
 
-	@SuppressWarnings("unchecked")
-	protected synchronized void expand(int newCapacity) {
-		if (newCapacity >= elements.length) {
-			VfElement<?>[] oldElements = elements;
-			elements = (T[]) Array.newInstance(clazz, newCapacity);
-			System.arraycopy(oldElements, 0, elements, 0, oldElements.length);
-		}
-	}
-
 	public synchronized boolean upload() {
-		final T[] elements = this.elements;
-		// could have threads waiting on expand so tail can overrun our array
-		final int limit = Math.min(elements.length - 1, this.tail.get());
-		int tail = head;
+		final int tail = this.tail.get();
+		int limit = head;
 
-		for (; tail < limit; ++tail) {
-			if (elements[tail] == null) {
+		// could have threads waiting on new pages or not yet written so tail can overrun our array
+		for (; limit < tail; ++limit) {
+			final Object[] page = elements[limit >> 16];
+
+			if (page == null || page[limit & 0xFFFF] == null) {
 				break;
 			}
 		}
 
-		final int len = tail - head;
+		final int len = limit - head;
 
 		assert len >= 0;
 
@@ -116,15 +135,15 @@ public final class VfImage<T extends VfElement<T>> {
 
 		if (bufferId == 0) {
 			// never buffered, adjust capacity if needed before we create it
-			imageCapacity = elements.length;
+			imageCapacity = (limit & 0xFFFF0000) + PAGE_SIZE;
 
 			bufferId = GFX.genBuffer();
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacity * bytesPerElement, GFX.GL_STATIC_DRAW);
 			didRecreate = true;
-		} else if (elements.length > imageCapacity) {
+		} else if (limit >= imageCapacity) {
 			// have a buffer but it is too small
-			imageCapacity = elements.length;
+			imageCapacity = (limit & 0xFFFF0000) + PAGE_SIZE;
 
 			final int newBufferId = GFX.genBuffer();
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, newBufferId);
@@ -149,13 +168,9 @@ public final class VfImage<T extends VfElement<T>> {
 			final IntBuffer iBuff = bBuff.asIntBuffer();
 
 			for (int i = 0; i < len; ++i) {
-				T element = elements[i + head];
-
-				// WIP: remove
-				if (element == null) {
-					System.out.println("the badness has happened");
-				}
-
+				final int index = i + head;
+				@SuppressWarnings("unchecked")
+				final T element = (T) elements[index >> 16][index & 0xFFFF];
 				element.write(iBuff, i * intsPerElement);
 			}
 

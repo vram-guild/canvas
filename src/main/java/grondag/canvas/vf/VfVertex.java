@@ -30,9 +30,12 @@ public class VfVertex extends VfTexture<VertexElement> {
 	private static final ThreadLocal<VertexElement> SEARCH_KEY = ThreadLocal.withInitial(VertexElement::new);
 
 	private VfVertex(int textureUnit, int imageFormat) {
-		super(textureUnit, imageFormat, 16, VertexElement.class);
+		super(textureUnit, imageFormat, 16);
 	}
 
+	/**
+	 * Thread-safe.
+	 */
 	public int index(final Matrix4fExt matrix, Matrix3fExt normalMatrix, MutableQuadViewImpl quad) {
 		//count.incrementAndGet();
 
@@ -44,6 +47,6 @@ public class VfVertex extends VfTexture<VertexElement> {
 	}
 
 	public VertexElement fromIndex(int index) {
-		return image.elements[index];
+		return (VertexElement) image.elements[index >> 16][index & 0xFFFF];
 	}
 }

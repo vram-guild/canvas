@@ -56,14 +56,13 @@ public abstract class NormalHelper {
 	}
 
 	/**
-	 * This format is easier to convert to a float vector in GLSL when received as an int.
+	 * This format is easier to convert to a float vector in GLSL when received as a 32-bit int.
 	 */
 	public static int shaderPackedNormal(int packedNormal) {
-		byte x = ((byte) (packedNormal & 0xFF));
-		byte y = ((byte) ((packedNormal >>> 8) & 0xFF));
-		byte z = ((byte) ((packedNormal >>> 16) & 0xFF));
-
-		return (x + 127) | ((y + 127) << 8) | ((z + 127) << 16);
+		final int x = ((byte) (packedNormal & 0xFF)) + 127;
+		final int y = ((byte) ((packedNormal >>> 8) & 0xFF)) + 127;
+		final int z = ((byte) ((packedNormal >>> 16) & 0xFF)) + 127;
+		return x | (y << 8) | (z << 16);
 	}
 
 	/**

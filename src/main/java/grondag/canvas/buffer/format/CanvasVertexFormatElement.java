@@ -26,8 +26,8 @@ public class CanvasVertexFormatElement {
 	public static final CanvasVertexFormatElement VERTEX_VF = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.UINT, 1, "in_vertex_vf", false, true);
 
-	public static final CanvasVertexFormatElement PAD0_VF = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.UINT, 1, "in_pad0_vf", false, true);
+	public static final CanvasVertexFormatElement BASE_LIGHT_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_light_vf", false, true);
 
 	public static final CanvasVertexFormatElement BASE_RGBA_VF = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.UINT, 1, "in_color_vf", false, true);
@@ -35,11 +35,11 @@ public class CanvasVertexFormatElement {
 	public static final CanvasVertexFormatElement BASE_TEX_VF = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.UINT, 1, "in_uv_vf", false, true);
 
-	public static final CanvasVertexFormatElement MATERIAL_1US_PAD_VF = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.USHORT, 1, "in_material_pad_vf", false, true);
+	public static final CanvasVertexFormatElement PAD0_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_pad0_vf", false, true);
 
-	public static final CanvasVertexFormatElement NORMAL_3B_PAD_FV = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.BYTE, 3, "in_normal_pad_vf", true, false);
+	public static final CanvasVertexFormatElement PAD1_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_pad1_vf", false, true);
 
 	/////
 

@@ -39,7 +39,8 @@ public class VfTexture<T extends VfElement<T>> {
 	protected VfImage<T> image = null;
 	private boolean active = false;
 	private int imageFormat;
-	private Class<T> clazz;
+
+	boolean logging = false;
 
 	protected final Function<T, T> mapFunc = k -> {
 		createImageIfNeeded();
@@ -48,11 +49,10 @@ public class VfTexture<T extends VfElement<T>> {
 		return result;
 	};
 
-	public VfTexture(int textureUnit, int imageFormat, int intsPerElement, Class<T> clazz) {
+	public VfTexture(int textureUnit, int imageFormat, int intsPerElement) {
 		this.textureUnit = textureUnit;
 		this.imageFormat = imageFormat;
 		this.intsPerElement = intsPerElement;
-		this.clazz = clazz;
 	}
 
 	public void clear() {
@@ -73,7 +73,8 @@ public class VfTexture<T extends VfElement<T>> {
 	protected void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new VfImage<>(0x10000, intsPerElement, clazz);
+				image = new VfImage<>(intsPerElement);
+				image.logging = logging;
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create vf texture due to error:", e);
 				image = null;

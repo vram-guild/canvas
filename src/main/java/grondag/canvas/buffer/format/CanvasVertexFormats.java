@@ -17,6 +17,7 @@
 package grondag.canvas.buffer.format;
 
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.AO_1UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_LIGHT_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_4UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2F;
@@ -25,10 +26,9 @@ import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_VF
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.HEADER_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US_PAD_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B_PAD_FV;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.PAD0_VF;
+import static grondag.canvas.buffer.format.CanvasVertexFormatElement.PAD1_VF;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.VERTEX_VF;
 
@@ -65,15 +65,7 @@ public final class CanvasVertexFormats {
 	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	// WIP: remove at end
-	//private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
-	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, PAD0_VF, BASE_RGBA_VF, BASE_TEX_VF, LIGHTMAPS_2UB, MATERIAL_1US_PAD_VF, NORMAL_3B_PAD_FV, AO_1UB);
-	// MATERIAL_REGION_POS
-	// POS_NORMAL
-	// PADDING 1
-	// +BASE_RGBA_VF
-	// +BASE_TEX_VF
-	// LIGHT
-	// PADDING 2
+	private static final CanvasVertexFormat COMPACT_MATERIAL_VF = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_LIGHT_VF, BASE_RGBA_VF, BASE_TEX_VF, PAD0_VF, PAD1_VF);
 
 	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
 
@@ -180,17 +172,6 @@ public final class CanvasVertexFormats {
 
 		assert mat.blendMode != BlendMode.DEFAULT;
 
-		int packedNormal = 0;
-		int transformedNormal = 0;
-		final boolean useNormals = quad.hasVertexNormals();
-
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-			transformedNormal = normalMatrix.canvas_transform(packedNormal);
-		}
-
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
 		int k = buff.allocate(COMPACT_QUAD_STRIDE);
@@ -206,33 +187,28 @@ public final class CanvasVertexFormats {
 
 		final int vfVertex = VfVertex.VERTEX.index(matrix, normalMatrix, quad) << 2;
 
+		final int packedLight0 = quad.lightmap(0);
+		final int light0 = (packedLight0 & 0xFF) | ((packedLight0 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[0] * 255))) << 16);
+
+		final int packedLight1 = quad.lightmap(1);
+		final int light1 = (packedLight1 & 0xFF) | ((packedLight1 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[1] * 255))) << 16);
+
+		final int packedLight2 = quad.lightmap(2);
+		final int light2 = (packedLight2 & 0xFF) | ((packedLight2 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[2] * 255))) << 16);
+
+		final int packedLight3 = quad.lightmap(3);
+		final int light3 = (packedLight3 & 0xFF) | ((packedLight3 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[3] * 255))) << 16);
+
+		final int vfLight = VfInt.LIGHT.index(light0, light1, light2, light3) << 2;
+
 		for (int i = 0; i < 4; i++) {
 			target[k++] = material | context.packedRelativeBlockPos();
 			target[k++] = vfVertex | i;
-			target[k++] = 0;
-
-			//quad.transformAndAppendVertex(i, matrix, target, k);
-			//k += 3;
-
+			target[k++] = vfLight | i;
 			target[k++] = vfColor | i;
 			target[k++] = vfUv | i;
-
-			final int packedLight = quad.lightmap(i);
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
-			final int ao = aoData == null ? 255 : (Math.round(aoData[i] * 255));
-			target[k++] = blockLight | (skyLight << 8);
-
-			if (useNormals) {
-				final int p = quad.packedNormal(i);
-
-				if (p != packedNormal) {
-					packedNormal = p;
-					transformedNormal = normalMatrix.canvas_transform(packedNormal);
-				}
-			}
-
-			target[k++] = transformedNormal | (ao << 24);
+			target[k++] = 0;
+			target[k++] = 0;
 		}
 	};
 

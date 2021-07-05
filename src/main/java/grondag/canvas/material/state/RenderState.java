@@ -39,8 +39,7 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.vf.VfInt;
-import grondag.canvas.vf.VfVertex;
+import grondag.canvas.vf.Vf;
 import grondag.fermion.bits.BitPacker64;
 
 /**
@@ -129,11 +128,7 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		texture.materialIndexProvider().enable();
 
-		if (vf) {
-			VfInt.COLOR.enable();
-			VfInt.UV.enable();
-			VfVertex.VERTEX.enable();
-		}
+		Vf.enable();
 
 		texture.enable(blur);
 		transparency.enable();
@@ -192,9 +187,7 @@ public final class RenderState extends AbstractRenderState {
 		texture.materialIndexProvider().enable();
 
 		if (shader.programType.vf) {
-			VfInt.COLOR.enable();
-			VfInt.UV.enable();
-			VfVertex.VERTEX.enable();
+			Vf.enable();
 			assert MatrixState.get() == MatrixState.REGION;
 		}
 
@@ -276,12 +269,7 @@ public final class RenderState extends AbstractRenderState {
 		MaterialTextureState.disable();
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		MaterialIndexTexture.disable();
-
-		if (Configurator.vf) {
-			VfInt.COLOR.disable();
-			VfInt.UV.disable();
-			VfVertex.VERTEX.disable();
-		}
+		Vf.disable();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);

@@ -57,6 +57,12 @@ public class GFX extends GL46C {
 		return true;
 	}
 
+	// FIX: VaoTracker should be removed or disabled because it isn't finding anything useful.
+	// And should consider disabling disableVertexAttribArray from vanilla code because both vanilla
+	// and Canvas always use VAOs for drawing, and neither one reuses the same VAO with different formats.
+	// That makes it unnecessary to ever call this method, but Mojang does.  They also hold the last format
+	// used as global state in BufferRenderer and lazily disable, which can cause problems if anyone else does
+	// anything with VAOs.
 	public static void disableVertexAttribArray(int index) {
 		VaoTracker.disable(index);
 		glDisableVertexAttribArray(index);
