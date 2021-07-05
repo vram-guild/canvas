@@ -494,7 +494,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
+
+		// Stuff here should probably expect identity matrix. If not, move matrix operations to relevant compat holders.
+		eventContext.matrixStack().push();
+		eventContext.matrixStack().loadIdentity();
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
+		eventContext.matrixStack().pop();
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
 

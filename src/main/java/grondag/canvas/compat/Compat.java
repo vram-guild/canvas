@@ -45,7 +45,10 @@ public class Compat {
 			GOMLHolder.HANDLER.render(ctx);
 			CampanionHolder.HANDLER.render(ctx);
 			//SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
+
+			// Expects an identity matrix stack
 			LitematicaHolder.litematicaEntityHandler.handle(ctx.matrixStack(), ctx.tickDelta());
+
 			DynocapsHolder.handler.render(ctx.profiler(), ctx.matrixStack(), (Immediate) ctx.consumers(), ctx.camera().getPos());
 		});
 
