@@ -21,13 +21,17 @@ import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.vf.index.VfInt;
 import grondag.canvas.vf.index.VfVertex;
+import grondag.canvas.vf.storage.VfStorageReference;
+import grondag.canvas.vf.storage.VfStorageTexture;
+import grondag.canvas.vf.stream.VfStreamTexture;
 
 public class Vf {
 	public static final VfInt UV = new VfInt(TextureData.VF_UV, GFX.GL_RG16);
 	public static final VfInt COLOR = new VfInt(TextureData.VF_COLOR, GFX.GL_RGBA8);
 	public static final VfInt LIGHT = new VfInt(TextureData.VF_LIGHT, GFX.GL_RGBA8);
 	public static final VfVertex VERTEX = new VfVertex(TextureData.VF_VERTEX, GFX.GL_RGBA32I);
-	public static final VfBufferTexture<VfBufferReference> QUADS = new VfBufferTexture<>(TextureData.VF_QUADS, GFX.GL_RGBA32I, 0x8000000);
+	public static final VfStorageTexture<VfStorageReference> QUADS = new VfStorageTexture<>(TextureData.VF_QUADS, GFX.GL_RGBA32I, 0x8000000);
+	public static final VfStreamTexture REGIONS = new VfStreamTexture(TextureData.VF_REGIONS, GFX.GL_RGBA32I, 0x10000);
 
 	public static void upload() {
 		if (Configurator.vf) {

@@ -48,5 +48,6 @@ public class TextureData {
 	public static final int VF_UV = VF_COLOR + 1;
 	public static final int VF_VERTEX = VF_UV + 1;
 	public static final int VF_LIGHT = VF_VERTEX + 1;
-	public static final int PROGRAM_SAMPLERS = VF_LIGHT + 1;
+	public static final int VF_REGIONS = VF_LIGHT + 1;
+	public static final int PROGRAM_SAMPLERS = VF_REGIONS + 1;
 }

@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.storage;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -25,18 +25,18 @@ import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public class VfBufferTexture<T extends VfBufferElement<T>> {
+public class VfStorageTexture<T extends VfStorageElement<T>> {
 	private final int textureUnit;
 	private final int expectedCapacity;
 
 	private int glId = 0;
-	protected VfBufferImage<T> image = null;
+	protected VfStorageImage<T> image = null;
 	private boolean active = false;
 	private int imageFormat;
 
 	boolean logging = false;
 
-	public VfBufferTexture(int textureUnit, int imageFormat, int expectedCapacity) {
+	public VfStorageTexture(int textureUnit, int imageFormat, int expectedCapacity) {
 		this.textureUnit = textureUnit;
 		this.imageFormat = imageFormat;
 		this.expectedCapacity = expectedCapacity;
@@ -65,7 +65,7 @@ public class VfBufferTexture<T extends VfBufferElement<T>> {
 	protected void createImageIfNeeded() {
 		if (image == null) {
 			try {
-				image = new VfBufferImage<>(expectedCapacity);
+				image = new VfStorageImage<>(expectedCapacity);
 				image.logging = logging;
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn("Unable to create vf texture due to error:", e);

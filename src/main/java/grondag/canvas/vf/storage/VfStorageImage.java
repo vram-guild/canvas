@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.storage;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -31,7 +31,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public final class VfBufferImage<T extends VfBufferElement<T>> {
+public final class VfStorageImage<T extends VfStorageElement<T>> {
 	private ObjectArrayList<T> elements = new ObjectArrayList<>();
 	private final ObjectArrayList<T> addedElements = new ObjectArrayList<>();
 	private final ConcurrentLinkedQueue<T> queue = new ConcurrentLinkedQueue<>();
@@ -41,7 +41,7 @@ public final class VfBufferImage<T extends VfBufferElement<T>> {
 	private int imageCapacityBytes;
 	boolean logging = false;
 
-	public VfBufferImage(int imageCapacityBytes) {
+	public VfStorageImage(int imageCapacityBytes) {
 		this.imageCapacityBytes = imageCapacityBytes;
 	}
 

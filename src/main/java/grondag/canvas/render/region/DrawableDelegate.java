@@ -25,12 +25,12 @@ import net.minecraft.client.render.VertexFormat.DrawMode;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.vf.VfBufferReference;
+import grondag.canvas.vf.storage.VfStorageReference;
 
 class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
 	private RenderState renderState;
-	private VfBufferReference vfbr;
+	private VfStorageReference vfbr;
 
 	private int vertexOffset;
 	private int vertexCount;
@@ -40,7 +40,7 @@ class DrawableDelegate {
 		super();
 	}
 
-	public static DrawableDelegate claim(RenderState renderState, int vertexOffset, int vertexCount, VfBufferReference vfbr) {
+	public static DrawableDelegate claim(RenderState renderState, int vertexOffset, int vertexCount, VfStorageReference vfbr) {
 		DrawableDelegate result = store.poll();
 
 		if (result == null) {
@@ -55,7 +55,7 @@ class DrawableDelegate {
 		return result;
 	}
 
-	public VfBufferReference vfbr() {
+	public VfStorageReference vfbr() {
 		return vfbr;
 	}
 

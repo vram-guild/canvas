@@ -30,7 +30,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.vf.Vf;
-import grondag.canvas.vf.VfBufferReference;
+import grondag.canvas.vf.storage.VfStorageReference;
 
 // WIP: need this thing?
 public class DrawableRegion {
@@ -103,13 +103,13 @@ public class DrawableRegion {
 		assert collector.renderState.sorted == translucent;
 
 		// WIP: ugly
-		VfBufferReference vfbr = null;
+		VfStorageReference vfbr = null;
 
 		if (Configurator.vf) {
 			final int quadIntCount = collector.quadCount() * CanvasVertexFormats.MATERIAL_FORMAT_VF.vertexStrideInts;
 			final int[] vfData = new int[quadIntCount];
 			System.arraycopy(collector.data(), 0, vfData, 0, quadIntCount);
-			vfbr = VfBufferReference.of(vfData);
+			vfbr = VfStorageReference.of(vfData);
 			Vf.QUADS.enqueue(vfbr);
 		} else {
 			final IntBuffer intBuffer = vboBuffer.intBuffer();

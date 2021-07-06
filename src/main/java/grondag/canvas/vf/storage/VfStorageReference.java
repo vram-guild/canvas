@@ -14,17 +14,19 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.storage;
 
 import java.nio.IntBuffer;
 
-public abstract class VfBufferReference implements VfBufferElement<VfBufferReference>, AutoCloseable {
+import grondag.canvas.vf.BufferWriter;
+
+public abstract class VfStorageReference implements VfStorageElement<VfStorageReference>, AutoCloseable {
 	protected final int byteSize;
 	protected boolean isClosed = false;
 
 	protected int byteAddress;
 
-	public VfBufferReference(int byteSize) {
+	public VfStorageReference(int byteSize) {
 		this.byteSize = byteSize;
 
 		assert byteSize != 0;
@@ -56,7 +58,7 @@ public abstract class VfBufferReference implements VfBufferElement<VfBufferRefer
 		isClosed = true;
 	}
 
-	private static class VfArrayBackedBufferReference extends VfBufferReference {
+	private static class VfArrayBackedBufferReference extends VfStorageReference {
 		int[] data;
 
 		VfArrayBackedBufferReference(int[] data) {
@@ -75,7 +77,7 @@ public abstract class VfBufferReference implements VfBufferElement<VfBufferRefer
 		}
 	}
 
-	private static class VfWriterBackedBufferReference extends VfBufferReference {
+	private static class VfWriterBackedBufferReference extends VfStorageReference {
 		protected BufferWriter writer;
 
 		VfWriterBackedBufferReference(int byteSize, BufferWriter writer) {
@@ -96,11 +98,11 @@ public abstract class VfBufferReference implements VfBufferElement<VfBufferRefer
 		}
 	}
 
-	public static VfBufferReference of(int byteSize, BufferWriter writer) {
+	public static VfStorageReference of(int byteSize, BufferWriter writer) {
 		return new VfWriterBackedBufferReference(byteSize, writer);
 	}
 
-	public static VfBufferReference of(int[] data) {
+	public static VfStorageReference of(int[] data) {
 		return new VfArrayBackedBufferReference(data);
 	}
 }

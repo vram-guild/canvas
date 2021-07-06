@@ -14,18 +14,6 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.vf.stream;
 
-import java.nio.IntBuffer;
-
-public interface VfBufferElement<T extends VfBufferElement<T>> {
-	void setByteAddress(int address);
-
-	int getByteAddress();
-
-	void write(IntBuffer buff, int startIndex);
-
-	int byteSize();
-
-	boolean isClosed();
-}
+record VfStreamSpec(int textureUnit, int imageFormat, int imageCapacityBytes) { };
