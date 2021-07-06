@@ -38,9 +38,6 @@ public class ArrayVertexCollector implements VertexCollector {
 	private final int[] swapData;
 	private boolean didSwap = false;
 
-	// WIP: remove
-	public int[] vfTestHackData;
-
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	private int integerSize = 0;
 
@@ -49,8 +46,8 @@ public class ArrayVertexCollector implements VertexCollector {
 	public ArrayVertexCollector(RenderState renderState, boolean vf) {
 		this.renderState = renderState;
 		this.vf = vf;
-		vfTestHackData = vf ? new int[capacity / 4] : null;
-		quadStrideInts = vf ? CanvasVertexFormats.MATERIAL_FORMAT_VF.quadStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
+		// VF quads use vertex stride because of indexing
+		quadStrideInts = vf ? CanvasVertexFormats.MATERIAL_FORMAT_VF.vertexStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
@@ -66,12 +63,6 @@ public class ArrayVertexCollector implements VertexCollector {
 			arryBytes.addAndGet(newCapacity - oldCapacity);
 			capacity = newCapacity;
 			vertexData = newData;
-
-			if (vf) {
-				final int[] newHackData = new int[newCapacity / 4];
-				System.arraycopy(vfTestHackData, 0, newHackData, 0, oldCapacity / 4);
-				vfTestHackData = newHackData;
-			}
 		}
 	}
 
@@ -122,7 +113,6 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	public boolean sortQuads(float x, float y, float z, boolean vf) {
 		final int quadCount = quadCount();
-		final int vertexStrideInts = quadStrideInts / 4;
 
 		if (perQuadDistance.length < quadCount) {
 			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
@@ -130,11 +120,11 @@ public class ArrayVertexCollector implements VertexCollector {
 
 		if (vf) {
 			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = getDistanceSqVf(x, y, z, vertexStrideInts, j);
+				perQuadDistance[j] = getDistanceSqVf(x, y, z, j);
 			}
 		} else {
 			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = getDistanceSq(x, y, z, vertexStrideInts, j);
+				perQuadDistance[j] = getDistanceSq(x, y, z, j);
 			}
 		}
 
@@ -174,9 +164,11 @@ public class ArrayVertexCollector implements VertexCollector {
 		}
 	};
 
-	private float getDistanceSq(float x, float y, float z, int integerStride, int vertexIndex) {
+	private float getDistanceSq(float x, float y, float z, int quadIndex) {
+		final int integerStride = quadStrideInts / 4;
+
 		// unpack vertex coordinates
-		int i = vertexIndex * integerStride * 4;
+		int i = quadIndex * quadStrideInts;
 		final float x0 = Float.intBitsToFloat(vertexData[i]);
 		final float y0 = Float.intBitsToFloat(vertexData[i + 1]);
 		final float z0 = Float.intBitsToFloat(vertexData[i + 2]);
@@ -204,10 +196,9 @@ public class ArrayVertexCollector implements VertexCollector {
 		return dx * dx + dy * dy + dz * dz;
 	}
 
-	// WIP: correct after switch
-	private float getDistanceSqVf(float x, float y, float z, int integerStride, int vertexIndex) {
+	private float getDistanceSqVf(float x, float y, float z, int quadIndex) {
 		// unpack vertex coordinates
-		final int i = vertexIndex * integerStride * 4;
+		final int i = quadIndex * quadStrideInts;
 
 		final int blockOffset = vertexData[i];
 		final int bx = blockOffset & 0xF;

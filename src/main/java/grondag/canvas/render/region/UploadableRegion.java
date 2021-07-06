@@ -22,17 +22,13 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 
 public class UploadableRegion {
-	public static final UploadableRegion EMPTY_UPLOADABLE = new UploadableRegion() {
-		@Override
-		public DrawableRegion produceDrawable() {
-			return DrawableRegion.EMPTY_DRAWABLE;
-		}
-	};
+	public static final UploadableRegion EMPTY_UPLOADABLE = new UploadableRegion();
+
 	protected final VboBuffer vboBuffer;
 	protected final DrawableRegion drawable;
 
 	public UploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes) {
-		vboBuffer = new VboBuffer(bytes, Configurator.vf ? CanvasVertexFormats.MATERIAL_FORMAT_VF : CanvasVertexFormats.MATERIAL_FORMAT);
+		vboBuffer = Configurator.vf ? null : new VboBuffer(bytes, CanvasVertexFormats.MATERIAL_FORMAT);
 		drawable = DrawableRegion.pack(collectorList, vboBuffer, sorted, bytes);
 	}
 
@@ -45,7 +41,10 @@ public class UploadableRegion {
 	 * Will be called from client thread - is where flush/unmap needs to happen.
 	 */
 	public DrawableRegion produceDrawable() {
-		vboBuffer.upload();
+		if (vboBuffer != null) {
+			vboBuffer.upload();
+		}
+
 		return drawable;
 	}
 }

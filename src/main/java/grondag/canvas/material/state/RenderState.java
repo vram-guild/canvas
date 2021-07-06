@@ -110,10 +110,11 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	private void enableDepthPass(int x, int y, int z, int cascade, int vfHack) {
-		final boolean vf = Configurator.vf && MatrixState.get() == MatrixState.REGION;
+		final MatrixState matrixState = MatrixState.get();
+		final boolean vf = Configurator.vf && matrixState == MatrixState.REGION;
 		final MaterialShaderImpl depthShader = vf ? vfDepthShader : this.depthShader;
 
-		if (shadowActive == this) {
+		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
 			depthShader.setModelOrigin(x, y, z, vfHack);
 			depthShader.setCascade(cascade);
 			return;
@@ -125,10 +126,14 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		shadowActive = this;
+		shadowCurrentMatrixState = matrixState;
 		active = null;
+		currentMatrixState = null;
 		texture.materialIndexProvider().enable();
 
-		Vf.enable();
+		if (vf) {
+			Vf.enable();
+		}
 
 		texture.enable(blur);
 		transparency.enable();
@@ -155,10 +160,13 @@ public final class RenderState extends AbstractRenderState {
 
 	private void enableMaterial(int x, int y, int z, int vfHack) {
 		final MaterialShaderImpl shader;
+		final MatrixState matrixState = MatrixState.get();
+		boolean vf = false;
 
-		switch (MatrixState.get()) {
+		switch (matrixState) {
 			case REGION:
-				shader = Configurator.vf ? vfShader : this.shader;
+				vf = Configurator.vf;
+				shader = vf ? vfShader : this.shader;
 				break;
 			case SCREEN:
 				shader = guiShader;
@@ -169,7 +177,7 @@ public final class RenderState extends AbstractRenderState {
 				break;
 		}
 
-		if (active == this) {
+		if (active == this && matrixState == currentMatrixState) {
 			shader.setModelOrigin(x, y, z, vfHack);
 			return;
 		}
@@ -183,12 +191,13 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		active = this;
+		currentMatrixState = matrixState;
 		shadowActive = null;
+		shadowCurrentMatrixState = null;
 		texture.materialIndexProvider().enable();
 
-		if (shader.programType.vf) {
+		if (vf) {
 			Vf.enable();
-			assert MatrixState.get() == MatrixState.REGION;
 		}
 
 		if (Pipeline.shadowMapDepth != -1) {
@@ -254,6 +263,8 @@ public final class RenderState extends AbstractRenderState {
 
 		active = null;
 		shadowActive = null;
+		currentMatrixState = null;
+		shadowCurrentMatrixState = null;
 
 		GFX.glDisable(GFX.GL_POLYGON_OFFSET_FILL);
 		GFX.glCullFace(GFX.GL_BACK);
@@ -287,6 +298,8 @@ public final class RenderState extends AbstractRenderState {
 
 	private static RenderState active = null;
 	private static RenderState shadowActive = null;
+	private static MatrixState currentMatrixState = null;
+	private static MatrixState shadowCurrentMatrixState = null;
 
 	public static final RenderState MISSING = new RenderState(0);
 

@@ -25,16 +25,28 @@ public class TextureData {
 	public static final int MC_LIGHTMAP = GL21.GL_TEXTURE2;
 
 	// NB: texture 3 seems to be used by something
-	public static final int HD_LIGHTMAP = GL21.GL_TEXTURE4;
-	//public static final int DITHER = GL21.GL_TEXTURE5;
-	public static final int VF_QUADS = GL21.GL_TEXTURE6;
-	public static final int MATERIAL_INFO = GL21.GL_TEXTURE7;
-	public static final int VF_COLOR = GL21.GL_TEXTURE8;
-	public static final int VF_UV = GL21.GL_TEXTURE9;
-	public static final int VF_VERTEX = GL21.GL_TEXTURE10;
-	public static final int VF_LIGHT = GL21.GL_TEXTURE11;
+	//	public static final int HD_LIGHTMAP = GL21.GL_TEXTURE4;
+	//	//public static final int DITHER = GL21.GL_TEXTURE5;
+	//	public static final int VF_QUADS = GL21.GL_TEXTURE6;
+	//	public static final int MATERIAL_INFO = GL21.GL_TEXTURE7;
+	//	public static final int VF_COLOR = GL21.GL_TEXTURE8;
+	//	public static final int VF_UV = GL21.GL_TEXTURE9;
+	//	public static final int VF_VERTEX = GL21.GL_TEXTURE10;
+	//	public static final int VF_LIGHT = GL21.GL_TEXTURE11;
+	//	// want these outside of the range managed by Mojang's damn GlStateManager
+	//	public static final int SHADOWMAP = GL21.GL_TEXTURE12;
+	//	public static final int SHADOWMAP_TEXTURE = GL21.GL_TEXTURE13;
+	//	public static final int PROGRAM_SAMPLERS = GL21.GL_TEXTURE14;
+
 	// want these outside of the range managed by Mojang's damn GlStateManager
 	public static final int SHADOWMAP = GL21.GL_TEXTURE12;
-	public static final int SHADOWMAP_TEXTURE = GL21.GL_TEXTURE13;
-	public static final int PROGRAM_SAMPLERS = GL21.GL_TEXTURE14;
+	public static final int SHADOWMAP_TEXTURE = SHADOWMAP + 1;
+	public static final int HD_LIGHTMAP = SHADOWMAP_TEXTURE + 1;
+	public static final int VF_QUADS = HD_LIGHTMAP + 1;
+	public static final int MATERIAL_INFO = VF_QUADS + 1;
+	public static final int VF_COLOR = MATERIAL_INFO + 1;
+	public static final int VF_UV = VF_COLOR + 1;
+	public static final int VF_VERTEX = VF_UV + 1;
+	public static final int VF_LIGHT = VF_VERTEX + 1;
+	public static final int PROGRAM_SAMPLERS = VF_LIGHT + 1;
 }

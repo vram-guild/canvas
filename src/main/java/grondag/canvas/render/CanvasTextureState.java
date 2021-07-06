@@ -23,7 +23,7 @@ import grondag.canvas.varia.GFX;
  * anything that is not GL_TEXTURE_2D or more than 12 texture units.
  */
 public class CanvasTextureState {
-	private static final int MAX_TEXTURES = 16;
+	private static final int MAX_TEXTURES = 64;
 	private static final int[] BOUND_TEXTURES = new int[MAX_TEXTURES];
 	private static int activeTextureUnit = 0;
 
@@ -53,14 +53,14 @@ public class CanvasTextureState {
 	}
 
 	public static void activeTextureUnit(int textureUnit) {
-		if (activeTextureUnit != textureUnit - '蓀') {
-			activeTextureUnit = textureUnit - '蓀';
+		if (activeTextureUnit != textureUnit - GFX.GL_TEXTURE0) {
+			activeTextureUnit = textureUnit - GFX.GL_TEXTURE0;
 			GFX.activeTexture(textureUnit);
 		}
 	}
 
 	public static int activeTextureUnit() {
-		return activeTextureUnit + '蓀';
+		return activeTextureUnit + GFX.GL_TEXTURE0;
 	}
 
 	public static void deleteTextures(int[] textures) {

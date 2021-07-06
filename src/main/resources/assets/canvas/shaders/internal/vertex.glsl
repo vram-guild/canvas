@@ -34,7 +34,6 @@
 			ivec4 q = texelFetch(_cvu_vfQuads, _cvu_vf_hack + quadID);
 			in_material = (q.x >> 12) & 0xFFFF;
 
-
 			ivec4 vfv = texelFetch(_cvu_vfVertex, ((q.y & 0xFFFFFF) << 2) + v);
 			in_vertex = intBitsToFloat(vfv.xyz) + vec3(q.x & 0xF, (q.x >> 4) & 0xF, (q.x >> 8) & 0xF);
 			in_normal = (vec3(vfv.w & 0xFF, (vfv.w >> 8) & 0xFF, (vfv.w >> 16) & 0xFF) - 127.0) / 127.0;

@@ -34,7 +34,6 @@ import net.minecraft.client.MinecraftClient;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.QuadEncoder;
 import grondag.canvas.buffer.encoding.QuadTranscoder;
 import grondag.canvas.config.Configurator;
@@ -63,11 +62,12 @@ public final class CanvasVertexFormats {
 	 */
 	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
-	// WIP: remove at end
+	// WIP: remove at end?
 	private static final CanvasVertexFormat VF_MATERIAL = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_RGBA_VF, BASE_TEX_VF);
 
 	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
-	private static final int VF_QUAD_STRIDE = VF_MATERIAL.quadStrideInts;
+	// Note the vertex stride is the effective quad stride because of indexing
+	private static final int VF_QUAD_STRIDE = VF_MATERIAL.vertexStrideInts;
 
 	private static final QuadEncoder COMPACT_ENCODER = (quad, buff) -> {
 		final RenderMaterialImpl mat = quad.material();
@@ -176,11 +176,8 @@ public final class CanvasVertexFormats {
 
 		final int material = mat.dongle().index(quad.spriteId()) << 12;
 
-		int k = buff.allocate(VF_QUAD_STRIDE);
+		int n = buff.allocate(VF_QUAD_STRIDE);
 		final int[] target = buff.data();
-
-		final int[] quadTarget = ((ArrayVertexCollector) buff).vfTestHackData;
-		int n = k / 4;
 
 		final int vfColor = Vf.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3));
 
@@ -220,17 +217,10 @@ public final class CanvasVertexFormats {
 
 		// Light is striped across the last three components so we can stay within four int components.
 		// This is also convenient if we ever want to skip sending light.
-		quadTarget[n++] = material | packedRelPos;
-		quadTarget[n++] = vfVertex | l0;
-		quadTarget[n++] = vfColor | l1;
-		quadTarget[n++] = vfUv | l2;
-
-		for (int i = 0; i < 4; i++) {
-			target[k++] = material | packedRelPos | (i << 28);
-			target[k++] = vfVertex | l0;
-			target[k++] = vfColor | l1;
-			target[k++] = vfUv | l2;
-		}
+		target[n++] = material | packedRelPos;
+		target[n++] = vfVertex | l0;
+		target[n++] = vfColor | l1;
+		target[n++] = vfUv | l2;
 	};
 
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
