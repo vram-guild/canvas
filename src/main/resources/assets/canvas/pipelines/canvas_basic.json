@@ -6,9 +6,9 @@
 		vertexSource: "canvas:shaders/pipeline/standard.vert",
 		fragmentSource: "canvas:shaders/pipeline/standard.frag",
 		// glsl names for samplers additive to the FREX pre-defined samplers
-		samplers: [],
+		samplers: ["cvu_glint"],
 		// image names for samplers additive to the FREX pre-defined samplers
-		samplerImages: []
+		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"]
 	},
 
 	drawTargets: {
