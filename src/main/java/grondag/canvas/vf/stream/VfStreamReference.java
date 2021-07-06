@@ -17,6 +17,7 @@
 package grondag.canvas.vf.stream;
 
 import grondag.canvas.render.CanvasTextureState;
+import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
@@ -68,6 +69,7 @@ public class VfStreamReference implements AutoCloseable {
 		if (isClosed) {
 			assert false : "Attempt to bind closed stream reference";
 		} else {
+			MaterialShaderImpl.regionBufferOffset = byteAddress / 16;
 			CanvasTextureState.activeTextureUnit(holder.spec.textureUnit());
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, holder.textureId);
 			GFX.texBuffer(holder.spec.imageFormat(), holder.bufferId);

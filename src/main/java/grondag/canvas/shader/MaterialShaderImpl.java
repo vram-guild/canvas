@@ -49,12 +49,16 @@ public final class MaterialShaderImpl {
 		return result;
 	}
 
+	// WIP: remove
+	public static int regionBufferOffset;
+	public static int regionIndex;
+
 	public void setModelOrigin(int x, int y, int z, int vfHack) {
 		getOrCreate().activate();
 		program.setModelOrigin(x, y, z);
 
 		if (Configurator.vf) {
-			program.vfHack.set(vfHack);
+			program.vfHack.set(vfHack, regionBufferOffset, regionIndex);
 			program.vfHack.upload();
 		}
 	}

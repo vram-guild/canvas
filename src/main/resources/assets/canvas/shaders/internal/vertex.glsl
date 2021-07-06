@@ -17,7 +17,10 @@
 		uniform isamplerBuffer _cvu_vfQuads;
 		uniform isamplerBuffer _cvu_vfRegions;
 
-		uniform int _cvu_vf_hack;
+		// x was region quad offset - no longer used
+		// y is base region index - will remain
+		// z is region index
+		uniform ivec3 _cvu_vf_hack;
 
 		int in_material;
 		vec3 in_vertex;
@@ -29,13 +32,13 @@
 
 		void _cv_prepareForVertex() {
 			// WIP: get correct region index
-			vec4 region = texelFetch(_cvu_vfQuads, 0);
+			ivec4 region = texelFetch(_cvu_vfRegions, _cvu_vf_hack.y + _cvu_vf_hack.z);
 
 			int quadID = gl_VertexID / 6;
 			int v = gl_VertexID - quadID * 6;
 			v = v < 3 ? v : ((v - 1) & 3);
 
-			ivec4 q = texelFetch(_cvu_vfQuads, _cvu_vf_hack + quadID);
+			ivec4 q = texelFetch(_cvu_vfQuads, region.w + quadID);
 			in_material = (q.x >> 12) & 0xFFFF;
 
 			ivec4 vfv = texelFetch(_cvu_vfVertex, ((q.y & 0xFFFFFF) << 2) + v);

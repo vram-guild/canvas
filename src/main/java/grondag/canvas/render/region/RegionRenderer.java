@@ -23,6 +23,7 @@ import grondag.canvas.buffer.CleanVAO;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.world.SkyShadowRenderer;
+import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.varia.GFX;
@@ -61,6 +62,8 @@ public class RegionRenderer {
 			GFX.bindVertexArray(0);
 		}
 
+		MaterialShaderImpl.regionIndex = 0;
+
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final RenderRegion builtRegion = visibleRegions.get(regionIndex);
 
@@ -95,6 +98,8 @@ public class RegionRenderer {
 							delegate.draw();
 						}
 					}
+
+					++MaterialShaderImpl.regionIndex;
 				}
 			}
 		}
