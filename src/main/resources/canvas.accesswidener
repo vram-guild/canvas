@@ -115,3 +115,5 @@ accessible class net/minecraft/client/render/RenderPhase$Lightmap
 accessible class net/minecraft/client/render/RenderPhase$Overlay
 accessible class net/minecraft/client/render/RenderPhase$Texturing
 accessible class net/minecraft/client/render/RenderPhase$LineWidth
+
+accessible method net/minecraft/client/render/Frustum init (Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/util/math/Matrix4f;)V
