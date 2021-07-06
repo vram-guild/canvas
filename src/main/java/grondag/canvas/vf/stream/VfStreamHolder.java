@@ -114,13 +114,13 @@ class VfStreamHolder {
 		iBuff = null;
 	}
 
-	/** Returns null if insufficient capacity. */
+	/** Returns VfStreamReference.EMPTY if insufficient capacity. */
 	VfStreamReference allocate(int byteCount, BufferWriter writer) {
 		assert (byteCount & 3) == 0 : "Buffer allocations must be int-aligned";
 		final int newHead = headByteOffset + byteCount;
 
 		if (newHead > spec.imageCapacityBytes()) {
-			return null;
+			return VfStreamReference.EMPTY;
 		}
 
 		VfStreamReference result = new VfStreamReference(headByteOffset, byteCount, this);

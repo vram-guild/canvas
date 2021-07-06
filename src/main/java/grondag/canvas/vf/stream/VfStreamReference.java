@@ -23,7 +23,6 @@ import grondag.canvas.varia.GFX;
 public class VfStreamReference implements AutoCloseable {
 	public final int byteSize;
 	public final int byteAddress;
-	public final int bufferId;
 	private final VfStreamHolder holder;
 
 	private boolean isClosed = false;
@@ -32,7 +31,6 @@ public class VfStreamReference implements AutoCloseable {
 		this.byteSize = byteSize;
 		this.byteAddress = byteAddress;
 		this.holder = holder;
-		bufferId = holder.bufferId;
 
 		assert byteSize != 0;
 		assert (byteSize & 3) == 0 : "Buffer size must be int-aligned";
@@ -57,15 +55,50 @@ public class VfStreamReference implements AutoCloseable {
 	}
 
 	public void unbind() {
-		CanvasTextureState.activeTextureUnit(holder.spec.textureUnit());
-		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
-		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		if (isClosed) {
+			assert false : "Attempt to unbind closed stream reference";
+		} else {
+			CanvasTextureState.activeTextureUnit(holder.spec.textureUnit());
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		}
 	}
 
 	public void bind() {
-		CanvasTextureState.activeTextureUnit(holder.spec.textureUnit());
-		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, holder.textureId);
-		GFX.texBuffer(holder.spec.imageFormat(), bufferId);
-		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		if (isClosed) {
+			assert false : "Attempt to bind closed stream reference";
+		} else {
+			CanvasTextureState.activeTextureUnit(holder.spec.textureUnit());
+			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, holder.textureId);
+			GFX.texBuffer(holder.spec.imageFormat(), holder.bufferId);
+			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		}
 	}
+
+	public static final VfStreamReference EMPTY = new VfStreamReference(0, 4, null) {
+		@Override
+		public boolean isClosed() {
+			return true;
+		}
+
+		@Override
+		public void close() {
+			// NOOP
+		}
+
+		@Override
+		void markClosed() {
+			// NOOP
+		}
+
+		@Override
+		public void unbind() {
+			// NOOP
+		}
+
+		@Override
+		public void bind() {
+			// NOOP
+		}
+	};
 }

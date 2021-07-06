@@ -58,7 +58,7 @@ public final class VfStreamImage {
 	public VfStreamReference allocate(int byteCount, BufferWriter writer) {
 		if (byteCount > spec.imageCapacityBytes()) {
 			assert false : "Cannot allocate more than stream image size";
-			return null;
+			return VfStreamReference.EMPTY;
 		}
 
 		if (byteCount > holder.capacity()) {

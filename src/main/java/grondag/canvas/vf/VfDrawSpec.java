@@ -108,6 +108,9 @@ public class VfDrawSpec implements AutoCloseable {
 			buff.put(index, r);
 		});
 
+		assert ref != null;
+		assert ref != VfStreamReference.EMPTY;
+
 		return new VfDrawSpec(renderState, vertexStarts.toIntArray(), vertexCounts.toIntArray(), ref);
 	}
 
@@ -129,10 +132,15 @@ public class VfDrawSpec implements AutoCloseable {
 		CleanVAO.unbind();
 	}
 
-	public static final VfDrawSpec EMPTY = new VfDrawSpec(null, new int[0], new int[0], null) {
+	public static final VfDrawSpec EMPTY = new VfDrawSpec(null, new int[0], new int[0], VfStreamReference.EMPTY) {
 		@Override
 		public void draw() {
 			// NOOP
+		}
+
+		@Override
+		public void close() {
+			// NOOP - avoids NPE due to EMPTY going missing
 		}
 	};
 }

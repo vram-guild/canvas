@@ -15,6 +15,7 @@
 		uniform isamplerBuffer _cvu_vfVertex;
 		uniform samplerBuffer _cvu_vfLight;
 		uniform isamplerBuffer _cvu_vfQuads;
+		uniform isamplerBuffer _cvu_vfRegions;
 
 		uniform int _cvu_vf_hack;
 
@@ -27,6 +28,9 @@
 		float in_ao;
 
 		void _cv_prepareForVertex() {
+			// WIP: get correct region index
+			vec4 region = texelFetch(_cvu_vfQuads, 0);
+
 			int quadID = gl_VertexID / 6;
 			int v = gl_VertexID - quadID * 6;
 			v = v < 3 ? v : ((v - 1) & 3);
