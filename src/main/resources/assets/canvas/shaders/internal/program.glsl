@@ -23,9 +23,15 @@ uniform isamplerBuffer _cvu_materialInfo;
 #ifdef VERTEX_SHADER
 	flat out ivec4 _cvu_program;
 	flat out vec4 _cvv_spriteBounds;
+
+	// UGLY: _cv_modelOrigin is in vertex.glsl due to include order
 #else
 	flat in ivec4 _cvu_program;
 	flat in vec4 _cvv_spriteBounds;
+
+	#ifdef CV_VF
+	flat in vec4 _cv_modelOrigin;
+	#endif
 #endif
 
 int _cv_vertexProgramId() {

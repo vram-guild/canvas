@@ -4,11 +4,11 @@
   canvas:shaders/internal/vertex.glsl
 ******************************************************/
 
-//#define CV_VF
 
 #ifdef VERTEX_SHADER
 
 	#ifdef CV_VF
+		flat out vec4 _cv_modelOrigin;
 
 		uniform samplerBuffer _cvu_vfColor;
 		uniform samplerBuffer _cvu_vfUV;
@@ -30,9 +30,12 @@
 		vec2 in_lightmap;
 		float in_ao;
 
+
 		void _cv_prepareForVertex() {
 			// WIP: get correct region index
 			ivec4 region = texelFetch(_cvu_vfRegions, _cvu_vf_hack.y + _cvu_vf_hack.z);
+
+			_cv_modelOrigin = vec4(region.xyz, 0.0);
 
 			int quadID = gl_VertexID / 6;
 			int v = gl_VertexID - quadID * 6;
