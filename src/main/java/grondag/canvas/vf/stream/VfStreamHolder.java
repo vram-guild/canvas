@@ -125,8 +125,11 @@ class VfStreamHolder {
 
 		VfStreamReference result = new VfStreamReference(headByteOffset, byteCount, this);
 
+		assert iBuff != null;
+
 		writer.write(iBuff, intIndex);
 
+		references.add(result);
 		intIndex += byteCount / 4;
 		headByteOffset = newHead;
 

@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
@@ -30,6 +31,8 @@ import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
+import grondag.canvas.vf.Vf;
+import grondag.canvas.vf.VfDrawSpec;
 
 /**
  * Holds most of the state needed by the world renderer, allowing that
@@ -60,6 +63,11 @@ public class WorldRenderState {
 	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
 	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
 
+	// WIP: encapsulate or put somewhere better
+	public VfDrawSpec solidDrawSpec = VfDrawSpec.EMPTY;
+	public VfDrawSpec translucentDrawSpec = VfDrawSpec.EMPTY;
+	public final VfDrawSpec[] shadowDrawSpecs = new VfDrawSpec[ShadowMatrixData.CASCADE_COUNT];
+
 	private RenderRegionBuilder regionBuilder;
 	private ClientWorld world;
 	private boolean hasSkylight;
@@ -74,6 +82,7 @@ public class WorldRenderState {
 
 		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
 			shadowVisibleRegions[i] = new VisibleRegionList();
+			shadowDrawSpecs[i] = VfDrawSpec.EMPTY;
 		}
 	}
 
@@ -95,6 +104,7 @@ public class WorldRenderState {
 		// DitherTexture.instance().initializeIfNeeded();
 		world = clientWorld;
 		cameraVisibleRegions.clear();
+		clearDrawSpecs();
 		terrainIterator.reset();
 		renderRegionStorage.clear();
 		hasSkylight = world != null && world.getDimension().hasSkyLight();
@@ -129,11 +139,30 @@ public class WorldRenderState {
 
 		cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 
+		if (Configurator.vf) {
+			Vf.REGIONS.prepare();
+			solidDrawSpec.close();
+			solidDrawSpec = VfDrawSpec.build(cameraVisibleRegions, false);
+			translucentDrawSpec.close();
+			translucentDrawSpec = VfDrawSpec.build(cameraVisibleRegions, true);
+		}
+
 		if (shadowsEnabled()) {
 			shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
 			shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
 			shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
 			shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
+
+			if (Configurator.vf) {
+				for (int i = 0; i < 4; ++i) {
+					shadowDrawSpecs[i].close();
+					shadowDrawSpecs[i] = VfDrawSpec.build(shadowVisibleRegions[i], false);
+				}
+			}
+		}
+
+		if (Configurator.vf) {
+			Vf.REGIONS.flush();
 		}
 	}
 
@@ -149,5 +178,21 @@ public class WorldRenderState {
 		renderRegionStorage.clear();
 		cameraVisibleRegions.clear();
 		terrainFrustum.reload();
+		clearDrawSpecs();
+	}
+
+	void clearDrawSpecs() {
+		if (Configurator.vf) {
+			solidDrawSpec.close();
+			solidDrawSpec = VfDrawSpec.EMPTY;
+
+			translucentDrawSpec.close();
+			translucentDrawSpec = VfDrawSpec.EMPTY;
+
+			for (int i = 0; i < 4; ++i) {
+				shadowDrawSpecs[i].close();
+				shadowDrawSpecs[i] = VfDrawSpec.EMPTY;
+			}
+		}
 	}
 }

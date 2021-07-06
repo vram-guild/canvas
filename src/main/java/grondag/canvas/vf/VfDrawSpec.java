@@ -104,7 +104,7 @@ public class VfDrawSpec implements AutoCloseable {
 
 		final int[] r = regionData.toIntArray();
 
-		VfStreamReference ref = Vf.REGIONS.allocate(vertexStarts.size(), (buff, index) -> {
+		VfStreamReference ref = Vf.REGIONS.allocate(vertexStarts.size() * 16, (buff, index) -> {
 			buff.put(index, r);
 		});
 
@@ -112,7 +112,7 @@ public class VfDrawSpec implements AutoCloseable {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		if (vfStream != null) {
 			vfStream.close();
 			vfStream = null;
@@ -129,7 +129,7 @@ public class VfDrawSpec implements AutoCloseable {
 		CleanVAO.unbind();
 	}
 
-	private static final VfDrawSpec EMPTY = new VfDrawSpec(null, new int[0], new int[0], null) {
+	public static final VfDrawSpec EMPTY = new VfDrawSpec(null, new int[0], new int[0], null) {
 		@Override
 		public void draw() {
 			// NOOP

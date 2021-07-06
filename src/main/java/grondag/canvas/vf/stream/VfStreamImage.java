@@ -65,6 +65,7 @@ public final class VfStreamImage {
 			holder.flush();
 			holder.detach();
 			holder = new VfStreamHolder(spec);
+			holder.prepare();
 		}
 
 		return holder.allocate(byteCount, writer);

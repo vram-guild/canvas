@@ -31,7 +31,7 @@ public class Vf {
 	public static final VfInt LIGHT = new VfInt(TextureData.VF_LIGHT, GFX.GL_RGBA8);
 	public static final VfVertex VERTEX = new VfVertex(TextureData.VF_VERTEX, GFX.GL_RGBA32I);
 	public static final VfStorageTexture<VfStorageReference> QUADS = new VfStorageTexture<>(TextureData.VF_QUADS, GFX.GL_RGBA32I, 0x8000000);
-	public static final VfStreamTexture REGIONS = new VfStreamTexture(TextureData.VF_REGIONS, GFX.GL_RGBA32I, 0x10000);
+	public static final VfStreamTexture REGIONS = new VfStreamTexture(TextureData.VF_REGIONS, GFX.GL_RGBA32I, 0x100000);
 
 	public static void upload() {
 		if (Configurator.vf) {

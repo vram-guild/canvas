@@ -45,6 +45,16 @@ public class VfStreamTexture {
 		return image.allocate(byteCount, writer);
 	}
 
+	public void prepare() {
+		createImageIfNeeded();
+		image.prepare();
+	}
+
+	public void flush() {
+		createImageIfNeeded();
+		image.flush();
+	}
+
 	protected void createImageIfNeeded() {
 		if (image == null) {
 			try {
