@@ -28,7 +28,7 @@ import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.varia.GFX;
 
 public class RegionRenderer {
-	public static final void render(final VisibleRegionList visibleRegions, double x, double y, double z, boolean isTranslucent) {
+	public static final void render(final VisibleRegionList visibleRegions, boolean isTranslucent) {
 		final int visibleRegionCount = visibleRegions.size();
 
 		if (visibleRegionCount == 0) {
@@ -87,6 +87,8 @@ public class RegionRenderer {
 					// WIP remove or make not crappy
 					final int vfHack = Configurator.vf ? delegate.vfbr().getByteAddress() / 16 : 0;
 
+					// WIP: these material-based checks make no sense here in multi-material draws
+					// and they should probably be removed.  To confirm.
 					if (!mat.condition.affectBlocks || mat.condition.compute()) {
 						if (notShadowPass || mat.castShadows) {
 							mat.enable(ox, oy, oz, vfHack);

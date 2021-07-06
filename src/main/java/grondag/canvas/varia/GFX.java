@@ -862,4 +862,9 @@ public class GFX extends GL46C {
 		glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
 		assert logError("glCopyBufferSubData");
 	}
+
+	public static void multiDrawArrays(int target, int[] first, int[] count) {
+		GL46C.glMultiDrawArrays(target, first, count);
+		assert logError("glMultiDrawArrays");
+	}
 }

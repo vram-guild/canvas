@@ -27,7 +27,7 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.vf.storage.VfStorageReference;
 
-class DrawableDelegate {
+public class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
 	private RenderState renderState;
 	private VfStorageReference vfbr;

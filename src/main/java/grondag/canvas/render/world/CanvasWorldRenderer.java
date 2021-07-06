@@ -485,7 +485,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "terrain_solid");
 			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(false, frameCameraX, frameCameraY, frameCameraZ);
+			renderTerrainLayer(false);
 			MatrixState.set(MatrixState.CAMERA);
 
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "entity_draw_solid");
@@ -608,7 +608,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			immediate.draw();
 
 			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(true, frameCameraX, frameCameraY, frameCameraZ);
+			renderTerrainLayer(true);
 			MatrixState.set(MatrixState.CAMERA);
 
 			// NB: vanilla renders tripwire here but we combine into translucent
@@ -623,7 +623,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		} else {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
 			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(true, frameCameraX, frameCameraY, frameCameraZ);
+			renderTerrainLayer(true);
 			MatrixState.set(MatrixState.CAMERA);
 
 			// without fabulous transparency important that lines
@@ -728,12 +728,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 	}
 
-	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
-		RegionRenderer.render(worldRenderState.cameraVisibleRegions, x, y, z, isTranslucent);
+	void renderTerrainLayer(boolean isTranslucent) {
+		RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
 	}
 
 	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
-		RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], x, y, z, false);
+		RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
 	}
 
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {
