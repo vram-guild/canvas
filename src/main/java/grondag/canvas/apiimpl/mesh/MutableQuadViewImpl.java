@@ -60,7 +60,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
 	// vanilla light outputs
-	public final float[] ao = new float[4];
+	public final float[] ao = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
 	protected RenderMaterialImpl defaultMaterial = Canvas.MATERIAL_STANDARD;
 
 	private int vertexIndex = 0;

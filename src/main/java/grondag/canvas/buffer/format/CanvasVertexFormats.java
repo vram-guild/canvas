@@ -29,6 +29,8 @@ import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
 import static grondag.canvas.buffer.format.CanvasVertexFormatElement.VERTEX_VF;
 
+import net.minecraft.client.MinecraftClient;
+
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.CanvasMod;
@@ -111,6 +113,7 @@ public final class CanvasVertexFormats {
 
 		quad.overlay(overlay);
 
+		final boolean aoDisabled = !MinecraftClient.isAmbientOcclusionEnabled();
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl mat = quad.material();
 
@@ -142,7 +145,7 @@ public final class CanvasVertexFormats {
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFF);
 			final int skyLight = ((packedLight >> 16) & 0xFF);
-			final int ao = aoData == null ? 255 : (Math.round(aoData[i] * 255));
+			final int ao = aoDisabled ? 255 : (Math.round(aoData[i] * 255));
 			target[k++] = blockLight | (skyLight << 8) | material;
 
 			if (useNormals) {
@@ -165,6 +168,7 @@ public final class CanvasVertexFormats {
 
 		quad.overlay(overlay);
 
+		final boolean aoDisabled = !MinecraftClient.isAmbientOcclusionEnabled();
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl mat = quad.material();
 
@@ -190,16 +194,16 @@ public final class CanvasVertexFormats {
 		final int vfVertex = Vf.VERTEX.index(matrix, normalMatrix, quad);
 
 		final int packedLight0 = quad.lightmap(0);
-		final int light0 = (packedLight0 & 0xFF) | ((packedLight0 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[0] * 255))) << 16);
+		final int light0 = (packedLight0 & 0xFF) | ((packedLight0 >> 8) & 0xFF00) | ((aoDisabled ? 255 : (Math.round(aoData[0] * 255))) << 16);
 
 		final int packedLight1 = quad.lightmap(1);
-		final int light1 = (packedLight1 & 0xFF) | ((packedLight1 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[1] * 255))) << 16);
+		final int light1 = (packedLight1 & 0xFF) | ((packedLight1 >> 8) & 0xFF00) | ((aoDisabled ? 255 : (Math.round(aoData[1] * 255))) << 16);
 
 		final int packedLight2 = quad.lightmap(2);
-		final int light2 = (packedLight2 & 0xFF) | ((packedLight2 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[2] * 255))) << 16);
+		final int light2 = (packedLight2 & 0xFF) | ((packedLight2 >> 8) & 0xFF00) | ((aoDisabled ? 255 : (Math.round(aoData[2] * 255))) << 16);
 
 		final int packedLight3 = quad.lightmap(3);
-		final int light3 = (packedLight3 & 0xFF) | ((packedLight3 >> 8) & 0xFF00) | ((aoData == null ? 255 : (Math.round(aoData[3] * 255))) << 16);
+		final int light3 = (packedLight3 & 0xFF) | ((packedLight3 >> 8) & 0xFF00) | ((aoDisabled ? 255 : (Math.round(aoData[3] * 255))) << 16);
 
 		final int vfLight = Vf.LIGHT.index(light0, light1, light2, light3);
 
