@@ -465,6 +465,20 @@ public class ConfigGui {
 			.setSaveConsumer(b -> profilerOverlayScale = b)
 			.build());
 
+		// WIP: need to ensure old config is fully unloaded on switch
+		//		debug.addEntry(ENTRY_BUILDER.startEnumSelector(
+		//				new TranslatableText("config.canvas.value.terrain_vertex_config"),
+		//				TerrainVertexConfig.class, terrainVertexConfig)
+		//				.setDefaultValue(DEFAULTS.terrainVertexConfig)
+		//				.setSaveConsumer(b -> {
+		//
+		//					reload |= terrainVertexConfig != b;
+		//					terrainVertexConfig = b;
+		//				})
+		//				.setEnumNameProvider(a -> new LiteralText(a.toString()))
+		//				.setTooltip(parse("config.canvas.help.terrain_vertex_config"))
+		//				.build());
+
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 
 		final Screen result = builder.build();
