@@ -79,7 +79,7 @@ vec3 frx_lastCameraPos() {
  * ease of use.
  */
 vec4 frx_modelToWorld() {
-#ifdef CV_VF
+#ifdef _CV_VERTEX_FETCH
 	return _cv_modelToWorld;
 #else
 	return _cvu_model_origin[_CV_MODEL_TO_WORLD];
@@ -111,7 +111,7 @@ vec3 frx_modelOriginWorldPos() {
  * ease of use.
  */
 vec4 frx_modelToCamera() {
-#ifdef CV_VF
+#ifdef _CV_VERTEX_FETCH
 	return _cv_modelToCamera;
 #else
 	return _cvu_model_origin[_CV_MODEL_TO_CAMERA];

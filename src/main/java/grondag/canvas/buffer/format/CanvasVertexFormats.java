@@ -18,16 +18,7 @@ package grondag.canvas.buffer.format;
 
 import net.minecraft.client.render.VertexFormatElement;
 
-import grondag.canvas.CanvasMod;
-import grondag.canvas.config.Configurator;
-
 public final class CanvasVertexFormats {
-	static {
-		if (Configurator.enableLifeCycleDebug) {
-			CanvasMod.LOG.info("Lifecycle Event: MaterialVertexFormats static init");
-		}
-	}
-
 	private static final CanvasVertexFormatElement POSITION_3F = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.FLOAT, 3, "in_vertex", true, false);
 
@@ -63,7 +54,15 @@ public final class CanvasVertexFormats {
 	 * <p>Two-byte material ID conveys sprite, condition, program IDs
 	 * and vertex state flags.  AO is carried in last octet of normal.
 	 */
-	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+	public static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+
+	private static final CanvasVertexFormatElement POSITION_3UI = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 3, "in_vertex", false, true);
+
+	/**
+	 * Vertex is packed to allow for region ID with same space requirement.
+	 */
+	public static final CanvasVertexFormat REGION_MATERIAL = new CanvasVertexFormat(POSITION_3UI, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	// WIP: remove or clean up
 	private static final CanvasVertexFormatElement HEADER_VF = new CanvasVertexFormatElement(
@@ -77,7 +76,7 @@ public final class CanvasVertexFormats {
 	private static final CanvasVertexFormatElement BASE_TEX_VF = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.UINT, 1, "in_uv_vf", false, true);
 
-	private static final CanvasVertexFormat VF_MATERIAL = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_RGBA_VF, BASE_TEX_VF);
+	public static final CanvasVertexFormat VF_MATERIAL = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_RGBA_VF, BASE_TEX_VF);
 
 	public static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
 
@@ -85,5 +84,4 @@ public final class CanvasVertexFormats {
 	public static final int VF_QUAD_STRIDE = VF_MATERIAL.vertexStrideInts;
 
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
-	public static CanvasVertexFormat MATERIAL_FORMAT_VF = VF_MATERIAL;
 }

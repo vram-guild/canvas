@@ -105,16 +105,23 @@ public class DrawableRegion {
 		// WIP: ugly
 		VfStorageReference vfbr = null;
 
-		if (Configurator.vf) {
-			final int quadIntCount = collector.quadCount() * CanvasVertexFormats.MATERIAL_FORMAT_VF.vertexStrideInts;
-			final int[] vfData = new int[quadIntCount];
-			System.arraycopy(collector.data(), 0, vfData, 0, quadIntCount);
-			vfbr = VfStorageReference.of(vfData);
-			Vf.QUADS.enqueue(vfbr);
-		} else {
-			final IntBuffer intBuffer = vboBuffer.intBuffer();
-			intBuffer.position(0);
-			collector.toBuffer(intBuffer);
+		switch (Configurator.terrainVertexConfig) {
+			case DEFAULT:
+			case REGION:
+				final IntBuffer intBuffer = vboBuffer.intBuffer();
+				intBuffer.position(0);
+				collector.toBuffer(intBuffer);
+				break;
+			case FETCH:
+				final int quadIntCount = collector.quadCount() * CanvasVertexFormats.VF_QUAD_STRIDE;
+				final int[] vfData = new int[quadIntCount];
+				System.arraycopy(collector.data(), 0, vfData, 0, quadIntCount);
+				vfbr = VfStorageReference.of(vfData);
+				Vf.QUADS.enqueue(vfbr);
+				break;
+			default:
+				assert false : "Unhandled terrain vertex config in DrawableRegion.pack";
+				break;
 		}
 
 		final DrawableDelegate delegate = DrawableDelegate.claim(collector.renderState, 0, collector.quadCount() * 4, vfbr);

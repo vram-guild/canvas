@@ -22,9 +22,9 @@ import grondag.canvas.shader.data.ShaderStrings;
 
 public enum ProgramType {
 	MATERIAL_COLOR(false, true, ShaderStrings.MATERIAL_MAIN_VERTEX, ShaderStrings.MATERIAL_MAIN_FRAGMENT, false),
-	MATERIAL_COLOR_VF(false, true, ShaderStrings.MATERIAL_MAIN_VERTEX, ShaderStrings.MATERIAL_MAIN_FRAGMENT, true),
+	MATERIAL_COLOR_TERRAIN(false, true, ShaderStrings.MATERIAL_MAIN_VERTEX, ShaderStrings.MATERIAL_MAIN_FRAGMENT, true),
 	MATERIAL_DEPTH(true, true, ShaderStrings.DEPTH_MAIN_VERTEX, ShaderStrings.DEPTH_MAIN_FRAGMENT, false),
-	MATERIAL_DEPTH_VF(true, true, ShaderStrings.DEPTH_MAIN_VERTEX, ShaderStrings.DEPTH_MAIN_FRAGMENT, true),
+	MATERIAL_DEPTH_TERRAIN(true, true, ShaderStrings.DEPTH_MAIN_VERTEX, ShaderStrings.DEPTH_MAIN_FRAGMENT, true),
 	PROCESS(false, false, null, null, false);
 
 	public final String name;
@@ -32,14 +32,14 @@ public enum ProgramType {
 	public final boolean hasVertexProgramControl;
 	public final Identifier vertexSource;
 	public final Identifier fragmentSource;
-	public final boolean vf;
+	public final boolean isTerrain;
 
-	ProgramType(boolean isDepth, boolean hasVertexProgramControl, Identifier vertexSource, Identifier fragmentSource, boolean vf) {
+	ProgramType(boolean isDepth, boolean hasVertexProgramControl, Identifier vertexSource, Identifier fragmentSource, boolean isTerrain) {
 		name = name().toLowerCase();
 		this.isDepth = isDepth;
 		this.hasVertexProgramControl = hasVertexProgramControl;
 		this.vertexSource = vertexSource;
 		this.fragmentSource = fragmentSource;
-		this.vf = vf;
+		this.isTerrain = isTerrain;
 	}
 }

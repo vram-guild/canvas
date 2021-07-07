@@ -107,6 +107,6 @@ class ConfigData {
 	int profilerDetailLevel = 0;
 	@Comment("Size of the profiler overlay relative to GUI scale.")
 	float profilerOverlayScale = 0.5f;
-	//WIP: remove
-	boolean vf = false;
+	//WIP: docs
+	TerrainVertexConfig terrainVertexConfig = TerrainVertexConfig.DEFAULT;
 }

@@ -67,7 +67,9 @@ public class Configurator {
 	public static boolean displayRenderProfiler = DEFAULTS.displayRenderProfiler;
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
-	public static boolean vf = DEFAULTS.vf;
+	// WIP: remove
+	public static boolean vf = false;
+	public static TerrainVertexConfig terrainVertexConfig = DEFAULTS.terrainVertexConfig;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -135,7 +137,8 @@ public class Configurator {
 		displayRenderProfiler = config.displayRenderProfiler;
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
-		vf = config.vf;
+		terrainVertexConfig = config.terrainVertexConfig;
+		vf = terrainVertexConfig == TerrainVertexConfig.FETCH;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -184,6 +187,6 @@ public class Configurator {
 		config.displayRenderProfiler = displayRenderProfiler;
 		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
-		config.vf = vf;
+		config.terrainVertexConfig = terrainVertexConfig;
 	}
 }

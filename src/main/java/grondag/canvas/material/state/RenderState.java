@@ -112,7 +112,7 @@ public final class RenderState extends AbstractRenderState {
 	private void enableDepthPass(int x, int y, int z, int cascade, int regionBaseIndex, int quadMapBaseIndex) {
 		final MatrixState matrixState = MatrixState.get();
 		final boolean vf = Configurator.vf && matrixState == MatrixState.REGION;
-		final MaterialShaderImpl depthShader = vf ? vfDepthShader : this.depthShader;
+		final MaterialShaderImpl depthShader = vf ? terrainDepthShader : this.depthShader;
 
 		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
 			depthShader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
@@ -166,7 +166,7 @@ public final class RenderState extends AbstractRenderState {
 		switch (matrixState) {
 			case REGION:
 				vf = Configurator.vf;
-				shader = vf ? vfShader : this.shader;
+				shader = vf ? terrainShader : this.shader;
 				break;
 			case SCREEN:
 				shader = guiShader;

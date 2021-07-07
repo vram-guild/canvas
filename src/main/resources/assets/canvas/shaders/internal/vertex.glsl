@@ -7,7 +7,7 @@
 
 #ifdef VERTEX_SHADER
 
-	#ifdef CV_VF
+	#ifdef _CV_VERTEX_FETCH
 		flat out vec4 _cv_modelToWorld;
 		flat out vec4 _cv_modelToCamera;
 

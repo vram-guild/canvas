@@ -26,12 +26,13 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.vf.Vf;
 
 public class ArrayVertexCollector implements VertexCollector {
 	private final int quadStrideInts;
-	public final boolean vf;
+	public final boolean isTerrain;
 	private int capacity = 1024;
 	private int[] vertexData = new int[capacity];
 	private float[] perQuadDistance = new float[512];
@@ -43,11 +44,11 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	public final RenderState renderState;
 
-	public ArrayVertexCollector(RenderState renderState, boolean vf) {
+	public ArrayVertexCollector(RenderState renderState, boolean isTerrain) {
 		this.renderState = renderState;
-		this.vf = vf;
+		this.isTerrain = isTerrain;
 		// VF quads use vertex stride because of indexing
-		quadStrideInts = vf ? CanvasVertexFormats.MATERIAL_FORMAT_VF.vertexStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
+		quadStrideInts = isTerrain ? Configurator.terrainVertexConfig.quadStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
