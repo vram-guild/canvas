@@ -21,7 +21,6 @@ import net.minecraft.client.MinecraftClient;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -65,7 +64,7 @@ public class QuadEncoders {
 		}
 	};
 
-	private static final QuadTranscoder COMPACT_TRANSCODER = (quad, context, buff) -> {
+	public static final QuadTranscoder COMPACT_TRANSCODER = (quad, context, buff) -> {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final int overlay = context.overlay();
@@ -120,7 +119,7 @@ public class QuadEncoders {
 		}
 	};
 
-	private static final QuadTranscoder VF_TRANSCODER = (quad, context, buff) -> {
+	public static final QuadTranscoder VF_TRANSCODER = (quad, context, buff) -> {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final int overlay = context.overlay();
@@ -183,6 +182,5 @@ public class QuadEncoders {
 	};
 
 	public static QuadTranscoder MATERIAL_TRANSCODER = COMPACT_TRANSCODER;
-	public static QuadTranscoder TERRAIN_TRANSCODER = Configurator.vf ? VF_TRANSCODER : COMPACT_TRANSCODER;
 	public static QuadEncoder MATERIAL_ENCODER = COMPACT_ENCODER;
 }

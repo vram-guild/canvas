@@ -4,6 +4,8 @@ import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
+import grondag.canvas.buffer.encoding.QuadEncoders;
+import grondag.canvas.buffer.encoding.QuadTranscoder;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.GlProgram;
@@ -15,14 +17,16 @@ public enum TerrainVertexConfig {
 	DEFAULT(
 		CanvasVertexFormats.COMPACT_MATERIAL,
 		CanvasVertexFormats.COMPACT_MATERIAL.quadStrideInts,
-		true
+		true,
+		QuadEncoders.COMPACT_TRANSCODER
 	),
 
 	FETCH(
 		CanvasVertexFormats.VF_MATERIAL,
 		// VF quads use vertex stride because of indexing
 		CanvasVertexFormats.VF_MATERIAL.vertexStrideInts,
-		false
+		false,
+		QuadEncoders.VF_TRANSCODER
 	) {
 		@Override
 		public void setupUniforms(GlProgram program) {
@@ -59,17 +63,20 @@ public enum TerrainVertexConfig {
 	REGION(
 		CanvasVertexFormats.REGION_MATERIAL,
 		CanvasVertexFormats.REGION_MATERIAL.quadStrideInts,
-		true
+		true,
+		QuadEncoders.COMPACT_TRANSCODER
 	);
 
 	TerrainVertexConfig(
 		CanvasVertexFormat vertexFormat,
 		int quadStrideInts,
-		boolean shouldApplyBlockPosTranslation
+		boolean shouldApplyBlockPosTranslation,
+		QuadTranscoder transcoder
 	) {
 		this.vertexFormat = vertexFormat;
 		this.quadStrideInts = quadStrideInts;
 		this.shouldApplyBlockPosTranslation = shouldApplyBlockPosTranslation;
+		this.transcoder = transcoder;
 	}
 
 	public final CanvasVertexFormat vertexFormat;
@@ -79,6 +86,8 @@ public enum TerrainVertexConfig {
 
 	/** If true, then vertex positions should be translated to block pos within the region. */
 	public final boolean shouldApplyBlockPosTranslation;
+
+	public final QuadTranscoder transcoder;
 
 	public void setupUniforms(GlProgram program) { }
 
