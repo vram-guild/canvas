@@ -405,6 +405,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
+		final boolean applyBlockPosTranslation = Configurator.terrainVertexConfig.shouldApplyBlockPosTranslation;
 
 		for (int i = 0; i < RenderRegionStateIndexer.INTERIOR_STATE_COUNT; i++) {
 			if (occlusionRegion.shouldRender(i)) {
@@ -422,7 +423,7 @@ public class RenderRegion implements TerrainExecutorTask {
 					// Vanilla does a push/pop for each block but that creates needless allocation spam.
 					modelMatrix.loadIdentity();
 
-					if (!Configurator.vf) {
+					if (applyBlockPosTranslation) {
 						modelMatrix.multiplyByTranslation(x, y, z);
 					}
 

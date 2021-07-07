@@ -45,7 +45,7 @@ public enum MaterialProgramManager {
 			ShaderUniforms.MATERIAL_UNIFORM_SETUP.accept(result);
 
 			if (programType.isTerrain) {
-				Configurator.terrainVertexConfig.uniformSetup.accept(result);
+				Configurator.terrainVertexConfig.setupUniforms(result);
 			}
 
 			materialPrograms[key] = result;
