@@ -67,8 +67,6 @@ public class Configurator {
 	public static boolean displayRenderProfiler = DEFAULTS.displayRenderProfiler;
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
-	// WIP: remove
-	public static boolean vf = false;
 	public static TerrainVertexConfig terrainVertexConfig = DEFAULTS.terrainVertexConfig;
 
 	//    @LangKey("config.acuity_fancy_fluids")
@@ -138,7 +136,6 @@ public class Configurator {
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
 		terrainVertexConfig = config.terrainVertexConfig;
-		vf = terrainVertexConfig == TerrainVertexConfig.FETCH;
 	}
 
 	static void writeToConfig(ConfigData config) {

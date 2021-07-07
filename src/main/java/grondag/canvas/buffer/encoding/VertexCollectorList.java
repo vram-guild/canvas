@@ -37,10 +37,10 @@ public class VertexCollectorList {
 	private final ObjectArrayList<ArrayVertexCollector> active = new ObjectArrayList<>();
 	private final ArrayVertexCollector[] collectors = new ArrayVertexCollector[RenderState.MAX_COUNT];
 	private final ObjectArrayList<ArrayVertexCollector> drawList = new ObjectArrayList<>();
-	public final boolean vf;
+	public final boolean isTerrain;
 
-	public VertexCollectorList(boolean vf) {
-		this.vf = vf;
+	public VertexCollectorList(boolean isTerrain) {
+		this.isTerrain = isTerrain;
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			result = new ArrayVertexCollector(materialState.renderState, vf);
+			result = new ArrayVertexCollector(materialState.renderState, isTerrain);
 			collectors[index] = result;
 			active.add(result);
 		}

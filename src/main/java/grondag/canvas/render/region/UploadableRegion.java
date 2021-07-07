@@ -20,6 +20,7 @@ import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.config.TerrainVertexConfig;
 
 public class UploadableRegion {
 	public static final UploadableRegion EMPTY_UPLOADABLE = new UploadableRegion();
@@ -28,7 +29,8 @@ public class UploadableRegion {
 	protected final DrawableRegion drawable;
 
 	public UploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes) {
-		vboBuffer = Configurator.vf ? null : new VboBuffer(bytes, CanvasVertexFormats.MATERIAL_FORMAT);
+		// WIP: ugly special casing
+		vboBuffer = Configurator.terrainVertexConfig == TerrainVertexConfig.FETCH ? null : new VboBuffer(bytes, CanvasVertexFormats.MATERIAL_FORMAT);
 		drawable = DrawableRegion.pack(collectorList, vboBuffer, sorted, bytes);
 	}
 

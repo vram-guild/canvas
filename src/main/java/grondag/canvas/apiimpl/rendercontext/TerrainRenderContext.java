@@ -86,7 +86,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new InputRegion(this);
-		collectors = new VertexCollectorList(Configurator.vf);
+		collectors = new VertexCollectorList(true);
 	}
 
 	public TerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {
@@ -124,7 +124,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
 
-			if (Configurator.vf) {
+			if (!Configurator.terrainVertexConfig.shouldApplyBlockPosTranslation) {
 				packedRelativeBlockPos = (blockPos.getX() & 0xF) | ((blockPos.getY() & 0xF) << 4) | ((blockPos.getZ() & 0xF) << 8);
 			}
 

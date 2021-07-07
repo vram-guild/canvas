@@ -100,7 +100,6 @@ import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.vf.TerrainVertexFetch;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
@@ -312,7 +311,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		worldRenderState.regionBuilder().upload();
 		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
 
-		TerrainVertexFetch.upload();
+		Configurator.terrainVertexConfig.prepareForDraw();
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
@@ -729,18 +728,36 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	void renderTerrainLayer(boolean isTranslucent) {
-		if (Configurator.vf) {
-			(isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).draw();
-		} else {
-			RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
+		switch (Configurator.terrainVertexConfig) {
+			case DEFAULT:
+				RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
+				break;
+			case FETCH:
+				(isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).draw();
+				break;
+			case REGION:
+				RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
+				break;
+			default:
+				assert false : "Unhandled terrain vertex config in renderTerrainLayer";
+				break;
 		}
 	}
 
 	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
-		if (Configurator.vf) {
-			worldRenderState.shadowDrawSpecs[cascadeIndex].draw();
-		} else {
-			RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
+		switch (Configurator.terrainVertexConfig) {
+			case DEFAULT:
+				RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
+				break;
+			case FETCH:
+				worldRenderState.shadowDrawSpecs[cascadeIndex].draw();
+				break;
+			case REGION:
+				RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
+				break;
+			default:
+				assert false : "Unhandled terrain vertex config in renderShadowLayer";
+				break;
 		}
 	}
 

@@ -53,9 +53,18 @@ public final class MaterialShaderImpl {
 		getOrCreate().activate();
 		program.setModelOrigin(x, y, z);
 
-		if (Configurator.vf) {
-			program.baseRegionIndex.set(regionBaseIndex, quadMapBaseIndex);
-			program.baseRegionIndex.upload();
+		switch (Configurator.terrainVertexConfig) {
+			case DEFAULT:
+				break;
+			case FETCH:
+				program.baseRegionIndex.set(regionBaseIndex, quadMapBaseIndex);
+				program.baseRegionIndex.upload();
+				break;
+			case REGION:
+				break;
+			default:
+				assert false : "Unhandled terrain vertex config in setModelOrigin";
+				break;
 		}
 	}
 

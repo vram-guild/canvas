@@ -16,7 +16,6 @@
 
 package grondag.canvas.vf;
 
-import grondag.canvas.config.Configurator;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.vf.index.VfInt;
@@ -35,13 +34,11 @@ public class TerrainVertexFetch {
 	public static final VfStreamTexture QUAD_REGION_MAP = new VfStreamTexture(TextureData.VF_QUAD_REGIONS, GFX.GL_R16UI, 0x1000000);
 
 	public static void upload() {
-		if (Configurator.vf) {
-			COLOR.upload();
-			UV.upload();
-			LIGHT.upload();
-			VERTEX.upload();
-			QUADS.upload();
-		}
+		COLOR.upload();
+		UV.upload();
+		LIGHT.upload();
+		VERTEX.upload();
+		QUADS.upload();
 	}
 
 	public static void enable() {

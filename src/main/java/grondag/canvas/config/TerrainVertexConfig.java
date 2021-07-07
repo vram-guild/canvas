@@ -58,6 +58,11 @@ public enum TerrainVertexConfig {
 		public QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector) {
 			return arrayVertexCollector.quadDistanceVertexFetch;
 		}
+
+		@Override
+		public void prepareForDraw() {
+			TerrainVertexFetch.upload();
+		}
 	},
 
 	REGION(
@@ -100,4 +105,6 @@ public enum TerrainVertexConfig {
 	public QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector) {
 		return arrayVertexCollector.quadDistanceStandard;
 	}
+
+	public void prepareForDraw() { }
 }

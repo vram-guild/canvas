@@ -19,8 +19,6 @@ package grondag.canvas.render.region;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.buffer.CleanVAO;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
@@ -55,11 +53,7 @@ public class RegionRenderer {
 
 		int ox = 0, oy = 0, oz = 0;
 
-		if (Configurator.vf) {
-			CleanVAO.bind();
-		} else {
-			GFX.bindVertexArray(0);
-		}
+		GFX.bindVertexArray(0);
 
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final RenderRegion builtRegion = visibleRegions.get(regionIndex);
@@ -96,18 +90,12 @@ public class RegionRenderer {
 			}
 		}
 
-		if (Configurator.vf) {
-			CleanVAO.unbind();
-		} else {
-			GFX.bindVertexArray(0);
-		}
+		// Important this happens BEFORE anything that could affect vertex state
+		GFX.bindVertexArray(0);
 
 		mc.getProfiler().pop();
 
 		RenderState.disable();
-
-		// Important this happens BEFORE anything that could affect vertex state
-		GFX.glBindVertexArray(0);
 
 		//if (Configurator.hdLightmaps()) {
 		//	LightmapHdTexture.instance().disable();
