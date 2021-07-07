@@ -32,18 +32,15 @@ import grondag.canvas.vf.stream.VfStreamReference;
 // WIP: use gl_DrawId instead of quad-to-region map when GL4.6 available
 
 public class VfDrawSpec implements AutoCloseable {
-	private final int[] vertexStarts;
-	private final int[] vertexCounts;
 	// stream holds 4 ints per region, x, y, z origin plus starting quad address
-	// WIP: make private after moving draw here
-	public VfStreamReference regionStream;
-	public VfStreamReference quadMapStream;
+	private final int vertexCount;
+	private VfStreamReference regionStream;
+	private VfStreamReference quadMapStream;
 	private final RenderState renderState;
 
-	private VfDrawSpec(RenderState renderState, int[] vertexStarts, int[] vertexCounts, VfStreamReference regionStream, VfStreamReference quadMapStream) {
+	private VfDrawSpec(RenderState renderState, int vertexCount, VfStreamReference regionStream, VfStreamReference quadMapStream) {
 		this.renderState = renderState;
-		this.vertexStarts = vertexStarts;
-		this.vertexCounts = vertexCounts;
+		this.vertexCount = vertexCount;
 		this.regionStream = regionStream;
 		this.quadMapStream = quadMapStream;
 	}
@@ -57,8 +54,6 @@ public class VfDrawSpec implements AutoCloseable {
 
 		RenderState renderState = null;
 
-		final IntArrayList vertexStarts = new IntArrayList();
-		final IntArrayList vertexCounts = new IntArrayList();
 		final IntArrayList regionData = new IntArrayList();
 		final IntArrayList quadMapData = new IntArrayList();
 
@@ -66,15 +61,17 @@ public class VfDrawSpec implements AutoCloseable {
 		final int endIndex = isTranslucent ? -1 : count;
 		final int step = isTranslucent ? -1 : 1;
 
-		int vertex = 0;
+		int totalQuadCount = 0;
+		int regionArrayIndex = 0;
+
 		int quadMap = 0;
 		boolean odd = true;
 
-		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
+		for (int regionLoopIndex = startIndex; regionLoopIndex != endIndex; regionLoopIndex += step) {
 			// max region address space in array buffer
-			assert regionIndex < 0x10000;
+			assert regionArrayIndex < 0x10000;
 
-			final RenderRegion builtRegion = visibleRegions.get(regionIndex);
+			final RenderRegion builtRegion = visibleRegions.get(regionLoopIndex);
 
 			if (builtRegion == null) {
 				continue;
@@ -96,29 +93,25 @@ public class VfDrawSpec implements AutoCloseable {
 					regionData.add(modelOrigin.getX());
 					regionData.add(modelOrigin.getY());
 					regionData.add(modelOrigin.getZ());
-					regionData.add(delegate.vfbr().getByteAddress() / 16);
-					// Theoretically could be anything because we aren't using a vertex array
-					// but setting to offsets as if we were hoping that avoid driver complaints.
-					vertexStarts.add(vertex);
+					// Subtract the total quad count because gl_VertexID (and thus Quad ID)
+					// will increment through the entire draw.
+					final int regionQuadCount = delegate.quadVertexCount() / 4;
+					final int rIndex = delegate.regionStorageReference().getByteAddress() / 16 - totalQuadCount;
+					regionData.add(rIndex);
 
-					final int qCount = delegate.vertexCount() / 4;
-
-					for (int q = 0; q < qCount; ++q) {
+					for (int q = 0; q < regionQuadCount; ++q) {
 						if (odd) {
-							quadMap = regionIndex;
+							quadMap = regionArrayIndex;
 							odd = false;
 						} else {
-							quadMap |= regionIndex << 16;
+							quadMap |= regionArrayIndex << 16;
 							quadMapData.add(quadMap);
 							odd = true;
 						}
 					}
 
-					// convert to triangles
-					final int vCount = qCount * 6;
-					vertexCounts.add(vCount);
-
-					vertex += vCount;
+					totalQuadCount += regionQuadCount;
+					++regionArrayIndex;
 				}
 			}
 		}
@@ -127,7 +120,7 @@ public class VfDrawSpec implements AutoCloseable {
 			quadMapData.add(quadMap);
 		}
 
-		if (vertexStarts.isEmpty()) {
+		if (regionData.isEmpty()) {
 			return EMPTY;
 		}
 
@@ -145,30 +138,32 @@ public class VfDrawSpec implements AutoCloseable {
 		assert quadMapStream != null;
 		assert quadMapStream != VfStreamReference.EMPTY;
 
-		return new VfDrawSpec(renderState, vertexStarts.toIntArray(), vertexCounts.toIntArray(), regionStream, quadMapStream);
+		return new VfDrawSpec(renderState, totalQuadCount * 6, regionStream, quadMapStream);
 	}
 
 	@Override
 	public void close() {
-		if (regionStream != null) {
-			regionStream.close();
-			regionStream = null;
-		}
+		regionStream.close();
+		regionStream = VfStreamReference.EMPTY;
+		quadMapStream.close();
+		quadMapStream = VfStreamReference.EMPTY;
 	}
 
 	public void draw() {
 		CleanVAO.bind();
-		renderState.enable();
 		regionStream.bind();
 		quadMapStream.bind();
-		GFX.multiDrawArrays(GFX.GL_TRIANGLES, vertexStarts, vertexCounts);
+		// NB: divide by two for quad map stream because each component is a short
+		renderState.enable(0, 0, 0, regionStream.byteAddress / 16, quadMapStream.byteAddress / 2);
+		GFX.drawArrays(GFX.GL_TRIANGLES, 0, vertexCount);
 		regionStream.unbind();
 		quadMapStream.unbind();
 		RenderState.disable();
 		CleanVAO.unbind();
 	}
 
-	public static final VfDrawSpec EMPTY = new VfDrawSpec(null, new int[0], new int[0], VfStreamReference.EMPTY, VfStreamReference.EMPTY) {
+	//public static final VfDrawSpec EMPTY = new VfDrawSpec(null, new int[0], new int[0], VfStreamReference.EMPTY, VfStreamReference.EMPTY) {
+	public static final VfDrawSpec EMPTY = new VfDrawSpec(null, 0, VfStreamReference.EMPTY, VfStreamReference.EMPTY) {
 		@Override
 		public void draw() {
 			// NOOP

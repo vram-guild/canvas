@@ -123,7 +123,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
-		state.set(READY);
 		cancelled = false;
 
 		resetCameraOccluder = cameraVisibility.prepareForIteration();
@@ -141,7 +140,13 @@ public class TerrainIterator implements TerrainExecutorTask {
 			resetShadowOccluder = false;
 		}
 
-		return resetCameraOccluder || resetShadowOccluder;
+		final boolean result = resetCameraOccluder || resetShadowOccluder;
+
+		if (result) {
+			state.set(READY);
+		}
+
+		return result;
 	}
 
 	public int state() {

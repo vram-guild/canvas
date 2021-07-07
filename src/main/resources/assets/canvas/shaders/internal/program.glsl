@@ -30,7 +30,8 @@ uniform isamplerBuffer _cvu_materialInfo;
 	flat in vec4 _cvv_spriteBounds;
 
 	#ifdef CV_VF
-	flat in vec4 _cv_modelOrigin;
+	flat in vec4 _cv_modelToWorld;
+	flat in vec4 _cv_modelToCamera;
 	#endif
 #endif
 

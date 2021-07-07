@@ -98,24 +98,24 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	public void enable() {
-		enable(0, 0, 0, 0);
+		enable(0, 0, 0, 0, 0);
 	}
 
-	public void enable(int x, int y, int z, int vfHack) {
+	public void enable(int x, int y, int z, int regionBaseIndex, int quadMapBaseIndex) {
 		if (SkyShadowRenderer.isActive()) {
-			enableDepthPass(x, y, z, SkyShadowRenderer.cascade(), vfHack);
+			enableDepthPass(x, y, z, SkyShadowRenderer.cascade(), regionBaseIndex, quadMapBaseIndex);
 		} else {
-			enableMaterial(x, y, z, vfHack);
+			enableMaterial(x, y, z, regionBaseIndex, quadMapBaseIndex);
 		}
 	}
 
-	private void enableDepthPass(int x, int y, int z, int cascade, int vfHack) {
+	private void enableDepthPass(int x, int y, int z, int cascade, int regionBaseIndex, int quadMapBaseIndex) {
 		final MatrixState matrixState = MatrixState.get();
 		final boolean vf = Configurator.vf && matrixState == MatrixState.REGION;
 		final MaterialShaderImpl depthShader = vf ? vfDepthShader : this.depthShader;
 
 		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
-			depthShader.setModelOrigin(x, y, z, vfHack);
+			depthShader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
 			depthShader.setCascade(cascade);
 			return;
 		}
@@ -150,7 +150,7 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.setEnabled(lines);
 
 		depthShader.updateContextInfo(texture.atlasInfo(), target.index);
-		depthShader.setModelOrigin(x, y, z, vfHack);
+		depthShader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
 		depthShader.setCascade(cascade);
 
 		GFX.enable(GFX.GL_POLYGON_OFFSET_FILL);
@@ -158,7 +158,7 @@ public final class RenderState extends AbstractRenderState {
 		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 
-	private void enableMaterial(int x, int y, int z, int vfHack) {
+	private void enableMaterial(int x, int y, int z, int regionBaseIndex, int quadMapBaseIndex) {
 		final MaterialShaderImpl shader;
 		final MatrixState matrixState = MatrixState.get();
 		boolean vf = false;
@@ -178,7 +178,7 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		if (active == this && matrixState == currentMatrixState) {
-			shader.setModelOrigin(x, y, z, vfHack);
+			shader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
 			return;
 		}
 
@@ -234,7 +234,7 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.setEnabled(lines);
 
 		shader.updateContextInfo(texture.atlasInfo(), target.index);
-		shader.setModelOrigin(x, y, z, vfHack);
+		shader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
 	}
 
 	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(GFX::enableCull, GFX::disableCull);

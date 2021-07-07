@@ -729,16 +729,19 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	}
 
 	void renderTerrainLayer(boolean isTranslucent) {
-		// WIP: remove these here and below when reference handles the draw
-		if (Configurator.vf) (isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).regionStream.bind();
-		RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
-		if (Configurator.vf) (isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).regionStream.unbind();
+		if (Configurator.vf) {
+			(isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).draw();
+		} else {
+			RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
+		}
 	}
 
 	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
-		if (Configurator.vf) worldRenderState.shadowDrawSpecs[cascadeIndex].regionStream.bind();
-		RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
-		if (Configurator.vf) worldRenderState.shadowDrawSpecs[cascadeIndex].regionStream.unbind();
+		if (Configurator.vf) {
+			worldRenderState.shadowDrawSpecs[cascadeIndex].draw();
+		} else {
+			RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
+		}
 	}
 
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {

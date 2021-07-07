@@ -23,7 +23,6 @@ import grondag.canvas.buffer.CleanVAO;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.world.SkyShadowRenderer;
-import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.varia.GFX;
@@ -62,8 +61,6 @@ public class RegionRenderer {
 			GFX.bindVertexArray(0);
 		}
 
-		MaterialShaderImpl.regionIndex = 0;
-
 		for (int regionIndex = startIndex; regionIndex != endIndex; regionIndex += step) {
 			final RenderRegion builtRegion = visibleRegions.get(regionIndex);
 
@@ -87,19 +84,14 @@ public class RegionRenderer {
 					final boolean notShadowPass = !SkyShadowRenderer.isActive();
 					final RenderState mat = delegate.renderState();
 
-					// WIP remove or make not crappy
-					final int vfHack = Configurator.vf ? delegate.vfbr().getByteAddress() / 16 : 0;
-
 					// WIP: these material-based checks make no sense here in multi-material draws
 					// and they should probably be removed.  To confirm.
 					if (!mat.condition.affectBlocks || mat.condition.compute()) {
 						if (notShadowPass || mat.castShadows) {
-							mat.enable(ox, oy, oz, vfHack);
+							mat.enable(ox, oy, oz, 0, 0);
 							delegate.draw();
 						}
 					}
-
-					++MaterialShaderImpl.regionIndex;
 				}
 			}
 		}

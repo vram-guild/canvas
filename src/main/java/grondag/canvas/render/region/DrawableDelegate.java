@@ -30,17 +30,17 @@ import grondag.canvas.vf.storage.VfStorageReference;
 public class DrawableDelegate {
 	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
 	private RenderState renderState;
-	private VfStorageReference vfbr;
+	private VfStorageReference regionStorageReference;
 
 	private int vertexOffset;
-	private int vertexCount;
+	private int quadVertexCount;
 	private boolean isReleased = false;
 
 	private DrawableDelegate() {
 		super();
 	}
 
-	public static DrawableDelegate claim(RenderState renderState, int vertexOffset, int vertexCount, VfStorageReference vfbr) {
+	public static DrawableDelegate claim(RenderState renderState, int vertexOffset, int quadVertexCount, VfStorageReference regionStorageReference) {
 		DrawableDelegate result = store.poll();
 
 		if (result == null) {
@@ -49,14 +49,14 @@ public class DrawableDelegate {
 
 		result.renderState = renderState;
 		result.vertexOffset = vertexOffset;
-		result.vertexCount = vertexCount;
+		result.quadVertexCount = quadVertexCount;
 		result.isReleased = false;
-		result.vfbr = vfbr;
+		result.regionStorageReference = regionStorageReference;
 		return result;
 	}
 
-	public VfStorageReference vfbr() {
-		return vfbr;
+	public VfStorageReference regionStorageReference() {
+		return regionStorageReference;
 	}
 
 	/**
@@ -74,9 +74,9 @@ public class DrawableDelegate {
 		assert !isReleased;
 
 		if (Configurator.vf) {
-			GFX.drawArrays(GFX.GL_TRIANGLES, 0, vertexCount / 4 * 6);
+			GFX.drawArrays(GFX.GL_TRIANGLES, 0, quadVertexCount / 4 * 6);
 		} else {
-			final int triVertexCount = vertexCount / 4 * 6;
+			final int triVertexCount = quadVertexCount / 4 * 6;
 			final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
 			final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
 			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
@@ -91,16 +91,16 @@ public class DrawableDelegate {
 			isReleased = true;
 			renderState = null;
 
-			if (vfbr != null) {
-				vfbr.close();
-				vfbr = null;
+			if (regionStorageReference != null) {
+				regionStorageReference.close();
+				regionStorageReference = null;
 			}
 
 			store.offer(this);
 		}
 	}
 
-	public int vertexCount() {
-		return vertexCount;
+	public int quadVertexCount() {
+		return quadVertexCount;
 	}
 }

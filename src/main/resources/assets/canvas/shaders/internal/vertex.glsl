@@ -8,7 +8,8 @@
 #ifdef VERTEX_SHADER
 
 	#ifdef CV_VF
-		flat out vec4 _cv_modelOrigin;
+		flat out vec4 _cv_modelToWorld;
+		flat out vec4 _cv_modelToCamera;
 
 		uniform samplerBuffer _cvu_vfColor;
 		uniform samplerBuffer _cvu_vfUV;
@@ -18,10 +19,9 @@
 		uniform isamplerBuffer _cvu_vfRegions;
 		uniform usamplerBuffer _cvu_vfQuadRegions;
 
-		// x was region quad offset - no longer used
-		// y is base region index - will remain
-		// z is region index
-		uniform ivec3 _cvu_vf_hack;
+		// x is region base index
+		// y is quad:region map base index
+		uniform ivec2 _cvu_baseIndex;
 
 		int in_material;
 		vec3 in_vertex;
@@ -31,14 +31,14 @@
 		vec2 in_lightmap;
 		float in_ao;
 
-
 		void _cv_prepareForVertex() {
-			// WIP: get correct region index
-			ivec4 region = texelFetch(_cvu_vfRegions, _cvu_vf_hack.y + _cvu_vf_hack.z);
-
-			_cv_modelOrigin = vec4(region.xyz, 0.0);
-
 			int quadID = gl_VertexID / 6;
+			int regionIndex = int(texelFetch(_cvu_vfQuadRegions, quadID + _cvu_baseIndex.y).x) + _cvu_baseIndex.x;
+			ivec4 region = texelFetch(_cvu_vfRegions, regionIndex);
+
+			_cv_modelToWorld = vec4(region.xyz, 0.0);
+			_cv_modelToCamera = vec4(region.xyz - _cvu_world[_CV_CAMERA_POS].xyz, 0.0);
+
 			int v = gl_VertexID - quadID * 6;
 			v = v < 3 ? v : ((v - 1) & 3);
 
