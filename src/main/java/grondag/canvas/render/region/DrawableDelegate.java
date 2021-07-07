@@ -73,14 +73,21 @@ public class DrawableDelegate {
 	public void draw() {
 		assert !isReleased;
 
-		if (Configurator.vf) {
-			GFX.drawArrays(GFX.GL_TRIANGLES, 0, quadVertexCount / 4 * 6);
-		} else {
-			final int triVertexCount = quadVertexCount / 4 * 6;
-			final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
-			final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
-			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
+		switch (Configurator.terrainVertexConfig) {
+			case DEFAULT:
+			case REGION:
+				final int triVertexCount = quadVertexCount / 4 * 6;
+				final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
+				final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
+				GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
+				GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
+				break;
+			case FETCH:
+				GFX.drawArrays(GFX.GL_TRIANGLES, 0, quadVertexCount / 4 * 6);
+				break;
+			default:
+				assert false : "Unhandled vertex configuration in region draw";
+				break;
 		}
 	}
 

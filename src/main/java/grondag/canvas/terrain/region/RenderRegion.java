@@ -303,8 +303,7 @@ public class RenderRegion implements TerrainExecutorTask {
 				if (collector.sortQuads(
 					(float) (sortPos.x - origin.getX()),
 					(float) (sortPos.y - origin.getY()),
-					(float) (sortPos.z - origin.getZ()),
-					Configurator.vf)
+					(float) (sortPos.z - origin.getZ()))
 				) {
 					regionData.translucentState = collector.saveState(state);
 

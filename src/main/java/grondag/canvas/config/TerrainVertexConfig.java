@@ -2,6 +2,8 @@ package grondag.canvas.config;
 
 import org.lwjgl.opengl.GL21;
 
+import grondag.canvas.buffer.encoding.ArrayVertexCollector;
+import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.GlProgram;
@@ -47,6 +49,11 @@ public enum TerrainVertexConfig {
 		public void onActivateProgram() {
 			TerrainVertexFetch.enable();
 		}
+
+		@Override
+		public QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector) {
+			return arrayVertexCollector.quadDistanceVertexFetch;
+		}
 	},
 
 	REGION(
@@ -80,4 +87,8 @@ public enum TerrainVertexConfig {
 	public void onDeactiveProgram() { }
 
 	public void onActivateProgram() { }
+
+	public QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector) {
+		return arrayVertexCollector.quadDistanceStandard;
+	}
 }

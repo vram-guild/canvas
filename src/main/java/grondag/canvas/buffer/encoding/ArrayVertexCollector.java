@@ -112,21 +112,16 @@ public class ArrayVertexCollector implements VertexCollector {
 		integerSize = 0;
 	}
 
-	public boolean sortQuads(float x, float y, float z, boolean vf) {
+	public boolean sortQuads(float x, float y, float z) {
 		final int quadCount = quadCount();
+		final QuadDistanceFunc distanceFunc = isTerrain ? Configurator.terrainVertexConfig.selectQuadDistanceFunction(this) : quadDistanceStandard;
 
 		if (perQuadDistance.length < quadCount) {
 			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
 		}
 
-		if (vf) {
-			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = getDistanceSqVf(x, y, z, j);
-			}
-		} else {
-			for (int j = 0; j < quadCount; ++j) {
-				perQuadDistance[j] = getDistanceSq(x, y, z, j);
-			}
+		for (int j = 0; j < quadCount; ++j) {
+			perQuadDistance[j] = distanceFunc.compute(x, y, z, j);
 		}
 
 		didSwap = false;
@@ -138,6 +133,10 @@ public class ArrayVertexCollector implements VertexCollector {
 		it.unimi.dsi.fastutil.Arrays.mergeSort(0, quadCount, comparator, swapper);
 
 		return didSwap;
+	}
+
+	public interface QuadDistanceFunc {
+		float compute(float x, float y, float z, int quadIndex);
 	}
 
 	private final IntComparator comparator = new IntComparator() {
@@ -164,6 +163,9 @@ public class ArrayVertexCollector implements VertexCollector {
 			System.arraycopy(swapData, quadStrideInts, vertexData, aIndex, quadStrideInts);
 		}
 	};
+
+	public final QuadDistanceFunc quadDistanceStandard = this::getDistanceSq;
+	public final QuadDistanceFunc quadDistanceVertexFetch = this::getDistanceSqVertexFetch;
 
 	private float getDistanceSq(float x, float y, float z, int quadIndex) {
 		final int integerStride = quadStrideInts / 4;
@@ -197,7 +199,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		return dx * dx + dy * dy + dz * dz;
 	}
 
-	private float getDistanceSqVf(float x, float y, float z, int quadIndex) {
+	private float getDistanceSqVertexFetch(float x, float y, float z, int quadIndex) {
 		// unpack vertex coordinates
 		final int i = quadIndex * quadStrideInts;
 
@@ -278,7 +280,7 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	void sortIfNeeded() {
 		if (renderState.sorted) {
-			sortQuads(0, 0, 0, false);
+			sortQuads(0, 0, 0);
 		}
 	}
 
