@@ -16,17 +16,39 @@
 
 package grondag.canvas.render.region;
 
-import grondag.canvas.buffer.encoding.VertexCollectorList;
+abstract class AbstractDrawableRegion implements DrawableRegion {
+	protected boolean isClosed = false;
+	protected DrawableDelegate delegate;
 
-public class VfUploadableRegion implements UploadableRegion {
-	protected final DrawableRegion drawable;
-
-	public VfUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes) {
-		drawable = VfDrawableRegion.pack(collectorList, sorted, bytes);
+	protected AbstractDrawableRegion(DrawableDelegate delegate) {
+		this.delegate = delegate;
 	}
 
 	@Override
-	public DrawableRegion produceDrawable() {
-		return drawable;
+	public final DrawableDelegate delegate() {
+		return delegate;
+	}
+
+	/**
+	 * Called when buffer content is no longer current and will not be rendered.
+	 */
+	@Override
+	public final void close() {
+		if (!isClosed) {
+			isClosed = true;
+
+			closeInner();
+
+			assert delegate != null;
+			delegate.release();
+			delegate = null;
+		}
+	}
+
+	protected abstract void closeInner();
+
+	@Override
+	public final boolean isClosed() {
+		return isClosed;
 	}
 }

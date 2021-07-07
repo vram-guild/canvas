@@ -26,7 +26,7 @@ public class VboUploadableRegion implements UploadableRegion {
 
 	public VboUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes) {
 		vboBuffer = new VboBuffer(bytes, CanvasVertexFormats.MATERIAL_FORMAT);
-		drawable = DrawableRegion.pack(collectorList, vboBuffer, sorted, bytes);
+		drawable = VboDrawableRegion.pack(collectorList, vboBuffer, sorted, bytes);
 	}
 
 	@Override
