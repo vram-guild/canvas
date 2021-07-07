@@ -51,7 +51,6 @@ public class VfStorageTexture<T extends VfStorageElement<T>> {
 		}
 
 		if (glId != 0) {
-			disable();
 			GFX.deleteTexture(glId);
 			glId = 0;
 		}
