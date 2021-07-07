@@ -29,7 +29,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.vf.Vf;
+import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.canvas.vf.storage.VfStorageReference;
 
 // WIP: need this thing?
@@ -117,7 +117,7 @@ public class DrawableRegion {
 				final int[] vfData = new int[quadIntCount];
 				System.arraycopy(collector.data(), 0, vfData, 0, quadIntCount);
 				vfbr = VfStorageReference.of(vfData);
-				Vf.QUADS.enqueue(vfbr);
+				TerrainVertexFetch.QUADS.enqueue(vfbr);
 				break;
 			default:
 				assert false : "Unhandled terrain vertex config in DrawableRegion.pack";

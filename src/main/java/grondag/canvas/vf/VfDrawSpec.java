@@ -124,11 +124,11 @@ public class VfDrawSpec implements AutoCloseable {
 			return EMPTY;
 		}
 
-		VfStreamReference regionStream = Vf.REGIONS.allocate(regionData.size() * 4, (buff, index) -> {
+		VfStreamReference regionStream = TerrainVertexFetch.REGIONS.allocate(regionData.size() * 4, (buff, index) -> {
 			buff.put(index, regionData.toIntArray());
 		});
 
-		VfStreamReference quadMapStream = Vf.QUAD_REGION_MAP.allocate(quadMapData.size() * 4, (buff, index) -> {
+		VfStreamReference quadMapStream = TerrainVertexFetch.QUAD_REGION_MAP.allocate(quadMapData.size() * 4, (buff, index) -> {
 			buff.put(index, quadMapData.toIntArray());
 		});
 

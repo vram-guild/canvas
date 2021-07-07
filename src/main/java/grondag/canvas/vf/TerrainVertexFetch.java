@@ -25,7 +25,7 @@ import grondag.canvas.vf.storage.VfStorageReference;
 import grondag.canvas.vf.storage.VfStorageTexture;
 import grondag.canvas.vf.stream.VfStreamTexture;
 
-public class Vf {
+public class TerrainVertexFetch {
 	public static final VfInt UV = new VfInt(TextureData.VF_UV, GFX.GL_RG16);
 	public static final VfInt COLOR = new VfInt(TextureData.VF_COLOR, GFX.GL_RGBA8);
 	public static final VfInt LIGHT = new VfInt(TextureData.VF_LIGHT, GFX.GL_RGBA8);
@@ -45,32 +45,26 @@ public class Vf {
 	}
 
 	public static void enable() {
-		if (Configurator.vf) {
-			COLOR.enable();
-			UV.enable();
-			LIGHT.enable();
-			VERTEX.enable();
-			QUADS.enable();
-		}
+		COLOR.enable();
+		UV.enable();
+		LIGHT.enable();
+		VERTEX.enable();
+		QUADS.enable();
 	}
 
 	public static void disable() {
-		if (Configurator.vf) {
-			COLOR.disable();
-			UV.disable();
-			LIGHT.disable();
-			VERTEX.disable();
-			QUADS.disable();
-		}
+		COLOR.disable();
+		UV.disable();
+		LIGHT.disable();
+		VERTEX.disable();
+		QUADS.disable();
 	}
 
 	public static void clear() {
-		if (Configurator.vf) {
-			UV.clear();
-			COLOR.clear();
-			LIGHT.clear();
-			VERTEX.clear();
-			QUADS.clear();
-		}
+		UV.clear();
+		COLOR.clear();
+		LIGHT.clear();
+		VERTEX.clear();
+		QUADS.clear();
 	}
 }

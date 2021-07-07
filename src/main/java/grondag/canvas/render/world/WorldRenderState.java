@@ -22,6 +22,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 
 import grondag.canvas.config.Configurator;
+import grondag.canvas.config.TerrainVertexConfig;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
@@ -31,7 +32,7 @@ import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.vf.Vf;
+import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.canvas.vf.VfDrawSpec;
 
 /**
@@ -139,9 +140,12 @@ public class WorldRenderState {
 
 		cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 
-		if (Configurator.vf) {
-			Vf.REGIONS.prepare();
-			Vf.QUAD_REGION_MAP.prepare();
+		// WIP: ugly special casing
+		final boolean vf = Configurator.terrainVertexConfig == TerrainVertexConfig.FETCH;
+
+		if (vf) {
+			TerrainVertexFetch.REGIONS.prepare();
+			TerrainVertexFetch.QUAD_REGION_MAP.prepare();
 			solidDrawSpec.close();
 			solidDrawSpec = VfDrawSpec.build(cameraVisibleRegions, false);
 			translucentDrawSpec.close();
@@ -154,7 +158,7 @@ public class WorldRenderState {
 			shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
 			shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
 
-			if (Configurator.vf) {
+			if (vf) {
 				for (int i = 0; i < 4; ++i) {
 					shadowDrawSpecs[i].close();
 					shadowDrawSpecs[i] = VfDrawSpec.build(shadowVisibleRegions[i], false);
@@ -162,9 +166,9 @@ public class WorldRenderState {
 			}
 		}
 
-		if (Configurator.vf) {
-			Vf.REGIONS.flush();
-			Vf.QUAD_REGION_MAP.flush();
+		if (vf) {
+			TerrainVertexFetch.REGIONS.flush();
+			TerrainVertexFetch.QUAD_REGION_MAP.flush();
 		}
 	}
 
@@ -184,7 +188,8 @@ public class WorldRenderState {
 	}
 
 	void clearDrawSpecs() {
-		if (Configurator.vf) {
+		// WIP: ugly special casing
+		if (Configurator.terrainVertexConfig == TerrainVertexConfig.FETCH) {
 			solidDrawSpec.close();
 			solidDrawSpec = VfDrawSpec.EMPTY;
 

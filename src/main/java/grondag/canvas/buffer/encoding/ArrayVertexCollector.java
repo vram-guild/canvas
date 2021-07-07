@@ -28,7 +28,7 @@ import net.minecraft.util.math.MathHelper;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.vf.Vf;
+import grondag.canvas.vf.TerrainVertexFetch;
 
 public class ArrayVertexCollector implements VertexCollector {
 	private final int quadStrideInts;
@@ -206,7 +206,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		final int by = (blockOffset >> 4) & 0xF;
 		final int bz = (blockOffset >> 8) & 0xF;
 
-		final int[] vfData = Vf.VERTEX.fromIndex(vertexData[i + 1] & 0xFFFFFF).data;
+		final int[] vfData = TerrainVertexFetch.VERTEX.fromIndex(vertexData[i + 1] & 0xFFFFFF).data;
 
 		final float x0 = bx + Float.intBitsToFloat(vfData[0]);
 		final float y0 = by + Float.intBitsToFloat(vfData[1]);

@@ -6,6 +6,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.texture.TextureData;
+import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
 public enum TerrainVertexConfig {
@@ -30,6 +31,21 @@ public enum TerrainVertexConfig {
 			program.uniformSampler("isamplerBuffer", "_cvu_vfQuads", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.VF_QUADS - GL21.GL_TEXTURE0));
 			program.uniformSampler("isamplerBuffer", "_cvu_vfRegions", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.VF_REGIONS - GL21.GL_TEXTURE0));
 			program.uniformSampler("usamplerBuffer", "_cvu_vfQuadRegions", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.VF_QUAD_REGIONS - GL21.GL_TEXTURE0));
+		}
+
+		@Override
+		public void reload() {
+			TerrainVertexFetch.clear();
+		}
+
+		@Override
+		public void onDeactiveProgram() {
+			TerrainVertexFetch.disable();
+		}
+
+		@Override
+		public void onActivateProgram() {
+			TerrainVertexFetch.enable();
 		}
 	},
 
@@ -58,4 +74,10 @@ public enum TerrainVertexConfig {
 	public final boolean shouldApplyBlockPosTranslation;
 
 	public void setupUniforms(GlProgram program) { }
+
+	public void reload() { }
+
+	public void onDeactiveProgram() { }
+
+	public void onActivateProgram() { }
 }

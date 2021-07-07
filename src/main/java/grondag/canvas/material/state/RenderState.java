@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -39,7 +38,6 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.vf.Vf;
 import grondag.fermion.bits.BitPacker64;
 
 /**
@@ -111,8 +109,7 @@ public final class RenderState extends AbstractRenderState {
 
 	private void enableDepthPass(int x, int y, int z, int cascade, int regionBaseIndex, int quadMapBaseIndex) {
 		final MatrixState matrixState = MatrixState.get();
-		final boolean vf = Configurator.vf && matrixState == MatrixState.REGION;
-		final MaterialShaderImpl depthShader = vf ? terrainDepthShader : this.depthShader;
+		final MaterialShaderImpl depthShader = matrixState == MatrixState.REGION ? terrainDepthShader : this.depthShader;
 
 		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
 			depthShader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
@@ -130,10 +127,6 @@ public final class RenderState extends AbstractRenderState {
 		active = null;
 		currentMatrixState = null;
 		texture.materialIndexProvider().enable();
-
-		if (vf) {
-			Vf.enable();
-		}
 
 		texture.enable(blur);
 		transparency.enable();
@@ -161,12 +154,10 @@ public final class RenderState extends AbstractRenderState {
 	private void enableMaterial(int x, int y, int z, int regionBaseIndex, int quadMapBaseIndex) {
 		final MaterialShaderImpl shader;
 		final MatrixState matrixState = MatrixState.get();
-		boolean vf = false;
 
 		switch (matrixState) {
 			case REGION:
-				vf = Configurator.vf;
-				shader = vf ? terrainShader : this.shader;
+				shader = terrainShader;
 				break;
 			case SCREEN:
 				shader = guiShader;
@@ -195,10 +186,6 @@ public final class RenderState extends AbstractRenderState {
 		shadowActive = null;
 		shadowCurrentMatrixState = null;
 		texture.materialIndexProvider().enable();
-
-		if (vf) {
-			Vf.enable();
-		}
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
@@ -280,7 +267,6 @@ public final class RenderState extends AbstractRenderState {
 		MaterialTextureState.disable();
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		MaterialIndexTexture.disable();
-		Vf.disable();
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
