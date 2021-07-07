@@ -730,15 +730,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	void renderTerrainLayer(boolean isTranslucent) {
 		// WIP: remove these here and below when reference handles the draw
-		if (Configurator.vf) (isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).vfStream.bind();
+		if (Configurator.vf) (isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).regionStream.bind();
 		RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
-		if (Configurator.vf) (isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).vfStream.unbind();
+		if (Configurator.vf) (isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).regionStream.unbind();
 	}
 
 	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
-		if (Configurator.vf) worldRenderState.shadowDrawSpecs[cascadeIndex].vfStream.bind();
+		if (Configurator.vf) worldRenderState.shadowDrawSpecs[cascadeIndex].regionStream.bind();
 		RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
-		if (Configurator.vf) worldRenderState.shadowDrawSpecs[cascadeIndex].vfStream.unbind();
+		if (Configurator.vf) worldRenderState.shadowDrawSpecs[cascadeIndex].regionStream.unbind();
 	}
 
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {

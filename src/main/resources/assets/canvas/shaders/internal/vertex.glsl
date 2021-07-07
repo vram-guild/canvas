@@ -16,6 +16,7 @@
 		uniform samplerBuffer _cvu_vfLight;
 		uniform isamplerBuffer _cvu_vfQuads;
 		uniform isamplerBuffer _cvu_vfRegions;
+		uniform usamplerBuffer _cvu_vfQuadRegions;
 
 		// x was region quad offset - no longer used
 		// y is base region index - will remain

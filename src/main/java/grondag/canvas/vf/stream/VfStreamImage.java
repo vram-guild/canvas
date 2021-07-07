@@ -16,6 +16,8 @@
 
 package grondag.canvas.vf.stream;
 
+import net.minecraft.util.math.MathHelper;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -24,12 +26,14 @@ import grondag.canvas.vf.BufferWriter;
 @Environment(EnvType.CLIENT)
 public final class VfStreamImage {
 	private final VfStreamSpec spec;
+	private int imageCapacityBytes;
 
 	private VfStreamHolder holder;
 	boolean logging = false;
 
 	public VfStreamImage(VfStreamSpec spec) {
 		this.spec = spec;
+		imageCapacityBytes = spec.startingCapacityBytes;
 	}
 
 	public void close() {
@@ -45,26 +49,26 @@ public final class VfStreamImage {
 
 	public void prepare() {
 		if (holder == null) {
-			holder = new VfStreamHolder(spec);
+			holder = new VfStreamHolder(spec, imageCapacityBytes);
 		} else if (holder.capacity() <= 0) {
 			assert holder.capacity() == 0;
 			holder.detach();
-			holder = new VfStreamHolder(spec);
+			holder = new VfStreamHolder(spec, imageCapacityBytes);
 		}
 
 		holder.prepare();
 	}
 
 	public VfStreamReference allocate(int byteCount, BufferWriter writer) {
-		if (byteCount > spec.imageCapacityBytes()) {
-			assert false : "Cannot allocate more than stream image size";
-			return VfStreamReference.EMPTY;
-		}
-
 		if (byteCount > holder.capacity()) {
 			holder.flush();
 			holder.detach();
-			holder = new VfStreamHolder(spec);
+
+			if (byteCount > imageCapacityBytes) {
+				imageCapacityBytes = MathHelper.smallestEncompassingPowerOfTwo(byteCount);
+			}
+
+			holder = new VfStreamHolder(spec, imageCapacityBytes);
 			holder.prepare();
 		}
 

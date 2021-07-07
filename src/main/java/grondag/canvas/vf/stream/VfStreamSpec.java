@@ -16,4 +16,14 @@
 
 package grondag.canvas.vf.stream;
 
-record VfStreamSpec(int textureUnit, int imageFormat, int imageCapacityBytes) { };
+class VfStreamSpec {
+	final int textureUnit;
+	final int imageFormat;
+	final int startingCapacityBytes;
+
+	VfStreamSpec(int textureUnit, int imageFormat, int startingCapacityBytes) {
+		this.textureUnit = textureUnit;
+		this.imageFormat = imageFormat;
+		this.startingCapacityBytes = startingCapacityBytes;
+	}
+}

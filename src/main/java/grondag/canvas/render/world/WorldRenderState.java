@@ -141,6 +141,7 @@ public class WorldRenderState {
 
 		if (Configurator.vf) {
 			Vf.REGIONS.prepare();
+			Vf.QUAD_REGION_MAP.prepare();
 			solidDrawSpec.close();
 			solidDrawSpec = VfDrawSpec.build(cameraVisibleRegions, false);
 			translucentDrawSpec.close();
@@ -163,6 +164,7 @@ public class WorldRenderState {
 
 		if (Configurator.vf) {
 			Vf.REGIONS.flush();
+			Vf.QUAD_REGION_MAP.flush();
 		}
 	}
 

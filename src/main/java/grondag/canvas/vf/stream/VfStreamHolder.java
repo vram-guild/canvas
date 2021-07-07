@@ -27,6 +27,7 @@ import grondag.canvas.vf.BufferWriter;
 
 class VfStreamHolder {
 	final VfStreamSpec spec;
+	private final int imageCapacityBytes;
 
 	private final ReferenceOpenHashSet<VfStreamReference> references = new ReferenceOpenHashSet<>();
 
@@ -39,8 +40,10 @@ class VfStreamHolder {
 	/** References might all be closed while we still have capacity, so don't close until set. */
 	private boolean isDetached = false;
 
-	VfStreamHolder(VfStreamSpec spec) {
+	VfStreamHolder(VfStreamSpec spec, int imageCapacityBytes) {
 		this.spec = spec;
+		// May be differenr from spec
+		this.imageCapacityBytes = imageCapacityBytes;
 	}
 
 	void detach() {
@@ -71,16 +74,17 @@ class VfStreamHolder {
 	}
 
 	int capacity() {
-		return spec.imageCapacityBytes() - headByteOffset;
+		return imageCapacityBytes - headByteOffset;
 	}
 
 	void prepare() {
 		assert iBuff == null;
 
 		if (bufferId == 0) {
+			assert headByteOffset == 0;
 			bufferId = GFX.genBuffer();
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
-			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, spec.imageCapacityBytes() - headByteOffset, GFX.GL_STATIC_DRAW);
+			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacityBytes, GFX.GL_STATIC_DRAW);
 
 			assert textureId == 0;
 			textureId = GFX.genTexture();
@@ -104,24 +108,22 @@ class VfStreamHolder {
 	void flush() {
 		assert iBuff != null;
 
+		GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
+
 		if (intIndex > 0) {
 			GFX.flushMappedBufferRange(GFX.GL_TEXTURE_BUFFER, 0, intIndex * 4);
 			intIndex = 0;
 		}
 
 		GFX.unmapBuffer(GFX.GL_TEXTURE_BUFFER);
-		GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
 		iBuff = null;
 	}
 
-	/** Returns VfStreamReference.EMPTY if insufficient capacity. */
 	VfStreamReference allocate(int byteCount, BufferWriter writer) {
 		assert (byteCount & 3) == 0 : "Buffer allocations must be int-aligned";
 		final int newHead = headByteOffset + byteCount;
 
-		if (newHead > spec.imageCapacityBytes()) {
-			return VfStreamReference.EMPTY;
-		}
+		assert newHead <= imageCapacityBytes;
 
 		VfStreamReference result = new VfStreamReference(headByteOffset, byteCount, this);
 

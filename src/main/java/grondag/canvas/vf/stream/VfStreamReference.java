@@ -59,7 +59,7 @@ public class VfStreamReference implements AutoCloseable {
 		if (isClosed) {
 			assert false : "Attempt to unbind closed stream reference";
 		} else {
-			CanvasTextureState.activeTextureUnit(holder.spec.textureUnit());
+			CanvasTextureState.activeTextureUnit(holder.spec.textureUnit);
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, 0);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
@@ -70,9 +70,9 @@ public class VfStreamReference implements AutoCloseable {
 			assert false : "Attempt to bind closed stream reference";
 		} else {
 			MaterialShaderImpl.regionBufferOffset = byteAddress / 16;
-			CanvasTextureState.activeTextureUnit(holder.spec.textureUnit());
+			CanvasTextureState.activeTextureUnit(holder.spec.textureUnit);
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, holder.textureId);
-			GFX.texBuffer(holder.spec.imageFormat(), holder.bufferId);
+			GFX.texBuffer(holder.spec.imageFormat, holder.bufferId);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 	}

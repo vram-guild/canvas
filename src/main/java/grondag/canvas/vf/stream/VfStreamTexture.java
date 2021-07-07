@@ -29,8 +29,8 @@ public class VfStreamTexture {
 
 	boolean logging = false;
 
-	public VfStreamTexture(int textureUnit, int imageFormat, int imageCapacityBytes) {
-		spec = new VfStreamSpec(textureUnit, imageFormat, imageCapacityBytes);
+	public VfStreamTexture(int textureUnit, int imageFormat, int startingCapacityBytes) {
+		spec = new VfStreamSpec(textureUnit, imageFormat, startingCapacityBytes);
 	}
 
 	public void clear() {
