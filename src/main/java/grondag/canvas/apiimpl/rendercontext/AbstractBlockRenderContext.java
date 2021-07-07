@@ -40,7 +40,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.encoding.QuadEncoders;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.frex.api.material.MaterialMap;
 
@@ -184,7 +184,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			CanvasVertexFormats.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
+			QuadEncoders.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
 		}
 	}
 }

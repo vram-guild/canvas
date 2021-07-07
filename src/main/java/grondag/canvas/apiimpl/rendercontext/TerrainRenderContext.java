@@ -36,8 +36,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.encoding.QuadEncoders;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
@@ -196,6 +196,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		CanvasVertexFormats.TERRAIN_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
+		QuadEncoders.TERRAIN_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
 	}
 }

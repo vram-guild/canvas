@@ -49,7 +49,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.encoding.QuadEncoders;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
@@ -299,7 +299,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			CanvasVertexFormats.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
+			QuadEncoders.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
 		}
 	}
 

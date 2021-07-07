@@ -16,31 +16,10 @@
 
 package grondag.canvas.buffer.format;
 
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.AO_1UB;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_4UB;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_RGBA_VF;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2F;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_2US;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.BASE_TEX_VF;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.HEADER_VF;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.LIGHTMAPS_2UB;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.MATERIAL_1US;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.NORMAL_3B;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.POSITION_3F;
-import static grondag.canvas.buffer.format.CanvasVertexFormatElement.VERTEX_VF;
-
-import net.minecraft.client.MinecraftClient;
-
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.minecraft.client.render.VertexFormatElement;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.encoding.QuadEncoder;
-import grondag.canvas.buffer.encoding.QuadTranscoder;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.vf.Vf;
 
 public final class CanvasVertexFormats {
 	static {
@@ -48,6 +27,30 @@ public final class CanvasVertexFormats {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialVertexFormats static init");
 		}
 	}
+
+	private static final CanvasVertexFormatElement POSITION_3F = new CanvasVertexFormatElement(
+		VertexFormatElement.DataType.FLOAT, 3, "in_vertex", true, false);
+
+	private static final CanvasVertexFormatElement BASE_RGBA_4UB = new CanvasVertexFormatElement(
+		VertexFormatElement.DataType.UBYTE, 4, "in_color", true, false);
+
+	private static final CanvasVertexFormatElement BASE_TEX_2F = new CanvasVertexFormatElement(
+		VertexFormatElement.DataType.FLOAT, 2, "in_uv", true, false);
+
+	private static final CanvasVertexFormatElement BASE_TEX_2US = new CanvasVertexFormatElement(
+		VertexFormatElement.DataType.USHORT, 2, "in_uv", true, false);
+
+	private static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap", false, false);
+
+	private static final CanvasVertexFormatElement NORMAL_3B = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.BYTE, 3, "in_normal", true, false);
+
+	private static final CanvasVertexFormatElement AO_1UB = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UBYTE, 1, "in_ao", true, false);
+
+	private static final CanvasVertexFormatElement MATERIAL_1US = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.USHORT, 1, "in_material", false, true);
 
 	public static final CanvasVertexFormat PROCESS_VERTEX_UV = new CanvasVertexFormat(POSITION_3F, BASE_TEX_2F);
 	public static final CanvasVertexFormat PROCESS_VERTEX = new CanvasVertexFormat(POSITION_3F);
@@ -62,170 +65,25 @@ public final class CanvasVertexFormats {
 	 */
 	private static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
-	// WIP: remove at end?
+	// WIP: remove or clean up
+	private static final CanvasVertexFormatElement HEADER_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_header_vf", false, true);
+	private static final CanvasVertexFormatElement VERTEX_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_vertex_vf", false, true);
+
+	private static final CanvasVertexFormatElement BASE_RGBA_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_color_vf", false, true);
+
+	private static final CanvasVertexFormatElement BASE_TEX_VF = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UINT, 1, "in_uv_vf", false, true);
+
 	private static final CanvasVertexFormat VF_MATERIAL = new CanvasVertexFormat(HEADER_VF, VERTEX_VF, BASE_RGBA_VF, BASE_TEX_VF);
 
-	private static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
+	public static final int COMPACT_QUAD_STRIDE = COMPACT_MATERIAL.quadStrideInts;
+
 	// Note the vertex stride is the effective quad stride because of indexing
-	private static final int VF_QUAD_STRIDE = VF_MATERIAL.vertexStrideInts;
-
-	private static final QuadEncoder COMPACT_ENCODER = (quad, buff) -> {
-		final RenderMaterialImpl mat = quad.material();
-
-		int packedNormal = 0;
-		final boolean useNormals = quad.hasVertexNormals();
-
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-		}
-
-		final int material = mat.dongle().index(quad.spriteId()) << 16;
-
-		int k = buff.allocate(COMPACT_QUAD_STRIDE);
-		final int[] target = buff.data();
-
-		for (int i = 0; i < 4; i++) {
-			quad.appendVertex(i, target, k);
-			k += 3;
-
-			target[k++] = quad.vertexColor(i);
-			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
-
-			final int packedLight = quad.lightmap(i);
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
-			target[k++] = blockLight | (skyLight << 8) | material;
-
-			if (useNormals) {
-				packedNormal = quad.packedNormal(i);
-			}
-
-			target[k++] = packedNormal | 0xFF000000;
-		}
-	};
-
-	private static final QuadTranscoder COMPACT_TRANSCODER = (quad, context, buff) -> {
-		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
-		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final int overlay = context.overlay();
-
-		quad.overlay(overlay);
-
-		final boolean aoDisabled = !MinecraftClient.isAmbientOcclusionEnabled();
-		final float[] aoData = quad.ao;
-		final RenderMaterialImpl mat = quad.material();
-
-		assert mat.blendMode != BlendMode.DEFAULT;
-
-		int packedNormal = 0;
-		int transformedNormal = 0;
-		final boolean useNormals = quad.hasVertexNormals();
-
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-			transformedNormal = normalMatrix.canvas_transform(packedNormal);
-		}
-
-		final int material = mat.dongle().index(quad.spriteId()) << 16;
-
-		int k = buff.allocate(COMPACT_QUAD_STRIDE);
-		final int[] target = buff.data();
-
-		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppendVertex(i, matrix, target, k);
-			k += 3;
-
-			target[k++] = quad.vertexColor(i);
-			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
-
-			final int packedLight = quad.lightmap(i);
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
-			final int ao = aoDisabled ? 255 : (Math.round(aoData[i] * 255));
-			target[k++] = blockLight | (skyLight << 8) | material;
-
-			if (useNormals) {
-				final int p = quad.packedNormal(i);
-
-				if (p != packedNormal) {
-					packedNormal = p;
-					transformedNormal = normalMatrix.canvas_transform(packedNormal);
-				}
-			}
-
-			target[k++] = transformedNormal | (ao << 24);
-		}
-	};
-
-	private static final QuadTranscoder VF_TRANSCODER = (quad, context, buff) -> {
-		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
-		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final int overlay = context.overlay();
-
-		quad.overlay(overlay);
-
-		final boolean aoDisabled = !MinecraftClient.isAmbientOcclusionEnabled();
-		final float[] aoData = quad.ao;
-		final RenderMaterialImpl mat = quad.material();
-
-		assert mat.blendMode != BlendMode.DEFAULT;
-
-		final int material = mat.dongle().index(quad.spriteId()) << 12;
-
-		int n = buff.allocate(VF_QUAD_STRIDE);
-		final int[] target = buff.data();
-
-		final int vfColor = Vf.COLOR.index(quad.vertexColor(0), quad.vertexColor(1), quad.vertexColor(2), quad.vertexColor(3));
-
-		final int vfUv = Vf.UV.index(
-				quad.spriteBufferU(0) | (quad.spriteBufferV(0) << 16),
-				quad.spriteBufferU(1) | (quad.spriteBufferV(1) << 16),
-				quad.spriteBufferU(2) | (quad.spriteBufferV(2) << 16),
-				quad.spriteBufferU(3) | (quad.spriteBufferV(3) << 16)
-		);
-
-		final int vfVertex = Vf.VERTEX.index(matrix, normalMatrix, quad);
-
-		final int packedLight0 = quad.lightmap(0);
-		final int light0 = (packedLight0 & 0xFF) | ((packedLight0 >> 8) & 0xFF00) | ((aoDisabled ? 255 : (Math.round(aoData[0] * 255))) << 16);
-
-		final int packedLight1 = quad.lightmap(1);
-		final int light1 = (packedLight1 & 0xFF) | ((packedLight1 >> 8) & 0xFF00) | ((aoDisabled ? 255 : (Math.round(aoData[1] * 255))) << 16);
-
-		final int packedLight2 = quad.lightmap(2);
-		final int light2 = (packedLight2 & 0xFF) | ((packedLight2 >> 8) & 0xFF00) | ((aoDisabled ? 255 : (Math.round(aoData[2] * 255))) << 16);
-
-		final int packedLight3 = quad.lightmap(3);
-		final int light3 = (packedLight3 & 0xFF) | ((packedLight3 >> 8) & 0xFF00) | ((aoDisabled ? 255 : (Math.round(aoData[3] * 255))) << 16);
-
-		final int vfLight = Vf.LIGHT.index(light0, light1, light2, light3);
-
-		final int l0 = (vfLight & 0x0000FF) << 24;
-		final int l1 = (vfLight & 0x00FF00) << 16;
-		final int l2 = (vfLight & 0xFF0000) << 8;
-
-		assert vfVertex < 0x1000000;
-		assert vfColor < 0x1000000;
-		assert vfUv < 0x1000000;
-		assert vfLight < 0x1000000;
-
-		final int packedRelPos = context.packedRelativeBlockPos();
-
-		// Light is striped across the last three components so we can stay within four int components.
-		// This is also convenient if we ever want to skip sending light.
-		target[n++] = material | packedRelPos;
-		target[n++] = vfVertex | l0;
-		target[n++] = vfColor | l1;
-		target[n++] = vfUv | l2;
-	};
+	public static final int VF_QUAD_STRIDE = VF_MATERIAL.vertexStrideInts;
 
 	public static CanvasVertexFormat MATERIAL_FORMAT = COMPACT_MATERIAL;
 	public static CanvasVertexFormat MATERIAL_FORMAT_VF = VF_MATERIAL;
-	public static QuadTranscoder MATERIAL_TRANSCODER = COMPACT_TRANSCODER;
-	public static QuadEncoder MATERIAL_ENCODER = COMPACT_ENCODER;
-	public static QuadTranscoder TERRAIN_TRANSCODER = Configurator.vf ? VF_TRANSCODER : COMPACT_TRANSCODER;
 }

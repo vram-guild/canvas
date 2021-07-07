@@ -26,7 +26,6 @@ import net.minecraft.client.render.VertexConsumer;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.UploadableRegion;
@@ -60,7 +59,7 @@ public class VertexCollectorList {
 
 			if (mat.condition.compute()) {
 				complete();
-				CanvasVertexFormats.MATERIAL_ENCODER.encode(this, get(mat));
+				QuadEncoders.MATERIAL_ENCODER.encode(this, get(mat));
 			}
 
 			clear();
