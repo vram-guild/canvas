@@ -16,98 +16,15 @@
 
 package grondag.canvas.render.region;
 
-import java.util.concurrent.ArrayBlockingQueue;
-
-import com.mojang.blaze3d.systems.RenderSystem;
-
-import net.minecraft.client.render.VertexFormat.DrawMode;
-
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.varia.GFX;
-import grondag.canvas.vf.storage.VfStorageReference;
 
-public class DrawableDelegate {
-	private static final ArrayBlockingQueue<DrawableDelegate> store = new ArrayBlockingQueue<>(4096);
-	private RenderState renderState;
-	private VfStorageReference regionStorageReference;
+public interface DrawableDelegate extends AutoCloseable {
+	RenderState renderState();
 
-	private int vertexOffset;
-	private int quadVertexCount;
-	private boolean isReleased = false;
+	int quadVertexCount();
 
-	private DrawableDelegate() {
-		super();
-	}
+	@Override
+	void close();
 
-	public static DrawableDelegate claim(RenderState renderState, int vertexOffset, int quadVertexCount, VfStorageReference regionStorageReference) {
-		DrawableDelegate result = store.poll();
-
-		if (result == null) {
-			result = new DrawableDelegate();
-		}
-
-		result.renderState = renderState;
-		result.vertexOffset = vertexOffset;
-		result.quadVertexCount = quadVertexCount;
-		result.isReleased = false;
-		result.regionStorageReference = regionStorageReference;
-		return result;
-	}
-
-	public VfStorageReference regionStorageReference() {
-		return regionStorageReference;
-	}
-
-	/**
-	 * The pipeline (and vertex format) associated with this delegate.
-	 */
-	public RenderState renderState() {
-		return renderState;
-	}
-
-	/**
-	 * Assumes pipeline has already been activated and buffer has already been bound
-	 * via {@link #bind()}.
-	 */
-	public void draw() {
-		assert !isReleased;
-
-		switch (Configurator.terrainVertexConfig) {
-			case DEFAULT:
-			case REGION:
-				final int triVertexCount = quadVertexCount / 4 * 6;
-				final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
-				final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
-				GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-				GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
-				break;
-			case FETCH:
-				GFX.drawArrays(GFX.GL_TRIANGLES, 0, quadVertexCount / 4 * 6);
-				break;
-			default:
-				assert false : "Unhandled vertex configuration in region draw";
-				break;
-		}
-	}
-
-	public void release() {
-		assert RenderSystem.isOnRenderThread();
-
-		if (!isReleased) {
-			isReleased = true;
-			renderState = null;
-
-			if (regionStorageReference != null) {
-				regionStorageReference.close();
-				regionStorageReference = null;
-			}
-
-			store.offer(this);
-		}
-	}
-
-	public int quadVertexCount() {
-		return quadVertexCount;
-	}
+	boolean isClosed();
 }

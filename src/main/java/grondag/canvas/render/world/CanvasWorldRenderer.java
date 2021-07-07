@@ -88,7 +88,7 @@ import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
-import grondag.canvas.render.region.RegionRenderer;
+import grondag.canvas.render.region.vbo.VboRegionRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
@@ -730,13 +730,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	void renderTerrainLayer(boolean isTranslucent) {
 		switch (Configurator.terrainVertexConfig) {
 			case DEFAULT:
-				RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
+				VboRegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
 				break;
 			case FETCH:
 				(isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).draw();
 				break;
 			case REGION:
-				RegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
+				VboRegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
 				break;
 			default:
 				assert false : "Unhandled terrain vertex config in renderTerrainLayer";
@@ -747,13 +747,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
 		switch (Configurator.terrainVertexConfig) {
 			case DEFAULT:
-				RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
+				VboRegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
 				break;
 			case FETCH:
 				worldRenderState.shadowDrawSpecs[cascadeIndex].draw();
 				break;
 			case REGION:
-				RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
+				VboRegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
 				break;
 			default:
 				assert false : "Unhandled terrain vertex config in renderShadowLayer";

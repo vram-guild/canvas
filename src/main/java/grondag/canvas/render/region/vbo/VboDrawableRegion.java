@@ -14,32 +14,42 @@
  *  the License.
  */
 
-package grondag.canvas.render.region;
+package grondag.canvas.render.region.vbo;
+
+import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.vf.TerrainVertexFetch;
-import grondag.canvas.vf.storage.VfStorageReference;
+import grondag.canvas.render.region.AbstractDrawableRegion;
+import grondag.canvas.render.region.DrawableDelegate;
+import grondag.canvas.render.region.DrawableRegion;
 
-public class VfDrawableRegion extends AbstractDrawableRegion {
-	protected VfDrawableRegion(DrawableDelegate delegate) {
+public class VboDrawableRegion extends AbstractDrawableRegion {
+	private final VboBuffer vboBuffer;
+
+	private VboDrawableRegion(VboBuffer vboBuffer, DrawableDelegate delegate) {
 		super(delegate);
-	}
-
-	@Override
-	public void bindIfNeeded() {
-		// NOOP
+		this.vboBuffer = vboBuffer;
 	}
 
 	@Override
 	protected void closeInner() {
-		// NOOP
+		if (vboBuffer != null) {
+			vboBuffer.close();
+		}
 	}
 
-	public static DrawableRegion pack(VertexCollectorList collectorList, boolean translucent, int byteCount) {
+	@Override
+	public void bindIfNeeded() {
+		if (vboBuffer != null) {
+			vboBuffer.bind();
+		}
+	}
+
+	public static DrawableRegion pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent, int byteCount) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 
 		if (drawList.isEmpty()) {
@@ -52,12 +62,11 @@ public class VfDrawableRegion extends AbstractDrawableRegion {
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
-		final int quadIntCount = collector.quadCount() * CanvasVertexFormats.VF_QUAD_STRIDE;
-		final int[] vfData = new int[quadIntCount];
-		System.arraycopy(collector.data(), 0, vfData, 0, quadIntCount);
-		final VfStorageReference vfbr = VfStorageReference.of(vfData);
-		TerrainVertexFetch.QUADS.enqueue(vfbr);
-		final DrawableDelegate delegate = DrawableDelegate.claim(collector.renderState, 0, collector.quadCount() * 4, vfbr);
-		return new VfDrawableRegion(delegate);
+		final IntBuffer intBuffer = vboBuffer.intBuffer();
+		intBuffer.position(0);
+		collector.toBuffer(intBuffer);
+
+		final DrawableDelegate delegate = new VboDrawableDelegate(collector.renderState, collector.quadCount() * 4, 0);
+		return new VboDrawableRegion(vboBuffer, delegate);
 	}
 }

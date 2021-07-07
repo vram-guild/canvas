@@ -21,9 +21,10 @@ import java.util.function.Predicate;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderState;
 
-public interface DrawableRegion {
+public interface DrawableRegion extends AutoCloseable {
 	DrawableDelegate delegate();
 
+	@Override
 	void close();
 
 	boolean isClosed();

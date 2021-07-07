@@ -22,8 +22,8 @@ import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.buffer.CleanVAO;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.DrawableDelegate;
 import grondag.canvas.render.region.DrawableRegion;
+import grondag.canvas.render.region.vf.VfDrawableDelegate;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.varia.GFX;
@@ -80,7 +80,7 @@ public class VfDrawSpec implements AutoCloseable {
 			final DrawableRegion drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
 			if (!drawable.isClosed()) {
-				final DrawableDelegate delegate = drawable.delegate();
+				final VfDrawableDelegate delegate = (VfDrawableDelegate) drawable.delegate();
 
 				if (delegate != null) {
 					if (renderState == null) {

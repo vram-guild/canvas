@@ -14,9 +14,11 @@
  *  the License.
  */
 
-package grondag.canvas.render.region;
+package grondag.canvas.render.region.vf;
 
 import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.render.region.DrawableRegion;
+import grondag.canvas.render.region.UploadableRegion;
 
 public class VfUploadableRegion implements UploadableRegion {
 	protected final DrawableRegion drawable;

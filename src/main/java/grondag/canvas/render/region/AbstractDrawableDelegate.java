@@ -16,39 +16,45 @@
 
 package grondag.canvas.render.region;
 
-public abstract class AbstractDrawableRegion implements DrawableRegion {
-	protected boolean isClosed = false;
-	protected DrawableDelegate delegate;
+import com.mojang.blaze3d.systems.RenderSystem;
 
-	protected AbstractDrawableRegion(DrawableDelegate delegate) {
-		this.delegate = delegate;
+import grondag.canvas.material.state.RenderState;
+
+public abstract class AbstractDrawableDelegate implements DrawableDelegate {
+	private final RenderState renderState;
+	private final int quadVertexCount;
+	private boolean isClosed = false;
+
+	protected AbstractDrawableDelegate(RenderState renderState, int quadVertexCount) {
+		this.renderState = renderState;
+		this.quadVertexCount = quadVertexCount;
 	}
 
 	@Override
-	public final DrawableDelegate delegate() {
-		return delegate;
+	public RenderState renderState() {
+		return renderState;
 	}
 
-	/**
-	 * Called when buffer content is no longer current and will not be rendered.
-	 */
+	@Override
+	public int quadVertexCount() {
+		return quadVertexCount;
+	}
+
 	@Override
 	public final void close() {
+		assert RenderSystem.isOnRenderThread();
+
 		if (!isClosed) {
 			isClosed = true;
 
 			closeInner();
-
-			assert delegate != null;
-			delegate.close();
-			delegate = null;
 		}
 	}
 
-	protected abstract void closeInner();
-
 	@Override
-	public final boolean isClosed() {
+	public boolean isClosed() {
 		return isClosed;
 	}
+
+	protected abstract void closeInner();
 }

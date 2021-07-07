@@ -14,11 +14,13 @@
  *  the License.
  */
 
-package grondag.canvas.render.region;
+package grondag.canvas.render.region.vbo;
 
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.render.region.DrawableRegion;
+import grondag.canvas.render.region.UploadableRegion;
 
 public class VboUploadableRegion implements UploadableRegion {
 	protected final VboBuffer vboBuffer;

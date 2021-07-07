@@ -14,18 +14,19 @@
  *  the License.
  */
 
-package grondag.canvas.render.region;
+package grondag.canvas.render.region.vbo;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.varia.GFX;
 
-public class RegionRenderer {
+public class VboRegionRenderer {
 	public static final void render(final VisibleRegionList visibleRegions, boolean isTranslucent) {
 		final int visibleRegionCount = visibleRegions.size();
 
@@ -65,7 +66,7 @@ public class RegionRenderer {
 			final DrawableRegion drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
 			if (!drawable.isClosed()) {
-				final DrawableDelegate delegate = drawable.delegate();
+				final VboDrawableDelegate delegate = (VboDrawableDelegate) drawable.delegate();
 
 				if (delegate != null) {
 					final BlockPos modelOrigin = builtRegion.origin;
