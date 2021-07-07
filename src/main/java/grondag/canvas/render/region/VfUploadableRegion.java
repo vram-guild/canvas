@@ -16,12 +16,17 @@
 
 package grondag.canvas.render.region;
 
-@FunctionalInterface
-public interface UploadableRegion {
-	/**
-	 * Will be called from client thread - is where flush/unmap needs to happen.
-	 */
-	DrawableRegion produceDrawable();
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 
-	UploadableRegion EMPTY_UPLOADABLE = () -> DrawableRegion.EMPTY_DRAWABLE;
+public class VfUploadableRegion implements UploadableRegion {
+	protected final DrawableRegion drawable;
+
+	public VfUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes) {
+		drawable = DrawableRegion.pack(collectorList, null, sorted, bytes);
+	}
+
+	@Override
+	public DrawableRegion produceDrawable() {
+		return drawable;
+	}
 }

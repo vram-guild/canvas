@@ -6,8 +6,12 @@ import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.encoding.QuadEncoders;
 import grondag.canvas.buffer.encoding.QuadTranscoder;
+import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.render.region.UploadableRegion;
+import grondag.canvas.render.region.VboUploadableRegion;
+import grondag.canvas.render.region.VfUploadableRegion;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.vf.TerrainVertexFetch;
@@ -63,6 +67,11 @@ public enum TerrainVertexConfig {
 		public void prepareForDraw() {
 			TerrainVertexFetch.upload();
 		}
+
+		@Override
+		public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes) {
+			return new VfUploadableRegion(vertexCollectorList, sorted, bytes);
+		}
 	},
 
 	REGION(
@@ -107,4 +116,8 @@ public enum TerrainVertexConfig {
 	}
 
 	public void prepareForDraw() { }
+
+	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes) {
+		return new VboUploadableRegion(vertexCollectorList, sorted, bytes);
+	}
 }

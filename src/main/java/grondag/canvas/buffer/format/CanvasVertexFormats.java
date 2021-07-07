@@ -56,13 +56,12 @@ public final class CanvasVertexFormats {
 	 */
 	public static final CanvasVertexFormat COMPACT_MATERIAL = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
-	private static final CanvasVertexFormatElement POSITION_3UI = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.UINT, 3, "in_vertex", false, true);
+	private static final CanvasVertexFormatElement REGION_ID = new CanvasVertexFormatElement(VertexFormatElement.DataType.UINT, 1, "in_region", false, true);
 
 	/**
-	 * Vertex is packed to allow for region ID with same space requirement.
+	 * Puts a region ID at the beginning. Inefficient but 8-int stride will be page-aligned and we can make it more compact later.
 	 */
-	public static final CanvasVertexFormat REGION_MATERIAL = new CanvasVertexFormat(POSITION_3UI, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+	public static final CanvasVertexFormat REGION_MATERIAL = new CanvasVertexFormat(REGION_ID, POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	// WIP: remove or clean up
 	private static final CanvasVertexFormatElement HEADER_VF = new CanvasVertexFormatElement(

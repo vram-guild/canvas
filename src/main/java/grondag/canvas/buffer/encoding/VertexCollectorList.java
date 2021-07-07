@@ -26,6 +26,7 @@ import net.minecraft.client.render.VertexConsumer;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.UploadableRegion;
@@ -144,7 +145,7 @@ public class VertexCollectorList {
 
 	public UploadableRegion toUploadableChunk(boolean sorted) {
 		final int bytes = totalBytes(sorted);
-		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : new UploadableRegion(this, sorted, bytes);
+		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : Configurator.terrainVertexConfig.createUploadableRegion(this, sorted, bytes);
 	}
 
 	/**
