@@ -68,6 +68,7 @@ public class Configurator {
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 	public static TerrainVertexConfig terrainVertexConfig = DEFAULTS.terrainVertexConfig;
+	public static boolean geom = true;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",

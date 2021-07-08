@@ -16,14 +16,16 @@
 
 package grondag.canvas.shader;
 
+import java.util.function.Supplier;
+
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.opengl.GL21;
 
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.data.ShaderStrings;
+import grondag.canvas.varia.GFX;
 
 // PERF: emit switch statements on non-Mac
 public class GlMaterialShader extends GlShader {
@@ -31,18 +33,36 @@ public class GlMaterialShader extends GlShader {
 		super(shaderSource, shaderType, programType);
 	}
 
+	GlMaterialShader(Identifier shaderSource, Supplier<String> sourceSupplier, int shaderType, ProgramType programType) {
+		super(shaderSource, sourceSupplier, shaderType, programType);
+	}
+
+	private static String extension(int shaderType) {
+		if (shaderType == GFX.GL_FRAGMENT_SHADER) {
+			return ".frag";
+		} else if (shaderType == GFX.GL_VERTEX_SHADER) {
+			return ".vert";
+		} else if (shaderType == GFX.GL_GEOMETRY_SHADER) {
+			return ".geom";
+		} else {
+			return ".glsl";
+		}
+	}
+
 	// all material shaders use the same source so only append extension to keep debug source file names of reasonable length
 	@Override
 	protected String debugSourceString() {
-		return programType.name + "-" + (shaderType == GL21.GL_FRAGMENT_SHADER ? ".frag" : ".vert");
+		return programType.name + "-" + extension(shaderType);
 	}
 
 	@Override
 	protected String preprocessSource(ResourceManager resourceManager, String baseSource) {
-		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
+		if (shaderType == GFX.GL_FRAGMENT_SHADER) {
 			return preprocessFragmentSource(resourceManager, baseSource);
-		} else {
+		} else if (shaderType == GFX.GL_VERTEX_SHADER) {
 			return preprocessVertexSource(resourceManager, baseSource);
+		} else {
+			return baseSource;
 		}
 	}
 

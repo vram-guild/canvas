@@ -20,6 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.AbstractDrawableDelegate;
 import grondag.canvas.varia.GFX;
@@ -39,11 +40,16 @@ public class VboDrawableDelegate extends AbstractDrawableDelegate {
 	public void draw() {
 		assert !isClosed();
 
-		final int triVertexCount = quadVertexCount() / 4 * 6;
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
-		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
-		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
+		if (Configurator.geom) {
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, 0);
+			GFX.drawArrays(GFX.GL_LINES_ADJACENCY, vertexOffset, quadVertexCount());
+		} else {
+			final int triVertexCount = quadVertexCount() / 4 * 6;
+			final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
+			final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
+			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
+		}
 	}
 
 	@Override
