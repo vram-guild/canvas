@@ -27,10 +27,17 @@ import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.anarres.cpp.DefaultPreprocessorListener;
+import org.anarres.cpp.Feature;
+import org.anarres.cpp.Preprocessor;
+import org.anarres.cpp.StringLexerSource;
+import org.anarres.cpp.Token;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL20C;
@@ -60,6 +67,7 @@ public class GlShader implements Shader {
 	private static boolean needsClearDebugOutputWarning = true;
 	private static boolean needsDebugOutputWarning = true;
 	private final Identifier shaderSourceId;
+	private final Supplier<String> sourceSupplier;
 	protected final int shaderType;
 	protected final ProgramType programType;
 	private String source = null;
@@ -67,10 +75,22 @@ public class GlShader implements Shader {
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
 
-	public GlShader(Identifier shaderSource, int shaderType, ProgramType programType) {
-		shaderSourceId = shaderSource;
+	//WIP: wow this is ugly
+	private String geometrySource;
+	public GlShader vertexShader;
+
+	public GlShader(Identifier shaderSourceId, int shaderType, ProgramType programType) {
+		this.shaderSourceId = shaderSourceId;
 		this.shaderType = shaderType;
 		this.programType = programType;
+		sourceSupplier = null;
+	}
+
+	public GlShader(Identifier shaderSourceId, Supplier<String> sourceSupplier, int shaderType, ProgramType programType) {
+		this.shaderSourceId = shaderSourceId;
+		this.shaderType = shaderType;
+		this.programType = programType;
+		this.sourceSupplier = sourceSupplier;
 	}
 
 	public static void forceReloadErrors() {
@@ -245,7 +265,14 @@ public class GlShader implements Shader {
 		}
 	}
 
+	// WIP: clean up
+	private ObjectArrayList<String> varNames = null;
+
 	private String getSource() {
+		if (sourceSupplier != null) {
+			return sourceSupplier.get();
+		}
+
 		String result = source;
 
 		if (result == null) {
@@ -253,6 +280,7 @@ public class GlShader implements Shader {
 
 			if (programType.isTerrain) {
 				result = StringUtils.replace(result, "#define _CV_VERTEX_DEFAULT", "#define _CV_VERTEX_" + Configurator.terrainVertexConfig.name().toUpperCase());
+				result = StringUtils.replace(result, "//#define _CV_IS_TERRAIN", "#define _CV_IS_TERRAIN");
 			}
 
 			if (programType.hasVertexProgramControl) {
@@ -261,6 +289,8 @@ public class GlShader implements Shader {
 
 			if (shaderType == GL21.GL_FRAGMENT_SHADER) {
 				result = StringUtils.replace(result, "#define VERTEX_SHADER", "#define FRAGMENT_SHADER");
+			} else if (shaderType == GFX.GL_GEOMETRY_SHADER) {
+				result = StringUtils.replace(result, "#define VERTEX_SHADER", "#define GEOMETRY_SHADER");
 			}
 
 			if (!Configurator.wavyGrass) {
@@ -283,6 +313,25 @@ public class GlShader implements Shader {
 			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
 			//	}
 			//}
+
+			result = glslPreprocessSource(result);
+
+			if (programType.isTerrain && Configurator.geom) {
+				if (shaderType == GFX.GL_VERTEX_SHADER) {
+					varNames = new ObjectArrayList<>();
+					result = glslPreprocessSource(result);
+					//final String cleanSource = glslPreprocessSource(result);
+					geometrySource = generateGeometrySource(result);
+					result = updateVertexSourceForGeometry(result);
+				} else {
+					// Geometry shaders get generated source from vertex shader and should never get to here
+					assert shaderType == GFX.GL_FRAGMENT_SHADER;
+
+					if (vertexShader != null) {
+						result = vertexShader.updateFragmentSourceForGeometry(result);
+					}
+				}
+			}
 
 			source = result;
 		}
@@ -366,5 +415,196 @@ public class GlShader implements Shader {
 	@Override
 	public Identifier getShaderSourceId() {
 		return shaderSourceId;
+	}
+
+	// WIP: stuff below here would need some clean up if geometry shaders ever work.
+	// The basic idea is to automatically generate the geometry shader and make the
+	// necessary adjustments in the vertex and fragment shaders.
+	//
+	// What adjustments?
+	// With geometry shaders the same variable name cannot be both in and out,
+	// so the "out" names in the vertex shader can't be the same as the "in" names
+	// in the fragment shader.
+	//
+	// First, we run the source through a c preprocessor to eliminate variables
+	// that get removed by conditional compilation.
+	// Then we extract all the "out" vars from the vertex shader for use in the others
+	// and we comment the existing and consolidate them into an interface block at the top
+	// of the vertex shader.
+	//
+	// The geometry shader code is entirely generated from those variable names and then the
+	// fragment shader is similarly updated - commenting all the "in" vars and consolidating
+	// them to an interface block in the header.
+	private static String glslPreprocessSource(String source) {
+		source = StringUtils.replace(source, "#version ", "//#version ");
+
+		@SuppressWarnings("resource")
+		Preprocessor pp = new Preprocessor();
+		pp.setListener(new DefaultPreprocessorListener());
+		pp.addInput(new StringLexerSource(source, true));
+		pp.addFeature(Feature.KEEPCOMMENTS);
+
+		final StringBuilder builder = new StringBuilder();
+
+		try {
+			for (;;) {
+				Token tok = pp.token();
+				if (tok == null) break;
+				if (tok.getType() == Token.EOF) break;
+				builder.append(tok.getText());
+			}
+		} catch (Exception e) {
+			CanvasMod.LOG.error("GLSL source pre-processing failed", e);
+		}
+
+		builder.append("\n");
+
+		source = builder.toString();
+
+		source = StringUtils.replace(source, "//#version ", "#version ");
+
+		// strip leading whitepsace before newline, makes next change more reliable
+		source = source.replaceAll("[ \t]*[\r\n]", "\n");
+		// consolidate newlines
+		source = source.replaceAll("\n{2,}", "\n\n");
+		// inefficient way to remove multiple orhpaned comment blocks
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+
+		return source;
+	}
+
+	public String geometrySource() {
+		return geometrySource;
+	}
+
+	private static final Pattern OUT_PATTERN = Pattern.compile("^\\s*((?:flat\\s)?out\\s+(?:(?:[iu]?vec[2-4])|(?:u?int)|(?:float))\\s+.+;)\s*$", Pattern.MULTILINE);
+
+	private ObjectArrayList<String> extractOutVars(String source) {
+		final ObjectArrayList<String> outVars = new ObjectArrayList<>();
+		final Matcher m = OUT_PATTERN.matcher(source);
+
+		while (m.find()) {
+			System.out.println(m.group(1));
+			outVars.add(m.group(1));
+		}
+
+		return outVars;
+	}
+
+	private String generateGeometrySource(String source) {
+		varNames = extractOutVars(source);
+
+		final StringBuilder builder = new StringBuilder();
+		builder.append("#version 330\n\n");
+		builder.append("/******************************************************\n");
+		builder.append("/ CODE GENERATED AUTOMATICALLY BY CANVAS\n");
+		builder.append("******************************************************/\n\n");
+
+		builder.append("layout (lines_adjacency) in;\n");
+		builder.append("layout (triangle_strip, max_vertices = 4) out;\n\n");
+
+		//// build in interface block
+		builder.append("in CanvasVars {\n");
+
+		for (String varName : varNames) {
+			builder.append("\t").append(geometryInput(varName)).append("\n");
+		}
+
+		builder.append("} inVars[];\n\n");
+
+		//// built out interface block
+		builder.append("out CanvasVars {\n");
+ 
+		for (String varName : varNames) {
+			builder.append("\t").append(StringUtils.replace(varName, "out ", "")).append("\n");
+		}
+
+		builder.append("} outVars;\n\n");
+
+		//// main func
+		builder.append("void main() {\n");
+
+		emitVertex(0, builder);
+		emitVertex(1, builder);
+		//emitVertex(2, varNames, builder);
+		emitVertex(3, builder);
+		builder.append("\tEndPrimitive();\n\n");
+
+		emitVertex(2, builder);
+		builder.append("\tEndPrimitive();\n");
+
+		builder.append("}\n");
+
+		return builder.toString();
+	}
+
+	private void emitVertex(int vertex, StringBuilder builder) {
+		builder.append("\tgl_Position = gl_in[" + vertex + "].gl_Position;\n");
+		final int limit = varNames.size();
+
+		for (int i = 0; i < limit; ++i) {
+			String varName = varNames.get(i).replaceAll(".* ", "").replace(";", "");
+			builder
+				.append("\toutVars.")
+				.append(varName)
+				.append(" = inVars[")
+				.append(vertex)
+				.append("].")
+				.append(varName)
+				.append(";\n");
+		}
+
+		builder.append("\tEmitVertex();\n\n");
+	}
+
+	private static String geometryInput(String varName) {
+		return varName.replaceAll("out ", "");
+		//varName = varName.replaceAll("out ", "");
+		//return varName.replaceAll("((?:[iu]?vec[2-4])|(?:u?int)|(?:float))", "$1\\[\\]");
+	}
+
+	private String updateVertexSourceForGeometry(String source) {
+		for (String varName : varNames) {
+			source = StringUtils.replace(source, varName, "// " + varName + " // <- Moved to CanvasVars interface block //");
+		}
+
+		final StringBuilder builder = new StringBuilder();
+		builder.append("\nout CanvasVars {\n");
+
+		for (String varName : varNames) {
+			builder.append("\t").append(StringUtils.replace(varName, "out ", "")).append("\n");
+		}
+
+		builder.append("};\n\n");
+
+		source = StringUtils.replace(source, "#version 330\n", "#version 330\n" + builder.toString());
+
+		return source;
+	}
+
+	public String updateFragmentSourceForGeometry(String source) {
+		if (varNames == null) {
+			return source;
+		}
+
+		for (String varName : varNames) {
+			final String inName = StringUtils.replace(varName, "out ", "in ");
+			source = StringUtils.replace(source, inName, "// " + inName + " // <- Moved to CanvasVars interface block //");
+		}
+
+		final StringBuilder builder = new StringBuilder();
+		builder.append("\nin CanvasVars {\n");
+
+		for (String varName : varNames) {
+			builder.append("\t").append(StringUtils.replace(varName, "out ", "")).append("\n");
+		}
+
+		builder.append("};\n\n");
+
+		source = StringUtils.replace(source, "#version 330\n", "#version 330\n" + builder.toString());
+
+		return source;
 	}
 }

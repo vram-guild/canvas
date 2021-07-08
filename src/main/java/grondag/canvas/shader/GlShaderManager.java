@@ -35,6 +35,7 @@ public enum GlShaderManager {
 
 	private final Object2ObjectOpenHashMap<String, Shader> vertexShaders = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<String, Shader> fragmentShaders = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<String, Shader> geometryShaders = new Object2ObjectOpenHashMap<>();
 
 	public static String shaderKey(Identifier shaderSource, ProgramType programType) {
 		return String.format("%s.%s", shaderSource.toString(), programType.name);
@@ -70,8 +71,24 @@ public enum GlShaderManager {
 		}
 	}
 
+	public Shader getOrCreateGeometryShader(Identifier shaderSourceId, ProgramType programType) {
+		final String shaderKey = shaderKey(shaderSourceId, programType);
+
+		synchronized (geometryShaders) {
+			Shader result = geometryShaders.get(shaderKey);
+
+			if (result == null) {
+				result = new GlShader(shaderSourceId, GFX.GL_GEOMETRY_SHADER, programType);
+				geometryShaders.put(shaderKey, result);
+			}
+
+			return result;
+		}
+	}
+
 	public void reload() {
 		fragmentShaders.values().forEach(s -> s.forceReload());
 		vertexShaders.values().forEach(s -> s.forceReload());
+		geometryShaders.values().forEach(s -> s.forceReload());
 	}
 }

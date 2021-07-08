@@ -19,6 +19,7 @@ package grondag.canvas.shader;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 
@@ -78,12 +80,23 @@ public class GlProgram {
 	private boolean isErrored = false;
 	private boolean needsLoad = true;
 
+	// WIP: remove or clean up
+	private final Shader geometryShader;
+
 	GlProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
 		vertexFormat = format;
 		ShaderUniforms.COMMON_UNIFORM_SETUP.accept(this);
+
+		if (programType.isTerrain && Configurator.geom) {
+			final Supplier<String> sourceSupplier = ((GlShader) vertexShader)::geometrySource;
+			geometryShader = new GlMaterialShader(new Identifier("canvasmaterial_main.geom"), sourceSupplier, GFX.GL_GEOMETRY_SHADER, programType);
+			((GlShader) fragmentShader).vertexShader = ((GlShader) vertexShader);
+		} else {
+			geometryShader = null;
+		}
 	}
 
 	public static void deactivate() {
@@ -201,6 +214,24 @@ public class GlProgram {
 			}
 
 			activateInner();
+		}
+
+		// WIP: call every time?
+		validate();
+	}
+
+	// WIP: remove or clean up
+	private void validate() {
+		GFX.glValidateProgram(progID);
+
+		if (GFX.glGetProgrami(progID, GFX.GL_VALIDATE_STATUS) != GFX.GL_TRUE) {
+			CanvasMod.LOG.error(GFX.getProgramInfoLog(progID));
+		}
+	}
+
+	public static void validateActive() {
+		if (activeProgram != null) {
+			activeProgram.validate();
 		}
 	}
 
@@ -324,8 +355,22 @@ public class GlProgram {
 			return false;
 		}
 
-		if (!vertexShader.attach(programID) || !fragmentShader.attach(programID)) {
+		// Vertex shader must come first if geometry shader is involved;
+		if (!vertexShader.attach(programID)) {
 			return false;
+		}
+
+		if (!fragmentShader.attach(programID)) {
+			return false;
+		}
+
+		// WIP: remove or clean up
+		if (geometryShader == null) {
+			assert !programType.isTerrain || !Configurator.geom;
+		} else {
+			if (!geometryShader.attach(programID)) {
+				return false;
+			}
 		}
 
 		vertexFormat.bindProgramAttributes(programID);
@@ -1167,6 +1212,11 @@ public class GlProgram {
 	public void forceReload() {
 		fragmentShader.forceReload();
 		vertexShader.forceReload();
+
+		if (geometryShader != null) {
+			geometryShader.forceReload();
+		}
+
 		needsLoad = true;
 	}
 }

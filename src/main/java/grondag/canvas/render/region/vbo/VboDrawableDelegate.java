@@ -20,8 +20,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.AbstractDrawableDelegate;
+import grondag.canvas.shader.GlMaterialProgram;
 import grondag.canvas.varia.GFX;
 
 public class VboDrawableDelegate extends AbstractDrawableDelegate {
@@ -39,11 +41,22 @@ public class VboDrawableDelegate extends AbstractDrawableDelegate {
 	public void draw() {
 		assert !isClosed();
 
-		final int triVertexCount = quadVertexCount() / 4 * 6;
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
-		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
-		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
+		if (Configurator.geom) {
+			// WIP: The main remaining problem with geometry shaders seems to center around here.
+			// All the shaders compile, the program links, and the program reports valid before draw
+			// but the result is INVALID_OPERATION.  Doing a pass through using glDrawElements
+			// makes no difference.  I've searched through the entire Open GL 4.1 spec for INVALID_OPERATION
+			// and nothing I found there seems to be the culprit. It's undoubtedly something stupid.
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, 0);
+			GlMaterialProgram.validateActive();
+			GFX.drawArrays(GFX.GL_LINES_ADJACENCY, vertexOffset, quadVertexCount());
+		} else {
+			final int triVertexCount = quadVertexCount() / 4 * 6;
+			final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
+			final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
+			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
+		}
 	}
 
 	@Override
