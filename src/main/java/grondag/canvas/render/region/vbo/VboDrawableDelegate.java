@@ -42,6 +42,11 @@ public class VboDrawableDelegate extends AbstractDrawableDelegate {
 		assert !isClosed();
 
 		if (Configurator.geom) {
+			// WIP: The main remaining problem with geometry shaders seems to center around here.
+			// All the shaders compile, the program links, and the program reports valid before draw
+			// but the result is INVALID_OPERATION.  Doing a pass through using glDrawElements
+			// makes no difference.  I've searched through the entire Open GL 4.1 spec for INVALID_OPERATION
+			// and nothing I found there seems to be the culprit. It's undoubtedly something stupid.
 			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, 0);
 			GlMaterialProgram.validateActive();
 			GFX.drawArrays(GFX.GL_LINES_ADJACENCY, vertexOffset, quadVertexCount());

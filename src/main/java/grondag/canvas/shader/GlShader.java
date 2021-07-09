@@ -417,6 +417,24 @@ public class GlShader implements Shader {
 		return shaderSourceId;
 	}
 
+	// WIP: stuff below here would need some clean up if geometry shaders ever work.
+	// The basic idea is to automatically generate the geometry shader and make the
+	// necessary adjustments in the vertex and fragment shaders.
+	//
+	// What adjustments?
+	// With geometry shaders the same variable name cannot be both in and out,
+	// so the "out" names in the vertex shader can't be the same as the "in" names
+	// in the fragment shader.
+	//
+	// First, we run the source through a c preprocessor to eliminate variables
+	// that get removed by conditional compilation.
+	// Then we extract all the "out" vars from the vertex shader for use in the others
+	// and we comment the existing and consolidate them into an interface block at the top
+	// of the vertex shader.
+	//
+	// The geometry shader code is entirely generated from those variable names and then the
+	// fragment shader is similarly updated - commenting all the "in" vars and consolidating
+	// them to an interface block in the header.
 	private static String glslPreprocessSource(String source) {
 		source = StringUtils.replace(source, "#version ", "//#version ");
 
