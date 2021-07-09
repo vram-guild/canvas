@@ -74,7 +74,10 @@ public class GlShader implements Shader {
 	private int glId = -1;
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
+
+	//WIP: wow this is ugly
 	private String geometrySource;
+	public GlShader vertexShader;
 
 	public GlShader(Identifier shaderSourceId, int shaderType, ProgramType programType) {
 		this.shaderSourceId = shaderSourceId;
@@ -266,6 +269,10 @@ public class GlShader implements Shader {
 	private ObjectArrayList<String> varNames = null;
 
 	private String getSource() {
+		if (sourceSupplier != null) {
+			return sourceSupplier.get();
+		}
+
 		String result = source;
 
 		if (result == null) {
@@ -317,7 +324,12 @@ public class GlShader implements Shader {
 					geometrySource = generateGeometrySource(result);
 					result = updateVertexSourceForGeometry(result);
 				} else {
-					assert shaderType == GFX.GL_FRAGMENT_SHADER || shaderType == GFX.GL_GEOMETRY_SHADER;
+					// Geometry shaders get generated source from vertex shader and should never get to here
+					assert shaderType == GFX.GL_FRAGMENT_SHADER;
+
+					if (vertexShader != null) {
+						result = vertexShader.updateFragmentSourceForGeometry(result);
+					}
 				}
 			}
 
@@ -328,10 +340,6 @@ public class GlShader implements Shader {
 	}
 
 	private String getCombinedShaderSource() {
-		if (sourceSupplier != null) {
-			return sourceSupplier.get();
-		}
-
 		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
 		INCLUDED.clear();
 		String result = loadShaderSource(resourceManager, shaderSourceId);
@@ -545,6 +553,30 @@ public class GlShader implements Shader {
 
 		final StringBuilder builder = new StringBuilder();
 		builder.append("\nout CanvasVars {\n");
+
+		for (String varName : varNames) {
+			builder.append("\t").append(StringUtils.replace(varName, "out ", "")).append("\n");
+		}
+
+		builder.append("};\n\n");
+
+		source = StringUtils.replace(source, "#version 330\n", "#version 330\n" + builder.toString());
+
+		return source;
+	}
+
+	public String updateFragmentSourceForGeometry(String source) {
+		if (varNames == null) {
+			return source;
+		}
+
+		for (String varName : varNames) {
+			final String inName = StringUtils.replace(varName, "out ", "in ");
+			source = StringUtils.replace(source, inName, "// " + inName + " // <- Moved to CanvasVars interface block //");
+		}
+
+		final StringBuilder builder = new StringBuilder();
+		builder.append("\nin CanvasVars {\n");
 
 		for (String varName : varNames) {
 			builder.append("\t").append(StringUtils.replace(varName, "out ", "")).append("\n");

@@ -93,6 +93,7 @@ public class GlProgram {
 		if (programType.isTerrain && Configurator.geom) {
 			final Supplier<String> sourceSupplier = ((GlShader) vertexShader)::geometrySource;
 			geometryShader = new GlMaterialShader(new Identifier("canvasmaterial_main.geom"), sourceSupplier, GFX.GL_GEOMETRY_SHADER, programType);
+			((GlShader) fragmentShader).vertexShader = ((GlShader) vertexShader);
 		} else {
 			geometryShader = null;
 		}
@@ -215,11 +216,22 @@ public class GlProgram {
 			activateInner();
 		}
 
-		// WIP: remove or clean up
+		// WIP: call every time?
+		validate();
+	}
+
+	// WIP: remove or clean up
+	private void validate() {
 		GFX.glValidateProgram(progID);
 
 		if (GFX.glGetProgrami(progID, GFX.GL_VALIDATE_STATUS) != GFX.GL_TRUE) {
 			CanvasMod.LOG.error(GFX.getProgramInfoLog(progID));
+		}
+	}
+
+	public static void validateActive() {
+		if (activeProgram != null) {
+			activeProgram.validate();
 		}
 	}
 
@@ -344,7 +356,11 @@ public class GlProgram {
 		}
 
 		// Vertex shader must come first if geometry shader is involved;
-		if (!vertexShader.attach(programID) || !fragmentShader.attach(programID)) {
+		if (!vertexShader.attach(programID)) {
+			return false;
+		}
+
+		if (!fragmentShader.attach(programID)) {
 			return false;
 		}
 

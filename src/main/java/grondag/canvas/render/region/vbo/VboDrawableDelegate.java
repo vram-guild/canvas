@@ -23,6 +23,7 @@ import net.minecraft.client.render.VertexFormat.DrawMode;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.AbstractDrawableDelegate;
+import grondag.canvas.shader.GlMaterialProgram;
 import grondag.canvas.varia.GFX;
 
 public class VboDrawableDelegate extends AbstractDrawableDelegate {
@@ -42,6 +43,7 @@ public class VboDrawableDelegate extends AbstractDrawableDelegate {
 
 		if (Configurator.geom) {
 			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, 0);
+			GlMaterialProgram.validateActive();
 			GFX.drawArrays(GFX.GL_LINES_ADJACENCY, vertexOffset, quadVertexCount());
 		} else {
 			final int triVertexCount = quadVertexCount() / 4 * 6;
