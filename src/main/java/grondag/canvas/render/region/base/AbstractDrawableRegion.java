@@ -16,11 +16,14 @@
 
 package grondag.canvas.render.region.base;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import grondag.canvas.render.region.DrawableRegion;
 
 public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate> implements DrawableRegion {
 	protected boolean isClosed = false;
 	protected T delegate;
+	private final AtomicInteger listRetainCount = new AtomicInteger();
 
 	protected AbstractDrawableRegion(T delegate) {
 		this.delegate = delegate;
@@ -38,7 +41,9 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate>
 		if (!isClosed) {
 			isClosed = true;
 
-			closeInner();
+			if (isReleasedFromDrawList()) {
+				closeInner();
+			}
 
 			assert delegate != null;
 			delegate.close();
@@ -51,5 +56,25 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate>
 	@Override
 	public final boolean isReleasedFromRegion() {
 		return isClosed;
+	}
+
+	@Override
+	public void retainFromDrawList() {
+		listRetainCount.getAndIncrement();
+	}
+
+	@Override
+	public void releaseFromDrawList() {
+		final int count = listRetainCount.decrementAndGet();
+		assert count >= 0;
+
+		if (count == 0 && isClosed) {
+			closeInner();
+		}
+	}
+
+	@Override
+	public boolean isReleasedFromDrawList() {
+		return listRetainCount.get() == 0;
 	}
 }

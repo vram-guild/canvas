@@ -46,6 +46,12 @@ public interface DrawableRegion {
 	 */
 	boolean isReleasedFromRegion();
 
+	void retainFromDrawList();
+
+	void releaseFromDrawList();
+
+	boolean isReleasedFromDrawList();
+
 	DrawableRegion EMPTY_DRAWABLE = new DrawableRegion() {
 		@Override
 		public void releaseFromRegion() {
@@ -54,6 +60,21 @@ public interface DrawableRegion {
 
 		@Override
 		public boolean isReleasedFromRegion() {
+			return false;
+		}
+
+		@Override
+		public void retainFromDrawList() {
+			// NOOP
+		}
+
+		@Override
+		public void releaseFromDrawList() {
+			// NOOP
+		}
+
+		@Override
+		public boolean isReleasedFromDrawList() {
 			return false;
 		}
 	};

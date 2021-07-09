@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.render.region.vf;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
@@ -22,11 +22,10 @@ import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.buffer.CleanVAO;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.vf.VfDrawableDelegate;
-import grondag.canvas.render.region.vf.VfDrawableRegion;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.varia.GFX;
+import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.canvas.vf.stream.VfStreamReference;
 
 // WIP: use gl_DrawId instead of quad-to-region map when GL4.6 available

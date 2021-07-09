@@ -25,6 +25,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.config.TerrainVertexConfig;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
+import grondag.canvas.render.region.vf.VfDrawSpec;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
@@ -33,7 +34,6 @@ import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.vf.TerrainVertexFetch;
-import grondag.canvas.vf.VfDrawSpec;
 
 /**
  * Holds most of the state needed by the world renderer, allowing that
