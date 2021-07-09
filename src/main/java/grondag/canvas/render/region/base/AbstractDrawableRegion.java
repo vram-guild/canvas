@@ -14,9 +14,11 @@
  *  the License.
  */
 
-package grondag.canvas.render.region;
+package grondag.canvas.render.region.base;
 
-public abstract class AbstractDrawableRegion<T extends DrawableDelegate> implements DrawableRegion {
+import grondag.canvas.render.region.DrawableRegion;
+
+public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate> implements DrawableRegion {
 	protected boolean isClosed = false;
 	protected T delegate;
 

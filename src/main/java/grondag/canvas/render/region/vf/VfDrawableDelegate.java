@@ -17,7 +17,7 @@
 package grondag.canvas.render.region.vf;
 
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.AbstractDrawableDelegate;
+import grondag.canvas.render.region.base.AbstractDrawableDelegate;
 import grondag.canvas.vf.storage.VfStorageReference;
 
 public final class VfDrawableDelegate extends AbstractDrawableDelegate {

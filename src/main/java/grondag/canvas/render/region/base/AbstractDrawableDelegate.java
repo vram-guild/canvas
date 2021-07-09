@@ -14,13 +14,13 @@
  *  the License.
  */
 
-package grondag.canvas.render.region;
+package grondag.canvas.render.region.base;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.material.state.RenderState;
 
-public abstract class AbstractDrawableDelegate implements DrawableDelegate {
+public abstract class AbstractDrawableDelegate {
 	private final RenderState renderState;
 	private final int quadVertexCount;
 	private boolean isClosed = false;
@@ -30,17 +30,14 @@ public abstract class AbstractDrawableDelegate implements DrawableDelegate {
 		this.quadVertexCount = quadVertexCount;
 	}
 
-	@Override
 	public RenderState renderState() {
 		return renderState;
 	}
 
-	@Override
 	public int quadVertexCount() {
 		return quadVertexCount;
 	}
 
-	@Override
 	public final void close() {
 		assert RenderSystem.isOnRenderThread();
 
@@ -51,7 +48,6 @@ public abstract class AbstractDrawableDelegate implements DrawableDelegate {
 		}
 	}
 
-	@Override
 	public boolean isClosed() {
 		return isClosed;
 	}

@@ -23,8 +23,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.render.region.AbstractDrawableRegion;
 import grondag.canvas.render.region.DrawableRegion;
+import grondag.canvas.render.region.base.AbstractDrawableRegion;
 
 public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableDelegate> {
 	private final VboBuffer vboBuffer;

@@ -21,7 +21,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.AbstractDrawableDelegate;
+import grondag.canvas.render.region.base.AbstractDrawableDelegate;
 import grondag.canvas.varia.GFX;
 
 public class VboDrawableDelegate extends AbstractDrawableDelegate {
