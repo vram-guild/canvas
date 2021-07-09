@@ -21,38 +21,44 @@ import java.util.function.Predicate;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderState;
 
-public interface DrawableRegion extends AutoCloseable {
-	DrawableDelegate delegate();
+/**
+ * Token for the region-specific resources (vertex buffers, storage buffers)
+ * needed to draw a region in a specific draw pass (solid, translucent, shadow.)
+ * Could represent multiple render states to be drawn within the same pass.
+ */
+public interface DrawableRegion {
+	/**
+	 * RenderRegions MUST be call this exactly once when the resources
+	 * are no longer needed.  Events that would trigger this include:
+	 * <ul><li>Holding region is closed due to world change/reload</li>
+	 * <li>Holding region goes out of render distance</li>
+	 * <li>This instance is replaced by a different DrawableRegion
+	 * when a region is rebuilt. (UploadableRegion does not handle this!)</li></ul>
+	 */
+	void releaseFromRegion();
 
-	@Override
-	void close();
-
-	boolean isClosed();
-
-	void bindIfNeeded();
+	/**
+	 * True after {@link #releaseFromRegion()} is called.
+	 * Does NOT mean the region can no longer be drawn! If it is
+	 * included in one more more active draw lists it will not be
+	 * closed until those are also released but that is not part of the
+	 * contract with RenderRegions.
+	 */
+	boolean isReleasedFromRegion();
 
 	DrawableRegion EMPTY_DRAWABLE = new DrawableRegion() {
 		@Override
-		public DrawableDelegate delegate() {
-			return null;
-		}
-
-		@Override
-		public void close() {
+		public void releaseFromRegion() {
 			// NOOP
 		}
 
 		@Override
-		public boolean isClosed() {
+		public boolean isReleasedFromRegion() {
 			return false;
-		}
-
-		@Override
-		public void bindIfNeeded() {
-			// NOOP
 		}
 	};
 
+	// WIP: find a better place for these
 	Predicate<RenderState> TRANSLUCENT = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
 	Predicate<RenderState> SOLID = m -> !TRANSLUCENT.test(m);
 }

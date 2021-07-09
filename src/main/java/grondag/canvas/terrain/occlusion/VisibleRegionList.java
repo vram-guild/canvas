@@ -69,7 +69,7 @@ public class VisibleRegionList {
 		for (int i = 0; i < limit; i++) {
 			final RenderRegion region = visibleRegions[i];
 
-			if (!region.solidDrawable().isClosed() || !region.translucentDrawable().isClosed()) {
+			if (!region.solidDrawable().isReleasedFromRegion() || !region.translucentDrawable().isReleasedFromRegion()) {
 				++result;
 			}
 		}

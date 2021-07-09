@@ -24,13 +24,12 @@ import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.AbstractDrawableRegion;
-import grondag.canvas.render.region.DrawableDelegate;
 import grondag.canvas.render.region.DrawableRegion;
 
-public class VboDrawableRegion extends AbstractDrawableRegion {
+public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableDelegate> {
 	private final VboBuffer vboBuffer;
 
-	private VboDrawableRegion(VboBuffer vboBuffer, DrawableDelegate delegate) {
+	private VboDrawableRegion(VboBuffer vboBuffer, VboDrawableDelegate delegate) {
 		super(delegate);
 		this.vboBuffer = vboBuffer;
 	}
@@ -42,7 +41,6 @@ public class VboDrawableRegion extends AbstractDrawableRegion {
 		}
 	}
 
-	@Override
 	public void bindIfNeeded() {
 		if (vboBuffer != null) {
 			vboBuffer.bind();
@@ -66,7 +64,7 @@ public class VboDrawableRegion extends AbstractDrawableRegion {
 		intBuffer.position(0);
 		collector.toBuffer(intBuffer);
 
-		final DrawableDelegate delegate = new VboDrawableDelegate(collector.renderState, collector.quadCount() * 4, 0);
+		final VboDrawableDelegate delegate = new VboDrawableDelegate(collector.renderState, collector.quadCount() * 4, 0);
 		return new VboDrawableRegion(vboBuffer, delegate);
 	}
 }

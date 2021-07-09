@@ -160,10 +160,10 @@ public class RenderRegion implements TerrainExecutorTask {
 	}
 
 	private void releaseDrawables() {
-		solidDrawable.close();
+		solidDrawable.releaseFromRegion();
 		solidDrawable = DrawableRegion.EMPTY_DRAWABLE;
 
-		translucentDrawable.close();
+		translucentDrawable.releaseFromRegion();
 		translucentDrawable = DrawableRegion.EMPTY_DRAWABLE;
 	}
 
@@ -316,7 +316,7 @@ public class RenderRegion implements TerrainExecutorTask {
 									ChunkRebuildCounters.startUpload();
 								}
 
-								translucentDrawable.close();
+								translucentDrawable.releaseFromRegion();
 								translucentDrawable = upload.produceDrawable();
 
 								if (ChunkRebuildCounters.ENABLED) {

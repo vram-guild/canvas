@@ -22,19 +22,13 @@ import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.render.region.AbstractDrawableRegion;
-import grondag.canvas.render.region.DrawableDelegate;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.canvas.vf.storage.VfStorageReference;
 
-public class VfDrawableRegion extends AbstractDrawableRegion {
-	protected VfDrawableRegion(DrawableDelegate delegate) {
+public class VfDrawableRegion extends AbstractDrawableRegion<VfDrawableDelegate> {
+	protected VfDrawableRegion(VfDrawableDelegate delegate) {
 		super(delegate);
-	}
-
-	@Override
-	public void bindIfNeeded() {
-		// NOOP
 	}
 
 	@Override

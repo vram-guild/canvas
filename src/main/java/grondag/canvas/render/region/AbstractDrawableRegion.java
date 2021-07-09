@@ -16,16 +16,15 @@
 
 package grondag.canvas.render.region;
 
-public abstract class AbstractDrawableRegion implements DrawableRegion {
+public abstract class AbstractDrawableRegion<T extends DrawableDelegate> implements DrawableRegion {
 	protected boolean isClosed = false;
-	protected DrawableDelegate delegate;
+	protected T delegate;
 
-	protected AbstractDrawableRegion(DrawableDelegate delegate) {
+	protected AbstractDrawableRegion(T delegate) {
 		this.delegate = delegate;
 	}
 
-	@Override
-	public final DrawableDelegate delegate() {
+	public final T delegate() {
 		return delegate;
 	}
 
@@ -33,7 +32,7 @@ public abstract class AbstractDrawableRegion implements DrawableRegion {
 	 * Called when buffer content is no longer current and will not be rendered.
 	 */
 	@Override
-	public final void close() {
+	public final void releaseFromRegion() {
 		if (!isClosed) {
 			isClosed = true;
 
@@ -48,7 +47,7 @@ public abstract class AbstractDrawableRegion implements DrawableRegion {
 	protected abstract void closeInner();
 
 	@Override
-	public final boolean isClosed() {
+	public final boolean isReleasedFromRegion() {
 		return isClosed;
 	}
 }
