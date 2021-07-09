@@ -343,6 +343,11 @@ public class GlProgram {
 			return false;
 		}
 
+		// Vertex shader must come first if geometry shader is involved;
+		if (!vertexShader.attach(programID) || !fragmentShader.attach(programID)) {
+			return false;
+		}
+
 		// WIP: remove or clean up
 		if (geometryShader == null) {
 			assert !programType.isTerrain || !Configurator.geom;
@@ -350,10 +355,6 @@ public class GlProgram {
 			if (!geometryShader.attach(programID)) {
 				return false;
 			}
-		}
-
-		if (!vertexShader.attach(programID) || !fragmentShader.attach(programID)) {
-			return false;
 		}
 
 		vertexFormat.bindProgramAttributes(programID);

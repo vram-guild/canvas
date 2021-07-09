@@ -262,6 +262,9 @@ public class GlShader implements Shader {
 		}
 	}
 
+	// WIP: clean up
+	private ObjectArrayList<String> varNames = null;
+
 	private String getSource() {
 		String result = source;
 
@@ -304,14 +307,18 @@ public class GlShader implements Shader {
 			//	}
 			//}
 
-			//result = glslPreprocessSource(result);
+			result = glslPreprocessSource(result);
 
-			if (shaderType == GFX.GL_VERTEX_SHADER && programType.isTerrain && Configurator.geom) {
-				final String cleanSource = glslPreprocessSource(result);
-
-				final ObjectArrayList<String> varNames = new ObjectArrayList<>();
-				geometrySource = generateGeometrySource(cleanSource, varNames);
-				result = updateVertexSourceForGeometry(result, varNames);
+			if (programType.isTerrain && Configurator.geom) {
+				if (shaderType == GFX.GL_VERTEX_SHADER) {
+					varNames = new ObjectArrayList<>();
+					result = glslPreprocessSource(result);
+					//final String cleanSource = glslPreprocessSource(result);
+					geometrySource = generateGeometrySource(result);
+					result = updateVertexSourceForGeometry(result);
+				} else {
+					assert shaderType == GFX.GL_FRAGMENT_SHADER || shaderType == GFX.GL_GEOMETRY_SHADER;
+				}
 			}
 
 			source = result;
@@ -446,21 +453,22 @@ public class GlShader implements Shader {
 		return geometrySource;
 	}
 
-	private static final Pattern OUT_PATTERN = Pattern.compile("^\\s*((?:flat\\s)?out\\s+(?:(?:[iu]?vec[2-4])|(?:u?int)|(?:float))\\s+.+);$", Pattern.MULTILINE);
+	private static final Pattern OUT_PATTERN = Pattern.compile("^\\s*((?:flat\\s)?out\\s+(?:(?:[iu]?vec[2-4])|(?:u?int)|(?:float))\\s+.+;)\s*$", Pattern.MULTILINE);
 
-	private static ObjectArrayList<String> extractOutVars(String source) {
+	private ObjectArrayList<String> extractOutVars(String source) {
 		final ObjectArrayList<String> outVars = new ObjectArrayList<>();
 		final Matcher m = OUT_PATTERN.matcher(source);
 
 		while (m.find()) {
+			System.out.println(m.group(1));
 			outVars.add(m.group(1));
 		}
 
 		return outVars;
 	}
 
-	private static String generateGeometrySource(String source, ObjectArrayList<String> varNames) {
-		final ObjectArrayList<String> outVars = extractOutVars(source);
+	private String generateGeometrySource(String source) {
+		varNames = extractOutVars(source);
 
 		final StringBuilder builder = new StringBuilder();
 		builder.append("#version 330\n\n");
@@ -471,21 +479,34 @@ public class GlShader implements Shader {
 		builder.append("layout (lines_adjacency) in;\n");
 		builder.append("layout (triangle_strip, max_vertices = 4) out;\n\n");
 
-		for (String outVar : outVars) {
-			String inVar = geometryInput(outVar) + "_g";
-			builder.append(inVar).append(";\n");
-			builder.append(outVar).append(";\n\n");
-			varNames.add(outVar.replaceAll(".* ", ""));
+		//// build in interface block
+		builder.append("in CanvasVars {\n");
+
+		for (String varName : varNames) {
+			builder.append("\t").append(geometryInput(varName)).append("\n");
 		}
 
+		builder.append("};\n\n");
+
+		//// built out interface block
+		builder.append("out CanvasVars {\n");
+
+		for (String varName : varNames) {
+			builder.append("\t").append(StringUtils.replace(varName, "out ", "")).append("\n");
+		}
+
+		builder.append("} outVars;\n\n");
+
+		//// main func
 		builder.append("void main() {\n");
 
-		emitVertex(0, varNames, builder);
-		emitVertex(1, varNames, builder);
-		emitVertex(3, varNames, builder);
+		emitVertex(0, builder);
+		emitVertex(1, builder);
+		//emitVertex(2, varNames, builder);
+		emitVertex(3, builder);
 		builder.append("\tEndPrimitive();\n\n");
 
-		emitVertex(2, varNames, builder);
+		emitVertex(2, builder);
 		builder.append("\tEndPrimitive();\n");
 
 		builder.append("}\n");
@@ -493,17 +514,18 @@ public class GlShader implements Shader {
 		return builder.toString();
 	}
 
-	private static void emitVertex(int vertex, ObjectArrayList<String> varNames, StringBuilder builder) {
+	private void emitVertex(int vertex, StringBuilder builder) {
 		builder.append("\tgl_Position = gl_in[" + vertex + "].gl_Position;\n");
 		final int limit = varNames.size();
 
 		for (int i = 0; i < limit; ++i) {
+			String varName = varNames.get(i).replaceAll(".* ", "").replace(";", "");
 			builder
-				.append("\t")
-				.append(varNames.get(i))
+				.append("\toutVars.")
+				.append(varName)
 				.append(" = ")
-				.append(varNames.get(i))
-				.append("_g[")
+				.append(varName)
+				.append("[")
 				.append(vertex)
 				.append("];\n");
 		}
@@ -512,14 +534,25 @@ public class GlShader implements Shader {
 	}
 
 	private static String geometryInput(String varName) {
-		varName = varName.replaceAll("out ", "in ");
+		varName = varName.replaceAll("out ", "");
 		return varName.replaceAll("((?:[iu]?vec[2-4])|(?:u?int)|(?:float))", "$1\\[\\]");
 	}
 
-	private static String updateVertexSourceForGeometry(String source, ObjectArrayList<String> varNames) {
+	private String updateVertexSourceForGeometry(String source) {
 		for (String varName : varNames) {
-			source = source.replaceAll("([^a-bA-B\\d_]?)" + varName + "([^a-bA-B\\d_]?)", "$1" + varName + "_g$2");
+			source = StringUtils.replace(source, varName, "// " + varName + " // <- Moved to CanvasVars interface block //");
 		}
+
+		final StringBuilder builder = new StringBuilder();
+		builder.append("\nout CanvasVars {\n");
+
+		for (String varName : varNames) {
+			builder.append("\t").append(StringUtils.replace(varName, "out ", "")).append("\n");
+		}
+
+		builder.append("};\n\n");
+
+		source = StringUtils.replace(source, "#version 330\n", "#version 330\n" + builder.toString());
 
 		return source;
 	}
