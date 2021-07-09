@@ -23,8 +23,8 @@ import grondag.canvas.render.region.UploadableRegion;
 public class VfUploadableRegion implements UploadableRegion {
 	protected final DrawableRegion drawable;
 
-	public VfUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes) {
-		drawable = VfDrawableRegion.pack(collectorList, sorted, bytes);
+	public VfUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
+		drawable = VfDrawableRegion.pack(collectorList, sorted, bytes, packedOriginBlockPos);
 	}
 
 	@Override

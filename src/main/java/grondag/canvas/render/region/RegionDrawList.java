@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render.region.base;
+package grondag.canvas.render.region;
 
 public interface RegionDrawList extends AutoCloseable {
 	@Override

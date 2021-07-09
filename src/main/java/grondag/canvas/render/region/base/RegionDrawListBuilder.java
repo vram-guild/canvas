@@ -21,6 +21,7 @@ import java.util.function.Function;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.render.region.DrawableRegion;
+import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 
@@ -29,7 +30,6 @@ public final class RegionDrawListBuilder {
 
 	public static RegionDrawList build(
 			final VisibleRegionList visibleRegions,
-			Function<RenderRegion, DrawableRegion> regionFunc,
 			Function<ObjectArrayList<DrawableRegion>, RegionDrawList> drawListFunc,
 			boolean isTranslucent
 	) {
@@ -42,9 +42,9 @@ public final class RegionDrawListBuilder {
 
 		for (int regionLoopIndex = startIndex; regionLoopIndex != endIndex; regionLoopIndex += step) {
 			RenderRegion region = visibleRegions.get(regionLoopIndex);
-			DrawableRegion drawable = regionFunc.apply(region);
+			final DrawableRegion drawable = isTranslucent ? region.translucentDrawable() : region.solidDrawable();
 
-			if (drawable != null && !drawable.isReleasedFromRegion()) {
+			if (drawable != null && drawable != DrawableRegion.EMPTY_DRAWABLE && !drawable.isReleasedFromRegion()) {
 				drawables.add(drawable);
 				drawable.retainFromDrawList();
 			}

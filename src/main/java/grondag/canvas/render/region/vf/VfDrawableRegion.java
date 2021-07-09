@@ -27,8 +27,8 @@ import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.canvas.vf.storage.VfStorageReference;
 
 public class VfDrawableRegion extends AbstractDrawableRegion<VfDrawableDelegate> {
-	protected VfDrawableRegion(VfDrawableDelegate delegate) {
-		super(delegate);
+	protected VfDrawableRegion(VfDrawableDelegate delegate, long packedOriginBlockPos) {
+		super(delegate, packedOriginBlockPos);
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class VfDrawableRegion extends AbstractDrawableRegion<VfDrawableDelegate>
 		// NOOP
 	}
 
-	public static DrawableRegion pack(VertexCollectorList collectorList, boolean translucent, int byteCount) {
+	public static DrawableRegion pack(VertexCollectorList collectorList, boolean translucent, int byteCount, long packedOriginBlockPos) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 
 		if (drawList.isEmpty()) {
@@ -54,6 +54,6 @@ public class VfDrawableRegion extends AbstractDrawableRegion<VfDrawableDelegate>
 		System.arraycopy(collector.data(), 0, vfData, 0, quadIntCount);
 		final VfStorageReference vfbr = VfStorageReference.of(vfData);
 		TerrainVertexFetch.QUADS.enqueue(vfbr);
-		return new VfDrawableRegion(new VfDrawableDelegate(collector.renderState, collector.quadCount() * 4, vfbr));
+		return new VfDrawableRegion(new VfDrawableDelegate(collector.renderState, collector.quadCount() * 4, vfbr), packedOriginBlockPos);
 	}
 }

@@ -17,38 +17,40 @@
 package grondag.canvas.render.region.vf;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.buffer.CleanVAO;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.terrain.occlusion.VisibleRegionList;
-import grondag.canvas.terrain.region.RenderRegion;
+import grondag.canvas.render.region.DrawableRegion;
+import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.canvas.vf.stream.VfStreamReference;
 
 // WIP: use gl_DrawId instead of quad-to-region map when GL4.6 available
 
-public class VfDrawSpec implements AutoCloseable {
+public class VfDrawList implements RegionDrawList {
 	// stream holds 4 ints per region, x, y, z origin plus starting quad address
 	private final int vertexCount;
 	private VfStreamReference regionStream;
 	private VfStreamReference quadMapStream;
 	private final RenderState renderState;
+	private boolean isClosed = false;
 
-	private VfDrawSpec(RenderState renderState, int vertexCount, VfStreamReference regionStream, VfStreamReference quadMapStream) {
+	private VfDrawList(RenderState renderState, int vertexCount, VfStreamReference regionStream, VfStreamReference quadMapStream) {
 		this.renderState = renderState;
 		this.vertexCount = vertexCount;
 		this.regionStream = regionStream;
 		this.quadMapStream = quadMapStream;
 	}
 
-	public static VfDrawSpec build(final VisibleRegionList visibleRegions, boolean isTranslucent) {
-		final int count = visibleRegions.size();
+	public static RegionDrawList build(final ObjectArrayList<DrawableRegion> regions) {
+		final int count = regions.size();
 
 		if (count == 0) {
-			return EMPTY;
+			return RegionDrawList.EMPTY;
 		}
 
 		RenderState renderState = null;
@@ -56,62 +58,50 @@ public class VfDrawSpec implements AutoCloseable {
 		final IntArrayList regionData = new IntArrayList();
 		final IntArrayList quadMapData = new IntArrayList();
 
-		final int startIndex = isTranslucent ? count - 1 : 0;
-		final int endIndex = isTranslucent ? -1 : count;
-		final int step = isTranslucent ? -1 : 1;
-
 		int totalQuadCount = 0;
 		int regionArrayIndex = 0;
 
 		int quadMap = 0;
 		boolean odd = true;
 
-		for (int regionLoopIndex = startIndex; regionLoopIndex != endIndex; regionLoopIndex += step) {
+		for (int i = 0; i < count; ++i) {
 			// max region address space in array buffer
 			assert regionArrayIndex < 0x10000;
 
-			final RenderRegion builtRegion = visibleRegions.get(regionLoopIndex);
+			final VfDrawableRegion drawable = (VfDrawableRegion) regions.get(i);
+			final VfDrawableDelegate delegate = drawable.delegate();
 
-			if (builtRegion == null) {
-				continue;
-			}
-
-			final VfDrawableRegion drawable = (VfDrawableRegion) (isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable());
-
-			if (!drawable.isReleasedFromRegion()) {
-				final VfDrawableDelegate delegate = drawable.delegate();
-
-				if (delegate != null) {
-					if (renderState == null) {
-						renderState = delegate.renderState();
-					} else {
-						assert renderState == delegate.renderState();
-					}
-
-					final BlockPos modelOrigin = builtRegion.origin;
-					regionData.add(modelOrigin.getX());
-					regionData.add(modelOrigin.getY());
-					regionData.add(modelOrigin.getZ());
-					// Subtract the total quad count because gl_VertexID (and thus Quad ID)
-					// will increment through the entire draw.
-					final int regionQuadCount = delegate.quadVertexCount() / 4;
-					final int rIndex = delegate.regionStorageReference().getByteAddress() / 16 - totalQuadCount;
-					regionData.add(rIndex);
-
-					for (int q = 0; q < regionQuadCount; ++q) {
-						if (odd) {
-							quadMap = regionArrayIndex;
-							odd = false;
-						} else {
-							quadMap |= regionArrayIndex << 16;
-							quadMapData.add(quadMap);
-							odd = true;
-						}
-					}
-
-					totalQuadCount += regionQuadCount;
-					++regionArrayIndex;
+			if (delegate != null) {
+				if (renderState == null) {
+					renderState = delegate.renderState();
+				} else {
+					assert renderState == delegate.renderState();
 				}
+
+				final long modelOrigin = drawable.packedOriginBlockPos();
+				regionData.add(BlockPos.unpackLongX(modelOrigin));
+				regionData.add(BlockPos.unpackLongY(modelOrigin));
+				regionData.add(BlockPos.unpackLongZ(modelOrigin));
+
+				// Subtract the total quad count because gl_VertexID (and thus Quad ID)
+				// will increment through the entire draw.
+				final int regionQuadCount = delegate.quadVertexCount() / 4;
+				final int rIndex = delegate.regionStorageReference().getByteAddress() / 16 - totalQuadCount;
+				regionData.add(rIndex);
+
+				for (int q = 0; q < regionQuadCount; ++q) {
+					if (odd) {
+						quadMap = regionArrayIndex;
+						odd = false;
+					} else {
+						quadMap |= regionArrayIndex << 16;
+						quadMapData.add(quadMap);
+						odd = true;
+					}
+				}
+
+				totalQuadCount += regionQuadCount;
+				++regionArrayIndex;
 			}
 		}
 
@@ -120,7 +110,7 @@ public class VfDrawSpec implements AutoCloseable {
 		}
 
 		if (regionData.isEmpty()) {
-			return EMPTY;
+			return RegionDrawList.EMPTY;
 		}
 
 		VfStreamReference regionStream = TerrainVertexFetch.REGIONS.allocate(regionData.size() * 4, (buff, index) -> {
@@ -137,17 +127,21 @@ public class VfDrawSpec implements AutoCloseable {
 		assert quadMapStream != null;
 		assert quadMapStream != VfStreamReference.EMPTY;
 
-		return new VfDrawSpec(renderState, totalQuadCount * 6, regionStream, quadMapStream);
+		return new VfDrawList(renderState, totalQuadCount * 6, regionStream, quadMapStream);
 	}
 
 	@Override
 	public void close() {
-		regionStream.close();
-		regionStream = VfStreamReference.EMPTY;
-		quadMapStream.close();
-		quadMapStream = VfStreamReference.EMPTY;
+		if (!isClosed) {
+			isClosed = true;
+			regionStream.close();
+			regionStream = VfStreamReference.EMPTY;
+			quadMapStream.close();
+			quadMapStream = VfStreamReference.EMPTY;
+		}
 	}
 
+	@Override
 	public void draw() {
 		CleanVAO.bind();
 		regionStream.bind();
@@ -161,16 +155,8 @@ public class VfDrawSpec implements AutoCloseable {
 		CleanVAO.unbind();
 	}
 
-	//public static final VfDrawSpec EMPTY = new VfDrawSpec(null, new int[0], new int[0], VfStreamReference.EMPTY, VfStreamReference.EMPTY) {
-	public static final VfDrawSpec EMPTY = new VfDrawSpec(null, 0, VfStreamReference.EMPTY, VfStreamReference.EMPTY) {
-		@Override
-		public void draw() {
-			// NOOP
-		}
-
-		@Override
-		public void close() {
-			// NOOP - avoids NPE due to EMPTY going missing
-		}
-	};
+	@Override
+	public boolean isClosed() {
+		return isClosed;
+	}
 }

@@ -24,13 +24,19 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate>
 	protected boolean isClosed = false;
 	protected T delegate;
 	private final AtomicInteger listRetainCount = new AtomicInteger();
+	private final long packedOriginBlockPos;
 
-	protected AbstractDrawableRegion(T delegate) {
+	protected AbstractDrawableRegion(T delegate, long packedOriginBlockPos) {
 		this.delegate = delegate;
+		this.packedOriginBlockPos = packedOriginBlockPos;
 	}
 
 	public final T delegate() {
 		return delegate;
+	}
+
+	public long packedOriginBlockPos() {
+		return packedOriginBlockPos;
 	}
 
 	/**
