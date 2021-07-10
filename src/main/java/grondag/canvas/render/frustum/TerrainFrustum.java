@@ -183,7 +183,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			final double dx = x - lastOcclusionPositionX;
 			final double dy = y - lastOcclusionPositionY;
 			final double dz = z - lastOcclusionPositionZ;
-			movedEnoughToInvalidateOcclusion = dx * dx + dy * dy + dz * dz >= (nearOccludersPresent ? 0.01D : 1.0D);
+			movedEnoughToInvalidateOcclusion = dx * dx + dy * dy + dz * dz >= (nearOccludersPresent ? 0.0005D : 1.0D);
 		}
 
 		if (movedEnoughToInvalidateOcclusion) {
