@@ -42,6 +42,9 @@ public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableState> {
 		final ArrayVertexCollector collector = drawList.get(0);
 
 		// WIP: restore ability to have more than one pass in non-translucent terrain, for decals, etc.
+		// Note that every render state/pass will have a separate storage and storage will control
+		// the vertex offset for each.  The calls won't be batched by region so there's no advantage to
+		// making them adjacent in storage and smaller allocations may be easier to manage for storage.
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
@@ -52,7 +55,7 @@ public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableState> {
 		collector.toBuffer(intBuffer, 0);
 		VsDrawableStorage storage = new VsDrawableStorage(transferBuffer, byteCount);
 
-		final VsDrawableState drawState = new VsDrawableState(collector.renderState, collector.quadCount() * 4, 0, storage);
+		final VsDrawableState drawState = new VsDrawableState(collector.renderState, collector.quadCount() * 4, storage);
 		return new VsDrawableRegion(drawState, packedOriginBlockPos);
 	}
 

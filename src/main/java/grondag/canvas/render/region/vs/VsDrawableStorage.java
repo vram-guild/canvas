@@ -119,4 +119,8 @@ public class VsDrawableStorage implements DrawableStorage {
 
 		return result;
 	}
+
+	public int baseVertex() {
+		return 0;
+	}
 }
