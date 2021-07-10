@@ -50,7 +50,6 @@ public class VboDrawList extends AbstractDrawList {
 
 			if (drawState != null) {
 				final long modelOrigin = vboDrawable.packedOriginBlockPos();
-				drawState.bindIfNeeded();
 				drawState.renderState().enable(BlockPos.unpackLongX(modelOrigin), BlockPos.unpackLongY(modelOrigin), BlockPos.unpackLongZ(modelOrigin), 0, 0);
 				drawState.draw();
 			}

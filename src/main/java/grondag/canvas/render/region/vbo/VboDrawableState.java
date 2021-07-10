@@ -40,16 +40,13 @@ public class VboDrawableState extends AbstractDrawableState<VboBuffer> {
 	public void draw() {
 		assert !isClosed();
 
-		final int triVertexCount = quadVertexCount() / 4 * 6;
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
-		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
-		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
-	}
-
-	public void bindIfNeeded() {
 		if (storage != null) {
 			storage.bind();
+			final int triVertexCount = quadVertexCount() / 4 * 6;
+			final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
+			final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
+			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
 		}
 	}
 }

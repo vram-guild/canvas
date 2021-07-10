@@ -31,10 +31,13 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableState<?>>
 		this.packedOriginBlockPos = packedOriginBlockPos;
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
 	public final T drawState() {
 		return drawState;
 	}
 
+	@Override
 	public long packedOriginBlockPos() {
 		return packedOriginBlockPos;
 	}

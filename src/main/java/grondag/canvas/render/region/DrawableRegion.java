@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.render.region.base.AbstractDrawableState;
 
 /**
  * Token for the region-specific resources (vertex buffers, storage buffers)
@@ -41,6 +42,10 @@ public interface DrawableRegion {
 
 	void releaseFromDrawList();
 
+	<T extends AbstractDrawableState<?>> T drawState();
+
+	long packedOriginBlockPos();
+
 	DrawableRegion EMPTY_DRAWABLE = new DrawableRegion() {
 		@Override
 		public void releaseFromRegion() {
@@ -55,6 +60,16 @@ public interface DrawableRegion {
 		@Override
 		public void releaseFromDrawList() {
 			// NOOP
+		}
+
+		@Override
+		public <T extends AbstractDrawableState<?>> T drawState() {
+			return null;
+		}
+
+		@Override
+		public long packedOriginBlockPos() {
+			return 0;
 		}
 	};
 

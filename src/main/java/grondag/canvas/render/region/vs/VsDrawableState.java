@@ -16,8 +16,6 @@
 
 package grondag.canvas.render.region.vs;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
 import grondag.canvas.buffer.VboBuffer;
@@ -26,30 +24,27 @@ import grondag.canvas.render.region.base.AbstractDrawableState;
 import grondag.canvas.varia.GFX;
 
 public class VsDrawableState extends AbstractDrawableState<VboBuffer> {
-	private int vertexOffset;
+	private final int vertexOffset;
+	private final int triVertexCount;
 
 	public VsDrawableState(RenderState renderState, int quadVertexCount, int vertexOffset, VboBuffer vboBuffer) {
 		super(renderState, quadVertexCount, vboBuffer);
 		this.vertexOffset = vertexOffset;
+		triVertexCount = quadVertexCount() / 4 * 6;
 	}
 
 	/**
 	 * Assumes pipeline has already been activated and buffer has already been bound
 	 * via {@link #bind()}.
+	 * @param indexBufferId
 	 */
-	public void draw() {
+	public void draw(int elementType, int indexBufferId) {
 		assert !isClosed();
 
-		final int triVertexCount = quadVertexCount() / 4 * 6;
-		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, triVertexCount);
-		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
-		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
-	}
-
-	public void bindIfNeeded() {
 		if (storage != null) {
 			storage.bind();
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
+			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
 		}
 	}
 }

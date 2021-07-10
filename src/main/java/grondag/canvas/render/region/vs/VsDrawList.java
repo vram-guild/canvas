@@ -16,7 +16,10 @@
 
 package grondag.canvas.render.region.vs;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import net.minecraft.client.render.VertexFormat.DrawMode;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.DrawableRegion;
@@ -25,8 +28,15 @@ import grondag.canvas.render.region.base.AbstractDrawList;
 import grondag.canvas.varia.GFX;
 
 public class VsDrawList extends AbstractDrawList {
-	private VsDrawList(final ObjectArrayList<DrawableRegion> regions) {
+	/**
+	 * Largest length in triangle vertices of any region in the list.
+	 * Used to size our index buffer 1X.
+	 */
+	private final int maxTriangleVertexCount;
+
+	private VsDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
 		super(regions);
+		this.maxTriangleVertexCount = maxTriangleVertexCount;
 	}
 
 	public static RegionDrawList build(final ObjectArrayList<DrawableRegion> regions) {
@@ -34,7 +44,14 @@ public class VsDrawList extends AbstractDrawList {
 			return RegionDrawList.EMPTY;
 		}
 
-		return new VsDrawList(regions);
+		final int limit = regions.size();
+		int maxQuads = 0;
+
+		for (int i = 0; i < limit; ++i) {
+			maxQuads = Math.max(maxQuads, regions.get(i).drawState().quadVertexCount());
+		}
+
+		return new VsDrawList(regions, maxQuads / 4 * 6);
 	}
 
 	@Override
@@ -47,6 +64,10 @@ public class VsDrawList extends AbstractDrawList {
 
 		GFX.bindVertexArray(0);
 
+		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, maxTriangleVertexCount);
+		final int indexBufferId = indexBuffer.getId();
+		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn bug
+
 		// WIP: still need to handle multiple render states somehow
 		((VsDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);
 
@@ -54,8 +75,7 @@ public class VsDrawList extends AbstractDrawList {
 			final VsDrawableState drawState = ((VsDrawableRegion) regions.get(regionIndex)).drawState();
 
 			if (drawState != null) {
-				drawState.bindIfNeeded();
-				drawState.draw();
+				drawState.draw(elementType, indexBufferId);
 			}
 		}
 
