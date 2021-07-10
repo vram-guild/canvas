@@ -37,30 +37,14 @@ public interface DrawableRegion {
 	 */
 	void releaseFromRegion();
 
-	/**
-	 * True after {@link #releaseFromRegion()} is called.
-	 * Does NOT mean the region can no longer be drawn! If it is
-	 * included in one more more active draw lists it will not be
-	 * closed until those are also released but that is not part of the
-	 * contract with RenderRegions.
-	 */
-	boolean isReleasedFromRegion();
-
 	void retainFromDrawList();
 
 	void releaseFromDrawList();
-
-	boolean isReleasedFromDrawList();
 
 	DrawableRegion EMPTY_DRAWABLE = new DrawableRegion() {
 		@Override
 		public void releaseFromRegion() {
 			// NOOP
-		}
-
-		@Override
-		public boolean isReleasedFromRegion() {
-			return false;
 		}
 
 		@Override
@@ -71,11 +55,6 @@ public interface DrawableRegion {
 		@Override
 		public void releaseFromDrawList() {
 			// NOOP
-		}
-
-		@Override
-		public boolean isReleasedFromDrawList() {
-			return false;
 		}
 	};
 

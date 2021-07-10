@@ -31,6 +31,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.UploadableRegion;
+import grondag.canvas.render.region.vbo.VboDrawList;
 import grondag.canvas.render.region.vbo.VboUploadableRegion;
 import grondag.canvas.render.region.vf.VfDrawList;
 import grondag.canvas.render.region.vf.VfUploadableRegion;
@@ -45,7 +46,7 @@ public enum TerrainVertexConfig {
 		CanvasVertexFormats.COMPACT_MATERIAL.quadStrideInts,
 		true,
 		QuadEncoders.COMPACT_TRANSCODER,
-		null
+		VboDrawList::build
 	),
 
 	FETCH(
@@ -96,6 +97,18 @@ public enum TerrainVertexConfig {
 		public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
 			return new VfUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
 		}
+
+		@Override
+		public void beforeDrawListBuild() {
+			TerrainVertexFetch.REGIONS.prepare();
+			TerrainVertexFetch.QUAD_REGION_MAP.prepare();
+		}
+
+		@Override
+		public void afterDrawListBuild() {
+			TerrainVertexFetch.REGIONS.flush();
+			TerrainVertexFetch.QUAD_REGION_MAP.flush();
+		}
 	},
 
 	REGION(
@@ -139,6 +152,10 @@ public enum TerrainVertexConfig {
 	public void onDeactiveProgram() { }
 
 	public void onActivateProgram() { }
+
+	public void beforeDrawListBuild() { }
+
+	public void afterDrawListBuild() { }
 
 	public QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector) {
 		return arrayVertexCollector.quadDistanceStandard;

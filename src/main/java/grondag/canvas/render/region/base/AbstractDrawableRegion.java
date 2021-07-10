@@ -21,9 +21,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import grondag.canvas.render.region.DrawableRegion;
 
 public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate> implements DrawableRegion {
-	protected boolean isClosed = false;
 	protected T delegate;
-	private final AtomicInteger listRetainCount = new AtomicInteger();
+	// first reference is for the region
+	private final AtomicInteger retainCount = new AtomicInteger(1);
 	private final long packedOriginBlockPos;
 
 	protected AbstractDrawableRegion(T delegate, long packedOriginBlockPos) {
@@ -39,17 +39,12 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate>
 		return packedOriginBlockPos;
 	}
 
-	/**
-	 * Called when buffer content is no longer current and will not be rendered.
-	 */
-	@Override
-	public final void releaseFromRegion() {
-		if (!isClosed) {
-			isClosed = true;
+	private void release() {
+		final int retainCount = this.retainCount.decrementAndGet();
+		assert retainCount >= 0;
 
-			if (isReleasedFromDrawList()) {
-				closeInner();
-			}
+		if (retainCount == 0) {
+			closeInner();
 
 			assert delegate != null;
 			delegate.close();
@@ -57,30 +52,24 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate>
 		}
 	}
 
+	/**
+	 * Called when buffer content is no longer current and will not be rendered.
+	 */
+	@Override
+	public final void releaseFromRegion() {
+		release();
+	}
+
 	protected abstract void closeInner();
 
 	@Override
-	public final boolean isReleasedFromRegion() {
-		return isClosed;
-	}
-
-	@Override
 	public void retainFromDrawList() {
-		listRetainCount.getAndIncrement();
+		final int count = retainCount.getAndIncrement();
+		assert count >= 1 : "Draw list retained closed region";
 	}
 
 	@Override
 	public void releaseFromDrawList() {
-		final int count = listRetainCount.decrementAndGet();
-		assert count >= 0;
-
-		if (count == 0 && isClosed) {
-			closeInner();
-		}
-	}
-
-	@Override
-	public boolean isReleasedFromDrawList() {
-		return listRetainCount.get() == 0;
+		release();
 	}
 }

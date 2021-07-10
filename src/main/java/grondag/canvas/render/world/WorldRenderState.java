@@ -23,15 +23,16 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.config.Configurator;
-import grondag.canvas.config.TerrainVertexConfig;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.base.RegionDrawListBuilder;
 import grondag.canvas.render.region.vf.VfDrawList;
+import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
@@ -39,7 +40,6 @@ import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionBuilder;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.vf.TerrainVertexFetch;
 
 /**
  * Holds most of the state needed by the world renderer, allowing that
@@ -70,10 +70,9 @@ public class WorldRenderState {
 	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
 	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
 
-	// WIP: encapsulate or put somewhere better
-	public RegionDrawList solidDrawSpec = RegionDrawList.EMPTY;
-	public RegionDrawList translucentDrawSpec = RegionDrawList.EMPTY;
-	public final RegionDrawList[] shadowDrawSpecs = new RegionDrawList[ShadowMatrixData.CASCADE_COUNT];
+	private RegionDrawList solidDrawList = RegionDrawList.EMPTY;
+	private RegionDrawList translucentDrawList = RegionDrawList.EMPTY;
+	private final RegionDrawList[] shadowDrawLists = new RegionDrawList[ShadowMatrixData.CASCADE_COUNT];
 
 	private RenderRegionBuilder regionBuilder;
 	private ClientWorld world;
@@ -89,7 +88,7 @@ public class WorldRenderState {
 
 		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
 			shadowVisibleRegions[i] = new VisibleRegionList();
-			shadowDrawSpecs[i] = VfDrawList.EMPTY;
+			shadowDrawLists[i] = VfDrawList.EMPTY;
 		}
 	}
 
@@ -146,19 +145,14 @@ public class WorldRenderState {
 
 		cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 
-		// WIP: ugly special casing
-		final boolean vf = Configurator.terrainVertexConfig == TerrainVertexConfig.FETCH;
-
 		final Function<ObjectArrayList<DrawableRegion>, RegionDrawList> drawListFunc = Configurator.terrainVertexConfig.drawListFunc;
 
-		if (vf) {
-			TerrainVertexFetch.REGIONS.prepare();
-			TerrainVertexFetch.QUAD_REGION_MAP.prepare();
-			solidDrawSpec.close();
-			solidDrawSpec = RegionDrawListBuilder.build(cameraVisibleRegions, drawListFunc, false);
-			translucentDrawSpec.close();
-			translucentDrawSpec = RegionDrawListBuilder.build(cameraVisibleRegions, drawListFunc, true);
-		}
+		Configurator.terrainVertexConfig.beforeDrawListBuild();
+
+		solidDrawList.close();
+		solidDrawList = RegionDrawListBuilder.build(cameraVisibleRegions, drawListFunc, false);
+		translucentDrawList.close();
+		translucentDrawList = RegionDrawListBuilder.build(cameraVisibleRegions, drawListFunc, true);
 
 		if (shadowsEnabled()) {
 			shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
@@ -166,18 +160,13 @@ public class WorldRenderState {
 			shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
 			shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
 
-			if (vf) {
-				for (int i = 0; i < 4; ++i) {
-					shadowDrawSpecs[i].close();
-					shadowDrawSpecs[i] = RegionDrawListBuilder.build(shadowVisibleRegions[i], drawListFunc, false);
-				}
+			for (int i = 0; i < 4; ++i) {
+				shadowDrawLists[i].close();
+				shadowDrawLists[i] = RegionDrawListBuilder.build(shadowVisibleRegions[i], drawListFunc, false);
 			}
 		}
 
-		if (vf) {
-			TerrainVertexFetch.REGIONS.flush();
-			TerrainVertexFetch.QUAD_REGION_MAP.flush();
-		}
+		Configurator.terrainVertexConfig.afterDrawListBuild();
 	}
 
 	void clear() {
@@ -196,18 +185,42 @@ public class WorldRenderState {
 	}
 
 	void clearDrawSpecs() {
-		// WIP: ugly special casing
-		if (Configurator.terrainVertexConfig == TerrainVertexConfig.FETCH) {
-			solidDrawSpec.close();
-			solidDrawSpec = VfDrawList.EMPTY;
+		solidDrawList.close();
+		solidDrawList = VfDrawList.EMPTY;
 
-			translucentDrawSpec.close();
-			translucentDrawSpec = VfDrawList.EMPTY;
+		translucentDrawList.close();
+		translucentDrawList = VfDrawList.EMPTY;
 
-			for (int i = 0; i < 4; ++i) {
-				shadowDrawSpecs[i].close();
-				shadowDrawSpecs[i] = VfDrawList.EMPTY;
-			}
+		for (int i = 0; i < 4; ++i) {
+			shadowDrawLists[i].close();
+			shadowDrawLists[i] = VfDrawList.EMPTY;
 		}
+	}
+
+	void renderSolidTerrain() {
+		final Profiler prof = MinecraftClient.getInstance().getProfiler();
+		prof.push("render_solid");
+		MatrixState.set(MatrixState.REGION);
+		solidDrawList.draw();
+		MatrixState.set(MatrixState.CAMERA);
+		prof.pop();
+	}
+
+	void renderTranslucentTerrain() {
+		final Profiler prof = MinecraftClient.getInstance().getProfiler();
+		prof.push("render_translucent");
+		MatrixState.set(MatrixState.REGION);
+		translucentDrawList.draw();
+		MatrixState.set(MatrixState.CAMERA);
+		prof.pop();
+	}
+
+	void renderShadowLayer(int cascadeIndex) {
+		final Profiler prof = MinecraftClient.getInstance().getProfiler();
+		prof.push("render_shadow");
+		MatrixState.set(MatrixState.REGION);
+		shadowDrawLists[cascadeIndex].draw();
+		MatrixState.set(MatrixState.CAMERA);
+		prof.pop();
 	}
 }

@@ -88,7 +88,6 @@ import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
-import grondag.canvas.render.region.vbo.VboRegionRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
@@ -478,13 +477,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			DrawableBuffer shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
-			SkyShadowRenderer.render(this, frameCameraX, frameCameraY, frameCameraZ, entityBuffer, shadowExtrasBuffer);
+			SkyShadowRenderer.render(this, entityBuffer, shadowExtrasBuffer);
 			shadowExtrasBuffer.close();
 
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "terrain_solid");
-			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(false);
-			MatrixState.set(MatrixState.CAMERA);
+			worldRenderState.renderSolidTerrain();
 
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "entity_draw_solid");
 			entityBuffer.draw(false);
@@ -605,9 +602,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
 
-			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(true);
-			MatrixState.set(MatrixState.CAMERA);
+			worldRenderState.renderTranslucentTerrain();
 
 			// NB: vanilla renders tripwire here but we combine into translucent
 
@@ -620,9 +615,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			Pipeline.defaultFbo.bind();
 		} else {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
-			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(true);
-			MatrixState.set(MatrixState.CAMERA);
+			worldRenderState.renderTranslucentTerrain();
 
 			// without fabulous transparency important that lines
 			// and other translucent elements get drawn on top of terrain
@@ -723,40 +716,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			if (Pipeline.fabCloudsFbo > 0) {
 				Pipeline.defaultFbo.bind();
 			}
-		}
-	}
-
-	void renderTerrainLayer(boolean isTranslucent) {
-		switch (Configurator.terrainVertexConfig) {
-			case DEFAULT:
-				VboRegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
-				break;
-			case FETCH:
-				(isTranslucent ? worldRenderState.translucentDrawSpec : worldRenderState.solidDrawSpec).draw();
-				break;
-			case REGION:
-				VboRegionRenderer.render(worldRenderState.cameraVisibleRegions, isTranslucent);
-				break;
-			default:
-				assert false : "Unhandled terrain vertex config in renderTerrainLayer";
-				break;
-		}
-	}
-
-	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
-		switch (Configurator.terrainVertexConfig) {
-			case DEFAULT:
-				VboRegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
-				break;
-			case FETCH:
-				worldRenderState.shadowDrawSpecs[cascadeIndex].draw();
-				break;
-			case REGION:
-				VboRegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], false);
-				break;
-			default:
-				assert false : "Unhandled terrain vertex config in renderShadowLayer";
-				break;
 		}
 	}
 

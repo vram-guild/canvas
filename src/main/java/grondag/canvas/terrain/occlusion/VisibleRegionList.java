@@ -63,17 +63,6 @@ public class VisibleRegionList {
 	}
 
 	public final int getActiveCount() {
-		int result = 0;
-		final int limit = visibleRegionCount;
-
-		for (int i = 0; i < limit; i++) {
-			final RenderRegion region = visibleRegions[i];
-
-			if (!region.solidDrawable().isReleasedFromRegion() || !region.translucentDrawable().isReleasedFromRegion()) {
-				++result;
-			}
-		}
-
-		return result;
+		return visibleRegionCount;
 	}
 }

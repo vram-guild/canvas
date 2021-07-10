@@ -25,21 +25,22 @@ import grondag.canvas.buffer.CleanVAO;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
+import grondag.canvas.render.region.base.AbstractDrawList;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.canvas.vf.stream.VfStreamReference;
 
 // WIP: use gl_DrawId instead of quad-to-region map when GL4.6 available
 
-public class VfDrawList implements RegionDrawList {
+public class VfDrawList extends AbstractDrawList {
 	// stream holds 4 ints per region, x, y, z origin plus starting quad address
 	private final int vertexCount;
 	private VfStreamReference regionStream;
 	private VfStreamReference quadMapStream;
 	private final RenderState renderState;
-	private boolean isClosed = false;
 
-	private VfDrawList(RenderState renderState, int vertexCount, VfStreamReference regionStream, VfStreamReference quadMapStream) {
+	private VfDrawList(ObjectArrayList<DrawableRegion> regions, RenderState renderState, int vertexCount, VfStreamReference regionStream, VfStreamReference quadMapStream) {
+		super(regions);
 		this.renderState = renderState;
 		this.vertexCount = vertexCount;
 		this.regionStream = regionStream;
@@ -127,18 +128,15 @@ public class VfDrawList implements RegionDrawList {
 		assert quadMapStream != null;
 		assert quadMapStream != VfStreamReference.EMPTY;
 
-		return new VfDrawList(renderState, totalQuadCount * 6, regionStream, quadMapStream);
+		return new VfDrawList(regions, renderState, totalQuadCount * 6, regionStream, quadMapStream);
 	}
 
 	@Override
-	public void close() {
-		if (!isClosed) {
-			isClosed = true;
-			regionStream.close();
-			regionStream = VfStreamReference.EMPTY;
-			quadMapStream.close();
-			quadMapStream = VfStreamReference.EMPTY;
-		}
+	public void closeInner() {
+		regionStream.close();
+		regionStream = VfStreamReference.EMPTY;
+		quadMapStream.close();
+		quadMapStream = VfStreamReference.EMPTY;
 	}
 
 	@Override
@@ -153,10 +151,5 @@ public class VfDrawList implements RegionDrawList {
 		quadMapStream.unbind();
 		RenderState.disable();
 		CleanVAO.unbind();
-	}
-
-	@Override
-	public boolean isClosed() {
-		return isClosed;
 	}
 }

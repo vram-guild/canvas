@@ -44,7 +44,7 @@ public final class RegionDrawListBuilder {
 			RenderRegion region = visibleRegions.get(regionLoopIndex);
 			final DrawableRegion drawable = isTranslucent ? region.translucentDrawable() : region.solidDrawable();
 
-			if (drawable != null && drawable != DrawableRegion.EMPTY_DRAWABLE && !drawable.isReleasedFromRegion()) {
+			if (drawable != null && drawable != DrawableRegion.EMPTY_DRAWABLE) {
 				drawables.add(drawable);
 				drawable.retainFromDrawList();
 			}
