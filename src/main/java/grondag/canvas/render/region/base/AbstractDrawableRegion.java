@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.render.region.DrawableRegion;
 
-public abstract class AbstractDrawableRegion<T extends AbstractDrawableState> implements DrawableRegion {
+public abstract class AbstractDrawableRegion<T extends AbstractDrawableState<?>> implements DrawableRegion {
 	protected T drawState;
 	// first reference is for the region
 	private final AtomicInteger retainCount = new AtomicInteger(1);

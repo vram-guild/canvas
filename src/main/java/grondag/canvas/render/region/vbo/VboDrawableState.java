@@ -25,14 +25,12 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.base.AbstractDrawableState;
 import grondag.canvas.varia.GFX;
 
-public class VboDrawableState extends AbstractDrawableState {
-	private VboBuffer vboBuffer;
+public class VboDrawableState extends AbstractDrawableState<VboBuffer> {
 	private int vertexOffset;
 
 	public VboDrawableState(RenderState renderState, int quadVertexCount, int vertexOffset, VboBuffer vboBuffer) {
-		super(renderState, quadVertexCount);
+		super(renderState, quadVertexCount, vboBuffer);
 		this.vertexOffset = vertexOffset;
-		this.vboBuffer = vboBuffer;
 	}
 
 	/**
@@ -49,17 +47,9 @@ public class VboDrawableState extends AbstractDrawableState {
 		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, vertexOffset);
 	}
 
-	@Override
-	protected void closeInner() {
-		if (vboBuffer != null) {
-			vboBuffer.close();
-			vboBuffer = null;
-		}
-	}
-
 	public void bindIfNeeded() {
-		if (vboBuffer != null) {
-			vboBuffer.bind();
+		if (storage != null) {
+			storage.bind();
 		}
 	}
 }

@@ -18,9 +18,10 @@ package grondag.canvas.vf.storage;
 
 import java.nio.IntBuffer;
 
+import grondag.canvas.render.region.DrawableStorage;
 import grondag.canvas.vf.BufferWriter;
 
-public abstract class VfStorageReference implements VfStorageElement<VfStorageReference>, AutoCloseable {
+public abstract class VfStorageReference implements VfStorageElement<VfStorageReference>, DrawableStorage {
 	protected final int byteSize;
 	protected boolean isClosed = false;
 

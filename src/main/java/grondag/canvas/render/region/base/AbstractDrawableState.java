@@ -19,22 +19,25 @@ package grondag.canvas.render.region.base;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.render.region.DrawableStorage;
 
-public abstract class AbstractDrawableState {
+public abstract class AbstractDrawableState<T extends DrawableStorage> {
+	protected T storage;
 	private final RenderState renderState;
 	private final int quadVertexCount;
 	private boolean isClosed = false;
 
-	protected AbstractDrawableState(RenderState renderState, int quadVertexCount) {
+	protected AbstractDrawableState(RenderState renderState, int quadVertexCount, T storage) {
 		this.renderState = renderState;
 		this.quadVertexCount = quadVertexCount;
+		this.storage = storage;
 	}
 
-	public RenderState renderState() {
+	public final RenderState renderState() {
 		return renderState;
 	}
 
-	public int quadVertexCount() {
+	public final int quadVertexCount() {
 		return quadVertexCount;
 	}
 
@@ -43,14 +46,12 @@ public abstract class AbstractDrawableState {
 
 		if (!isClosed) {
 			isClosed = true;
-
-			closeInner();
+			storage.close();
+			storage = null;
 		}
 	}
 
-	public boolean isClosed() {
+	public final boolean isClosed() {
 		return isClosed;
 	}
-
-	protected abstract void closeInner();
 }

@@ -14,18 +14,11 @@
  *  the License.
  */
 
-package grondag.canvas.render.region.vf;
+package grondag.canvas.render.region;
 
-import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.base.AbstractDrawableState;
-import grondag.canvas.vf.storage.VfStorageReference;
+public interface DrawableStorage extends AutoCloseable {
+	@Override
+	void close();
 
-public final class VfDrawableState extends AbstractDrawableState<VfStorageReference> {
-	public VfDrawableState(RenderState renderState, int quadVertexCount, VfStorageReference regionStorageReference) {
-		super(renderState, quadVertexCount, regionStorageReference);
-	}
-
-	public VfStorageReference regionStorageReference() {
-		return storage;
-	}
+	boolean isClosed();
 }

@@ -22,9 +22,10 @@ import java.nio.IntBuffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.render.region.DrawableStorage;
 import grondag.canvas.varia.GFX;
 
-public class VboBuffer {
+public class VboBuffer implements DrawableStorage {
 	private static final int VAO_NONE = -1;
 	public final CanvasVertexFormat format;
 
@@ -86,10 +87,12 @@ public class VboBuffer {
 		}
 	}
 
+	@Override
 	public boolean isClosed() {
 		return isClosed;
 	}
 
+	@Override
 	public void close() {
 		if (RenderSystem.isOnRenderThread()) {
 			onClose();
