@@ -230,7 +230,7 @@ public class PipelineManager {
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k + 25);
 
 		drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
-		collector.toBuffer(drawBuffer.intBuffer());
+		collector.toBuffer(drawBuffer.intBuffer(), 0);
 		drawBuffer.upload();
 
 		collector.clear(); // releases storage

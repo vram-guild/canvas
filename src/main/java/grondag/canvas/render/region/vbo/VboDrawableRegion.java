@@ -62,7 +62,7 @@ public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableState> 
 
 		final IntBuffer intBuffer = vboBuffer.intBuffer();
 		intBuffer.position(0);
-		collector.toBuffer(intBuffer);
+		collector.toBuffer(intBuffer, 0);
 
 		final VboDrawableState delegate = new VboDrawableState(collector.renderState, collector.quadCount() * 4, 0);
 		return new VboDrawableRegion(vboBuffer, delegate, packedOriginBlockPos);

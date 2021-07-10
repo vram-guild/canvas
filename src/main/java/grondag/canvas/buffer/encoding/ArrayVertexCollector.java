@@ -104,8 +104,8 @@ public class ArrayVertexCollector implements VertexCollector {
 		return result;
 	}
 
-	public void toBuffer(IntBuffer intBuffer) {
-		intBuffer.put(vertexData, 0, integerSize);
+	public void toBuffer(IntBuffer intBuffer, int startingIndex) {
+		intBuffer.put(vertexData, startingIndex, integerSize);
 	}
 
 	public void clear() {
