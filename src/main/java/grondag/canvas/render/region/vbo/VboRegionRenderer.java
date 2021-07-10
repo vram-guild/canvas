@@ -20,6 +20,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
@@ -62,10 +63,11 @@ public class VboRegionRenderer {
 				continue;
 			}
 
-			final VboDrawableRegion drawable = (VboDrawableRegion) (isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable());
+			final DrawableRegion drawable = isTranslucent ? builtRegion.translucentDrawable() : builtRegion.solidDrawable();
 
-			if (!drawable.isReleasedFromRegion()) {
-				final VboDrawableDelegate delegate = drawable.delegate();
+			if (drawable != null && drawable != DrawableRegion.EMPTY_DRAWABLE && !drawable.isReleasedFromRegion()) {
+				final VboDrawableRegion vboDrawable = (VboDrawableRegion) drawable;
+				final VboDrawableDelegate delegate = vboDrawable.delegate();
 
 				if (delegate != null) {
 					final BlockPos modelOrigin = builtRegion.origin;
@@ -73,7 +75,7 @@ public class VboRegionRenderer {
 					oy = modelOrigin.getY();
 					oz = modelOrigin.getZ();
 
-					drawable.bindIfNeeded();
+					vboDrawable.bindIfNeeded();
 
 					final boolean notShadowPass = !SkyShadowRenderer.isActive();
 					final RenderState mat = delegate.renderState();

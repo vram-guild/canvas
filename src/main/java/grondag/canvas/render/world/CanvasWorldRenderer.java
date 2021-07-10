@@ -201,12 +201,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// Run iteration on main thread
 			if (terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks)) {
 				terrainIterator.run(null);
+
+				assert terrainIterator.state() == TerrainIterator.COMPLETE : "Iteration cancelled on main thread.";
 				worldRenderState.copyVisibleRegionsFromIterator();
+				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.idle();
-			} else {
-				// If we kicked off a new iteration this will happen automatically.
-				// Otherwise we want near regions to be updated right away.
-				terrainIterator.buildNearIfNeeded();
 			}
 		}
 
