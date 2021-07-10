@@ -17,10 +17,12 @@
 package grondag.canvas.vf.lookup;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import org.lwjgl.opengl.GL46C;
+import org.lwjgl.system.MemoryUtil;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -36,9 +38,13 @@ public abstract class AbstractLookupImage {
 	protected final int texelCapacity;
 	protected final int intsPerTexel;
 	protected final int integerCapacity;
-	protected final int[] values;
+	protected ByteBuffer byteValues;
+	protected IntBuffer intValues;
 
-	private int bufferId;
+	private int bufferIdA;
+	private int bufferIdB;
+	private int currentBufferId;
+	private boolean isCurrentB = true;
 	private int textureId;
 	protected AtomicBoolean isDirty = new AtomicBoolean(false);
 	private boolean isActive = false;
@@ -54,8 +60,12 @@ public abstract class AbstractLookupImage {
 		this.texelCapacity = texelCapacity;
 		this.intsPerTexel = intsPerTexel;
 		integerCapacity = texelCapacity * intsPerTexel;
-		values = new int[texelCapacity * intsPerTexel];
-		Arrays.fill(values, -1);
+		byteValues = MemoryUtil.memAlloc(integerCapacity * 4);
+		intValues = byteValues.asIntBuffer();
+
+		for (int i = 0; i < integerCapacity; ++i) {
+			intValues.put(i, 0);
+		}
 	}
 
 	public synchronized void clear() {
@@ -68,18 +78,26 @@ public abstract class AbstractLookupImage {
 			textureId = 0;
 		}
 
-		if (bufferId != 0) {
-			GFX.deleteBuffers(bufferId);
-			bufferId = 0;
+		if (bufferIdA != 0) {
+			assert bufferIdB != 0;
+			GFX.deleteBuffers(bufferIdA);
+			GFX.deleteBuffers(bufferIdB);
+			bufferIdA = 0;
+			bufferIdB = 0;
 		}
 
-		Arrays.fill(values, -1);
+		for (int i = 0; i < integerCapacity; ++i) {
+			intValues.put(i, 0);
+		}
+
+		currentBufferId = 0;
 		isDirty.set(false);
 		isActive = false;
+		isCurrentB = true;
 	}
 
 	final int bufferId() {
-		return bufferId;
+		return currentBufferId;
 	}
 
 	public final void enableTexture() {
@@ -94,7 +112,7 @@ public abstract class AbstractLookupImage {
 
 			CanvasTextureState.activeTextureUnit(textureUnit);
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_BUFFER, textureId);
-			GFX.texBuffer(imageFormat, bufferId);
+			GFX.texBuffer(imageFormat, currentBufferId);
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
 	}
@@ -113,19 +131,28 @@ public abstract class AbstractLookupImage {
 	public final void upload() {
 		assert RenderSystem.isOnRenderThread();
 
-		if (isDirty.compareAndSet(true, false)) {
-			if (bufferId == 0) {
-				bufferId = GFX.genBuffer();
+		if (bufferIdA == 0) {
+			assert bufferIdB == 0;
+			bufferIdA = GFX.genBuffer();
+			bufferIdB = GFX.genBuffer();
+
+			// PERF: any benefit to a different hint here or different approach?
+			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferIdA);
+			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, byteValues, GFX.GL_DYNAMIC_DRAW);
+
+			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferIdB);
+			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, byteValues, GFX.GL_DYNAMIC_DRAW);
+		} else if (isDirty.compareAndSet(true, false)) {
+			if (isCurrentB) {
+				isCurrentB = false;
+				currentBufferId = bufferIdA;
+			} else {
+				isCurrentB = true;
+				currentBufferId = bufferIdB;
 			}
 
-			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
-			// Always respecify/orphan buffer
-			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, integerCapacity * 4, GFX.GL_STATIC_DRAW);
-
-			final ByteBuffer bBuff = GFX.mapBuffer(GFX.GL_TEXTURE_BUFFER, GFX.GL_MAP_WRITE_BIT);
-			bBuff.asIntBuffer().put(values);
-			GFX.unmapBuffer(GFX.GL_TEXTURE_BUFFER);
-			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
+			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, currentBufferId);
+			GL46C.glBufferSubData(GFX.GL_TEXTURE_BUFFER, 0, byteValues);
 		}
 	}
 }

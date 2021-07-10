@@ -60,13 +60,13 @@ public class VfRegionRenderConfig extends RegionRenderConfig {
 	}
 
 	@Override
-	public void onDeactiveProgram() {
-		TerrainVertexFetch.disable();
+	public void onActivateProgram() {
+		TerrainVertexFetch.enable();
 	}
 
 	@Override
-	public void onActivateProgram() {
-		TerrainVertexFetch.enable();
+	public void onDeactiveProgram() {
+		TerrainVertexFetch.disable();
 	}
 
 	@Override

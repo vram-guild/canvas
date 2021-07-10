@@ -166,6 +166,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			origin.close();
 
 			if (regionRenderId != -1) {
+				Configurator.terrainRenderConfig.onRegionClosed(regionRenderId, this);
 				REGION_RENDER_ID_INDEX.releaseIndex(regionRenderId);
 				regionRenderId = -1;
 			}
@@ -393,6 +394,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		if (oldBuildState == RegionBuildState.UNBUILT) {
 			assert regionRenderId == -1;
 			regionRenderId = REGION_RENDER_ID_INDEX.claimIndex();
+			Configurator.terrainRenderConfig.onRegionBuilt(regionRenderId, this);
 		}
 
 		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {

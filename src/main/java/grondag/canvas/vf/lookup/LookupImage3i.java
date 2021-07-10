@@ -29,9 +29,9 @@ public class LookupImage3i extends AbstractLookupImage {
 
 	public void set(int index, int x, int y, int z) {
 		index *= intsPerTexel;
-		values[index] = x;
-		values[index + 1] = y;
-		values[index + 2] = z;
+		intValues.put(index, x);
+		intValues.put(index + 1, y);
+		intValues.put(index + 2, z);
 		isDirty.set(true);
 	}
 }

@@ -29,7 +29,7 @@ uniform isamplerBuffer _cvu_materialInfo;
 	flat in ivec4 _cvu_program;
 	flat in vec4 _cvv_spriteBounds;
 
-	#ifdef _CV_VERTEX_FETCH
+	#ifndef _CV_VERTEX_DEFAULT
 	flat in vec4 _cv_modelToWorld;
 	flat in vec4 _cv_modelToCamera;
 	#endif

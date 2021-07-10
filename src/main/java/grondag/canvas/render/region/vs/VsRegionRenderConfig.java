@@ -16,6 +16,8 @@
 
 package grondag.canvas.render.region.vs;
 
+import org.lwjgl.opengl.GL21;
+
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
@@ -24,6 +26,8 @@ import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.terrain.region.RenderRegion;
+import grondag.canvas.texture.TextureData;
+import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class VsRegionRenderConfig extends RegionRenderConfig {
 	public static final VsRegionRenderConfig INSTANCE = new VsRegionRenderConfig();
@@ -40,22 +44,22 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 
 	@Override
 	public void setupUniforms(GlProgram program) {
-		// WIP
+		program.uniformSampler("isamplerBuffer", "_cvu_vfRegions", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.VF_REGIONS - GL21.GL_TEXTURE0));
 	}
 
 	@Override
 	public void reload() {
-		// WIP
-	}
-
-	@Override
-	public void onDeactiveProgram() {
-		// WIP
+		VsFormat.REGION_LOOKUP.clear();
 	}
 
 	@Override
 	public void onActivateProgram() {
-		// WIP
+		VsFormat.REGION_LOOKUP.enableTexture();
+	}
+
+	@Override
+	public void onDeactiveProgram() {
+		VsFormat.REGION_LOOKUP.disableTexture();
 	}
 
 	@Override
@@ -75,7 +79,7 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 
 	@Override
 	public void prepareForDraw() {
-		// WIP
+		VsFormat.REGION_LOOKUP.upload();
 	}
 
 	@Override
