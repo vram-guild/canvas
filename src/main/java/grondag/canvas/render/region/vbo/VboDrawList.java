@@ -46,13 +46,13 @@ public class VboDrawList extends AbstractDrawList {
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			final VboDrawableRegion vboDrawable = (VboDrawableRegion) regions.get(regionIndex);
-			final VboDrawableDelegate delegate = vboDrawable.delegate();
+			final VboDrawableState drawState = vboDrawable.drawState();
 
-			if (delegate != null) {
+			if (drawState != null) {
 				final long modelOrigin = vboDrawable.packedOriginBlockPos();
 				vboDrawable.bindIfNeeded();
-				delegate.renderState().enable(BlockPos.unpackLongX(modelOrigin), BlockPos.unpackLongY(modelOrigin), BlockPos.unpackLongZ(modelOrigin), 0, 0);
-				delegate.draw();
+				drawState.renderState().enable(BlockPos.unpackLongX(modelOrigin), BlockPos.unpackLongY(modelOrigin), BlockPos.unpackLongZ(modelOrigin), 0, 0);
+				drawState.draw();
 			}
 		}
 

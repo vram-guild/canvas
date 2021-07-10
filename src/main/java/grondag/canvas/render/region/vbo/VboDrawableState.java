@@ -14,20 +14,20 @@
  *  the License.
  */
 
-package grondag.canvas.render.region.vs;
+package grondag.canvas.render.region.vbo;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.base.AbstractDrawableDelegate;
+import grondag.canvas.render.region.base.AbstractDrawableState;
 import grondag.canvas.varia.GFX;
 
-public class VsDrawableDelegate extends AbstractDrawableDelegate {
+public class VboDrawableState extends AbstractDrawableState {
 	private int vertexOffset;
 
-	public VsDrawableDelegate(RenderState renderState, int quadVertexCount, int vertexOffset) {
+	public VboDrawableState(RenderState renderState, int quadVertexCount, int vertexOffset) {
 		super(renderState, quadVertexCount);
 		this.vertexOffset = vertexOffset;
 	}

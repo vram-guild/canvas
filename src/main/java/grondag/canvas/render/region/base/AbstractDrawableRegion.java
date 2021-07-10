@@ -20,19 +20,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.render.region.DrawableRegion;
 
-public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate> implements DrawableRegion {
-	protected T delegate;
+public abstract class AbstractDrawableRegion<T extends AbstractDrawableState> implements DrawableRegion {
+	protected T drawState;
 	// first reference is for the region
 	private final AtomicInteger retainCount = new AtomicInteger(1);
 	private final long packedOriginBlockPos;
 
 	protected AbstractDrawableRegion(T delegate, long packedOriginBlockPos) {
-		this.delegate = delegate;
+		this.drawState = delegate;
 		this.packedOriginBlockPos = packedOriginBlockPos;
 	}
 
-	public final T delegate() {
-		return delegate;
+	public final T drawState() {
+		return drawState;
 	}
 
 	public long packedOriginBlockPos() {
@@ -46,9 +46,9 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableDelegate>
 		if (retainCount == 0) {
 			closeInner();
 
-			assert delegate != null;
-			delegate.close();
-			delegate = null;
+			assert drawState != null;
+			drawState.close();
+			drawState = null;
 		}
 	}
 

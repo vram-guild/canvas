@@ -20,12 +20,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.material.state.RenderState;
 
-public abstract class AbstractDrawableDelegate {
+public abstract class AbstractDrawableState {
 	private final RenderState renderState;
 	private final int quadVertexCount;
 	private boolean isClosed = false;
 
-	protected AbstractDrawableDelegate(RenderState renderState, int quadVertexCount) {
+	protected AbstractDrawableState(RenderState renderState, int quadVertexCount) {
 		this.renderState = renderState;
 		this.quadVertexCount = quadVertexCount;
 	}

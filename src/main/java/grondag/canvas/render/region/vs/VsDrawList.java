@@ -48,15 +48,15 @@ public class VsDrawList extends AbstractDrawList {
 		GFX.bindVertexArray(0);
 
 		// WIP: still need to handle multiple render states somehow
-		((VsDrawableRegion) regions.get(0)).delegate().renderState().enable(0, 0, 0, 0, 0);
+		((VsDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			final VsDrawableRegion vsDrawable = (VsDrawableRegion) regions.get(regionIndex);
-			final VsDrawableDelegate delegate = vsDrawable.delegate();
+			final VsDrawableState drawState = vsDrawable.drawState();
 
-			if (delegate != null) {
+			if (drawState != null) {
 				vsDrawable.bindIfNeeded();
-				delegate.draw();
+				drawState.draw();
 			}
 		}
 

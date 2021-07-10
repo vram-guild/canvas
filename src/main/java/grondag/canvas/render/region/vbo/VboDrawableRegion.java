@@ -26,10 +26,10 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.base.AbstractDrawableRegion;
 
-public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableDelegate> {
+public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableState> {
 	private final VboBuffer vboBuffer;
 
-	private VboDrawableRegion(VboBuffer vboBuffer, VboDrawableDelegate delegate, long packedOriginBlockPos) {
+	private VboDrawableRegion(VboBuffer vboBuffer, VboDrawableState delegate, long packedOriginBlockPos) {
 		super(delegate, packedOriginBlockPos);
 		this.vboBuffer = vboBuffer;
 	}
@@ -64,7 +64,7 @@ public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableDelegat
 		intBuffer.position(0);
 		collector.toBuffer(intBuffer);
 
-		final VboDrawableDelegate delegate = new VboDrawableDelegate(collector.renderState, collector.quadCount() * 4, 0);
+		final VboDrawableState delegate = new VboDrawableState(collector.renderState, collector.quadCount() * 4, 0);
 		return new VboDrawableRegion(vboBuffer, delegate, packedOriginBlockPos);
 	}
 }

@@ -17,13 +17,13 @@
 package grondag.canvas.render.region.vf;
 
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.base.AbstractDrawableDelegate;
+import grondag.canvas.render.region.base.AbstractDrawableState;
 import grondag.canvas.vf.storage.VfStorageReference;
 
-public final class VfDrawableDelegate extends AbstractDrawableDelegate {
+public final class VfDrawableState extends AbstractDrawableState {
 	private VfStorageReference regionStorageReference;
 
-	public VfDrawableDelegate(RenderState renderState, int quadVertexCount, VfStorageReference regionStorageReference) {
+	public VfDrawableState(RenderState renderState, int quadVertexCount, VfStorageReference regionStorageReference) {
 		super(renderState, quadVertexCount);
 		this.regionStorageReference = regionStorageReference;
 	}

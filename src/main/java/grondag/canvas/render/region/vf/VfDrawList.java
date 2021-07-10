@@ -70,13 +70,13 @@ public class VfDrawList extends AbstractDrawList {
 			assert regionArrayIndex < 0x10000;
 
 			final VfDrawableRegion drawable = (VfDrawableRegion) regions.get(i);
-			final VfDrawableDelegate delegate = drawable.delegate();
+			final VfDrawableState drawState = drawable.drawState();
 
-			if (delegate != null) {
+			if (drawState != null) {
 				if (renderState == null) {
-					renderState = delegate.renderState();
+					renderState = drawState.renderState();
 				} else {
-					assert renderState == delegate.renderState();
+					assert renderState == drawState.renderState();
 				}
 
 				final long modelOrigin = drawable.packedOriginBlockPos();
@@ -86,8 +86,8 @@ public class VfDrawList extends AbstractDrawList {
 
 				// Subtract the total quad count because gl_VertexID (and thus Quad ID)
 				// will increment through the entire draw.
-				final int regionQuadCount = delegate.quadVertexCount() / 4;
-				final int rIndex = delegate.regionStorageReference().getByteAddress() / 16 - totalQuadCount;
+				final int regionQuadCount = drawState.quadVertexCount() / 4;
+				final int rIndex = drawState.regionStorageReference().getByteAddress() / 16 - totalQuadCount;
 				regionData.add(rIndex);
 
 				for (int q = 0; q < regionQuadCount; ++q) {

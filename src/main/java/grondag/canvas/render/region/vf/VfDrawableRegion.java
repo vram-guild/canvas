@@ -25,8 +25,8 @@ import grondag.canvas.render.region.base.AbstractDrawableRegion;
 import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.canvas.vf.storage.VfStorageReference;
 
-public class VfDrawableRegion extends AbstractDrawableRegion<VfDrawableDelegate> {
-	protected VfDrawableRegion(VfDrawableDelegate delegate, long packedOriginBlockPos) {
+public class VfDrawableRegion extends AbstractDrawableRegion<VfDrawableState> {
+	protected VfDrawableRegion(VfDrawableState delegate, long packedOriginBlockPos) {
 		super(delegate, packedOriginBlockPos);
 	}
 
@@ -53,6 +53,6 @@ public class VfDrawableRegion extends AbstractDrawableRegion<VfDrawableDelegate>
 		System.arraycopy(collector.data(), 0, vfData, 0, quadIntCount);
 		final VfStorageReference vfbr = VfStorageReference.of(vfData);
 		TerrainVertexFetch.QUADS.enqueue(vfbr);
-		return new VfDrawableRegion(new VfDrawableDelegate(collector.renderState, collector.quadCount() * 4, vfbr), packedOriginBlockPos);
+		return new VfDrawableRegion(new VfDrawableState(collector.renderState, collector.quadCount() * 4, vfbr), packedOriginBlockPos);
 	}
 }
