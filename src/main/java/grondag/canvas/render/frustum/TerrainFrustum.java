@@ -172,6 +172,9 @@ public class TerrainFrustum extends CanvasFrustum {
 		final double y = cameraPos.y;
 		final double z = cameraPos.z;
 
+		// Ignore near occluders if they aren't occluding!
+		nearOccludersPresent &= Configurator.enableNearOccluders;
+
 		final long cameraBlockPos = camera.getBlockPos().asLong();
 		boolean movedEnoughToInvalidateOcclusion = false;
 

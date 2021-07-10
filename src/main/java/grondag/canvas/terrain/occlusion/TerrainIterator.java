@@ -323,9 +323,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 				// We are aren't culling, just add it.
 				region.neighbors.enqueueUnvistedCameraNeighbors();
 				visibleRegions.add(region);
+				state.setResult(OcclusionResult.REGION_VISIBLE);
 				cameraVisibility.prepareRegion(region.origin);
 				cameraVisibility.occlude(buildState.getOcclusionData());
-				state.setResult(OcclusionResult.REGION_VISIBLE);
 			} else {
 				cameraVisibility.prepareRegion(region.origin);
 				final int[] occlusionData = buildState.getOcclusionData();

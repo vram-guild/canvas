@@ -30,6 +30,7 @@ import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
+import static grondag.canvas.config.Configurator.enableNearOccluders;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
@@ -317,6 +318,15 @@ public class ConfigGui {
 				.setTooltip(parse("config.canvas.help.cull_particles"))
 				.setSaveConsumer(b -> {
 					cullParticles = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_near_occluders"), enableNearOccluders)
+				.setDefaultValue(DEFAULTS.enableNearOccluders)
+				.setTooltip(parse("config.canvas.help.enable_near_occluders"))
+				.setSaveConsumer(b -> {
+					enableNearOccluders = b;
 				})
 				.build());
 

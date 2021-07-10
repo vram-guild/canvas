@@ -107,6 +107,8 @@ class ConfigData {
 	int profilerDetailLevel = 0;
 	@Comment("Size of the profiler overlay relative to GUI scale.")
 	float profilerOverlayScale = 0.5f;
+	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
+	boolean enableNearOccluders = false;
 	//WIP: docs
 	TerrainVertexConfig terrainVertexConfig = TerrainVertexConfig.DEFAULT;
 }
