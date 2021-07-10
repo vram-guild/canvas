@@ -145,7 +145,7 @@ public class VertexCollectorList {
 
 	public UploadableRegion toUploadableChunk(boolean sorted, long packedOriginBlockPos) {
 		final int bytes = totalBytes(sorted);
-		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : Configurator.terrainVertexConfig.createUploadableRegion(this, sorted, bytes, packedOriginBlockPos);
+		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : Configurator.terrainRenderConfig.createUploadableRegion(this, sorted, bytes, packedOriginBlockPos);
 	}
 
 	/**

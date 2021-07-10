@@ -110,5 +110,5 @@ class ConfigData {
 	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
 	boolean enableNearOccluders = false;
 	//WIP: docs
-	TerrainVertexConfig terrainVertexConfig = TerrainVertexConfig.DEFAULT;
+	TerrainRenderConfig terrainRenderConfig = TerrainRenderConfig.DEFAULT;
 }

@@ -24,6 +24,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.render.region.base.RegionRenderConfig;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
@@ -68,7 +69,8 @@ public class Configurator {
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 	public static boolean enableNearOccluders = DEFAULTS.enableNearOccluders;
-	public static TerrainVertexConfig terrainVertexConfig = DEFAULTS.terrainVertexConfig;
+	public static TerrainRenderConfig terrainRenderConfigOption = DEFAULTS.terrainRenderConfig;
+	public static RegionRenderConfig terrainRenderConfig = terrainRenderConfigOption.config;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -137,7 +139,8 @@ public class Configurator {
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
 		enableNearOccluders = config.enableNearOccluders;
-		terrainVertexConfig = config.terrainVertexConfig;
+		terrainRenderConfigOption = config.terrainRenderConfig;
+		terrainRenderConfig = terrainRenderConfigOption.config;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -187,6 +190,6 @@ public class Configurator {
 		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
 		config.enableNearOccluders = enableNearOccluders;
-		config.terrainVertexConfig = terrainVertexConfig;
+		config.terrainRenderConfig = terrainRenderConfigOption;
 	}
 }

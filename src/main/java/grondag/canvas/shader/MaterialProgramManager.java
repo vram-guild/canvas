@@ -41,11 +41,11 @@ public enum MaterialProgramManager {
 		if (result == null) {
 			final Shader vs = new GlMaterialShader(programType.vertexSource, GFX.GL_VERTEX_SHADER, programType);
 			final Shader fs = new GlMaterialShader(programType.fragmentSource, GFX.GL_FRAGMENT_SHADER, programType);
-			result = new GlMaterialProgram(vs, fs, programType.isTerrain ? Configurator.terrainVertexConfig.vertexFormat : CanvasVertexFormats.MATERIAL_FORMAT, programType);
+			result = new GlMaterialProgram(vs, fs, programType.isTerrain ? Configurator.terrainRenderConfig.vertexFormat : CanvasVertexFormats.MATERIAL_FORMAT, programType);
 			ShaderUniforms.MATERIAL_UNIFORM_SETUP.accept(result);
 
 			if (programType.isTerrain) {
-				Configurator.terrainVertexConfig.setupUniforms(result);
+				Configurator.terrainRenderConfig.setupUniforms(result);
 			}
 
 			materialPrograms[key] = result;

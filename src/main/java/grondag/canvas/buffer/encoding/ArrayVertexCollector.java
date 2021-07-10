@@ -48,7 +48,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		this.renderState = renderState;
 		this.isTerrain = isTerrain;
 		// VF quads use vertex stride because of indexing
-		quadStrideInts = isTerrain ? Configurator.terrainVertexConfig.quadStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
+		quadStrideInts = isTerrain ? Configurator.terrainRenderConfig.quadStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
@@ -114,7 +114,7 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	public boolean sortQuads(float x, float y, float z) {
 		final int quadCount = quadCount();
-		final QuadDistanceFunc distanceFunc = isTerrain ? Configurator.terrainVertexConfig.selectQuadDistanceFunction(this) : quadDistanceStandard;
+		final QuadDistanceFunc distanceFunc = isTerrain ? Configurator.terrainRenderConfig.selectQuadDistanceFunction(this) : quadDistanceStandard;
 
 		if (perQuadDistance.length < quadCount) {
 			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];

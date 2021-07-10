@@ -252,7 +252,7 @@ public class GlShader implements Shader {
 			result = getCombinedShaderSource();
 
 			if (programType.isTerrain) {
-				result = StringUtils.replace(result, "#define _CV_VERTEX_DEFAULT", "#define _CV_VERTEX_" + Configurator.terrainVertexConfig.name().toUpperCase());
+				result = StringUtils.replace(result, "#define _CV_VERTEX_DEFAULT", "#define _CV_VERTEX_" + Configurator.terrainRenderConfigOption.name().toUpperCase());
 			}
 
 			if (programType.hasVertexProgramControl) {

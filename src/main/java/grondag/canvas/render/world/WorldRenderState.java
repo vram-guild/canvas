@@ -145,9 +145,9 @@ public class WorldRenderState {
 
 		cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 
-		final Function<ObjectArrayList<DrawableRegion>, RegionDrawList> drawListFunc = Configurator.terrainVertexConfig.drawListFunc;
+		final Function<ObjectArrayList<DrawableRegion>, RegionDrawList> drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
 
-		Configurator.terrainVertexConfig.beforeDrawListBuild();
+		Configurator.terrainRenderConfig.beforeDrawListBuild();
 
 		solidDrawList.close();
 		solidDrawList = RegionDrawListBuilder.build(cameraVisibleRegions, drawListFunc, false);
@@ -166,7 +166,7 @@ public class WorldRenderState {
 			}
 		}
 
-		Configurator.terrainVertexConfig.afterDrawListBuild();
+		Configurator.terrainRenderConfig.afterDrawListBuild();
 	}
 
 	void clear() {

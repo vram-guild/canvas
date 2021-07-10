@@ -53,7 +53,7 @@ public final class MaterialShaderImpl {
 		getOrCreate().activate();
 		program.setModelOrigin(x, y, z);
 
-		switch (Configurator.terrainVertexConfig) {
+		switch (Configurator.terrainRenderConfigOption) {
 			case DEFAULT:
 				break;
 			case FETCH:

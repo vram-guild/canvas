@@ -404,7 +404,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
-		final boolean applyBlockPosTranslation = Configurator.terrainVertexConfig.shouldApplyBlockPosTranslation;
+		final boolean applyBlockPosTranslation = Configurator.terrainRenderConfig.shouldApplyBlockPosTranslation;
 
 		for (int i = 0; i < RenderRegionStateIndexer.INTERIOR_STATE_COUNT; i++) {
 			if (occlusionRegion.shouldRender(i)) {

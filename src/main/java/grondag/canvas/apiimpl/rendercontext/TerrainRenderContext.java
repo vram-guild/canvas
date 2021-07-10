@@ -124,7 +124,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
 
-			if (!Configurator.terrainVertexConfig.shouldApplyBlockPosTranslation) {
+			if (!Configurator.terrainRenderConfig.shouldApplyBlockPosTranslation) {
 				packedRelativeBlockPos = (blockPos.getX() & 0xF) | ((blockPos.getY() & 0xF) << 4) | ((blockPos.getZ() & 0xF) << 8);
 			}
 
@@ -195,6 +195,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		Configurator.terrainVertexConfig.transcoder.encode(quad, this, collectors.get(quad.material()));
+		Configurator.terrainRenderConfig.transcoder.encode(quad, this, collectors.get(quad.material()));
 	}
 }

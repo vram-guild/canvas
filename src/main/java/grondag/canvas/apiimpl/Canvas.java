@@ -110,7 +110,7 @@ public class Canvas implements Renderer {
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
-		Configurator.terrainVertexConfig.reload();
+		Configurator.terrainRenderConfig.reload();
 		TerrainVertexFetch.clear();
 
 		recompile();
