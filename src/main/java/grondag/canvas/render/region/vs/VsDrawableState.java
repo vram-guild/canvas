@@ -34,8 +34,6 @@ public class VsDrawableState extends AbstractDrawableState<VsDrawableStorage> {
 		assert !isClosed();
 
 		if (storage != null) {
-			storage.bind();
-			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
 			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, storage.baseVertex());
 		}
 	}

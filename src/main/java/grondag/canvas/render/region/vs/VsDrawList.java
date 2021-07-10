@@ -67,6 +67,8 @@ public class VsDrawList extends AbstractDrawList {
 		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, maxTriangleVertexCount);
 		final int indexBufferId = indexBuffer.getId();
 		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn bug
+		VsVertexStorage.INSTANCE.bind();
+		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
 
 		// WIP: still need to handle multiple render states somehow
 		((VsDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);

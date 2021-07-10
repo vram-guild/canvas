@@ -50,6 +50,7 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public void reload() {
 		VsFormat.REGION_LOOKUP.clear();
+		VsVertexStorage.INSTANCE.clear();
 	}
 
 	@Override
@@ -80,6 +81,7 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public void prepareForDraw() {
 		VsFormat.REGION_LOOKUP.upload();
+		VsVertexStorage.INSTANCE.upload();
 	}
 
 	@Override

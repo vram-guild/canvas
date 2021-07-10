@@ -28,7 +28,8 @@ import grondag.canvas.varia.GFX;
 public class VsDrawableStorage implements DrawableStorage {
 	private ByteBuffer transferBuffer;
 	private static final int VAO_NONE = -1;
-	private final int byteCount;
+	final int byteCount;
+	private int baseVertex;
 
 	private int glBufferId = -1;
 	private boolean isClosed = false;
@@ -42,16 +43,16 @@ public class VsDrawableStorage implements DrawableStorage {
 		this.byteCount = byteCount;
 	}
 
-	@Override
-	public void close() {
-		if (RenderSystem.isOnRenderThread()) {
-			onClose();
-		} else {
-			RenderSystem.recordRenderCall(this::onClose);
-		}
+	ByteBuffer getAndClearTransferBuffer() {
+		ByteBuffer result = transferBuffer;
+		transferBuffer = null;
+		return result;
 	}
 
-	private void onClose() {
+	@Override
+	public void close() {
+		assert RenderSystem.isOnRenderThread();
+
 		if (!isClosed) {
 			isClosed = true;
 
@@ -79,32 +80,21 @@ public class VsDrawableStorage implements DrawableStorage {
 		return isClosed;
 	}
 
-	public void bind() {
-		// WIP - temporary
-
-		if (vaoBufferId == VAO_NONE) {
-			vaoBufferId = GFX.genVertexArray();
-			GFX.bindVertexArray(vaoBufferId);
-
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			VsFormat.VS_MATERIAL.enableAttributes();
-			VsFormat.VS_MATERIAL.bindAttributeLocations(0);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-		} else {
-			GFX.bindVertexArray(vaoBufferId);
-		}
-	}
-
-	public void upload() {
-		if (transferBuffer != null) {
-			transferBuffer.rewind();
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			GFX.bufferData(GFX.GL_ARRAY_BUFFER, transferBuffer, GFX.GL_STATIC_DRAW);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-			TransferBufferAllocator.release(transferBuffer);
-			transferBuffer = null;
-		}
-	}
+	//	public void bind() {
+	//		// WIP - temporary
+	//
+	//		if (vaoBufferId == VAO_NONE) {
+	//			vaoBufferId = GFX.genVertexArray();
+	//			GFX.bindVertexArray(vaoBufferId);
+	//
+	//			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
+	//			VsFormat.VS_MATERIAL.enableAttributes();
+	//			VsFormat.VS_MATERIAL.bindAttributeLocations(0);
+	//			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
+	//		} else {
+	//			GFX.bindVertexArray(vaoBufferId);
+	//		}
+	//	}
 
 	private int glBufferId() {
 		int result = glBufferId;
@@ -120,7 +110,19 @@ public class VsDrawableStorage implements DrawableStorage {
 		return result;
 	}
 
+	/**
+	 * Controlled by storage so that the vertices can be moved around as
+	 * needed to control fragmentation without external entanglements.
+	 */
 	public int baseVertex() {
-		return 0;
+		return baseVertex;
+	}
+
+	void setBaseVertex(int baseVertex) {
+		this.baseVertex = baseVertex;
+	}
+
+	void upload() {
+		VsVertexStorage.INSTANCE.allocate(this);
 	}
 }
