@@ -16,11 +16,12 @@
 
 package grondag.canvas.render.region.vs;
 
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
@@ -31,7 +32,7 @@ public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableState> {
 		super(delegate, packedOriginBlockPos);
 	}
 
-	public static DrawableRegion pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
+	static DrawableRegion pack(VertexCollectorList collectorList, boolean translucent, int byteCount, long packedOriginBlockPos) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 
 		if (drawList.isEmpty()) {
@@ -44,12 +45,15 @@ public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableState> {
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
-		final IntBuffer intBuffer = vboBuffer.intBuffer();
+		// WIP: Try having orphaned, memory-mapped GPU slabs for loading off-thread and then do transfers with copySubBuffer
+		final ByteBuffer transferBuffer = TransferBufferAllocator.claim(byteCount);
+		final IntBuffer intBuffer = transferBuffer.asIntBuffer();
 		intBuffer.position(0);
 		collector.toBuffer(intBuffer, 0);
+		VsDrawableStorage storage = new VsDrawableStorage(transferBuffer, byteCount);
 
-		final VsDrawableState delegate = new VsDrawableState(collector.renderState, collector.quadCount() * 4, 0, vboBuffer);
-		return new VsDrawableRegion(delegate, packedOriginBlockPos);
+		final VsDrawableState drawState = new VsDrawableState(collector.renderState, collector.quadCount() * 4, 0, storage);
+		return new VsDrawableRegion(drawState, packedOriginBlockPos);
 	}
 
 	@Override

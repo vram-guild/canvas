@@ -16,23 +16,23 @@
 
 package grondag.canvas.render.region.vs;
 
-import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.UploadableRegion;
 
 public class VsUploadableRegion implements UploadableRegion {
-	protected final VboBuffer vboBuffer;
 	protected final DrawableRegion drawable;
 
 	public VsUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
-		vboBuffer = new VboBuffer(bytes, VsFormat.VS_MATERIAL);
-		drawable = VsDrawableRegion.pack(collectorList, vboBuffer, sorted, bytes, packedOriginBlockPos);
+		drawable = VsDrawableRegion.pack(collectorList, sorted, bytes, packedOriginBlockPos);
 	}
 
 	@Override
 	public DrawableRegion produceDrawable() {
-		vboBuffer.upload();
+		if (drawable instanceof VsDrawableRegion) {
+			((VsDrawableRegion) drawable).drawState().storage().upload();
+		}
+
 		return drawable;
 	}
 }

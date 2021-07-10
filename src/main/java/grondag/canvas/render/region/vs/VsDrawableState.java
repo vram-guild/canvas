@@ -18,26 +18,20 @@ package grondag.canvas.render.region.vs;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
-import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.base.AbstractDrawableState;
 import grondag.canvas.varia.GFX;
 
-public class VsDrawableState extends AbstractDrawableState<VboBuffer> {
+public class VsDrawableState extends AbstractDrawableState<VsDrawableStorage> {
 	private final int vertexOffset;
 	private final int triVertexCount;
 
-	public VsDrawableState(RenderState renderState, int quadVertexCount, int vertexOffset, VboBuffer vboBuffer) {
-		super(renderState, quadVertexCount, vboBuffer);
+	public VsDrawableState(RenderState renderState, int quadVertexCount, int vertexOffset, VsDrawableStorage storage) {
+		super(renderState, quadVertexCount, storage);
 		this.vertexOffset = vertexOffset;
 		triVertexCount = quadVertexCount() / 4 * 6;
 	}
 
-	/**
-	 * Assumes pipeline has already been activated and buffer has already been bound
-	 * via {@link #bind()}.
-	 * @param indexBufferId
-	 */
 	public void draw(int elementType, int indexBufferId) {
 		assert !isClosed();
 

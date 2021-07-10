@@ -41,6 +41,10 @@ public abstract class AbstractDrawableState<T extends DrawableStorage> {
 		return quadVertexCount;
 	}
 
+	public final T storage() {
+		return storage;
+	}
+
 	public final void close() {
 		assert RenderSystem.isOnRenderThread();
 
