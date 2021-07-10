@@ -30,10 +30,10 @@ public class VboRegionRenderConfig extends RegionRenderConfig {
 
 	private VboRegionRenderConfig() {
 		super(
-			CanvasVertexFormats.COMPACT_MATERIAL,
-			CanvasVertexFormats.COMPACT_MATERIAL.quadStrideInts,
+			CanvasVertexFormats.STANDARD_MATERIAL_FORMAT,
+			CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts,
 			true,
-			QuadEncoders.COMPACT_TRANSCODER,
+			QuadEncoders.STANDARD_TRANSCODER,
 			VboDrawList::build
 		);
 	}

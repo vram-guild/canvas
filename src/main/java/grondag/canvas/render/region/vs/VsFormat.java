@@ -14,56 +14,42 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.render.region.vs;
+
+import static grondag.canvas.buffer.format.CanvasVertexFormats.AO_1UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_RGBA_4UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_TEX_2US;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.LIGHTMAPS_2UB;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_1US;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.NORMAL_3B;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.POSITION_3F;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.VertexFormatElement;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.encoding.QuadTranscoder;
+import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.buffer.format.CanvasVertexFormatElement;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
-public class QuadEncoders {
-	public static final QuadEncoder STANDARD_ENCODER = (quad, buff) -> {
-		final RenderMaterialImpl mat = quad.material();
+public class VsFormat {
+	private VsFormat() { }
 
-		int packedNormal = 0;
-		final boolean useNormals = quad.hasVertexNormals();
+	private static final CanvasVertexFormatElement REGION_ID = new CanvasVertexFormatElement(VertexFormatElement.DataType.UINT, 1, "in_region", false, true);
 
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-		}
+	/**
+	 * Puts a region ID at the beginning. Inefficient but 8-int stride will be page-aligned and we can make it more compact later.
+	 */
+	public static final CanvasVertexFormat VS_MATERIAL = new CanvasVertexFormat(REGION_ID, POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
-		final int material = mat.dongle().index(quad.spriteId()) << 16;
+	// Note the vertex stride is the effective quad stride because of indexing
+	static final int VS_QUAD_STRIDE = VS_MATERIAL.vertexStrideInts;
 
-		int k = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
-		final int[] target = buff.data();
-
-		for (int i = 0; i < 4; i++) {
-			quad.appendVertex(i, target, k);
-			k += 3;
-
-			target[k++] = quad.vertexColor(i);
-			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
-
-			final int packedLight = quad.lightmap(i);
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
-			target[k++] = blockLight | (skyLight << 8) | material;
-
-			if (useNormals) {
-				packedNormal = quad.packedNormal(i);
-			}
-
-			target[k++] = packedNormal | 0xFF000000;
-		}
-	};
-
-	public static final QuadTranscoder STANDARD_TRANSCODER = (quad, context, buff) -> {
+	public static final QuadTranscoder VS_TRANSCODER = (quad, context, buff) -> {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final int overlay = context.overlay();
@@ -89,10 +75,12 @@ public class QuadEncoders {
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
-		int k = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
+		int k = buff.allocate(VS_QUAD_STRIDE);
 		final int[] target = buff.data();
 
 		for (int i = 0; i < 4; i++) {
+			// WIP: add region ID
+
 			quad.transformAndAppendVertex(i, matrix, target, k);
 			k += 3;
 

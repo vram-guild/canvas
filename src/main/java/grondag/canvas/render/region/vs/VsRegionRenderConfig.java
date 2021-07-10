@@ -18,9 +18,7 @@ package grondag.canvas.render.region.vs;
 
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
-import grondag.canvas.buffer.encoding.QuadEncoders;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.shader.GlProgram;
@@ -30,11 +28,11 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 
 	private VsRegionRenderConfig() {
 		super(
-			CanvasVertexFormats.REGION_MATERIAL,
-			CanvasVertexFormats.REGION_MATERIAL.quadStrideInts,
+			VsFormat.VS_MATERIAL,
+			VsFormat.VS_MATERIAL.quadStrideInts,
 			true,
 			// WIP: add region transcoder
-			QuadEncoders.COMPACT_TRANSCODER,
+			VsFormat.VS_TRANSCODER,
 			VsDrawList::build
 		);
 	}

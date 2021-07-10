@@ -20,9 +20,7 @@ import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
-import grondag.canvas.buffer.encoding.QuadEncoders;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.shader.GlProgram;
@@ -35,11 +33,11 @@ public class VfRegionRenderConfig extends RegionRenderConfig {
 
 	private VfRegionRenderConfig() {
 		super(
-			CanvasVertexFormats.VF_MATERIAL,
+			VfFormat.VF_MATERIAL,
 			// VF quads use vertex stride because of indexing
-			CanvasVertexFormats.VF_MATERIAL.vertexStrideInts,
+			VfFormat.VF_MATERIAL.vertexStrideInts,
 			false,
-			QuadEncoders.VF_TRANSCODER,
+			VfFormat.VF_TRANSCODER,
 			VfDrawList::build
 		);
 	}

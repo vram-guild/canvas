@@ -26,7 +26,7 @@ public class CanvasVertexFormatElement {
 	public final boolean isInteger;
 	public final int byteSize;
 
-	CanvasVertexFormatElement(VertexFormatElement.DataType formatIn, int count, String attributeName, boolean isNormalized, boolean isInteger) {
+	public CanvasVertexFormatElement(VertexFormatElement.DataType formatIn, int count, String attributeName, boolean isNormalized, boolean isInteger) {
 		this.attributeName = attributeName;
 		elementCount = count;
 		glConstant = formatIn.getId();

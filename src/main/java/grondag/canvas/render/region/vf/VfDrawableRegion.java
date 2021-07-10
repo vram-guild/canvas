@@ -20,7 +20,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.base.AbstractDrawableRegion;
 import grondag.canvas.vf.TerrainVertexFetch;
@@ -49,7 +48,7 @@ public class VfDrawableRegion extends AbstractDrawableRegion<VfDrawableDelegate>
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
-		final int quadIntCount = collector.quadCount() * CanvasVertexFormats.VF_QUAD_STRIDE;
+		final int quadIntCount = collector.quadCount() * VfFormat.VF_QUAD_STRIDE;
 		final int[] vfData = new int[quadIntCount];
 		System.arraycopy(collector.data(), 0, vfData, 0, quadIntCount);
 		final VfStorageReference vfbr = VfStorageReference.of(vfData);

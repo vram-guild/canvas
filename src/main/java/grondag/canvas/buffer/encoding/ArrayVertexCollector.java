@@ -48,7 +48,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		this.renderState = renderState;
 		this.isTerrain = isTerrain;
 		// VF quads use vertex stride because of indexing
-		quadStrideInts = isTerrain ? Configurator.terrainRenderConfig.quadStrideInts : CanvasVertexFormats.MATERIAL_FORMAT.quadStrideInts;
+		quadStrideInts = isTerrain ? Configurator.terrainRenderConfig.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);

@@ -60,7 +60,7 @@ public class VertexCollectorList {
 
 			if (mat.condition.compute()) {
 				complete();
-				QuadEncoders.MATERIAL_ENCODER.encode(this, get(mat));
+				QuadEncoders.STANDARD_ENCODER.encode(this, get(mat));
 			}
 
 			clear();
