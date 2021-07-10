@@ -18,9 +18,13 @@ package grondag.canvas.render.region.vs;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import net.minecraft.util.math.BlockPos;
+
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.base.AbstractDrawList;
+import grondag.canvas.varia.GFX;
 
 public class VsDrawList extends AbstractDrawList {
 	private VsDrawList(final ObjectArrayList<DrawableRegion> regions) {
@@ -37,7 +41,27 @@ public class VsDrawList extends AbstractDrawList {
 
 	@Override
 	public void draw() {
-		// WIP
+		final int limit = regions.size();
+		GFX.bindVertexArray(0);
+
+		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
+			final VsDrawableRegion vsDrawable = (VsDrawableRegion) regions.get(regionIndex);
+			final VsDrawableDelegate delegate = vsDrawable.delegate();
+
+			if (delegate != null) {
+				final long modelOrigin = vsDrawable.packedOriginBlockPos();
+				vsDrawable.bindIfNeeded();
+				delegate.renderState().enable(BlockPos.unpackLongX(modelOrigin), BlockPos.unpackLongY(modelOrigin), BlockPos.unpackLongZ(modelOrigin), 0, 0);
+				delegate.draw();
+			}
+		}
+
+		// Important this happens BEFORE anything that could affect vertex state
+		GFX.bindVertexArray(0);
+
+		RenderState.disable();
+
+		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 	}
 
 	@Override

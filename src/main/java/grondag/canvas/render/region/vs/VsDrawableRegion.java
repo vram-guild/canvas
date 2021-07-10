@@ -16,28 +16,38 @@
 
 package grondag.canvas.render.region.vs;
 
+import java.nio.IntBuffer;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import grondag.canvas.buffer.VboBuffer;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.base.AbstractDrawableRegion;
 
 public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableDelegate> {
-	private VsDrawableRegion(VsDrawableDelegate delegate, long packedOriginBlockPos) {
+	private final VboBuffer vboBuffer;
+
+	private VsDrawableRegion(VboBuffer vboBuffer, VsDrawableDelegate delegate, long packedOriginBlockPos) {
 		super(delegate, packedOriginBlockPos);
+		this.vboBuffer = vboBuffer;
 	}
 
 	@Override
 	protected void closeInner() {
-		// WIP
+		if (vboBuffer != null) {
+			vboBuffer.close();
+		}
 	}
 
 	public void bindIfNeeded() {
-		// WIP
+		if (vboBuffer != null) {
+			vboBuffer.bind();
+		}
 	}
 
-	public static DrawableRegion pack(VertexCollectorList collectorList, boolean translucent, int byteCount, long packedOriginBlockPos) {
+	public static DrawableRegion pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 
 		if (drawList.isEmpty()) {
@@ -50,11 +60,11 @@ public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableDelegate>
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
-		//final IntBuffer intBuffer = vboBuffer.intBuffer();
-		//intBuffer.position(0);
-		//collector.toBuffer(intBuffer);
+		final IntBuffer intBuffer = vboBuffer.intBuffer();
+		intBuffer.position(0);
+		collector.toBuffer(intBuffer);
 
 		final VsDrawableDelegate delegate = new VsDrawableDelegate(collector.renderState, collector.quadCount() * 4, 0);
-		return new VsDrawableRegion(delegate, packedOriginBlockPos);
+		return new VsDrawableRegion(vboBuffer, delegate, packedOriginBlockPos);
 	}
 }

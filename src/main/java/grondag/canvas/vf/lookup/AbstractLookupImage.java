@@ -18,6 +18,9 @@ package grondag.canvas.vf.lookup;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -27,17 +30,17 @@ import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
-public final class VfLookupImage {
+public abstract class AbstractLookupImage {
 	private final int textureUnit;
 	private int imageFormat;
-	private final int capacity;
-	private final int[] values;
+	protected final int texelCapacity;
+	protected final int intsPerTexel;
+	protected final int integerCapacity;
+	protected final int[] values;
 
 	private int bufferId;
 	private int textureId;
-	private int nextIndex = 0;
-	private int inUseCount = 0;
-	private boolean isDirty = false;
+	protected AtomicBoolean isDirty = new AtomicBoolean(false);
 	private boolean isActive = false;
 
 	boolean logging = false;
@@ -45,15 +48,19 @@ public final class VfLookupImage {
 	/**
 	 * Image format MUST be four bytes.
 	 */
-	public VfLookupImage(int textureUnit, int imageFormat, int capacity) {
-		values = new int[capacity];
-		Arrays.fill(values, -1);
-		this.capacity = capacity;
+	public AbstractLookupImage(int textureUnit, int imageFormat, int texelCapacity, int intsPerTexel) {
 		this.textureUnit = textureUnit;
 		this.imageFormat = imageFormat;
+		this.texelCapacity = texelCapacity;
+		this.intsPerTexel = intsPerTexel;
+		integerCapacity = texelCapacity * intsPerTexel;
+		values = new int[texelCapacity * intsPerTexel];
+		Arrays.fill(values, -1);
 	}
 
 	public synchronized void clear() {
+		assert RenderSystem.isOnRenderThread();
+
 		disableTexture();
 
 		if (textureId != 0) {
@@ -67,16 +74,17 @@ public final class VfLookupImage {
 		}
 
 		Arrays.fill(values, -1);
-		isDirty = false;
-		nextIndex = 0;
+		isDirty.set(false);
 		isActive = false;
 	}
 
-	int bufferId() {
+	final int bufferId() {
 		return bufferId;
 	}
 
-	public void enableTexture() {
+	public final void enableTexture() {
+		assert RenderSystem.isOnRenderThread();
+
 		if (!isActive) {
 			isActive = true;
 
@@ -91,7 +99,9 @@ public final class VfLookupImage {
 		}
 	}
 
-	public void disableTexture() {
+	public final void disableTexture() {
+		assert RenderSystem.isOnRenderThread();
+
 		if (isActive) {
 			isActive = false;
 			CanvasTextureState.activeTextureUnit(textureUnit);
@@ -100,57 +110,22 @@ public final class VfLookupImage {
 		}
 	}
 
-	public synchronized int createIndexForValue(final int value) {
-		if (inUseCount < capacity) {
-			++inUseCount;
-			isDirty = true;
+	public final void upload() {
+		assert RenderSystem.isOnRenderThread();
 
-			while (values[nextIndex] != -1) {
-				if (++nextIndex >= capacity) {
-					nextIndex = 0;
-				}
-			}
-
-			final int result = nextIndex;
-			values[result] = value;
-
-			if (++nextIndex >= capacity) {
-				nextIndex = 0;
-			}
-
-			return result;
-		}
-
-		assert false : "failure in createIndexForValue";
-		return 0;
-	}
-
-	public synchronized void releaseIndex(final int index) {
-		values[index] = -1;
-	}
-
-	public synchronized void changeValueForIndex(final int index, final int value) {
-		assert value >= 0;
-		values[index] = value;
-		isDirty = true;
-	}
-
-	public synchronized void upload() {
-		if (isDirty) {
+		if (isDirty.compareAndSet(true, false)) {
 			if (bufferId == 0) {
 				bufferId = GFX.genBuffer();
 			}
 
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 			// Always respecify/orphan buffer
-			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, capacity, GFX.GL_STATIC_DRAW);
+			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, integerCapacity * 4, GFX.GL_STATIC_DRAW);
 
 			final ByteBuffer bBuff = GFX.mapBuffer(GFX.GL_TEXTURE_BUFFER, GFX.GL_MAP_WRITE_BIT);
 			bBuff.asIntBuffer().put(values);
 			GFX.unmapBuffer(GFX.GL_TEXTURE_BUFFER);
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
-
-			isDirty = false;
 		}
 	}
 }

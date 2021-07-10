@@ -35,9 +35,13 @@ import grondag.canvas.buffer.format.CanvasVertexFormatElement;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.texture.TextureData;
+import grondag.canvas.vf.lookup.LookupImage3i;
 
 public class VsFormat {
 	private VsFormat() { }
+
+	public static final LookupImage3i REGION_LOOKUP = new LookupImage3i(TextureData.VF_REGIONS, 0x10000);
 
 	private static final CanvasVertexFormatElement REGION_ID = new CanvasVertexFormatElement(VertexFormatElement.DataType.UINT, 1, "in_region", false, true);
 
@@ -46,8 +50,7 @@ public class VsFormat {
 	 */
 	public static final CanvasVertexFormat VS_MATERIAL = new CanvasVertexFormat(REGION_ID, POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
-	// Note the vertex stride is the effective quad stride because of indexing
-	static final int VS_QUAD_STRIDE = VS_MATERIAL.vertexStrideInts;
+	static final int VS_QUAD_STRIDE = VS_MATERIAL.quadStrideInts;
 
 	public static final QuadTranscoder VS_TRANSCODER = (quad, context, buff) -> {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
@@ -78,8 +81,12 @@ public class VsFormat {
 		int k = buff.allocate(VS_QUAD_STRIDE);
 		final int[] target = buff.data();
 
+		// This and stride are the only differences from standard format
+		final int regionId = context.regionRenderId;
+		assert regionId >= 0;
+
 		for (int i = 0; i < 4; i++) {
-			// WIP: add region ID
+			target[k++] = regionId;
 
 			quad.transformAndAppendVertex(i, matrix, target, k);
 			k += 3;

@@ -24,6 +24,7 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.frex.api.material.UniformRefreshFrequency;
@@ -93,5 +94,15 @@ public class VfRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
 		return new VfUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
+	}
+
+	@Override
+	public void onRegionBuilt(int regionId, RenderRegion region) {
+		// NOOP
+	}
+
+	@Override
+	public void onRegionClosed(int regionId, RenderRegion region) {
+		// NOOP
 	}
 }

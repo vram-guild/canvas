@@ -24,6 +24,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.terrain.region.RenderRegion;
 
 public class VboRegionRenderConfig extends RegionRenderConfig {
 	public static final VboRegionRenderConfig INSTANCE = new VboRegionRenderConfig();
@@ -81,5 +82,15 @@ public class VboRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
 		return new VboUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
+	}
+
+	@Override
+	public void onRegionBuilt(int regionId, RenderRegion region) {
+		// NOOP
+	}
+
+	@Override
+	public void onRegionClosed(int regionId, RenderRegion region) {
+		// NOOP
 	}
 }

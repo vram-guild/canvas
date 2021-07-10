@@ -62,10 +62,13 @@ import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.region.input.SignalInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
+import grondag.canvas.vf.lookup.FixedCapacityIndexAllocator;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class RenderRegion implements TerrainExecutorTask {
+	private static final FixedCapacityIndexAllocator REGION_RENDER_ID_INDEX = new FixedCapacityIndexAllocator(0x10000);
+
 	private final RenderRegionBuilder renderRegionBuilder;
 
 	final WorldRenderState worldRenderState;
@@ -76,6 +79,11 @@ public class RenderRegion implements TerrainExecutorTask {
 	public final CameraRegionVisibility cameraVisibility;
 	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
+
+	/**
+	 * Unique value within limited range that may be used for texel fetch in rendering.
+	 */
+	private int regionRenderId = -1;
 
 	/**
 	 * Set by main thread during schedule. Retrieved and set to null by worker
@@ -156,6 +164,11 @@ public class RenderRegion implements TerrainExecutorTask {
 			buildState.set(RegionBuildState.UNBUILT);
 			needsRebuild = true;
 			origin.close();
+
+			if (regionRenderId != -1) {
+				REGION_RENDER_ID_INDEX.releaseIndex(regionRenderId);
+				regionRenderId = -1;
+			}
 		}
 	}
 
@@ -331,8 +344,8 @@ public class RenderRegion implements TerrainExecutorTask {
 			}
 		} else {
 			context.prepareForRegion(protoRegion);
-			final RegionBuildState chunkData = captureBuildState(context, origin.isNear());
-
+			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
+			context.regionRenderId = regionRenderId;
 			final VertexCollectorList collectors = context.collectors;
 
 			if (runningState.get() == SignalInputRegion.INVALID) {
@@ -341,7 +354,7 @@ public class RenderRegion implements TerrainExecutorTask {
 				return;
 			}
 
-			buildTerrain(context, chunkData);
+			buildTerrain(context, newBuildState);
 
 			if (runningState.get() != SignalInputRegion.INVALID) {
 				final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin.asLong());
@@ -369,13 +382,18 @@ public class RenderRegion implements TerrainExecutorTask {
 		}
 	}
 
-	private RegionBuildState captureBuildState(TerrainRenderContext context, boolean isNear) {
+	private RegionBuildState captureAndSetBuildState(TerrainRenderContext context, boolean isNear) {
 		final RegionBuildState newBuildState = new RegionBuildState();
 		newBuildState.setOcclusionData(context.region.occlusion.build(isNear));
 		handleBlockEntities(newBuildState, context);
 
 		// don't rebuild occlusion if occlusion did not change
 		final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
+
+		if (oldBuildState == RegionBuildState.UNBUILT) {
+			assert regionRenderId == -1;
+			regionRenderId = REGION_RENDER_ID_INDEX.claimIndex();
+		}
 
 		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
 			notifyOcclusionChange();
@@ -384,7 +402,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		return newBuildState;
 	}
 
-	private void buildTerrain(TerrainRenderContext context, RegionBuildState regionData) {
+	private void buildTerrain(TerrainRenderContext context, RegionBuildState buildState) {
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startChunk();
 		}
@@ -449,7 +467,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		}
 
 		final Vec3d sortPos = worldRenderState.cameraVisibleRegions.lastSortPos();
-		regionData.prepareTranslucentIfNeeded((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
+		buildState.prepareTranslucentIfNeeded((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();
@@ -499,24 +517,25 @@ public class RenderRegion implements TerrainExecutorTask {
 	}
 
 	public void rebuildOnMainThread() {
-		final PackedInputRegion region = PackedInputRegion.claim(worldRenderState.getWorld(), origin);
+		final PackedInputRegion inputRegion = PackedInputRegion.claim(worldRenderState.getWorld(), origin);
 
-		if (region == SignalInputRegion.EMPTY) {
-			final RegionBuildState regionData = new RegionBuildState();
-			regionData.setOcclusionData(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
+		if (inputRegion == SignalInputRegion.EMPTY) {
+			final RegionBuildState newBuildState = new RegionBuildState();
+			newBuildState.setOcclusionData(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
-			final RegionBuildState oldBuildData = buildState.getAndSet(regionData);
+			final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
-			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+			if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
 				// Even if empty the chunk may still be needed for visibility search to progress
 				notifyOcclusionChange();
 			}
 		} else {
-			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(region);
-			final RegionBuildState regionData = captureBuildState(context, origin.isNear());
+			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(inputRegion);
+			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
+			context.regionRenderId = regionRenderId;
 
-			buildTerrain(context, regionData);
+			buildTerrain(context, newBuildState);
 
 			if (ChunkRebuildCounters.ENABLED) {
 				ChunkRebuildCounters.startUpload();
@@ -535,7 +554,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			}
 
 			collectors.clear();
-			region.release();
+			inputRegion.release();
 		}
 
 		markBuilt();

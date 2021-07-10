@@ -29,6 +29,7 @@ import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.terrain.region.RenderRegion;
 
 public abstract class RegionRenderConfig {
 	public final CanvasVertexFormat vertexFormat;
@@ -60,6 +61,10 @@ public abstract class RegionRenderConfig {
 	public abstract void setupUniforms(GlProgram program);
 
 	public abstract void reload();
+
+	public abstract void onRegionBuilt(int regionId, RenderRegion region);
+
+	public abstract void onRegionClosed(int regionId, RenderRegion region);
 
 	public abstract void onDeactiveProgram();
 

@@ -22,6 +22,8 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.shader.GlProgram;
+import grondag.canvas.terrain.region.RegionPosition;
+import grondag.canvas.terrain.region.RenderRegion;
 
 public class VsRegionRenderConfig extends RegionRenderConfig {
 	public static final VsRegionRenderConfig INSTANCE = new VsRegionRenderConfig();
@@ -31,7 +33,6 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 			VsFormat.VS_MATERIAL,
 			VsFormat.VS_MATERIAL.quadStrideInts,
 			true,
-			// WIP: add region transcoder
 			VsFormat.VS_TRANSCODER,
 			VsDrawList::build
 		);
@@ -80,5 +81,16 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
 		return new VsUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
+	}
+
+	@Override
+	public void onRegionBuilt(int regionId, RenderRegion region) {
+		final RegionPosition origin = region.origin;
+		VsFormat.REGION_LOOKUP.set(regionId, origin.getX(), origin.getY(), origin.getZ());
+	}
+
+	@Override
+	public void onRegionClosed(int regionId, RenderRegion region) {
+		// NOOP
 	}
 }
