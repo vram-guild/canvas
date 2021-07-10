@@ -27,24 +27,8 @@ import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.base.AbstractDrawableRegion;
 
 public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableState> {
-	private final VboBuffer vboBuffer;
-
-	private VsDrawableRegion(VboBuffer vboBuffer, VsDrawableState delegate, long packedOriginBlockPos) {
+	private VsDrawableRegion(VsDrawableState delegate, long packedOriginBlockPos) {
 		super(delegate, packedOriginBlockPos);
-		this.vboBuffer = vboBuffer;
-	}
-
-	@Override
-	protected void closeInner() {
-		if (vboBuffer != null) {
-			vboBuffer.close();
-		}
-	}
-
-	public void bindIfNeeded() {
-		if (vboBuffer != null) {
-			vboBuffer.bind();
-		}
 	}
 
 	public static DrawableRegion pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
@@ -64,7 +48,12 @@ public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableState> {
 		intBuffer.position(0);
 		collector.toBuffer(intBuffer, 0);
 
-		final VsDrawableState delegate = new VsDrawableState(collector.renderState, collector.quadCount() * 4, 0);
-		return new VsDrawableRegion(vboBuffer, delegate, packedOriginBlockPos);
+		final VsDrawableState delegate = new VsDrawableState(collector.renderState, collector.quadCount() * 4, 0, vboBuffer);
+		return new VsDrawableRegion(delegate, packedOriginBlockPos);
+	}
+
+	@Override
+	protected void closeInner() {
+		// NOOP
 	}
 }

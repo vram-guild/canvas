@@ -51,11 +51,10 @@ public class VsDrawList extends AbstractDrawList {
 		((VsDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			final VsDrawableRegion vsDrawable = (VsDrawableRegion) regions.get(regionIndex);
-			final VsDrawableState drawState = vsDrawable.drawState();
+			final VsDrawableState drawState = ((VsDrawableRegion) regions.get(regionIndex)).drawState();
 
 			if (drawState != null) {
-				vsDrawable.bindIfNeeded();
+				drawState.bindIfNeeded();
 				drawState.draw();
 			}
 		}
