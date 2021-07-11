@@ -20,29 +20,26 @@ import java.nio.ByteBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.render.region.DrawableStorage;
-import grondag.canvas.varia.GFX;
 
 public class ClumpedDrawableStorage implements DrawableStorage {
 	private ByteBuffer transferBuffer;
-	private static final int VAO_NONE = -1;
 	final int byteCount;
+	final int triVertexCount;
 	private int baseVertex;
-	final long packedOriginBlockPos;
-
-	private int glBufferId = -1;
+	@SuppressWarnings("unused")
+	private long packedOriginBlockPos; // WIP: remove this later, only useful for debug
 	private boolean isClosed = false;
-	/**
-	 * VAO Buffer name if enabled and initialized.
-	 */
-	private int vaoBufferId = VAO_NONE;
+	final long clumpPos;
+	private ClumpedVertexStorageClump clump = null;
 
-	public ClumpedDrawableStorage(ByteBuffer transferBuffer, int byteCount, long packedOriginBlockPos) {
+	public ClumpedDrawableStorage(ByteBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 		this.packedOriginBlockPos = packedOriginBlockPos;
+		this.triVertexCount = triVertexCount;
+		clumpPos = ClumpedVertexStorage.clumpPos(packedOriginBlockPos);
 	}
 
 	ByteBuffer getAndClearTransferBuffer() {
@@ -58,21 +55,14 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 		if (!isClosed) {
 			isClosed = true;
 
-			if (vaoBufferId > 0) {
-				GFX.deleteVertexArray(vaoBufferId);
-				vaoBufferId = VAO_NONE;
-			}
-
-			final int glBufferId = this.glBufferId;
-
-			if (glBufferId != -1) {
-				GlBufferAllocator.releaseBuffer(glBufferId, byteCount);
-				this.glBufferId = -1;
-			}
-
 			if (transferBuffer != null) {
 				TransferBufferAllocator.release(transferBuffer);
 				transferBuffer = null;
+			}
+
+			if (clump != null) {
+				clump.notifyClosed(this);
+				clump = null;
 			}
 		}
 	}
@@ -90,8 +80,22 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 		return baseVertex;
 	}
 
+	public int baseByteAddress() {
+		return baseVertex * VsFormat.VS_MATERIAL.vertexStrideBytes;
+	}
+
 	void setBaseVertex(int baseVertex) {
 		this.baseVertex = baseVertex;
+	}
+
+	void setClump(ClumpedVertexStorageClump clump) {
+		assert this.clump == null;
+		assert clump != null;
+		this.clump = clump;
+	}
+
+	ClumpedVertexStorageClump getClump() {
+		return clump;
 	}
 
 	@Override

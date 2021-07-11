@@ -17,8 +17,8 @@
 package grondag.canvas.render.region.vs;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.PointerBuffer;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
@@ -29,27 +29,29 @@ import grondag.canvas.render.region.base.AbstractDrawList;
 import grondag.canvas.varia.GFX;
 
 public class ClumpedDrawList extends AbstractDrawList {
-	/**
-	 * Largest length in triangle vertices of any region in the list.
-	 * Used to size our index buffer 1X.
-	 */
-	private final int maxTriangleVertexCount;
-	private final int[] vertexCounts;
-	private final int[] baseIndices;
-	private final PointerBuffer indexPointers;
+	final ObjectArrayList<ClumpedDrawListClump> drawClumps = new ObjectArrayList<>();
+	final ClumpedDrawableState drawState;
+	final int maxTriangleVertexCount;
 
 	private ClumpedDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
 		super(regions);
 		this.maxTriangleVertexCount = maxTriangleVertexCount;
+		drawState = ((ClumpedDrawableRegion) regions.get(0)).drawState();
+
+		final Long2ObjectOpenHashMap<ClumpedDrawListClump> map = new Long2ObjectOpenHashMap<>();
 		final int limit = regions.size();
 
-		vertexCounts = new int[limit];
-		baseIndices = new int[limit];
-		indexPointers = PointerBuffer.allocateDirect(limit);
-
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			vertexCounts[regionIndex] = ((ClumpedDrawableRegion) regions.get(regionIndex)).drawState().drawVertexCount();
-			indexPointers.put(regionIndex, 0L);
+			final ClumpedDrawableStorage storage = ((ClumpedDrawableRegion) regions.get(regionIndex)).drawState().storage();
+
+			ClumpedDrawListClump clump = map.get(storage.clumpPos);
+
+			if (clump == null) {
+				clump = new ClumpedDrawListClump();
+				drawClumps.add(clump);
+			}
+
+			clump.add(storage);
 		}
 	}
 
@@ -70,28 +72,20 @@ public class ClumpedDrawList extends AbstractDrawList {
 
 	@Override
 	public void draw() {
-		final int limit = regions.size();
-
-		if (limit == 0) {
-			return;
-		}
-
-		GFX.bindVertexArray(0);
-
 		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, maxTriangleVertexCount);
 		final int indexBufferId = indexBuffer.getId();
 		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn bug
-		ClumpedVertexStorage.INSTANCE.bind();
-		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
+		final int limit = drawClumps.size();
 
-		// WIP: still need to handle multiple render states somehow
-		((ClumpedDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);
+		GFX.bindVertexArray(0);
+		drawState.renderState().enable(0, 0, 0, 0, 0);
 
-		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			baseIndices[regionIndex] = ((ClumpedDrawableRegion) regions.get(regionIndex)).drawState().storage().baseVertex();
+		for (int clumpIndex = 0; clumpIndex < limit; ++clumpIndex) {
+			ClumpedDrawListClump drawClump = drawClumps.get(clumpIndex);
+			drawClump.bind();
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
+			drawClump.draw(elementType);
 		}
-
-		GFX.glMultiDrawElementsBaseVertex(DrawMode.QUADS.mode, vertexCounts, elementType, indexPointers, baseIndices);
 
 		// Important this happens BEFORE anything that could affect vertex state
 		GFX.bindVertexArray(0);

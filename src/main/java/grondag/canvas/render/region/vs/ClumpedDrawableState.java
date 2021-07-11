@@ -16,26 +16,12 @@
 
 package grondag.canvas.render.region.vs;
 
-import net.minecraft.client.render.VertexFormat.DrawMode;
-
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.base.AbstractDrawableState;
-import grondag.canvas.varia.GFX;
 
 public class ClumpedDrawableState extends AbstractDrawableState<ClumpedDrawableStorage> {
-	private final int triVertexCount;
-
+	// WIP: if we go this way don't need quad vertex count at this level
 	public ClumpedDrawableState(RenderState renderState, int quadVertexCount, ClumpedDrawableStorage storage) {
 		super(renderState, quadVertexCount, storage);
-		triVertexCount = quadVertexCount() / 4 * 6;
-	}
-
-	public final int drawVertexCount() {
-		return triVertexCount;
-	}
-
-	public void draw(int elementType, int indexBufferId) {
-		assert !isClosed();
-		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, storage.baseVertex());
 	}
 }

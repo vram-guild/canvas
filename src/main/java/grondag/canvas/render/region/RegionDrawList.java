@@ -16,8 +16,7 @@
 
 package grondag.canvas.render.region;
 
-public interface RegionDrawList extends AutoCloseable {
-	@Override
+public interface RegionDrawList {
 	void close();
 
 	boolean isClosed();

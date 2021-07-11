@@ -16,41 +16,41 @@
 
 package grondag.canvas.render.region.vs;
 
-import java.nio.ByteBuffer;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
-import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.TransferBufferAllocator;
-import grondag.canvas.varia.GFX;
+import net.minecraft.util.math.BlockPos;
 
 public class ClumpedVertexStorage {
-	public static final ClumpedVertexStorage INSTANCE = new ClumpedVertexStorage(0x20000000);
-	private static final int VAO_NONE = -1;
+	public static final ClumpedVertexStorage INSTANCE = new ClumpedVertexStorage();
 
-	private final ObjectArrayList<ClumpedDrawableStorage> noobs = new ObjectArrayList<>();
-	private final int capacityBytes;
-	private int glBufferId = -1;
+	private static final int CLUMP_SHIFT = 2;
+	private static final int BLOCKPOS_TO_CLUMP_SHIFT = 4 + CLUMP_SHIFT;
+
+	static long clumpPos(long packedOriginBlockPos) {
+		final int x = BlockPos.unpackLongX(packedOriginBlockPos);
+		final int y = BlockPos.unpackLongY(packedOriginBlockPos);
+		final int z = BlockPos.unpackLongZ(packedOriginBlockPos);
+		return BlockPos.asLong(x >> BLOCKPOS_TO_CLUMP_SHIFT, y >> BLOCKPOS_TO_CLUMP_SHIFT, z >> BLOCKPOS_TO_CLUMP_SHIFT);
+	}
+
+	private final Long2ObjectOpenHashMap<ClumpedVertexStorageClump> clumps = new Long2ObjectOpenHashMap<>();
+	private final ReferenceOpenHashSet<ClumpedVertexStorageClump> clumpUploads = new ReferenceOpenHashSet<>();
+
 	private boolean isClosed = false;
 
-	private int head = 0;
-	private int tail = 0;
-
-	/**
-	 * VAO Buffer name if enabled and initialized.
-	 */
-	private int vaoBufferId = VAO_NONE;
-
-	public ClumpedVertexStorage(int capacityBytes) {
-		this.capacityBytes = capacityBytes;
-	}
+	private ClumpedVertexStorage() { }
 
 	public void clear() {
 		assert RenderSystem.isOnRenderThread();
-		head = 0;
-		tail = 0;
-		noobs.clear();
+
+		for (ClumpedVertexStorageClump clump : clumps.values()) {
+			clump.close();
+		}
+
+		clumps.clear();
+		clumpUploads.clear();
 	}
 
 	public void close() {
@@ -58,95 +58,33 @@ public class ClumpedVertexStorage {
 
 		if (!isClosed) {
 			isClosed = true;
-
-			if (vaoBufferId > 0) {
-				GFX.deleteVertexArray(vaoBufferId);
-				vaoBufferId = VAO_NONE;
-			}
-
-			if (glBufferId != -1) {
-				GFX.deleteBuffers(glBufferId);
-				glBufferId = -1;
-			}
-		}
-	}
-
-	public void bind() {
-		if (vaoBufferId == VAO_NONE) {
-			vaoBufferId = GFX.genVertexArray();
-			GFX.bindVertexArray(vaoBufferId);
-
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			VsFormat.VS_MATERIAL.enableAttributes();
-			VsFormat.VS_MATERIAL.bindAttributeLocations(0);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-		} else {
-			GFX.bindVertexArray(vaoBufferId);
+			clear();
 		}
 	}
 
 	void allocate(ClumpedDrawableStorage storage) {
 		assert RenderSystem.isOnRenderThread();
 
-		noobs.add(storage);
-		tail += storage.byteCount;
+		ClumpedVertexStorageClump clump = clumps.computeIfAbsent(storage.clumpPos, p -> new ClumpedVertexStorageClump(ClumpedVertexStorage.this, p));
+		clump.allocate(storage);
+		clumpUploads.add(clump);
+	}
 
-		if (tail >= capacityBytes) {
-			assert false : "lol";
-		}
+	void notifyClosed(ClumpedVertexStorageClump clump) {
+		assert RenderSystem.isOnRenderThread();
+		ClumpedVertexStorageClump deadClump = clumps.remove(clump.clumpPos);
+		assert deadClump != null : "Clump gone missing.";
 	}
 
 	public void upload() {
 		assert RenderSystem.isOnRenderThread();
 
-		final int len = tail - head;
-
-		if (len > 0) {
-			assert !noobs.isEmpty();
-
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			final ByteBuffer bBuff = GFX.mapBufferRange(GFX.GL_ARRAY_BUFFER, head, len,
-					GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_INVALIDATE_RANGE_BIT);
-
-			int baseOffset = 0;
-
-			if (bBuff == null) {
-				CanvasMod.LOG.warn("Unable to map buffer. If this repeats, rendering will be incorrect and is probably a compatibility issue.");
-			} else {
-				for (ClumpedDrawableStorage noob : noobs) {
-					final ByteBuffer transferBuffer = noob.getAndClearTransferBuffer();
-					final int byteCount = noob.byteCount;
-
-					noob.setBaseVertex(head / VsFormat.VS_MATERIAL.vertexStrideBytes);
-					bBuff.put(baseOffset, transferBuffer, 0, byteCount);
-					TransferBufferAllocator.release(transferBuffer);
-					baseOffset += byteCount;
-					head += byteCount;
-				}
-
-				noobs.clear();
-
-				assert head == tail;
-				System.out.println(head + " bytes consumed");
-
-				GFX.flushMappedBufferRange(GFX.GL_ARRAY_BUFFER, 0, len);
-				GFX.unmapBuffer(GFX.GL_ARRAY_BUFFER);
+		if (!clumpUploads.isEmpty()) {
+			for (ClumpedVertexStorageClump clump : clumpUploads) {
+				clump.upload();
 			}
 
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
+			clumpUploads.clear();
 		}
-	}
-
-	private int glBufferId() {
-		int result = glBufferId;
-
-		if (result == -1) {
-			result = GFX.genBuffer();
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, result);
-			GFX.bufferData(GFX.GL_ARRAY_BUFFER, capacityBytes, GFX.GL_STATIC_DRAW);
-			glBufferId = result;
-		}
-
-		return result;
 	}
 }

@@ -53,7 +53,7 @@ public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawabl
 		final IntBuffer intBuffer = transferBuffer.asIntBuffer();
 		intBuffer.position(0);
 		collector.toBuffer(intBuffer, 0);
-		ClumpedDrawableStorage storage = new ClumpedDrawableStorage(transferBuffer, byteCount, packedOriginBlockPos);
+		ClumpedDrawableStorage storage = new ClumpedDrawableStorage(transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 6);
 
 		final ClumpedDrawableState drawState = new ClumpedDrawableState(collector.renderState, collector.quadCount() * 4, storage);
 		return new ClumpedDrawableRegion(drawState, packedOriginBlockPos);

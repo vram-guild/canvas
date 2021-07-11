@@ -16,8 +16,7 @@
 
 package grondag.canvas.render.region;
 
-public interface DrawableStorage extends AutoCloseable {
-	@Override
+public interface DrawableStorage {
 	void close();
 
 	boolean isClosed();
