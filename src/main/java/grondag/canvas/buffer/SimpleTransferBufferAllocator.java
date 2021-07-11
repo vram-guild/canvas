@@ -17,8 +17,10 @@
 package grondag.canvas.buffer;
 
 import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import grondag.canvas.config.Configurator;
 
@@ -27,35 +29,50 @@ import grondag.canvas.config.Configurator;
  * Implements configuration of allocation method.
  */
 class SimpleTransferBufferAllocator {
-	private static final Set<SimpleTransferBuffer> OPEN = Collections.newSetFromMap(new IdentityHashMap<SimpleTransferBuffer, Boolean>());
-	private static int allocatedBytes = 0;
-	private static int peakBytes = 0;
-	private static int peakSize = 0;
-	private static int zeroCount = 0;
+	static class AllocationState {
+		private final Set<SimpleTransferBuffer> open = Collections.newSetFromMap(new ConcurrentHashMap<SimpleTransferBuffer, Boolean>());
+		private final AtomicInteger allocatedBytes = new AtomicInteger();
 
-	static synchronized TransferBuffer claim(int bytes) {
-		SimpleTransferBuffer result = new SimpleTransferBuffer(bytes);
-		allocatedBytes += result.capacityBytes;
-		OPEN.add(result);
-		return result;
-	}
+		void add(SimpleTransferBuffer buffer) {
+			open.add(buffer);
+			allocatedBytes.addAndGet(buffer.capacityBytes);
+		}
 
-	static synchronized void recordRelease(SimpleTransferBuffer buffer) {
-		if (OPEN.remove(buffer)) {
-			allocatedBytes -= buffer.capacityBytes;
+		void remove(SimpleTransferBuffer buffer) {
+			if (open.remove(buffer)) {
+				allocatedBytes.addAndGet(-buffer.capacityBytes);
+			} else {
+				assert false : "Transfer buffer not found on removal";
+			}
+		}
+
+		void clear() {
+			open.forEach(b -> b.releaseWithoutNotify());
 		}
 	}
 
-	static synchronized void forceReload() {
-		OPEN.forEach(b -> b.releaseWithoutNotify());
-		OPEN.clear();
-		allocatedBytes = 0;
+	private static final AtomicReference<AllocationState> STATE = new AtomicReference<>(new AllocationState());
+
+	static TransferBuffer claim(int bytes) {
+		SimpleTransferBuffer result = new SimpleTransferBuffer(bytes, STATE.get());
+		return result;
 	}
 
-	static String debugString() {
-		final int size = OPEN.size();
+	static void forceReload() {
+		AllocationState oldState = STATE.getAndSet(new AllocationState());
+		oldState.clear();
+	}
 
-		if (size == 0 && ++zeroCount >= 10) {
+	static int zeroCount;
+	static int peakBytes;
+	static int peakSize;
+
+	static String debugString() {
+		AllocationState state = STATE.get();
+		final int size = state.open.size();
+		final int allocatedBytes = state.allocatedBytes.get();
+
+		if (size == 0 && ++zeroCount >= 100) {
 			peakBytes = 0;
 			peakSize = 0;
 			zeroCount = 0;

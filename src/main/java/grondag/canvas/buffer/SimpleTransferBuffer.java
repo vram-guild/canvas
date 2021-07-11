@@ -27,23 +27,28 @@ import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.buffer.SimpleTransferBufferAllocator.AllocationState;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.GFX;
 
-public class SimpleTransferBuffer implements TransferBuffer {
+class SimpleTransferBuffer implements TransferBuffer {
 	private static final IntFunction<ByteBuffer> SUPPLIER = Configurator.safeNativeMemoryAllocation ? BufferUtils::createByteBuffer : MemoryUtil::memAlloc;
 	private static final Consumer<ByteBuffer> CONSUMER = Configurator.safeNativeMemoryAllocation ? b -> { } : MemoryUtil::memFree;
 
 	private ByteBuffer buffer;
 	final int capacityBytes;
+	final AllocationState allocationState;
 
-	SimpleTransferBuffer(int bytes) {
+	SimpleTransferBuffer(int bytes, AllocationState allocationState) {
+		this.allocationState = allocationState;
+
 		if (bytes < 4096) {
 			bytes = 4096;
 		}
 
 		capacityBytes = MathHelper.smallestEncompassingPowerOfTwo(bytes);
 		buffer = SUPPLIER.apply(capacityBytes);
+		allocationState.add(this);
 	}
 
 	@Override
@@ -59,14 +64,17 @@ public class SimpleTransferBuffer implements TransferBuffer {
 	@Override
 	public @Nullable TransferBuffer release() {
 		releaseWithoutNotify();
-		SimpleTransferBufferAllocator.recordRelease(this);
+		allocationState.remove(this);
 		return null;
 	}
 
 	void releaseWithoutNotify() {
 		assert buffer != null;
-		CONSUMER.accept(buffer);
-		buffer = null;
+
+		if (buffer != null) {
+			CONSUMER.accept(buffer);
+			buffer = null;
+		}
 	}
 
 	@Override
