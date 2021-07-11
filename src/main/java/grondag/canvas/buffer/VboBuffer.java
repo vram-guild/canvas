@@ -16,7 +16,6 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -30,7 +29,7 @@ public class VboBuffer implements DrawableStorage {
 	public final CanvasVertexFormat format;
 
 	private final int byteCount;
-	ByteBuffer uploadBuffer;
+	TransferBuffer transferBuffer;
 	private int glBufferId = -1;
 	private boolean isClosed = false;
 	/**
@@ -39,21 +38,17 @@ public class VboBuffer implements DrawableStorage {
 	private int vaoBufferId = VAO_NONE;
 
 	public VboBuffer(int bytes, CanvasVertexFormat format) {
-		uploadBuffer = TransferBufferAllocator.claim(bytes);
+		transferBuffer = TransferBufferAllocator.claim(bytes);
 		this.format = format;
 		byteCount = bytes;
 	}
 
+	@Override
 	public void upload() {
-		final ByteBuffer uploadBuffer = this.uploadBuffer;
-
-		if (uploadBuffer != null) {
-			uploadBuffer.rewind();
+		if (transferBuffer != null) {
 			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			GFX.bufferData(GFX.GL_ARRAY_BUFFER, uploadBuffer, GFX.GL_STATIC_DRAW);
+			transferBuffer = transferBuffer.releaseToBuffer(GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-			TransferBufferAllocator.release(uploadBuffer);
-			this.uploadBuffer = null;
 		}
 	}
 
@@ -117,17 +112,14 @@ public class VboBuffer implements DrawableStorage {
 				this.glBufferId = -1;
 			}
 
-			final ByteBuffer uploadBuffer = this.uploadBuffer;
-
-			if (uploadBuffer != null) {
-				TransferBufferAllocator.release(uploadBuffer);
-				this.uploadBuffer = null;
+			if (transferBuffer != null) {
+				transferBuffer = transferBuffer.release();
 			}
 		}
 	}
 
 	public IntBuffer intBuffer() {
-		return uploadBuffer.asIntBuffer();
+		return transferBuffer.asIntBuffer();
 	}
 
 	@FunctionalInterface

@@ -16,17 +16,15 @@
 
 package grondag.canvas.render.region.vs;
 
-import java.nio.ByteBuffer;
-
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.GlBufferAllocator;
-import grondag.canvas.buffer.TransferBufferAllocator;
+import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.render.region.DrawableStorage;
 import grondag.canvas.varia.GFX;
 
 public class SimpleVsDrawableStorage implements DrawableStorage {
-	private ByteBuffer transferBuffer;
+	private TransferBuffer transferBuffer;
 	private static final int VAO_NONE = -1;
 	final int byteCount;
 	private int glBufferId = -1;
@@ -36,7 +34,7 @@ public class SimpleVsDrawableStorage implements DrawableStorage {
 	 */
 	private int vaoBufferId = VAO_NONE;
 
-	public SimpleVsDrawableStorage(ByteBuffer transferBuffer, int byteCount) {
+	public SimpleVsDrawableStorage(TransferBuffer transferBuffer, int byteCount) {
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 	}
@@ -61,8 +59,7 @@ public class SimpleVsDrawableStorage implements DrawableStorage {
 			}
 
 			if (transferBuffer != null) {
-				TransferBufferAllocator.release(transferBuffer);
-				transferBuffer = null;
+				transferBuffer = transferBuffer.release();
 			}
 		}
 	}
@@ -96,14 +93,12 @@ public class SimpleVsDrawableStorage implements DrawableStorage {
 		}
 	}
 
+	@Override
 	public void upload() {
 		if (transferBuffer != null) {
-			transferBuffer.rewind();
 			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			GFX.bufferData(GFX.GL_ARRAY_BUFFER, transferBuffer, GFX.GL_STATIC_DRAW);
+			transferBuffer = transferBuffer.releaseToBuffer(GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-			TransferBufferAllocator.release(transferBuffer);
-			transferBuffer = null;
 		}
 	}
 

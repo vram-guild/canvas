@@ -50,7 +50,8 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public void reload() {
 		VsFormat.REGION_LOOKUP.clear();
-		VsVertexStorage.INSTANCE.clear();
+		ClumpedVertexStorage.SOLID.clear();
+		ClumpedVertexStorage.TRANSLUCENT.clear();
 	}
 
 	@Override

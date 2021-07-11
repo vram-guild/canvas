@@ -16,11 +16,11 @@
 
 package grondag.canvas.render.region.vs;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
@@ -49,7 +49,7 @@ public class SimpleVsDrawableRegion extends AbstractDrawableRegion<SimpleVsDrawa
 		assert collector.renderState.sorted == translucent;
 
 		// WIP: Try having orphaned, memory-mapped GPU slabs for loading off-thread and then do transfers with copySubBuffer
-		final ByteBuffer transferBuffer = TransferBufferAllocator.claim(byteCount);
+		final TransferBuffer transferBuffer = TransferBufferAllocator.claim(byteCount);
 		final IntBuffer intBuffer = transferBuffer.asIntBuffer();
 		intBuffer.position(0);
 		collector.toBuffer(intBuffer, 0);

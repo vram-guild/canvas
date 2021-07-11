@@ -26,7 +26,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.varia.GFX;
 
 public class ClumpedVertexStorageClump {
@@ -177,13 +176,11 @@ public class ClumpedVertexStorageClump {
 			CanvasMod.LOG.warn("Unable to map buffer. If this repeats, rendering will be incorrect and is probably a compatibility issue.");
 		} else {
 			for (ClumpedDrawableStorage noob : noobs) {
-				final ByteBuffer transferBuffer = noob.getAndClearTransferBuffer();
 				final int byteCount = noob.byteCount;
 
 				allocatedRegions.add(noob);
 				noob.setBaseVertex(headBytes / VsFormat.VS_MATERIAL.vertexStrideBytes);
-				bBuff.put(baseOffset, transferBuffer, 0, byteCount);
-				TransferBufferAllocator.release(transferBuffer);
+				noob.getAndClearTransferBuffer().releaseToSubBuffer(bBuff, baseOffset, 0, byteCount);
 				baseOffset += byteCount;
 				headBytes += byteCount;
 			}

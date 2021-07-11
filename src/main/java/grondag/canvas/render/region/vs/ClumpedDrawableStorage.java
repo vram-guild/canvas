@@ -16,16 +16,14 @@
 
 package grondag.canvas.render.region.vs;
 
-import java.nio.ByteBuffer;
-
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import grondag.canvas.buffer.TransferBufferAllocator;
+import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.render.region.DrawableStorage;
 
 public class ClumpedDrawableStorage implements DrawableStorage {
 	private final ClumpedVertexStorage owner;
-	private ByteBuffer transferBuffer;
+	private TransferBuffer transferBuffer;
 	final int byteCount;
 	final int triVertexCount;
 	private int baseVertex;
@@ -35,7 +33,7 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 	final long clumpPos;
 	private ClumpedVertexStorageClump clump = null;
 
-	public ClumpedDrawableStorage(ClumpedVertexStorage owner, ByteBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
+	public ClumpedDrawableStorage(ClumpedVertexStorage owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
 		this.owner = owner;
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
@@ -44,8 +42,8 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 		clumpPos = ClumpedVertexStorage.clumpPos(packedOriginBlockPos);
 	}
 
-	ByteBuffer getAndClearTransferBuffer() {
-		ByteBuffer result = transferBuffer;
+	TransferBuffer getAndClearTransferBuffer() {
+		TransferBuffer result = transferBuffer;
 		transferBuffer = null;
 		return result;
 	}
@@ -58,8 +56,7 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 			isClosed = true;
 
 			if (transferBuffer != null) {
-				TransferBufferAllocator.release(transferBuffer);
-				transferBuffer = null;
+				transferBuffer = transferBuffer.release();
 			}
 
 			if (clump != null) {
