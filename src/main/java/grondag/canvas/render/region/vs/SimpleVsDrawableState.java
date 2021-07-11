@@ -22,10 +22,10 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.base.AbstractDrawableState;
 import grondag.canvas.varia.GFX;
 
-public class VsDrawableState extends AbstractDrawableState<VsDrawableStorage> {
+public class SimpleVsDrawableState extends AbstractDrawableState<SimpleVsDrawableStorage> {
 	private final int triVertexCount;
 
-	public VsDrawableState(RenderState renderState, int quadVertexCount, VsDrawableStorage storage) {
+	public SimpleVsDrawableState(RenderState renderState, int quadVertexCount, SimpleVsDrawableStorage storage) {
 		super(renderState, quadVertexCount, storage);
 		triVertexCount = quadVertexCount() / 4 * 6;
 	}
@@ -36,6 +36,8 @@ public class VsDrawableState extends AbstractDrawableState<VsDrawableStorage> {
 
 	public void draw(int elementType, int indexBufferId) {
 		assert !isClosed();
+		storage.bind();
+		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
 		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, storage.baseVertex());
 	}
 }

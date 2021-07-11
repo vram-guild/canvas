@@ -29,16 +29,16 @@ import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.texture.TextureData;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
-public class VsRegionRenderConfig extends RegionRenderConfig {
-	public static final VsRegionRenderConfig INSTANCE = new VsRegionRenderConfig();
+public class SimpleVsRegionRenderConfig extends RegionRenderConfig {
+	public static final SimpleVsRegionRenderConfig INSTANCE = new SimpleVsRegionRenderConfig();
 
-	private VsRegionRenderConfig() {
+	private SimpleVsRegionRenderConfig() {
 		super(
 			VsFormat.VS_MATERIAL,
 			VsFormat.VS_MATERIAL.quadStrideInts,
 			true,
 			VsFormat.VS_TRANSCODER,
-			VsDrawList::build
+			SimpleVsDrawList::build
 		);
 	}
 
@@ -50,7 +50,6 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public void reload() {
 		VsFormat.REGION_LOOKUP.clear();
-		VsVertexStorage.INSTANCE.clear();
 	}
 
 	@Override
@@ -81,12 +80,11 @@ public class VsRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public void prepareForDraw() {
 		VsFormat.REGION_LOOKUP.upload();
-		VsVertexStorage.INSTANCE.upload();
 	}
 
 	@Override
 	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
-		return new VsUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
+		return new SimpleVsUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
 	}
 
 	@Override

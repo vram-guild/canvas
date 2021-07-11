@@ -27,8 +27,8 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.base.AbstractDrawableRegion;
 
-public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableState> {
-	private VsDrawableRegion(VsDrawableState delegate, long packedOriginBlockPos) {
+public class NaiveVsDrawableRegion extends AbstractDrawableRegion<NaiveVsDrawableState> {
+	private NaiveVsDrawableRegion(NaiveVsDrawableState delegate, long packedOriginBlockPos) {
 		super(delegate, packedOriginBlockPos);
 	}
 
@@ -53,10 +53,10 @@ public class VsDrawableRegion extends AbstractDrawableRegion<VsDrawableState> {
 		final IntBuffer intBuffer = transferBuffer.asIntBuffer();
 		intBuffer.position(0);
 		collector.toBuffer(intBuffer, 0);
-		VsDrawableStorage storage = new VsDrawableStorage(transferBuffer, byteCount);
+		NaiveVsDrawableStorage storage = new NaiveVsDrawableStorage(transferBuffer, byteCount);
 
-		final VsDrawableState drawState = new VsDrawableState(collector.renderState, collector.quadCount() * 4, storage);
-		return new VsDrawableRegion(drawState, packedOriginBlockPos);
+		final NaiveVsDrawableState drawState = new NaiveVsDrawableState(collector.renderState, collector.quadCount() * 4, storage);
+		return new NaiveVsDrawableRegion(drawState, packedOriginBlockPos);
 	}
 
 	@Override

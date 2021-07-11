@@ -20,19 +20,16 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.UploadableRegion;
 
-public class VsUploadableRegion implements UploadableRegion {
+public class SimpleVsUploadableRegion implements UploadableRegion {
 	protected final DrawableRegion drawable;
 
-	public VsUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
-		drawable = VsDrawableRegion.pack(collectorList, sorted, bytes, packedOriginBlockPos);
+	public SimpleVsUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
+		drawable = SimpleVsDrawableRegion.pack(collectorList, sorted, bytes, packedOriginBlockPos);
 	}
 
 	@Override
 	public DrawableRegion produceDrawable() {
-		if (drawable instanceof VsDrawableRegion) {
-			((VsDrawableRegion) drawable).drawState().storage().upload();
-		}
-
+		drawable.drawState().storage().upload();
 		return drawable;
 	}
 }

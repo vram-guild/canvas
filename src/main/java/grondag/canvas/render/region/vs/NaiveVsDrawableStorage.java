@@ -25,7 +25,7 @@ import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.render.region.DrawableStorage;
 import grondag.canvas.varia.GFX;
 
-public class VsDrawableStorage implements DrawableStorage {
+public class NaiveVsDrawableStorage implements DrawableStorage {
 	private ByteBuffer transferBuffer;
 	private static final int VAO_NONE = -1;
 	final int byteCount;
@@ -38,7 +38,7 @@ public class VsDrawableStorage implements DrawableStorage {
 	 */
 	private int vaoBufferId = VAO_NONE;
 
-	public VsDrawableStorage(ByteBuffer transferBuffer, int byteCount) {
+	public NaiveVsDrawableStorage(ByteBuffer transferBuffer, int byteCount) {
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 	}
@@ -92,7 +92,8 @@ public class VsDrawableStorage implements DrawableStorage {
 		this.baseVertex = baseVertex;
 	}
 
-	void upload() {
+	@Override
+	public void upload() {
 		VsVertexStorage.INSTANCE.allocate(this);
 	}
 }

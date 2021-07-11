@@ -18,7 +18,6 @@ package grondag.canvas.render.region.vs;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.PointerBuffer;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
@@ -28,29 +27,16 @@ import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.base.AbstractDrawList;
 import grondag.canvas.varia.GFX;
 
-public class VsDrawList extends AbstractDrawList {
+public class SimpleVsDrawList extends AbstractDrawList {
 	/**
 	 * Largest length in triangle vertices of any region in the list.
 	 * Used to size our index buffer 1X.
 	 */
 	private final int maxTriangleVertexCount;
-	private final int[] vertexCounts;
-	private final int[] baseIndices;
-	private final PointerBuffer indexPointers;
 
-	private VsDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
+	private SimpleVsDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
 		super(regions);
 		this.maxTriangleVertexCount = maxTriangleVertexCount;
-		final int limit = regions.size();
-
-		vertexCounts = new int[limit];
-		baseIndices = new int[limit];
-		indexPointers = PointerBuffer.allocateDirect(limit);
-
-		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			vertexCounts[regionIndex] = ((VsDrawableRegion) regions.get(regionIndex)).drawState().drawVertexCount();
-			indexPointers.put(regionIndex, 0L);
-		}
 	}
 
 	public static RegionDrawList build(final ObjectArrayList<DrawableRegion> regions) {
@@ -65,7 +51,7 @@ public class VsDrawList extends AbstractDrawList {
 			maxQuads = Math.max(maxQuads, regions.get(i).drawState().quadVertexCount());
 		}
 
-		return new VsDrawList(regions, maxQuads / 4 * 6);
+		return new SimpleVsDrawList(regions, maxQuads / 4 * 6);
 	}
 
 	@Override
@@ -81,18 +67,13 @@ public class VsDrawList extends AbstractDrawList {
 		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, maxTriangleVertexCount);
 		final int indexBufferId = indexBuffer.getId();
 		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn bug
-		VsVertexStorage.INSTANCE.bind();
-		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
 
 		// WIP: still need to handle multiple render states somehow
-		((VsDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);
+		regions.get(0).drawState().renderState().enable(0, 0, 0, 0, 0);
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			((VsDrawableRegion) regions.get(regionIndex)).drawState().draw(elementType, indexBufferId);
-			//baseIndices[regionIndex] = ((VsDrawableRegion) regions.get(regionIndex)).drawState().storage().baseVertex();
+			((SimpleVsDrawableRegion) regions.get(regionIndex)).drawState().draw(elementType, indexBufferId);
 		}
-
-		//GFX.glMultiDrawElementsBaseVertex(DrawMode.QUADS.mode, vertexCounts, elementType, indexPointers, baseIndices);
 
 		// Important this happens BEFORE anything that could affect vertex state
 		GFX.bindVertexArray(0);

@@ -19,12 +19,13 @@ package grondag.canvas.config;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.render.region.vbo.VboRegionRenderConfig;
 import grondag.canvas.render.region.vf.VfRegionRenderConfig;
-import grondag.canvas.render.region.vs.VsRegionRenderConfig;
+import grondag.canvas.render.region.vs.SimpleVsRegionRenderConfig;
 
 public enum TerrainRenderConfig {
 	DEFAULT(VboRegionRenderConfig.INSTANCE),
 	FETCH(VfRegionRenderConfig.INSTANCE),
-	REGION(VsRegionRenderConfig.INSTANCE);
+	//REGION(NaiveVsRegionRenderConfig.INSTANCE);
+	REGION(SimpleVsRegionRenderConfig.INSTANCE);
 
 	TerrainRenderConfig(RegionRenderConfig config) {
 		this.config = config;

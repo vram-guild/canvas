@@ -21,4 +21,7 @@ public interface DrawableStorage extends AutoCloseable {
 	void close();
 
 	boolean isClosed();
+
+	// WIP: remove?
+	default void upload() { }
 }
