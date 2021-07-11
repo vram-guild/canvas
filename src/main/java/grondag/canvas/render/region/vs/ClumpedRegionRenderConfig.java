@@ -81,7 +81,8 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public void prepareForDraw() {
 		VsFormat.REGION_LOOKUP.upload();
-		ClumpedVertexStorage.INSTANCE.upload();
+		ClumpedVertexStorage.SOLID.upload();
+		ClumpedVertexStorage.TRANSLUCENT.upload();
 	}
 
 	@Override

@@ -24,6 +24,7 @@ import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.render.region.DrawableStorage;
 
 public class ClumpedDrawableStorage implements DrawableStorage {
+	private final ClumpedVertexStorage owner;
 	private ByteBuffer transferBuffer;
 	final int byteCount;
 	final int triVertexCount;
@@ -34,7 +35,8 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 	final long clumpPos;
 	private ClumpedVertexStorageClump clump = null;
 
-	public ClumpedDrawableStorage(ByteBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
+	public ClumpedDrawableStorage(ClumpedVertexStorage owner, ByteBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
+		this.owner = owner;
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 		this.packedOriginBlockPos = packedOriginBlockPos;
@@ -100,6 +102,6 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 
 	@Override
 	public void upload() {
-		ClumpedVertexStorage.INSTANCE.allocate(this);
+		owner.allocate(this);
 	}
 }

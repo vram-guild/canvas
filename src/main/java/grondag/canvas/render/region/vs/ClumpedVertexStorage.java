@@ -23,7 +23,8 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.util.math.BlockPos;
 
 public class ClumpedVertexStorage {
-	public static final ClumpedVertexStorage INSTANCE = new ClumpedVertexStorage();
+	public static final ClumpedVertexStorage SOLID = new ClumpedVertexStorage();
+	public static final ClumpedVertexStorage TRANSLUCENT = new ClumpedVertexStorage();
 
 	private static final int CLUMP_SHIFT = 2;
 	private static final int BLOCKPOS_TO_CLUMP_SHIFT = 4 + CLUMP_SHIFT;
