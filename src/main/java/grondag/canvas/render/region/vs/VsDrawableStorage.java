@@ -80,36 +80,6 @@ public class VsDrawableStorage implements DrawableStorage {
 		return isClosed;
 	}
 
-	//	public void bind() {
-	//		// WIP - temporary
-	//
-	//		if (vaoBufferId == VAO_NONE) {
-	//			vaoBufferId = GFX.genVertexArray();
-	//			GFX.bindVertexArray(vaoBufferId);
-	//
-	//			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-	//			VsFormat.VS_MATERIAL.enableAttributes();
-	//			VsFormat.VS_MATERIAL.bindAttributeLocations(0);
-	//			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-	//		} else {
-	//			GFX.bindVertexArray(vaoBufferId);
-	//		}
-	//	}
-
-	private int glBufferId() {
-		int result = glBufferId;
-
-		if (result == -1) {
-			result = GlBufferAllocator.claimBuffer(byteCount);
-
-			assert result > 0;
-
-			glBufferId = result;
-		}
-
-		return result;
-	}
-
 	/**
 	 * Controlled by storage so that the vertices can be moved around as
 	 * needed to control fragmentation without external entanglements.

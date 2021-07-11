@@ -30,11 +30,12 @@ public class VsDrawableState extends AbstractDrawableState<VsDrawableStorage> {
 		triVertexCount = quadVertexCount() / 4 * 6;
 	}
 
+	public final int drawVertexCount() {
+		return triVertexCount;
+	}
+
 	public void draw(int elementType, int indexBufferId) {
 		assert !isClosed();
-
-		if (storage != null) {
-			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, storage.baseVertex());
-		}
+		GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, triVertexCount, elementType, 0L, storage.baseVertex());
 	}
 }

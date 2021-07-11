@@ -18,6 +18,7 @@ package grondag.canvas.render.region.vs;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.lwjgl.PointerBuffer;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
@@ -33,10 +34,23 @@ public class VsDrawList extends AbstractDrawList {
 	 * Used to size our index buffer 1X.
 	 */
 	private final int maxTriangleVertexCount;
+	private final int[] vertexCounts;
+	private final int[] baseIndices;
+	private final PointerBuffer indexPointers;
 
 	private VsDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
 		super(regions);
 		this.maxTriangleVertexCount = maxTriangleVertexCount;
+		final int limit = regions.size();
+
+		vertexCounts = new int[limit];
+		baseIndices = new int[limit];
+		indexPointers = PointerBuffer.allocateDirect(limit);
+
+		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
+			vertexCounts[regionIndex] = ((VsDrawableRegion) regions.get(regionIndex)).drawState().drawVertexCount();
+			indexPointers.put(regionIndex, 0L);
+		}
 	}
 
 	public static RegionDrawList build(final ObjectArrayList<DrawableRegion> regions) {
@@ -74,12 +88,11 @@ public class VsDrawList extends AbstractDrawList {
 		((VsDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			final VsDrawableState drawState = ((VsDrawableRegion) regions.get(regionIndex)).drawState();
-
-			if (drawState != null) {
-				drawState.draw(elementType, indexBufferId);
-			}
+			((VsDrawableRegion) regions.get(regionIndex)).drawState().draw(elementType, indexBufferId);
+			//baseIndices[regionIndex] = ((VsDrawableRegion) regions.get(regionIndex)).drawState().storage().baseVertex();
 		}
+
+		//GFX.glMultiDrawElementsBaseVertex(DrawMode.QUADS.mode, vertexCounts, elementType, indexPointers, baseIndices);
 
 		// Important this happens BEFORE anything that could affect vertex state
 		GFX.bindVertexArray(0);

@@ -22,6 +22,7 @@ import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL46C;
 
@@ -864,7 +865,12 @@ public class GFX extends GL46C {
 	}
 
 	public static void multiDrawArrays(int target, int[] first, int[] count) {
-		GL46C.glMultiDrawArrays(target, first, count);
+		glMultiDrawArrays(target, first, count);
 		assert logError("glMultiDrawArrays");
+	}
+
+	public static void multiDrawElementsBaseVertex(int mode, int[] count, int type, PointerBuffer indices, int[] basevertex) {
+		glMultiDrawElementsBaseVertex(mode, count, type, indices, basevertex);
+		assert logError("glMultiDrawElementsBaseVertex");
 	}
 }
