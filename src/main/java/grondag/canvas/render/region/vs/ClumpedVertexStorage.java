@@ -25,11 +25,11 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.varia.GFX;
 
-public class VsVertexStorage {
-	public static final VsVertexStorage INSTANCE = new VsVertexStorage(0x20000000);
+public class ClumpedVertexStorage {
+	public static final ClumpedVertexStorage INSTANCE = new ClumpedVertexStorage(0x20000000);
 	private static final int VAO_NONE = -1;
 
-	private final ObjectArrayList<NaiveVsDrawableStorage> noobs = new ObjectArrayList<>();
+	private final ObjectArrayList<ClumpedDrawableStorage> noobs = new ObjectArrayList<>();
 	private final int capacityBytes;
 	private int glBufferId = -1;
 	private boolean isClosed = false;
@@ -42,7 +42,7 @@ public class VsVertexStorage {
 	 */
 	private int vaoBufferId = VAO_NONE;
 
-	public VsVertexStorage(int capacityBytes) {
+	public ClumpedVertexStorage(int capacityBytes) {
 		this.capacityBytes = capacityBytes;
 	}
 
@@ -85,7 +85,7 @@ public class VsVertexStorage {
 		}
 	}
 
-	void allocate(NaiveVsDrawableStorage storage) {
+	void allocate(ClumpedDrawableStorage storage) {
 		assert RenderSystem.isOnRenderThread();
 
 		noobs.add(storage);
@@ -113,7 +113,7 @@ public class VsVertexStorage {
 			if (bBuff == null) {
 				CanvasMod.LOG.warn("Unable to map buffer. If this repeats, rendering will be incorrect and is probably a compatibility issue.");
 			} else {
-				for (NaiveVsDrawableStorage noob : noobs) {
+				for (ClumpedDrawableStorage noob : noobs) {
 					final ByteBuffer transferBuffer = noob.getAndClearTransferBuffer();
 					final int byteCount = noob.byteCount;
 

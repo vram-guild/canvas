@@ -18,7 +18,6 @@ package grondag.canvas.render.region.vs;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.PointerBuffer;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
@@ -28,29 +27,16 @@ import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.base.AbstractDrawList;
 import grondag.canvas.varia.GFX;
 
-public class NaiveVsDrawList extends AbstractDrawList {
+public class NaiveVsDrawList2 extends AbstractDrawList {
 	/**
 	 * Largest length in triangle vertices of any region in the list.
 	 * Used to size our index buffer 1X.
 	 */
 	private final int maxTriangleVertexCount;
-	private final int[] vertexCounts;
-	private final int[] baseIndices;
-	private final PointerBuffer indexPointers;
 
-	private NaiveVsDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
+	private NaiveVsDrawList2(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
 		super(regions);
 		this.maxTriangleVertexCount = maxTriangleVertexCount;
-		final int limit = regions.size();
-
-		vertexCounts = new int[limit];
-		baseIndices = new int[limit];
-		indexPointers = PointerBuffer.allocateDirect(limit);
-
-		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			vertexCounts[regionIndex] = ((NaiveVsDrawableRegion) regions.get(regionIndex)).drawState().drawVertexCount();
-			indexPointers.put(regionIndex, 0L);
-		}
 	}
 
 	public static RegionDrawList build(final ObjectArrayList<DrawableRegion> regions) {
@@ -65,7 +51,7 @@ public class NaiveVsDrawList extends AbstractDrawList {
 			maxQuads = Math.max(maxQuads, regions.get(i).drawState().quadVertexCount());
 		}
 
-		return new NaiveVsDrawList(regions, maxQuads / 4 * 6);
+		return new NaiveVsDrawList2(regions, maxQuads / 4 * 6);
 	}
 
 	@Override
@@ -88,10 +74,8 @@ public class NaiveVsDrawList extends AbstractDrawList {
 		((NaiveVsDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			baseIndices[regionIndex] = ((NaiveVsDrawableRegion) regions.get(regionIndex)).drawState().storage().baseVertex();
+			((NaiveVsDrawableRegion) regions.get(regionIndex)).drawState().draw(elementType, indexBufferId);
 		}
-
-		GFX.glMultiDrawElementsBaseVertex(DrawMode.QUADS.mode, vertexCounts, elementType, indexPointers, baseIndices);
 
 		// Important this happens BEFORE anything that could affect vertex state
 		GFX.bindVertexArray(0);
