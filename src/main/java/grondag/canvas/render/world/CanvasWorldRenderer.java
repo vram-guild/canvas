@@ -208,6 +208,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		}
 
+		worldRenderState.rebuidDrawListsIfNeeded();
+
 		mc.getProfiler().pop();
 	}
 

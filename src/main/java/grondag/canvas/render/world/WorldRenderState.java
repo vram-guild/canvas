@@ -140,10 +140,33 @@ public class WorldRenderState {
 		return regionBuilder;
 	}
 
+	private boolean areDrawListsValid = false;
+
+	public void invalidateDrawLists() {
+		areDrawListsValid = false;
+	}
+
 	void copyVisibleRegionsFromIterator() {
 		final TerrainIterator terrainIterator = this.terrainIterator;
 
 		cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
+
+		if (shadowsEnabled()) {
+			shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
+			shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
+			shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
+			shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
+		}
+
+		invalidateDrawLists();
+	}
+
+	void rebuidDrawListsIfNeeded() {
+		if (areDrawListsValid) {
+			return;
+		}
+
+		areDrawListsValid = true;
 
 		final Function<ObjectArrayList<DrawableRegion>, RegionDrawList> drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
 
@@ -155,11 +178,6 @@ public class WorldRenderState {
 		translucentDrawList = RegionDrawListBuilder.build(cameraVisibleRegions, drawListFunc, true);
 
 		if (shadowsEnabled()) {
-			shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
-			shadowVisibleRegions[1].copyFrom(terrainIterator.shadowVisibleRegions[1]);
-			shadowVisibleRegions[2].copyFrom(terrainIterator.shadowVisibleRegions[2]);
-			shadowVisibleRegions[3].copyFrom(terrainIterator.shadowVisibleRegions[3]);
-
 			for (int i = 0; i < 4; ++i) {
 				shadowDrawLists[i].close();
 				shadowDrawLists[i] = RegionDrawListBuilder.build(shadowVisibleRegions[i], drawListFunc, false);

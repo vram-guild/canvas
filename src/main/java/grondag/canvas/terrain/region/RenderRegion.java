@@ -332,6 +332,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 								translucentDrawable.releaseFromRegion();
 								translucentDrawable = upload.produceDrawable();
+								worldRenderState.invalidateDrawLists();
 
 								if (ChunkRebuildCounters.ENABLED) {
 									ChunkRebuildCounters.completeUpload();
@@ -370,6 +371,7 @@ public class RenderRegion implements TerrainExecutorTask {
 						releaseDrawables();
 						solidDrawable = solidUpload.produceDrawable();
 						translucentDrawable = translucentUpload.produceDrawable();
+						worldRenderState.invalidateDrawLists();
 
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.completeUpload();
@@ -550,6 +552,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			releaseDrawables();
 			solidDrawable = solidUpload.produceDrawable();
 			translucentDrawable = translucentUpload.produceDrawable();
+			worldRenderState.invalidateDrawLists();
 
 			if (ChunkRebuildCounters.ENABLED) {
 				ChunkRebuildCounters.completeUpload();
