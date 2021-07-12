@@ -97,6 +97,6 @@ public class ClumpedDrawList extends AbstractDrawList {
 
 	@Override
 	protected void closeInner() {
-		// WIP
+		// NOOP
 	}
 }

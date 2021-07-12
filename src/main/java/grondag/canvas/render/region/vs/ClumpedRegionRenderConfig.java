@@ -67,12 +67,12 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 
 	@Override
 	public void beforeDrawListBuild() {
-		// WIP
+		// NOOP
 	}
 
 	@Override
 	public void afterDrawListBuild() {
-		// WIP
+		// NOOP
 	}
 
 	@Override

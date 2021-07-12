@@ -84,7 +84,6 @@ package grondag.canvas.render.region.vs;
 //		VsVertexStorage.INSTANCE.bind();
 //		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
 //
-//		// WIP: still need to handle multiple render states somehow
 //		((NaiveVsDrawableRegion) regions.get(0)).drawState().renderState().enable(0, 0, 0, 0, 0);
 //
 //		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
@@ -103,6 +102,5 @@ package grondag.canvas.render.region.vs;
 //
 //	@Override
 //	protected void closeInner() {
-//		// WIP
 //	}
 //}

@@ -21,6 +21,5 @@ public interface DrawableStorage {
 
 	boolean isClosed();
 
-	// WIP: remove?
 	default void upload() { }
 }

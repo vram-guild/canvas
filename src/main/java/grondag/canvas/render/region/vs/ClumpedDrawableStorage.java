@@ -16,18 +16,12 @@
 
 package grondag.canvas.render.region.vs;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.render.region.DrawableStorage;
 
 public class ClumpedDrawableStorage implements DrawableStorage {
-	// WIP: remove
-	private static final AtomicInteger ID = new AtomicInteger();
-	final int id = ID.incrementAndGet();
-
 	private static final int NOT_ALLOCATED = -1;
 
 	private final ClumpedVertexStorage owner;
