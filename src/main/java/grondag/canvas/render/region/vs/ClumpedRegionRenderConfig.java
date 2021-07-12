@@ -35,6 +35,7 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 	private ClumpedRegionRenderConfig() {
 		super(
 			"CLUMPED",
+			"REGION",
 			VsFormat.VS_MATERIAL,
 			VsFormat.VS_MATERIAL.quadStrideInts,
 			true,

@@ -17,6 +17,7 @@
 package grondag.canvas.shader;
 
 import grondag.canvas.config.Configurator;
+import grondag.canvas.config.TerrainRenderConfig;
 import grondag.canvas.texture.SpriteIndex;
 
 public final class MaterialShaderImpl {
@@ -53,18 +54,9 @@ public final class MaterialShaderImpl {
 		getOrCreate().activate();
 		program.setModelOrigin(x, y, z);
 
-		switch (Configurator.terrainRenderConfigOption) {
-			case DEFAULT:
-				break;
-			case FETCH:
-				program.baseRegionIndex.set(regionBaseIndex, quadMapBaseIndex);
-				program.baseRegionIndex.upload();
-				break;
-			case REGION:
-				break;
-			default:
-				assert false : "Unhandled terrain vertex config in setModelOrigin";
-				break;
+		if (Configurator.terrainRenderConfigOption == TerrainRenderConfig.FETCH) {
+			program.baseRegionIndex.set(regionBaseIndex, quadMapBaseIndex);
+			program.baseRegionIndex.upload();
 		}
 	}
 
