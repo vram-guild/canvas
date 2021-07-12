@@ -111,6 +111,7 @@ public class Canvas implements Renderer {
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
 		Configurator.terrainRenderConfig.reload();
+		CanvasMod.LOG.info("Active terrain render config: " + Configurator.terrainRenderConfig.name);
 		TerrainVertexFetch.clear();
 
 		recompile();

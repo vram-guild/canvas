@@ -32,6 +32,8 @@ import grondag.canvas.shader.GlProgram;
 import grondag.canvas.terrain.region.RenderRegion;
 
 public abstract class RegionRenderConfig {
+	public final String name;
+
 	public final CanvasVertexFormat vertexFormat;
 
 	/** Controls allocation in vertex collectors. */
@@ -45,12 +47,14 @@ public abstract class RegionRenderConfig {
 	public final Function<ObjectArrayList<DrawableRegion>, RegionDrawList> drawListFunc;
 
 	protected RegionRenderConfig(
+		String name,
 		CanvasVertexFormat vertexFormat,
 		int quadStrideInts,
 		boolean shouldApplyBlockPosTranslation,
 		QuadTranscoder transcoder,
 		Function<ObjectArrayList<DrawableRegion>, RegionDrawList> drawListFunc
 	) {
+		this.name = name;
 		this.vertexFormat = vertexFormat;
 		this.quadStrideInts = quadStrideInts;
 		this.shouldApplyBlockPosTranslation = shouldApplyBlockPosTranslation;

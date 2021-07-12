@@ -18,7 +18,6 @@ package grondag.canvas.render.region.vs;
 
 import org.lwjgl.opengl.GL21;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
@@ -35,6 +34,7 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 
 	private ClumpedRegionRenderConfig() {
 		super(
+			"CLUMPED",
 			VsFormat.VS_MATERIAL,
 			VsFormat.VS_MATERIAL.quadStrideInts,
 			true,
@@ -50,8 +50,6 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 
 	@Override
 	public void reload() {
-		// WIP: remove
-		CanvasMod.LOG.info("Experimental clumped terrain rendering active");
 		VsFormat.REGION_LOOKUP.clear();
 		ClumpedVertexStorage.SOLID.clear();
 		ClumpedVertexStorage.TRANSLUCENT.clear();

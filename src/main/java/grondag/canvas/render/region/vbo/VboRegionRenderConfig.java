@@ -31,6 +31,7 @@ public class VboRegionRenderConfig extends RegionRenderConfig {
 
 	private VboRegionRenderConfig() {
 		super(
+			"DEFAULT (VBO)",
 			CanvasVertexFormats.STANDARD_MATERIAL_FORMAT,
 			CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts,
 			true,

@@ -34,6 +34,7 @@ public class VfRegionRenderConfig extends RegionRenderConfig {
 
 	private VfRegionRenderConfig() {
 		super(
+			"FETCH",
 			VfFormat.VF_MATERIAL,
 			// VF quads use vertex stride because of indexing
 			VfFormat.VF_MATERIAL.vertexStrideInts,
