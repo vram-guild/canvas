@@ -86,9 +86,14 @@ class SimpleTransferBuffer implements TransferBuffer {
 
 	@Override
 	public @Nullable TransferBuffer releaseToBuffer(int target, int usage) {
-		// maybe needed in some cases?
-		//uploadBuffer.rewind();
 		GFX.bufferData(target, buffer, usage);
+		release();
+		return null;
+	}
+
+	@Override
+	public @Nullable TransferBuffer releaseToSubBuffer(int target, int addressBytes, int lenBytes) {
+		GFX.bufferSubData(target, addressBytes, lenBytes, buffer);
 		release();
 		return null;
 	}

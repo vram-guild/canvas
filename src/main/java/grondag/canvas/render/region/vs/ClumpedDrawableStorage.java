@@ -16,28 +16,34 @@
 
 package grondag.canvas.render.region.vs;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.render.region.DrawableStorage;
 
 public class ClumpedDrawableStorage implements DrawableStorage {
+	// WIP: remove
+	private static final AtomicInteger ID = new AtomicInteger();
+	final int id = ID.incrementAndGet();
+
+	private static final int NOT_ALLOCATED = -1;
+
 	private final ClumpedVertexStorage owner;
 	private TransferBuffer transferBuffer;
 	final int byteCount;
 	final int triVertexCount;
-	private int baseVertex;
-	@SuppressWarnings("unused")
-	private long packedOriginBlockPos; // WIP: remove this later, only useful for debug
+	private int baseVertex = NOT_ALLOCATED;
 	private boolean isClosed = false;
 	final long clumpPos;
 	private ClumpedVertexStorageClump clump = null;
+	int paddingBytes;
 
 	public ClumpedDrawableStorage(ClumpedVertexStorage owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
 		this.owner = owner;
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
-		this.packedOriginBlockPos = packedOriginBlockPos;
 		this.triVertexCount = triVertexCount;
 		clumpPos = ClumpedVertexStorage.clumpPos(packedOriginBlockPos);
 	}
@@ -63,6 +69,8 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 				clump.notifyClosed(this);
 				clump = null;
 			}
+
+			baseVertex = NOT_ALLOCATED;
 		}
 	}
 
@@ -76,29 +84,38 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 	 * needed to control fragmentation without external entanglements.
 	 */
 	public int baseVertex() {
+		assert baseVertex != NOT_ALLOCATED;
+
 		return baseVertex;
 	}
 
 	public int baseByteAddress() {
+		assert baseVertex != NOT_ALLOCATED;
+
 		return baseVertex * VsFormat.VS_MATERIAL.vertexStrideBytes;
 	}
 
-	void setBaseVertex(int baseVertex) {
-		this.baseVertex = baseVertex;
+	void setBaseAddress(int baseAddress) {
+		baseVertex = baseAddress / VsFormat.VS_MATERIAL.vertexStrideBytes;
+		//assert clump.isPresent(this);
 	}
 
 	void setClump(ClumpedVertexStorageClump clump) {
+		assert baseVertex == NOT_ALLOCATED;
 		assert this.clump == null;
 		assert clump != null;
 		this.clump = clump;
 	}
 
 	ClumpedVertexStorageClump getClump() {
+		//assert clump.isPresent(this);
+
 		return clump;
 	}
 
 	@Override
 	public void upload() {
+		assert baseVertex == NOT_ALLOCATED;
 		owner.allocate(this);
 	}
 }

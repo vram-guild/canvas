@@ -38,4 +38,7 @@ public interface TransferBuffer {
 	/** For populating new buffers. ALWAYS returns null. */
 	@Nullable
 	TransferBuffer releaseToBuffer(int target, int usage);
+
+	@Nullable
+	TransferBuffer releaseToSubBuffer(int glArrayBuffer, int unpackVacancyAddress, int vacantBytes);
 }

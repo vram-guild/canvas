@@ -16,6 +16,8 @@
 
 package grondag.canvas.varia;
 
+import static org.lwjgl.system.MemoryUtil.memAddress;
+
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -872,5 +874,10 @@ public class GFX extends GL46C {
 	public static void multiDrawElementsBaseVertex(int mode, int[] count, int type, PointerBuffer indices, int[] basevertex) {
 		glMultiDrawElementsBaseVertex(mode, count, type, indices, basevertex);
 		assert logError("glMultiDrawElementsBaseVertex");
+	}
+
+	public static void bufferSubData(int target, long offsetBytes, long sizeBytes, ByteBuffer data) {
+		nglBufferSubData(target, offsetBytes, sizeBytes, memAddress(data));
+		assert logError("nglBufferSubData");
 	}
 }
