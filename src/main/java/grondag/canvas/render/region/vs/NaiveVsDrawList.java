@@ -13,8 +13,8 @@
  *  License for the specific language governing permissions and limitations under
  *  the License.
  */
-//
-//package grondag.canvas.render.region.vs;
+
+package grondag.canvas.render.region.vs;
 //
 //import com.mojang.blaze3d.systems.RenderSystem;
 //import it.unimi.dsi.fastutil.objects.ObjectArrayList;
