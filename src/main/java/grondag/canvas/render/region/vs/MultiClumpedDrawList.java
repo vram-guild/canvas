@@ -29,7 +29,7 @@ import grondag.canvas.render.region.base.AbstractDrawList;
 import grondag.canvas.varia.GFX;
 
 public class MultiClumpedDrawList extends AbstractDrawList {
-	final ObjectArrayList<ClumpedDrawListClump> drawClumps = new ObjectArrayList<>();
+	final ObjectArrayList<MultiClumpedDrawListClump> drawClumps = new ObjectArrayList<>();
 	final ClumpedDrawableState drawState;
 	final int maxTriangleVertexCount;
 
@@ -38,16 +38,16 @@ public class MultiClumpedDrawList extends AbstractDrawList {
 		this.maxTriangleVertexCount = maxTriangleVertexCount;
 		drawState = ((ClumpedDrawableRegion) regions.get(0)).drawState();
 
-		final Long2ObjectOpenHashMap<ClumpedDrawListClump> map = new Long2ObjectOpenHashMap<>();
+		final Long2ObjectOpenHashMap<MultiClumpedDrawListClump> map = new Long2ObjectOpenHashMap<>();
 		final int limit = regions.size();
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			final ClumpedDrawableStorage storage = ((ClumpedDrawableRegion) regions.get(regionIndex)).drawState().storage();
 
-			ClumpedDrawListClump clump = map.get(storage.clumpPos);
+			MultiClumpedDrawListClump clump = map.get(storage.clumpPos);
 
 			if (clump == null) {
-				clump = new ClumpedDrawListClump();
+				clump = new MultiClumpedDrawListClump();
 				drawClumps.add(clump);
 			}
 

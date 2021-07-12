@@ -16,28 +16,46 @@
 
 package grondag.canvas.render.region.vs;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.lwjgl.PointerBuffer;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
 import grondag.canvas.varia.GFX;
 
-public class ClumpedDrawListClump {
-	protected final ObjectArrayList<ClumpedDrawableStorage> stores = new ObjectArrayList<>();
+public class MultiClumpedDrawListClump extends ClumpedDrawListClump {
+	private int[] vertexCounts;
+	private int[] baseIndices;
+	private PointerBuffer indexPointers;
 
+	@Override
 	public void draw(int elementType) {
+		if (vertexCounts == null) {
+			prepareForDraw();
+		}
+
+		GFX.glMultiDrawElementsBaseVertex(DrawMode.QUADS.mode, vertexCounts, elementType, indexPointers, baseIndices);
+	}
+
+	private void prepareForDraw() {
 		final int limit = stores.size();
+		vertexCounts = new int[limit];
+		baseIndices = new int[limit];
+		indexPointers = PointerBuffer.allocateDirect(limit);
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			ClumpedDrawableStorage store = stores.get(regionIndex);
-			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, store.triVertexCount, elementType, 0L, store.baseVertex());
+			var storage = stores.get(regionIndex);
+			baseIndices[regionIndex] = storage.baseVertex();
+			vertexCounts[regionIndex] = storage.triVertexCount;
+			indexPointers.put(regionIndex, 0L);
 		}
 	}
 
+	@Override
 	public void add(ClumpedDrawableStorage storage) {
 		stores.add(storage);
 	}
 
+	@Override
 	public void bind() {
 		stores.get(0).getClump().bind();
 	}
