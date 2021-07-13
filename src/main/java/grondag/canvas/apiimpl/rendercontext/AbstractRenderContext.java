@@ -51,7 +51,8 @@ public abstract class AbstractRenderContext implements RenderContext {
 	public final float[] vecData = new float[3];
 
 	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
-	public int regionRenderId;
+	public int sectorId;
+	public int sectorRelativeRegionOrigin;
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;

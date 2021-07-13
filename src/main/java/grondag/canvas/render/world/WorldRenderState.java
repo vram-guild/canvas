@@ -201,6 +201,7 @@ public class WorldRenderState {
 		cameraVisibleRegions.clear();
 		terrainFrustum.reload();
 		clearDrawSpecs();
+		sectorManager.clear();
 		Configurator.terrainRenderConfig.reload(this);
 	}
 

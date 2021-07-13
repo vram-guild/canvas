@@ -133,9 +133,13 @@ public class RegionSectorMap {
 			int z = origin.getZ();
 			sectorKey = sectorKey(x, y, z);
 
+			if (y > 64) {
+				System.out.println("boop");
+			}
+
 			// Shifted negative to give positive packed coordinates with negative vertex coordinates
 			paddedBlockOriginX = (x & SECTOR_COORDINATE_MASK) - 63;
-			paddedBlockOriginY = (y & SECTOR_COORDINATE_MASK) - 63;
+			paddedBlockOriginY = ((y + 64) & SECTOR_COORDINATE_MASK) - 63 - 64;
 			paddedBlockOriginZ = (z & SECTOR_COORDINATE_MASK) - 63;
 
 			sectorOriginX = sectorXorZ(x);

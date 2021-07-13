@@ -69,7 +69,7 @@ flat out vec4 _cv_modelToWorld;
 flat out vec4 _cv_modelToCamera;
 
 uniform isamplerBuffer _cvu_vfRegions;
-uniform int[] _cvu_sectors_int;
+uniform int[184] _cvu_sectors_int;
 
 in int in_region;
 in vec3 in_modelpos;
@@ -84,10 +84,24 @@ in float in_ao;
 vec3 in_vertex;
 
 void _cv_prepareForVertex() {
-	ivec4 region = texelFetch(_cvu_vfRegions, in_region);
-	_cv_modelToWorld = vec4(region.xyz, 0.0);
-	_cv_modelToCamera = vec4(region.xyz - _cvu_world[_CV_CAMERA_POS].xyz, 0.0);
-	in_vertex = in_modelpos + in_blockpos - 119.0;
+	int sectorBlockX = _cvu_sectors_int[SECTOR_X_ORIGIN_INDEX];
+	int sectorBlockZ = _cvu_sectors_int[SECTOR_Z_ORIGIN_INDEX];
+
+	int packedSector = _cvu_sectors_int[in_region >> 1];
+	packedSector = (in_region & 1) == 1 ? ((packedSector >> 16) & 0xFFFF) : (packedSector & 0xFFFF);
+
+	int sectorX = packedSector & 0xF;
+	int sectorY = (packedSector >> 4) & 0xF;
+	int sectorZ = (packedSector >> 8) & 0xF;
+
+	int originX = sectorBlockX + (sectorX - 5) * 128;
+	int originY = sectorY * 128 - 64;
+	int originZ = sectorBlockZ + (sectorZ - 5) * 128;
+
+	_cv_modelToWorld = vec4(originX, originY, originZ, 0.0);
+	_cv_modelToCamera = vec4(_cv_modelToWorld.xyz - _cvu_world[_CV_CAMERA_POS].xyz, 0.0);
+
+	in_vertex = in_modelpos + in_blockpos - 63;
 }
 #endif
 

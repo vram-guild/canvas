@@ -86,11 +86,12 @@ public class VsFormat {
 		final int[] target = buff.data();
 
 		// This and pos vertex encoding are the only differences from standard format
-		final int regionId = context.regionRenderId;
-		assert regionId >= 0;
+		final int sectorId = context.sectorId;
+		assert sectorId >= 0;
+		final int sectorRelativeRegionOrigin = context.sectorRelativeRegionOrigin;
 
 		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppendRegionVertex(i, matrix, target, k, regionId);
+			quad.transformAndAppendRegionVertexNew(i, matrix, target, k, sectorId, sectorRelativeRegionOrigin);
 			k += 3;
 
 			target[k++] = quad.vertexColor(i);
