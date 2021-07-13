@@ -22,7 +22,6 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_TEX_2US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_1US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.NORMAL_3B;
-import static grondag.canvas.buffer.format.CanvasVertexFormats.POSITION_3F;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexFormatElement;
@@ -43,12 +42,17 @@ public class VsFormat {
 
 	public static final LookupImage3i REGION_LOOKUP = new LookupImage3i(TextureData.VF_REGIONS, 0x10000);
 
-	private static final CanvasVertexFormatElement REGION_ID = new CanvasVertexFormatElement(VertexFormatElement.DataType.UINT, 1, "in_region", false, true);
+	private static final CanvasVertexFormatElement REGION_ID = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 1, "in_region", false, true);
+	private static final CanvasVertexFormatElement MODEL_POS = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 3, "in_modelpos", true, false);
+	private static final CanvasVertexFormatElement BLOCK_POS = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 3, "in_blockpos", false, true);
+	private static final CanvasVertexFormatElement PADDING = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 1, "in_padding", false, true);
 
-	/**
-	 * Puts a region ID at the beginning. Inefficient but 8-int stride will be page-aligned and we can make it more compact later.
-	 */
-	public static final CanvasVertexFormat VS_MATERIAL = new CanvasVertexFormat(REGION_ID, POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+	public static final CanvasVertexFormat VS_MATERIAL = new CanvasVertexFormat(
+			REGION_ID,
+			MODEL_POS,
+			BLOCK_POS,
+			PADDING,
+			BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	static final int VS_QUAD_STRIDE = VS_MATERIAL.quadStrideInts;
 
@@ -81,14 +85,12 @@ public class VsFormat {
 		int k = buff.allocate(VS_QUAD_STRIDE);
 		final int[] target = buff.data();
 
-		// This and stride are the only differences from standard format
+		// This and pos vertex encoding are the only differences from standard format
 		final int regionId = context.regionRenderId;
 		assert regionId >= 0;
 
 		for (int i = 0; i < 4; i++) {
-			target[k++] = regionId;
-
-			quad.transformAndAppendVertex(i, matrix, target, k);
+			quad.transformAndAppendRegionVertex(i, matrix, target, k, regionId);
 			k += 3;
 
 			target[k++] = quad.vertexColor(i);
