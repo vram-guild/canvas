@@ -25,8 +25,6 @@ import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.terrain.region.RegionPosition;
-import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.texture.TextureData;
 import grondag.frex.api.material.UniformRefreshFrequency;
 
@@ -52,19 +50,18 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 
 	@Override
 	public void reload(WorldRenderState worldRenderState) {
-		VsFormat.REGION_LOOKUP.clear();
 		ClumpedVertexStorage.SOLID.clear();
 		ClumpedVertexStorage.TRANSLUCENT.clear();
 	}
 
 	@Override
 	public void onActivateProgram() {
-		VsFormat.REGION_LOOKUP.enableTexture();
+		// NOOP
 	}
 
 	@Override
 	public void onDeactiveProgram() {
-		VsFormat.REGION_LOOKUP.disableTexture();
+		// NOOP
 	}
 
 	@Override
@@ -84,7 +81,6 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 
 	@Override
 	public void prepareForDraw(WorldRenderState worldRenderState) {
-		VsFormat.REGION_LOOKUP.upload();
 		ClumpedVertexStorage.SOLID.upload();
 		ClumpedVertexStorage.TRANSLUCENT.upload();
 	}
@@ -92,16 +88,5 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
 		return new ClumpedUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
-	}
-
-	@Override
-	public void onRegionBuilt(int regionId, RenderRegion region) {
-		final RegionPosition origin = region.origin;
-		VsFormat.REGION_LOOKUP.set(regionId, origin.getX(), origin.getY(), origin.getZ());
-	}
-
-	@Override
-	public void onRegionClosed(int regionId, RenderRegion region) {
-		// NOOP
 	}
 }

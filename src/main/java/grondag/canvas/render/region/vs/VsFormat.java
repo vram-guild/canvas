@@ -34,13 +34,9 @@ import grondag.canvas.buffer.format.CanvasVertexFormatElement;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.texture.TextureData;
-import grondag.canvas.vf.lookup.LookupImage3i;
 
 public class VsFormat {
 	private VsFormat() { }
-
-	public static final LookupImage3i REGION_LOOKUP = new LookupImage3i(TextureData.VF_REGIONS, 0x10000);
 
 	private static final CanvasVertexFormatElement REGION_ID = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 1, "in_region", false, true);
 	private static final CanvasVertexFormatElement MODEL_POS = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 3, "in_modelpos", true, false);

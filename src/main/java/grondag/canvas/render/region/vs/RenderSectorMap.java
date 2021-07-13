@@ -24,7 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.vf.lookup.FixedCapacityIndexAllocator;
 
-public class RegionSectorMap {
+public class RenderSectorMap {
 	private static final int SECTOR_AXIS_LENGTH_BLOCKS = 128;
 	private static final int SECTOR_BLOCK_MASK = SECTOR_AXIS_LENGTH_BLOCKS - 1;
 	private static final int SECTOR_COORDINATE_MASK = ~SECTOR_BLOCK_MASK;
@@ -132,10 +132,6 @@ public class RegionSectorMap {
 			int y = origin.getY();
 			int z = origin.getZ();
 			sectorKey = sectorKey(x, y, z);
-
-			if (y > 64) {
-				System.out.println("boop");
-			}
 
 			// Shifted negative to give positive packed coordinates with negative vertex coordinates
 			paddedBlockOriginX = (x & SECTOR_COORDINATE_MASK) - 63;

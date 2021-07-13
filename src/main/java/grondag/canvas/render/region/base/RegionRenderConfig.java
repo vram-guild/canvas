@@ -30,7 +30,6 @@ import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.terrain.region.RenderRegion;
 
 public abstract class RegionRenderConfig {
 	public final String name;
@@ -70,10 +69,6 @@ public abstract class RegionRenderConfig {
 	public abstract void setupUniforms(GlProgram program);
 
 	public abstract void reload(WorldRenderState worldRenderState);
-
-	public abstract void onRegionBuilt(int regionId, RenderRegion region);
-
-	public abstract void onRegionClosed(int regionId, RenderRegion region);
 
 	public abstract void onDeactiveProgram();
 

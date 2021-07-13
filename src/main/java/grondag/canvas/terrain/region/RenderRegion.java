@@ -53,7 +53,7 @@ import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.UploadableRegion;
-import grondag.canvas.render.region.vs.RegionSectorMap.RenderSector;
+import grondag.canvas.render.region.vs.RenderSectorMap.RenderSector;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.camera.CameraRegionVisibility;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
@@ -63,13 +63,10 @@ import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.region.input.SignalInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
-import grondag.canvas.vf.lookup.FixedCapacityIndexAllocator;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class RenderRegion implements TerrainExecutorTask {
-	private static final FixedCapacityIndexAllocator REGION_RENDER_ID_INDEX = new FixedCapacityIndexAllocator(0x10000);
-
 	private final RenderRegionBuilder renderRegionBuilder;
 
 	final WorldRenderState worldRenderState;
@@ -81,10 +78,6 @@ public class RenderRegion implements TerrainExecutorTask {
 	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
 
-	/**
-	 * Unique value within limited range that may be used for texel fetch in rendering.
-	 */
-	private int regionRenderId = -1;
 	private RenderSector renderSector = null;
 
 	/**
@@ -167,10 +160,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			needsRebuild = true;
 			origin.close();
 
-			if (regionRenderId != -1) {
-				Configurator.terrainRenderConfig.onRegionClosed(regionRenderId, this);
-				REGION_RENDER_ID_INDEX.releaseIndex(regionRenderId);
-				regionRenderId = -1;
+			if (renderSector != null) {
 				renderSector = renderSector.release(origin);
 			}
 		}
@@ -398,11 +388,8 @@ public class RenderRegion implements TerrainExecutorTask {
 		final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
 		if (oldBuildState == RegionBuildState.UNBUILT) {
-			assert regionRenderId == -1;
-			regionRenderId = REGION_RENDER_ID_INDEX.claimIndex();
 			assert renderSector == null;
 			renderSector = worldRenderState.sectorManager.findSector(origin);
-			Configurator.terrainRenderConfig.onRegionBuilt(regionRenderId, this);
 		}
 
 		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
