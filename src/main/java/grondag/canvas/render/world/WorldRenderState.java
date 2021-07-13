@@ -32,6 +32,7 @@ import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.base.RegionDrawListBuilder;
 import grondag.canvas.render.region.vf.VfDrawList;
+import grondag.canvas.render.region.vs.RegionSectorMap;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
@@ -55,8 +56,8 @@ public class WorldRenderState {
 	public final RegionRebuildManager regionRebuildManager = new RegionRebuildManager();
 
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
-	//public final PotentiallyVisibleSetManager potentiallyVisibleSetManager = new PotentiallyVisibleSetManager();
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
+	public final RegionSectorMap sectorManager = new RegionSectorMap();
 
 	/**
 	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
@@ -200,6 +201,7 @@ public class WorldRenderState {
 		cameraVisibleRegions.clear();
 		terrainFrustum.reload();
 		clearDrawSpecs();
+		Configurator.terrainRenderConfig.reload(this);
 	}
 
 	void clearDrawSpecs() {

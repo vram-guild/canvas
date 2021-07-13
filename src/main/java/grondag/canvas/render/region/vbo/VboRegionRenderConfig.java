@@ -23,6 +23,7 @@ import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.terrain.region.RenderRegion;
 
@@ -47,7 +48,7 @@ public class VboRegionRenderConfig extends RegionRenderConfig {
 	}
 
 	@Override
-	public void reload() {
+	public void reload(WorldRenderState worldRenderState) {
 		// NOOP
 	}
 
@@ -77,7 +78,7 @@ public class VboRegionRenderConfig extends RegionRenderConfig {
 	}
 
 	@Override
-	public void prepareForDraw() {
+	public void prepareForDraw(WorldRenderState worldRenderState) {
 		// NOOP
 	}
 

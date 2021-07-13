@@ -50,7 +50,7 @@ public class FixedCapacityIndexAllocator {
 			return result;
 		}
 
-		assert false : "failure in createIndexForValue";
+		assert false : "Unable to claim index - may have reached capacity";
 		return 0;
 	}
 
@@ -58,5 +58,11 @@ public class FixedCapacityIndexAllocator {
 		assert bits.get(index);
 		bits.clear(index);
 		++inUseCount;
+	}
+
+	public synchronized void clear() {
+		bits.clear();
+		inUseCount = 0;
+		nextIndex = 0;
 	}
 }

@@ -311,7 +311,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		worldRenderState.regionBuilder().upload();
 		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
 
-		Configurator.terrainRenderConfig.prepareForDraw();
+		Configurator.terrainRenderConfig.prepareForDraw(worldRenderState);
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch

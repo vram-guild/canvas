@@ -53,6 +53,7 @@ import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.UploadableRegion;
+import grondag.canvas.render.region.vs.RegionSectorMap.RenderSector;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.camera.CameraRegionVisibility;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
@@ -84,6 +85,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	 * Unique value within limited range that may be used for texel fetch in rendering.
 	 */
 	private int regionRenderId = -1;
+	private RenderSector renderSector = null;
 
 	/**
 	 * Set by main thread during schedule. Retrieved and set to null by worker
@@ -169,6 +171,7 @@ public class RenderRegion implements TerrainExecutorTask {
 				Configurator.terrainRenderConfig.onRegionClosed(regionRenderId, this);
 				REGION_RENDER_ID_INDEX.releaseIndex(regionRenderId);
 				regionRenderId = -1;
+				renderSector = renderSector.release(origin);
 			}
 		}
 	}
@@ -396,6 +399,8 @@ public class RenderRegion implements TerrainExecutorTask {
 		if (oldBuildState == RegionBuildState.UNBUILT) {
 			assert regionRenderId == -1;
 			regionRenderId = REGION_RENDER_ID_INDEX.claimIndex();
+			assert renderSector == null;
+			renderSector = worldRenderState.sectorManager.findSector(origin);
 			Configurator.terrainRenderConfig.onRegionBuilt(regionRenderId, this);
 		}
 

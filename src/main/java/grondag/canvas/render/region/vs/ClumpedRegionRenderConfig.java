@@ -23,6 +23,7 @@ import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.terrain.region.RenderRegion;
@@ -50,7 +51,7 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 	}
 
 	@Override
-	public void reload() {
+	public void reload(WorldRenderState worldRenderState) {
 		VsFormat.REGION_LOOKUP.clear();
 		ClumpedVertexStorage.SOLID.clear();
 		ClumpedVertexStorage.TRANSLUCENT.clear();
@@ -82,7 +83,7 @@ public class ClumpedRegionRenderConfig extends RegionRenderConfig {
 	}
 
 	@Override
-	public void prepareForDraw() {
+	public void prepareForDraw(WorldRenderState worldRenderState) {
 		VsFormat.REGION_LOOKUP.upload();
 		ClumpedVertexStorage.SOLID.upload();
 		ClumpedVertexStorage.TRANSLUCENT.upload();

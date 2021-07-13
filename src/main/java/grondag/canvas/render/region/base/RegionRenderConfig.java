@@ -28,6 +28,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.UploadableRegion;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.terrain.region.RenderRegion;
 
@@ -68,7 +69,7 @@ public abstract class RegionRenderConfig {
 
 	public abstract void setupUniforms(GlProgram program);
 
-	public abstract void reload();
+	public abstract void reload(WorldRenderState worldRenderState);
 
 	public abstract void onRegionBuilt(int regionId, RenderRegion region);
 
@@ -84,7 +85,7 @@ public abstract class RegionRenderConfig {
 
 	public abstract QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector);
 
-	public abstract void prepareForDraw();
+	public abstract void prepareForDraw(WorldRenderState worldRenderState);
 
 	public abstract UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos);
 }

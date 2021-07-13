@@ -23,6 +23,7 @@ import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.texture.TextureData;
@@ -57,7 +58,7 @@ public class VfRegionRenderConfig extends RegionRenderConfig {
 	}
 
 	@Override
-	public void reload() {
+	public void reload(WorldRenderState worldRenderState) {
 		TerrainVertexFetch.clear();
 	}
 
@@ -89,7 +90,7 @@ public class VfRegionRenderConfig extends RegionRenderConfig {
 	}
 
 	@Override
-	public void prepareForDraw() {
+	public void prepareForDraw(WorldRenderState worldRenderState) {
 		TerrainVertexFetch.upload();
 	}
 
