@@ -61,10 +61,15 @@ void _cv_prepareForVertex() {
 // Same as default but region is looked up based on a vertex attribute.
 // This avoid a uniform update per draw call.
 #ifdef _CV_VERTEX_REGION
+
+#define SECTOR_X_ORIGIN_INDEX 182
+#define SECTOR_Z_ORIGIN_INDEX 183
+
 flat out vec4 _cv_modelToWorld;
 flat out vec4 _cv_modelToCamera;
 
 uniform isamplerBuffer _cvu_vfRegions;
+uniform int[] _cvu_sectors_int;
 
 in int in_region;
 in vec3 in_modelpos;

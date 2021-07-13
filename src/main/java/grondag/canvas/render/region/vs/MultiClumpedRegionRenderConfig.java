@@ -25,6 +25,7 @@ import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
+import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.terrain.region.RegionPosition;
@@ -50,6 +51,7 @@ public class MultiClumpedRegionRenderConfig extends RegionRenderConfig {
 	@Override
 	public void setupUniforms(GlProgram program) {
 		program.uniformSampler("isamplerBuffer", "_cvu_vfRegions", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.VF_REGIONS - GL21.GL_TEXTURE0));
+		program.uniformArrayi("_cvu_sectors_int", UniformRefreshFrequency.PER_FRAME, u -> u.set(CanvasWorldRenderer.instance().worldRenderState.sectorManager.uniformData()), RegionSectorMap.UNIFORM_ARRAY_LENGTH);
 	}
 
 	@Override
