@@ -74,6 +74,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
+import grondag.canvas.buffer.DirectBufferAllocator;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
 import grondag.canvas.buffer.encoding.DrawableBuffer;
 import grondag.canvas.compat.FirstPersonModelHolder;
@@ -734,6 +735,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 		final boolean wasFabulous = Pipeline.isFabulous();
 
+		DirectBufferAllocator.cleanup();
 		PipelineManager.reloadIfNeeded();
 
 		if (wasFabulous != Pipeline.isFabulous()) {

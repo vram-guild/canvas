@@ -18,24 +18,17 @@ package grondag.canvas.buffer;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.function.Consumer;
-import java.util.function.IntFunction;
 
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.buffer.DirectBufferAllocator.DirectBufferReference;
 import grondag.canvas.buffer.SimpleTransferBufferAllocator.AllocationState;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.GFX;
 
 class SimpleTransferBuffer implements TransferBuffer {
-	private static final IntFunction<ByteBuffer> SUPPLIER = Configurator.safeNativeMemoryAllocation ? BufferUtils::createByteBuffer : MemoryUtil::memAlloc;
-	private static final Consumer<ByteBuffer> CONSUMER = Configurator.safeNativeMemoryAllocation ? b -> { } : MemoryUtil::memFree;
-
-	private ByteBuffer buffer;
+	private DirectBufferReference bufferRef;
 	final int capacityBytes;
 	final AllocationState allocationState;
 
@@ -47,7 +40,7 @@ class SimpleTransferBuffer implements TransferBuffer {
 		}
 
 		capacityBytes = MathHelper.smallestEncompassingPowerOfTwo(bytes);
-		buffer = SUPPLIER.apply(capacityBytes);
+		bufferRef = DirectBufferAllocator.claim(capacityBytes);
 		allocationState.add(this);
 	}
 
@@ -58,7 +51,7 @@ class SimpleTransferBuffer implements TransferBuffer {
 
 	@Override
 	public IntBuffer asIntBuffer() {
-		return buffer.asIntBuffer();
+		return bufferRef.buffer().asIntBuffer();
 	}
 
 	@Override
@@ -69,31 +62,31 @@ class SimpleTransferBuffer implements TransferBuffer {
 	}
 
 	void releaseWithoutNotify() {
-		assert buffer != null;
+		assert bufferRef != null;
 
-		if (buffer != null) {
-			CONSUMER.accept(buffer);
-			buffer = null;
+		if (bufferRef != null) {
+			bufferRef.release();
+			bufferRef = null;
 		}
 	}
 
 	@Override
 	public @Nullable TransferBuffer releaseToSubBuffer(ByteBuffer targetBuffer, int targetOffset, int sourceOffset, int byteCount) {
-		targetBuffer.put(targetOffset, buffer, sourceOffset, byteCount);
+		targetBuffer.put(targetOffset, bufferRef.buffer(), sourceOffset, byteCount);
 		release();
 		return null;
 	}
 
 	@Override
 	public @Nullable TransferBuffer releaseToBuffer(int target, int usage) {
-		GFX.bufferData(target, buffer, usage);
+		GFX.bufferData(target, bufferRef.buffer(), usage);
 		release();
 		return null;
 	}
 
 	@Override
 	public @Nullable TransferBuffer releaseToSubBuffer(int target, int addressBytes, int lenBytes) {
-		GFX.bufferSubData(target, addressBytes, lenBytes, buffer);
+		GFX.bufferSubData(target, addressBytes, lenBytes, bufferRef.buffer());
 		release();
 		return null;
 	}
