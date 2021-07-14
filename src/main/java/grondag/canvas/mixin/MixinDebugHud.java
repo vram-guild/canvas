@@ -19,20 +19,30 @@ package grondag.canvas.mixin;
 import java.util.List;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.DebugHud;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
+import grondag.canvas.mixinterface.TextRendererExt;
+import grondag.canvas.render.gui.DrawBetterer;
 
 @Mixin(DebugHud.class)
-public class MixinDebugHud {
+public class MixinDebugHud extends DrawableHelper {
+	@Shadow private TextRenderer textRenderer;
+
 	@Inject(method = "getLeftText", at = @At("RETURN"), cancellable = false, require = 1)
-	private void onGetBufferBuilders(CallbackInfoReturnable<List<String>> ci) {
+	private void onGetLeftText(CallbackInfoReturnable<List<String>> ci) {
 		final List<String> list = ci.getReturnValue();
 
 		// if (Configurator.hdLightmaps()) {
@@ -42,5 +52,18 @@ public class MixinDebugHud {
 		list.add(TransferBufferAllocator.debugString());
 		list.add(GlBufferAllocator.debugString());
 		list.add(ArrayVertexCollector.debugReport());
+	}
+
+	@Inject(method = "renderLeftText", at = @At("HEAD"), cancellable = false, require = 1)
+	private void beforeRenderLeftText(MatrixStack matrixStack, CallbackInfo ci) {
+		final Matrix4f matrix4f = matrixStack.peek().getModel();
+		DrawBetterer.beginBatchFill(matrix4f);
+		((TextRendererExt) textRenderer).canvas_beginBatchDraw(matrix4f);
+	}
+
+	@Inject(method = "renderRightText", at = @At("RETURN"), cancellable = false, require = 1)
+	private void afterRenderRightText(MatrixStack matrixStack, CallbackInfo ci) {
+		DrawBetterer.endBatchFile();
+		((TextRendererExt) textRenderer).canvas_endBatchDraw();
 	}
 }
