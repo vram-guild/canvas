@@ -55,9 +55,19 @@ public class PrimaryFrameBuffer extends WindowFramebuffer {
 		endRead();
 	}
 
+	private boolean firstTimeUsed = false;
+
 	@Override
 	public void clear(boolean getError) {
-		// NOOP - should be done in pipeline buffers
-		CanvasMod.LOG.info("Unmanaged framebuffer clear");
+		// Should be handled in pipeline buffers so do nothing
+		// and warn when it does.
+
+		// We ignore the first call because it happens before we can prevent it
+		// and this avoids people asking us why the message is in the log.
+		if (firstTimeUsed) {
+			CanvasMod.LOG.info("Unmanaged framebuffer clear");
+		} else {
+			firstTimeUsed = true;
+		}
 	}
 }
