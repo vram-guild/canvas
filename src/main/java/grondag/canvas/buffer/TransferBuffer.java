@@ -40,7 +40,7 @@ public interface TransferBuffer {
 
 	/** For copying to a bound buffer. ALWAYS returns null. */
 	@Nullable
-	TransferBuffer releaseToSubBuffer(int target, int unpackVacancyAddress, int vacantBytes);
+	TransferBuffer releaseToSubBuffer(int target, int targetAddress, int byteCount);
 
 	/** For populating new buffers. ALWAYS returns null. */
 	@Nullable

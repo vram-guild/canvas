@@ -387,8 +387,9 @@ public class RenderRegion implements TerrainExecutorTask {
 		// don't rebuild occlusion if occlusion did not change
 		final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
-		if (oldBuildState == RegionBuildState.UNBUILT) {
-			assert renderSector == null;
+		assert renderSector == null || oldBuildState != RegionBuildState.UNBUILT;
+
+		if (renderSector == null) {
 			renderSector = worldRenderState.sectorManager.findSector(origin);
 		}
 
