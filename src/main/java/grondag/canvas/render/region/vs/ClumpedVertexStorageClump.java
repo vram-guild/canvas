@@ -299,7 +299,7 @@ public class ClumpedVertexStorageClump {
 				//log.append("Added to allocated regions: ").append(noob.id).append("\n");
 				allocatedRegions.add(noob);
 				noob.setBaseAddress(headBytes);
-				noob.getAndClearTransferBuffer().releaseToSubBuffer(bBuff, baseOffset, 0, byteCount);
+				noob.getAndClearTransferBuffer().releaseToMappedBuffer(bBuff, baseOffset, 0, byteCount);
 				baseOffset += byteCount;
 				headBytes += byteCount;
 			}

@@ -22,11 +22,29 @@ import java.nio.IntBuffer;
 import org.jetbrains.annotations.Nullable;
 
 public interface TransferBuffer {
-	boolean isBufferCopySupported();
+	boolean isMappedBuffer();
+
+	/**
+	 * Binds the buffer for direct rendering. Will remain bound until
+	 * bind is called again (call with 0 to unbind) or until {@link #release()} is called.
+	 *
+	 * <p>Reference must be held until operation is complete!.
+	 */
+	default void bind(int target) {
+		throw new UnsupportedOperationException();
+	}
 
 	/** For copying to mapped buffers. ALWAYS returns null. */
 	@Nullable
-	TransferBuffer releaseToSubBuffer(ByteBuffer targetBuffer, int targetOffset, int sourceOffset, int byteCount);
+	TransferBuffer releaseToMappedBuffer(ByteBuffer targetBuffer, int targetOffset, int sourceOffset, int byteCount);
+
+	/** For copying to a bound buffer. ALWAYS returns null. */
+	@Nullable
+	TransferBuffer releaseToSubBuffer(int target, int unpackVacancyAddress, int vacantBytes);
+
+	/** For populating new buffers. ALWAYS returns null. */
+	@Nullable
+	TransferBuffer releaseToBuffer(int target, int usage);
 
 	/** For writing only. */
 	IntBuffer asIntBuffer();
@@ -34,11 +52,4 @@ public interface TransferBuffer {
 	/** MUST be called if one of other release methods isn't. ALWAYS returns null. */
 	@Nullable
 	TransferBuffer release();
-
-	/** For populating new buffers. ALWAYS returns null. */
-	@Nullable
-	TransferBuffer releaseToBuffer(int target, int usage);
-
-	@Nullable
-	TransferBuffer releaseToSubBuffer(int glArrayBuffer, int unpackVacancyAddress, int vacantBytes);
 }

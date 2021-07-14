@@ -21,11 +21,11 @@ package grondag.canvas.buffer;
  * Implements configuration of allocation method.
  */
 public class TransferBufferAllocator {
-	public static synchronized TransferBuffer claim(int bytes) {
+	public static TransferBuffer claim(int bytes) {
 		return SimpleTransferBufferAllocator.claim(bytes);
 	}
 
-	public static synchronized void forceReload() {
+	public static void forceReload() {
 		SimpleTransferBufferAllocator.forceReload();
 	}
 

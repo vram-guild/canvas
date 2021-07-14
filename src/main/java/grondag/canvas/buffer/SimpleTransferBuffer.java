@@ -45,7 +45,7 @@ class SimpleTransferBuffer implements TransferBuffer {
 	}
 
 	@Override
-	public boolean isBufferCopySupported() {
+	public boolean isMappedBuffer() {
 		return false;
 	}
 
@@ -71,7 +71,7 @@ class SimpleTransferBuffer implements TransferBuffer {
 	}
 
 	@Override
-	public @Nullable TransferBuffer releaseToSubBuffer(ByteBuffer targetBuffer, int targetOffset, int sourceOffset, int byteCount) {
+	public @Nullable TransferBuffer releaseToMappedBuffer(ByteBuffer targetBuffer, int targetOffset, int sourceOffset, int byteCount) {
 		targetBuffer.put(targetOffset, bufferRef.buffer(), sourceOffset, byteCount);
 		release();
 		return null;
