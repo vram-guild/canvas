@@ -87,7 +87,7 @@ public class ArrayVertexCollector implements VertexCollector {
 	static AtomicInteger arryBytes = new AtomicInteger();
 
 	public static String debugReport() {
-		return String.format("CPU Vertex Arrays - count;%d,   MB allocated:%f", arrayCount.get(), arryBytes.get() / 1048576f);
+		return String.format("Vertex collectors: %d %4.1fMb", arrayCount.get(), arryBytes.get() / 1048576f);
 	}
 
 	@Override

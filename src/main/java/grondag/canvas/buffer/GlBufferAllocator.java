@@ -49,6 +49,10 @@ public class GlBufferAllocator {
 		return queue.dequeueInt();
 	}
 
+	public static void resizeBuffer(int delta) {
+		allocatedBytes += delta;
+	}
+
 	public static void releaseBuffer(int buff, int expectedBytes) {
 		GFX.deleteBuffers(buff);
 		--allocatedCount;
@@ -56,6 +60,6 @@ public class GlBufferAllocator {
 	}
 
 	public static String debugString() {
-		return String.format("Allocated draw buffers: %05d @ %05dMB", allocatedCount, allocatedBytes / 0x100000);
+		return String.format("GL buffers: %5d %5dMb", allocatedCount, allocatedBytes / 0x100000);
 	}
 }

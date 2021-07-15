@@ -223,6 +223,7 @@ public class GFX extends GL46C {
 		assert logError("glGenBuffers");
 	}
 
+	/** Use GLBufferAllocator instead! */
 	public static int genBuffer() {
 		final int result = glGenBuffers();
 		assert logError("glGenBuffers");

@@ -28,6 +28,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
@@ -47,7 +48,7 @@ public final class VfStorageImage<T extends VfStorageElement<T>> {
 
 	public void close() {
 		if (bufferId != 0) {
-			GFX.deleteBuffers(bufferId);
+			GlBufferAllocator.releaseBuffer(bufferId, imageCapacityBytes);
 			bufferId = 0;
 		}
 
@@ -92,7 +93,7 @@ public final class VfStorageImage<T extends VfStorageElement<T>> {
 			// never buffered, adjust capacity if needed before we create it
 			imageCapacityBytes = Math.max(imageCapacityBytes, MathHelper.smallestEncompassingPowerOfTwo(addedByteCount));
 
-			bufferId = GFX.genBuffer();
+			bufferId = GlBufferAllocator.claimBuffer(imageCapacityBytes);
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacityBytes, GFX.GL_STATIC_DRAW);
 			didRecreate = true;
@@ -152,12 +153,13 @@ public final class VfStorageImage<T extends VfStorageElement<T>> {
 		// if compacting will make us more than half full then double the image size
 		// or if that is insufficient, expand to fit new content
 		final int requiredByteSize = activeByteSize + addedByteCount;
+		final int oldByteSize = imageCapacityBytes;
 
 		if (requiredByteSize > imageCapacityBytes / 2) {
 			imageCapacityBytes = Math.max(imageCapacityBytes * 2, MathHelper.smallestEncompassingPowerOfTwo(requiredByteSize));
 		}
 
-		final int newBufferId = GFX.genBuffer();
+		final int newBufferId = GlBufferAllocator.claimBuffer(imageCapacityBytes);
 		GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, newBufferId);
 		GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacityBytes, GFX.GL_STATIC_DRAW);
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, bufferId);
@@ -172,7 +174,7 @@ public final class VfStorageImage<T extends VfStorageElement<T>> {
 
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
 
-		GFX.deleteBuffers(bufferId);
+		GlBufferAllocator.releaseBuffer(bufferId, oldByteSize);
 		bufferId = newBufferId;
 	}
 }

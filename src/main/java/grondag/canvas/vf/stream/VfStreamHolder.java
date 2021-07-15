@@ -22,6 +22,7 @@ import java.nio.IntBuffer;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.vf.BufferWriter;
 
@@ -53,7 +54,7 @@ class VfStreamHolder {
 
 	void close() {
 		if (bufferId != 0) {
-			GFX.deleteBuffers(bufferId);
+			GlBufferAllocator.releaseBuffer(bufferId, imageCapacityBytes);
 			bufferId = 0;
 		}
 
@@ -82,7 +83,7 @@ class VfStreamHolder {
 
 		if (bufferId == 0) {
 			assert headByteOffset == 0;
-			bufferId = GFX.genBuffer();
+			bufferId = GlBufferAllocator.claimBuffer(imageCapacityBytes);
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacityBytes, GFX.GL_STATIC_DRAW);
 

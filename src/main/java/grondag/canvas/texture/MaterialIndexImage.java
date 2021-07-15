@@ -27,6 +27,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.GFX;
 
@@ -60,7 +61,7 @@ public final class MaterialIndexImage {
 
 	public void close() {
 		if (bufferId != 0) {
-			GFX.deleteBuffers(bufferId);
+			GlBufferAllocator.releaseBuffer(bufferId, isAtlas ? MaterialIndexTexture.ATLAS_BUFFER_SIZE_BYTES : MaterialIndexTexture.BUFFER_SIZE_BYTES);
 			bufferId = 0;
 		}
 	}
@@ -99,9 +100,9 @@ public final class MaterialIndexImage {
 
 		if (len != 0) {
 			if (bufferId == 0) {
-				bufferId = GFX.genBuffer();
-				GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 				final int size = isAtlas ? MaterialIndexTexture.ATLAS_BUFFER_SIZE_BYTES : MaterialIndexTexture.BUFFER_SIZE_BYTES;
+				bufferId = GlBufferAllocator.claimBuffer(size);
+				GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 				GFX.bufferData(GFX.GL_TEXTURE_BUFFER, size, GFX.GL_STATIC_DRAW);
 				GFX.texBuffer(GFX.GL_RGBA16UI, bufferId);
 			} else {

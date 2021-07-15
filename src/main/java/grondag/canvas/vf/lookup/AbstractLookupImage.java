@@ -27,6 +27,7 @@ import org.lwjgl.system.MemoryUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
@@ -80,8 +81,8 @@ public abstract class AbstractLookupImage {
 
 		if (bufferIdA != 0) {
 			assert bufferIdB != 0;
-			GFX.deleteBuffers(bufferIdA);
-			GFX.deleteBuffers(bufferIdB);
+			GlBufferAllocator.releaseBuffer(bufferIdA, integerCapacity * 4);
+			GlBufferAllocator.releaseBuffer(bufferIdB, integerCapacity * 4);
 			bufferIdA = 0;
 			bufferIdB = 0;
 		}
@@ -133,8 +134,8 @@ public abstract class AbstractLookupImage {
 
 		if (bufferIdA == 0) {
 			assert bufferIdB == 0;
-			bufferIdA = GFX.genBuffer();
-			bufferIdB = GFX.genBuffer();
+			bufferIdA = GlBufferAllocator.claimBuffer(integerCapacity * 4);
+			bufferIdB = GlBufferAllocator.claimBuffer(integerCapacity * 4);
 
 			// PERF: any benefit to a different hint here or different approach?
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferIdA);

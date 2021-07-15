@@ -25,6 +25,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
@@ -52,7 +53,7 @@ public final class VfIndexImage<T extends VfIndexElement<T>> {
 
 	public void close() {
 		if (bufferId != 0) {
-			GFX.deleteBuffers(bufferId);
+			GlBufferAllocator.releaseBuffer(bufferId, imageCapacity * bytesPerElement);
 			bufferId = 0;
 		}
 
@@ -144,15 +145,16 @@ public final class VfIndexImage<T extends VfIndexElement<T>> {
 			// never buffered, adjust capacity if needed before we create it
 			imageCapacity = (limit & 0xFFFF0000) + PAGE_SIZE;
 
-			bufferId = GFX.genBuffer();
+			bufferId = GlBufferAllocator.claimBuffer(imageCapacity * bytesPerElement);
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacity * bytesPerElement, GFX.GL_STATIC_DRAW);
 			didRecreate = true;
 		} else if (limit >= imageCapacity) {
 			// have a buffer but it is too small
+			final int oldCapacity = imageCapacity;
 			imageCapacity = (limit & 0xFFFF0000) + PAGE_SIZE;
 
-			final int newBufferId = GFX.genBuffer();
+			final int newBufferId = GlBufferAllocator.claimBuffer(imageCapacity * bytesPerElement);
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, newBufferId);
 			GFX.bufferData(GFX.GL_TEXTURE_BUFFER, imageCapacity * bytesPerElement, GFX.GL_STATIC_DRAW);
 
@@ -160,7 +162,7 @@ public final class VfIndexImage<T extends VfIndexElement<T>> {
 			GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, GFX.GL_TEXTURE_BUFFER, 0, 0, head * bytesPerElement);
 			GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
 
-			GFX.deleteBuffers(bufferId);
+			GlBufferAllocator.releaseBuffer(bufferId, oldCapacity);
 			bufferId = newBufferId;
 
 			didRecreate = true;

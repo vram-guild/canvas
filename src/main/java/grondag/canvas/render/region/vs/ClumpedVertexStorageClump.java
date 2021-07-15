@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 
 //WIP: support direct-copy mapped transfer buffers when they are available
@@ -74,7 +75,7 @@ public class ClumpedVertexStorageClump {
 			clearVao();
 
 			if (glBufferId != NO_BUFFER) {
-				GFX.deleteBuffers(glBufferId);
+				GlBufferAllocator.releaseBuffer(glBufferId, capacityBytes);
 				glBufferId = NO_BUFFER;
 			}
 
@@ -166,7 +167,7 @@ public class ClumpedVertexStorageClump {
 		assert headBytes == 0;
 		capacityBytes = Math.max(capacityBytes, MathHelper.smallestEncompassingPowerOfTwo(newBytes));
 
-		glBufferId = GFX.genBuffer();
+		glBufferId = GlBufferAllocator.claimBuffer(capacityBytes);
 		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
 		GFX.bufferData(GFX.GL_ARRAY_BUFFER, capacityBytes, GFX.GL_STATIC_DRAW);
 		appendNewRegionsAtHead();
@@ -310,6 +311,7 @@ public class ClumpedVertexStorageClump {
 	}
 
 	private void recreateBuffer() {
+		final int oldCapacityBytes = capacityBytes;
 		capacityBytes = Math.max(capacityBytes, MathHelper.smallestEncompassingPowerOfTwo(headBytes - vacantBytes + newBytes));
 
 		// bind existing buffer for read
@@ -318,7 +320,7 @@ public class ClumpedVertexStorageClump {
 
 		// create new buffer
 		clearVao();
-		glBufferId = GFX.genBuffer();
+		glBufferId = GlBufferAllocator.claimBuffer(capacityBytes);
 		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
 		GFX.bufferData(GFX.GL_ARRAY_BUFFER, capacityBytes, GFX.GL_STATIC_DRAW);
 
@@ -344,7 +346,7 @@ public class ClumpedVertexStorageClump {
 		}
 
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
-		GFX.deleteBuffers(oldBufferId);
+		GlBufferAllocator.releaseBuffer(oldBufferId, oldCapacityBytes);
 
 		// copy new regions to new buffer
 		appendNewRegionsAtHead();
