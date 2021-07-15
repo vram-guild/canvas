@@ -61,34 +61,11 @@ public class ClumpedVertexStorageClump {
 		this.clumpPos = clumpPos;
 	}
 
-	private void clear() {
-		assert RenderSystem.isOnRenderThread();
-		headBytes = 0;
-		newBytes = 0;
-		vacantBytes = 0;
-
-		assert areAllRegionsClosed();
-		noobs.clear();
-		//log.append("Clear").append("\n");
-		allocatedRegions.clear();
-		vacancies.clear();
-	}
-
-	private boolean areAllRegionsClosed() {
-		// Note that we don't call close from here - that's controlled by drawlists/regions.
-		// But active stores referencing this chunk shouldn't be a thing, otherwise might
-		// try to draw with it.
-
-		for (ClumpedDrawableStorage region : allocatedRegions) {
-			if (!region.isClosed()) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	void close() {
+		close(true);
+	}
+
+	void close(boolean notify) {
 		assert RenderSystem.isOnRenderThread();
 
 		if (!isClosed) {
@@ -101,7 +78,26 @@ public class ClumpedVertexStorageClump {
 				glBufferId = NO_BUFFER;
 			}
 
-			clear();
+			headBytes = 0;
+			newBytes = 0;
+			vacantBytes = 0;
+			vacancies.clear();
+
+			if (!allocatedRegions.isEmpty()) {
+				for (ClumpedDrawableStorage region : allocatedRegions) {
+					region.close(notify);
+				}
+
+				allocatedRegions.clear();
+			}
+
+			if (!noobs.isEmpty()) {
+				for (ClumpedDrawableStorage region : noobs) {
+					region.close(notify);
+				}
+
+				noobs.clear();
+			}
 		}
 	}
 
@@ -317,6 +313,7 @@ public class ClumpedVertexStorageClump {
 		capacityBytes = Math.max(capacityBytes, MathHelper.smallestEncompassingPowerOfTwo(headBytes - vacantBytes + newBytes));
 
 		// bind existing buffer for read
+		final int oldBufferId = glBufferId;
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, glBufferId);
 
 		// create new buffer
@@ -347,6 +344,7 @@ public class ClumpedVertexStorageClump {
 		}
 
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
+		GFX.deleteBuffers(oldBufferId);
 
 		// copy new regions to new buffer
 		appendNewRegionsAtHead();

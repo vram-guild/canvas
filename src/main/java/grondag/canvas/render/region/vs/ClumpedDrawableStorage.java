@@ -50,6 +50,10 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 
 	@Override
 	public void close() {
+		close(true);
+	}
+
+	public void close(boolean notify) {
 		assert RenderSystem.isOnRenderThread();
 
 		if (!isClosed) {
@@ -60,7 +64,10 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 			}
 
 			if (clump != null) {
-				clump.notifyClosed(this);
+				if (notify) {
+					clump.notifyClosed(this);
+				}
+
 				clump = null;
 			}
 

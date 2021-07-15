@@ -47,7 +47,7 @@ public class ClumpedVertexStorage {
 		assert RenderSystem.isOnRenderThread();
 
 		for (ClumpedVertexStorageClump clump : clumps.values()) {
-			clump.close();
+			clump.close(false);
 		}
 
 		clumps.clear();
