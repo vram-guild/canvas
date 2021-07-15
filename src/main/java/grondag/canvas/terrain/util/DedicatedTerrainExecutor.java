@@ -23,10 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.client.MinecraftClient;
-
+import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.fermion.sc.Sc;
 
 /**
  * Simple executor service with ability to submit privileged tasks
@@ -70,11 +68,6 @@ public class DedicatedTerrainExecutor implements TerrainExecutor {
 
 	private static int threadCount() {
 		final int threadCount = Runtime.getRuntime().availableProcessors() - 1;
-
-		if (threadCount > 4 && !MinecraftClient.getInstance().is64Bit()) {
-			return 4;
-		}
-
 		return threadCount > 1 ? threadCount : 1;
 	}
 
@@ -113,7 +106,7 @@ public class DedicatedTerrainExecutor implements TerrainExecutor {
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					Sc.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
 				}
 			}
 		}

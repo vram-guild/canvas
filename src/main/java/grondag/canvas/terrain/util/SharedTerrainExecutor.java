@@ -25,8 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.client.MinecraftClient;
-
+import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.fermion.sc.Sc;
 
@@ -62,27 +61,36 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 	SharedTerrainExecutor() {
 		final ImmutableList.Builder<Worker> builder = ImmutableList.builder();
 
-		final RenderWorker renderWorker = new RenderWorker();
-		builder.add(renderWorker);
-		final Thread rederThread = new Thread(renderWorker, "Canvas Render Thread");
-		rederThread.setDaemon(true);
-		rederThread.start();
-
-		final ServerWorker serverWorker = new ServerWorker();
-		builder.add(serverWorker);
-		final Thread serverThread = new Thread(serverWorker, "Canvas Server Thread");
-		serverThread.setDaemon(true);
-		serverThread.start();
-
-		final int limit = poolSize - 2;
-
-		for (int i = 0; i < limit; i++) {
-			final RenderWorker w = ((i & 1) == 0) ? new RenderFirstWorker() : new ServerFirstWorker();
+		if (poolSize == 1) {
+			// running on a potato I guess
+			final RenderWorker w = new RenderFirstWorker();
 			builder.add(w);
-
-			final Thread thread = new Thread(w, "Canvas Mixed Thread - " + i);
+			final Thread thread = new Thread(w, "Canvas Mixed Thread");
 			thread.setDaemon(true);
 			thread.start();
+		} else {
+			final RenderWorker renderWorker = new RenderWorker();
+			builder.add(renderWorker);
+			final Thread rederThread = new Thread(renderWorker, "Canvas Render Thread");
+			rederThread.setDaemon(true);
+			rederThread.start();
+
+			final ServerWorker serverWorker = new ServerWorker();
+			builder.add(serverWorker);
+			final Thread serverThread = new Thread(serverWorker, "Canvas Server Thread");
+			serverThread.setDaemon(true);
+			serverThread.start();
+
+			final int limit = poolSize - 2;
+
+			for (int i = 0; i < limit; i++) {
+				final RenderWorker w = ((i & 1) == 0) ? new RenderFirstWorker() : new ServerFirstWorker();
+				builder.add(w);
+
+				final Thread thread = new Thread(w, "Canvas Mixed Thread - " + i);
+				thread.setDaemon(true);
+				thread.start();
+			}
 		}
 
 		workers = builder.build();
@@ -90,11 +98,6 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 
 	private static int threadCount() {
 		final int threadCount = Runtime.getRuntime().availableProcessors() - 1;
-
-		if (threadCount > 4 && !MinecraftClient.getInstance().is64Bit()) {
-			return 4;
-		}
-
 		return threadCount > 1 ? threadCount - 1 : 1;
 	}
 
@@ -145,7 +148,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					Sc.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
 				}
 			}
 		}
@@ -169,7 +172,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					Sc.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
 				}
 			}
 		}
