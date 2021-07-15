@@ -40,7 +40,7 @@ import grondag.canvas.terrain.region.RegionBuildState;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
+import grondag.canvas.terrain.util.TerrainExecutorTask;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 

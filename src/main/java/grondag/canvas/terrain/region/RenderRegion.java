@@ -62,7 +62,8 @@ import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.region.input.SignalInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
-import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
+import grondag.canvas.terrain.util.TerrainExecutor;
+import grondag.canvas.terrain.util.TerrainExecutorTask;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
@@ -203,7 +204,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		// If region is something other than idle, we are already in the queue
 		// and we only need to update the input protoRegion (which we do here.)
 		if (inputState.getAndSet(region) == SignalInputRegion.IDLE) {
-			renderRegionBuilder.executor.execute(this);
+			TerrainExecutor.INSTANCE.execute(this);
 		}
 
 		markBuilt();
@@ -231,7 +232,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		if (regionData.translucentState != null && inputState.compareAndSet(SignalInputRegion.IDLE, SignalInputRegion.RESORT_ONLY)) {
 			// null means need to reschedule, otherwise was already scheduled for either
 			// resort or rebuild, or is invalid, not ready to be built.
-			renderRegionBuilder.executor.execute(this);
+			TerrainExecutor.INSTANCE.execute(this);
 			return true;
 		} else {
 			return false;

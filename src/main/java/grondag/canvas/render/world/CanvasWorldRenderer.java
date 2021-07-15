@@ -99,6 +99,7 @@ import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionStorage;
+import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.GFX;
 
 public class CanvasWorldRenderer extends WorldRenderer {
@@ -190,7 +191,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			if (state == TerrainIterator.IDLE) {
 				if (terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks)) {
-					worldRenderState.regionBuilder().executor.execute(terrainIterator);
+					TerrainExecutor.INSTANCE.execute(terrainIterator);
 				}
 			} else {
 				// If we kicked off a new iteration this will happen automatically, but if we are waiting
@@ -735,7 +736,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 		final boolean wasFabulous = Pipeline.isFabulous();
 
-		DirectBufferAllocator.cleanup();
+		DirectBufferAllocator.update();
 		PipelineManager.reloadIfNeeded();
 
 		if (wasFabulous != Pipeline.isFabulous()) {

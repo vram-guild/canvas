@@ -67,6 +67,8 @@ class ConfigData {
 	int dynamicFrustumPadding = 20;
 	@Comment("Culls particles that are not in view. Should always be faster.")
 	boolean cullParticles = true;
+	@Comment("Use Canvas thread pool for rendering and local server tasks. May reduce lag spikes caused by thread contention.")
+	boolean useCombinedThreadPool = false;
 
 	// DEBUG
 	@Comment("Output runtime per-material shader source. For shader development debugging.")

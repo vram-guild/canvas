@@ -47,6 +47,7 @@ public class Configurator {
 	public static int staticFrustumPadding = DEFAULTS.staticFrustumPadding;
 	public static int dynamicFrustumPadding = DEFAULTS.dynamicFrustumPadding;
 	public static boolean cullParticles = DEFAULTS.cullParticles;
+	public static boolean useCombinedThreadPool = DEFAULTS.useCombinedThreadPool;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -118,6 +119,7 @@ public class Configurator {
 		dynamicFrustumPadding = MathHelper.clamp(config.dynamicFrustumPadding, 0, 20);
 		staticFrustumPadding = MathHelper.clamp(config.staticFrustumPadding, 0, 30);
 		cullParticles = config.cullParticles;
+		useCombinedThreadPool = config.useCombinedThreadPool;
 
 		// lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -169,6 +171,7 @@ public class Configurator {
 		config.staticFrustumPadding = staticFrustumPadding;
 		config.dynamicFrustumPadding = dynamicFrustumPadding;
 		config.cullParticles = cullParticles;
+		config.useCombinedThreadPool = useCombinedThreadPool;
 
 		// config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;

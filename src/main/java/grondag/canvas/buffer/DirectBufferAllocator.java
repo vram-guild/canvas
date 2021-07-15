@@ -16,13 +16,14 @@
 
 package grondag.canvas.buffer;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
 import java.nio.ByteBuffer;
-import java.util.concurrent.LinkedTransferQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
-import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.BufferUtils;
@@ -56,62 +57,49 @@ public class DirectBufferAllocator {
 		}
 	}
 
-	private static class UnsafeDeallocator implements Runnable {
+	private static class Deallocator implements Runnable {
 		private ByteBuffer buffer;
+		private final Consumer<ByteBuffer> dealloc;
 
-		UnsafeDeallocator (ByteBuffer buffer) {
+		Deallocator (ByteBuffer buffer, Consumer<ByteBuffer> dealloc) {
 			this.buffer = buffer;
+			this.dealloc = dealloc;
 		}
 
 		@Override
 		public void run() {
 			synchronized (buffer) {
 				if (buffer != null) {
-					openUnsafeBytes.addAndGet(-buffer.capacity());
-					openUnsafeCount.decrementAndGet();
-					MemoryUtil.memFree(buffer);
+					openBytes.addAndGet(-buffer.capacity());
+					//openCount.decrementAndGet();
+					dealloc.accept(buffer);
 					buffer = null;
 				}
 			}
 		}
-	}
 
-	private static class UnsafeReferenceHolder {
-		final WeakReference<DirectBufferReference> reference;
-		final UnsafeDeallocator dealloc;
-
-		UnsafeReferenceHolder(WeakReference<DirectBufferReference> reference, UnsafeDeallocator dealloc) {
-			this.reference = reference;
-			this.dealloc = dealloc;
-		}
-
-		boolean release() {
-			DirectBufferReference ref = reference.get();
-
-			if (ref == null) {
-				if (dealloc.buffer != null) {
-					CanvasMod.LOG.warn("Memory leak detected. This should not normally occur. Bytes recovered: " + dealloc.buffer.capacity());
-					dealloc.run();
-				}
-
-				return true;
-			} else {
-				return ref.buffer == null;
+		public void releaseIfLeaked() {
+			if (buffer != null) {
+				CanvasMod.LOG.warn("Memory leak detected. This should not normally occur. Bytes recovered: " + buffer.capacity());
+				run();
 			}
 		}
 	}
 
-	private static final AtomicReference<LinkedTransferQueue<UnsafeReferenceHolder>> UNSAFE_REFS = new AtomicReference<>(new LinkedTransferQueue<>());
-	private static LinkedTransferQueue<UnsafeReferenceHolder> idleList = new LinkedTransferQueue<>();
+	//private static final AtomicReference<LinkedTransferQueue<BufferReferenceHolder>> REFERENCES = new AtomicReference<>(new LinkedTransferQueue<>());
+	//private static LinkedTransferQueue<BufferReferenceHolder> idleList = new LinkedTransferQueue<>();
+	private static final ReferenceQueue<DirectBufferReference> REFERENCES = new ReferenceQueue<>();
+	private static final ConcurrentHashMap<PhantomReference<DirectBufferReference>, Deallocator> MAP = new ConcurrentHashMap<>();
+
 	private static long nextCleanupTimeMilliseconds;
-	private static int lastCount;
+	//private static int lastCount;
 	private static int lastBytes;
-	private static int sampleCount;
+	//private static int sampleCount;
 	private static int sampleBytes;
-	private static final AtomicInteger openUnsafeCount = new AtomicInteger();
-	private static final AtomicInteger openUnsafeBytes = new AtomicInteger();
-	private static final AtomicInteger totalUnsafeCount = new AtomicInteger();
-	private static final AtomicInteger totalUnsafeBytes = new AtomicInteger();
+	//private static final AtomicInteger openCount = new AtomicInteger();
+	private static final AtomicInteger openBytes = new AtomicInteger();
+	//private static final AtomicInteger totalCount = new AtomicInteger();
+	private static final AtomicInteger totalBytes = new AtomicInteger();
 
 	static {
 		// Hat tip to JellySquid for this...
@@ -149,22 +137,19 @@ public class DirectBufferAllocator {
 		final boolean safe = Configurator.safeNativeMemoryAllocation;
 		final ByteBuffer buffer = safe ? BufferUtils.createByteBuffer(bytes) : MemoryUtil.memAlloc(bytes);
 
-		if (safe) {
-			return new DirectBufferReference(buffer, Runnables.doNothing());
-		} else {
-			final var dealloc = new UnsafeDeallocator(buffer);
-			var result = new DirectBufferReference(buffer, dealloc);
-			var ref = new UnsafeReferenceHolder(new WeakReference<>(result), dealloc);
-			UNSAFE_REFS.get().add(ref);
-			openUnsafeCount.incrementAndGet();
-			openUnsafeBytes.addAndGet(bytes);
-			totalUnsafeCount.incrementAndGet();
-			totalUnsafeBytes.addAndGet(bytes);
-			return result;
-		}
+		//openCount.incrementAndGet();
+		openBytes.addAndGet(bytes);
+		//totalCount.incrementAndGet();
+		totalBytes.addAndGet(bytes);
+
+		final Consumer<ByteBuffer> free = safe ? b -> { } : MemoryUtil::memFree;
+		final var dealloc = new Deallocator(buffer, free);
+		final var result = new DirectBufferReference(buffer, dealloc);
+		MAP.put(new PhantomReference<>(result, REFERENCES), dealloc);
+		return result;
 	}
 
-	public static void cleanup() {
+	public static void update() {
 		assert RenderSystem.isOnRenderThread();
 
 		final long time = System.currentTimeMillis();
@@ -172,35 +157,37 @@ public class DirectBufferAllocator {
 		if (time > nextCleanupTimeMilliseconds) {
 			nextCleanupTimeMilliseconds = time + 1000;
 
-			final var newList = idleList;
-			final var oldList = UNSAFE_REFS.getAndSet(idleList);
-			idleList = oldList;
+			Reference<? extends DirectBufferReference> ref;
 
-			if (!oldList.isEmpty()) {
-				for (var ref : oldList) {
-					if (!ref.release()) {
-						newList.add(ref);
-					}
+			while ((ref = REFERENCES.poll()) != null) {
+				Deallocator dealloc = MAP.remove(ref);
+
+				if (dealloc == null) {
+					CanvasMod.LOG.error("Direct buffer reference not found for finalization");
+				} else {
+					dealloc.releaseIfLeaked();
 				}
-
-				oldList.clear();
 			}
 
-			final int newCount = totalUnsafeCount.get();
-			final int newBytes = totalUnsafeBytes.get();
+			//final int newCount = totalCount.get();
+			final int newBytes = totalBytes.get();
 
-			sampleCount = newCount - lastCount;
+			//sampleCount = newCount - lastCount;
 			sampleBytes = newBytes - lastBytes;
-			lastCount = newCount;
+			//lastCount = newCount;
 			lastBytes = newBytes;
 		}
 	}
 
-	public static String allocationReport() {
-		return String.format("Off-heap:%3d %5.1fMb  rate:%4d %5.1fMb",
-				openUnsafeCount.get(),
-				(double) openUnsafeBytes.get() / 0x100000,
-				sampleCount,
+	public static String debugString() {
+		final String type = Configurator.safeNativeMemoryAllocation ? "Heap" : "Off-heap";
+
+		return String.format("%s buffers:%5.1fMb rate:%5.1fMb",
+				type,
+				//return String.format("Off-heap buffers :%3d %5.1fMb  rate:%4d %5.1fMb",
+				//openCount.get(),
+				(double) openBytes.get() / 0x100000,
+				//sampleCount,
 				(double) sampleBytes / 0x100000
 				);
 	}

@@ -54,6 +54,7 @@ import static grondag.canvas.config.Configurator.shaderDebug;
 import static grondag.canvas.config.Configurator.staticFrustumPadding;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
+import static grondag.canvas.config.Configurator.useCombinedThreadPool;
 import static grondag.canvas.config.Configurator.wavyGrass;
 
 import java.lang.ref.WeakReference;
@@ -327,6 +328,16 @@ public class ConfigGui {
 				.setTooltip(parse("config.canvas.help.enable_near_occluders"))
 				.setSaveConsumer(b -> {
 					enableNearOccluders = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.use_combined_thread_pool"), useCombinedThreadPool)
+				.setDefaultValue(DEFAULTS.useCombinedThreadPool)
+				.setTooltip(parse("config.canvas.help.use_combined_thread_pool"))
+				.requireRestart()
+				.setSaveConsumer(b -> {
+					useCombinedThreadPool = b;
 				})
 				.build());
 

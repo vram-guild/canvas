@@ -41,6 +41,7 @@
 	"MixinSpriteAtlasTextureData",
 	"MixinSpriteBillboardParticle",
 	"MixinRenderLayer",
+	"MixinUtil",
 	"MixinVideoOptionsScreen",
 	"MixinWindow",
 	"MixinWorldChunk",

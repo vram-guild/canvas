@@ -16,19 +16,13 @@
 
 package grondag.canvas.terrain.util;
 
-import java.util.List;
-import java.util.concurrent.Executor;
+import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 
-import grondag.canvas.config.Configurator;
+public interface TerrainExecutorTask {
+	void run(TerrainRenderContext context);
 
-public interface TerrainExecutor extends Executor {
-	TerrainExecutor INSTANCE = Configurator.useCombinedThreadPool ? new SharedTerrainExecutor() : new DedicatedTerrainExecutor();
-
-	void execute(TerrainExecutorTask task);
-
-	void clear();
-
-	boolean isEmpty();
-
-	void debugReport(List<String> target);
+	/**
+	 * Normally squared chunk distance. Use -1 for privileged execution.
+	 */
+	int priority();
 }

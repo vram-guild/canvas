@@ -160,5 +160,7 @@
   "config.canvas.value.white_glass_occludes_terrain": "White Glass Occluder",
   "config.canvas.help.white_glass_occludes_terrain": "White stained glass occludes terrain.;Use to debug terrain occlusion.",
   "config.canvas.value.enable_near_occluders": "Enable Near Occluders",
-  "config.canvas.help.enable_near_occluders": "Enabling may help performance by drawing fewer regions;but some regions may flicker as you move around nearby blocks."
+  "config.canvas.help.enable_near_occluders": "Enabling may help performance by drawing fewer regions;but some regions may flicker as you move around nearby blocks.",
+  "config.canvas.value.use_combined_thread_pool": "Combined Thread Pool",
+  "config.canvas.help.use_combined_thread_pool": "EXPERIMENTAL: Use Canvas thread pool for local server tasks.;May reduce lag spikes caused by thread contention."
 }

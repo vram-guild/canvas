@@ -28,8 +28,4 @@ public class TransferBufferAllocator {
 	public static void forceReload() {
 		SimpleTransferBufferAllocator.forceReload();
 	}
-
-	public static String debugString() {
-		return SimpleTransferBufferAllocator.debugString();
-	}
 }

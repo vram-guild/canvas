@@ -25,7 +25,6 @@ import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.terrain.util.TerrainExecutor;
 
 public class RenderRegionBuilder {
-	public final TerrainExecutor executor = new TerrainExecutor();
 	private final Queue<Runnable> uploadQueue = Queues.newConcurrentLinkedQueue();
 	// for use by render thread rebuilds
 	TerrainRenderContext mainThreadContext = new TerrainRenderContext();
@@ -50,7 +49,7 @@ public class RenderRegionBuilder {
 	}
 
 	public void reset() {
-		executor.clear();
+		TerrainExecutor.INSTANCE.clear();
 		mainThreadContext.close();
 		mainThreadContext = new TerrainRenderContext();
 	}
@@ -60,6 +59,6 @@ public class RenderRegionBuilder {
 	}
 
 	public boolean isEmpty() {
-		return executor.isEmpty() && uploadQueue.isEmpty();
+		return TerrainExecutor.INSTANCE.isEmpty() && uploadQueue.isEmpty();
 	}
 }

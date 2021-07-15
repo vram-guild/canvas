@@ -19,10 +19,9 @@ package grondag.canvas.buffer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import grondag.canvas.config.Configurator;
+import grondag.canvas.CanvasMod;
 
 /**
  * Tracks all allocations, ensures deallocation on render reload.
@@ -31,18 +30,14 @@ import grondag.canvas.config.Configurator;
 class SimpleTransferBufferAllocator {
 	static class AllocationState {
 		private final Set<SimpleTransferBuffer> open = Collections.newSetFromMap(new ConcurrentHashMap<SimpleTransferBuffer, Boolean>());
-		private final AtomicInteger allocatedBytes = new AtomicInteger();
 
 		void add(SimpleTransferBuffer buffer) {
 			open.add(buffer);
-			allocatedBytes.addAndGet(buffer.capacityBytes);
 		}
 
 		void remove(SimpleTransferBuffer buffer) {
-			if (open.remove(buffer)) {
-				allocatedBytes.addAndGet(-buffer.capacityBytes);
-			} else {
-				assert false : "Transfer buffer not found on removal";
+			if (!open.remove(buffer)) {
+				CanvasMod.LOG.warn("Transfer buffer not found on removal");
 			}
 		}
 
@@ -61,32 +56,5 @@ class SimpleTransferBufferAllocator {
 	static void forceReload() {
 		AllocationState oldState = STATE.getAndSet(new AllocationState());
 		oldState.clear();
-	}
-
-	static int zeroCount;
-	static int peakBytes;
-	static int peakSize;
-
-	static String debugString() {
-		AllocationState state = STATE.get();
-		final int size = state.open.size();
-		final int allocatedBytes = state.allocatedBytes.get();
-
-		if (size == 0 && ++zeroCount >= 100) {
-			peakBytes = 0;
-			peakSize = 0;
-			zeroCount = 0;
-		} else {
-			if (allocatedBytes > peakBytes) {
-				peakBytes = allocatedBytes;
-			}
-
-			if (size > peakSize) {
-				peakSize = size;
-			}
-		}
-
-		return String.format("Peak transfer buffers: %03d @ %03dMB - %s mode", peakSize, peakBytes / 0x100000,
-			Configurator.safeNativeMemoryAllocation ? "safe" : "fast");
 	}
 }

@@ -16,8 +16,10 @@
 
 package grondag.canvas.mixin;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,7 +27,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -40,9 +41,11 @@ import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Matrix4f;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.DirectBufferAllocator;
 import grondag.canvas.buffer.GlBufferAllocator;
-import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
+import grondag.canvas.terrain.util.TerrainExecutor;
 
 @Mixin(DebugHud.class)
 public class MixinDebugHud extends DrawableHelper {
@@ -139,16 +142,15 @@ public class MixinDebugHud extends DrawableHelper {
 		rightList = null;
 	}
 
-	@Inject(method = "getLeftText", at = @At("RETURN"), cancellable = false, require = 1)
-	private void onGetLeftText(CallbackInfoReturnable<List<String>> ci) {
-		final List<String> list = ci.getReturnValue();
-
-		// if (Configurator.hdLightmaps()) {
-		// 	list.add("HD Lightmap Occupancy: " + LightmapHd.occupancyReport());
-		// }
-
-		list.add(TransferBufferAllocator.debugString());
-		list.add(GlBufferAllocator.debugString());
-		list.add(ArrayVertexCollector.debugReport());
+	@Redirect(method = "getRightText", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Lists;newArrayList([Ljava/lang/Object;)Ljava/util/ArrayList;", remap = false))
+	private ArrayList<String> onGetRightText(Object[] elements) {
+		ArrayList<String> result = Lists.newArrayList((String[]) elements);
+		result.add("");
+		result.add("Canvas Renderer " + CanvasMod.versionString);
+		result.add(DirectBufferAllocator.debugString());
+		result.add(GlBufferAllocator.debugString());
+		result.add(ArrayVertexCollector.debugReport());
+		TerrainExecutor.INSTANCE.debugReport(result);
+		return result;
 	}
 }
