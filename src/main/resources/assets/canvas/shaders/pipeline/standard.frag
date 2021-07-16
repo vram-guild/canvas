@@ -23,6 +23,12 @@
 in vec4 shadowPos;
 #endif
 
+#if HANDHELD_LIGHT_RADIUS != 0
+flat in float _cvInnerAngle;
+flat in float _cvOuterAngle;
+in vec4 _cvViewVertex;
+#endif
+
 out vec4[2] fragColor;
 
 #if AO_SHADING_MODE != AO_MODE_NONE
@@ -70,6 +76,18 @@ vec4 light(frx_FragmentData fragData) {
 	if (held.w > 0.0 && (!frx_isGui() || frx_isHand())) {
 		float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 		d = 1.0 - d * d;
+
+		// handle spot lights
+		if (_cvInnerAngle != 0.0) {
+			float distSq = _cvViewVertex.x * _cvViewVertex.x + _cvViewVertex.y * _cvViewVertex.y;
+			float innerLimitSq = _cvInnerAngle * frx_distance;
+			innerLimitSq *= innerLimitSq;
+			float outerLimitSq = _cvOuterAngle * frx_distance;
+			outerLimitSq *= outerLimitSq;
+
+			d = distSq < innerLimitSq ? d :
+					distSq < outerLimitSq ? d * (1.0 - (distSq - innerLimitSq) / (outerLimitSq - innerLimitSq)) : 0.0;
+		}
 
 		vec4 maxBlock = texture(frxs_lightmap, vec2(0.96875, 0.03125));
 

@@ -1,10 +1,18 @@
 #include canvas:shaders/pipeline/diffuse.glsl
 #include canvas:shaders/pipeline/varying.glsl
 #include frex:shaders/api/view.glsl
+#include frex:shaders/api/player.glsl
+#include canvas:handheld_light_config
 
 /******************************************************
   canvas:shaders/pipeline/standard.vert
 ******************************************************/
+
+#if HANDHELD_LIGHT_RADIUS != 0
+flat out float _cvInnerAngle;
+flat out float _cvOuterAngle;
+out vec4 _cvViewVertex;
+#endif
 
 void frx_writePipelineVertex(in frx_VertexData data) {
 	// WIP: remove - various api tests
@@ -28,7 +36,15 @@ void frx_writePipelineVertex(in frx_VertexData data) {
 		vec4 viewCoord = frx_viewMatrix() * data.vertex;
 		frx_distance = length(viewCoord.xyz);
 		gl_Position = frx_projectionMatrix() * viewCoord;
+#if HANDHELD_LIGHT_RADIUS != 0
+		_cvViewVertex = viewCoord;
+#endif
 	}
+
+#if HANDHELD_LIGHT_RADIUS != 0
+	_cvInnerAngle = sin(frx_heldLightInnerRadius());
+	_cvOuterAngle = sin(frx_heldLightOuterRadius());
+#endif
 
 #ifdef VANILLA_LIGHTING
 	pv_lightcoord = data.light;
