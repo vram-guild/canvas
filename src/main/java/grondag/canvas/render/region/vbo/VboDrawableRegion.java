@@ -20,7 +20,7 @@ import java.nio.IntBuffer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.StaticDrawBuffer;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
@@ -31,7 +31,7 @@ public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableState> 
 		super(delegate, packedOriginBlockPos);
 	}
 
-	public static DrawableRegion pack(VertexCollectorList collectorList, VboBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
+	public static DrawableRegion pack(VertexCollectorList collectorList, StaticDrawBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 
 		if (drawList.isEmpty()) {

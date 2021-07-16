@@ -45,11 +45,6 @@ class SimpleTransferBuffer implements TransferBuffer {
 	}
 
 	@Override
-	public boolean isMappedBuffer() {
-		return false;
-	}
-
-	@Override
 	public IntBuffer asIntBuffer() {
 		return bufferRef.buffer().asIntBuffer();
 	}

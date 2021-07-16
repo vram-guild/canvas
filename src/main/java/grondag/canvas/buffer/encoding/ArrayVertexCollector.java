@@ -297,7 +297,7 @@ public class ArrayVertexCollector implements VertexCollector {
 	 * Assumes all collectors are non-empty.
 	 */
 	public static void draw(ObjectArrayList<ArrayVertexCollector> drawList) {
-		final DrawableBuffer buffer = new DrawableBuffer(drawList);
+		final DrawableStream buffer = new DrawableStream(drawList);
 		buffer.draw(false);
 		buffer.close();
 	}

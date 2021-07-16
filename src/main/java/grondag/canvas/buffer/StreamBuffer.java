@@ -16,28 +16,33 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface TransferBuffer {
-	/** For copying to mapped buffers. ALWAYS returns null. */
-	@Nullable
-	TransferBuffer releaseToMappedBuffer(ByteBuffer targetBuffer, int targetOffset, int sourceOffset, int byteCount);
+import grondag.canvas.buffer.format.CanvasVertexFormat;
 
-	/** For copying to a bound buffer. ALWAYS returns null. */
-	@Nullable
-	TransferBuffer releaseToSubBuffer(int target, int targetAddress, int byteCount);
-
-	/** For populating new buffers. ALWAYS returns null. */
-	@Nullable
-	TransferBuffer releaseToBuffer(int target, int usage);
+public interface StreamBuffer {
+	/** Un-map and bind for drawing. */
+	void prepareForDraw(int target);
 
 	/** For writing only. */
 	IntBuffer asIntBuffer();
 
-	/** MUST be called if one of other release methods isn't. ALWAYS returns null. */
-	@Nullable
-	TransferBuffer release();
+	//	/** MUST be called if one of other release methods isn't. ALWAYS returns null. */
+	//	@Nullable
+	//	StreamBuffer release();
+
+	static @Nullable StreamBuffer allocate(int bytes, CanvasVertexFormat standardMaterialFormat) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	IntBuffer intBuffer();
+
+	void upload();
+
+	void bind();
+
+	void release();
 }

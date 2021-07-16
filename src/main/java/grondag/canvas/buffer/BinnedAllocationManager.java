@@ -36,20 +36,6 @@ public class BinnedAllocationManager {
 		return MathHelper.log2(size >> BIN_INDEX_SHIFT);
 	}
 
-	private static class Bin {
-		private TransferBuffer claim(int bytes) {
-			return SimpleTransferBufferAllocator.claim(bytes);
-		}
-
-		private void prepareForUse(Bin activeBin) {
-			//
-		}
-
-		private void idle() {
-			//
-		}
-	}
-
 	private static class BinState {
 		final Bin[] bins = new Bin[BIN_COUNT];
 

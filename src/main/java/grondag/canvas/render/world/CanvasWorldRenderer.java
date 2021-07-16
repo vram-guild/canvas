@@ -76,7 +76,7 @@ import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.DirectBufferAllocator;
 import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.buffer.encoding.DrawableBuffer;
+import grondag.canvas.buffer.encoding.DrawableStream;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialTarget;
@@ -477,8 +477,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		RenderState.disable();
 
-		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
-			DrawableBuffer shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
+		try (DrawableStream entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
+			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, entityBuffer, shadowExtrasBuffer);

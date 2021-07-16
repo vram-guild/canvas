@@ -24,7 +24,7 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.StaticDrawBuffer;
 import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
@@ -50,7 +50,7 @@ public class PipelineManager {
 	static ProcessShader debugDepthShader;
 	static ProcessShader debugDepthArrayShader;
 
-	static VboBuffer drawBuffer;
+	static StaticDrawBuffer drawBuffer;
 	static int h;
 	static int w;
 	private static int oldTex0;
@@ -229,7 +229,7 @@ public class PipelineManager {
 		addVertex(0f, 1f, 0.2f, 0f, 0f, v, k + 20);
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k + 25);
 
-		drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
+		drawBuffer = new StaticDrawBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
 		collector.toBuffer(drawBuffer.intBuffer(), 0);
 		drawBuffer.upload();
 

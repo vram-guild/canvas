@@ -16,18 +16,18 @@
 
 package grondag.canvas.render.region.vbo;
 
-import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.StaticDrawBuffer;
 import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.UploadableRegion;
 
 public class VboUploadableRegion implements UploadableRegion {
-	protected final VboBuffer vboBuffer;
+	protected final StaticDrawBuffer vboBuffer;
 	protected final DrawableRegion drawable;
 
 	public VboUploadableRegion(VertexCollectorList collectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
-		vboBuffer = new VboBuffer(bytes, CanvasVertexFormats.STANDARD_MATERIAL_FORMAT);
+		vboBuffer = new StaticDrawBuffer(bytes, CanvasVertexFormats.STANDARD_MATERIAL_FORMAT);
 		drawable = VboDrawableRegion.pack(collectorList, vboBuffer, sorted, bytes, packedOriginBlockPos);
 	}
 

@@ -70,10 +70,10 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		return collectors.consumer.prepare(mat);
 	}
 
-	public DrawableBuffer prepareDrawable(MaterialTarget target) {
+	public DrawableStream prepareDrawable(MaterialTarget target) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectors.sortedDrawList(target);
 
-		return drawList.isEmpty() ? DrawableBuffer.EMPTY : new DrawableBuffer(drawList);
+		return drawList.isEmpty() ? DrawableStream.EMPTY : new DrawableStream(drawList);
 	}
 
 	public void drawCollectors(MaterialTarget target) {

@@ -20,15 +20,15 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
-import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.StaticDrawBuffer;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.base.AbstractDrawableState;
 import grondag.canvas.varia.GFX;
 
-public class VboDrawableState extends AbstractDrawableState<VboBuffer> {
+public class VboDrawableState extends AbstractDrawableState<StaticDrawBuffer> {
 	private int vertexOffset;
 
-	public VboDrawableState(RenderState renderState, int quadVertexCount, int vertexOffset, VboBuffer vboBuffer) {
+	public VboDrawableState(RenderState renderState, int quadVertexCount, int vertexOffset, StaticDrawBuffer vboBuffer) {
 		super(renderState, quadVertexCount, vboBuffer);
 		this.vertexOffset = vertexOffset;
 	}

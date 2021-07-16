@@ -20,7 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.buffer.encoding.DrawableBuffer;
+import grondag.canvas.buffer.encoding.DrawableStream;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
@@ -48,7 +48,7 @@ public class SkyShadowRenderer {
 		return active;
 	}
 
-	public static void render(CanvasWorldRenderer canvasWorldRenderer, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
+	public static void render(CanvasWorldRenderer canvasWorldRenderer, DrawableStream entityBuffer, DrawableStream shadowExtrasBuffer) {
 		if (Pipeline.shadowsEnabled()) {
 			begin();
 
@@ -64,7 +64,7 @@ public class SkyShadowRenderer {
 		}
 	}
 
-	private static void renderInner(CanvasWorldRenderer canvasWorldRenderer, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
+	private static void renderInner(CanvasWorldRenderer canvasWorldRenderer, DrawableStream entityBuffer, DrawableStream shadowExtrasBuffer) {
 		Pipeline.skyShadowFbo.clear();
 
 		canvasWorldRenderer.worldRenderState.renderShadowLayer(cascade);

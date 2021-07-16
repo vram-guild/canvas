@@ -24,18 +24,18 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
-import grondag.canvas.buffer.VboBuffer;
+import grondag.canvas.buffer.StaticDrawBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
 
-public class DrawableBuffer implements AutoCloseable {
-	@Nullable private VboBuffer buffer;
+public class DrawableStream implements AutoCloseable {
+	@Nullable private StaticDrawBuffer buffer;
 	private final int limit;
 	private final int[] counts;
 	private final RenderState[] states;
 
-	public DrawableBuffer(ObjectArrayList<ArrayVertexCollector> drawList) {
+	public DrawableStream(ObjectArrayList<ArrayVertexCollector> drawList) {
 		limit = drawList.size();
 
 		int bytes = 0;
@@ -47,7 +47,7 @@ public class DrawableBuffer implements AutoCloseable {
 		}
 
 		// PERF: trial memory mapped here
-		buffer = new VboBuffer(bytes, CanvasVertexFormats.STANDARD_MATERIAL_FORMAT);
+		buffer = new StaticDrawBuffer(bytes, CanvasVertexFormats.STANDARD_MATERIAL_FORMAT);
 		final IntBuffer intBuffer = buffer.intBuffer();
 		counts = new int[limit];
 		states = new RenderState[limit];
@@ -66,7 +66,7 @@ public class DrawableBuffer implements AutoCloseable {
 		buffer.upload();
 	}
 
-	private DrawableBuffer() {
+	private DrawableStream() {
 		buffer = null;
 		limit = 0;
 		counts = null;
@@ -107,5 +107,5 @@ public class DrawableBuffer implements AutoCloseable {
 		}
 	}
 
-	public static final DrawableBuffer EMPTY = new DrawableBuffer();
+	public static final DrawableStream EMPTY = new DrawableStream();
 }
