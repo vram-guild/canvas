@@ -72,34 +72,34 @@ public class RegionCullingFrustum extends FastFrustum {
 
 				switch (flags) {
 					case 0b000:
-						return regions.wasSeenFromCamera(rx0, ry0, rz0);
+						return regions.isPotentiallyVisible(rx0, ry0, rz0);
 
 					case 0b001:
-						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx1, ry0, rz0);
+						return regions.isPotentiallyVisible(rx0, ry0, rz0) || regions.isPotentiallyVisible(rx1, ry0, rz0);
 
 					case 0b010:
-						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx0, ry1, rz0);
+						return regions.isPotentiallyVisible(rx0, ry0, rz0) || regions.isPotentiallyVisible(rx0, ry1, rz0);
 
 					case 0b011:
-						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx1, ry0, rz0)
-								|| regions.wasSeenFromCamera(rx0, ry1, rz0) || regions.wasSeenFromCamera(rx1, ry1, rz0);
+						return regions.isPotentiallyVisible(rx0, ry0, rz0) || regions.isPotentiallyVisible(rx1, ry0, rz0)
+								|| regions.isPotentiallyVisible(rx0, ry1, rz0) || regions.isPotentiallyVisible(rx1, ry1, rz0);
 
 					case 0b100:
-						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx0, ry0, rz1);
+						return regions.isPotentiallyVisible(rx0, ry0, rz0) || regions.isPotentiallyVisible(rx0, ry0, rz1);
 
 					case 0b101:
-						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx1, ry0, rz0)
-								|| regions.wasSeenFromCamera(rx0, ry0, rz1) || regions.wasSeenFromCamera(rx1, ry0, rz1);
+						return regions.isPotentiallyVisible(rx0, ry0, rz0) || regions.isPotentiallyVisible(rx1, ry0, rz0)
+								|| regions.isPotentiallyVisible(rx0, ry0, rz1) || regions.isPotentiallyVisible(rx1, ry0, rz1);
 
 					case 0b110:
-						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx0, ry1, rz0)
-								|| regions.wasSeenFromCamera(rx0, ry0, rz1) || regions.wasSeenFromCamera(rx0, ry1, rz1);
+						return regions.isPotentiallyVisible(rx0, ry0, rz0) || regions.isPotentiallyVisible(rx0, ry1, rz0)
+								|| regions.isPotentiallyVisible(rx0, ry0, rz1) || regions.isPotentiallyVisible(rx0, ry1, rz1);
 
 					case 0b111:
-						return regions.wasSeenFromCamera(rx0, ry0, rz0) || regions.wasSeenFromCamera(rx1, ry0, rz0)
-								|| regions.wasSeenFromCamera(rx0, ry1, rz0) || regions.wasSeenFromCamera(rx1, ry1, rz0)
-								|| regions.wasSeenFromCamera(rx0, ry0, rz1) || regions.wasSeenFromCamera(rx1, ry0, rz1)
-								|| regions.wasSeenFromCamera(rx0, ry1, rz1) || regions.wasSeenFromCamera(rx1, ry1, rz1);
+						return regions.isPotentiallyVisible(rx0, ry0, rz0) || regions.isPotentiallyVisible(rx1, ry0, rz0)
+								|| regions.isPotentiallyVisible(rx0, ry1, rz0) || regions.isPotentiallyVisible(rx1, ry1, rz0)
+								|| regions.isPotentiallyVisible(rx0, ry0, rz1) || regions.isPotentiallyVisible(rx1, ry0, rz1)
+								|| regions.isPotentiallyVisible(rx0, ry1, rz1) || regions.isPotentiallyVisible(rx1, ry1, rz1);
 					default:
 						assert false : "Pathological spatial test result in RegionCullingFrustum";
 						return true;

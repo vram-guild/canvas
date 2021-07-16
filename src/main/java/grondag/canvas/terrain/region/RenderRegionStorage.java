@@ -88,9 +88,9 @@ public class RenderRegionStorage {
 		return chunks[RenderRegionIndexer.chunkIndex(x, z)].getRegionIfExists(x, y, z);
 	}
 
-	public boolean wasSeenFromCamera(int x, int y, int z) {
+	public boolean isPotentiallyVisible(int x, int y, int z) {
 		final RenderRegion r = getRegionIfExists(x, y, z);
-		return r != null && r.cameraVisibility.wasRecentlySeen();
+		return r == null || r.cameraVisibility.isPotentiallyVisible();
 	}
 
 	public void scheduleClose(RenderChunk chunk) {
