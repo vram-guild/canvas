@@ -27,7 +27,7 @@ import org.lwjgl.system.MemoryUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.buffer.GlBufferAllocator;
+import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;

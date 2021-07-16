@@ -36,7 +36,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;

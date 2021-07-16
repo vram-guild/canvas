@@ -33,7 +33,7 @@ import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
-import grondag.canvas.buffer.CleanVAO;
+import grondag.canvas.buffer.util.CleanVAO;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.MaterialTextureState;

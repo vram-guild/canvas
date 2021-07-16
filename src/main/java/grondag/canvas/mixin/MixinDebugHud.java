@@ -42,9 +42,9 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.DirectBufferAllocator;
-import grondag.canvas.buffer.GlBufferAllocator;
-import grondag.canvas.buffer.encoding.ArrayVertexCollector;
+import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.util.DirectBufferAllocator;
+import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.terrain.util.TerrainExecutor;
 
 @Mixin(DebugHud.class)

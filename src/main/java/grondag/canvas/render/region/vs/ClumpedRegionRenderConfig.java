@@ -18,9 +18,9 @@ package grondag.canvas.render.region.vs;
 
 import org.lwjgl.opengl.GL21;
 
-import grondag.canvas.buffer.encoding.ArrayVertexCollector;
-import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.input.VertexCollectorList;
+import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.render.region.UploadableRegion;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.render.world.WorldRenderState;

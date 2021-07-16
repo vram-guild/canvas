@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.input;
 
 import java.util.Comparator;
 import java.util.function.Predicate;
@@ -26,6 +26,7 @@ import net.minecraft.client.render.VertexConsumer;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;

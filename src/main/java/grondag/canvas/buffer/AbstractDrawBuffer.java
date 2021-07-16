@@ -19,6 +19,7 @@ package grondag.canvas.buffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 
 abstract class AbstractDrawBuffer {

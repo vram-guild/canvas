@@ -17,8 +17,8 @@
 package grondag.canvas.render.region.vbo;
 
 import grondag.canvas.buffer.StaticDrawBuffer;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.UploadableRegion;
 

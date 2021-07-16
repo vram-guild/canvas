@@ -35,7 +35,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
-import grondag.canvas.buffer.encoding.CanvasImmediate;
+import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.mixinterface.ItemRendererExt;
 

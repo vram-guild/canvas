@@ -21,7 +21,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.BlockPos;
 
-import grondag.canvas.buffer.CleanVAO;
+import grondag.canvas.buffer.util.CleanVAO;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;

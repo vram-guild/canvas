@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.buffer;
+package grondag.canvas.buffer.util;
 
 import java.nio.IntBuffer;
 

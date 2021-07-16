@@ -14,7 +14,10 @@
  *  the License.
  */
 
-package grondag.canvas.buffer;
+package grondag.canvas.buffer.util;
+
+import grondag.canvas.buffer.SimpleTransferBufferAllocator;
+import grondag.canvas.buffer.TransferBuffer;
 
 public class Bin {
 	TransferBuffer claim(int bytes) {

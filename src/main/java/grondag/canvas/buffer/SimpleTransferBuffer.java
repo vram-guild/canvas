@@ -23,8 +23,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.buffer.DirectBufferAllocator.DirectBufferReference;
 import grondag.canvas.buffer.SimpleTransferBufferAllocator.AllocationState;
+import grondag.canvas.buffer.util.DirectBufferAllocator;
+import grondag.canvas.buffer.util.DirectBufferAllocator.DirectBufferReference;
 import grondag.canvas.varia.GFX;
 
 class SimpleTransferBuffer implements TransferBuffer {

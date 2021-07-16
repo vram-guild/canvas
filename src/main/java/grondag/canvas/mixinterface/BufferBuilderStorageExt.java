@@ -16,7 +16,7 @@
 
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.buffer.encoding.CanvasImmediate;
+import grondag.canvas.buffer.input.CanvasImmediate;
 
 public interface BufferBuilderStorageExt {
 	void canvas_setEntityConsumers(CanvasImmediate consumers);

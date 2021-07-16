@@ -20,7 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.buffer.encoding.DrawableStream;
+import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.data.ShadowMatrixData;

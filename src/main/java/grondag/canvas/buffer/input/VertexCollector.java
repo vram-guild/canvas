@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.input;
 
 /**
  * Thin access layer to vertex buffer/mapped memory range.

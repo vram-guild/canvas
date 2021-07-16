@@ -14,13 +14,16 @@
  *  the License.
  */
 
-package grondag.canvas.buffer;
+package grondag.canvas.buffer.util;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.util.math.MathHelper;
+
+import grondag.canvas.buffer.SimpleTransferBufferAllocator;
+import grondag.canvas.buffer.TransferBuffer;
 
 public class BinnedAllocationManager {
 	public static final int MIN_SIZE = 0x1000;
@@ -34,6 +37,20 @@ public class BinnedAllocationManager {
 
 	static int binIndex(int size) {
 		return MathHelper.log2(size >> BIN_INDEX_SHIFT);
+	}
+
+	public static class Bin {
+		private TransferBuffer claim(int bytes) {
+			return SimpleTransferBufferAllocator.claim(bytes);
+		}
+
+		private void prepareForUse(Bin activeBin) {
+			//
+		}
+
+		private void idle() {
+			//
+		}
 	}
 
 	private static class BinState {

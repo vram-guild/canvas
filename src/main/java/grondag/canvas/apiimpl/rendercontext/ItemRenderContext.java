@@ -48,8 +48,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.buffer.encoding.QuadEncoders;
+import grondag.canvas.buffer.format.QuadEncoders;
+import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;

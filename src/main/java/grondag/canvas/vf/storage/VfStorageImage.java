@@ -28,7 +28,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.GlBufferAllocator;
+import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)

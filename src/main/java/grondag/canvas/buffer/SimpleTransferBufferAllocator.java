@@ -27,7 +27,7 @@ import grondag.canvas.CanvasMod;
  * Tracks all allocations, ensures deallocation on render reload.
  * Implements configuration of allocation method.
  */
-class SimpleTransferBufferAllocator {
+public class SimpleTransferBufferAllocator {
 	static class AllocationState {
 		private final Set<SimpleTransferBuffer> open = Collections.newSetFromMap(new ConcurrentHashMap<SimpleTransferBuffer, Boolean>());
 
@@ -48,7 +48,7 @@ class SimpleTransferBufferAllocator {
 
 	private static final AtomicReference<AllocationState> STATE = new AtomicReference<>(new AllocationState());
 
-	static TransferBuffer claim(int bytes) {
+	public static TransferBuffer claim(int bytes) {
 		SimpleTransferBuffer result = new SimpleTransferBuffer(bytes, STATE.get());
 		return result;
 	}

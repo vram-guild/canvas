@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.input;
 
 import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +26,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.vf.TerrainVertexFetch;
@@ -278,7 +279,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		}
 	}
 
-	void sortIfNeeded() {
+	public void sortIfNeeded() {
 		if (renderState.sorted) {
 			sortQuads(0, 0, 0);
 		}

@@ -20,11 +20,11 @@ import java.util.function.Function;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.buffer.encoding.ArrayVertexCollector;
-import grondag.canvas.buffer.encoding.ArrayVertexCollector.QuadDistanceFunc;
-import grondag.canvas.buffer.encoding.QuadTranscoder;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
+import grondag.canvas.buffer.format.QuadTranscoder;
+import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.input.VertexCollectorList;
+import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.UploadableRegion;

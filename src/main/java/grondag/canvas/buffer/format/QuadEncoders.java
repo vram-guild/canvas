@@ -14,13 +14,12 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.format;
 
 import net.minecraft.client.MinecraftClient;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;

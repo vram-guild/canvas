@@ -14,12 +14,12 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.format;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
+import grondag.canvas.buffer.input.VertexCollector;
 
 @FunctionalInterface
-public interface QuadTranscoder {
-	void encode(MutableQuadViewImpl quad, AbstractRenderContext context, VertexCollector collector);
+public interface QuadEncoder {
+	void encode(MutableQuadViewImpl quad, VertexCollector collector);
 }

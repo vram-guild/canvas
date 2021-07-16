@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.util;
 
 import java.nio.IntBuffer;
 
@@ -26,6 +26,7 @@ import net.minecraft.client.render.VertexFormat.DrawMode;
 
 import grondag.canvas.buffer.StaticDrawBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
 

@@ -22,7 +22,7 @@ import java.nio.IntBuffer;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.GlBufferAllocator;
+import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 import grondag.canvas.vf.BufferWriter;
 

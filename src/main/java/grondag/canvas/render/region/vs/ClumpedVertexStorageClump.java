@@ -28,7 +28,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.GlBufferAllocator;
+import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 
 //WIP: support direct-copy mapped transfer buffers when they are available

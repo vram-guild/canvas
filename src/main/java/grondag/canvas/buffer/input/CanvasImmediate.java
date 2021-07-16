@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.encoding;
+package grondag.canvas.buffer.input;
 
 import java.util.Map;
 import java.util.SortedMap;
@@ -30,6 +30,7 @@ import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.util.Util;
 
+import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderLayerHelper;
