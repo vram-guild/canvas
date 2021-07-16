@@ -40,12 +40,13 @@ public class StaticDrawBuffer extends AbstractDrawBuffer implements DrawableStor
 		}
 	}
 
+	@Override
 	public IntBuffer intBuffer() {
 		return transferBuffer.asIntBuffer();
 	}
 
 	@Override
-	protected void onClose() {
+	protected void onShutdown() {
 		if (transferBuffer != null) {
 			transferBuffer = transferBuffer.release();
 		}

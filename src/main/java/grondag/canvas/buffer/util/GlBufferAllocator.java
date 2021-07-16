@@ -24,9 +24,6 @@ import net.minecraft.client.util.GlAllocationUtils;
 
 import grondag.canvas.varia.GFX;
 
-/**
- * Buffer gen is incredibly slow on some Windows/NVidia systems and default MC behavior.
- */
 public class GlBufferAllocator {
 	private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue(256);
 	private static final IntBuffer buff = GlAllocationUtils.allocateByteBuffer(256 * 4).asIntBuffer();
@@ -35,6 +32,7 @@ public class GlBufferAllocator {
 
 	public static int claimBuffer(int expectedBytes) {
 		if (queue.isEmpty()) {
+			// Buffer gen is slow on some Windows/NVidia systems so we buy in bulk
 			GFX.genBuffers(buff);
 
 			for (int i = 0; i < 256; i++) {

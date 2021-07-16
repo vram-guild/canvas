@@ -55,7 +55,7 @@ public abstract class VfStorageReference implements VfStorageElement<VfStorageRe
 	}
 
 	@Override
-	public void close() {
+	public void release() {
 		isClosed = true;
 	}
 

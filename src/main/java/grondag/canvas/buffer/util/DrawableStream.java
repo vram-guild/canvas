@@ -103,7 +103,7 @@ public class DrawableStream implements AutoCloseable {
 	@Override
 	public void close() {
 		if (buffer != null) {
-			buffer.close();
+			buffer.release();
 			buffer = null;
 		}
 	}

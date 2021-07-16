@@ -50,7 +50,7 @@ public abstract class AbstractDrawableState<T extends DrawableStorage> {
 
 		if (!isClosed) {
 			isClosed = true;
-			storage.close();
+			storage.release();
 			storage = null;
 		}
 	}

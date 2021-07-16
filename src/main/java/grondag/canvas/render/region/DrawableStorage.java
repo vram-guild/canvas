@@ -17,9 +17,7 @@
 package grondag.canvas.render.region;
 
 public interface DrawableStorage {
-	void close();
-
-	boolean isClosed();
+	void release();
 
 	default void upload() { }
 }

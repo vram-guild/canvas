@@ -49,7 +49,7 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 	}
 
 	@Override
-	public void close() {
+	public void release() {
 		close(true);
 	}
 
@@ -75,7 +75,6 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 		}
 	}
 
-	@Override
 	public boolean isClosed() {
 		return isClosed;
 	}

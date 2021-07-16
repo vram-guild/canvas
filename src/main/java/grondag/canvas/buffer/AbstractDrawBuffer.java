@@ -16,6 +16,8 @@
 
 package grondag.canvas.buffer;
 
+import java.nio.IntBuffer;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
@@ -54,23 +56,19 @@ abstract class AbstractDrawBuffer {
 		}
 	}
 
-	public boolean isClosed() {
-		return isClosed;
-	}
-
-	public final void close() {
+	public void release() {
 		if (RenderSystem.isOnRenderThread()) {
-			onClose();
+			onShutdown();
 		} else {
-			RenderSystem.recordRenderCall(this::excuteClose);
+			RenderSystem.recordRenderCall(this::shutdown);
 		}
 	}
 
-	protected final void excuteClose() {
+	public final void shutdown() {
 		if (!isClosed) {
 			isClosed = true;
 
-			onClose();
+			onShutdown();
 
 			if (vaoBufferId != 0) {
 				GFX.deleteVertexArray(vaoBufferId);
@@ -86,5 +84,9 @@ abstract class AbstractDrawBuffer {
 		}
 	}
 
-	protected abstract void onClose();
+	protected abstract void onShutdown();
+
+	public abstract IntBuffer intBuffer();
+
+	public abstract void upload();
 }

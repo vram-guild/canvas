@@ -250,7 +250,7 @@ public class PipelineManager {
 		debugDepthArrayShader = ProcessShader.unload(debugDepthArrayShader);
 
 		if (drawBuffer != null) {
-			drawBuffer.close();
+			drawBuffer.release();
 			drawBuffer = null;
 		}
 	}

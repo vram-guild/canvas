@@ -22,27 +22,38 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 
-public interface StreamBuffer {
-	/** Un-map and bind for drawing. */
-	void prepareForDraw(int target);
-
-	/** For writing only. */
-	IntBuffer asIntBuffer();
+public class StreamDrawBuffer extends AbstractDrawBuffer {
+	protected StreamDrawBuffer(int bytes) {
+		super(bytes);
+	}
 
 	//	/** MUST be called if one of other release methods isn't. ALWAYS returns null. */
 	//	@Nullable
 	//	StreamBuffer release();
 
-	static @Nullable StreamBuffer allocate(int bytes, CanvasVertexFormat standardMaterialFormat) {
+	public static @Nullable StreamDrawBuffer allocate(int bytes, CanvasVertexFormat standardMaterialFormat) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	IntBuffer intBuffer();
+	@Override
+	public IntBuffer intBuffer() {
+		return null;
+	}
 
-	void upload();
+	/** Un-map and bind for drawing. */
+	@Override
+	public void upload() {
+		//
+	}
 
-	void bind();
+	@Override
+	public void bind() {
+		//
+	}
 
-	void release();
+	@Override
+	protected void onShutdown() {
+		// TODO Auto-generated method stub
+	}
 }
