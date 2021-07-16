@@ -16,8 +16,8 @@
 
 package grondag.canvas.render.region;
 
-public interface DrawableStorage {
-	void release();
+public interface UploadableVertexStorage {
+	UploadableVertexStorage release();
 
 	default void upload() { }
 }

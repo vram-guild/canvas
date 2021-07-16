@@ -22,12 +22,13 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.util.GlBufferAllocator;
+import grondag.canvas.render.region.UploadableVertexStorage;
 import grondag.canvas.varia.GFX;
 
-abstract class AbstractDrawBuffer {
-	protected CanvasVertexFormat format;
+abstract class AbstractDrawBuffer implements UploadableVertexStorage {
+	protected final CanvasVertexFormat format;
 	private int glBufferId = 0;
-	protected final int byteCount;
+	protected final int capacityBytes;
 	protected boolean isClosed = false;
 
 	/**
@@ -35,15 +36,16 @@ abstract class AbstractDrawBuffer {
 	 */
 	protected int vaoBufferId = 0;
 
-	protected AbstractDrawBuffer(int bytes) {
-		byteCount = bytes;
+	protected AbstractDrawBuffer(int capacityBytes, CanvasVertexFormat format) {
+		this.capacityBytes = capacityBytes;
+		this.format = format;
 	}
 
 	protected int glBufferId() {
 		int result = glBufferId;
 
 		if (result == 0) {
-			result = GlBufferAllocator.claimBuffer(byteCount);
+			result = GlBufferAllocator.claimBuffer(capacityBytes);
 			glBufferId = result;
 		}
 
@@ -66,12 +68,15 @@ abstract class AbstractDrawBuffer {
 		}
 	}
 
-	public void release() {
+	@Override
+	public AbstractDrawBuffer release() {
 		if (RenderSystem.isOnRenderThread()) {
 			shutdown();
 		} else {
 			RenderSystem.recordRenderCall(this::shutdown);
 		}
+
+		return null;
 	}
 
 	public final void shutdown() {
@@ -88,7 +93,7 @@ abstract class AbstractDrawBuffer {
 			final int glBufferId = this.glBufferId;
 
 			if (glBufferId != 0) {
-				GlBufferAllocator.releaseBuffer(glBufferId, byteCount);
+				GlBufferAllocator.releaseBuffer(glBufferId, capacityBytes);
 				this.glBufferId = 0;
 			}
 		}
@@ -98,5 +103,6 @@ abstract class AbstractDrawBuffer {
 
 	public abstract IntBuffer intBuffer();
 
+	@Override
 	public abstract void upload();
 }

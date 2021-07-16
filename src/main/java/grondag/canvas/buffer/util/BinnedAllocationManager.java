@@ -16,28 +16,22 @@
 
 package grondag.canvas.buffer.util;
 
+import static grondag.canvas.buffer.util.BinIndex.binIndex;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-
-import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.buffer.SimpleTransferBufferAllocator;
 import grondag.canvas.buffer.TransferBuffer;
 
 public class BinnedAllocationManager {
-	public static final int MIN_SIZE = 0x1000;
-	public static final int MAX_SIZE = 0x200000;
-	private static final int BIN_INDEX_SHIFT = 12;
+	static final int MAX_SIZE = 0x200000;
 	private static final int BIN_COUNT = 10;
 
 	private static final AtomicReference<BinState> STATE = new AtomicReference<>(new BinState());
 
 	private static BinState idleState = new BinState();
-
-	static int binIndex(int size) {
-		return MathHelper.log2(size >> BIN_INDEX_SHIFT);
-	}
 
 	public static class Bin {
 		private TransferBuffer claim(int bytes) {

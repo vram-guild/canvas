@@ -19,9 +19,9 @@ package grondag.canvas.render.region.base;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.DrawableStorage;
+import grondag.canvas.render.region.UploadableVertexStorage;
 
-public abstract class AbstractDrawableState<T extends DrawableStorage> {
+public abstract class AbstractDrawableState<T extends UploadableVertexStorage> {
 	protected T storage;
 	private final RenderState renderState;
 	private final int quadVertexCount;

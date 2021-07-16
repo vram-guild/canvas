@@ -19,16 +19,15 @@ package grondag.canvas.buffer;
 import java.nio.IntBuffer;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.render.region.DrawableStorage;
+import grondag.canvas.render.region.UploadableVertexStorage;
 import grondag.canvas.varia.GFX;
 
-public class StaticDrawBuffer extends AbstractDrawBuffer implements DrawableStorage {
+public class StaticDrawBuffer extends AbstractDrawBuffer implements UploadableVertexStorage {
 	TransferBuffer transferBuffer;
 
 	public StaticDrawBuffer(int bytes, CanvasVertexFormat format) {
-		super(bytes);
+		super(bytes, format);
 		transferBuffer = TransferBufferAllocator.claim(bytes);
-		this.format = format;
 	}
 
 	@Override

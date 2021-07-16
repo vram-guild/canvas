@@ -24,14 +24,14 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
-import grondag.canvas.buffer.StaticDrawBuffer;
+import grondag.canvas.buffer.StreamBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
 
 public class DrawableStream implements AutoCloseable {
-	@Nullable private StaticDrawBuffer buffer;
+	@Nullable private StreamBuffer buffer;
 	private final int limit;
 	private final int[] counts;
 	private final RenderState[] states;
@@ -47,8 +47,7 @@ public class DrawableStream implements AutoCloseable {
 			bytes += collector.byteSize();
 		}
 
-		// PERF: trial memory mapped here
-		buffer = new StaticDrawBuffer(bytes, CanvasVertexFormats.STANDARD_MATERIAL_FORMAT);
+		buffer = StreamBuffer.claim(bytes, CanvasVertexFormats.STANDARD_MATERIAL_FORMAT);
 		final IntBuffer intBuffer = buffer.intBuffer();
 		counts = new int[limit];
 		states = new RenderState[limit];

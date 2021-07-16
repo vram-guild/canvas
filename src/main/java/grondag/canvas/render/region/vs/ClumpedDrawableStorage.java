@@ -19,9 +19,9 @@ package grondag.canvas.render.region.vs;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.TransferBuffer;
-import grondag.canvas.render.region.DrawableStorage;
+import grondag.canvas.render.region.UploadableVertexStorage;
 
-public class ClumpedDrawableStorage implements DrawableStorage {
+public class ClumpedDrawableStorage implements UploadableVertexStorage {
 	private static final int NOT_ALLOCATED = -1;
 
 	private final ClumpedVertexStorage owner;
@@ -49,8 +49,10 @@ public class ClumpedDrawableStorage implements DrawableStorage {
 	}
 
 	@Override
-	public void release() {
+	public ClumpedDrawableStorage release() {
 		close(true);
+
+		return null;
 	}
 
 	public void close(boolean notify) {
