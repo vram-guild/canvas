@@ -26,7 +26,7 @@ import grondag.canvas.varia.GFX;
 
 abstract class AbstractDrawBuffer {
 	protected CanvasVertexFormat format;
-	protected int glBufferId = 0;
+	private int glBufferId = 0;
 	protected final int byteCount;
 	protected boolean isClosed = false;
 
@@ -37,7 +37,17 @@ abstract class AbstractDrawBuffer {
 
 	protected AbstractDrawBuffer(int bytes) {
 		byteCount = bytes;
-		glBufferId = GlBufferAllocator.claimBuffer(byteCount);
+	}
+
+	protected int glBufferId() {
+		int result = glBufferId;
+
+		if (result == 0) {
+			result = GlBufferAllocator.claimBuffer(byteCount);
+			glBufferId = result;
+		}
+
+		return result;
 	}
 
 	public void bind() {
@@ -47,7 +57,7 @@ abstract class AbstractDrawBuffer {
 			vaoBufferId = GFX.genVertexArray();
 			GFX.bindVertexArray(vaoBufferId);
 
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
 			format.enableAttributes();
 			format.bindAttributeLocations(0);
 			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
@@ -58,7 +68,7 @@ abstract class AbstractDrawBuffer {
 
 	public void release() {
 		if (RenderSystem.isOnRenderThread()) {
-			onShutdown();
+			shutdown();
 		} else {
 			RenderSystem.recordRenderCall(this::shutdown);
 		}

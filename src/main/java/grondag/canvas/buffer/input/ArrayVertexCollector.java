@@ -29,7 +29,6 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.vf.TerrainVertexFetch;
 
 public class ArrayVertexCollector implements VertexCollector {
 	private final int quadStrideInts;
@@ -166,7 +165,6 @@ public class ArrayVertexCollector implements VertexCollector {
 	};
 
 	public final QuadDistanceFunc quadDistanceStandard = this::getDistanceSq;
-	public final QuadDistanceFunc quadDistanceVertexFetch = this::getDistanceSqVertexFetch;
 
 	private float getDistanceSq(float x, float y, float z, int quadIndex) {
 		final int integerStride = quadStrideInts / 4;
@@ -191,41 +189,6 @@ public class ArrayVertexCollector implements VertexCollector {
 		final float x3 = Float.intBitsToFloat(vertexData[i]);
 		final float y3 = Float.intBitsToFloat(vertexData[i + 1]);
 		final float z3 = Float.intBitsToFloat(vertexData[i + 2]);
-
-		// compute average distance by component
-		final float dx = (x0 + x1 + x2 + x3) * 0.25f - x;
-		final float dy = (y0 + y1 + y2 + y3) * 0.25f - y;
-		final float dz = (z0 + z1 + z2 + z3) * 0.25f - z;
-
-		return dx * dx + dy * dy + dz * dz;
-	}
-
-	private float getDistanceSqVertexFetch(float x, float y, float z, int quadIndex) {
-		// unpack vertex coordinates
-		final int i = quadIndex * quadStrideInts;
-
-		final int blockOffset = vertexData[i];
-		final int bx = blockOffset & 0xF;
-		final int by = (blockOffset >> 4) & 0xF;
-		final int bz = (blockOffset >> 8) & 0xF;
-
-		final int[] vfData = TerrainVertexFetch.VERTEX.fromIndex(vertexData[i + 1] & 0xFFFFFF).data;
-
-		final float x0 = bx + Float.intBitsToFloat(vfData[0]);
-		final float y0 = by + Float.intBitsToFloat(vfData[1]);
-		final float z0 = bz + Float.intBitsToFloat(vfData[2]);
-
-		final float x1 = bx + Float.intBitsToFloat(vfData[4]);
-		final float y1 = by + Float.intBitsToFloat(vfData[5]);
-		final float z1 = bz + Float.intBitsToFloat(vfData[6]);
-
-		final float x2 = bx + Float.intBitsToFloat(vfData[8]);
-		final float y2 = by + Float.intBitsToFloat(vfData[9]);
-		final float z2 = bz + Float.intBitsToFloat(vfData[10]);
-
-		final float x3 = bx + Float.intBitsToFloat(vfData[12]);
-		final float y3 = by + Float.intBitsToFloat(vfData[13]);
-		final float z3 = bz + Float.intBitsToFloat(vfData[14]);
 
 		// compute average distance by component
 		final float dx = (x0 + x1 + x2 + x3) * 0.25f - x;

@@ -50,7 +50,6 @@ import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
-import grondag.canvas.vf.TerrainVertexFetch;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 
@@ -111,7 +110,6 @@ public class Canvas implements Renderer {
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
 		CanvasMod.LOG.info("Active terrain render config: " + Configurator.terrainRenderConfig.name);
-		TerrainVertexFetch.clear();
 
 		recompile();
 	}

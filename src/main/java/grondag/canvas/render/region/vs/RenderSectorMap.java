@@ -22,7 +22,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.terrain.region.RegionPosition;
-import grondag.canvas.vf.lookup.FixedCapacityIndexAllocator;
+import grondag.canvas.varia.FixedCapacityIndexAllocator;
 
 public class RenderSectorMap {
 	private static final int SECTOR_AXIS_LENGTH_BLOCKS = 128;

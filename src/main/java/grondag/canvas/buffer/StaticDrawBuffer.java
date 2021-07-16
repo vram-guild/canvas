@@ -34,7 +34,7 @@ public class StaticDrawBuffer extends AbstractDrawBuffer implements DrawableStor
 	@Override
 	public void upload() {
 		if (transferBuffer != null) {
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
 			transferBuffer = transferBuffer.releaseToBuffer(GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 		}

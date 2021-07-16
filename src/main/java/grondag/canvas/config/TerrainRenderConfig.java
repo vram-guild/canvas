@@ -18,18 +18,13 @@ package grondag.canvas.config;
 
 import grondag.canvas.render.region.base.RegionRenderConfig;
 import grondag.canvas.render.region.vbo.VboRegionRenderConfig;
-import grondag.canvas.render.region.vf.VfRegionRenderConfig;
 import grondag.canvas.render.region.vs.ClumpedRegionRenderConfig;
 import grondag.canvas.render.region.vs.MultiClumpedRegionRenderConfig;
 
 public enum TerrainRenderConfig {
 	DEFAULT(VboRegionRenderConfig.INSTANCE),
-	FETCH(VfRegionRenderConfig.INSTANCE),
-	//REGION(NaiveVsRegionRenderConfig.INSTANCE);
-	//REGION(NaiveVsRegionRenderConfig2.INSTANCE);
 	REGION(ClumpedRegionRenderConfig.INSTANCE),
 	MULTI(MultiClumpedRegionRenderConfig.INSTANCE);
-	//REGION(SimpleVsRegionRenderConfig.INSTANCE);
 
 	TerrainRenderConfig(RegionRenderConfig config) {
 		this.config = config;

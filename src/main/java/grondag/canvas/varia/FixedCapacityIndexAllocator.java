@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.vf.lookup;
+package grondag.canvas.varia;
 
 import java.util.BitSet;
 

@@ -27,6 +27,25 @@ vec4 frx_heldLight() {
 	return _cvu_world[_CV_HELD_LIGHT_RGBI];
 }
 
+/**
+ * A value less than 2PI radians should create a spot light effect.
+ * This is the angle of full brightness within the light cone.
+ * Attenuation is assumed to be the same as for non-spot lights.
+ */
+float frx_heldLightInnerRadius() {
+	return _cvu_world[_CV_RENDER_INFO].z;
+}
+
+/**
+ * The angle of reduced brightness around the inner light cone.
+ * If greater than frx_heldLightInnerConeAngle should create a
+ * fall-off effect around a spot light.
+ * Attenuation is assumed to be the same as for non-spot lights.
+ */
+float frx_heldLightOuterRadius() {
+	return _cvu_world[_CV_RENDER_INFO].w;
+}
+
 // Tokens accepted in frx_playerHasEffect
 // Includes all vanilla player effects in 1.16.4
 #define FRX_EFFECT_SPEED 0

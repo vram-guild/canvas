@@ -31,7 +31,6 @@ import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.region.DrawableRegion;
 import grondag.canvas.render.region.RegionDrawList;
 import grondag.canvas.render.region.base.RegionDrawListBuilder;
-import grondag.canvas.render.region.vf.VfDrawList;
 import grondag.canvas.render.region.vs.RenderSectorMap;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShadowMatrixData;
@@ -89,7 +88,7 @@ public class WorldRenderState {
 
 		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
 			shadowVisibleRegions[i] = new VisibleRegionList();
-			shadowDrawLists[i] = VfDrawList.EMPTY;
+			shadowDrawLists[i] = RegionDrawList.EMPTY;
 		}
 	}
 
@@ -207,14 +206,14 @@ public class WorldRenderState {
 
 	void clearDrawSpecs() {
 		solidDrawList.close();
-		solidDrawList = VfDrawList.EMPTY;
+		solidDrawList = RegionDrawList.EMPTY;
 
 		translucentDrawList.close();
-		translucentDrawList = VfDrawList.EMPTY;
+		translucentDrawList = RegionDrawList.EMPTY;
 
 		for (int i = 0; i < 4; ++i) {
 			shadowDrawLists[i].close();
-			shadowDrawLists[i] = VfDrawList.EMPTY;
+			shadowDrawLists[i] = RegionDrawList.EMPTY;
 		}
 	}
 

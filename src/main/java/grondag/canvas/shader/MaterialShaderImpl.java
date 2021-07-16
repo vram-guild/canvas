@@ -16,8 +16,6 @@
 
 package grondag.canvas.shader;
 
-import grondag.canvas.config.Configurator;
-import grondag.canvas.config.TerrainRenderConfig;
 import grondag.canvas.texture.SpriteIndex;
 
 public final class MaterialShaderImpl {
@@ -53,11 +51,6 @@ public final class MaterialShaderImpl {
 	public void setModelOrigin(int x, int y, int z, int regionBaseIndex, int quadMapBaseIndex) {
 		getOrCreate().activate();
 		program.setModelOrigin(x, y, z);
-
-		if (Configurator.terrainRenderConfigOption == TerrainRenderConfig.FETCH) {
-			program.baseRegionIndex.set(regionBaseIndex, quadMapBaseIndex);
-			program.baseRegionIndex.upload();
-		}
 	}
 
 	public void setCascade(int cascade) {

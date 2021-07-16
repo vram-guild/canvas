@@ -14,11 +14,24 @@
  *  the License.
  */
 
-package grondag.canvas.vf;
+package grondag.canvas.texture;
 
-import java.nio.IntBuffer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
-@FunctionalInterface
-public interface BufferWriter {
-	void write(IntBuffer buff, int startIndex);
+import grondag.canvas.varia.GFX;
+
+@Environment(EnvType.CLIENT)
+public class LookupImage3i extends AbstractLookupImage {
+	public LookupImage3i(int textureUnit, int texelCapacity) {
+		super(textureUnit, GFX.GL_RGB32I, texelCapacity, 3);
+	}
+
+	public void set(int index, int x, int y, int z) {
+		index *= intsPerTexel;
+		intValues.put(index, x);
+		intValues.put(index + 1, y);
+		intValues.put(index + 2, z);
+		isDirty.set(true);
+	}
 }

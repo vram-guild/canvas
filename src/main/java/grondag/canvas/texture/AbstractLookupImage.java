@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.vf.lookup;
+package grondag.canvas.texture;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -29,7 +29,6 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.render.CanvasTextureState;
-import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
 @Environment(EnvType.CLIENT)
