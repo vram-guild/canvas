@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.function.Consumer;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.util.BinIndex;
@@ -34,6 +35,9 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 	private final Consumer<T> releaseQueue;
 	private final BufferTrace trace = BufferTrace.create();
 
+	/** Signal that this buffer has been pre-mapped so that it can be populated off-thread. */
+	private volatile boolean isPreMapped = false;
+
 	protected AbstractMappedBuffer(BinIndex binIndex, int bindTarget, int usageHint, Consumer<T> releaseQueue) {
 		super(binIndex.capacityBytes(), bindTarget, usageHint);
 		this.binIndex = binIndex;
@@ -42,12 +46,30 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 
 	@Override
 	public final void prepare(int claimedBytes) {
-		assert this.claimedBytes == 0 : "Buffer claimed more than once";
+		// NB <= is because of pre-mapped buffers
+		assert this.claimedBytes == 0 || isPreMapped : "Buffer claimed more than once";
 		assert claimedBytes > 0 : "Buffer claimed with zero bytes";
+
+		if (!isPreMapped) {
+			assert RenderSystem.isOnRenderThread();
+			// Invalidate and map buffer
+			GFX.bindBuffer(bindTarget, glBufferId());
+			mappedBuffer = GFX.mapBufferRange(bindTarget, 0, claimedBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_INVALIDATE_BUFFER_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
+			GFX.bindBuffer(bindTarget, 0);
+		}
+
 		this.claimedBytes = claimedBytes;
+	}
+
+	public void prepareForOffThreadUse() {
+		assert !isPreMapped : "Pre-mapped buffer improperly unmapped";
+		assert RenderSystem.isOnRenderThread();
+
 		// Invalidate and map buffer
+		// In this path we map the entire buffer because we don't know in advance how much will be used.
+		isPreMapped = true;
 		GFX.bindBuffer(bindTarget, glBufferId());
-		mappedBuffer = GFX.mapBufferRange(bindTarget, 0, claimedBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_INVALIDATE_BUFFER_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
+		mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_INVALIDATE_BUFFER_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
 		GFX.bindBuffer(bindTarget, 0);
 	}
 
@@ -71,6 +93,7 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 	/** Un-map and bind. */
 	protected final void unmap() {
 		if (mappedBuffer != null) {
+			isPreMapped = false;
 			GFX.bindBuffer(bindTarget, glBufferId());
 			GFX.flushMappedBufferRange(bindTarget, 0, claimedBytes);
 			GFX.unmapBuffer(bindTarget);

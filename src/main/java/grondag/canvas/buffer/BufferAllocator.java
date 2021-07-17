@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.util.BinIndex;
 
@@ -33,35 +34,80 @@ import grondag.canvas.buffer.util.BinIndex;
  */
 public class BufferAllocator<T extends AllocatableBuffer> {
 	private final Function<BinIndex, T> allocator;
+	private final String traceName;
 
 	@SuppressWarnings("unchecked")
-	private final Queue<T>[] BINS = new Queue[BIN_COUNT];
+	protected final Queue<T>[] BINS = new Queue[BIN_COUNT];
 
-	BufferAllocator(Function<BinIndex, T> allocator, Supplier<Queue<T>> queueFactory) {
+	BufferAllocator(String traceName, Function<BinIndex, T> allocator, Supplier<Queue<T>> queueFactory) {
 		this.allocator = allocator;
+		this.traceName = traceName;
 
 		for (int i = 0; i < BIN_COUNT; ++i) {
 			BINS[i] = queueFactory.get();
 		}
 	}
 
-	public T claim(int claimedBytes) {
+	/**
+	 * Allocator may return null to allow for external fall-back allocation.
+	 */
+	public final @Nullable T claim(int claimedBytes) {
 		final BinIndex binIndex = bin(claimedBytes);
 		final var bin = BINS[binIndex.binIndex()];
+		trackClaim(binIndex);
 		T result = bin.poll();
 
 		if (result == null) {
 			result = allocator.apply(binIndex);
+
+			if (result == null) {
+				return null;
+			}
 		}
 
 		result.prepare(claimedBytes);
-		result.trace().onClaim();
+		result.trace().trace(traceName + " CLAIM");
 		return result;
+	}
+
+	/**
+	 * Removes or creates an instance without claiming it.
+	 * For transferring on-thread releases back to an off-thread allocator.
+	 */
+	public final @Nullable T take(BinIndex binIndex) {
+		assert RenderSystem.isOnRenderThread();
+		T result = BINS[binIndex.binIndex()].poll();
+
+		if (result == null) {
+			result = allocator.apply(binIndex);
+
+			if (result == null) {
+				return null;
+			}
+		}
+
+		result.trace().trace(traceName + " TAKE");
+		return result;
+	}
+
+	/**
+	 * Adds an instance directly without any extra steps.
+	 * For transferring on-thread releases back to an off-thread allocator.
+	 */
+	public final void put(T buffer) {
+		assert RenderSystem.isOnRenderThread();
+		buffer.trace().trace(traceName + " PUT");
+		BINS[buffer.binIndex().binIndex()].offer(buffer);
+	}
+
+	/** For the tracking sub-type. */
+	protected void trackClaim(BinIndex binIndex) {
+		// NOOP;
 	}
 
 	public void release (T buffer) {
 		assert RenderSystem.isOnRenderThread();
-		buffer.trace().onRelease();
+		buffer.trace().trace(traceName + " RELEASE");
 		BINS[buffer.binIndex().binIndex()].offer(buffer);
 	}
 

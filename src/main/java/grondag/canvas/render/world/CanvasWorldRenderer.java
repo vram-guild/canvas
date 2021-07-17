@@ -75,6 +75,7 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.StreamBufferAllocator;
+import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.DrawableStream;
@@ -738,6 +739,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final boolean wasFabulous = Pipeline.isFabulous();
 
 		DirectBufferAllocator.update();
+		TransferBuffer.update();
 		PipelineManager.reloadIfNeeded();
 
 		if (wasFabulous != Pipeline.isFabulous()) {
@@ -791,6 +793,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		vanillaWorldRenderer.canvas_reload();
 
 		worldRenderState.clear();
+		TransferBuffer.forceReload();
 		StreamBufferAllocator.forceReload();
 		//ClassInspector.inspect();
 	}

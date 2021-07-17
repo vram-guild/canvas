@@ -36,7 +36,7 @@ public class StreamBufferAllocator {
 		assert RenderSystem.isOnRenderThread();
 		return ALLOCATORS.computeIfAbsent(format, binIndex -> {
 			final Function<BinIndex, StreamBuffer> allocator = b -> new StreamBuffer(b, format);
-			return new BufferAllocator<>(allocator, ArrayDeque::new);
+			return new BufferAllocator<>("STREAM", allocator, ArrayDeque::new);
 		}).claim(bytes);
 	}
 

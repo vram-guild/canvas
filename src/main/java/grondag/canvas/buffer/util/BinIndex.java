@@ -46,6 +46,10 @@ public record BinIndex(int binIndex, int capacityBytes) {
 		return Math.max(0, MathHelper.log2(size) - BIN_INDEX_SHIFT);
 	}
 
+	public static final BinIndex fromIndex(int index) {
+		return BINS[index];
+	}
+
 	public static final BinIndex bin(int capacityBytes) {
 		assert capacityBytes > 0;
 		return BINS[binIndex(capacityBytes)];

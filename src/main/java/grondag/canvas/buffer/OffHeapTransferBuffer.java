@@ -78,10 +78,6 @@ class OffHeapTransferBuffer implements TransferBuffer, AllocatableBuffer {
 		data = null;
 	}
 
-	static OffHeapTransferBuffer claim(int claimedBytes) {
-		return THREAD_SAFE_ALLOCATOR.claim(claimedBytes);
-	}
-
 	@Override
 	public @Nullable OffHeapTransferBuffer release() {
 		assert claimedBytes > 0 : "Buffer released while unclaimed";
@@ -95,5 +91,5 @@ class OffHeapTransferBuffer implements TransferBuffer, AllocatableBuffer {
 		return trace;
 	}
 
-	private static final BufferAllocator<OffHeapTransferBuffer> THREAD_SAFE_ALLOCATOR = new BufferAllocator<>(OffHeapTransferBuffer::new, ConcurrentLinkedQueue::new);
+	static final BufferAllocator<OffHeapTransferBuffer> THREAD_SAFE_ALLOCATOR = new BufferAllocator<>("OFF HEAP", OffHeapTransferBuffer::new, ConcurrentLinkedQueue::new);
 }

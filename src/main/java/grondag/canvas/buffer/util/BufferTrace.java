@@ -19,12 +19,14 @@ package grondag.canvas.buffer.util;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public abstract class BufferTrace {
-	public abstract void onClaim();
+import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
+import org.apache.commons.lang3.tuple.Pair;
 
-	public abstract void onRelease();
+public abstract class BufferTrace {
+	public abstract void trace(String label);
 
 	private static final boolean ENABLE = false;
+	private static final int MAX_SIZE = 20;
 
 	public static BufferTrace create() {
 		return ENABLE ? new Active() : DUMMY;
@@ -32,64 +34,43 @@ public abstract class BufferTrace {
 
 	private static final BufferTrace DUMMY = new BufferTrace() {
 		@Override
-		public void onClaim() { }
-
-		@Override
-		public void onRelease() { }
+		public void trace(String label) { }
 	};
 
 	static class Active extends BufferTrace {
-		private StackTraceElement[] last;
-		private StackTraceElement[] beforeLast;
-		private StackTraceElement[] priorBeforeLast;
-
-		private String lastType;
-		private String beforeLastType;
-		private String priorBeforeLastType;
-
-		private void capture(String type) {
-			priorBeforeLastType = beforeLastType;
-			beforeLastType = lastType;
-			lastType = type;
-
-			priorBeforeLast = beforeLast;
-			beforeLast = last;
-			last = Thread.currentThread().getStackTrace();
-		}
+		private final ObjectArrayFIFOQueue<Pair<String, StackTraceElement[]>> queue = new ObjectArrayFIFOQueue<>();
 
 		@Override
-		public void onClaim() {
-			capture("CLAIM");
-		}
+		public void trace(String type) {
+			synchronized (queue) {
+				queue.enqueue(Pair.of(
+						type + " " + Thread.currentThread().getName(),
+						Thread.currentThread().getStackTrace()));
 
-		@Override
-		public void onRelease() {
-			capture("RELEASE");
+				if (queue.size() > MAX_SIZE) {
+					queue.dequeue();
+				}
+			}
 		}
 
 		@Override
 		public String toString() {
-			StringBuilder builder = new StringBuilder();
+			synchronized (queue) {
+				final int limit = queue.size();
+				StringBuilder builder = new StringBuilder();
 
-			if (priorBeforeLast != null) {
-				builder.append(priorBeforeLastType).append("\n===========================================\n")
-					.append(Arrays.stream(priorBeforeLast).map(StackTraceElement::toString).collect(Collectors.joining("\n")))
+				for (int i = 0; i < limit; ++i) {
+					final var entry = queue.dequeue();
+
+					builder.append(entry.getLeft()).append("\n===========================================\n")
+					.append(Arrays.stream(entry.getRight()).map(StackTraceElement::toString).collect(Collectors.joining("\n")))
 					.append("\n");
-			}
 
-			if (beforeLast != null) {
-				builder.append(beforeLastType).append("\n===========================================\n")
-					.append(Arrays.stream(beforeLast).map(StackTraceElement::toString).collect(Collectors.joining("\n")))
-					.append("\n");
-			}
+					queue.enqueue(entry);
+				}
 
-			if (last != null) {
-				builder.append(lastType).append("\n===========================================\n")
-					.append(Arrays.stream(last).map(StackTraceElement::toString).collect(Collectors.joining("\n")))
-					.append("\n");
+				return builder.toString();
 			}
-
-			return builder.toString();
 		}
 	}
 }

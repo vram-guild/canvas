@@ -19,6 +19,8 @@ package grondag.canvas.buffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
+import grondag.canvas.buffer.util.BinIndex;
+
 public interface TransferBuffer {
 	int sizeBytes();
 
@@ -31,11 +33,42 @@ public interface TransferBuffer {
 	@Nullable
 	TransferBuffer releaseToBoundBuffer(int target, int targetStartBytes);
 
-	static TransferBuffer claim(int byteCount) {
+	static TransferBuffer claim(int byteSize) {
 		if (RenderSystem.isOnRenderThread()) {
-			return MappedTransferBuffer.claim(byteCount);
+			return MappedTransferBuffer.RENDER_THREAD_ALLOCATOR.claim(byteSize);
 		} else {
-			return OffHeapTransferBuffer.claim(byteCount);
+			final MappedTransferBuffer result = MappedTransferBuffer.THREAD_SAFE_ALLOCATOR.claim(byteSize);
+			return result == null ? OffHeapTransferBuffer.THREAD_SAFE_ALLOCATOR.claim(byteSize) : result;
 		}
+	}
+
+	static void forceReload() {
+		assert RenderSystem.isOnRenderThread();
+		MappedTransferBuffer.RENDER_THREAD_ALLOCATOR.forceReload();
+		MappedTransferBuffer.THREAD_SAFE_ALLOCATOR.forceReload();
+		OffHeapTransferBuffer.THREAD_SAFE_ALLOCATOR.forceReload();
+	}
+
+	static void update() {
+		assert RenderSystem.isOnRenderThread();
+
+		MappedTransferBuffer.THREAD_SAFE_ALLOCATOR.forecastUnmetDemand();
+
+		for (int i = 0; i < BinIndex.BIN_COUNT; ++i) {
+			final BinIndex bin = BinIndex.fromIndex(i);
+			final int demand = MappedTransferBuffer.THREAD_SAFE_ALLOCATOR.unmetDemandForecast(bin);
+
+			if (demand > 0) {
+				for (int j = 0; j < demand; ++j) {
+					MappedTransferBuffer buff = MappedTransferBuffer.RENDER_THREAD_ALLOCATOR.take(bin);
+					buff.prepareForOffThreadUse();
+					MappedTransferBuffer.THREAD_SAFE_ALLOCATOR.put(buff);
+				}
+			}
+		}
+	}
+
+	static String debugString() {
+		return String.format("Peak mapped xfer buffers:%5.1fMb", (double) MappedTransferBuffer.THREAD_SAFE_ALLOCATOR.totalPeakDemandBytes() / 0x100000);
 	}
 }

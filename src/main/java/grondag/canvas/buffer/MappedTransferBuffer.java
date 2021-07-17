@@ -17,6 +17,7 @@
 package grondag.canvas.buffer;
 
 import java.util.ArrayDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -43,14 +44,10 @@ public class MappedTransferBuffer extends AbstractMappedBuffer<MappedTransferBuf
 		unmap();
 		GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, target, 0, targetStartBytes, sizeBytes());
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
-		RENDER_THREAD_ALLOCATOR.release(this);
 		release();
 		return null;
 	}
 
-	private static final BufferAllocator<MappedTransferBuffer> RENDER_THREAD_ALLOCATOR = new BufferAllocator<>(MappedTransferBuffer::new, ArrayDeque::new);
-
-	public static MappedTransferBuffer claim(int byteSize) {
-		return RENDER_THREAD_ALLOCATOR.claim(byteSize);
-	}
+	static final BufferAllocator<MappedTransferBuffer> RENDER_THREAD_ALLOCATOR = new BufferAllocator<>("RENDER THREAD MAPPED", MappedTransferBuffer::new, ArrayDeque::new);
+	static final TrackedBufferAllocator<MappedTransferBuffer> THREAD_SAFE_ALLOCATOR = new TrackedBufferAllocator<>("OFF THREAD MAPPED", b -> null, ConcurrentLinkedQueue::new);
 }

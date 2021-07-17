@@ -42,6 +42,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.GlBufferAllocator;
@@ -149,6 +150,7 @@ public class MixinDebugHud extends DrawableHelper {
 		result.add("Canvas Renderer " + CanvasMod.versionString);
 		result.add(DirectBufferAllocator.debugString());
 		result.add(GlBufferAllocator.debugString());
+		result.add(TransferBuffer.debugString());
 		result.add(ArrayVertexCollector.debugReport());
 		TerrainExecutor.INSTANCE.debugReport(result);
 		return result;
