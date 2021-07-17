@@ -16,13 +16,10 @@
 
 package grondag.canvas.buffer;
 
-import static grondag.canvas.buffer.util.BinIndex.BIN_COUNT;
-import static grondag.canvas.buffer.util.BinIndex.bin;
-
 import java.util.IdentityHashMap;
+import java.util.function.Function;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.util.BinIndex;
@@ -32,53 +29,19 @@ import grondag.canvas.buffer.util.BinIndex;
  * Implements configuration of allocation method.
  */
 public class StreamBufferAllocator {
-	private static class AllocationState {
-		private final CanvasVertexFormat format;
-
-		@SuppressWarnings("unchecked")
-		private static final ObjectArrayList<StreamBuffer>[] BINS = new ObjectArrayList[BIN_COUNT];
-
-		AllocationState(CanvasVertexFormat format) {
-			this.format = format;
-
-			for (int i = 0; i < BIN_COUNT; ++i) {
-				BINS[i] = new ObjectArrayList<>();
-			}
-		}
-
-		private StreamBuffer claim(int claimedBytes) {
-			final BinIndex binIndex = bin(claimedBytes);
-			final var list = BINS[binIndex.binIndex()];
-			final StreamBuffer result = list.isEmpty() ? new StreamBuffer(binIndex, format) : list.pop();
-			result.prepare(claimedBytes);
-			return result;
-		}
-
-		private void release (StreamBuffer buffer) {
-			BINS[buffer.binIndex.binIndex()].add(buffer);
-		}
-
-		private void forceReload() {
-			for (var list : BINS) {
-				for (var stream : list) {
-					stream.shutdown();
-				}
-
-				list.clear();
-			}
-		}
-	}
-
-	private static final IdentityHashMap<CanvasVertexFormat, AllocationState> ALLOCATORS = new IdentityHashMap<>();
+	private static final IdentityHashMap<CanvasVertexFormat, RenderThreadBufferAllocator<StreamBuffer>> ALLOCATORS = new IdentityHashMap<>();
 
 	static StreamBuffer claim(CanvasVertexFormat format, int bytes) {
 		assert RenderSystem.isOnRenderThread();
-		return ALLOCATORS.computeIfAbsent(format, AllocationState::new).claim(bytes);
+		return ALLOCATORS.computeIfAbsent(format, binIndex -> {
+			final Function<BinIndex, StreamBuffer> allocator = b -> new StreamBuffer(b, format);
+			return new RenderThreadBufferAllocator<>(allocator);
+		}).claim(bytes);
 	}
 
 	public static void forceReload() {
 		assert RenderSystem.isOnRenderThread();
-		ALLOCATORS.values().forEach(AllocationState::forceReload);
+		ALLOCATORS.values().forEach(RenderThreadBufferAllocator::forceReload);
 	}
 
 	static void release(StreamBuffer streamBuffer) {

@@ -16,26 +16,39 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.IntBuffer;
-
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.render.region.UploadableVertexStorage;
 import grondag.canvas.varia.GFX;
 
-abstract class AbstractDrawBuffer extends AbstractGlBuffer implements UploadableVertexStorage {
-	private final BufferVAO vao;
+public class BufferVAO {
+	public final CanvasVertexFormat format;
 
-	protected AbstractDrawBuffer(int capacityBytes, CanvasVertexFormat format) {
-		super(capacityBytes);
-		vao = new BufferVAO(format);
+	/**
+	 * VAO Buffer name if enabled and initialized.
+	 */
+	private int vaoBufferId = 0;
+
+	public BufferVAO(CanvasVertexFormat format) {
+		this.format = format;
 	}
 
-	public void bind() {
-		vao.bind(GFX.GL_ARRAY_BUFFER, glBufferId());
+	public final void bind(int target, int glBufferId) {
+		if (vaoBufferId == 0) {
+			vaoBufferId = GFX.genVertexArray();
+			GFX.bindVertexArray(vaoBufferId);
+
+			GFX.bindBuffer(target, glBufferId);
+			format.enableAttributes();
+			format.bindAttributeLocations(0);
+			GFX.bindBuffer(target, 0);
+		} else {
+			GFX.bindVertexArray(vaoBufferId);
+		}
 	}
 
-	public abstract IntBuffer intBuffer();
-
-	@Override
-	public abstract void upload();
+	public final void shutdown() {
+		if (vaoBufferId != 0) {
+			GFX.deleteVertexArray(vaoBufferId);
+			vaoBufferId = 0;
+		}
+	}
 }

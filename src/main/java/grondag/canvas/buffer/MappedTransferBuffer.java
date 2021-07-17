@@ -16,92 +16,37 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.util.function.Consumer;
-
 import org.jetbrains.annotations.Nullable;
 
-import grondag.canvas.buffer.util.GlBufferAllocator;
+import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.varia.GFX;
 
-public class MappedTransferBuffer implements TransferBuffer {
-	private final int capacityBytes;
-	private final Consumer<MappedTransferBuffer> releaseQueue;
-	private int glBufferId;
-	private ByteBuffer mappedBuffer;
-	private int claimedBytes;
+public class MappedTransferBuffer extends AbstractMappedBuffer implements NewTransferBuffer {
+	public MappedTransferBuffer(BinIndex binIndex) {
+		super(binIndex, GFX.GL_COPY_READ_BUFFER, GFX.GL_STREAM_READ);
+	}
 
-	public MappedTransferBuffer(int capacityBytes, Consumer<MappedTransferBuffer> releaseQueue) {
-		this.capacityBytes = capacityBytes;
-		this.releaseQueue = releaseQueue;
-		glBufferId = GlBufferAllocator.claimBuffer(capacityBytes);
-		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, glBufferId);
-		GFX.bufferData(GFX.GL_COPY_READ_BUFFER, capacityBytes, GFX.GL_STREAM_READ);
+	@Override
+	public @Nullable MappedTransferBuffer release() {
+		unmap();
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
-	}
-
-	// WIP: remove - should always be doing copy to buffer
-	@Override
-	public @Nullable TransferBuffer releaseToMappedBuffer(ByteBuffer targetBuffer, int targetOffset, int sourceOffset, int byteCount) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IntBuffer asIntBuffer() {
-		return mappedBuffer.asIntBuffer();
-	}
-
-	@Override
-	public @Nullable TransferBuffer release() {
-		// We don't do anything here because we may not be on render thread.
-		// Will prepare for next frame when allocation manager requests it.
-		claimedBytes = 0;
-		releaseQueue.accept(this);
+		RENDER_THREAD_ALLOCATOR.release(this);
 		return null;
 	}
 
-	// WIP: remove - should always be doing copy to buffer
 	@Override
-	public @Nullable TransferBuffer releaseToBuffer(int target, int usage) {
-		throw new UnsupportedOperationException();
+	public void put(int[] source, int sourceStartInts, int targetStartInts, int lengthInts) {
+		intBuffer().put(targetStartInts, source, sourceStartInts, lengthInts);
 	}
 
-	// WIP: remove - should always be doing copy to buffer
 	@Override
-	public @Nullable TransferBuffer releaseToSubBuffer(int glArrayBuffer, int unpackVacancyAddress, int vacantBytes) {
-		throw new UnsupportedOperationException();
+	public @Nullable NewTransferBuffer releaseToBoundBuffer(int target, int targetStartBytes) {
+		unmap();
+		GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, target, 0, targetStartBytes, sizeBytes());
+		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
+		RENDER_THREAD_ALLOCATOR.release(this);
+		return null;
 	}
 
-	/** Called by allocation manager on render thread before made available to requesters. */
-	void reset() {
-		if (mappedBuffer != null) {
-			GFX.unmapBuffer(glBufferId);
-			mappedBuffer = null;
-		}
-
-		// Invalidate and map buffer
-		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, glBufferId);
-		mappedBuffer = GFX.mapBufferRange(GFX.GL_COPY_READ_BUFFER, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_INVALIDATE_BUFFER_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
-	}
-
-	/** Called by allocation manager before given to requester. */
-	void setClaimed(int claimedBytes) {
-		assert claimedBytes > 0;
-		assert claimedBytes <= capacityBytes;
-		this.claimedBytes = claimedBytes;
-	}
-
-	/** Used only by allocation manager to prune / shut down. */
-	void close() {
-		if (mappedBuffer != null) {
-			GFX.unmapBuffer(glBufferId);
-			mappedBuffer = null;
-		}
-
-		if (glBufferId != 0) {
-			GlBufferAllocator.releaseBuffer(glBufferId, capacityBytes);
-			glBufferId = 0;
-		}
-	}
+	public static final RenderThreadBufferAllocator<MappedTransferBuffer> RENDER_THREAD_ALLOCATOR = new RenderThreadBufferAllocator<>(MappedTransferBuffer::new);
 }

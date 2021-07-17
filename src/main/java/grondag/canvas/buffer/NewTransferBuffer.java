@@ -16,26 +16,17 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.IntBuffer;
+import org.jetbrains.annotations.Nullable;
 
-import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.render.region.UploadableVertexStorage;
-import grondag.canvas.varia.GFX;
+public interface NewTransferBuffer {
+	int sizeBytes();
 
-abstract class AbstractDrawBuffer extends AbstractGlBuffer implements UploadableVertexStorage {
-	private final BufferVAO vao;
+	void put(int[] source, int sourceStart, int targetStart, int length);
 
-	protected AbstractDrawBuffer(int capacityBytes, CanvasVertexFormat format) {
-		super(capacityBytes);
-		vao = new BufferVAO(format);
-	}
+	/** MUST be called if one of other release methods isn't. ALWAYS returns null. */
+	@Nullable
+	NewTransferBuffer release();
 
-	public void bind() {
-		vao.bind(GFX.GL_ARRAY_BUFFER, glBufferId());
-	}
-
-	public abstract IntBuffer intBuffer();
-
-	@Override
-	public abstract void upload();
+	@Nullable
+	NewTransferBuffer releaseToBoundBuffer(int target, int targetStartBytes);
 }

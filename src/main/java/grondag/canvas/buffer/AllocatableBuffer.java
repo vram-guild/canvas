@@ -16,26 +16,12 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.IntBuffer;
+import grondag.canvas.buffer.util.BinIndex;
 
-import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.render.region.UploadableVertexStorage;
-import grondag.canvas.varia.GFX;
+public interface AllocatableBuffer {
+	BinIndex binIndex();
 
-abstract class AbstractDrawBuffer extends AbstractGlBuffer implements UploadableVertexStorage {
-	private final BufferVAO vao;
+	void prepare(int claimedBytes);
 
-	protected AbstractDrawBuffer(int capacityBytes, CanvasVertexFormat format) {
-		super(capacityBytes);
-		vao = new BufferVAO(format);
-	}
-
-	public void bind() {
-		vao.bind(GFX.GL_ARRAY_BUFFER, glBufferId());
-	}
-
-	public abstract IntBuffer intBuffer();
-
-	@Override
-	public abstract void upload();
+	void shutdown();
 }
