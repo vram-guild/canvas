@@ -35,7 +35,7 @@ public interface TransferBuffer {
 		if (RenderSystem.isOnRenderThread()) {
 			return MappedTransferBuffer.claim(byteCount);
 		} else {
-			return ArrayTransferBuffer.claim(byteCount);
+			return OffHeapTransferBuffer.claim(byteCount);
 		}
 	}
 }
