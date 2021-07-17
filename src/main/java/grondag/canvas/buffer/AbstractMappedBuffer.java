@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.util.BinIndex;
+import grondag.canvas.buffer.util.BufferTrace;
 import grondag.canvas.varia.GFX;
 
 public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends AbstractGlBuffer implements AllocatableBuffer {

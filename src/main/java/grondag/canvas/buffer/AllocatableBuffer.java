@@ -17,6 +17,7 @@
 package grondag.canvas.buffer;
 
 import grondag.canvas.buffer.util.BinIndex;
+import grondag.canvas.buffer.util.BufferTrace;
 
 public interface AllocatableBuffer {
 	BinIndex binIndex();

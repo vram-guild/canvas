@@ -48,7 +48,7 @@ public class MappedTransferBuffer extends AbstractMappedBuffer<MappedTransferBuf
 		return null;
 	}
 
-	private static final RenderThreadBufferAllocator<MappedTransferBuffer> RENDER_THREAD_ALLOCATOR = new RenderThreadBufferAllocator<>(MappedTransferBuffer::new, ArrayDeque::new);
+	private static final BufferAllocator<MappedTransferBuffer> RENDER_THREAD_ALLOCATOR = new BufferAllocator<>(MappedTransferBuffer::new, ArrayDeque::new);
 
 	public static MappedTransferBuffer claim(int byteSize) {
 		return RENDER_THREAD_ALLOCATOR.claim(byteSize);

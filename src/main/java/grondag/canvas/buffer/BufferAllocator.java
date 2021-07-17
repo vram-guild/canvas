@@ -31,13 +31,13 @@ import grondag.canvas.buffer.util.BinIndex;
  * Tracks all allocations, ensures deallocation on render reload.
  * Implements configuration of allocation method.
  */
-public class RenderThreadBufferAllocator<T extends AllocatableBuffer> {
+public class BufferAllocator<T extends AllocatableBuffer> {
 	private final Function<BinIndex, T> allocator;
 
 	@SuppressWarnings("unchecked")
 	private final Queue<T>[] BINS = new Queue[BIN_COUNT];
 
-	RenderThreadBufferAllocator(Function<BinIndex, T> allocator, Supplier<Queue<T>> queueFactory) {
+	BufferAllocator(Function<BinIndex, T> allocator, Supplier<Queue<T>> queueFactory) {
 		this.allocator = allocator;
 
 		for (int i = 0; i < BIN_COUNT; ++i) {

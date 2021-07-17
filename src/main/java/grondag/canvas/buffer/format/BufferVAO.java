@@ -14,34 +14,40 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.util;
+package grondag.canvas.buffer.format;
 
 import grondag.canvas.varia.GFX;
 
-/**
- * Provides a clean vertex binding state with nothing bound.
- * DO NOT MODIFY BUFFER STATE WHILE USING.
- * (That would defeat the purpose.)
- */
-public class CleanVAO {
-	private static int vaoBufferId = -1;
+public class BufferVAO {
+	public final CanvasVertexFormat format;
 
-	public static void bind() {
-		if (vaoBufferId == -1) {
+	/**
+	 * VAO Buffer name if enabled and initialized.
+	 */
+	private int vaoBufferId = 0;
+
+	public BufferVAO(CanvasVertexFormat format) {
+		this.format = format;
+	}
+
+	public final void bind(int target, int glBufferId) {
+		if (vaoBufferId == 0) {
 			vaoBufferId = GFX.genVertexArray();
+			GFX.bindVertexArray(vaoBufferId);
+
+			GFX.bindBuffer(target, glBufferId);
+			format.enableAttributes();
+			format.bindAttributeLocations(0);
+			GFX.bindBuffer(target, 0);
+		} else {
+			GFX.bindVertexArray(vaoBufferId);
 		}
-
-		GFX.bindVertexArray(vaoBufferId);
 	}
 
-	public static void unbind() {
-		GFX.bindVertexArray(vaoBufferId);
-	}
-
-	public static void reset() {
-		if (vaoBufferId != -1) {
+	public final void shutdown() {
+		if (vaoBufferId != 0) {
 			GFX.deleteVertexArray(vaoBufferId);
-			vaoBufferId = -1;
+			vaoBufferId = 0;
 		}
 	}
 }

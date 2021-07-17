@@ -30,19 +30,19 @@ import grondag.canvas.buffer.util.BinIndex;
  * Implements configuration of allocation method.
  */
 public class StreamBufferAllocator {
-	private static final IdentityHashMap<CanvasVertexFormat, RenderThreadBufferAllocator<StreamBuffer>> ALLOCATORS = new IdentityHashMap<>();
+	private static final IdentityHashMap<CanvasVertexFormat, BufferAllocator<StreamBuffer>> ALLOCATORS = new IdentityHashMap<>();
 
 	static StreamBuffer claim(CanvasVertexFormat format, int bytes) {
 		assert RenderSystem.isOnRenderThread();
 		return ALLOCATORS.computeIfAbsent(format, binIndex -> {
 			final Function<BinIndex, StreamBuffer> allocator = b -> new StreamBuffer(b, format);
-			return new RenderThreadBufferAllocator<>(allocator, ArrayDeque::new);
+			return new BufferAllocator<>(allocator, ArrayDeque::new);
 		}).claim(bytes);
 	}
 
 	public static void forceReload() {
 		assert RenderSystem.isOnRenderThread();
-		ALLOCATORS.values().forEach(RenderThreadBufferAllocator::forceReload);
+		ALLOCATORS.values().forEach(BufferAllocator::forceReload);
 	}
 
 	static void release(StreamBuffer streamBuffer) {

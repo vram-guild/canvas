@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.util.BinIndex;
+import grondag.canvas.buffer.util.BufferTrace;
 
 class ArrayTransferBuffer implements TransferBuffer, AllocatableBuffer {
 	final BinIndex bin;
@@ -92,5 +93,5 @@ class ArrayTransferBuffer implements TransferBuffer, AllocatableBuffer {
 		return trace;
 	}
 
-	private static final RenderThreadBufferAllocator<ArrayTransferBuffer> THREAD_SAFE_ALLOCATOR = new RenderThreadBufferAllocator<>(ArrayTransferBuffer::new, ConcurrentLinkedQueue::new);
+	private static final BufferAllocator<ArrayTransferBuffer> THREAD_SAFE_ALLOCATOR = new BufferAllocator<>(ArrayTransferBuffer::new, ConcurrentLinkedQueue::new);
 }

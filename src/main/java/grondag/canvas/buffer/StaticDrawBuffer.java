@@ -16,6 +16,7 @@
 
 package grondag.canvas.buffer;
 
+import grondag.canvas.buffer.format.BufferVAO;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.render.region.UploadableVertexStorage;
 import grondag.canvas.varia.GFX;

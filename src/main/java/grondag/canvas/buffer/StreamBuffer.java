@@ -18,6 +18,7 @@ package grondag.canvas.buffer;
 
 import org.jetbrains.annotations.Nullable;
 
+import grondag.canvas.buffer.format.BufferVAO;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.render.region.UploadableVertexStorage;
