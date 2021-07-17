@@ -16,49 +16,81 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.IntBuffer;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.jetbrains.annotations.Nullable;
 
-class ArrayTransferBuffer implements NewTransferBuffer {
+import grondag.canvas.buffer.util.BinIndex;
+
+class ArrayTransferBuffer implements TransferBuffer, AllocatableBuffer {
+	final BinIndex bin;
 	final int capacityBytes;
 	final int[] data;
-	int claimedBytes;
+	volatile int claimedBytes;
+	private final BufferTrace trace = BufferTrace.create();
 
-	ArrayTransferBuffer(int capacityBytes) {
-		this.capacityBytes = capacityBytes;
+	ArrayTransferBuffer(BinIndex bin) {
+		this.bin = bin;
+		capacityBytes = bin.capacityBytes();
 		data = new int[capacityBytes];
 	}
 
 	@Override
-	public @Nullable ArrayTransferBuffer release() {
-		return null;
-	}
-
-	void claim(int claimedBytes) {
-		this.claimedBytes = claimedBytes;
-	}
-
-	@Override
 	public void put(int[] source, int sourceStartInts, int targetStartInts, int lengthInts) {
+		assert claimedBytes > 0 : "Buffer accessed while unclaimed";
 		assert sourceStartInts + lengthInts <= claimedBytes * 4;
 		System.arraycopy(source, sourceStartInts, data, targetStartInts, lengthInts);
 	}
 
 	@Override
 	public int sizeBytes() {
+		assert claimedBytes > 0 : "Buffer accessed while unclaimed";
 		return claimedBytes;
 	}
 
-	public @Nullable ArrayTransferBuffer releaseToMappedBuffer(IntBuffer targetBuffer, int targetStartBytes) {
-		targetBuffer.put(targetStartBytes / 4, data, 0, claimedBytes / 4);
+	@Override
+	public @Nullable ArrayTransferBuffer releaseToBoundBuffer(int target, int targetStartBytes) {
+		assert claimedBytes > 0 : "Buffer accessed while unclaimed";
+		final MappedTransferBuffer mapped = MappedTransferBuffer.claim(claimedBytes);
+		mapped.put(data, 0, 0, claimedBytes / 4);
+		mapped.releaseToBoundBuffer(target, targetStartBytes);
 		release();
 		return null;
 	}
 
 	@Override
-	public @Nullable ArrayTransferBuffer releaseToBoundBuffer(int target, int targetStartBytes) {
-		release();
+	public BinIndex binIndex() {
+		return bin;
+	}
+
+	@Override
+	public void prepare(int claimedBytes) {
+		assert this.claimedBytes == 0 : "Buffer claimed more than once";
+		assert claimedBytes > 0 : "Buffer claimed with zero bytes";
+		this.claimedBytes = claimedBytes;
+	}
+
+	@Override
+	public void shutdown() {
+		// NOOP
+	}
+
+	static ArrayTransferBuffer claim(int claimedBytes) {
+		return THREAD_SAFE_ALLOCATOR.claim(claimedBytes);
+	}
+
+	@Override
+	public @Nullable ArrayTransferBuffer release() {
+		assert claimedBytes > 0 : "Buffer released while unclaimed";
+		claimedBytes = 0;
+		THREAD_SAFE_ALLOCATOR.release(this);
 		return null;
 	}
+
+	@Override
+	public BufferTrace trace() {
+		return trace;
+	}
+
+	private static final RenderThreadBufferAllocator<ArrayTransferBuffer> THREAD_SAFE_ALLOCATOR = new RenderThreadBufferAllocator<>(ArrayTransferBuffer::new, ConcurrentLinkedQueue::new);
 }

@@ -19,10 +19,11 @@ package grondag.canvas.buffer;
 import static grondag.canvas.buffer.util.BinIndex.BIN_COUNT;
 import static grondag.canvas.buffer.util.BinIndex.bin;
 
+import java.util.Queue;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.util.BinIndex;
 
@@ -34,28 +35,34 @@ public class RenderThreadBufferAllocator<T extends AllocatableBuffer> {
 	private final Function<BinIndex, T> allocator;
 
 	@SuppressWarnings("unchecked")
-	private final ObjectArrayList<T>[] BINS = new ObjectArrayList[BIN_COUNT];
+	private final Queue<T>[] BINS = new Queue[BIN_COUNT];
 
-	RenderThreadBufferAllocator(Function<BinIndex, T> allocator) {
+	RenderThreadBufferAllocator(Function<BinIndex, T> allocator, Supplier<Queue<T>> queueFactory) {
 		this.allocator = allocator;
 
 		for (int i = 0; i < BIN_COUNT; ++i) {
-			BINS[i] = new ObjectArrayList<>();
+			BINS[i] = queueFactory.get();
 		}
 	}
 
 	public T claim(int claimedBytes) {
-		assert RenderSystem.isOnRenderThread();
 		final BinIndex binIndex = bin(claimedBytes);
-		final var list = BINS[binIndex.binIndex()];
-		final T result = list.isEmpty() ? allocator.apply(binIndex) : list.pop();
+		final var bin = BINS[binIndex.binIndex()];
+		T result = bin.poll();
+
+		if (result == null) {
+			result = allocator.apply(binIndex);
+		}
+
 		result.prepare(claimedBytes);
+		result.trace().onClaim();
 		return result;
 	}
 
 	public void release (T buffer) {
 		assert RenderSystem.isOnRenderThread();
-		BINS[buffer.binIndex().binIndex()].add(buffer);
+		buffer.trace().onRelease();
+		BINS[buffer.binIndex().binIndex()].offer(buffer);
 	}
 
 	public void forceReload() {

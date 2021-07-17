@@ -16,12 +16,12 @@
 
 package grondag.canvas.buffer.util;
 
-import grondag.canvas.buffer.SimpleTransferBufferAllocator;
 import grondag.canvas.buffer.TransferBuffer;
 
 public class Bin {
 	TransferBuffer claim(int bytes) {
-		return SimpleTransferBufferAllocator.claim(bytes);
+		return null;
+		//return SimpleTransferBufferAllocator.claim(bytes);
 	}
 
 	void prepareForUse(Bin activeBin) {

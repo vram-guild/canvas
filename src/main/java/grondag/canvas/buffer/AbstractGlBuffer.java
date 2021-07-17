@@ -19,14 +19,23 @@ package grondag.canvas.buffer;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.util.GlBufferAllocator;
+import grondag.canvas.varia.GFX;
 
 abstract class AbstractGlBuffer {
 	private int glBufferId = 0;
 	protected final int capacityBytes;
 	protected boolean isClosed = false;
+	protected final int bindTarget;
+	protected final int usageHint;
 
-	protected AbstractGlBuffer(int capacityBytes) {
+	protected AbstractGlBuffer(int capacityBytes, int bindTarget, int usageHint) {
 		this.capacityBytes = capacityBytes;
+		this.bindTarget = bindTarget;
+		this.usageHint = usageHint;
+	}
+
+	public int capacityBytes() {
+		return capacityBytes;
 	}
 
 	protected int glBufferId() {
@@ -35,6 +44,9 @@ abstract class AbstractGlBuffer {
 		if (result == 0) {
 			result = GlBufferAllocator.claimBuffer(capacityBytes);
 			glBufferId = result;
+			GFX.bindBuffer(bindTarget, result);
+			GFX.bufferData(bindTarget, capacityBytes, usageHint);
+			GFX.bindBuffer(bindTarget, 0);
 		}
 
 		return result;

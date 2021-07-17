@@ -16,8 +16,6 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.IntBuffer;
-
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.render.region.UploadableVertexStorage;
 import grondag.canvas.varia.GFX;
@@ -26,23 +24,19 @@ public class StaticDrawBuffer extends AbstractGlBuffer implements UploadableVert
 	TransferBuffer transferBuffer;
 	private final BufferVAO vao;
 
-	public StaticDrawBuffer(int bytes, CanvasVertexFormat format) {
-		super(bytes);
+	public StaticDrawBuffer(CanvasVertexFormat format, TransferBuffer transferBuffer) {
+		super(transferBuffer.sizeBytes(), GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 		vao = new BufferVAO(format);
-		transferBuffer = TransferBufferAllocator.claim(bytes);
+		this.transferBuffer = transferBuffer;
 	}
 
 	@Override
 	public void upload() {
 		if (transferBuffer != null) {
 			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			transferBuffer = transferBuffer.releaseToBuffer(GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+			transferBuffer = transferBuffer.releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, 0);
 			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 		}
-	}
-
-	public IntBuffer intBuffer() {
-		return transferBuffer.asIntBuffer();
 	}
 
 	@Override

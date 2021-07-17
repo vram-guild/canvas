@@ -25,8 +25,8 @@ import grondag.canvas.varia.GFX;
 abstract class AbstractDrawBuffer extends AbstractGlBuffer implements UploadableVertexStorage {
 	private final BufferVAO vao;
 
-	protected AbstractDrawBuffer(int capacityBytes, CanvasVertexFormat format) {
-		super(capacityBytes);
+	protected AbstractDrawBuffer(int capacityBytes, CanvasVertexFormat format, int useageHint) {
+		super(capacityBytes, GFX.GL_ARRAY_BUFFER, useageHint);
 		vao = new BufferVAO(format);
 	}
 

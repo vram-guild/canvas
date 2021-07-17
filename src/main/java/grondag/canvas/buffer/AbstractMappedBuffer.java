@@ -18,30 +18,31 @@ package grondag.canvas.buffer;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.function.Consumer;
+
+import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.varia.GFX;
 
-public class AbstractMappedBuffer extends AbstractGlBuffer implements AllocatableBuffer {
+public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends AbstractGlBuffer implements AllocatableBuffer {
 	final BinIndex binIndex;
-	final int bindTarget;
-	final int usageHint;
 	private ByteBuffer mappedBuffer;
 	private IntBuffer mappedIntBuffer;
 	private int claimedBytes;
+	private final Consumer<T> releaseQueue;
+	private final BufferTrace trace = BufferTrace.create();
 
-	protected AbstractMappedBuffer(BinIndex binIndex, int bindTarget, int usageHint) {
-		super(binIndex.capacityBytes());
+	protected AbstractMappedBuffer(BinIndex binIndex, int bindTarget, int usageHint, Consumer<T> releaseQueue) {
+		super(binIndex.capacityBytes(), bindTarget, usageHint);
 		this.binIndex = binIndex;
-		this.bindTarget = bindTarget;
-		this.usageHint = usageHint;
-		GFX.bindBuffer(bindTarget, glBufferId());
-		GFX.bufferData(bindTarget, capacityBytes, usageHint);
-		GFX.bindBuffer(bindTarget, 0);
+		this.releaseQueue = releaseQueue;
 	}
 
 	@Override
 	public final void prepare(int claimedBytes) {
+		assert this.claimedBytes == 0 : "Buffer claimed more than once";
+		assert claimedBytes > 0 : "Buffer claimed with zero bytes";
 		this.claimedBytes = claimedBytes;
 		// Invalidate and map buffer
 		GFX.bindBuffer(bindTarget, glBufferId());
@@ -50,10 +51,12 @@ public class AbstractMappedBuffer extends AbstractGlBuffer implements Allocatabl
 	}
 
 	public final int sizeBytes() {
+		assert claimedBytes > 0 : "Buffer accessed while unclaimed";
 		return claimedBytes;
 	}
 
 	public final IntBuffer intBuffer() {
+		assert claimedBytes > 0 : "Buffer accessed while unclaimed";
 		IntBuffer result = mappedIntBuffer;
 
 		if (result == null) {
@@ -67,12 +70,22 @@ public class AbstractMappedBuffer extends AbstractGlBuffer implements Allocatabl
 	/** Un-map and bind. */
 	protected final void unmap() {
 		if (mappedBuffer != null) {
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId());
-			GFX.flushMappedBufferRange(GFX.GL_ARRAY_BUFFER, 0, claimedBytes);
-			GFX.unmapBuffer(GFX.GL_ARRAY_BUFFER);
+			GFX.bindBuffer(bindTarget, glBufferId());
+			GFX.flushMappedBufferRange(bindTarget, 0, claimedBytes);
+			GFX.unmapBuffer(bindTarget);
 			mappedBuffer = null;
 			mappedIntBuffer = null;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public final @Nullable T release() {
+		assert claimedBytes > 0 : "Buffer released while unclaimed";
+		unmap();
+		GFX.bindBuffer(bindTarget, 0);
+		claimedBytes = 0;
+		releaseQueue.accept((T) this);
+		return null;
 	}
 
 	@Override
@@ -83,5 +96,10 @@ public class AbstractMappedBuffer extends AbstractGlBuffer implements Allocatabl
 	@Override
 	public final BinIndex binIndex() {
 		return binIndex;
+	}
+
+	@Override
+	public BufferTrace trace() {
+		return trace;
 	}
 }

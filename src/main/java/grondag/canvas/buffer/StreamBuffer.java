@@ -23,23 +23,14 @@ import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.render.region.UploadableVertexStorage;
 import grondag.canvas.varia.GFX;
 
-public class StreamBuffer extends AbstractMappedBuffer implements AllocatableBuffer, UploadableVertexStorage {
+public class StreamBuffer extends AbstractMappedBuffer<StreamBuffer> implements AllocatableBuffer, UploadableVertexStorage {
 	public final CanvasVertexFormat format;
 	private final BufferVAO vao;
 
 	protected StreamBuffer(BinIndex binIndex, CanvasVertexFormat format) {
-		super(binIndex, GFX.GL_ARRAY_BUFFER, GFX.GL_STREAM_DRAW);
+		super(binIndex, GFX.GL_ARRAY_BUFFER, GFX.GL_STREAM_DRAW, StreamBufferAllocator::release);
 		this.format = format;
 		vao = new BufferVAO(format);
-	}
-
-	/** MUST be called if one of other release methods isn't. ALWAYS returns null. */
-	@Override
-	public @Nullable StreamBuffer release() {
-		unmap();
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-		StreamBufferAllocator.release(this);
-		return null;
 	}
 
 	public static @Nullable StreamBuffer claim(int claimedBytes, CanvasVertexFormat standardMaterialFormat) {

@@ -24,6 +24,7 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.buffer.MappedTransferBuffer;
 import grondag.canvas.buffer.StaticDrawBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
@@ -229,8 +230,9 @@ public class PipelineManager {
 		addVertex(0f, 1f, 0.2f, 0f, 0f, v, k + 20);
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k + 25);
 
-		drawBuffer = new StaticDrawBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
-		collector.toBuffer(drawBuffer.intBuffer(), 0);
+		MappedTransferBuffer transfer = MappedTransferBuffer.claim(collector.byteSize());
+		collector.toBuffer(0, transfer, 0);
+		drawBuffer = new StaticDrawBuffer(CanvasVertexFormats.PROCESS_VERTEX_UV, transfer);
 		drawBuffer.upload();
 
 		collector.clear(); // releases storage

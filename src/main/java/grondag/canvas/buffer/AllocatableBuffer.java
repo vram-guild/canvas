@@ -24,4 +24,6 @@ public interface AllocatableBuffer {
 	void prepare(int claimedBytes);
 
 	void shutdown();
+
+	BufferTrace trace();
 }

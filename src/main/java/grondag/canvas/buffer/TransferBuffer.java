@@ -16,28 +16,26 @@
 
 package grondag.canvas.buffer;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
+import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
 public interface TransferBuffer {
-	/** For copying to mapped buffers. ALWAYS returns null. */
-	@Nullable
-	TransferBuffer releaseToMappedBuffer(ByteBuffer targetBuffer, int targetOffset, int sourceOffset, int byteCount);
+	int sizeBytes();
 
-	/** For copying to a bound buffer. ALWAYS returns null. */
-	@Nullable
-	TransferBuffer releaseToSubBuffer(int target, int targetAddress, int byteCount);
-
-	/** For populating new buffers. ALWAYS returns null. */
-	@Nullable
-	TransferBuffer releaseToBuffer(int target, int usage);
-
-	/** For writing only. */
-	IntBuffer asIntBuffer();
+	void put(int[] source, int sourceStart, int targetStart, int length);
 
 	/** MUST be called if one of other release methods isn't. ALWAYS returns null. */
 	@Nullable
 	TransferBuffer release();
+
+	@Nullable
+	TransferBuffer releaseToBoundBuffer(int target, int targetStartBytes);
+
+	static TransferBuffer claim(int byteCount) {
+		if (RenderSystem.isOnRenderThread()) {
+			return MappedTransferBuffer.claim(byteCount);
+		} else {
+			return ArrayTransferBuffer.claim(byteCount);
+		}
+	}
 }

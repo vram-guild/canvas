@@ -25,6 +25,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.config.Configurator;
@@ -106,6 +107,10 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	public void toBuffer(IntBuffer intBuffer, int startingIndex) {
 		intBuffer.put(vertexData, startingIndex, integerSize);
+	}
+
+	public void toBuffer(int collectorSourceIndex, TransferBuffer targetBuffer, int bufferTargetIndex) {
+		targetBuffer.put(vertexData, collectorSourceIndex, bufferTargetIndex, integerSize);
 	}
 
 	public void clear() {

@@ -16,6 +16,7 @@
 
 package grondag.canvas.buffer;
 
+import java.util.ArrayDeque;
 import java.util.IdentityHashMap;
 import java.util.function.Function;
 
@@ -35,7 +36,7 @@ public class StreamBufferAllocator {
 		assert RenderSystem.isOnRenderThread();
 		return ALLOCATORS.computeIfAbsent(format, binIndex -> {
 			final Function<BinIndex, StreamBuffer> allocator = b -> new StreamBuffer(b, format);
-			return new RenderThreadBufferAllocator<>(allocator);
+			return new RenderThreadBufferAllocator<>(allocator, ArrayDeque::new);
 		}).claim(bytes);
 	}
 

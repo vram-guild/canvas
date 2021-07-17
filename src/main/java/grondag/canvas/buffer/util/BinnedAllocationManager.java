@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import grondag.canvas.buffer.SimpleTransferBufferAllocator;
 import grondag.canvas.buffer.TransferBuffer;
 
 public class BinnedAllocationManager {
@@ -35,7 +34,8 @@ public class BinnedAllocationManager {
 
 	public static class Bin {
 		private TransferBuffer claim(int bytes) {
-			return SimpleTransferBufferAllocator.claim(bytes);
+			return null;
+			//SimpleTransferBufferAllocator.claim(bytes);
 		}
 
 		private void prepareForUse(Bin activeBin) {
@@ -56,7 +56,7 @@ public class BinnedAllocationManager {
 
 		private TransferBuffer claim(int bytes) {
 			final int binIndex = binIndex(bytes);
-			return binIndex < BIN_COUNT ? bins[binIndex].claim(bytes) : SimpleTransferBufferAllocator.claim(bytes);
+			return binIndex < BIN_COUNT ? bins[binIndex].claim(bytes) : null; //SimpleTransferBufferAllocator.claim(bytes);
 		}
 
 		private void prepareForUse(BinState activeState) {

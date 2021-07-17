@@ -16,7 +16,6 @@
 
 package grondag.canvas.render.region.vs;
 
-import java.nio.ByteBuffer;
 import java.util.Comparator;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -27,7 +26,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.varia.GFX;
 
@@ -204,7 +202,7 @@ public class ClumpedVertexStorageClump {
 
 		//log.append("Added to allocated regions: ").append(region.id).append("\n");
 		allocatedRegions.add(region);
-		region.getAndClearTransferBuffer().releaseToSubBuffer(GFX.GL_ARRAY_BUFFER, baseAddress, region.byteCount);
+		region.getAndClearTransferBuffer().releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, baseAddress);
 		region.setBaseAddress(baseAddress);
 
 		int remaining = unpackVacancyBytes(vacancy) - region.byteCount;
@@ -282,30 +280,20 @@ public class ClumpedVertexStorageClump {
 	private void appendNewRegionsAtHead() {
 		assert capacityBytes - headBytes >= newBytes;
 
-		final ByteBuffer bBuff = GFX.mapBufferRange(GFX.GL_ARRAY_BUFFER, headBytes, newBytes,
-				GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_INVALIDATE_RANGE_BIT);
-
 		int baseOffset = 0;
 
-		if (bBuff == null) {
-			CanvasMod.LOG.warn("Unable to map buffer. If this repeats, rendering will be incorrect and is probably a compatibility issue.");
-		} else {
-			for (ClumpedDrawableStorage noob : noobs) {
-				final int byteCount = noob.byteCount;
+		for (ClumpedDrawableStorage noob : noobs) {
+			final int byteCount = noob.byteCount;
 
-				//log.append("Added to allocated regions: ").append(noob.id).append("\n");
-				allocatedRegions.add(noob);
-				noob.setBaseAddress(headBytes);
-				noob.getAndClearTransferBuffer().releaseToMappedBuffer(bBuff, baseOffset, 0, byteCount);
-				baseOffset += byteCount;
-				headBytes += byteCount;
-			}
-
-			assert baseOffset == newBytes;
-
-			GFX.flushMappedBufferRange(GFX.GL_ARRAY_BUFFER, 0, baseOffset);
-			GFX.unmapBuffer(GFX.GL_ARRAY_BUFFER);
+			//log.append("Added to allocated regions: ").append(noob.id).append("\n");
+			allocatedRegions.add(noob);
+			noob.setBaseAddress(headBytes);
+			noob.getAndClearTransferBuffer().releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, headBytes);
+			baseOffset += byteCount;
+			headBytes += byteCount;
 		}
+
+		assert baseOffset == newBytes;
 
 		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 	}

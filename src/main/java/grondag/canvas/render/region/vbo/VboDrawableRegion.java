@@ -16,11 +16,10 @@
 
 package grondag.canvas.render.region.vbo;
 
-import java.nio.IntBuffer;
-
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.StaticDrawBuffer;
+import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
@@ -31,7 +30,7 @@ public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableState> 
 		super(delegate, packedOriginBlockPos);
 	}
 
-	public static DrawableRegion pack(VertexCollectorList collectorList, StaticDrawBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
+	public static DrawableRegion pack(VertexCollectorList collectorList, TransferBuffer buffer, StaticDrawBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 
 		if (drawList.isEmpty()) {
@@ -44,9 +43,7 @@ public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableState> 
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
-		final IntBuffer intBuffer = vboBuffer.intBuffer();
-		intBuffer.position(0);
-		collector.toBuffer(intBuffer, 0);
+		collector.toBuffer(0, buffer, 0);
 
 		final VboDrawableState delegate = new VboDrawableState(collector.renderState, collector.quadCount() * 4, 0, vboBuffer);
 		return new VboDrawableRegion(delegate, packedOriginBlockPos);

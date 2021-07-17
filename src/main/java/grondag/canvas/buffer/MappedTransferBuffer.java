@@ -16,37 +16,41 @@
 
 package grondag.canvas.buffer;
 
+import java.util.ArrayDeque;
+
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.varia.GFX;
 
-public class MappedTransferBuffer extends AbstractMappedBuffer implements NewTransferBuffer {
-	public MappedTransferBuffer(BinIndex binIndex) {
-		super(binIndex, GFX.GL_COPY_READ_BUFFER, GFX.GL_STREAM_READ);
-	}
+public class MappedTransferBuffer extends AbstractMappedBuffer<MappedTransferBuffer> implements TransferBuffer {
+	boolean didPut = false;
 
-	@Override
-	public @Nullable MappedTransferBuffer release() {
-		unmap();
-		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
-		RENDER_THREAD_ALLOCATOR.release(this);
-		return null;
+	public MappedTransferBuffer(BinIndex binIndex) {
+		super(binIndex, GFX.GL_COPY_READ_BUFFER, GFX.GL_STREAM_READ, RENDER_THREAD_ALLOCATOR::release);
 	}
 
 	@Override
 	public void put(int[] source, int sourceStartInts, int targetStartInts, int lengthInts) {
+		didPut = true;
 		intBuffer().put(targetStartInts, source, sourceStartInts, lengthInts);
 	}
 
 	@Override
-	public @Nullable NewTransferBuffer releaseToBoundBuffer(int target, int targetStartBytes) {
+	public @Nullable MappedTransferBuffer releaseToBoundBuffer(int target, int targetStartBytes) {
+		assert didPut;
+		didPut = false;
 		unmap();
 		GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, target, 0, targetStartBytes, sizeBytes());
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
 		RENDER_THREAD_ALLOCATOR.release(this);
+		release();
 		return null;
 	}
 
-	public static final RenderThreadBufferAllocator<MappedTransferBuffer> RENDER_THREAD_ALLOCATOR = new RenderThreadBufferAllocator<>(MappedTransferBuffer::new);
+	private static final RenderThreadBufferAllocator<MappedTransferBuffer> RENDER_THREAD_ALLOCATOR = new RenderThreadBufferAllocator<>(MappedTransferBuffer::new, ArrayDeque::new);
+
+	public static MappedTransferBuffer claim(int byteSize) {
+		return RENDER_THREAD_ALLOCATOR.claim(byteSize);
+	}
 }

@@ -19,7 +19,6 @@ package grondag.canvas.render.region.vs;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.TransferBuffer;
-import grondag.canvas.buffer.TransferBufferAllocator;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.region.DrawableRegion;
@@ -47,8 +46,8 @@ public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawabl
 		assert collector.renderState.sorted == translucent;
 
 		// WIP: Try having orphaned, memory-mapped GPU slabs for loading off-thread and then do transfers with copySubBuffer
-		final TransferBuffer transferBuffer = TransferBufferAllocator.claim(byteCount);
-		collector.toBuffer(transferBuffer.asIntBuffer(), 0);
+		final TransferBuffer transferBuffer = TransferBuffer.claim(byteCount);
+		collector.toBuffer(0, transferBuffer, 0);
 		ClumpedDrawableStorage storage = new ClumpedDrawableStorage(
 				translucent ? ClumpedVertexStorage.TRANSLUCENT : ClumpedVertexStorage.SOLID,
 				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 6);
