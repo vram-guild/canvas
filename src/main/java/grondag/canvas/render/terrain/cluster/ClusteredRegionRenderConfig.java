@@ -50,8 +50,8 @@ public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 
 	@Override
 	public void reload(WorldRenderState worldRenderState) {
-		ClusteredVertexStorage.SOLID.clear();
-		ClusteredVertexStorage.TRANSLUCENT.clear();
+		VertexClusterHoarder.SOLID.clear();
+		VertexClusterHoarder.TRANSLUCENT.clear();
 	}
 
 	@Override
@@ -81,8 +81,8 @@ public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 
 	@Override
 	public void prepareForDraw(WorldRenderState worldRenderState) {
-		ClusteredVertexStorage.SOLID.upload();
-		ClusteredVertexStorage.TRANSLUCENT.upload();
+		VertexClusterHoarder.SOLID.upload();
+		VertexClusterHoarder.TRANSLUCENT.upload();
 	}
 
 	@Override

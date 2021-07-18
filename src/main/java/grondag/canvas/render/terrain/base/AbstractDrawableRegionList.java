@@ -18,12 +18,16 @@ package grondag.canvas.render.terrain.base;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import grondag.canvas.material.state.RenderState;
+
 public abstract class AbstractDrawableRegionList implements DrawableRegionList {
 	protected final ObjectArrayList<DrawableRegion> regions;
 	private boolean isClosed = false;
+	public final RenderState renderState;
 
-	protected AbstractDrawableRegionList(final ObjectArrayList<DrawableRegion> regions) {
+	protected AbstractDrawableRegionList(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
 		this.regions = regions;
+		this.renderState = renderState;
 	}
 
 	@Override

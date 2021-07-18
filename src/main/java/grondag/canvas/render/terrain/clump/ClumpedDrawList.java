@@ -30,13 +30,11 @@ import grondag.canvas.varia.GFX;
 
 public class ClumpedDrawList extends AbstractDrawableRegionList {
 	final ObjectArrayList<ClumpedDrawListClump> drawClumps = new ObjectArrayList<>();
-	final ClumpedDrawableState drawState;
 	final int maxTriangleVertexCount;
 
-	private ClumpedDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
-		super(regions);
+	private ClumpedDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount, RenderState renderState) {
+		super(regions, renderState);
 		this.maxTriangleVertexCount = maxTriangleVertexCount;
-		drawState = ((ClumpedDrawableRegion) regions.get(0)).drawState();
 
 		final Long2ObjectOpenHashMap<ClumpedDrawListClump> map = new Long2ObjectOpenHashMap<>();
 		final int limit = regions.size();
@@ -55,7 +53,7 @@ public class ClumpedDrawList extends AbstractDrawableRegionList {
 		}
 	}
 
-	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions) {
+	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
 		if (regions.isEmpty()) {
 			return DrawableRegionList.EMPTY;
 		}
@@ -67,7 +65,7 @@ public class ClumpedDrawList extends AbstractDrawableRegionList {
 			maxQuads = Math.max(maxQuads, regions.get(i).drawState().quadVertexCount());
 		}
 
-		return new ClumpedDrawList(regions, maxQuads / 4 * 6);
+		return new ClumpedDrawList(regions, maxQuads / 4 * 6, renderState);
 	}
 
 	@Override
@@ -78,7 +76,7 @@ public class ClumpedDrawList extends AbstractDrawableRegionList {
 		final int limit = drawClumps.size();
 
 		GFX.bindVertexArray(0);
-		drawState.renderState().enable(0, 0, 0, 0, 0);
+		renderState.enable(0, 0, 0, 0, 0);
 
 		for (int clumpIndex = 0; clumpIndex < limit; ++clumpIndex) {
 			ClumpedDrawListClump drawClump = drawClumps.get(clumpIndex);

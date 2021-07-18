@@ -22,36 +22,45 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.util.math.BlockPos;
 
-public class ClusteredVertexStorage {
-	public static final ClusteredVertexStorage SOLID = new ClusteredVertexStorage();
-	public static final ClusteredVertexStorage TRANSLUCENT = new ClusteredVertexStorage();
+public class VertexClusterHoarder {
+	public static final VertexClusterHoarder SOLID = new VertexClusterHoarder();
+	public static final VertexClusterHoarder TRANSLUCENT = new VertexClusterHoarder();
 
-	private static final int CLUMP_SHIFT = 2;
-	private static final int BLOCKPOS_TO_CLUMP_SHIFT = 4 + CLUMP_SHIFT;
+	// WIP: allow for non-cubic clusters
+	/**
+	 * Number of bits we right-shift "chunk" coordinates to get cluster coordinates.
+	 * Determines the size of clusters.
+	 */
+	private static final int CLUSTER_SHIFT = 2;
 
-	static long clumpPos(long packedOriginBlockPos) {
+	/**
+	 * Number of bits we right-shift block coordinates to get cluster coordinates.
+	 */
+	private static final int BLOCKPOS_TO_CLUSTER_SHIFT = 4 + CLUSTER_SHIFT;
+
+	static long clusterPos(long packedOriginBlockPos) {
 		final int x = BlockPos.unpackLongX(packedOriginBlockPos);
 		final int y = BlockPos.unpackLongY(packedOriginBlockPos);
 		final int z = BlockPos.unpackLongZ(packedOriginBlockPos);
-		return BlockPos.asLong(x >> BLOCKPOS_TO_CLUMP_SHIFT, y >> BLOCKPOS_TO_CLUMP_SHIFT, z >> BLOCKPOS_TO_CLUMP_SHIFT);
+		return BlockPos.asLong(x >> BLOCKPOS_TO_CLUSTER_SHIFT, y >> BLOCKPOS_TO_CLUSTER_SHIFT, z >> BLOCKPOS_TO_CLUSTER_SHIFT);
 	}
 
-	private final Long2ObjectOpenHashMap<ClusteredVertexStorageClump> clumps = new Long2ObjectOpenHashMap<>();
-	private final ReferenceOpenHashSet<ClusteredVertexStorageClump> clumpUploads = new ReferenceOpenHashSet<>();
+	private final Long2ObjectOpenHashMap<VertexCluster> clusters = new Long2ObjectOpenHashMap<>();
+	private final ReferenceOpenHashSet<VertexCluster> clusterUploads = new ReferenceOpenHashSet<>();
 
 	private boolean isClosed = false;
 
-	private ClusteredVertexStorage() { }
+	private VertexClusterHoarder() { }
 
 	public void clear() {
 		assert RenderSystem.isOnRenderThread();
 
-		for (ClusteredVertexStorageClump clump : clumps.values()) {
+		for (VertexCluster clump : clusters.values()) {
 			clump.close(false);
 		}
 
-		clumps.clear();
-		clumpUploads.clear();
+		clusters.clear();
+		clusterUploads.clear();
 	}
 
 	public void close() {
@@ -66,26 +75,26 @@ public class ClusteredVertexStorage {
 	void allocate(ClusteredDrawableStorage storage) {
 		assert RenderSystem.isOnRenderThread();
 
-		ClusteredVertexStorageClump clump = clumps.computeIfAbsent(storage.clumpPos, p -> new ClusteredVertexStorageClump(ClusteredVertexStorage.this, p));
+		VertexCluster clump = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterHoarder.this, p));
 		clump.allocate(storage);
-		clumpUploads.add(clump);
+		clusterUploads.add(clump);
 	}
 
-	void notifyClosed(ClusteredVertexStorageClump clump) {
+	void notifyClosed(VertexCluster clump) {
 		assert RenderSystem.isOnRenderThread();
-		ClusteredVertexStorageClump deadClump = clumps.remove(clump.clumpPos);
+		VertexCluster deadClump = clusters.remove(clump.clumpPos);
 		assert deadClump != null : "Clump gone missing.";
 	}
 
 	public void upload() {
 		assert RenderSystem.isOnRenderThread();
 
-		if (!clumpUploads.isEmpty()) {
-			for (ClusteredVertexStorageClump clump : clumpUploads) {
+		if (!clusterUploads.isEmpty()) {
+			for (VertexCluster clump : clusterUploads) {
 				clump.upload();
 			}
 
-			clumpUploads.clear();
+			clusterUploads.clear();
 		}
 	}
 }

@@ -16,7 +16,7 @@
 
 package grondag.canvas.render.world;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +26,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.config.Configurator;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.terrain.RegionRenderSectorMap;
@@ -168,7 +169,7 @@ public class WorldRenderState {
 
 		areDrawListsValid = true;
 
-		final Function<ObjectArrayList<DrawableRegion>, DrawableRegionList> drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
+		final BiFunction<ObjectArrayList<DrawableRegion>, RenderState, DrawableRegionList> drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
 
 		Configurator.terrainRenderConfig.beforeDrawListBuild();
 

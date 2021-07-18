@@ -53,7 +53,7 @@ public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawabl
 				translucent ? ClumpedVertexStorage.TRANSLUCENT : ClumpedVertexStorage.SOLID,
 				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 6);
 
-		final ClumpedDrawableState drawState = new ClumpedDrawableState(collector.renderState, collector.quadCount() * 4, storage);
+		final ClumpedDrawableState drawState = new ClumpedDrawableState(collector.quadCount() * 4, storage);
 		return new ClumpedDrawableRegion(drawState, packedOriginBlockPos);
 	}
 

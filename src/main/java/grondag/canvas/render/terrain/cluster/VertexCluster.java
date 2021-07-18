@@ -31,12 +31,12 @@ import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.varia.GFX;
 
 //WIP: support direct-copy mapped transfer buffers when they are available
-public class ClusteredVertexStorageClump {
+public class VertexCluster {
 	private static final int NO_BUFFER = -1;
 
 	//final StringBuilder log = new StringBuilder();
 
-	private final ClusteredVertexStorage owner;
+	private final VertexClusterHoarder owner;
 	private final ObjectArrayList<ClusteredDrawableStorage> noobs = new ObjectArrayList<>();
 	private final ReferenceOpenHashSet<ClusteredDrawableStorage> allocatedRegions = new ReferenceOpenHashSet<>();
 	private LongArrayList vacancies = new LongArrayList();
@@ -56,7 +56,7 @@ public class ClusteredVertexStorageClump {
 	 */
 	private int vaoBufferId = NO_BUFFER;
 
-	public ClusteredVertexStorageClump(ClusteredVertexStorage owner, long clumpPos) {
+	public VertexCluster(VertexClusterHoarder owner, long clumpPos) {
 		this.owner = owner;
 		this.clumpPos = clumpPos;
 	}
@@ -129,7 +129,7 @@ public class ClusteredVertexStorageClump {
 
 		//log.append("Added to noobs: ").append(storage.id).append("\n");
 		noobs.add(storage);
-		storage.setClump(this);
+		storage.setCluster(this);
 		newBytes += storage.byteCount;
 
 		//assert isPresent(storage);

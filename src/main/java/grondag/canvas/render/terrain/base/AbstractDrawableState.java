@@ -19,22 +19,15 @@ package grondag.canvas.render.terrain.base;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.render.UploadableVertexStorage;
-import grondag.canvas.material.state.RenderState;
 
 public abstract class AbstractDrawableState<T extends UploadableVertexStorage> {
 	protected T storage;
-	private final RenderState renderState;
 	private final int quadVertexCount;
 	private boolean isClosed = false;
 
-	protected AbstractDrawableState(RenderState renderState, int quadVertexCount, T storage) {
-		this.renderState = renderState;
+	protected AbstractDrawableState(int quadVertexCount, T storage) {
 		this.quadVertexCount = quadVertexCount;
 		this.storage = storage;
-	}
-
-	public final RenderState renderState() {
-		return renderState;
 	}
 
 	public final int quadVertexCount() {

@@ -25,22 +25,22 @@ import grondag.canvas.render.terrain.TerrainFormat;
 public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	private static final int NOT_ALLOCATED = -1;
 
-	private final ClusteredVertexStorage owner;
+	private final VertexClusterHoarder owner;
 	private TransferBuffer transferBuffer;
 	final int byteCount;
 	final int triVertexCount;
 	private int baseVertex = NOT_ALLOCATED;
 	private boolean isClosed = false;
-	final long clumpPos;
-	private ClusteredVertexStorageClump clump = null;
+	final long clusterPos;
+	private VertexCluster cluster = null;
 	int paddingBytes;
 
-	public ClusteredDrawableStorage(ClusteredVertexStorage owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
+	public ClusteredDrawableStorage(VertexClusterHoarder owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
 		this.owner = owner;
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 		this.triVertexCount = triVertexCount;
-		clumpPos = ClusteredVertexStorage.clumpPos(packedOriginBlockPos);
+		clusterPos = VertexClusterHoarder.clusterPos(packedOriginBlockPos);
 	}
 
 	TransferBuffer getAndClearTransferBuffer() {
@@ -52,7 +52,6 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	@Override
 	public ClusteredDrawableStorage release() {
 		close(true);
-
 		return null;
 	}
 
@@ -66,12 +65,12 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 				transferBuffer = transferBuffer.release();
 			}
 
-			if (clump != null) {
+			if (cluster != null) {
 				if (notify) {
-					clump.notifyClosed(this);
+					cluster.notifyClosed(this);
 				}
 
-				clump = null;
+				cluster = null;
 			}
 
 			baseVertex = NOT_ALLOCATED;
@@ -103,17 +102,17 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 		//assert clump.isPresent(this);
 	}
 
-	void setClump(ClusteredVertexStorageClump clump) {
+	void setCluster(VertexCluster cluster) {
 		assert baseVertex == NOT_ALLOCATED;
-		assert this.clump == null;
-		assert clump != null;
-		this.clump = clump;
+		assert this.cluster == null;
+		assert cluster != null;
+		this.cluster = cluster;
 	}
 
-	ClusteredVertexStorageClump getClump() {
+	VertexCluster getCluster() {
 		//assert clump.isPresent(this);
 
-		return clump;
+		return cluster;
 	}
 
 	@Override

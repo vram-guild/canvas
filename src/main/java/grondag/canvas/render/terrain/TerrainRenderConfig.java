@@ -16,15 +16,16 @@
 
 package grondag.canvas.render.terrain;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.QuadTranscoder;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
-import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
+import grondag.canvas.buffer.input.VertexCollectorList;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
 import grondag.canvas.render.terrain.base.UploadableRegion;
@@ -46,7 +47,7 @@ public abstract class TerrainRenderConfig {
 
 	public final QuadTranscoder transcoder;
 
-	public final Function<ObjectArrayList<DrawableRegion>, DrawableRegionList> drawListFunc;
+	public final BiFunction<ObjectArrayList<DrawableRegion>, RenderState, DrawableRegionList> drawListFunc;
 
 	protected TerrainRenderConfig(
 		String name,
@@ -55,7 +56,7 @@ public abstract class TerrainRenderConfig {
 		int quadStrideInts,
 		boolean shouldApplyBlockPosTranslation,
 		QuadTranscoder transcoder,
-		Function<ObjectArrayList<DrawableRegion>, DrawableRegionList> drawListFunc
+		BiFunction<ObjectArrayList<DrawableRegion>, RenderState, DrawableRegionList> drawListFunc
 	) {
 		this.name = name;
 		this.shaderConfigTag = shaderConfigTag;

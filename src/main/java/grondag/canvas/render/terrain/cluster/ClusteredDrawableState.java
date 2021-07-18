@@ -16,12 +16,11 @@
 
 package grondag.canvas.render.terrain.cluster;
 
-import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.AbstractDrawableState;
 
 public class ClusteredDrawableState extends AbstractDrawableState<ClusteredDrawableStorage> {
 	// WIP: if we go this way don't need quad vertex count at this level
-	public ClusteredDrawableState(RenderState renderState, int quadVertexCount, ClusteredDrawableStorage storage) {
-		super(renderState, quadVertexCount, storage);
+	public ClusteredDrawableState(int quadVertexCount, ClusteredDrawableStorage storage) {
+		super(quadVertexCount, storage);
 	}
 }

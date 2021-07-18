@@ -50,10 +50,10 @@ public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDra
 		final TransferBuffer transferBuffer = TransferBuffers.claim(byteCount);
 		collector.toBuffer(0, transferBuffer, 0);
 		ClusteredDrawableStorage storage = new ClusteredDrawableStorage(
-				translucent ? ClusteredVertexStorage.TRANSLUCENT : ClusteredVertexStorage.SOLID,
+				translucent ? VertexClusterHoarder.TRANSLUCENT : VertexClusterHoarder.SOLID,
 				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 6);
 
-		final ClusteredDrawableState drawState = new ClusteredDrawableState(collector.renderState, collector.quadCount() * 4, storage);
+		final ClusteredDrawableState drawState = new ClusteredDrawableState(collector.quadCount() * 4, storage);
 		return new ClusteredDrawableRegion(drawState, packedOriginBlockPos);
 	}
 

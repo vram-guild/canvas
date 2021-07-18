@@ -16,12 +16,11 @@
 
 package grondag.canvas.render.terrain.clump;
 
-import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.AbstractDrawableState;
 
 public class ClumpedDrawableState extends AbstractDrawableState<ClumpedDrawableStorage> {
 	// WIP: if we go this way don't need quad vertex count at this level
-	public ClumpedDrawableState(RenderState renderState, int quadVertexCount, ClumpedDrawableStorage storage) {
-		super(renderState, quadVertexCount, storage);
+	public ClumpedDrawableState(int quadVertexCount, ClumpedDrawableStorage storage) {
+		super(quadVertexCount, storage);
 	}
 }

@@ -30,13 +30,11 @@ import grondag.canvas.varia.GFX;
 
 public class ClusteredDrawList extends AbstractDrawableRegionList {
 	final ObjectArrayList<ClusteredDrawListClump> drawClumps = new ObjectArrayList<>();
-	final ClusteredDrawableState drawState;
 	final int maxTriangleVertexCount;
 
-	private ClusteredDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount) {
-		super(regions);
+	private ClusteredDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount, RenderState renderState) {
+		super(regions, renderState);
 		this.maxTriangleVertexCount = maxTriangleVertexCount;
-		drawState = ((ClusteredDrawableRegion) regions.get(0)).drawState();
 
 		final Long2ObjectOpenHashMap<ClusteredDrawListClump> map = new Long2ObjectOpenHashMap<>();
 		final int limit = regions.size();
@@ -44,7 +42,7 @@ public class ClusteredDrawList extends AbstractDrawableRegionList {
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			final ClusteredDrawableStorage storage = ((ClusteredDrawableRegion) regions.get(regionIndex)).drawState().storage();
 
-			ClusteredDrawListClump clump = map.get(storage.clumpPos);
+			ClusteredDrawListClump clump = map.get(storage.clusterPos);
 
 			if (clump == null) {
 				clump = new ClusteredDrawListClump();
@@ -55,7 +53,7 @@ public class ClusteredDrawList extends AbstractDrawableRegionList {
 		}
 	}
 
-	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions) {
+	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
 		if (regions.isEmpty()) {
 			return DrawableRegionList.EMPTY;
 		}
@@ -67,7 +65,7 @@ public class ClusteredDrawList extends AbstractDrawableRegionList {
 			maxQuads = Math.max(maxQuads, regions.get(i).drawState().quadVertexCount());
 		}
 
-		return new ClusteredDrawList(regions, maxQuads / 4 * 6);
+		return new ClusteredDrawList(regions, maxQuads / 4 * 6, renderState);
 	}
 
 	@Override
@@ -78,7 +76,7 @@ public class ClusteredDrawList extends AbstractDrawableRegionList {
 		final int limit = drawClumps.size();
 
 		GFX.bindVertexArray(0);
-		drawState.renderState().enable(0, 0, 0, 0, 0);
+		renderState.enable(0, 0, 0, 0, 0);
 
 		for (int clumpIndex = 0; clumpIndex < limit; ++clumpIndex) {
 			ClusteredDrawListClump drawClump = drawClumps.get(clumpIndex);

@@ -16,19 +16,26 @@
 
 package grondag.canvas.render.terrain.base;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import net.minecraft.client.render.RenderLayer;
+
+import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 
 public final class DrawableRegionListBuilder {
+	private static final RenderState TRANSLUCENT_TERRAIN = RenderLayerHelper.TRANSLUCENT_TERRAIN.renderState;
+	private static final RenderState SOLID_TERRAIN = RenderLayerHelper.copyFromLayer(RenderLayer.getSolid()).renderState;
+
 	private DrawableRegionListBuilder() { }
 
 	public static DrawableRegionList build(
 			final VisibleRegionList visibleRegions,
-			Function<ObjectArrayList<DrawableRegion>, DrawableRegionList> drawListFunc,
+			BiFunction<ObjectArrayList<DrawableRegion>, RenderState, DrawableRegionList> drawListFunc,
 			boolean isTranslucent
 	) {
 		final ObjectArrayList<DrawableRegion> drawables = new ObjectArrayList<>();
@@ -48,6 +55,7 @@ public final class DrawableRegionListBuilder {
 			}
 		}
 
-		return drawables.isEmpty() ? DrawableRegionList.EMPTY : drawListFunc.apply(drawables);
+		final var renderState = isTranslucent ? TRANSLUCENT_TERRAIN : SOLID_TERRAIN;
+		return drawables.isEmpty() ? DrawableRegionList.EMPTY : drawListFunc.apply(drawables, renderState);
 	}
 }

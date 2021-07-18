@@ -39,6 +39,6 @@ public class ClusteredDrawListClump {
 	}
 
 	public void bind() {
-		stores.get(0).getClump().bind();
+		stores.get(0).getCluster().bind();
 	}
 }

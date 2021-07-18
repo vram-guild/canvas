@@ -27,16 +27,16 @@ import grondag.canvas.render.terrain.base.DrawableRegionList;
 import grondag.canvas.varia.GFX;
 
 public class VboDrawList extends AbstractDrawableRegionList {
-	private VboDrawList(final ObjectArrayList<DrawableRegion> regions) {
-		super(regions);
+	private VboDrawList(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
+		super(regions, renderState);
 	}
 
-	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions) {
+	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
 		if (regions.isEmpty()) {
 			return DrawableRegionList.EMPTY;
 		}
 
-		return new VboDrawList(regions);
+		return new VboDrawList(regions, renderState);
 	}
 
 	@Override
@@ -46,11 +46,12 @@ public class VboDrawList extends AbstractDrawableRegionList {
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			final VboDrawableRegion vboDrawable = (VboDrawableRegion) regions.get(regionIndex);
+
 			final VboDrawableState drawState = vboDrawable.drawState();
 
 			if (drawState != null) {
 				final long modelOrigin = vboDrawable.packedOriginBlockPos();
-				drawState.renderState().enable(BlockPos.unpackLongX(modelOrigin), BlockPos.unpackLongY(modelOrigin), BlockPos.unpackLongZ(modelOrigin), 0, 0);
+				renderState.enable(BlockPos.unpackLongX(modelOrigin), BlockPos.unpackLongY(modelOrigin), BlockPos.unpackLongZ(modelOrigin), 0, 0);
 				drawState.draw();
 			}
 		}
