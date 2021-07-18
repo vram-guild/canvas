@@ -294,4 +294,8 @@ public interface Matrix4fExt {
 				this.a20(), this.a21(), this.a22(), this.a23(),
 				this.a30(), this.a31(), this.a32(), this.a33());
 	}
+
+	static Matrix4fExt cast(Matrix4f matrix) {
+		return (Matrix4fExt) (Object) matrix;
+	}
 }

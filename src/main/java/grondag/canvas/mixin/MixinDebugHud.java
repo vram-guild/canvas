@@ -35,7 +35,6 @@ import net.minecraft.client.gui.hud.DebugHud;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
@@ -47,6 +46,7 @@ import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.terrain.util.TerrainExecutor;
+import grondag.canvas.varia.AutoImmediate;
 
 @Mixin(DebugHud.class)
 public class MixinDebugHud extends DrawableHelper {
@@ -71,8 +71,8 @@ public class MixinDebugHud extends DrawableHelper {
 		drawLists(matrixStack);
 	}
 
-	private final BufferBuilder fillerBuffer = new BufferBuilder(4096);
-	private final VertexConsumerProvider.Immediate textBuffer = VertexConsumerProvider.immediate(new BufferBuilder(4096));
+	private final BufferBuilder fillerBuffer = new BufferBuilder(0x1000);
+
 	private static final int HEIGHT = 9;
 
 	private void drawLists(MatrixStack matrixStack) {
@@ -100,7 +100,7 @@ public class MixinDebugHud extends DrawableHelper {
 			fillerBuffer.vertex(matrix4f, x1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).next();
 			fillerBuffer.vertex(matrix4f, 1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).next();
 
-			textRenderer.draw(string, 2.0F, top, 0xE0E0E0, false, matrix4f, textBuffer, false, 0, 0xF000F0, rightToLeft);
+			textRenderer.draw(string, 2.0F, top, 0xE0E0E0, false, matrix4f, AutoImmediate.INSTANCE, false, 0, 0xF000F0, rightToLeft);
 		}
 
 		final int rightLimit = rightList.size();
@@ -126,7 +126,7 @@ public class MixinDebugHud extends DrawableHelper {
 			fillerBuffer.vertex(matrix4f, x1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).next();
 			fillerBuffer.vertex(matrix4f, x0, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).next();
 
-			textRenderer.draw(string, left, top, 0xE0E0E0, false, matrix4f, textBuffer, false, 0, 0xF000F0, rightToLeft);
+			textRenderer.draw(string, left, top, 0xE0E0E0, false, matrix4f, AutoImmediate.INSTANCE, false, 0, 0xF000F0, rightToLeft);
 		}
 
 		fillerBuffer.end();
@@ -137,7 +137,7 @@ public class MixinDebugHud extends DrawableHelper {
 		BufferRenderer.draw(fillerBuffer);
 		RenderSystem.enableTexture();
 		RenderSystem.disableBlend();
-		textBuffer.draw();
+		AutoImmediate.INSTANCE.draw();
 
 		leftList = null;
 		rightList = null;
