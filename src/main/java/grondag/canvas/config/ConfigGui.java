@@ -54,6 +54,7 @@ import static grondag.canvas.config.Configurator.shaderDebug;
 import static grondag.canvas.config.Configurator.staticFrustumPadding;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
+import static grondag.canvas.config.Configurator.transferBufferMode;
 import static grondag.canvas.config.Configurator.useCombinedThreadPool;
 import static grondag.canvas.config.Configurator.wavyGrass;
 
@@ -71,6 +72,7 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.buffer.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineDescription;
@@ -339,6 +341,18 @@ public class ConfigGui {
 				.setSaveConsumer(b -> {
 					useCombinedThreadPool = b;
 				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER.startEnumSelector(new TranslatableText("config.canvas.value.transfer_buffer_mode"),
+				TransferBuffers.Config.class,
+				transferBufferMode)
+				.setDefaultValue(DEFAULTS.transferBufferMode)
+				.setSaveConsumer(b -> {
+					reload |= transferBufferMode != b;
+					transferBufferMode = b;
+				})
+				.setEnumNameProvider(a -> new LiteralText(a.toString()))
+				.setTooltip(parse("config.canvas.help.transfer_buffer_mode"))
 				.build());
 
 		// DEBUG

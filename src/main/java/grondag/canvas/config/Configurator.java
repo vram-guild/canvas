@@ -23,6 +23,7 @@ import net.minecraft.util.math.MathHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.buffer.TransferBuffers;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.render.region.base.RegionRenderConfig;
 
@@ -72,6 +73,7 @@ public class Configurator {
 	public static boolean enableNearOccluders = DEFAULTS.enableNearOccluders;
 	public static TerrainRenderConfig terrainRenderConfigOption = DEFAULTS.terrainRenderConfig;
 	public static RegionRenderConfig terrainRenderConfig = terrainRenderConfigOption.config;
+	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -120,6 +122,7 @@ public class Configurator {
 		staticFrustumPadding = MathHelper.clamp(config.staticFrustumPadding, 0, 30);
 		cullParticles = config.cullParticles;
 		useCombinedThreadPool = config.useCombinedThreadPool;
+		transferBufferMode = config.transferBufferMode;
 
 		// lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -172,6 +175,7 @@ public class Configurator {
 		config.dynamicFrustumPadding = dynamicFrustumPadding;
 		config.cullParticles = cullParticles;
 		config.useCombinedThreadPool = useCombinedThreadPool;
+		config.transferBufferMode = transferBufferMode;
 
 		// config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
