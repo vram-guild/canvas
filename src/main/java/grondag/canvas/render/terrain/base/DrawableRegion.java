@@ -18,6 +18,7 @@ package grondag.canvas.render.terrain.base;
 
 import java.util.function.Predicate;
 
+import grondag.canvas.buffer.render.UploadableVertexStorage;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderState;
 
@@ -41,9 +42,11 @@ public interface DrawableRegion {
 
 	void releaseFromDrawList();
 
-	<T extends AbstractDrawableState<?>> T drawState();
-
 	long packedOriginBlockPos();
+
+	int quadVertexCount();
+
+	UploadableVertexStorage storage();
 
 	DrawableRegion EMPTY_DRAWABLE = new DrawableRegion() {
 		@Override
@@ -62,13 +65,18 @@ public interface DrawableRegion {
 		}
 
 		@Override
-		public <T extends AbstractDrawableState<?>> T drawState() {
-			return null;
+		public long packedOriginBlockPos() {
+			return 0;
 		}
 
 		@Override
-		public long packedOriginBlockPos() {
+		public int quadVertexCount() {
 			return 0;
+		}
+
+		@Override
+		public UploadableVertexStorage storage() {
+			return null;
 		}
 	};
 

@@ -25,9 +25,9 @@ import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 
-public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableState> {
-	private VboDrawableRegion(VboDrawableState delegate, long packedOriginBlockPos) {
-		super(delegate, packedOriginBlockPos);
+public class VboDrawableRegion extends AbstractDrawableRegion<StaticDrawBuffer> {
+	private VboDrawableRegion(long packedOriginBlockPos, int quadVertexCount, StaticDrawBuffer storage) {
+		super(packedOriginBlockPos, quadVertexCount, storage);
 	}
 
 	public static DrawableRegion pack(VertexCollectorList collectorList, TransferBuffer buffer, StaticDrawBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
@@ -45,8 +45,7 @@ public class VboDrawableRegion extends AbstractDrawableRegion<VboDrawableState> 
 
 		collector.toBuffer(0, buffer, 0);
 
-		final VboDrawableState delegate = new VboDrawableState(collector.quadCount() * 4, 0, vboBuffer);
-		return new VboDrawableRegion(delegate, packedOriginBlockPos);
+		return new VboDrawableRegion(packedOriginBlockPos, collector.quadCount() * 4, vboBuffer);
 	}
 
 	@Override

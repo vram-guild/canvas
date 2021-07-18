@@ -40,7 +40,7 @@ public class MultiClumpedDrawList extends AbstractDrawableRegionList {
 		final int limit = regions.size();
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			final ClumpedDrawableStorage storage = ((ClumpedDrawableRegion) regions.get(regionIndex)).drawState().storage();
+			final ClumpedDrawableStorage storage = ((ClumpedDrawableRegion) regions.get(regionIndex)).storage();
 
 			MultiClumpedDrawListClump clump = map.get(storage.clumpPos);
 
@@ -62,7 +62,7 @@ public class MultiClumpedDrawList extends AbstractDrawableRegionList {
 		int maxQuads = 0;
 
 		for (int i = 0; i < limit; ++i) {
-			maxQuads = Math.max(maxQuads, regions.get(i).drawState().quadVertexCount());
+			maxQuads = Math.max(maxQuads, regions.get(i).quadVertexCount());
 		}
 
 		return new MultiClumpedDrawList(regions, maxQuads / 4 * 6, renderState);

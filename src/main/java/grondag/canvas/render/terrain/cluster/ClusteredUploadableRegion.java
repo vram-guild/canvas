@@ -29,7 +29,7 @@ public class ClusteredUploadableRegion implements UploadableRegion {
 
 	@Override
 	public DrawableRegion produceDrawable() {
-		drawable.drawState().storage().upload();
+		drawable.storage().upload();
 		return drawable;
 	}
 }

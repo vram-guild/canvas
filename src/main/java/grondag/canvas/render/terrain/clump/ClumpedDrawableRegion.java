@@ -25,9 +25,9 @@ import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 
-public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawableState> {
-	private ClumpedDrawableRegion(ClumpedDrawableState delegate, long packedOriginBlockPos) {
-		super(delegate, packedOriginBlockPos);
+public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawableStorage> {
+	private ClumpedDrawableRegion(long packedOriginBlockPos, int quadVertexCount, ClumpedDrawableStorage storage) {
+		super(packedOriginBlockPos, quadVertexCount, storage);
 	}
 
 	static DrawableRegion pack(VertexCollectorList collectorList, boolean translucent, int byteCount, long packedOriginBlockPos) {
@@ -53,8 +53,7 @@ public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawabl
 				translucent ? ClumpedVertexStorage.TRANSLUCENT : ClumpedVertexStorage.SOLID,
 				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 6);
 
-		final ClumpedDrawableState drawState = new ClumpedDrawableState(collector.quadCount() * 4, storage);
-		return new ClumpedDrawableRegion(drawState, packedOriginBlockPos);
+		return new ClumpedDrawableRegion(packedOriginBlockPos, collector.quadCount() * 4, storage);
 	}
 
 	@Override

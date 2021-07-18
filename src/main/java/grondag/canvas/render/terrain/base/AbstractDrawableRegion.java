@@ -18,21 +18,22 @@ package grondag.canvas.render.terrain.base;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class AbstractDrawableRegion<T extends AbstractDrawableState<?>> implements DrawableRegion {
-	protected T drawState;
+import com.mojang.blaze3d.systems.RenderSystem;
+
+import grondag.canvas.buffer.render.UploadableVertexStorage;
+
+public abstract class AbstractDrawableRegion<T extends UploadableVertexStorage> implements DrawableRegion {
 	// first reference is for the region
 	private final AtomicInteger retainCount = new AtomicInteger(1);
 	private final long packedOriginBlockPos;
+	protected T storage;
+	private final int quadVertexCount;
+	private boolean isClosed = false;
 
-	protected AbstractDrawableRegion(T delegate, long packedOriginBlockPos) {
-		this.drawState = delegate;
+	protected AbstractDrawableRegion(long packedOriginBlockPos, int quadVertexCount, T storage) {
 		this.packedOriginBlockPos = packedOriginBlockPos;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public final T drawState() {
-		return drawState;
+		this.quadVertexCount = quadVertexCount;
+		this.storage = storage;
 	}
 
 	@Override
@@ -40,17 +41,32 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableState<?>>
 		return packedOriginBlockPos;
 	}
 
-	private void release() {
+	@Override
+	public final int quadVertexCount() {
+		return quadVertexCount;
+	}
+
+	@Override
+	public final T storage() {
+		return storage;
+	}
+
+	private void close() {
 		final int retainCount = this.retainCount.decrementAndGet();
 		assert retainCount >= 0;
 
 		if (retainCount == 0) {
-			closeInner();
+			assert RenderSystem.isOnRenderThread();
+			isClosed = true;
+			storage.release();
+			storage = null;
 
-			assert drawState != null;
-			drawState.close();
-			drawState = null;
+			closeInner();
 		}
+	}
+
+	public final boolean isClosed() {
+		return isClosed;
 	}
 
 	/**
@@ -58,7 +74,7 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableState<?>>
 	 */
 	@Override
 	public final void releaseFromRegion() {
-		release();
+		close();
 	}
 
 	protected abstract void closeInner();
@@ -71,6 +87,6 @@ public abstract class AbstractDrawableRegion<T extends AbstractDrawableState<?>>
 
 	@Override
 	public void releaseFromDrawList() {
-		release();
+		close();
 	}
 }

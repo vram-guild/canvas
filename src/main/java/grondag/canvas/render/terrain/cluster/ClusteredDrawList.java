@@ -40,7 +40,7 @@ public class ClusteredDrawList extends AbstractDrawableRegionList {
 		final int limit = regions.size();
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			final ClusteredDrawableStorage storage = ((ClusteredDrawableRegion) regions.get(regionIndex)).drawState().storage();
+			final ClusteredDrawableStorage storage = ((ClusteredDrawableRegion) regions.get(regionIndex)).storage();
 
 			ClusteredDrawListClump clump = map.get(storage.clusterPos);
 
@@ -62,7 +62,7 @@ public class ClusteredDrawList extends AbstractDrawableRegionList {
 		int maxQuads = 0;
 
 		for (int i = 0; i < limit; ++i) {
-			maxQuads = Math.max(maxQuads, regions.get(i).drawState().quadVertexCount());
+			maxQuads = Math.max(maxQuads, regions.get(i).quadVertexCount());
 		}
 
 		return new ClusteredDrawList(regions, maxQuads / 4 * 6, renderState);
