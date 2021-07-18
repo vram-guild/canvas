@@ -45,6 +45,8 @@ import grondag.canvas.buffer.TransferBuffers;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.GlBufferAllocator;
+import grondag.canvas.config.Configurator;
+import grondag.canvas.mixinterface.BufferBuilderExt;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.AutoImmediate;
 
@@ -53,11 +55,41 @@ public class MixinDebugHud extends DrawableHelper {
 	@Shadow private TextRenderer textRenderer;
 
 	private List<String> leftList, rightList;
+	private final BufferBuilder fillerBuffer = BufferBuilderExt.repeatableBuffer(0x1000);
+	private final AutoImmediate immediate = new AutoImmediate();
+	private long nextTime;
+	private boolean rebuildLists = true;
+
+	private static final int HEIGHT = 9;
+
+	@Inject(method = "renderLeftText", require = 1, cancellable = true, at = @At("HEAD"))
+	private void beforeRenderLeftText(CallbackInfo ci) {
+		if (Configurator.steadyDebugScreen) {
+			final long time = System.currentTimeMillis();
+
+			if (time > nextTime) {
+				rebuildLists = true;
+				nextTime = time + 50;
+			} else {
+				ci.cancel();
+			}
+		} else {
+			rebuildLists = true;
+		}
+	}
 
 	@Redirect(method = "renderLeftText", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I"))
 	private int onGetLeftListSize(List<String> leftList) {
 		this.leftList = leftList;
 		return 0;
+	}
+
+	@Inject(method = "renderRightText", require = 1, cancellable = true, at = @At("HEAD"))
+	private void beforeRenderRightText(MatrixStack matrixStack, CallbackInfo ci) {
+		if (!rebuildLists) {
+			drawLists(matrixStack);
+			ci.cancel();
+		}
 	}
 
 	@Redirect(method = "renderRightText", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I"))
@@ -68,14 +100,27 @@ public class MixinDebugHud extends DrawableHelper {
 
 	@Inject(method = "renderRightText", at = @At("RETURN"), cancellable = false, require = 1)
 	private void afterRenderRightText(MatrixStack matrixStack, CallbackInfo ci) {
-		drawLists(matrixStack);
+		if (rebuildLists) {
+			immediate.clear();
+			fillerBuffer.reset();
+			buildLists(matrixStack);
+			rebuildLists = false;
+			drawLists(matrixStack);
+		}
 	}
 
-	private final BufferBuilder fillerBuffer = new BufferBuilder(0x1000);
-
-	private static final int HEIGHT = 9;
-
 	private void drawLists(MatrixStack matrixStack) {
+		RenderSystem.enableBlend();
+		RenderSystem.disableTexture();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		BufferRenderer.draw(fillerBuffer);
+		RenderSystem.enableTexture();
+		RenderSystem.disableBlend();
+		immediate.drawRepeatable();
+	}
+
+	private void buildLists(MatrixStack matrixStack) {
 		final Matrix4f matrix4f = matrixStack.peek().getModel();
 		final TextRenderer textRenderer = this.textRenderer;
 		final boolean rightToLeft = textRenderer.isRightToLeft();
@@ -100,7 +145,7 @@ public class MixinDebugHud extends DrawableHelper {
 			fillerBuffer.vertex(matrix4f, x1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).next();
 			fillerBuffer.vertex(matrix4f, 1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).next();
 
-			textRenderer.draw(string, 2.0F, top, 0xE0E0E0, false, matrix4f, AutoImmediate.INSTANCE, false, 0, 0xF000F0, rightToLeft);
+			textRenderer.draw(string, 2.0F, top, 0xE0E0E0, false, matrix4f, immediate, false, 0, 0xF000F0, rightToLeft);
 		}
 
 		final int rightLimit = rightList.size();
@@ -126,19 +171,10 @@ public class MixinDebugHud extends DrawableHelper {
 			fillerBuffer.vertex(matrix4f, x1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).next();
 			fillerBuffer.vertex(matrix4f, x0, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).next();
 
-			textRenderer.draw(string, left, top, 0xE0E0E0, false, matrix4f, AutoImmediate.INSTANCE, false, 0, 0xF000F0, rightToLeft);
+			textRenderer.draw(string, left, top, 0xE0E0E0, false, matrix4f, immediate, false, 0, 0xF000F0, rightToLeft);
 		}
 
 		fillerBuffer.end();
-		RenderSystem.enableBlend();
-		RenderSystem.disableTexture();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		BufferRenderer.draw(fillerBuffer);
-		RenderSystem.enableTexture();
-		RenderSystem.disableBlend();
-		AutoImmediate.INSTANCE.draw();
-
 		leftList = null;
 		rightList = null;
 	}

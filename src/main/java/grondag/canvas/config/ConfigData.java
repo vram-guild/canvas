@@ -70,6 +70,8 @@ class ConfigData {
 	boolean cullParticles = true;
 	@Comment("Use Canvas thread pool for rendering and local server tasks. May reduce lag spikes caused by thread contention.")
 	boolean useCombinedThreadPool = false;
+	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
+	boolean steadyDebugScreen = true;
 
 	// DEBUG
 	@Comment("Output runtime per-material shader source. For shader development debugging.")

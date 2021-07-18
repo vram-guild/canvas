@@ -16,50 +16,89 @@
 
 package grondag.canvas.varia;
 
-import java.util.Map;
-
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
+
+import grondag.canvas.mixinterface.BufferBuilderExt;
 
 /**
  * Meant primarily for text rendering, creates an Immediate vertex consumer
  * that automatically adds render layers as needed to avoid intermediate draw calls.
  */
-public class AutoImmediate {
-	private AutoImmediate() { }
+public class AutoImmediate extends Immediate {
+	public AutoImmediate() {
+		super(null, new Object2ObjectOpenHashMap<>());
+	}
 
-	public static final Immediate INSTANCE = create();
+	@Override
+	public VertexConsumer getBuffer(RenderLayer renderLayer) {
+		BufferBuilder builder = layerBuffers.get(renderLayer);
 
-	private static Immediate create() {
-		final Map<RenderLayer, BufferBuilder> map = new Object2ObjectOpenHashMap<>() {
-			@Override
-			public BufferBuilder getOrDefault(Object key, BufferBuilder defaultValue) {
-				return get(key);
+		if (builder == null) {
+			builder = new BufferBuilder(renderLayer.getExpectedBufferSize());
+			((BufferBuilderExt) builder).canvas_enableRepeatableDraw(true);
+			layerBuffers.put(renderLayer, builder);
+		}
+
+		if (activeConsumers.add(builder)) {
+			builder.begin(renderLayer.getDrawMode(), renderLayer.getVertexFormat());
+		}
+
+		return builder;
+	}
+
+	@Override
+	public void drawCurrentLayer() {
+		// NOOP because we will never use fallback layer
+	}
+
+	@Override
+	public void draw() {
+		drawRepeatable();
+		clear();
+	}
+
+	@Override
+	public void draw(RenderLayer renderLayer) {
+		assert false : "Vanilla draw method not expected on AutoImmediate";
+
+		BufferBuilder builder = layerBuffers.get(renderLayer);
+
+		if (builder != null && activeConsumers.remove(builder)) {
+			renderLayer.draw(builder, 0, 0, 0);
+		}
+	}
+
+	public void drawRepeatable() {
+		for (var layer : layerBuffers.keySet()) {
+			drawRepeatable(layer);
+		}
+	}
+
+	private void drawRepeatable(RenderLayer renderLayer) {
+		BufferBuilder builder = layerBuffers.get(renderLayer);
+
+		if (builder != null && activeConsumers.contains(builder)) {
+			if (builder.isBuilding()) {
+				builder.end();
 			}
 
-			@Override
-			public BufferBuilder get(Object key) {
-				BufferBuilder result = super.get(key);
+			renderLayer.startDrawing();
+			BufferRenderer.draw(builder);
+			renderLayer.endDrawing();
+		}
+	}
 
-				if (result == null) {
-					RenderLayer layer = (RenderLayer) key;
-					result = new BufferBuilder(layer.getExpectedBufferSize());
-					put(layer, result);
-				}
+	public void clear() {
+		for (var buffer : activeConsumers) {
+			buffer.reset();
+		}
 
-				return result;
-			}
-
-			@Override
-			public boolean containsKey(Object k) {
-				return true;
-			}
-		};
-
-		return VertexConsumerProvider.immediate(map, new BufferBuilder(0x1000));
+		activeConsumers.clear();
 	}
 }

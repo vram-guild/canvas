@@ -164,5 +164,9 @@
   "config.canvas.value.use_combined_thread_pool": "Combined Thread Pool",
   "config.canvas.help.use_combined_thread_pool": "EXPERIMENTAL: Use Canvas thread pool for local server tasks.;May reduce lag spikes caused by thread contention.",
   "config.canvas.value.transfer_buffer_mode": "Transfer Buffer Mode",
-  "config.canvas.help.transfer_buffer_mode": "Method used to transfer data to GPU. AUTO is recommended;but performance can be specific to your system."
+  "config.canvas.help.transfer_buffer_mode": "Method used to transfer data to GPU. AUTO is recommended;but performance can be specific to your system.",
+  "config.canvas.value.steady_debug_screen": "Steady Debug Screen",
+  "config.canvas.help.steady_debug_screen": "When enabled, F3 debug screen output is refreshed 20X per second;instead of every frame. Improves accuracy and;reduces variability of FPS measurement."
+  
+  
 }

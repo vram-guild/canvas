@@ -18,12 +18,18 @@ package grondag.canvas.mixin;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
+import com.mojang.datafixers.util.Pair;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.VertexFormat;
+import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.mixinterface.BufferBuilderExt;
 
@@ -40,11 +46,15 @@ public class MixinBufferBuilder implements BufferBuilderExt {
 	@Shadow private int currentElementId;
 	@Shadow private boolean building;
 	@Shadow private int elementOffset;
+	@Shadow private List<BufferBuilder.DrawArrayParameters> parameters;
+	@Shadow private int lastParameterIndex;
+	@Shadow private int nextDrawStart;
 
 	@Shadow private void grow(int i) { }
 
 	private ByteBuffer lastByteBuffer;
 	private IntBuffer intBuffer;
+	private boolean repeatableDraw = false;
 
 	@Override
 	public boolean canvas_canSupportDirect(VertexFormat expectedFormat) {
@@ -66,5 +76,29 @@ public class MixinBufferBuilder implements BufferBuilderExt {
 		vertexCount += 4;
 		getIntBuffer().put(elementOffset / 4, data);
 		elementOffset += data.length * 4;
+	}
+
+	@Override
+	public void canvas_enableRepeatableDraw(boolean enable) {
+		repeatableDraw = enable;
+	}
+
+	@Inject(method = "popData", require = 1, cancellable = true, at = @At("HEAD"))
+	private void onPopData(CallbackInfoReturnable<Pair<BufferBuilder.DrawArrayParameters, ByteBuffer>> ci) {
+		if (repeatableDraw) {
+			BufferBuilder.DrawArrayParameters drawArrayParameters = parameters.get(lastParameterIndex++);
+			buffer.position(nextDrawStart);
+			nextDrawStart += MathHelper.roundUpToMultiple(drawArrayParameters.getDrawStart(), 4);
+			buffer.limit(nextDrawStart);
+
+			if (lastParameterIndex == parameters.size() && vertexCount == 0) {
+				nextDrawStart = 0;
+				lastParameterIndex = 0;
+			}
+
+			ByteBuffer byteBuffer = buffer.slice();
+			buffer.clear();
+			ci.setReturnValue(Pair.of(drawArrayParameters, byteBuffer));
+		}
 	}
 }

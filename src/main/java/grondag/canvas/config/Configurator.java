@@ -74,6 +74,7 @@ public class Configurator {
 	public static TerrainRenderConfig terrainRenderConfigOption = DEFAULTS.terrainRenderConfig;
 	public static RegionRenderConfig terrainRenderConfig = terrainRenderConfigOption.config;
 	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
+	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -123,6 +124,7 @@ public class Configurator {
 		cullParticles = config.cullParticles;
 		useCombinedThreadPool = config.useCombinedThreadPool;
 		transferBufferMode = config.transferBufferMode;
+		steadyDebugScreen = config.steadyDebugScreen;
 
 		// lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -176,6 +178,7 @@ public class Configurator {
 		config.cullParticles = cullParticles;
 		config.useCombinedThreadPool = useCombinedThreadPool;
 		config.transferBufferMode = transferBufferMode;
+		config.steadyDebugScreen = steadyDebugScreen;
 
 		// config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;

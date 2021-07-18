@@ -31,6 +31,7 @@ import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
 import static grondag.canvas.config.Configurator.enableNearOccluders;
+import static grondag.canvas.config.Configurator.steadyDebugScreen;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
@@ -353,6 +354,15 @@ public class ConfigGui {
 				})
 				.setEnumNameProvider(a -> new LiteralText(a.toString()))
 				.setTooltip(parse("config.canvas.help.transfer_buffer_mode"))
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.steady_debug_screen"), steadyDebugScreen)
+				.setDefaultValue(DEFAULTS.steadyDebugScreen)
+				.setTooltip(parse("config.canvas.help.steady_debug_screen"))
+				.setSaveConsumer(b -> {
+					steadyDebugScreen = b;
+				})
 				.build());
 
 		// DEBUG
