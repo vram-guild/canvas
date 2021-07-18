@@ -24,9 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
-import grondag.canvas.buffer.StreamBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.render.StreamBuffer;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
 

@@ -51,9 +51,9 @@ import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.render.region.DrawableRegion;
-import grondag.canvas.render.region.UploadableRegion;
-import grondag.canvas.render.region.vs.RenderSectorMap.RenderSector;
+import grondag.canvas.render.terrain.RegionRenderSectorMap.RegionRenderSector;
+import grondag.canvas.render.terrain.base.DrawableRegion;
+import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.camera.CameraRegionVisibility;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
@@ -79,7 +79,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
 
-	private RenderSector renderSector = null;
+	private RegionRenderSector renderSector = null;
 
 	/**
 	 * Set by main thread during schedule. Retrieved and set to null by worker

@@ -18,7 +18,7 @@ package grondag.canvas.config;
 
 import blue.endless.jankson.Comment;
 
-import grondag.canvas.buffer.TransferBuffers;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.pipeline.config.PipelineConfig;
 
 class ConfigData {
@@ -115,7 +115,7 @@ class ConfigData {
 	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
 	boolean enableNearOccluders = false;
 	//WIP: docs
-	TerrainRenderConfig terrainRenderConfig = TerrainRenderConfig.DEFAULT;
+	TerrainRenderConfigOption terrainRenderConfig = TerrainRenderConfigOption.DEFAULT;
 	@Comment("Method used to transfer data to GPU. AUTO is recommended but performance can be specific to your system. Other options are DIRECT, HYBRID, and MAPPED")
 	public TransferBuffers.Config transferBufferMode = TransferBuffers.Config.AUTO;
 }

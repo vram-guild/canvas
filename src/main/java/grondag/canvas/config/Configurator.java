@@ -23,9 +23,9 @@ import net.minecraft.util.math.MathHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.buffer.TransferBuffers;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.pipeline.config.PipelineConfig;
-import grondag.canvas.render.region.base.RegionRenderConfig;
+import grondag.canvas.render.terrain.TerrainRenderConfig;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
@@ -71,8 +71,8 @@ public class Configurator {
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 	public static boolean enableNearOccluders = DEFAULTS.enableNearOccluders;
-	public static TerrainRenderConfig terrainRenderConfigOption = DEFAULTS.terrainRenderConfig;
-	public static RegionRenderConfig terrainRenderConfig = terrainRenderConfigOption.config;
+	public static TerrainRenderConfigOption terrainRenderConfigOption = DEFAULTS.terrainRenderConfig;
+	public static TerrainRenderConfig terrainRenderConfig = terrainRenderConfigOption.config;
 	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
 	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
 

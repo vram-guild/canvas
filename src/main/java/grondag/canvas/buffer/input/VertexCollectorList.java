@@ -30,7 +30,7 @@ import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.region.UploadableRegion;
+import grondag.canvas.render.terrain.base.UploadableRegion;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.

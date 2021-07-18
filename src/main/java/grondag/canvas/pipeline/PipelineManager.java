@@ -24,11 +24,11 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.buffer.StaticDrawBuffer;
-import grondag.canvas.buffer.TransferBuffer;
-import grondag.canvas.buffer.TransferBuffers;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.render.StaticDrawBuffer;
+import grondag.canvas.buffer.render.TransferBuffer;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;

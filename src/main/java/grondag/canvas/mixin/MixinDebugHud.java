@@ -41,8 +41,8 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.TransferBuffers;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.config.Configurator;

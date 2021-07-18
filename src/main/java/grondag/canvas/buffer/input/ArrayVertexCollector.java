@@ -25,8 +25,8 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;
 
-import grondag.canvas.buffer.TransferBuffer;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;

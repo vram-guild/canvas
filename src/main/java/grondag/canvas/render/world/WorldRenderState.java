@@ -28,10 +28,10 @@ import net.minecraft.util.profiler.Profiler;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
-import grondag.canvas.render.region.DrawableRegion;
-import grondag.canvas.render.region.RegionDrawList;
-import grondag.canvas.render.region.base.RegionDrawListBuilder;
-import grondag.canvas.render.region.vs.RenderSectorMap;
+import grondag.canvas.render.terrain.RegionRenderSectorMap;
+import grondag.canvas.render.terrain.base.DrawableRegion;
+import grondag.canvas.render.terrain.base.DrawableRegionList;
+import grondag.canvas.render.terrain.base.DrawableRegionListBuilder;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
@@ -56,7 +56,7 @@ public class WorldRenderState {
 
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	public final RenderSectorMap sectorManager = new RenderSectorMap();
+	public final RegionRenderSectorMap sectorManager = new RegionRenderSectorMap();
 
 	/**
 	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
@@ -70,9 +70,9 @@ public class WorldRenderState {
 	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
 	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
 
-	private RegionDrawList solidDrawList = RegionDrawList.EMPTY;
-	private RegionDrawList translucentDrawList = RegionDrawList.EMPTY;
-	private final RegionDrawList[] shadowDrawLists = new RegionDrawList[ShadowMatrixData.CASCADE_COUNT];
+	private DrawableRegionList solidDrawList = DrawableRegionList.EMPTY;
+	private DrawableRegionList translucentDrawList = DrawableRegionList.EMPTY;
+	private final DrawableRegionList[] shadowDrawLists = new DrawableRegionList[ShadowMatrixData.CASCADE_COUNT];
 
 	private RenderRegionBuilder regionBuilder;
 	private ClientWorld world;
@@ -88,7 +88,7 @@ public class WorldRenderState {
 
 		for (int i = 0; i < ShadowMatrixData.CASCADE_COUNT; ++i) {
 			shadowVisibleRegions[i] = new VisibleRegionList();
-			shadowDrawLists[i] = RegionDrawList.EMPTY;
+			shadowDrawLists[i] = DrawableRegionList.EMPTY;
 		}
 	}
 
@@ -168,19 +168,19 @@ public class WorldRenderState {
 
 		areDrawListsValid = true;
 
-		final Function<ObjectArrayList<DrawableRegion>, RegionDrawList> drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
+		final Function<ObjectArrayList<DrawableRegion>, DrawableRegionList> drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
 
 		Configurator.terrainRenderConfig.beforeDrawListBuild();
 
 		solidDrawList.close();
-		solidDrawList = RegionDrawListBuilder.build(cameraVisibleRegions, drawListFunc, false);
+		solidDrawList = DrawableRegionListBuilder.build(cameraVisibleRegions, drawListFunc, false);
 		translucentDrawList.close();
-		translucentDrawList = RegionDrawListBuilder.build(cameraVisibleRegions, drawListFunc, true);
+		translucentDrawList = DrawableRegionListBuilder.build(cameraVisibleRegions, drawListFunc, true);
 
 		if (shadowsEnabled()) {
 			for (int i = 0; i < 4; ++i) {
 				shadowDrawLists[i].close();
-				shadowDrawLists[i] = RegionDrawListBuilder.build(shadowVisibleRegions[i], drawListFunc, false);
+				shadowDrawLists[i] = DrawableRegionListBuilder.build(shadowVisibleRegions[i], drawListFunc, false);
 			}
 		}
 
@@ -206,14 +206,14 @@ public class WorldRenderState {
 
 	void clearDrawSpecs() {
 		solidDrawList.close();
-		solidDrawList = RegionDrawList.EMPTY;
+		solidDrawList = DrawableRegionList.EMPTY;
 
 		translucentDrawList.close();
-		translucentDrawList = RegionDrawList.EMPTY;
+		translucentDrawList = DrawableRegionList.EMPTY;
 
 		for (int i = 0; i < 4; ++i) {
 			shadowDrawLists[i].close();
-			shadowDrawLists[i] = RegionDrawList.EMPTY;
+			shadowDrawLists[i] = DrawableRegionList.EMPTY;
 		}
 	}
 
