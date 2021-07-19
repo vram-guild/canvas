@@ -111,13 +111,16 @@ public class Slab extends AbstractGlBuffer {
 	}
 
 	/** We are using short index arrays, which means we can't have more than this many vertices per slab. */
-	private static final int MAX_QUAD_VERTEX_COUNT = 0x10000;
-	static final int MAX_TRI_VERTEX_COUNT = MAX_QUAD_VERTEX_COUNT * 6 / 4;
+	public static final int MAX_QUAD_VERTEX_COUNT = 0x10000;
+	public static final int MAX_TRI_VERTEX_COUNT = MAX_QUAD_VERTEX_COUNT * 6 / 4;
 	private static final int BYTES_PER_VERTEX = 28;
 	private static final int BYTES_PER_SLAB = (MAX_QUAD_VERTEX_COUNT * BYTES_PER_VERTEX);
 
 	/** Buffer size needed to index an entire slab with triangle verticies.  Is * 2 because 2bytes per index. */
-	static final int BYTES_PER_SLAB_INDEX = MAX_TRI_VERTEX_COUNT * 2;
+	public static final int BYTES_PER_SLAB_INDEX = MAX_TRI_VERTEX_COUNT * 2;
+
+	/** Six tri vertices per four quad vertices at 2 bytes each gives 6 / 4 * 2 = 3. */
+	public static final int QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER = 3;
 
 	private static final ArrayDeque<Slab> POOL = new ArrayDeque<>();
 	private static int totalSlabCount = 0;

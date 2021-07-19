@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render.terrain.cluster;
+package grondag.canvas.render.terrain.cluster.drawlist;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -23,24 +23,26 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegionList;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
+import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
+import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.varia.GFX;
 
-public class DrawListRealm extends AbstractDrawableRegionList {
-	final ObjectArrayList<DrawListCluster> clusterLists = new ObjectArrayList<>();
+public class RealmDrawList extends AbstractDrawableRegionList {
+	final ObjectArrayList<ClusterDrawList> clusterLists = new ObjectArrayList<>();
 
-	private DrawListRealm(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
+	private RealmDrawList(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
 		super(regions, renderState);
 
-		final Long2ObjectOpenHashMap<DrawListCluster> map = new Long2ObjectOpenHashMap<>();
+		final Long2ObjectOpenHashMap<ClusterDrawList> map = new Long2ObjectOpenHashMap<>();
 		final int limit = regions.size();
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			final ClusteredDrawableStorage storage = ((ClusteredDrawableRegion) regions.get(regionIndex)).storage();
 
-			DrawListCluster clusterList = map.get(storage.clusterPos);
+			ClusterDrawList clusterList = map.get(storage.clusterPos);
 
 			if (clusterList == null) {
-				clusterList = new DrawListCluster(storage.getCluster());
+				clusterList = new ClusterDrawList(storage.getCluster());
 				clusterLists.add(clusterList);
 			}
 
@@ -49,7 +51,7 @@ public class DrawListRealm extends AbstractDrawableRegionList {
 	}
 
 	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
-		return regions.isEmpty() ? DrawableRegionList.EMPTY : new DrawListRealm(regions, renderState);
+		return regions.isEmpty() ? DrawableRegionList.EMPTY : new RealmDrawList(regions, renderState);
 	}
 
 	@Override

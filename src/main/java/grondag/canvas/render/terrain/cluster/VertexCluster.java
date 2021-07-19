@@ -26,7 +26,7 @@ import grondag.canvas.CanvasMod;
 public class VertexCluster {
 	//final StringBuilder log = new StringBuilder();
 
-	private final VertexClusterRealm owner;
+	public final VertexClusterRealm owner;
 	private final ObjectArrayList<ClusteredDrawableStorage> noobs = new ObjectArrayList<>();
 	private final ReferenceOpenHashSet<ClusteredDrawableStorage> allocatedRegions = new ReferenceOpenHashSet<>();
 
