@@ -109,6 +109,6 @@ public class VertexClusterRealm {
 			total += cluster.activeBytes();
 		}
 
-		return String.format("clusters:%d %dMb %s", clusters.size(), total / 0x100000, Slab.debugSummary());
+		return String.format("clusters:%d %dMb", clusters.size(), total / 0x100000);
 	}
 }

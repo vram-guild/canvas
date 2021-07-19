@@ -16,8 +16,6 @@
 
 package grondag.canvas.render.terrain.cluster;
 
-import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
 import java.util.ArrayDeque;
 import java.util.Set;
 
@@ -28,8 +26,7 @@ import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.varia.GFX;
 
-class Slab extends AbstractGlBuffer {
-	private SlabIndex slabIndex = new SlabIndex();
+public class Slab extends AbstractGlBuffer {
 	private int headVertexIndex = 0;
 	private boolean isClaimed;
 	private int vaoBufferId = 0;
@@ -103,8 +100,6 @@ class Slab extends AbstractGlBuffer {
 		} else {
 			GFX.bindVertexArray(vaoBufferId);
 		}
-
-		slabIndex.bind();
 	}
 
 	@Override
@@ -113,49 +108,16 @@ class Slab extends AbstractGlBuffer {
 			GFX.deleteVertexArray(vaoBufferId);
 			vaoBufferId = 0;
 		}
-
-		slabIndex.shutdown();
-		slabIndex = null;
-	}
-
-	class SlabIndex extends AbstractGlBuffer {
-		protected SlabIndex() {
-			super(BYTES_PER_SLAB_INDEX, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
-
-			// WIP: lol
-			GFX.bindBuffer(bindTarget, glBufferId());
-			final ByteBuffer buff = GFX.mapBuffer(bindTarget, GFX.GL_WRITE_ONLY);
-			final ShortBuffer sink = buff.asShortBuffer();
-			int i = 0;
-			int v = 0;
-
-			while (i < MAX_TRI_VERTEX_COUNT) {
-				sink.put(i++, (short) v);
-				sink.put(i++, (short) (v + 1));
-				sink.put(i++, (short) (v + 2));
-				sink.put(i++, (short) (v + 2));
-				sink.put(i++, (short) (v + 3));
-				sink.put(i++, (short) v);
-				v += 4;
-			}
-
-			GFX.unmapBuffer(bindTarget);
-		}
-
-		@Override
-		protected void onShutdown() {
-			// NOOP
-		}
 	}
 
 	/** We are using short index arrays, which means we can't have more than this many vertices per slab. */
 	private static final int MAX_QUAD_VERTEX_COUNT = 0x10000;
-	private static final int MAX_TRI_VERTEX_COUNT = MAX_QUAD_VERTEX_COUNT * 6 / 4;
+	static final int MAX_TRI_VERTEX_COUNT = MAX_QUAD_VERTEX_COUNT * 6 / 4;
 	private static final int BYTES_PER_VERTEX = 28;
 	private static final int BYTES_PER_SLAB = (MAX_QUAD_VERTEX_COUNT * BYTES_PER_VERTEX);
 
 	/** Buffer size needed to index an entire slab with triangle verticies.  Is * 2 because 2bytes per index. */
-	private static final int BYTES_PER_SLAB_INDEX = MAX_TRI_VERTEX_COUNT * 2;
+	static final int BYTES_PER_SLAB_INDEX = MAX_TRI_VERTEX_COUNT * 2;
 
 	private static final ArrayDeque<Slab> POOL = new ArrayDeque<>();
 	private static int totalSlabCount = 0;
@@ -173,13 +135,15 @@ class Slab extends AbstractGlBuffer {
 		if (result == null) {
 			result = new Slab();
 			++totalSlabCount;
+		} else {
+			result.orphan();
 		}
 
 		result.isClaimed = true;
 		return result;
 	}
 
-	static String debugSummary() {
-		return String.format("slabs: %dMb / %dMb", (totalSlabCount - POOL.size()) * BYTES_PER_SLAB / 0x100000, totalSlabCount * BYTES_PER_SLAB / 0x100000);
+	public static String debugSummary() {
+		return String.format("Slabs: %dMb / %dMb", (totalSlabCount - POOL.size()) * BYTES_PER_SLAB / 0x100000, totalSlabCount * BYTES_PER_SLAB / 0x100000);
 	}
 }

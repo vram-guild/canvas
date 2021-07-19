@@ -48,6 +48,7 @@ import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.TerrainRenderConfigOption;
 import grondag.canvas.mixinterface.BufferBuilderExt;
+import grondag.canvas.render.terrain.cluster.Slab;
 import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.AutoImmediate;
@@ -195,6 +196,7 @@ public class MixinDebugHud extends DrawableHelper {
 		if (Configurator.terrainRenderConfigOption == TerrainRenderConfigOption.CLUSTERED) {
 			result.add("Solid " + VertexClusterRealm.SOLID.debugSummary());
 			result.add("Translucent " + VertexClusterRealm.TRANSLUCENT.debugSummary());
+			result.add(Slab.debugSummary());
 		}
 
 		return result;

@@ -42,6 +42,10 @@ public abstract class AbstractGlBuffer {
 		GFX.bindBuffer(bindTarget, glBufferId());
 	}
 
+	public void unbind() {
+		GFX.bindBuffer(bindTarget, 0);
+	}
+
 	protected int glBufferId() {
 		int result = glBufferId;
 
@@ -54,6 +58,14 @@ public abstract class AbstractGlBuffer {
 		}
 
 		return result;
+	}
+
+	public void orphan() {
+		if (glBufferId != 0) {
+			GFX.bindBuffer(bindTarget, glBufferId);
+			GFX.bufferData(bindTarget, capacityBytes, usageHint);
+			GFX.bindBuffer(bindTarget, 0);
+		}
 	}
 
 	public final void shutdown() {

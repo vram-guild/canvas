@@ -39,6 +39,7 @@ public class DrawListCluster {
 
 			if (slab != lastSlab) {
 				slab.bind();
+				SlabIndex.fullSlabIndex().bind();
 				lastSlab = slab;
 			}
 
@@ -46,6 +47,8 @@ public class DrawListCluster {
 			// six tri vertices per four quad vertices at 2 bytes each gives 6 / 4 * 2 = 3
 			GFX.drawElements(GFX.GL_TRIANGLES, store.triVertexCount, GFX.GL_UNSIGNED_SHORT, store.baseQuadVertexIndex() * 3);
 		}
+
+		SlabIndex.fullSlabIndex().unbind();
 	}
 
 	public void add(ClusteredDrawableStorage storage) {
