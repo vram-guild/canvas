@@ -20,11 +20,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
-import net.minecraft.util.math.MathHelper;
-
-import grondag.canvas.buffer.util.GlBufferAllocator;
-import grondag.canvas.render.terrain.TerrainFormat;
-import grondag.canvas.varia.GFX;
+import grondag.canvas.CanvasMod;
 
 //WIP: support direct-copy mapped transfer buffers when they are available
 public class VertexCluster {
@@ -34,24 +30,51 @@ public class VertexCluster {
 	private final ObjectArrayList<ClusteredDrawableStorage> noobs = new ObjectArrayList<>();
 	private final ReferenceOpenHashSet<ClusteredDrawableStorage> allocatedRegions = new ReferenceOpenHashSet<>();
 
-	private int capacityBytes;
-	private int glBufferId = 0;
 	private boolean isClosed = false;
 
-	private int headBytes = 0;
+	private int activeBytes = 0;
 	private int newBytes = 0;
-	private int vacantBytes = 0;
 
 	final long clumpPos;
 
-	/**
-	 * VAO Buffer name if enabled and initialized.
-	 */
-	private int vaoBufferId = 0;
+	private Slab[] slabs = new Slab[256]; // if we use more than this many we're already dead
+	private int slabCount;
+	private int openSlabIndex = -1;
+	private int maxSlabCount = 0;
 
 	public VertexCluster(VertexClusterRealm owner, long clumpPos) {
 		this.owner = owner;
 		this.clumpPos = clumpPos;
+	}
+
+	int activeBytes() {
+		return activeBytes;
+	}
+
+	private Slab findSlabWithCapacity(int vertexCount) {
+		int result = openSlabIndex;
+
+		if (result == -1 || slabs[result].availableVertexCount() < vertexCount) {
+			result = claimOpenSlabIndex();
+			openSlabIndex = result;
+			slabs[result] = Slab.claim();
+		}
+
+		return slabs[result];
+	}
+
+	private int claimOpenSlabIndex() {
+		if (slabCount++ < maxSlabCount) {
+			for (int i = 0; i < maxSlabCount; ++i) {
+				if (slabs[i] == null) {
+					return i;
+				}
+			}
+
+			throw new IllegalStateException("maxSlabCount is not accurate - no empty slab slots found");
+		} else {
+			return maxSlabCount++;
+		}
 	}
 
 	void close() {
@@ -64,16 +87,8 @@ public class VertexCluster {
 		if (!isClosed) {
 			isClosed = true;
 
-			clearVao();
-
-			if (glBufferId != 0) {
-				GlBufferAllocator.releaseBuffer(glBufferId, capacityBytes);
-				glBufferId = 0;
-			}
-
-			headBytes = 0;
+			activeBytes = 0;
 			newBytes = 0;
-			vacantBytes = 0;
 
 			if (!allocatedRegions.isEmpty()) {
 				for (ClusteredDrawableStorage region : allocatedRegions) {
@@ -90,33 +105,13 @@ public class VertexCluster {
 
 				noobs.clear();
 			}
-		}
-	}
 
-	public int capacityBytes() {
-		return capacityBytes;
-	}
-
-	private void clearVao() {
-		if (vaoBufferId != 0) {
-			GFX.deleteVertexArray(vaoBufferId);
-			vaoBufferId = 0;
-		}
-	}
-
-	public void bind() {
-		assert glBufferId != 0 : "Vertex Storage Clump bound before upload";
-
-		if (vaoBufferId == 0) {
-			vaoBufferId = GFX.genVertexArray();
-			GFX.bindVertexArray(vaoBufferId);
-
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
-			TerrainFormat.TERRAIN_MATERIAL.enableAttributes();
-			TerrainFormat.TERRAIN_MATERIAL.bindAttributeLocations(0);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-		} else {
-			GFX.bindVertexArray(vaoBufferId);
+			for (int i = 0; i < maxSlabCount; ++i) {
+				if (slabs[i] != null) {
+					slabs[i].release();
+					slabs[i] = null;
+				}
+			}
 		}
 	}
 
@@ -144,95 +139,33 @@ public class VertexCluster {
 
 		assert !noobs.isEmpty();
 
-		if (glBufferId == 0) {
-			uploadNewBuffer();
-		} else if (headBytes + newBytes <= capacityBytes) {
-			appendToBuffer();
-		} else {
-			recreateBuffer();
+		for (ClusteredDrawableStorage noob : noobs) {
+			final int byteCount = noob.byteCount;
+
+			//log.append("Added to allocated regions: ").append(noob.id).append("\n");
+			Slab slab = findSlabWithCapacity(noob.quadVertexCount);
+
+			if (slab.allocateAndLoad(noob)) {
+				allocatedRegions.add(noob);
+				activeBytes += byteCount;
+			} else {
+				assert false : "Your code is bad and you should feel bad.";
+				CanvasMod.LOG.error("Unable to allocate memory for render region. This is a bug.");
+			}
 		}
 
 		//log.append("Noobs cleared after upload").append("\n");
 		noobs.clear();
 		newBytes = 0;
-	}
 
-	private void uploadNewBuffer() {
-		// never buffered, adjust capacity if needed before we create it
-		assert headBytes == 0;
-		capacityBytes = Math.max(capacityBytes, MathHelper.smallestEncompassingPowerOfTwo(newBytes));
+		for (int i = 0; i < maxSlabCount; ++i) {
+			Slab slab = slabs[i];
 
-		glBufferId = GlBufferAllocator.claimBuffer(capacityBytes);
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
-		GFX.bufferData(GFX.GL_ARRAY_BUFFER, capacityBytes, GFX.GL_STATIC_DRAW);
-		appendNewRegionsAtHead();
-	}
-
-	private void appendToBuffer() {
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
-		appendNewRegionsAtHead();
-	}
-
-	private void appendNewRegionsAtHead() {
-		assert capacityBytes - headBytes >= newBytes;
-
-		int baseOffset = 0;
-
-		for (ClusteredDrawableStorage noob : noobs) {
-			final int byteCount = noob.byteCount;
-
-			//log.append("Added to allocated regions: ").append(noob.id).append("\n");
-			allocatedRegions.add(noob);
-			noob.setBaseAddress(headBytes);
-			noob.getAndClearTransferBuffer().releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, headBytes);
-			baseOffset += byteCount;
-			headBytes += byteCount;
-		}
-
-		assert baseOffset == newBytes;
-
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-	}
-
-	private void recreateBuffer() {
-		final int oldCapacityBytes = capacityBytes;
-		capacityBytes = Math.max(capacityBytes, MathHelper.smallestEncompassingPowerOfTwo(headBytes - vacantBytes + newBytes));
-
-		// bind existing buffer for read
-		final int oldBufferId = glBufferId;
-		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, glBufferId);
-
-		// create new buffer
-		clearVao();
-		glBufferId = GlBufferAllocator.claimBuffer(capacityBytes);
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
-		GFX.bufferData(GFX.GL_ARRAY_BUFFER, capacityBytes, GFX.GL_STATIC_DRAW);
-
-		// Copy extant regions to new buffer
-		// If no vacancies copy entire block, not by region
-		if (vacantBytes == 0) {
-			GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, GFX.GL_ARRAY_BUFFER, 0, 0, headBytes);
-		} else {
-			headBytes = 0;
-
-			// PERF: could be faster by copying contiguous blocks instead of by region
-			for (ClusteredDrawableStorage region : allocatedRegions) {
-				GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, GFX.GL_ARRAY_BUFFER, region.baseByteAddress(), headBytes, region.byteCount);
-				//assert isPresent(region);
-
-				//log.append("Setting base address: ").append(region.id).append("\n");
-				region.setBaseAddress(headBytes);
-				headBytes += region.byteCount;
+			if (slab != null && slab.isEmpty()) {
+				slab.release();
+				slabs[i] = null;
 			}
-
-			vacantBytes = 0;
 		}
-
-		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
-		GlBufferAllocator.releaseBuffer(oldBufferId, oldCapacityBytes);
-
-		// copy new regions to new buffer
-		appendNewRegionsAtHead();
 	}
 
 	void notifyClosed(ClusteredDrawableStorage region) {
@@ -241,7 +174,7 @@ public class VertexCluster {
 		//log.append("Notify closed: ").append(region.id).append("\n");
 
 		if (allocatedRegions.remove(region)) {
-			vacantBytes += region.byteCount;
+			activeBytes -= region.byteCount;
 		} else if (noobs.remove(region)) {
 			newBytes -= region.byteCount;
 			assert newBytes >= 0;

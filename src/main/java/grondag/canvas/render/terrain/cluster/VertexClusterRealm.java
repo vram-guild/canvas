@@ -103,18 +103,12 @@ public class VertexClusterRealm {
 			return "Empty";
 		}
 
-		int min = Integer.MAX_VALUE;
-		int max = Integer.MIN_VALUE;
 		int total = 0;
 
 		for (var cluster : clusters.values()) {
-			int bytes = cluster.capacityBytes();
-
-			min = bytes < min ? bytes : min;
-			max = bytes > max ? bytes : max;
-			total += bytes;
+			total += cluster.activeBytes();
 		}
 
-		return String.format("clusters:%d %dMb min:%dMb max:%dMb avg:%dMb", clusters.size(), total / 0x100000, min / 0x100000, max / 0x100000, total / clusters.size() / 0x100000);
+		return String.format("clusters:%d %dMb %s", clusters.size(), total / 0x100000, Slab.debugSummary());
 	}
 }

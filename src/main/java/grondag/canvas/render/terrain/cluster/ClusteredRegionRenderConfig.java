@@ -23,7 +23,6 @@ import grondag.canvas.render.terrain.RegionRenderSectorMap;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.TerrainRenderConfig;
 import grondag.canvas.render.terrain.base.UploadableRegion;
-import grondag.canvas.render.terrain.cluster.draw.RealmDrawList;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
@@ -40,7 +39,7 @@ public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 			TerrainFormat.TERRAIN_MATERIAL.quadStrideInts,
 			true,
 			TerrainFormat.TERRAIN_TRANSCODER,
-			RealmDrawList::build
+			DrawListRealm::build
 		);
 	}
 

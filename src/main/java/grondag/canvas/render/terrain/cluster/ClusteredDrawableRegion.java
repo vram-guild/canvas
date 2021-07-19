@@ -47,12 +47,11 @@ public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDra
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
-		// WIP: Try having orphaned, memory-mapped GPU slabs for loading off-thread and then do transfers with copySubBuffer
 		final TransferBuffer transferBuffer = TransferBuffers.claim(byteCount);
 		collector.toBuffer(0, transferBuffer, 0);
 		ClusteredDrawableStorage storage = new ClusteredDrawableStorage(
 				translucent ? VertexClusterRealm.TRANSLUCENT : VertexClusterRealm.SOLID,
-				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 6);
+				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 4);
 
 		return new ClusteredDrawableRegion(packedOriginBlockPos, collector.quadCount() * 4, storage);
 	}

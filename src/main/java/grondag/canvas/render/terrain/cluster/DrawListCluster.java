@@ -14,33 +14,37 @@
  *  the License.
  */
 
-package grondag.canvas.render.terrain.cluster.draw;
+package grondag.canvas.render.terrain.cluster;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.client.render.VertexFormat.DrawMode;
-
-import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
-import grondag.canvas.render.terrain.cluster.VertexCluster;
 import grondag.canvas.varia.GFX;
 
-public class ClusterDrawList {
+public class DrawListCluster {
 	private final ObjectArrayList<ClusteredDrawableStorage> stores = new ObjectArrayList<>();
 	private final VertexCluster cluster;
 
-	ClusterDrawList(VertexCluster cluster) {
+	DrawListCluster(VertexCluster cluster) {
 		this.cluster = cluster;
 	}
 
-	public void draw(int elementType, int indexBufferId) {
+	public void draw() {
 		final int limit = stores.size();
 
-		cluster.bind();
-		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
+		Slab lastSlab = null;
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			ClusteredDrawableStorage store = stores.get(regionIndex);
-			GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, store.triVertexCount, elementType, 0L, store.baseVertex());
+			Slab slab = store.slab();
+
+			if (slab != lastSlab) {
+				slab.bind();
+				lastSlab = slab;
+			}
+
+			// NB offset is baseQuadVertexIndex * 3 because the offset is in bytes
+			// six tri vertices per four quad vertices at 2 bytes each gives 6 / 4 * 2 = 3
+			GFX.drawElements(GFX.GL_TRIANGLES, store.triVertexCount, GFX.GL_UNSIGNED_SHORT, store.baseQuadVertexIndex() * 3);
 		}
 	}
 

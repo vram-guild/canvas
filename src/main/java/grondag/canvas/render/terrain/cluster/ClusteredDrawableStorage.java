@@ -20,26 +20,28 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.UploadableVertexStorage;
-import grondag.canvas.render.terrain.TerrainFormat;
 
 public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	private static final int NOT_ALLOCATED = -1;
 
 	public final VertexClusterRealm owner;
 	public final int byteCount;
+	public final int quadVertexCount;
 	public final int triVertexCount;
 	public final long clusterPos;
 
 	private TransferBuffer transferBuffer;
-	private int baseVertex = NOT_ALLOCATED;
+	private Slab slab;
+	private int baseQuadVertexIndex = NOT_ALLOCATED;
 	private boolean isClosed = false;
 	private VertexCluster cluster = null;
 
-	public ClusteredDrawableStorage(VertexClusterRealm owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
+	public ClusteredDrawableStorage(VertexClusterRealm owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int quadVertexCount) {
 		this.owner = owner;
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
-		this.triVertexCount = triVertexCount;
+		this.quadVertexCount = quadVertexCount;
+		triVertexCount = quadVertexCount / 4 * 6;
 		clusterPos = VertexClusterRealm.clusterPos(packedOriginBlockPos);
 	}
 
@@ -65,6 +67,11 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 				transferBuffer = transferBuffer.release();
 			}
 
+			if (slab != null) {
+				slab.removeRegion(this);
+				slab = null;
+			}
+
 			if (cluster != null) {
 				if (notify) {
 					cluster.notifyClosed(this);
@@ -73,7 +80,7 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 				cluster = null;
 			}
 
-			baseVertex = NOT_ALLOCATED;
+			baseQuadVertexIndex = NOT_ALLOCATED;
 		}
 	}
 
@@ -85,25 +92,24 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	 * Controlled by storage so that the vertices can be moved around as
 	 * needed to control fragmentation without external entanglements.
 	 */
-	public int baseVertex() {
-		assert baseVertex != NOT_ALLOCATED;
+	public int baseQuadVertexIndex() {
+		assert baseQuadVertexIndex != NOT_ALLOCATED;
 
-		return baseVertex;
+		return baseQuadVertexIndex;
 	}
 
-	public int baseByteAddress() {
-		assert baseVertex != NOT_ALLOCATED;
-
-		return baseVertex * TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes;
+	public Slab slab() {
+		return slab;
 	}
 
-	void setBaseAddress(int baseAddress) {
-		baseVertex = baseAddress / TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes;
-		//assert clump.isPresent(this);
+	void setLocation(Slab slab, int baseQuadVertexIndex) {
+		this.slab = slab;
+		this.baseQuadVertexIndex = baseQuadVertexIndex;
+		//assert cluster.isPresent(this);
 	}
 
 	void setCluster(VertexCluster cluster) {
-		assert baseVertex == NOT_ALLOCATED;
+		assert baseQuadVertexIndex == NOT_ALLOCATED;
 		assert this.cluster == null;
 		assert cluster != null;
 		this.cluster = cluster;
@@ -111,13 +117,12 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 
 	public VertexCluster getCluster() {
 		//assert clump.isPresent(this);
-
 		return cluster;
 	}
 
 	@Override
 	public void upload() {
-		assert baseVertex == NOT_ALLOCATED;
+		assert baseQuadVertexIndex == NOT_ALLOCATED;
 		owner.allocate(this);
 	}
 }
