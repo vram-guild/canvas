@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render.terrain.cluster;
+package grondag.canvas.render.terrain.cluster.draw;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -26,30 +26,32 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegionList;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
+import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
+import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.varia.GFX;
 
-public class ClusteredDrawList extends AbstractDrawableRegionList {
-	final ObjectArrayList<ClusteredDrawListClump> drawClumps = new ObjectArrayList<>();
+public class RealmDrawList extends AbstractDrawableRegionList {
+	final ObjectArrayList<ClusterDrawList> clusterLists = new ObjectArrayList<>();
 	final int maxTriangleVertexCount;
 
-	private ClusteredDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount, RenderState renderState) {
+	private RealmDrawList(final ObjectArrayList<DrawableRegion> regions, int maxTriangleVertexCount, RenderState renderState) {
 		super(regions, renderState);
 		this.maxTriangleVertexCount = maxTriangleVertexCount;
 
-		final Long2ObjectOpenHashMap<ClusteredDrawListClump> map = new Long2ObjectOpenHashMap<>();
+		final Long2ObjectOpenHashMap<ClusterDrawList> map = new Long2ObjectOpenHashMap<>();
 		final int limit = regions.size();
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			final ClusteredDrawableStorage storage = ((ClusteredDrawableRegion) regions.get(regionIndex)).storage();
 
-			ClusteredDrawListClump clump = map.get(storage.clusterPos);
+			ClusterDrawList clusterList = map.get(storage.clusterPos);
 
-			if (clump == null) {
-				clump = new ClusteredDrawListClump();
-				drawClumps.add(clump);
+			if (clusterList == null) {
+				clusterList = new ClusterDrawList(storage.getCluster());
+				clusterLists.add(clusterList);
 			}
 
-			clump.add(storage);
+			clusterList.add(storage);
 		}
 	}
 
@@ -65,7 +67,7 @@ public class ClusteredDrawList extends AbstractDrawableRegionList {
 			maxQuads = Math.max(maxQuads, regions.get(i).quadVertexCount());
 		}
 
-		return new ClusteredDrawList(regions, maxQuads / 4 * 6, renderState);
+		return new RealmDrawList(regions, maxQuads / 4 * 6, renderState);
 	}
 
 	@Override
@@ -73,23 +75,17 @@ public class ClusteredDrawList extends AbstractDrawableRegionList {
 		final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, maxTriangleVertexCount);
 		final int indexBufferId = indexBuffer.getId();
 		final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn bug
-		final int limit = drawClumps.size();
+		final int limit = clusterLists.size();
 
 		GFX.bindVertexArray(0);
 		renderState.enable(0, 0, 0, 0, 0);
 
 		for (int clumpIndex = 0; clumpIndex < limit; ++clumpIndex) {
-			ClusteredDrawListClump drawClump = drawClumps.get(clumpIndex);
-			drawClump.bind();
-			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
-			drawClump.draw(elementType);
+			clusterLists.get(clumpIndex).draw(elementType, indexBufferId);
 		}
 
-		// Important this happens BEFORE anything that could affect vertex state
 		GFX.bindVertexArray(0);
-
 		RenderState.disable();
-
 		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
 	}
 

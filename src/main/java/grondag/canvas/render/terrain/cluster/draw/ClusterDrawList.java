@@ -14,19 +14,29 @@
  *  the License.
  */
 
-package grondag.canvas.render.terrain.cluster;
+package grondag.canvas.render.terrain.cluster.draw;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.client.render.VertexFormat.DrawMode;
 
+import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
+import grondag.canvas.render.terrain.cluster.VertexCluster;
 import grondag.canvas.varia.GFX;
 
-public class ClusteredDrawListClump {
-	protected final ObjectArrayList<ClusteredDrawableStorage> stores = new ObjectArrayList<>();
+public class ClusterDrawList {
+	private final ObjectArrayList<ClusteredDrawableStorage> stores = new ObjectArrayList<>();
+	private final VertexCluster cluster;
 
-	public void draw(int elementType) {
+	ClusterDrawList(VertexCluster cluster) {
+		this.cluster = cluster;
+	}
+
+	public void draw(int elementType, int indexBufferId) {
 		final int limit = stores.size();
+
+		cluster.bind();
+		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
 
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			ClusteredDrawableStorage store = stores.get(regionIndex);
@@ -35,10 +45,7 @@ public class ClusteredDrawListClump {
 	}
 
 	public void add(ClusteredDrawableStorage storage) {
+		assert storage.getCluster() == cluster;
 		stores.add(storage);
-	}
-
-	public void bind() {
-		stores.get(0).getCluster().bind();
 	}
 }
