@@ -16,11 +16,7 @@
 
 package grondag.canvas.render.terrain.cluster;
 
-import java.util.Comparator;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongComparators;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
@@ -32,17 +28,14 @@ import grondag.canvas.varia.GFX;
 
 //WIP: support direct-copy mapped transfer buffers when they are available
 public class VertexCluster {
-	private static final int NO_BUFFER = -1;
-
 	//final StringBuilder log = new StringBuilder();
 
 	private final VertexClusterRealm owner;
 	private final ObjectArrayList<ClusteredDrawableStorage> noobs = new ObjectArrayList<>();
 	private final ReferenceOpenHashSet<ClusteredDrawableStorage> allocatedRegions = new ReferenceOpenHashSet<>();
-	private LongArrayList vacancies = new LongArrayList();
 
 	private int capacityBytes;
-	private int glBufferId = NO_BUFFER;
+	private int glBufferId = 0;
 	private boolean isClosed = false;
 
 	private int headBytes = 0;
@@ -54,7 +47,7 @@ public class VertexCluster {
 	/**
 	 * VAO Buffer name if enabled and initialized.
 	 */
-	private int vaoBufferId = NO_BUFFER;
+	private int vaoBufferId = 0;
 
 	public VertexCluster(VertexClusterRealm owner, long clumpPos) {
 		this.owner = owner;
@@ -73,15 +66,14 @@ public class VertexCluster {
 
 			clearVao();
 
-			if (glBufferId != NO_BUFFER) {
+			if (glBufferId != 0) {
 				GlBufferAllocator.releaseBuffer(glBufferId, capacityBytes);
-				glBufferId = NO_BUFFER;
+				glBufferId = 0;
 			}
 
 			headBytes = 0;
 			newBytes = 0;
 			vacantBytes = 0;
-			vacancies.clear();
 
 			if (!allocatedRegions.isEmpty()) {
 				for (ClusteredDrawableStorage region : allocatedRegions) {
@@ -101,17 +93,21 @@ public class VertexCluster {
 		}
 	}
 
+	public int capacityBytes() {
+		return capacityBytes;
+	}
+
 	private void clearVao() {
-		if (vaoBufferId != NO_BUFFER) {
+		if (vaoBufferId != 0) {
 			GFX.deleteVertexArray(vaoBufferId);
-			vaoBufferId = NO_BUFFER;
+			vaoBufferId = 0;
 		}
 	}
 
 	public void bind() {
-		assert glBufferId != NO_BUFFER : "Vertex Storage Clump bound before upload";
+		assert glBufferId != 0 : "Vertex Storage Clump bound before upload";
 
-		if (vaoBufferId == NO_BUFFER) {
+		if (vaoBufferId == 0) {
 			vaoBufferId = GFX.genVertexArray();
 			GFX.bindVertexArray(vaoBufferId);
 
@@ -148,11 +144,11 @@ public class VertexCluster {
 
 		assert !noobs.isEmpty();
 
-		if (glBufferId == NO_BUFFER) {
+		if (glBufferId == 0) {
 			uploadNewBuffer();
 		} else if (headBytes + newBytes <= capacityBytes) {
 			appendToBuffer();
-		} else if (!loadNewRegionsToVacancies()) {
+		} else {
 			recreateBuffer();
 		}
 
@@ -175,107 +171,6 @@ public class VertexCluster {
 	private void appendToBuffer() {
 		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
 		appendNewRegionsAtHead();
-	}
-
-	private static final Comparator<ClusteredDrawableStorage> BYTE_SIZE_INVERSE_COMPARATOR = (o1, o2) -> {
-		// works because size is packed in high bits
-		return Integer.compare(o2.byteCount, o1.byteCount);
-	};
-
-	private boolean loadSingleRegionToVacancy() {
-		long vacancy = vacancies.getLong(0);
-		assert vacantBytes == unpackVacancyBytes(vacancy);
-		assert noobs.size() == 1;
-		assert vacancies.size() == 1;
-
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
-		loadRegionToVacancy(noobs.get(0), vacancy);
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-
-		vacancies.clear();
-		vacantBytes = 0;
-		return true;
-	}
-
-	/** Assumes buffer already bound. */
-	private void loadRegionToVacancy(ClusteredDrawableStorage region, long vacancy) {
-		int baseAddress = unpackVacancyAddress(vacancy);
-
-		//log.append("Added to allocated regions: ").append(region.id).append("\n");
-		allocatedRegions.add(region);
-		region.getAndClearTransferBuffer().releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, baseAddress);
-		region.setBaseAddress(baseAddress);
-
-		int remaining = unpackVacancyBytes(vacancy) - region.byteCount;
-		assert remaining >= 0;
-		region.paddingBytes = remaining;
-	}
-
-	// WIP: handle case when can slot some into vacancies and remaining empty is enough for the rest
-
-	private boolean loadNewRegionsToVacancies() {
-		// Currently only handle the case when number of new regions <= number of vacancies.
-		// If we get a whole new region the chance of fitting is probably much smaller.
-		if (newBytes > vacantBytes || vacancies.size() < noobs.size()) {
-			return false;
-		}
-
-		if (noobs.size() == 1 && vacancies.size() == 1) {
-			return loadSingleRegionToVacancy();
-		}
-
-		// vacancies are smallest to largest
-		// regions are largest to smallest
-		vacancies.sort(LongComparators.NATURAL_COMPARATOR);
-		noobs.sort(BYTE_SIZE_INVERSE_COMPARATOR);
-
-		final int limit = noobs.size();
-		int vacancyIndex = 0;
-
-		for (var noob : noobs) {
-			while (vacancyIndex < limit) {
-				// find smallest vacancy that will hold it
-				if (noob.byteCount <= unpackVacancyBytes(vacancies.getLong(vacancyIndex++))) {
-					break;
-				}
-			}
-
-			if (vacancyIndex == limit) {
-				return false;
-			}
-		}
-
-		// If we got to here then we can fit, so we repeat for real this time
-		vacancyIndex = 0;
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, glBufferId);
-		final LongArrayList newVacancies = new LongArrayList();
-
-		for (var noob : noobs) {
-			while (vacancyIndex < limit) {
-				// find smallest vacancy that will hold it
-				final long vacancy = vacancies.getLong(vacancyIndex++);
-				final int byteCount = unpackVacancyBytes(vacancy);
-
-				if (noob.byteCount <= byteCount) {
-					vacantBytes -= byteCount;
-					loadRegionToVacancy(noob, vacancy);
-					break;
-				} else {
-					newVacancies.add(vacancy);
-				}
-			}
-		}
-
-		GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-
-		// preserve unused vacancies
-		while (vacancyIndex < limit) {
-			newVacancies.add(vacancies.getLong(vacancyIndex++));
-		}
-
-		assert vacantBytes >= 0;
-		vacancies = newVacancies;
-		return true;
 	}
 
 	private void appendNewRegionsAtHead() {
@@ -331,7 +226,6 @@ public class VertexCluster {
 			}
 
 			vacantBytes = 0;
-			vacancies.clear();
 		}
 
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
@@ -347,9 +241,7 @@ public class VertexCluster {
 		//log.append("Notify closed: ").append(region.id).append("\n");
 
 		if (allocatedRegions.remove(region)) {
-			int byteCount = region.byteCount + region.paddingBytes;
-			vacancies.add(packVacancy(byteCount, region.baseByteAddress()));
-			vacantBytes += byteCount;
+			vacantBytes += region.byteCount;
 		} else if (noobs.remove(region)) {
 			newBytes -= region.byteCount;
 			assert newBytes >= 0;
@@ -361,17 +253,5 @@ public class VertexCluster {
 			close();
 			owner.notifyClosed(this);
 		}
-	}
-
-	private static long packVacancy(int byteCount, int baseAddress) {
-		return ((long) byteCount << 32) | baseAddress;
-	}
-
-	private static int unpackVacancyBytes(long packedVacancy) {
-		return (int) (packedVacancy >>> 32);
-	}
-
-	private static int unpackVacancyAddress(long packedVacancy) {
-		return (int) (packedVacancy & 0xFFFFFFFF);
 	}
 }

@@ -33,7 +33,6 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	private boolean isClosed = false;
 	final long clusterPos;
 	private VertexCluster cluster = null;
-	int paddingBytes;
 
 	public ClusteredDrawableStorage(VertexClusterRealm owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
 		this.owner = owner;
