@@ -18,23 +18,26 @@ package grondag.canvas.render.terrain.vbo;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.buffer.render.StaticDrawBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegion;
+import grondag.canvas.render.terrain.base.UploadableRegion;
 
 public class VboDrawableRegion extends AbstractDrawableRegion<StaticDrawBuffer> {
 	private VboDrawableRegion(long packedOriginBlockPos, int quadVertexCount, StaticDrawBuffer storage) {
 		super(packedOriginBlockPos, quadVertexCount, storage);
 	}
 
-	public static DrawableRegion pack(VertexCollectorList collectorList, TransferBuffer buffer, StaticDrawBuffer vboBuffer, boolean translucent, int byteCount, long packedOriginBlockPos) {
+	public static UploadableRegion uploadable(VertexCollectorList collectorList, boolean translucent, int bytes, long packedOriginBlockPos) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 
 		if (drawList.isEmpty()) {
-			return EMPTY_DRAWABLE;
+			return UploadableRegion.EMPTY_UPLOADABLE;
 		}
 
 		final ArrayVertexCollector collector = drawList.get(0);
@@ -43,9 +46,17 @@ public class VboDrawableRegion extends AbstractDrawableRegion<StaticDrawBuffer> 
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
+		TransferBuffer buffer = TransferBuffers.claim(bytes);
+		StaticDrawBuffer storage = new StaticDrawBuffer(CanvasVertexFormats.STANDARD_MATERIAL_FORMAT, buffer);
+		assert storage.capacityBytes() >= buffer.sizeBytes();
 		collector.toBuffer(0, buffer, 0);
+		return new VboDrawableRegion(packedOriginBlockPos, collector.quadCount() * 4, storage);
+	}
 
-		return new VboDrawableRegion(packedOriginBlockPos, collector.quadCount() * 4, vboBuffer);
+	@Override
+	public DrawableRegion produceDrawable() {
+		storage.upload();
+		return this;
 	}
 
 	@Override

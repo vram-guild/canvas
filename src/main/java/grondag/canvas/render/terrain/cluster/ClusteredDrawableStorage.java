@@ -25,7 +25,7 @@ import grondag.canvas.render.terrain.TerrainFormat;
 public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	private static final int NOT_ALLOCATED = -1;
 
-	private final VertexClusterHoarder owner;
+	private final VertexClusterRealm owner;
 	private TransferBuffer transferBuffer;
 	final int byteCount;
 	final int triVertexCount;
@@ -35,12 +35,12 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	private VertexCluster cluster = null;
 	int paddingBytes;
 
-	public ClusteredDrawableStorage(VertexClusterHoarder owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
+	public ClusteredDrawableStorage(VertexClusterRealm owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int triVertexCount) {
 		this.owner = owner;
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 		this.triVertexCount = triVertexCount;
-		clusterPos = VertexClusterHoarder.clusterPos(packedOriginBlockPos);
+		clusterPos = VertexClusterRealm.clusterPos(packedOriginBlockPos);
 	}
 
 	TransferBuffer getAndClearTransferBuffer() {

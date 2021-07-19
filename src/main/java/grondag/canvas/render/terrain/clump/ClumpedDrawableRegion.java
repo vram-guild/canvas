@@ -24,17 +24,18 @@ import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegion;
+import grondag.canvas.render.terrain.base.UploadableRegion;
 
 public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawableStorage> {
 	private ClumpedDrawableRegion(long packedOriginBlockPos, int quadVertexCount, ClumpedDrawableStorage storage) {
 		super(packedOriginBlockPos, quadVertexCount, storage);
 	}
 
-	static DrawableRegion pack(VertexCollectorList collectorList, boolean translucent, int byteCount, long packedOriginBlockPos) {
+	public static UploadableRegion uploadable(VertexCollectorList collectorList, boolean translucent, int byteCount, long packedOriginBlockPos) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
 
 		if (drawList.isEmpty()) {
-			return EMPTY_DRAWABLE;
+			return UploadableRegion.EMPTY_UPLOADABLE;
 		}
 
 		final ArrayVertexCollector collector = drawList.get(0);
@@ -54,6 +55,12 @@ public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawabl
 				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 6);
 
 		return new ClumpedDrawableRegion(packedOriginBlockPos, collector.quadCount() * 4, storage);
+	}
+
+	@Override
+	public DrawableRegion produceDrawable() {
+		storage().upload();
+		return this;
 	}
 
 	@Override

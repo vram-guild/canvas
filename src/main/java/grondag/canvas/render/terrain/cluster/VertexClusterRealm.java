@@ -22,9 +22,9 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.util.math.BlockPos;
 
-public class VertexClusterHoarder {
-	public static final VertexClusterHoarder SOLID = new VertexClusterHoarder();
-	public static final VertexClusterHoarder TRANSLUCENT = new VertexClusterHoarder();
+public class VertexClusterRealm {
+	public static final VertexClusterRealm SOLID = new VertexClusterRealm();
+	public static final VertexClusterRealm TRANSLUCENT = new VertexClusterRealm();
 
 	// WIP: allow for non-cubic clusters
 	/**
@@ -50,7 +50,7 @@ public class VertexClusterHoarder {
 
 	private boolean isClosed = false;
 
-	private VertexClusterHoarder() { }
+	private VertexClusterRealm() { }
 
 	public void clear() {
 		assert RenderSystem.isOnRenderThread();
@@ -75,7 +75,7 @@ public class VertexClusterHoarder {
 	void allocate(ClusteredDrawableStorage storage) {
 		assert RenderSystem.isOnRenderThread();
 
-		VertexCluster clump = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterHoarder.this, p));
+		VertexCluster clump = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterRealm.this, p));
 		clump.allocate(storage);
 		clusterUploads.add(clump);
 	}

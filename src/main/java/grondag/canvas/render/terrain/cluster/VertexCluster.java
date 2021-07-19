@@ -36,7 +36,7 @@ public class VertexCluster {
 
 	//final StringBuilder log = new StringBuilder();
 
-	private final VertexClusterHoarder owner;
+	private final VertexClusterRealm owner;
 	private final ObjectArrayList<ClusteredDrawableStorage> noobs = new ObjectArrayList<>();
 	private final ReferenceOpenHashSet<ClusteredDrawableStorage> allocatedRegions = new ReferenceOpenHashSet<>();
 	private LongArrayList vacancies = new LongArrayList();
@@ -56,7 +56,7 @@ public class VertexCluster {
 	 */
 	private int vaoBufferId = NO_BUFFER;
 
-	public VertexCluster(VertexClusterHoarder owner, long clumpPos) {
+	public VertexCluster(VertexClusterRealm owner, long clumpPos) {
 		this.owner = owner;
 		this.clumpPos = clumpPos;
 	}

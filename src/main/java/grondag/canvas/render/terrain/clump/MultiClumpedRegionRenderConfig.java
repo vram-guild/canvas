@@ -21,12 +21,12 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.buffer.input.ArrayVertexCollector;
-import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
-import grondag.canvas.render.terrain.TerrainRenderConfig;
-import grondag.canvas.render.terrain.base.UploadableRegion;
+import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.terrain.RegionRenderSectorMap;
 import grondag.canvas.render.terrain.TerrainFormat;
+import grondag.canvas.render.terrain.TerrainRenderConfig;
+import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
@@ -95,6 +95,6 @@ public class MultiClumpedRegionRenderConfig extends TerrainRenderConfig {
 
 	@Override
 	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
-		return new ClumpedUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
+		return ClumpedDrawableRegion.uploadable(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
 	}
 }

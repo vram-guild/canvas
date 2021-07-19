@@ -22,7 +22,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.render.UploadableVertexStorage;
 
-public abstract class AbstractDrawableRegion<T extends UploadableVertexStorage> implements DrawableRegion {
+public abstract class AbstractDrawableRegion<T extends UploadableVertexStorage> implements DrawableRegion, UploadableRegion {
 	// first reference is for the region
 	private final AtomicInteger retainCount = new AtomicInteger(1);
 	private final long packedOriginBlockPos;

@@ -19,8 +19,8 @@ package grondag.canvas.render.terrain.vbo;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
-import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
+import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.terrain.TerrainRenderConfig;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.world.WorldRenderState;
@@ -83,6 +83,6 @@ public class VboRegionRenderConfig extends TerrainRenderConfig {
 
 	@Override
 	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
-		return new VboUploadableRegion(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
+		return VboDrawableRegion.uploadable(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
 	}
 }
