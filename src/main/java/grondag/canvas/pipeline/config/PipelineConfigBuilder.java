@@ -66,10 +66,10 @@ public class PipelineConfigBuilder {
 	public MaterialProgramConfig materialProgram;
 
 	public void load(JsonObject configJson) {
-		smoothBrightnessBidirectionaly = configJson.getBoolean("smoothBrightnessBidirectionaly", false);
-		runVanillaClear = configJson.getBoolean("runVanillaClear", true);
-		brightnessSmoothingFrames = configJson.getInt("brightnessSmoothingFrames", 20);
-		rainSmoothingFrames = configJson.getInt("rainSmoothingFrames", 500);
+		smoothBrightnessBidirectionaly = configJson.getBoolean("smoothBrightnessBidirectionaly", smoothBrightnessBidirectionaly);
+		runVanillaClear = configJson.getBoolean("runVanillaClear", runVanillaClear);
+		brightnessSmoothingFrames = configJson.getInt("brightnessSmoothingFrames", brightnessSmoothingFrames);
+		rainSmoothingFrames = configJson.getInt("rainSmoothingFrames", rainSmoothingFrames);
 
 		if (configJson.containsKey("materialProgram")) {
 			if (materialProgram == null) {
