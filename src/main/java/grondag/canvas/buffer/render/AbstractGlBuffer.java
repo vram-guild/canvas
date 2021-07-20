@@ -64,6 +64,7 @@ public abstract class AbstractGlBuffer {
 		if (glBufferId != 0) {
 			GFX.bindBuffer(bindTarget, glBufferId);
 			GFX.bufferData(bindTarget, capacityBytes, usageHint);
+			// PERF: need this? Does it matter?
 			GFX.bindBuffer(bindTarget, 0);
 		}
 	}

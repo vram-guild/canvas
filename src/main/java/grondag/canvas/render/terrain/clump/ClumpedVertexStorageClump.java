@@ -30,7 +30,6 @@ import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.varia.GFX;
 
-//WIP: support direct-copy mapped transfer buffers when they are available
 public class ClumpedVertexStorageClump {
 	private static final int NO_BUFFER = -1;
 
@@ -210,8 +209,6 @@ public class ClumpedVertexStorageClump {
 		assert remaining >= 0;
 		region.paddingBytes = remaining;
 	}
-
-	// WIP: handle case when can slot some into vacancies and remaining empty is enough for the rest
 
 	private boolean loadNewRegionsToVacancies() {
 		// Currently only handle the case when number of new regions <= number of vacancies.

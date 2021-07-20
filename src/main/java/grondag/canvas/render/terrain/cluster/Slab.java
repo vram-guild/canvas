@@ -34,19 +34,24 @@ public class Slab extends AbstractGlBuffer {
 	private int usedVertexCount;
 
 	private Slab() {
-		super(BYTES_PER_SLAB, GFX.GL_ARRAY_BUFFER, GFX.GL_STREAM_DRAW);
+		// NB: STATIC makes a huge positive difference on AMD at least
+		super(BYTES_PER_SLAB, GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		assert RenderSystem.isOnRenderThread();
 	}
 
 	/** How much vertex capacity is remaining. */
 	int availableVertexCount() {
+		assert RenderSystem.isOnRenderThread();
 		return MAX_QUAD_VERTEX_COUNT - headVertexIndex;
 	}
 
 	boolean isEmpty() {
+		assert RenderSystem.isOnRenderThread();
 		return usedVertexCount == 0;
 	}
 
 	Set<ClusteredDrawableStorage> regions() {
+		assert RenderSystem.isOnRenderThread();
 		return allocatedRegions;
 	}
 
@@ -61,6 +66,8 @@ public class Slab extends AbstractGlBuffer {
 
 	/** Returns true if successful, or false if capacity would be exceeded. */
 	boolean allocateAndLoad(ClusteredDrawableStorage region) {
+		assert RenderSystem.isOnRenderThread();
+
 		final int newHeadVertexIndex = headVertexIndex + region.quadVertexCount;
 
 		if (newHeadVertexIndex > MAX_QUAD_VERTEX_COUNT) {
@@ -80,7 +87,9 @@ public class Slab extends AbstractGlBuffer {
 	}
 
 	void removeRegion(ClusteredDrawableStorage region) {
+		assert RenderSystem.isOnRenderThread();
 		assert allocatedRegions.contains(region);
+		assert !isClosed;
 
 		if (allocatedRegions.remove(region)) {
 			usedVertexCount -= region.quadVertexCount;
@@ -89,6 +98,8 @@ public class Slab extends AbstractGlBuffer {
 
 	@Override
 	public void bind() {
+		assert !isClosed;
+
 		if (vaoBufferId == 0) {
 			vaoBufferId = GFX.genVertexArray();
 			GFX.bindVertexArray(vaoBufferId);
@@ -104,10 +115,14 @@ public class Slab extends AbstractGlBuffer {
 
 	@Override
 	protected void onShutdown() {
+		assert RenderSystem.isOnRenderThread();
+
 		if (vaoBufferId != 0) {
 			GFX.deleteVertexArray(vaoBufferId);
 			vaoBufferId = 0;
 		}
+
+		--totalSlabCount;
 	}
 
 	/** We are using short index arrays, which means we can't have more than this many vertices per slab. */

@@ -40,14 +40,12 @@ public class ClumpedDrawableRegion extends AbstractDrawableRegion<ClumpedDrawabl
 
 		final ArrayVertexCollector collector = drawList.get(0);
 
-		// WIP: restore ability to have more than one pass in non-translucent terrain, for decals, etc.
 		// Note that every render state/pass will have a separate storage and storage will control
 		// the vertex offset for each.  The calls won't be batched by region so there's no advantage to
 		// making them adjacent in storage and smaller allocations may be easier to manage for storage.
 		assert drawList.size() == 1;
 		assert collector.renderState.sorted == translucent;
 
-		// WIP: Try having orphaned, memory-mapped GPU slabs for loading off-thread and then do transfers with copySubBuffer
 		final TransferBuffer transferBuffer = TransferBuffers.claim(byteCount);
 		collector.toBuffer(0, transferBuffer, 0);
 		ClumpedDrawableStorage storage = new ClumpedDrawableStorage(

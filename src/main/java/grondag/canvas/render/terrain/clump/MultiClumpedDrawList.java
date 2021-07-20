@@ -47,6 +47,7 @@ public class MultiClumpedDrawList extends AbstractDrawableRegionList {
 			if (clump == null) {
 				clump = new MultiClumpedDrawListClump();
 				drawClumps.add(clump);
+				map.put(storage.clumpPos, clump);
 			}
 
 			clump.add(storage);

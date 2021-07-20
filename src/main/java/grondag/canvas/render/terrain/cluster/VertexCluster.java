@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import grondag.canvas.CanvasMod;
 
-//WIP: support direct-copy mapped transfer buffers when they are available
 public class VertexCluster {
 	//final StringBuilder log = new StringBuilder();
 
@@ -186,5 +185,9 @@ public class VertexCluster {
 			close();
 			owner.notifyClosed(this);
 		}
+	}
+
+	public int slabCount() {
+		return slabCount;
 	}
 }

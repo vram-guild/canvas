@@ -16,7 +16,10 @@
 
 package grondag.canvas.render.terrain.cluster.drawlist;
 
+import java.util.IdentityHashMap;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
@@ -25,74 +28,135 @@ import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
 import grondag.canvas.varia.GFX;
 
 public class ClusterDrawList {
-	record DrawSpec(Slab slab, SlabIndex slabIndex, int triVertexCount, int baseByteAddress) { }
+	record DrawSpec(Slab slab, IndexSlab indexSlab, int triVertexCount, int baseByteAddress) { }
 
 	final ObjectArrayList<ClusteredDrawableStorage> stores = new ObjectArrayList<>();
 	final VertexCluster cluster;
-	private boolean isUnbuilt = true;
-	private int drawCount = 0;
-	private final ObjectArrayList<Slab> slabs = new ObjectArrayList<>();
-	private final ObjectArrayList<SlabIndex> slabIndices = new ObjectArrayList<>();
+	private boolean needsBuilt = true;
+	private final ObjectArrayList<DrawSpec> drawSpecs = new ObjectArrayList<>();
+	private final ObjectArrayList<IndexSlab> indexSlabs = new ObjectArrayList<>();
 
 	ClusterDrawList(VertexCluster cluster) {
 		this.cluster = cluster;
 	}
 
 	private void build() {
-		assert drawCount == 0;
-		assert slabs.isEmpty();
-		assert slabIndices.isEmpty();
+		assert needsBuilt;
+		assert drawSpecs.isEmpty();
+		assert indexSlabs.isEmpty();
 
 		if (cluster.owner == VertexClusterRealm.TRANSLUCENT) {
-			// need to maintain sort order
 			buildTranslucent();
 		} else {
 			buildSolid();
 		}
 	}
 
+	/** Maintains region sort order at the cost of extra binds/calls if needed. */
 	private void buildTranslucent() {
+		IndexSlab indexSlab = null;
 		Slab lastSlab = null;
+		final ObjectArrayList<ClusteredDrawableStorage> specRegions = new ObjectArrayList<>();
+		int specQuadVertexCount = 0;
 
 		for (var region : stores) {
 			if (region.slab() != lastSlab) {
-				slabIndices.add(SlabIndex.claim());
+				indexSlab = addSpec(indexSlab, specRegions, specQuadVertexCount);
+				lastSlab = region.slab();
 			}
+
+			specRegions.add(region);
+			specQuadVertexCount += region.quadVertexCount;
+		}
+
+		indexSlab = addSpec(indexSlab, specRegions, specQuadVertexCount);
+	}
+
+	private static class SolidSpecList extends ObjectArrayList<ClusteredDrawableStorage> {
+		private int specQuadVertexCount;
+	}
+
+	/** Minimizes binds/calls. */
+	private void buildSolid() {
+		final IdentityHashMap<Slab, SolidSpecList> map = new IdentityHashMap<>();
+
+		// first group regions by slab
+		for (var region : stores) {
+			var list = map.get(region.slab());
+
+			if (list == null) {
+				list = new SolidSpecList();
+				map.put(region.slab(), list);
+			}
+
+			list.add(region);
+			list.specQuadVertexCount += region.quadVertexCount;
+		}
+
+		// now create build spec for each slab
+		IndexSlab indexSlab = null;
+
+		for (var list: map.values()) {
+			assert list.specQuadVertexCount <= Slab.MAX_QUAD_VERTEX_COUNT;
+			indexSlab = addSpec(indexSlab, list, list.specQuadVertexCount);
 		}
 	}
 
-	private void buildSolid() {
-		//
+	/** Returns the index slab that should be used for next call. */
+	private @Nullable IndexSlab addSpec(@Nullable IndexSlab indexSlab, ObjectArrayList<ClusteredDrawableStorage> specRegions, int specQuadVertexCount) {
+		assert specQuadVertexCount >= 0;
+
+		if (specQuadVertexCount == 0) {
+			return null;
+		}
+
+		assert !specRegions.isEmpty() : "Vertex count is non-zero but region list is empty.";
+
+		if (indexSlab == null || indexSlab.availableQuadVertexCount() < specQuadVertexCount) {
+			indexSlab = IndexSlab.claim();
+			indexSlabs.add(indexSlab);
+		}
+
+		final int byteOffset = indexSlab.nextByteOffset();
+
+		for (var region : specRegions) {
+			indexSlab.allocateAndLoad(region.baseQuadVertexIndex(), region.quadVertexCount);
+		}
+
+		assert byteOffset + specQuadVertexCount * Slab.QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER == indexSlab.nextByteOffset();
+
+		drawSpecs.add(new DrawSpec(specRegions.get(0).slab(), indexSlab, specQuadVertexCount / 4 * 6, byteOffset));
+
+		return indexSlab;
+	}
+
+	public void draw() {
+		drawNew();
 	}
 
 	public void drawNew() {
-		if (isUnbuilt) {
+		if (needsBuilt) {
 			build();
-			isUnbuilt = false;
-		}
+			needsBuilt = false;
 
-		final int limit = stores.size();
-
-		Slab lastSlab = null;
-
-		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
-			ClusteredDrawableStorage store = stores.get(regionIndex);
-			Slab slab = store.slab();
-
-			if (slab != lastSlab) {
-				slab.bind();
-				SlabIndex.fullSlabIndex().bind();
-				lastSlab = slab;
+			if (indexSlabs.size() > 1) {
+				System.out.println("index slabs:" + indexSlabs.size() + "  cluster slabs:" + cluster.slabCount());
 			}
-
-			GFX.drawElements(GFX.GL_TRIANGLES, store.triVertexCount, GFX.GL_UNSIGNED_SHORT, store.baseQuadVertexIndex() * Slab.QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
 		}
 
-		SlabIndex.fullSlabIndex().unbind();
+		final int limit = drawSpecs.size();
+
+		for (int i = 0; i < limit; ++i) {
+			var spec = drawSpecs.get(i);
+
+			spec.slab.bind();
+			spec.indexSlab.bind();
+			GFX.drawElements(GFX.GL_TRIANGLES, spec.triVertexCount, GFX.GL_UNSIGNED_SHORT, spec.baseByteAddress);
+		}
 	}
 
 	// WIP: use a version of this for new lists and gradually compact
-	public void draw() {
+	public void drawOld() {
 		final int limit = stores.size();
 
 		Slab lastSlab = null;
@@ -103,7 +167,7 @@ public class ClusterDrawList {
 
 			if (slab != lastSlab) {
 				slab.bind();
-				SlabIndex.fullSlabIndex().bind();
+				IndexSlab.fullSlabIndex().bind();
 				lastSlab = slab;
 			}
 
@@ -112,11 +176,20 @@ public class ClusterDrawList {
 			GFX.drawElements(GFX.GL_TRIANGLES, store.triVertexCount, GFX.GL_UNSIGNED_SHORT, store.baseQuadVertexIndex() * 3);
 		}
 
-		SlabIndex.fullSlabIndex().unbind();
+		IndexSlab.fullSlabIndex().unbind();
 	}
 
 	public void add(ClusteredDrawableStorage storage) {
+		assert needsBuilt;
 		assert storage.getCluster() == cluster;
 		stores.add(storage);
+	}
+
+	void release() {
+		for (var indexSlab : indexSlabs) {
+			indexSlab.release();
+		}
+
+		indexSlabs.clear();
 	}
 }

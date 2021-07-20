@@ -26,19 +26,23 @@ import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.render.terrain.cluster.Slab;
 import grondag.canvas.varia.GFX;
 
-class SlabIndex extends AbstractGlBuffer {
+public class IndexSlab extends AbstractGlBuffer {
 	private boolean isClaimed = false;
 	private int headQuadVertexIndex = 0;
 	private ShortBuffer mappedBuffer = null;
 
-	private SlabIndex() {
+	private IndexSlab() {
+		// NB: STATIC makes a huge positive difference on AMD at least
 		super(Slab.BYTES_PER_SLAB_INDEX, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		assert RenderSystem.isOnRenderThread();
 	}
 
 	void release() {
 		assert RenderSystem.isOnRenderThread();
 		assert isClaimed;
 		assert mappedBuffer == null;
+		assert !isClosed;
+
 		isClaimed = false;
 		headQuadVertexIndex = 0;
 		POOL.offer(this);
@@ -46,13 +50,29 @@ class SlabIndex extends AbstractGlBuffer {
 
 	/** How much vertex capacity is remaining. */
 	int availableQuadVertexCount() {
+		assert !isClosed;
+		assert RenderSystem.isOnRenderThread();
+
 		return Slab.MAX_QUAD_VERTEX_COUNT - headQuadVertexIndex;
 	}
 
-	/** Returns baseoffset in bytes if successful, -1 if insufficient capacity. */
-	int allocateAndLoad(final int firstQuadVertexIndex, final int quadVertexCount) {
+	/**
+	 * The index buffer byte offset for the next allocation.
+	 */
+	int nextByteOffset() {
+		assert RenderSystem.isOnRenderThread();
+		assert !isClosed;
+
+		return headQuadVertexIndex * Slab.QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER;
+	}
+
+	/** Throws exception if insufficient capacity. Check {@link #availableQuadVertexCount()} prior to calling. */
+	void allocateAndLoad(final int firstQuadVertexIndex, final int quadVertexCount) {
+		assert RenderSystem.isOnRenderThread();
+		assert !isClosed;
+
 		if (quadVertexCount > availableQuadVertexCount()) {
-			return -1;
+			throw new IllegalStateException("Requested index allocation exceeds available capacity");
 		}
 
 		map();
@@ -60,8 +80,9 @@ class SlabIndex extends AbstractGlBuffer {
 		final int newHead = headQuadVertexIndex + quadVertexCount;
 		int triVertexIndex = headQuadVertexIndex / 4 * 6;
 		int quadVertexIndex = firstQuadVertexIndex;
+		final int limit = firstQuadVertexIndex + quadVertexCount;
 
-		while (quadVertexIndex < newHead) {
+		while (quadVertexIndex < limit) {
 			buff.put(triVertexIndex++, (short) quadVertexIndex);
 			buff.put(triVertexIndex++, (short) (quadVertexIndex + 1));
 			buff.put(triVertexIndex++, (short) (quadVertexIndex + 2));
@@ -71,13 +92,13 @@ class SlabIndex extends AbstractGlBuffer {
 			quadVertexIndex += 4;
 		}
 
-		final int result = headQuadVertexIndex * Slab.QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER;
 		headQuadVertexIndex = newHead;
-		return result;
 	}
 
 	@Override
 	public void bind() {
+		assert !isClosed;
+
 		if (mappedBuffer != null) {
 			unmap();
 		} else {
@@ -86,14 +107,19 @@ class SlabIndex extends AbstractGlBuffer {
 	}
 
 	private void map() {
+		assert !isClosed;
+
 		if (mappedBuffer == null) {
 			super.bind();
-			final ByteBuffer buff = GFX.mapBufferRange(bindTarget, 0, Slab.BYTES_PER_SLAB_INDEX, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_INVALIDATE_BUFFER_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT);
+			// NB: not using GFX.GL_MAP_INVALIDATE_BUFFER_BIT because we orphan the buffer on claim
+			final ByteBuffer buff = GFX.mapBufferRange(bindTarget, 0, Slab.BYTES_PER_SLAB_INDEX, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
 			mappedBuffer = buff.asShortBuffer();
 		}
 	}
 
 	private void unmap() {
+		assert !isClosed;
+
 		if (mappedBuffer != null) {
 			GFX.bindBuffer(bindTarget, glBufferId());
 			GFX.flushMappedBufferRange(bindTarget, 0, headQuadVertexIndex * Slab.QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
@@ -104,19 +130,22 @@ class SlabIndex extends AbstractGlBuffer {
 
 	@Override
 	protected void onShutdown() {
-		// NOOP
+		assert RenderSystem.isOnRenderThread();
+		--totalSlabCount;
 	}
 
-	private static final ArrayDeque<SlabIndex> POOL = new ArrayDeque<>();
-	private static SlabIndex fullSlabIndex;
+	private static final ArrayDeque<IndexSlab> POOL = new ArrayDeque<>();
+	private static int totalSlabCount = 0;
+	private static IndexSlab fullSlabIndex;
 
-	static SlabIndex claim() {
+	static IndexSlab claim() {
 		assert RenderSystem.isOnRenderThread();
 
-		SlabIndex result = POOL.poll();
+		IndexSlab result = POOL.poll();
 
 		if (result == null) {
-			result = new SlabIndex();
+			result = new IndexSlab();
+			++totalSlabCount;
 		} else {
 			result.orphan();
 		}
@@ -125,18 +154,21 @@ class SlabIndex extends AbstractGlBuffer {
 		return result;
 	}
 
-	static SlabIndex fullSlabIndex() {
-		SlabIndex result = fullSlabIndex;
+	static IndexSlab fullSlabIndex() {
+		IndexSlab result = fullSlabIndex;
 
 		if (result == null) {
-			result = new SlabIndex();
-			final int check = result.allocateAndLoad(0, Slab.MAX_QUAD_VERTEX_COUNT);
-			assert check == 0;
+			result = new IndexSlab();
+			result.allocateAndLoad(0, Slab.MAX_QUAD_VERTEX_COUNT);
 			result.unmap();
 			result.unbind();
 			fullSlabIndex = result;
 		}
 
 		return result;
+	}
+
+	public static String debugSummary() {
+		return String.format("Idx slabs: %dMb / %dMb", (totalSlabCount - POOL.size()) * Slab.BYTES_PER_SLAB_INDEX / 0x100000, totalSlabCount * Slab.BYTES_PER_SLAB_INDEX / 0x100000);
 	}
 }

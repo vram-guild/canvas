@@ -44,6 +44,7 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 			if (clusterList == null) {
 				clusterList = new ClusterDrawList(storage.getCluster());
 				clusterLists.add(clusterList);
+				map.put(storage.clusterPos, clusterList);
 			}
 
 			clusterList.add(storage);
@@ -64,11 +65,16 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 		}
 
 		GFX.bindVertexArray(0);
+		GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, 0);
 		RenderState.disable();
 	}
 
 	@Override
 	protected void closeInner() {
-		// NOOP
+		for (var list : clusterLists) {
+			list.release();
+		}
+
+		clusterLists.clear();
 	}
 }
