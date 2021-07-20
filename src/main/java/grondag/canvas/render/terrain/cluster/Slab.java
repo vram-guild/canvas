@@ -129,7 +129,7 @@ public class Slab extends AbstractGlBuffer {
 	public static final int MAX_SLAB_QUAD_VERTEX_COUNT = 0x10000;
 	public static final int MAX_SLAB_TRI_VERTEX_COUNT = MAX_SLAB_QUAD_VERTEX_COUNT * 6 / 4;
 	private static final int BYTES_PER_SLAB_VERTEX = 28;
-	private static final int BYTES_PER_SLAB = (MAX_SLAB_QUAD_VERTEX_COUNT * BYTES_PER_SLAB_VERTEX);
+	static final int BYTES_PER_SLAB = (MAX_SLAB_QUAD_VERTEX_COUNT * BYTES_PER_SLAB_VERTEX);
 
 	private static final ArrayDeque<Slab> POOL = new ArrayDeque<>();
 	private static int totalSlabCount = 0;

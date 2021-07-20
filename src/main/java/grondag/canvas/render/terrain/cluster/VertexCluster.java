@@ -21,8 +21,9 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
 
-public class VertexCluster {
+public class VertexCluster implements ClusterTask {
 	//final StringBuilder log = new StringBuilder();
 
 	public final VertexClusterRealm owner;
@@ -40,6 +41,8 @@ public class VertexCluster {
 	private int slabCount;
 	private int openSlabIndex = -1;
 	private int maxSlabCount = 0;
+
+	private boolean isScheduled = false;
 
 	public VertexCluster(VertexClusterRealm owner, long clumpPos) {
 		this.owner = owner;
@@ -157,13 +160,8 @@ public class VertexCluster {
 		noobs.clear();
 		newBytes = 0;
 
-		for (int i = 0; i < maxSlabCount; ++i) {
-			Slab slab = slabs[i];
-
-			if (slab != null && slab.isEmpty()) {
-				slab.release();
-				slabs[i] = null;
-			}
+		if (canCompact()) {
+			scheduleUpdate();
 		}
 	}
 
@@ -189,5 +187,38 @@ public class VertexCluster {
 
 	public int slabCount() {
 		return slabCount;
+	}
+
+	private void scheduleUpdate() {
+		if (!isScheduled) {
+			isScheduled = true;
+			ClusterTaskManager.schedule(this);
+		}
+	}
+
+	@Override
+	public boolean run(long deadlineNanos) {
+		if (isScheduled) {
+			isScheduled = false;
+			compact();
+		}
+
+		return true;
+	}
+
+	private boolean canCompact() {
+		return activeBytes < (slabCount - 1) * Slab.BYTES_PER_SLAB;
+	}
+
+	private void compact() {
+		// WIP Do better stuff
+		for (int i = 0; i < maxSlabCount; ++i) {
+			Slab slab = slabs[i];
+
+			if (slab != null && slab.isEmpty()) {
+				slab.release();
+				slabs[i] = null;
+			}
+		}
 	}
 }
