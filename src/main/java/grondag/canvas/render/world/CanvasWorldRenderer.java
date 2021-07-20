@@ -212,8 +212,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			}
 		}
 
-		worldRenderState.rebuidDrawListsIfNeeded();
-
 		mc.getProfiler().pop();
 	}
 
@@ -316,6 +314,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
 
 		Configurator.terrainRenderConfig.prepareForDraw(worldRenderState);
+		worldRenderState.rebuidDrawListsIfNeeded();
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch

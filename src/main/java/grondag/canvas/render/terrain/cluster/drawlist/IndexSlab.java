@@ -33,7 +33,7 @@ public class IndexSlab extends AbstractGlBuffer {
 
 	private IndexSlab() {
 		// NB: STATIC makes a huge positive difference on AMD at least
-		super(Slab.BYTES_PER_SLAB_INDEX, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		super(BYTES_PER_INDEX_SLAB, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 		assert RenderSystem.isOnRenderThread();
 	}
 
@@ -53,7 +53,7 @@ public class IndexSlab extends AbstractGlBuffer {
 		assert !isClosed;
 		assert RenderSystem.isOnRenderThread();
 
-		return Slab.MAX_QUAD_VERTEX_COUNT - headQuadVertexIndex;
+		return MAX_INDEX_SLAB_QUAD_VERTEX_COUNT - headQuadVertexIndex;
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class IndexSlab extends AbstractGlBuffer {
 		assert RenderSystem.isOnRenderThread();
 		assert !isClosed;
 
-		return headQuadVertexIndex * Slab.QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER;
+		return headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER;
 	}
 
 	/** Throws exception if insufficient capacity. Check {@link #availableQuadVertexCount()} prior to calling. */
@@ -112,7 +112,7 @@ public class IndexSlab extends AbstractGlBuffer {
 		if (mappedBuffer == null) {
 			super.bind();
 			// NB: not using GFX.GL_MAP_INVALIDATE_BUFFER_BIT because we orphan the buffer on claim
-			final ByteBuffer buff = GFX.mapBufferRange(bindTarget, 0, Slab.BYTES_PER_SLAB_INDEX, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
+			final ByteBuffer buff = GFX.mapBufferRange(bindTarget, 0, BYTES_PER_INDEX_SLAB, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
 			mappedBuffer = buff.asShortBuffer();
 		}
 	}
@@ -122,7 +122,7 @@ public class IndexSlab extends AbstractGlBuffer {
 
 		if (mappedBuffer != null) {
 			GFX.bindBuffer(bindTarget, glBufferId());
-			GFX.flushMappedBufferRange(bindTarget, 0, headQuadVertexIndex * Slab.QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
+			GFX.flushMappedBufferRange(bindTarget, 0, headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
 			GFX.unmapBuffer(bindTarget);
 			mappedBuffer = null;
 		}
@@ -133,6 +133,15 @@ public class IndexSlab extends AbstractGlBuffer {
 		assert RenderSystem.isOnRenderThread();
 		--totalSlabCount;
 	}
+
+	/** Ideally large enough to handle an entire draw list but not so large to push it out of VRAM. */
+	public static final int BYTES_PER_INDEX_SLAB = 0x200000;
+
+	/** Six tri vertices per four quad vertices at 2 bytes each gives 6 / 4 * 2 = 3. */
+	public static final int INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER = 3;
+
+	/** Largest multiple of four vertices that, when expanded to triangles, will fit within the index buffer. */
+	public static final int MAX_INDEX_SLAB_QUAD_VERTEX_COUNT = (BYTES_PER_INDEX_SLAB / INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER) & 0xFFFFFFF8;
 
 	private static final ArrayDeque<IndexSlab> POOL = new ArrayDeque<>();
 	private static int totalSlabCount = 0;
@@ -159,7 +168,7 @@ public class IndexSlab extends AbstractGlBuffer {
 
 		if (result == null) {
 			result = new IndexSlab();
-			result.allocateAndLoad(0, Slab.MAX_QUAD_VERTEX_COUNT);
+			result.allocateAndLoad(0, Slab.MAX_SLAB_QUAD_VERTEX_COUNT);
 			result.unmap();
 			result.unbind();
 			fullSlabIndex = result;
@@ -169,6 +178,6 @@ public class IndexSlab extends AbstractGlBuffer {
 	}
 
 	public static String debugSummary() {
-		return String.format("Idx slabs: %dMb / %dMb", (totalSlabCount - POOL.size()) * Slab.BYTES_PER_SLAB_INDEX / 0x100000, totalSlabCount * Slab.BYTES_PER_SLAB_INDEX / 0x100000);
+		return String.format("Idx slabs: %dMb / %dMb", (totalSlabCount - POOL.size()) * BYTES_PER_INDEX_SLAB / 0x100000, totalSlabCount * BYTES_PER_INDEX_SLAB / 0x100000);
 	}
 }

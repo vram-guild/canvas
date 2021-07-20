@@ -42,7 +42,7 @@ public class Slab extends AbstractGlBuffer {
 	/** How much vertex capacity is remaining. */
 	int availableVertexCount() {
 		assert RenderSystem.isOnRenderThread();
-		return MAX_QUAD_VERTEX_COUNT - headVertexIndex;
+		return MAX_SLAB_QUAD_VERTEX_COUNT - headVertexIndex;
 	}
 
 	boolean isEmpty() {
@@ -70,7 +70,7 @@ public class Slab extends AbstractGlBuffer {
 
 		final int newHeadVertexIndex = headVertexIndex + region.quadVertexCount;
 
-		if (newHeadVertexIndex > MAX_QUAD_VERTEX_COUNT) {
+		if (newHeadVertexIndex > MAX_SLAB_QUAD_VERTEX_COUNT) {
 			return false;
 		}
 
@@ -80,7 +80,7 @@ public class Slab extends AbstractGlBuffer {
 		usedVertexCount += region.quadVertexCount;
 
 		GFX.bindBuffer(bindTarget, glBufferId());
-		region.getAndClearTransferBuffer().releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, headVertexIndex * BYTES_PER_VERTEX);
+		region.getAndClearTransferBuffer().releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, headVertexIndex * BYTES_PER_SLAB_VERTEX);
 
 		headVertexIndex = newHeadVertexIndex;
 		return true;
@@ -125,24 +125,18 @@ public class Slab extends AbstractGlBuffer {
 		--totalSlabCount;
 	}
 
-	/** We are using short index arrays, which means we can't have more than this many vertices per slab. */
-	public static final int MAX_QUAD_VERTEX_COUNT = 0x10000;
-	public static final int MAX_TRI_VERTEX_COUNT = MAX_QUAD_VERTEX_COUNT * 6 / 4;
-	private static final int BYTES_PER_VERTEX = 28;
-	private static final int BYTES_PER_SLAB = (MAX_QUAD_VERTEX_COUNT * BYTES_PER_VERTEX);
-
-	/** Buffer size needed to index an entire slab with triangle verticies.  Is * 2 because 2bytes per index. */
-	public static final int BYTES_PER_SLAB_INDEX = MAX_TRI_VERTEX_COUNT * 2;
-
-	/** Six tri vertices per four quad vertices at 2 bytes each gives 6 / 4 * 2 = 3. */
-	public static final int QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER = 3;
+	/** We are using short index arrays, which means we can't have more than this many quad vertices per slab. */
+	public static final int MAX_SLAB_QUAD_VERTEX_COUNT = 0x10000;
+	public static final int MAX_SLAB_TRI_VERTEX_COUNT = MAX_SLAB_QUAD_VERTEX_COUNT * 6 / 4;
+	private static final int BYTES_PER_SLAB_VERTEX = 28;
+	private static final int BYTES_PER_SLAB = (MAX_SLAB_QUAD_VERTEX_COUNT * BYTES_PER_SLAB_VERTEX);
 
 	private static final ArrayDeque<Slab> POOL = new ArrayDeque<>();
 	private static int totalSlabCount = 0;
 
 	static {
 		// Want IDE to show actual numbers above, so check here at run time that nothing changed and got missed.
-		assert BYTES_PER_VERTEX == TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes : "Slab vertex size doesn't match vertex format";
+		assert BYTES_PER_SLAB_VERTEX == TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes : "Slab vertex size doesn't match vertex format";
 	}
 
 	static Slab claim() {
