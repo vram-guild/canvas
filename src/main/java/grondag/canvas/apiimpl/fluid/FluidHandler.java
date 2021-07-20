@@ -56,14 +56,14 @@ public class FluidHandler {
 
 	static final Sprite[] lavaSprites() {
 		final Sprite[] result = new Sprite[2];
-		result[0] = MinecraftClient.getInstance().getBakedModelManager().getBlockModels().getModel(Blocks.LAVA.getDefaultState()).getSprite();
+		result[0] = MinecraftClient.getInstance().getBakedModelManager().getBlockModels().getModel(Blocks.LAVA.getDefaultState()).getParticleSprite();
 		result[1] = ModelLoader.LAVA_FLOW.getSprite();
 		return result;
 	}
 
 	static final Sprite[] waterSprites() {
 		final Sprite[] result = new Sprite[2];
-		result[0] = MinecraftClient.getInstance().getBakedModelManager().getBlockModels().getModel(Blocks.WATER.getDefaultState()).getSprite();
+		result[0] = MinecraftClient.getInstance().getBakedModelManager().getBlockModels().getModel(Blocks.WATER.getDefaultState()).getParticleSprite();
 		result[1] = ModelLoader.WATER_FLOW.getSprite();
 		return result;
 	}

@@ -36,7 +36,7 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 	private final PressableWidget buttonWidget = new PressableWidget(0, 0, 115, 20, NarratorManager.EMPTY) {
 		@Override
 		public void onPress() {
-			MinecraftClient.getInstance().openScreen(PipelineOptionGui.display(ConfigGui.pipeline()));
+			MinecraftClient.getInstance().setScreen(PipelineOptionGui.display(ConfigGui.pipeline()));
 		}
 
 		@Override
