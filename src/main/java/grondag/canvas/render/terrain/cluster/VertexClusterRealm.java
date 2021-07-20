@@ -96,6 +96,10 @@ public class VertexClusterRealm {
 
 			clusterUploads.clear();
 		}
+
+		// WIP: need a way to set the deadline appropriately based on steady frame rate and time already elapsed.
+		// Method must ensure we don't have starvation - task queue can't grow indefinitely.
+		ClusterTaskManager.run(System.nanoTime() + 2000000);
 	}
 
 	public String debugSummary() {
