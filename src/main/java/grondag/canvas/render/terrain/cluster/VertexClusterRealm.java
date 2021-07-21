@@ -102,6 +102,8 @@ public class VertexClusterRealm {
 		ClusterTaskManager.run(System.nanoTime() + 2000000);
 	}
 
+	//private int lastFrame = 0;
+
 	public String debugSummary() {
 		if (clusters.isEmpty()) {
 			return "Empty";
@@ -112,6 +114,19 @@ public class VertexClusterRealm {
 		for (var cluster : clusters.values()) {
 			total += cluster.activeBytes();
 		}
+
+		//if (++lastFrame >= 200) {
+		//	lastFrame = 0;
+		//
+		//	System.out.println();
+		//	System.out.println("Allocation Report Follows");
+		//
+		//	for (var cluster : clusters.values()) {
+		//		if (cluster.slabCount() == 1) {
+		//			System.out.println("r:" + cluster.regionCount() + "  sl:" + cluster.slabCount() + "  occ:" + (cluster.activeBytes() * 100L) / (cluster.slabCount() * Slab.BYTES_PER_SLAB));
+		//		}
+		//	}
+		//}
 
 		return String.format("clusters:%d %dMb", clusters.size(), total / 0x100000);
 	}

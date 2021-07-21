@@ -51,6 +51,10 @@ public class Slab extends AbstractGlBuffer {
 		return usedVertexCount;
 	}
 
+	public int vacatedVertexCount() {
+		return headVertexIndex - usedVertexCount;
+	}
+
 	int holdingClusterSlot() {
 		return holdingClusterSlot;
 	}
@@ -58,14 +62,6 @@ public class Slab extends AbstractGlBuffer {
 	boolean isEmpty() {
 		assert RenderSystem.isOnRenderThread();
 		return usedVertexCount == 0;
-	}
-
-	boolean isDepleted() {
-		return usedVertexCount < SLAB_DEPLETED_VERTEX_COUNT_THRESHOLD;
-	}
-
-	boolean isStuffed() {
-		return availableVertexCount() < SLAB_MIN_AVAILABLE_VERTEX_COUNT_THRESHOLD;
 	}
 
 	Set<ClusteredDrawableStorage> regions() {
@@ -192,11 +188,6 @@ public class Slab extends AbstractGlBuffer {
 	public static final int MAX_SLAB_TRI_VERTEX_COUNT = MAX_SLAB_QUAD_VERTEX_COUNT * 6 / 4;
 	private static final int BYTES_PER_SLAB_VERTEX = 28;
 	static final int BYTES_PER_SLAB = (MAX_SLAB_QUAD_VERTEX_COUNT * BYTES_PER_SLAB_VERTEX);
-
-	static final int SLAB_DEPLETED_VERTEX_COUNT_THRESHOLD = MAX_SLAB_QUAD_VERTEX_COUNT / 2;
-
-	/** Slabs with fewer than this many vertexes available are considered stuffed. */
-	static final int SLAB_MIN_AVAILABLE_VERTEX_COUNT_THRESHOLD = MAX_SLAB_QUAD_VERTEX_COUNT * 95 / 100;
 
 	private static final ArrayDeque<Slab> POOL = new ArrayDeque<>();
 
