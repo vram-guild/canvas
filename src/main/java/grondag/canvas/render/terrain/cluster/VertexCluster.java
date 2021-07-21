@@ -19,13 +19,15 @@ package grondag.canvas.render.terrain.cluster;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
+import grondag.canvas.render.terrain.cluster.drawlist.ClusterDrawList;
 
 public class VertexCluster implements ClusterTask {
 	//final StringBuilder log = new StringBuilder();
-
+	private final ReferenceOpenHashSet<ClusterDrawList> holdingLists = new ReferenceOpenHashSet<>();
 	public final VertexClusterRealm owner;
 	private final ObjectArrayList<ClusteredDrawableStorage> noobs = new ObjectArrayList<>();
 	private final ReferenceOpenHashSet<ClusteredDrawableStorage> allocatedRegions = new ReferenceOpenHashSet<>();
@@ -39,8 +41,16 @@ public class VertexCluster implements ClusterTask {
 
 	private Slab[] slabs = new Slab[256]; // if we use more than this many we're already dead
 	private int slabCount;
-	private int openSlabIndex = -1;
+	/**
+	 * Only one slab at a time is "hungry", meaning it can accept more vertex data.
+	 * All other unclosed, non-null slabs (closing a slab will nullify it) are called
+	 * "stuffed" slabs, but they may become "empty" over time as data become invalid.
+	 * When a slab becomes more than half empty, we call it a "depleted" slab and it
+	 * is eligible to be compacted to reduce draw calls.
+	 */
+	private @Nullable Slab hungrySlab = null;
 	private int maxSlabCount = 0;
+	private @Nullable Slab smallestDepletedSlab = null;
 
 	private boolean isScheduled = false;
 
@@ -53,16 +63,20 @@ public class VertexCluster implements ClusterTask {
 		return activeBytes;
 	}
 
-	private Slab findSlabWithCapacity(int vertexCount) {
-		int result = openSlabIndex;
-
-		if (result == -1 || slabs[result].availableVertexCount() < vertexCount) {
-			result = claimOpenSlabIndex();
-			openSlabIndex = result;
-			slabs[result] = Slab.claim();
+	private Slab getHungrySlabWithCapacity(int vertexCount) {
+		if (hungrySlab == null) {
+			claimNewNewHungrySlab();
+		} else if (hungrySlab.availableVertexCount() < vertexCount) {
+			updateSmallestDepletedSlab(hungrySlab);
+			claimNewNewHungrySlab();
 		}
 
-		return slabs[result];
+		return hungrySlab;
+	}
+
+	private void claimNewNewHungrySlab() {
+		hungrySlab = Slab.claim(claimOpenSlabIndex());
+		slabs[hungrySlab.holdingClusterSlot()] = hungrySlab;
 	}
 
 	private int claimOpenSlabIndex() {
@@ -80,10 +94,6 @@ public class VertexCluster implements ClusterTask {
 	}
 
 	void close() {
-		close(true);
-	}
-
-	void close(boolean notify) {
 		assert RenderSystem.isOnRenderThread();
 
 		if (!isClosed) {
@@ -94,7 +104,7 @@ public class VertexCluster implements ClusterTask {
 
 			if (!allocatedRegions.isEmpty()) {
 				for (ClusteredDrawableStorage region : allocatedRegions) {
-					region.close(notify);
+					region.close(false);
 				}
 
 				allocatedRegions.clear();
@@ -102,7 +112,7 @@ public class VertexCluster implements ClusterTask {
 
 			if (!noobs.isEmpty()) {
 				for (ClusteredDrawableStorage region : noobs) {
-					region.close(notify);
+					region.close(false);
 				}
 
 				noobs.clear();
@@ -114,6 +124,9 @@ public class VertexCluster implements ClusterTask {
 					slabs[i] = null;
 				}
 			}
+
+			slabCount = 0;
+			maxSlabCount = 0;
 		}
 	}
 
@@ -145,7 +158,7 @@ public class VertexCluster implements ClusterTask {
 			final int byteCount = noob.byteCount;
 
 			//log.append("Added to allocated regions: ").append(noob.id).append("\n");
-			Slab slab = findSlabWithCapacity(noob.quadVertexCount);
+			Slab slab = getHungrySlabWithCapacity(noob.quadVertexCount);
 
 			if (slab.allocateAndLoad(noob)) {
 				allocatedRegions.add(noob);
@@ -165,6 +178,10 @@ public class VertexCluster implements ClusterTask {
 		}
 	}
 
+	/**
+	 * Region will call after it releases its allocation from
+	 * slab but before it nullifies the slab reference.
+	 */
 	void notifyClosed(ClusteredDrawableStorage region) {
 		assert RenderSystem.isOnRenderThread();
 
@@ -179,9 +196,39 @@ public class VertexCluster implements ClusterTask {
 			assert false : "Closure notification from region not in clump.";
 		}
 
+		final var slab = region.slab();
+		assert slab != null;
+		assert slabs[slab.holdingClusterSlot()] == slab;
+
+		if (slab != hungrySlab) {
+			if (slab.isEmpty()) {
+				slabs[slab.holdingClusterSlot()] = null;
+				slab.release();
+				--slabCount;
+
+				if (slab == smallestDepletedSlab) {
+					smallestDepletedSlab = null;
+					findSmallestDepletedSlab();
+				}
+			} else {
+				// Save ourselves the trouble of searching for the smallest depleted slab during compact
+				updateSmallestDepletedSlab(slab);
+			}
+		}
+
 		if (allocatedRegions.isEmpty() && noobs.isEmpty()) {
 			close();
 			owner.notifyClosed(this);
+		}
+	}
+
+	private void updateSmallestDepletedSlab(Slab slab) {
+		assert slab != null;
+
+		if (slab.isDepleted() && slab != smallestDepletedSlab) {
+			if (smallestDepletedSlab == null || slab.usedVertexCount() < smallestDepletedSlab.usedVertexCount()) {
+				smallestDepletedSlab = slab;
+			}
 		}
 	}
 
@@ -207,18 +254,98 @@ public class VertexCluster implements ClusterTask {
 	}
 
 	private boolean canCompact() {
-		return activeBytes < (slabCount - 1) * Slab.BYTES_PER_SLAB;
+		// We use a simple hueristic for compacting:
+		// If the smallest depleted slab can fit into the
+		// "next" hungry slab then compact.
+		//
+		// The "next" hungry slab is the current hungry slab if
+		// it can accommodate the smallest depleted slab or
+		// is assumed to be a new, empty slab if the current
+		// hungry slab is stuffed.
+
+		if (smallestDepletedSlab == null) {
+			return false;
+		}
+
+		return hungrySlab == null
+				|| hungrySlab.isStuffed()
+				|| hungrySlab.availableVertexCount() >= smallestDepletedSlab.usedVertexCount();
+	}
+
+	/** Called after nullifying the smallest depleted slab to see if there is another. */
+	private void findSmallestDepletedSlab() {
+		assert smallestDepletedSlab == null;
+		Slab result = null;
+
+		if (slabCount > 1) {
+			for (int i = 0; i < maxSlabCount; ++i) {
+				Slab slab = slabs[i];
+
+				if (slab != null && slab.isDepleted() && slab != hungrySlab) {
+					if (result == null || slab.usedVertexCount() < result.usedVertexCount()) {
+						result = slab;
+					}
+				}
+			}
+		}
+
+		smallestDepletedSlab = result;
 	}
 
 	private void compact() {
-		// WIP Do better stuff
-		for (int i = 0; i < maxSlabCount; ++i) {
-			Slab slab = slabs[i];
+		if (canCompact()) {
+			retireSmallestDepletedSlab();
 
-			if (slab != null && slab.isEmpty()) {
-				slab.release();
-				slabs[i] = null;
+			// Schedule another pass if we can do it again
+			if (canCompact()) {
+				scheduleUpdate();
 			}
 		}
+	}
+
+	private void retireSmallestDepletedSlab() {
+		assert smallestDepletedSlab != null;
+		// WIP: remove
+		//System.out.println("retiring depleted slab, new slab count will be " + (slabCount - 1));
+
+		final Slab depleted = smallestDepletedSlab;
+		final Slab hungry = getHungrySlabWithCapacity(depleted.usedVertexCount());
+
+		for (ClusteredDrawableStorage region : depleted.regions()) {
+			// Note we don't need to add to allocated or update byte total here
+			// because would have been done when region was first allocated.
+			assert allocatedRegions.contains(region);
+
+			if (!hungry.transferFromSlab(region, depleted)) {
+				assert false : "Your code is bad and you should feel bad.";
+				CanvasMod.LOG.error("Unable to allocate memory for render region. This is a bug.");
+			}
+		}
+
+		assert slabs[depleted.holdingClusterSlot()] == depleted;
+		slabs[depleted.holdingClusterSlot()] = null;
+		depleted.releaseTransferred();
+		--slabCount;
+
+		smallestDepletedSlab = null;
+		findSmallestDepletedSlab();
+
+		if (!holdingLists.isEmpty()) {
+			for (var list : holdingLists) {
+				list.invalidate();
+			}
+		}
+	}
+
+	void addListListener(ClusterDrawList listener) {
+		assert !holdingLists.contains(listener);
+		assert !isClosed;
+		holdingLists.add(listener);
+	}
+
+	void removeListListener(ClusterDrawList listener) {
+		assert holdingLists.contains(listener);
+		assert !isClosed;
+		holdingLists.remove(listener);
 	}
 }

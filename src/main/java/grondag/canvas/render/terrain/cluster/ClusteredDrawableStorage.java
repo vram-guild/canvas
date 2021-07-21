@@ -67,18 +67,20 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 				transferBuffer = transferBuffer.release();
 			}
 
-			if (slab != null) {
-				slab.removeRegion(this);
-				slab = null;
+			assert slab != null;
+
+			// Slab is nullified after notifying cluster so
+			// that cluster can do slab accounting.
+			slab.removeRegion(this);
+
+			if (notify) {
+				assert cluster != null;
+				cluster.notifyClosed(this);
 			}
 
-			if (cluster != null) {
-				if (notify) {
-					cluster.notifyClosed(this);
-				}
+			cluster = null;
 
-				cluster = null;
-			}
+			slab = null;
 
 			baseQuadVertexIndex = NOT_ALLOCATED;
 		}

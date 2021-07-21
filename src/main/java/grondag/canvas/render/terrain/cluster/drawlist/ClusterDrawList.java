@@ -21,10 +21,10 @@ import java.util.IdentityHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
 import grondag.canvas.render.terrain.cluster.VertexCluster;
 import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
+import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.varia.GFX;
 
 public class ClusterDrawList {
@@ -155,7 +155,7 @@ public class ClusterDrawList {
 		}
 	}
 
-	// WIP: use a version of this for new lists and gradually compact
+	// WIP: use a version of this for new lists and gradually compact?
 	public void drawOld() {
 		final int limit = stores.size();
 
@@ -182,5 +182,9 @@ public class ClusterDrawList {
 	public void add(ClusteredDrawableStorage storage) {
 		assert storage.getCluster() == cluster;
 		stores.add(storage);
+	}
+
+	public void invalidate() {
+		owner.invalidate();
 	}
 }

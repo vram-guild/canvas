@@ -32,6 +32,8 @@ public class Slab extends AbstractGlBuffer {
 	private int vaoBufferId = 0;
 	private final ReferenceOpenHashSet<ClusteredDrawableStorage> allocatedRegions = new ReferenceOpenHashSet<>();
 	private int usedVertexCount;
+	/** Used by vertex cluster to efficiently locate slab when there are notifications from regions. */
+	private int holdingClusterSlot = -1;
 
 	private Slab() {
 		// NB: STATIC makes a huge positive difference on AMD at least
@@ -45,9 +47,25 @@ public class Slab extends AbstractGlBuffer {
 		return MAX_SLAB_QUAD_VERTEX_COUNT - headVertexIndex;
 	}
 
+	int usedVertexCount() {
+		return usedVertexCount;
+	}
+
+	int holdingClusterSlot() {
+		return holdingClusterSlot;
+	}
+
 	boolean isEmpty() {
 		assert RenderSystem.isOnRenderThread();
 		return usedVertexCount == 0;
+	}
+
+	boolean isDepleted() {
+		return usedVertexCount < SLAB_DEPLETED_VERTEX_COUNT_THRESHOLD;
+	}
+
+	boolean isStuffed() {
+		return availableVertexCount() < SLAB_MIN_AVAILABLE_VERTEX_COUNT_THRESHOLD;
 	}
 
 	Set<ClusteredDrawableStorage> regions() {
@@ -56,11 +74,30 @@ public class Slab extends AbstractGlBuffer {
 	}
 
 	void release() {
+		assert allocatedRegions.isEmpty();
+		assert usedVertexCount == 0;
+		releaseInner();
+	}
+
+	private void addToVertexCounts(int vertexCount) {
+		usedVertexCount += vertexCount;
+		totalUsedVertexCount += vertexCount;
+	}
+
+	/** Doesn't assume or require all regions to have closed. */
+	void releaseTransferred() {
+		allocatedRegions.clear();
+		releaseInner();
+	}
+
+	private void releaseInner() {
 		assert RenderSystem.isOnRenderThread();
 		assert isClaimed;
-		assert allocatedRegions.isEmpty();
+		assert holdingClusterSlot >= 0;
 		headVertexIndex = 0;
 		isClaimed = false;
+		holdingClusterSlot = -1;
+		addToVertexCounts(-usedVertexCount);
 		POOL.offer(this);
 	}
 
@@ -77,10 +114,34 @@ public class Slab extends AbstractGlBuffer {
 		assert !allocatedRegions.contains(region);
 		allocatedRegions.add(region);
 		region.setLocation(this, headVertexIndex);
-		usedVertexCount += region.quadVertexCount;
+		addToVertexCounts(region.quadVertexCount);
 
 		GFX.bindBuffer(bindTarget, glBufferId());
 		region.getAndClearTransferBuffer().releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, headVertexIndex * BYTES_PER_SLAB_VERTEX);
+
+		headVertexIndex = newHeadVertexIndex;
+		return true;
+	}
+
+	/** Returns true if successful, or false if capacity would be exceeded. */
+	boolean transferFromSlab(ClusteredDrawableStorage region, Slab source) {
+		assert RenderSystem.isOnRenderThread();
+		final int newHeadVertexIndex = headVertexIndex + region.quadVertexCount;
+
+		if (newHeadVertexIndex > MAX_SLAB_QUAD_VERTEX_COUNT) {
+			return false;
+		}
+
+		GFX.bindBuffer(GFX.GL_COPY_WRITE_BUFFER, glBufferId());
+		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, source.glBufferId());
+		GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, GFX.GL_COPY_WRITE_BUFFER, region.baseQuadVertexIndex() * BYTES_PER_SLAB_VERTEX, headVertexIndex * BYTES_PER_SLAB_VERTEX, region.byteCount);
+		GFX.bindBuffer(GFX.GL_COPY_WRITE_BUFFER, 0);
+		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
+
+		assert !allocatedRegions.contains(region);
+		allocatedRegions.add(region);
+		region.setLocation(this, headVertexIndex);
+		addToVertexCounts(region.quadVertexCount);
 
 		headVertexIndex = newHeadVertexIndex;
 		return true;
@@ -92,7 +153,7 @@ public class Slab extends AbstractGlBuffer {
 		assert !isClosed;
 
 		if (allocatedRegions.remove(region)) {
-			usedVertexCount -= region.quadVertexCount;
+			addToVertexCounts(-region.quadVertexCount);
 		}
 	}
 
@@ -122,6 +183,7 @@ public class Slab extends AbstractGlBuffer {
 			vaoBufferId = 0;
 		}
 
+		addToVertexCounts(-usedVertexCount);
 		--totalSlabCount;
 	}
 
@@ -131,15 +193,22 @@ public class Slab extends AbstractGlBuffer {
 	private static final int BYTES_PER_SLAB_VERTEX = 28;
 	static final int BYTES_PER_SLAB = (MAX_SLAB_QUAD_VERTEX_COUNT * BYTES_PER_SLAB_VERTEX);
 
+	static final int SLAB_DEPLETED_VERTEX_COUNT_THRESHOLD = MAX_SLAB_QUAD_VERTEX_COUNT / 2;
+
+	/** Slabs with fewer than this many vertexes available are considered stuffed. */
+	static final int SLAB_MIN_AVAILABLE_VERTEX_COUNT_THRESHOLD = MAX_SLAB_QUAD_VERTEX_COUNT * 95 / 100;
+
 	private static final ArrayDeque<Slab> POOL = new ArrayDeque<>();
+
 	private static int totalSlabCount = 0;
+	private static int totalUsedVertexCount = 0;
 
 	static {
 		// Want IDE to show actual numbers above, so check here at run time that nothing changed and got missed.
 		assert BYTES_PER_SLAB_VERTEX == TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes : "Slab vertex size doesn't match vertex format";
 	}
 
-	static Slab claim() {
+	static Slab claim(int slot) {
 		assert RenderSystem.isOnRenderThread();
 
 		Slab result = POOL.poll();
@@ -151,11 +220,18 @@ public class Slab extends AbstractGlBuffer {
 			result.orphan();
 		}
 
+		assert !result.isClaimed;
+		assert result.holdingClusterSlot == -1;
+		assert result.usedVertexCount == 0;
+		result.holdingClusterSlot = slot;
 		result.isClaimed = true;
 		return result;
 	}
 
 	public static String debugSummary() {
-		return String.format("Slabs: %dMb / %dMb", (totalSlabCount - POOL.size()) * BYTES_PER_SLAB / 0x100000, totalSlabCount * BYTES_PER_SLAB / 0x100000);
+		return String.format("Slabs:%dMb/%dMb occ:%d",
+				(totalSlabCount - POOL.size()) * BYTES_PER_SLAB / 0x100000,
+				totalSlabCount * BYTES_PER_SLAB / 0x100000,
+				(totalUsedVertexCount * 100L) / (totalSlabCount * MAX_SLAB_QUAD_VERTEX_COUNT));
 	}
 }

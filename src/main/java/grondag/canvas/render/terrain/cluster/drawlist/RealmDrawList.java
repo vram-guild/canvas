@@ -30,10 +30,14 @@ import grondag.canvas.varia.GFX;
 public class RealmDrawList extends AbstractDrawableRegionList {
 	final ObjectArrayList<ClusterDrawList> clusterLists = new ObjectArrayList<>();
 	final ObjectArrayList<IndexSlab> indexSlabs = new ObjectArrayList<>();
+	boolean isInvalid = false;
 
 	private RealmDrawList(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
 		super(regions, renderState);
+		build();
+	}
 
+	private void build() {
 		final Long2ObjectOpenHashMap<ClusterDrawList> map = new Long2ObjectOpenHashMap<>();
 		final int limit = regions.size();
 
@@ -59,12 +63,24 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 		}
 	}
 
+	private void rebuildIfInvalid() {
+		if (isInvalid) {
+			// Rarely happens because slab reallocation typically happen
+			// in response to player movement, which will naturally force
+			// a new draw list to be created.
+			isInvalid = false;
+			closeInner();
+			build();
+		}
+	}
+
 	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
 		return regions.isEmpty() ? DrawableRegionList.EMPTY : new RealmDrawList(regions, renderState);
 	}
 
 	@Override
 	public void draw() {
+		rebuildIfInvalid();
 		renderState.enable(0, 0, 0, 0, 0);
 		final int limit = clusterLists.size();
 
@@ -85,5 +101,9 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 
 		indexSlabs.clear();
 		clusterLists.clear();
+	}
+
+	void invalidate() {
+		isInvalid = true;
 	}
 }

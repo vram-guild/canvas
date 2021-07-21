@@ -56,7 +56,7 @@ public class VertexClusterRealm {
 		assert RenderSystem.isOnRenderThread();
 
 		for (VertexCluster clump : clusters.values()) {
-			clump.close(false);
+			clump.close();
 		}
 
 		clusters.clear();
