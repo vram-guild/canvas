@@ -28,11 +28,15 @@ public class SlabAllocator {
 	private int totalSlabCount = 0;
 	private int totalUsedVertexCount = 0;
 	final int maxSlabQuadVertexCount;
+	final int vacatedQuadVertexThreshold;
 	final int bytesPerSlab;
+	final boolean isSmall;
 
-	private SlabAllocator(int maxSlabQuadVertexCount) {
-		this.maxSlabQuadVertexCount = maxSlabQuadVertexCount;
+	private SlabAllocator(boolean isSmall) {
+		this.isSmall = isSmall;
+		maxSlabQuadVertexCount = isSmall ? MAX_SLAB_QUAD_VERTEX_COUNT / 4 : MAX_SLAB_QUAD_VERTEX_COUNT;
 		bytesPerSlab = maxSlabQuadVertexCount * BYTES_PER_SLAB_VERTEX;
+		vacatedQuadVertexThreshold = maxSlabQuadVertexCount / 4;
 	}
 
 	Slab claim(int slot) {
@@ -72,16 +76,19 @@ public class SlabAllocator {
 		assert BYTES_PER_SLAB_VERTEX == TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes : "Slab vertex size doesn't match vertex format";
 	}
 
-	private static final SlabAllocator LARGE = new SlabAllocator(MAX_SLAB_QUAD_VERTEX_COUNT);
-	private static final SlabAllocator SMALL = new SlabAllocator(MAX_SLAB_QUAD_VERTEX_COUNT / 2);
-	private static final int LARGE_BYTE_THRESHOLD = SMALL.bytesPerSlab * 3;
+	private static final SlabAllocator LARGE = new SlabAllocator(false);
+	private static final SlabAllocator SMALL = new SlabAllocator(true);
+	static final int LARGE_SLAB_QUAD_VERTEX_COUNT = LARGE.maxSlabQuadVertexCount;
+	static final int SMALL_SLAB_QUAD_VERTEX_COUNT = SMALL.maxSlabQuadVertexCount;
+	static final int LARGE_SLAB_QUAD_VERTEX_THRESHOLD = SMALL.maxSlabQuadVertexCount * 3;
+	private static final int LARGE_SLAB_BYTE_THRESHOLD = SMALL.bytesPerSlab * 3;
 
 	static Slab claim(int currentBytes, int newBytes, int slot) {
-		return newBytes > SMALL.bytesPerSlab || (currentBytes + currentBytes) >= LARGE_BYTE_THRESHOLD ? LARGE.claim(slot) : SMALL.claim(slot);
+		return newBytes > SMALL.bytesPerSlab || (currentBytes + currentBytes) >= LARGE_SLAB_BYTE_THRESHOLD ? LARGE.claim(slot) : SMALL.claim(slot);
 	}
 
 	static int expectedBytesForNewSlab(int activeBytes) {
-		return activeBytes >= LARGE_BYTE_THRESHOLD ? LARGE.bytesPerSlab : SMALL.bytesPerSlab;
+		return activeBytes >= LARGE_SLAB_BYTE_THRESHOLD ? LARGE.bytesPerSlab : SMALL.bytesPerSlab;
 	}
 
 	public static String debugSummary() {

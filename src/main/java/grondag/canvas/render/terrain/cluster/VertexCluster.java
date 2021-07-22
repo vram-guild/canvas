@@ -251,7 +251,7 @@ public class VertexCluster implements ClusterTask {
 			// first find slabs that are candidates - slabs with at least 1/4 slab waste
 			if (slab == null) {
 				continue;
-			} else if (slab.vacatedVertexCount() > slab.allocator.maxSlabQuadVertexCount / 4) {
+			} else if (slab.isVacated()) {
 				depletedSlabVertexCount += slab.usedVertexCount();
 				++removedSlabCount;
 			} else {
@@ -276,18 +276,18 @@ public class VertexCluster implements ClusterTask {
 
 	private void compact() {
 		if (canCompact()) {
-			tryCompact(false);
+			tryCompact();
 		}
 	}
 
-	private void tryCompact(boolean simulate) {
+	private void tryCompact() {
 		final int startingCount = slabCount;
 
 		for (int i = 0; i < maxSlabCount; ++i) {
 			final Slab source = slabs[i];
 
 			// reallocate slabs with at least 1/4 slab waste
-			if (source != null && source.vacatedVertexCount() > source.allocator.maxSlabQuadVertexCount / 4) {
+			if (source != null && source.isVacated()) {
 				for (ClusteredDrawableStorage region : source.regions()) {
 					// Note we don't need to add to allocated or update byte total here
 					// because would have been done when region was first allocated.

@@ -67,6 +67,10 @@ public class Slab extends AbstractGlBuffer {
 		return usedVertexCount == 0;
 	}
 
+	boolean isVacated() {
+		return vacatedVertexCount() > allocator.vacatedQuadVertexThreshold;
+	}
+
 	Set<ClusteredDrawableStorage> regions() {
 		assert RenderSystem.isOnRenderThread();
 		return allocatedRegions;
