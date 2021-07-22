@@ -16,7 +16,8 @@
 
 package grondag.canvas.render.terrain.cluster;
 
-import java.util.ArrayDeque;
+import static grondag.canvas.render.terrain.cluster.SlabAllocator.BYTES_PER_SLAB_VERTEX;
+
 import java.util.Set;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -27,6 +28,7 @@ import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.varia.GFX;
 
 public class Slab extends AbstractGlBuffer {
+	final SlabAllocator allocator;
 	private int headVertexIndex = 0;
 	private boolean isClaimed;
 	private int vaoBufferId = 0;
@@ -35,16 +37,17 @@ public class Slab extends AbstractGlBuffer {
 	/** Used by vertex cluster to efficiently locate slab when there are notifications from regions. */
 	private int holdingClusterSlot = -1;
 
-	private Slab() {
+	Slab(SlabAllocator allocator) {
 		// NB: STATIC makes a huge positive difference on AMD at least
-		super(BYTES_PER_SLAB, GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		super(allocator.bytesPerSlab, GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		this.allocator = allocator;
 		assert RenderSystem.isOnRenderThread();
 	}
 
 	/** How much vertex capacity is remaining. */
 	int availableVertexCount() {
 		assert RenderSystem.isOnRenderThread();
-		return MAX_SLAB_QUAD_VERTEX_COUNT - headVertexIndex;
+		return allocator.maxSlabQuadVertexCount - headVertexIndex;
 	}
 
 	int usedVertexCount() {
@@ -69,6 +72,14 @@ public class Slab extends AbstractGlBuffer {
 		return allocatedRegions;
 	}
 
+	void prepareForClaim(int slot) {
+		assert !isClaimed;
+		assert holdingClusterSlot == -1;
+		assert usedVertexCount == 0;
+		holdingClusterSlot = slot;
+		isClaimed = true;
+	}
+
 	void release() {
 		assert allocatedRegions.isEmpty();
 		assert usedVertexCount == 0;
@@ -77,7 +88,7 @@ public class Slab extends AbstractGlBuffer {
 
 	private void addToVertexCounts(int vertexCount) {
 		usedVertexCount += vertexCount;
-		totalUsedVertexCount += vertexCount;
+		allocator.addToVertexCount(vertexCount);
 	}
 
 	/** Doesn't assume or require all regions to have closed. */
@@ -94,7 +105,7 @@ public class Slab extends AbstractGlBuffer {
 		isClaimed = false;
 		holdingClusterSlot = -1;
 		addToVertexCounts(-usedVertexCount);
-		POOL.offer(this);
+		allocator.release(this);
 	}
 
 	/** Returns true if successful, or false if capacity would be exceeded. */
@@ -103,7 +114,7 @@ public class Slab extends AbstractGlBuffer {
 
 		final int newHeadVertexIndex = headVertexIndex + region.quadVertexCount;
 
-		if (newHeadVertexIndex > MAX_SLAB_QUAD_VERTEX_COUNT) {
+		if (newHeadVertexIndex > allocator.maxSlabQuadVertexCount) {
 			return false;
 		}
 
@@ -124,7 +135,7 @@ public class Slab extends AbstractGlBuffer {
 		assert RenderSystem.isOnRenderThread();
 		final int newHeadVertexIndex = headVertexIndex + region.quadVertexCount;
 
-		if (newHeadVertexIndex > MAX_SLAB_QUAD_VERTEX_COUNT) {
+		if (newHeadVertexIndex > allocator.maxSlabQuadVertexCount) {
 			return false;
 		}
 
@@ -180,49 +191,6 @@ public class Slab extends AbstractGlBuffer {
 		}
 
 		addToVertexCounts(-usedVertexCount);
-		--totalSlabCount;
-	}
-
-	/** We are using short index arrays, which means we can't have more than this many quad vertices per slab. */
-	public static final int MAX_SLAB_QUAD_VERTEX_COUNT = 0x10000;
-	public static final int MAX_SLAB_TRI_VERTEX_COUNT = MAX_SLAB_QUAD_VERTEX_COUNT * 6 / 4;
-	private static final int BYTES_PER_SLAB_VERTEX = 28;
-	static final int BYTES_PER_SLAB = (MAX_SLAB_QUAD_VERTEX_COUNT * BYTES_PER_SLAB_VERTEX);
-
-	private static final ArrayDeque<Slab> POOL = new ArrayDeque<>();
-
-	private static int totalSlabCount = 0;
-	private static int totalUsedVertexCount = 0;
-
-	static {
-		// Want IDE to show actual numbers above, so check here at run time that nothing changed and got missed.
-		assert BYTES_PER_SLAB_VERTEX == TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes : "Slab vertex size doesn't match vertex format";
-	}
-
-	static Slab claim(int slot) {
-		assert RenderSystem.isOnRenderThread();
-
-		Slab result = POOL.poll();
-
-		if (result == null) {
-			result = new Slab();
-			++totalSlabCount;
-		} else {
-			result.orphan();
-		}
-
-		assert !result.isClaimed;
-		assert result.holdingClusterSlot == -1;
-		assert result.usedVertexCount == 0;
-		result.holdingClusterSlot = slot;
-		result.isClaimed = true;
-		return result;
-	}
-
-	public static String debugSummary() {
-		return String.format("Slabs:%dMb/%dMb occ:%d",
-				(totalSlabCount - POOL.size()) * BYTES_PER_SLAB / 0x100000,
-				totalSlabCount * BYTES_PER_SLAB / 0x100000,
-				(totalUsedVertexCount * 100L) / (totalSlabCount * MAX_SLAB_QUAD_VERTEX_COUNT));
+		allocator.notifyShutdown(this);
 	}
 }

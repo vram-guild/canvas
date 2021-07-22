@@ -23,7 +23,7 @@ import java.util.ArrayDeque;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.render.AbstractGlBuffer;
-import grondag.canvas.render.terrain.cluster.Slab;
+import grondag.canvas.render.terrain.cluster.SlabAllocator;
 import grondag.canvas.varia.GFX;
 
 public class IndexSlab extends AbstractGlBuffer {
@@ -168,7 +168,7 @@ public class IndexSlab extends AbstractGlBuffer {
 
 		if (result == null) {
 			result = new IndexSlab();
-			result.allocateAndLoad(0, Slab.MAX_SLAB_QUAD_VERTEX_COUNT);
+			result.allocateAndLoad(0, SlabAllocator.MAX_SLAB_QUAD_VERTEX_COUNT);
 			result.unmap();
 			result.unbind();
 			fullSlabIndex = result;

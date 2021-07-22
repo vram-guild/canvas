@@ -67,7 +67,7 @@ public class VertexCluster implements ClusterTask {
 	}
 
 	private Slab claimNewNewEmptySlab() {
-		Slab result = Slab.claim(claimOpenSlabIndex());
+		Slab result = SlabAllocator.claim(activeBytes, claimOpenSlabIndex());
 		slabs[result.holdingClusterSlot()] = result;
 		return result;
 	}
@@ -251,7 +251,7 @@ public class VertexCluster implements ClusterTask {
 			// first find slabs that are candidates - slabs with at least 1/4 slab waste
 			if (slab == null) {
 				continue;
-			} else if (slab.vacatedVertexCount() > Slab.MAX_SLAB_QUAD_VERTEX_COUNT / 4) {
+			} else if (slab.vacatedVertexCount() > slab.allocator.maxSlabQuadVertexCount / 4) {
 				depletedSlabVertexCount += slab.usedVertexCount();
 				++removedSlabCount;
 			} else {
@@ -263,10 +263,11 @@ public class VertexCluster implements ClusterTask {
 			return false;
 		}
 
+		final int expectedBytesPerNewSlab = SlabAllocator.expectedBytesForNewSlab(activeBytes);
 		int remainederVertexCount = depletedSlabVertexCount - capacitySlabVertexCount;
 
 		if (remainederVertexCount > 0) {
-			removedSlabCount -= (remainederVertexCount + Slab.BYTES_PER_SLAB - 1) / Slab.BYTES_PER_SLAB;
+			removedSlabCount -= (remainederVertexCount + expectedBytesPerNewSlab - 1) / expectedBytesPerNewSlab;
 		}
 
 		assert removedSlabCount >= 0;
@@ -286,7 +287,7 @@ public class VertexCluster implements ClusterTask {
 			final Slab source = slabs[i];
 
 			// reallocate slabs with at least 1/4 slab waste
-			if (source != null && source.vacatedVertexCount() > Slab.MAX_SLAB_QUAD_VERTEX_COUNT / 4) {
+			if (source != null && source.vacatedVertexCount() > source.allocator.maxSlabQuadVertexCount / 4) {
 				for (ClusteredDrawableStorage region : source.regions()) {
 					// Note we don't need to add to allocated or update byte total here
 					// because would have been done when region was first allocated.
