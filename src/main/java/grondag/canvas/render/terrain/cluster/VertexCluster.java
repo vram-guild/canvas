@@ -63,11 +63,11 @@ public class VertexCluster implements ClusterTask {
 			}
 		}
 
-		return claimNewNewEmptySlab();
+		return claimNewNewEmptySlab(vertexCount * SlabAllocator.BYTES_PER_SLAB_VERTEX);
 	}
 
-	private Slab claimNewNewEmptySlab() {
-		Slab result = SlabAllocator.claim(activeBytes, claimOpenSlabIndex());
+	private Slab claimNewNewEmptySlab(int newBytes) {
+		Slab result = SlabAllocator.claim(activeBytes, newBytes, claimOpenSlabIndex());
 		slabs[result.holdingClusterSlot()] = result;
 		return result;
 	}

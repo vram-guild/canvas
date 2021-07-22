@@ -73,19 +73,21 @@ public class SlabAllocator {
 	}
 
 	private static final SlabAllocator LARGE = new SlabAllocator(MAX_SLAB_QUAD_VERTEX_COUNT);
+	private static final SlabAllocator SMALL = new SlabAllocator(MAX_SLAB_QUAD_VERTEX_COUNT / 2);
+	private static final int LARGE_BYTE_THRESHOLD = SMALL.bytesPerSlab * 3;
 
-	static Slab claim(int clusterSizeBytes, int slot) {
-		return LARGE.claim(slot);
+	static Slab claim(int currentBytes, int newBytes, int slot) {
+		return newBytes > SMALL.bytesPerSlab || (currentBytes + currentBytes) >= LARGE_BYTE_THRESHOLD ? LARGE.claim(slot) : SMALL.claim(slot);
 	}
 
 	static int expectedBytesForNewSlab(int activeBytes) {
-		return LARGE.bytesPerSlab;
+		return activeBytes >= LARGE_BYTE_THRESHOLD ? LARGE.bytesPerSlab : SMALL.bytesPerSlab;
 	}
 
 	public static String debugSummary() {
 		return String.format("Slabs:%dMb/%dMb occ:%d",
-				(LARGE.totalSlabCount - LARGE.POOL.size()) * LARGE.bytesPerSlab / 0x100000,
-				LARGE.totalSlabCount * LARGE.bytesPerSlab / 0x100000,
-				(LARGE.totalUsedVertexCount * 100L) / (LARGE.totalSlabCount * LARGE.maxSlabQuadVertexCount));
+				((LARGE.totalSlabCount - LARGE.POOL.size()) * LARGE.bytesPerSlab + (SMALL.totalSlabCount - SMALL.POOL.size()) * SMALL.bytesPerSlab) / 0x100000,
+				(LARGE.totalSlabCount * LARGE.bytesPerSlab + SMALL.totalSlabCount * SMALL.bytesPerSlab) / 0x100000,
+				((LARGE.totalUsedVertexCount + SMALL.totalUsedVertexCount) * 100L) / (LARGE.totalSlabCount * LARGE.maxSlabQuadVertexCount + SMALL.totalSlabCount * SMALL.maxSlabQuadVertexCount));
 	}
 }
