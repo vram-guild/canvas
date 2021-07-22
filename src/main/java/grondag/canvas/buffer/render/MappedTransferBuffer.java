@@ -19,8 +19,6 @@ package grondag.canvas.buffer.render;
 import java.util.ArrayDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.jetbrains.annotations.Nullable;
-
 import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.varia.GFX;
 
@@ -38,14 +36,22 @@ public class MappedTransferBuffer extends AbstractMappedBuffer<MappedTransferBuf
 	}
 
 	@Override
-	public @Nullable MappedTransferBuffer releaseToBoundBuffer(int target, int targetStartBytes) {
-		assert didPut;
+	public void prepareForOffThreadUse() {
+		super.prepareForOffThreadUse();
 		didPut = false;
-		unmap();
-		GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, target, 0, targetStartBytes, sizeBytes());
+	}
+
+	@Override
+	public void transferToBoundBuffer(int target, int targetStartBytes, int sourceStartBytes, int lengthBytes) {
+		assert didPut;
+		assert sourceStartBytes + lengthBytes <= sizeBytes();
+
+		if (!unmap()) {
+			bind();
+		}
+
+		GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, target, sourceStartBytes, targetStartBytes, lengthBytes);
 		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
-		release();
-		return null;
 	}
 
 	static final BufferAllocator<MappedTransferBuffer> RENDER_THREAD_ALLOCATOR = new BufferAllocator<>("RENDER THREAD MAPPED", MappedTransferBuffer::new, ArrayDeque::new);

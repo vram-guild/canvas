@@ -90,15 +90,22 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		return result;
 	}
 
-	/** Un-map and bind. */
-	protected final void unmap() {
-		if (mappedBuffer != null) {
+	/**
+	 * Un-map and leaves buffer bound if mapped.
+	 * Return true if was mapped and buffer is bound.
+	 * Return false if nothing happened.
+	 */
+	protected final boolean unmap() {
+		if (mappedBuffer == null) {
+			return false;
+		} else {
 			isPreMapped = false;
 			GFX.bindBuffer(bindTarget, glBufferId());
 			GFX.flushMappedBufferRange(bindTarget, 0, claimedBytes);
 			GFX.unmapBuffer(bindTarget);
 			mappedBuffer = null;
 			mappedIntBuffer = null;
+			return true;
 		}
 	}
 

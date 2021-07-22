@@ -27,6 +27,12 @@ public interface TransferBuffer {
 	@Nullable
 	TransferBuffer release();
 
+	/** ALWAYS returns null. */
 	@Nullable
-	TransferBuffer releaseToBoundBuffer(int target, int targetStartBytes);
+	default TransferBuffer releaseToBoundBuffer(int target, int targetStartBytes) {
+		transferToBoundBuffer(target, targetStartBytes, 0, sizeBytes());
+		return release();
+	}
+
+	void transferToBoundBuffer(int target, int targetStartBytes, int sourceStartBytes, int lengthBytes);
 }

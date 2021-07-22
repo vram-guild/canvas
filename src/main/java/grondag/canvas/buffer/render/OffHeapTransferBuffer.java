@@ -53,11 +53,14 @@ class OffHeapTransferBuffer implements TransferBuffer, AllocatableBuffer {
 	}
 
 	@Override
-	public @Nullable OffHeapTransferBuffer releaseToBoundBuffer(int target, int targetStartBytes) {
+	public void transferToBoundBuffer(int target, int targetStartBytes, int sourceStartBytes, int lengthBytes) {
 		assert claimedBytes > 0 : "Buffer accessed while unclaimed";
-		GFX.bufferSubData(target, targetStartBytes, claimedBytes, data.buffer());
-		release();
-		return null;
+		assert sourceStartBytes + lengthBytes <= claimedBytes;
+
+		final var buffer = data.buffer();
+		buffer.position(sourceStartBytes);
+		GFX.bufferSubData(target, targetStartBytes, lengthBytes, buffer);
+		buffer.position(0);
 	}
 
 	@Override
