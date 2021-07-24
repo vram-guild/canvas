@@ -92,6 +92,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 	public void updateViewDependencies(Camera camera, TerrainFrustum frustum, int renderDistance) {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
+		worldRenderState.sectorManager.setCameraXZ(cameraBlockPos.getX(), cameraBlockPos.getZ());
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		regionBoundingSphere.update(renderDistance);
 		this.renderDistance = renderDistance;

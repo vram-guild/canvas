@@ -31,7 +31,7 @@ public class RegionRenderSectorMap {
 	private static final int BLOCK_TO_SECTOR_SHIFT_BITS = 7;
 
 	private static final int SECTOR_AXIS_LENGTH_REGIONS = SECTOR_AXIS_LENGTH_BLOCKS / 16;
-	private static final int SECTOR_XZ_RADIUS = (32 + 2 + SECTOR_AXIS_LENGTH_REGIONS - 1) / SECTOR_AXIS_LENGTH_REGIONS + 1;
+	private static final int SECTOR_XZ_RADIUS = (32 + 2 + SECTOR_AXIS_LENGTH_REGIONS - 1) / SECTOR_AXIS_LENGTH_REGIONS;
 	private static final int SECTOR_XZ_DIAMETER = 1 + SECTOR_XZ_RADIUS * 2;
 	private static final int MIN_WORLD_HEIGHT_BLOCKS_INCLUSIVE = -64;
 	private static final int MAX_WORLD_HEIGHT_BLOCKS_EXCLUSIVE = 320;
