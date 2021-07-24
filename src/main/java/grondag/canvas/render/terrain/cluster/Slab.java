@@ -24,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.render.terrain.TerrainFormat;
+import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
+import grondag.canvas.render.terrain.cluster.VertexCluster.SlabAllocationFactory;
 import grondag.canvas.varia.GFX;
 
 public class Slab extends AbstractGlBuffer {
@@ -108,27 +110,28 @@ public class Slab extends AbstractGlBuffer {
 	}
 
 	/** Returns the number of vertices allocated. */
-	int allocateAndLoad(ClusteredDrawableStorage region, TransferBuffer buffer, int sourceStartVertexIndex) {
-		assert sourceStartVertexIndex < region.quadVertexCount;
-		final int allocatedVertexCount = Math.min(availableVertexCount(), region.quadVertexCount - sourceStartVertexIndex);
-		return allocateInner(region, buffer, sourceStartVertexIndex, allocatedVertexCount);
+	SlabAllocation allocateAndLoad(SlabAllocationFactory factory, TransferBuffer buffer, int sourceStartVertexIndex) {
+		final int quadVertexCount = buffer.sizeBytes() / BYTES_PER_SLAB_VERTEX;
+		assert quadVertexCount * BYTES_PER_SLAB_VERTEX == buffer.sizeBytes();
+		assert sourceStartVertexIndex < quadVertexCount;
+		final int allocatedVertexCount = Math.min(availableVertexCount(), quadVertexCount - sourceStartVertexIndex);
+		return allocateInner(factory, buffer, sourceStartVertexIndex, allocatedVertexCount);
 	}
 
 	/** Returns the number of quad vertices transfered. */
-	int transferFromSlabAllocation(ClusteredDrawableStorage region, SlabAllocation source, int sourceStartVertexIndex) {
-		assert sourceStartVertexIndex < source.quadVertexCount();
-		final int allocatedVertexCount = Math.min(availableVertexCount(), source.quadVertexCount() - sourceStartVertexIndex);
-		return allocateInner(region, source.slab().asTransferBuffer(), source.baseQuadVertexIndex() + sourceStartVertexIndex, allocatedVertexCount);
+	SlabAllocation transferFromSlabAllocation(SlabAllocationFactory factory, SlabAllocation source, int sourceStartVertexIndex) {
+		assert sourceStartVertexIndex < source.quadVertexCount;
+		final int allocatedVertexCount = Math.min(availableVertexCount(), source.quadVertexCount - sourceStartVertexIndex);
+		return allocateInner(factory, source.slab.asTransferBuffer(), source.baseQuadVertexIndex + sourceStartVertexIndex, allocatedVertexCount);
 	}
 
-	private int allocateInner(ClusteredDrawableStorage region, TransferBuffer buffer, int sourceStartVertexIndex, int allocatedVertexCount) {
+	private SlabAllocation allocateInner(SlabAllocationFactory factory, TransferBuffer buffer, int sourceStartVertexIndex, int allocatedVertexCount) {
 		if (allocatedVertexCount <= 0) {
-			return 0;
+			return null;
 		}
 
 		final int newHeadVertexIndex = headVertexIndex + allocatedVertexCount;
-		final var allocation = new SlabAllocation(this, headVertexIndex, allocatedVertexCount);
-		region.addAllocation(allocation);
+		final var allocation = factory.create(this, headVertexIndex, allocatedVertexCount);
 		addToVertexCounts(allocatedVertexCount);
 
 		GFX.bindBuffer(bindTarget, glBufferId());
@@ -138,13 +141,13 @@ public class Slab extends AbstractGlBuffer {
 				allocatedVertexCount * BYTES_PER_SLAB_VERTEX);
 
 		headVertexIndex = newHeadVertexIndex;
-		return allocatedVertexCount;
+		return allocation;
 	}
 
 	void removeAllocation(SlabAllocation allocation) {
 		assert RenderSystem.isOnRenderThread();
 		assert !isClosed;
-		addToVertexCounts(-allocation.quadVertexCount());
+		addToVertexCounts(-allocation.quadVertexCount);
 	}
 
 	@Override

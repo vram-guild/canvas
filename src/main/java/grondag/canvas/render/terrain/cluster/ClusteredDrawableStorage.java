@@ -17,25 +17,24 @@
 package grondag.canvas.render.terrain.cluster;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.UploadableVertexStorage;
+import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
 
 public class ClusteredDrawableStorage implements UploadableVertexStorage {
-	public final VertexClusterRealm owner;
+	public final VertexClusterRealm realm;
 	public final int byteCount;
 	public final int quadVertexCount;
 	public final int triVertexCount;
 	public final long clusterPos;
 
 	private TransferBuffer transferBuffer;
-	private ObjectArrayList<SlabAllocation> allocations = new ObjectArrayList<>();
 	private boolean isClosed = false;
-	private VertexCluster cluster = null;
+	private RegionAllocation allocation = null;
 
 	public ClusteredDrawableStorage(VertexClusterRealm owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int quadVertexCount) {
-		this.owner = owner;
+		realm = owner;
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 		this.quadVertexCount = quadVertexCount;
@@ -51,11 +50,11 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 
 	@Override
 	public ClusteredDrawableStorage release() {
-		close(true);
+		close();
 		return null;
 	}
 
-	public void close(boolean notify) {
+	public void close() {
 		assert RenderSystem.isOnRenderThread();
 
 		if (!isClosed) {
@@ -65,21 +64,10 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 				transferBuffer = transferBuffer.release();
 			}
 
-			if (allocations != null) {
-				for (var allocation : allocations) {
-					// Allocations are nullified after notifying cluster so
-					// that cluster can do slab accounting.
-					allocation.close();
-				}
-
-				if (notify) {
-					assert cluster != null;
-					cluster.notifyClosed(this);
-				}
+			if (allocation != null) {
+				allocation.onRegionClosed();
+				allocation = null;
 			}
-
-			cluster = null;
-			allocations.clear();
 		}
 	}
 
@@ -87,45 +75,13 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 		return isClosed;
 	}
 
-	/**
-	 * Returns prior allocations and clears current.
-	 */
-	public ObjectArrayList<SlabAllocation> prepareForReallocation() {
-		assert !allocations.isEmpty();
-		final var result = allocations;
-		allocations = new ObjectArrayList<>();
-		return result;
-	}
-
-	/**
-	 * Controlled by storage so that the vertices can be moved around as
-	 * needed to control fragmentation without external entanglements.
-	 */
-	public ObjectArrayList<SlabAllocation> allocations() {
-		assert !allocations.isEmpty() : "Slab allocations queried before allocation";
-		return allocations;
-	}
-
-	void addAllocation(SlabAllocation allocation) {
-		allocations.add(allocation);
-		//assert cluster.isPresent(this);
-	}
-
-	void setCluster(VertexCluster cluster) {
-		assert allocations.isEmpty();
-		assert this.cluster == null;
-		assert cluster != null;
-		this.cluster = cluster;
-	}
-
-	public VertexCluster getCluster() {
-		//assert clump.isPresent(this);
-		return cluster;
+	public RegionAllocation allocation() {
+		return allocation;
 	}
 
 	@Override
 	public void upload() {
-		assert allocations.isEmpty();
-		owner.allocate(this);
+		assert allocation == null;
+		allocation = realm.allocate(this);
 	}
 }

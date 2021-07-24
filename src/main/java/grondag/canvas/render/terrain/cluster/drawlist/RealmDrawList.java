@@ -47,7 +47,7 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 			ClusterDrawList clusterList = map.get(storage.clusterPos);
 
 			if (clusterList == null) {
-				clusterList = new ClusterDrawList(storage.getCluster(), this);
+				clusterList = new ClusterDrawList(storage.allocation().cluster(), this);
 				clusterLists.add(clusterList);
 				map.put(storage.clusterPos, clusterList);
 			}

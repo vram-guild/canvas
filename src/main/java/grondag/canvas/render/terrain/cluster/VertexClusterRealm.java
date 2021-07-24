@@ -22,6 +22,8 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.util.math.BlockPos;
 
+import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
+
 public class VertexClusterRealm {
 	public static final VertexClusterRealm SOLID = new VertexClusterRealm();
 	public static final VertexClusterRealm TRANSLUCENT = new VertexClusterRealm();
@@ -46,7 +48,7 @@ public class VertexClusterRealm {
 	}
 
 	private final Long2ObjectOpenHashMap<VertexCluster> clusters = new Long2ObjectOpenHashMap<>();
-	private final ReferenceOpenHashSet<VertexCluster> clusterUploads = new ReferenceOpenHashSet<>();
+	private final ReferenceOpenHashSet<VertexCluster> clusterUpdates = new ReferenceOpenHashSet<>();
 
 	private boolean isClosed = false;
 
@@ -60,7 +62,7 @@ public class VertexClusterRealm {
 		}
 
 		clusters.clear();
-		clusterUploads.clear();
+		clusterUpdates.clear();
 	}
 
 	public void close() {
@@ -72,29 +74,31 @@ public class VertexClusterRealm {
 		}
 	}
 
-	void allocate(ClusteredDrawableStorage storage) {
+	RegionAllocation allocate(ClusteredDrawableStorage storage) {
 		assert RenderSystem.isOnRenderThread();
 
-		VertexCluster clump = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterRealm.this, p));
-		clump.allocate(storage);
-		clusterUploads.add(clump);
+		VertexCluster cluster = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterRealm.this, p));
+		clusterUpdates.add(cluster);
+		return cluster.allocate(storage);
 	}
 
-	void notifyClosed(VertexCluster clump) {
+	void notifyClosed(VertexCluster cluster) {
 		assert RenderSystem.isOnRenderThread();
-		VertexCluster deadClump = clusters.remove(clump.clumpPos);
-		assert deadClump != null : "Clump gone missing.";
+		VertexCluster deadCluster = clusters.remove(cluster.clusterPos);
+		assert deadCluster != null : "Clump gone missing.";
 	}
 
-	public void upload() {
+	public void update() {
 		assert RenderSystem.isOnRenderThread();
 
-		if (!clusterUploads.isEmpty()) {
-			for (VertexCluster clump : clusterUploads) {
-				clump.upload();
+		// WIP: regions now allocate immediate and compaction isn't every frame
+		// Do we still need to have an update set and run this every frame?
+		if (!clusterUpdates.isEmpty()) {
+			for (VertexCluster clump : clusterUpdates) {
+				clump.update();
 			}
 
-			clusterUploads.clear();
+			clusterUpdates.clear();
 		}
 
 		// WIP: need a way to set the deadline appropriately based on steady frame rate and time already elapsed.

@@ -82,8 +82,8 @@ public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 
 	@Override
 	public void prepareForDraw(WorldRenderState worldRenderState) {
-		VertexClusterRealm.SOLID.upload();
-		VertexClusterRealm.TRANSLUCENT.upload();
+		VertexClusterRealm.SOLID.update();
+		VertexClusterRealm.TRANSLUCENT.update();
 	}
 
 	@Override

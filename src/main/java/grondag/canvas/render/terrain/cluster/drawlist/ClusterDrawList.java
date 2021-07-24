@@ -23,8 +23,8 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
-import grondag.canvas.render.terrain.cluster.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.VertexCluster;
+import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
 import grondag.canvas.varia.GFX;
 
@@ -44,7 +44,7 @@ public class ClusterDrawList {
 	IndexSlab build(IndexSlab indexSlab) {
 		assert drawSpecs.isEmpty();
 
-		if (cluster.owner == VertexClusterRealm.TRANSLUCENT) {
+		if (cluster.realm == VertexClusterRealm.TRANSLUCENT) {
 			indexSlab = buildTranslucent(indexSlab);
 		} else {
 			indexSlab = buildSolid(indexSlab);
@@ -60,17 +60,17 @@ public class ClusterDrawList {
 		int specQuadVertexCount = 0;
 
 		for (var region : stores) {
-			for (var alloc : region.allocations()) {
-				if (alloc.slab() != lastSlab) {
+			for (var alloc : region.allocation().allocations()) {
+				if (alloc.slab != lastSlab) {
 					// NB: addSpec checks for empty region list (will be true for first region)
 					// and also clears the list when done.
 					indexSlab = addSpec(indexSlab, specAllocations, specQuadVertexCount);
 					specQuadVertexCount = 0;
-					lastSlab = alloc.slab();
+					lastSlab = alloc.slab;
 				}
 
 				specAllocations.add(alloc);
-				specQuadVertexCount += alloc.quadVertexCount();
+				specQuadVertexCount += alloc.quadVertexCount;
 			}
 		}
 
@@ -89,16 +89,16 @@ public class ClusterDrawList {
 
 		// first group regions by slab
 		for (var region : stores) {
-			for (var alloc : region.allocations()) {
-				var list = map.get(alloc.slab());
+			for (var alloc : region.allocation().allocations()) {
+				var list = map.get(alloc.slab);
 
 				if (list == null) {
 					list = new SolidSpecList();
-					map.put(alloc.slab(), list);
+					map.put(alloc.slab, list);
 				}
 
 				list.add(alloc);
-				list.specQuadVertexCount += alloc.quadVertexCount();
+				list.specQuadVertexCount += alloc.quadVertexCount;
 			}
 		}
 
@@ -129,11 +129,11 @@ public class ClusterDrawList {
 		}
 
 		final int byteOffset = indexSlab.nextByteOffset();
-		var slab = specAllocations.get(0).slab();
+		var slab = specAllocations.get(0).slab;
 
 		for (var alloc : specAllocations) {
-			assert alloc.slab() == slab;
-			indexSlab.allocateAndLoad(alloc.baseQuadVertexIndex(), alloc.quadVertexCount());
+			assert alloc.slab == slab;
+			indexSlab.allocateAndLoad(alloc.baseQuadVertexIndex, alloc.quadVertexCount);
 		}
 
 		assert byteOffset + specQuadVertexCount * IndexSlab.INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER == indexSlab.nextByteOffset();
@@ -169,8 +169,8 @@ public class ClusterDrawList {
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			ClusteredDrawableStorage store = stores.get(regionIndex);
 
-			for (var alloc : store.allocations()) {
-				Slab slab = alloc.slab();
+			for (var alloc : store.allocation().allocations()) {
+				Slab slab = alloc.slab;
 
 				if (slab != lastSlab) {
 					slab.bind();
@@ -180,7 +180,7 @@ public class ClusterDrawList {
 
 				// NB offset is baseQuadVertexIndex * 3 because the offset is in bytes
 				// six tri vertices per four quad vertices at 2 bytes each gives 6 / 4 * 2 = 3
-				GFX.drawElements(GFX.GL_TRIANGLES, alloc.triVertexCount(), GFX.GL_UNSIGNED_SHORT, alloc.baseQuadVertexIndex() * IndexSlab.INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
+				GFX.drawElements(GFX.GL_TRIANGLES, alloc.triVertexCount(), GFX.GL_UNSIGNED_SHORT, alloc.baseQuadVertexIndex * IndexSlab.INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
 			}
 		}
 
@@ -188,7 +188,7 @@ public class ClusterDrawList {
 	}
 
 	public void add(ClusteredDrawableStorage storage) {
-		assert storage.getCluster() == cluster;
+		assert storage.allocation().cluster() == cluster;
 		stores.add(storage);
 	}
 
