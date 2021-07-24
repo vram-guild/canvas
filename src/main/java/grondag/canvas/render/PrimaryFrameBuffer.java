@@ -55,7 +55,7 @@ public class PrimaryFrameBuffer extends WindowFramebuffer {
 		endRead();
 	}
 
-	private boolean firstTimeUsed = false;
+	private int clearCount = 0;
 
 	@Override
 	public void clear(boolean getError) {
@@ -64,10 +64,8 @@ public class PrimaryFrameBuffer extends WindowFramebuffer {
 
 		// We ignore the first call because it happens before we can prevent it
 		// and this avoids people asking us why the message is in the log.
-		if (firstTimeUsed) {
-			CanvasMod.LOG.info("Unmanaged framebuffer clear");
-		} else {
-			firstTimeUsed = true;
+		if (++clearCount == 2) {
+			CanvasMod.LOG.info("Another mod is clearing the vanilla framebuffer. This message is a diagnostic aid and does not necessarily indicate a problem.");
 		}
 	}
 }
