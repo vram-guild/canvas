@@ -39,7 +39,7 @@ public class SlabAllocator {
 		vacatedQuadVertexThreshold = maxSlabQuadVertexCount / 4;
 	}
 
-	Slab claim(int slot) {
+	Slab claim() {
 		assert RenderSystem.isOnRenderThread();
 
 		Slab result = POOL.poll();
@@ -51,7 +51,7 @@ public class SlabAllocator {
 			result.orphan();
 		}
 
-		result.prepareForClaim(slot);
+		result.prepareForClaim();
 		return result;
 	}
 
@@ -78,13 +78,15 @@ public class SlabAllocator {
 
 	private static final SlabAllocator LARGE = new SlabAllocator(false);
 	private static final SlabAllocator SMALL = new SlabAllocator(true);
-	static final int LARGE_SLAB_QUAD_VERTEX_COUNT = LARGE.maxSlabQuadVertexCount;
-	static final int SMALL_SLAB_QUAD_VERTEX_COUNT = SMALL.maxSlabQuadVertexCount;
-	static final int LARGE_SLAB_QUAD_VERTEX_THRESHOLD = SMALL.maxSlabQuadVertexCount * 3;
-	private static final int LARGE_SLAB_BYTE_THRESHOLD = SMALL.bytesPerSlab * 3;
+	public static final int LARGE_SLAB_QUAD_VERTEX_COUNT = LARGE.maxSlabQuadVertexCount;
+	public static final int LARGE_SLAB_BYTES = LARGE.bytesPerSlab;
+	public static final int SMALL_SLAB_QUAD_VERTEX_COUNT = SMALL.maxSlabQuadVertexCount;
+	public static final int SMALL_SLAB_BYTES = SMALL.bytesPerSlab;
+	public static final int LARGE_SLAB_QUAD_VERTEX_THRESHOLD = SMALL.maxSlabQuadVertexCount * 3;
+	public static final int LARGE_SLAB_BYTE_THRESHOLD = SMALL.bytesPerSlab * 3;
 
-	static Slab claim(int currentBytes, int newBytes, int slot) {
-		return newBytes > SMALL.bytesPerSlab || (currentBytes + currentBytes) >= LARGE_SLAB_BYTE_THRESHOLD ? LARGE.claim(slot) : SMALL.claim(slot);
+	static Slab claim(int newBytes) {
+		return newBytes >= LARGE_SLAB_BYTE_THRESHOLD ? LARGE.claim() : SMALL.claim();
 	}
 
 	static int expectedBytesForNewSlab(int activeBytes) {

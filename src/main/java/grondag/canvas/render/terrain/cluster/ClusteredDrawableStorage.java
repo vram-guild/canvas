@@ -17,13 +17,12 @@
 package grondag.canvas.render.terrain.cluster;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.UploadableVertexStorage;
 
 public class ClusteredDrawableStorage implements UploadableVertexStorage {
-	private static final int NOT_ALLOCATED = -1;
-
 	public final VertexClusterRealm owner;
 	public final int byteCount;
 	public final int quadVertexCount;
@@ -31,8 +30,7 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	public final long clusterPos;
 
 	private TransferBuffer transferBuffer;
-	private Slab slab;
-	private int baseQuadVertexIndex = NOT_ALLOCATED;
+	private ObjectArrayList<SlabAllocation> allocations = new ObjectArrayList<>();
 	private boolean isClosed = false;
 	private VertexCluster cluster = null;
 
@@ -67,14 +65,12 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 				transferBuffer = transferBuffer.release();
 			}
 
-			if (baseQuadVertexIndex == NOT_ALLOCATED) {
-				assert slab == null;
-			} else {
-				assert slab != null;
-
-				// Slab is nullified after notifying cluster so
-				// that cluster can do slab accounting.
-				slab.removeRegion(this);
+			if (allocations != null) {
+				for (var allocation : allocations) {
+					// Allocations are nullified after notifying cluster so
+					// that cluster can do slab accounting.
+					allocation.close();
+				}
 
 				if (notify) {
 					assert cluster != null;
@@ -83,8 +79,7 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 			}
 
 			cluster = null;
-			slab = null;
-			baseQuadVertexIndex = NOT_ALLOCATED;
+			allocations.clear();
 		}
 	}
 
@@ -93,27 +88,31 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	}
 
 	/**
+	 * Returns prior allocations and clears current.
+	 */
+	public ObjectArrayList<SlabAllocation> prepareForReallocation() {
+		assert !allocations.isEmpty();
+		final var result = allocations;
+		allocations = new ObjectArrayList<>();
+		return result;
+	}
+
+	/**
 	 * Controlled by storage so that the vertices can be moved around as
 	 * needed to control fragmentation without external entanglements.
 	 */
-	public int baseQuadVertexIndex() {
-		assert baseQuadVertexIndex != NOT_ALLOCATED;
-
-		return baseQuadVertexIndex;
+	public ObjectArrayList<SlabAllocation> allocations() {
+		assert !allocations.isEmpty() : "Slab allocations queried before allocation";
+		return allocations;
 	}
 
-	public Slab slab() {
-		return slab;
-	}
-
-	void setLocation(Slab slab, int baseQuadVertexIndex) {
-		this.slab = slab;
-		this.baseQuadVertexIndex = baseQuadVertexIndex;
+	void addAllocation(SlabAllocation allocation) {
+		allocations.add(allocation);
 		//assert cluster.isPresent(this);
 	}
 
 	void setCluster(VertexCluster cluster) {
-		assert baseQuadVertexIndex == NOT_ALLOCATED;
+		assert allocations.isEmpty();
 		assert this.cluster == null;
 		assert cluster != null;
 		this.cluster = cluster;
@@ -126,7 +125,7 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 
 	@Override
 	public void upload() {
-		assert baseQuadVertexIndex == NOT_ALLOCATED;
+		assert allocations.isEmpty();
 		owner.allocate(this);
 	}
 }

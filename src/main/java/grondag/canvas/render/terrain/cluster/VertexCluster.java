@@ -19,8 +19,8 @@ package grondag.canvas.render.terrain.cluster;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import org.jetbrains.annotations.Nullable;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
 import grondag.canvas.render.terrain.cluster.drawlist.ClusterDrawList;
 
@@ -38,9 +38,8 @@ public class VertexCluster implements ClusterTask {
 
 	final long clumpPos;
 
-	private Slab[] slabs = new Slab[256]; // if we use more than this many we're already dead
-	private int slabCount;
-	private int maxSlabCount = 0;
+	private ObjectArrayList<Slab> slabs = new ObjectArrayList<>();
+	private @Nullable Slab hungrySlab = null;
 	private boolean isScheduled = false;
 
 	public VertexCluster(VertexClusterRealm owner, long clumpPos) {
@@ -52,38 +51,40 @@ public class VertexCluster implements ClusterTask {
 		return activeBytes;
 	}
 
-	private Slab getSlabWithCapacity(int vertexCount, Slab excluding) {
-		if (slabCount > 0) {
-			for (int i = 0; i < maxSlabCount; ++i) {
-				Slab slab = slabs[i];
+	private boolean validateAllocation() {
+		int regionTotalBytes = 0, slabActiveBytes = 0, slabAllocationBytes = 0;
 
-				if (slab != null && slab != excluding && slab.availableVertexCount() >= vertexCount) {
-					return slab;
-				}
+		for (var region : allocatedRegions) {
+			int regionBytes = 0;
+			regionTotalBytes += region.byteCount;
+
+			for (var slabAllocation : region.allocations()) {
+				final int bytes = slabAllocation.quadVertexCount() * SlabAllocator.BYTES_PER_SLAB_VERTEX;
+				regionBytes += bytes;
+				slabAllocationBytes += bytes;
 			}
+
+			assert regionBytes == region.byteCount;
 		}
 
-		return claimNewNewEmptySlab(vertexCount * SlabAllocator.BYTES_PER_SLAB_VERTEX);
-	}
+		for (var slab : slabs) {
+			slabActiveBytes += slab.usedBytes();
+		}
 
-	private Slab claimNewNewEmptySlab(int newBytes) {
-		Slab result = SlabAllocator.claim(activeBytes, newBytes, claimOpenSlabIndex());
-		slabs[result.holdingClusterSlot()] = result;
+		final boolean result = activeBytes == slabActiveBytes
+				&& regionTotalBytes == activeBytes
+				&& slabAllocationBytes == activeBytes;
+		assert result;
 		return result;
 	}
 
-	private int claimOpenSlabIndex() {
-		if (slabCount++ < maxSlabCount) {
-			for (int i = 0; i < maxSlabCount; ++i) {
-				if (slabs[i] == null) {
-					return i;
-				}
-			}
-
-			throw new IllegalStateException("maxSlabCount is not accurate - no empty slab slots found");
-		} else {
-			return maxSlabCount++;
+	private Slab getHungrySlab(int vertexCount) {
+		if (hungrySlab == null || hungrySlab.isFull()) {
+			hungrySlab = SlabAllocator.claim(vertexCount * SlabAllocator.BYTES_PER_SLAB_VERTEX);
+			slabs.add(hungrySlab);
 		}
+
+		return hungrySlab;
 	}
 
 	void close() {
@@ -111,15 +112,11 @@ public class VertexCluster implements ClusterTask {
 				noobs.clear();
 			}
 
-			for (int i = 0; i < maxSlabCount; ++i) {
-				if (slabs[i] != null) {
-					slabs[i].release();
-					slabs[i] = null;
-				}
+			for (var slab : slabs) {
+				slab.release();
 			}
 
-			slabCount = 0;
-			maxSlabCount = 0;
+			slabs.clear();
 		}
 	}
 
@@ -156,23 +153,25 @@ public class VertexCluster implements ClusterTask {
 				continue;
 			}
 
-			final int byteCount = noob.byteCount;
+			int remainingVertexCount = noob.quadVertexCount;
+			final var transferBuffer = noob.getAndClearTransferBuffer();
 
-			//log.append("Added to allocated regions: ").append(noob.id).append("\n");
-			Slab slab = getSlabWithCapacity(noob.quadVertexCount, null);
-
-			if (slab.allocateAndLoad(noob)) {
-				allocatedRegions.add(noob);
-				activeBytes += byteCount;
-			} else {
-				assert false : "Your code is bad and you should feel bad.";
-				CanvasMod.LOG.error("Unable to allocate memory for render region. This is a bug.");
+			while (remainingVertexCount > 0) {
+				remainingVertexCount -= getHungrySlab(remainingVertexCount).allocateAndLoad(noob, transferBuffer, noob.quadVertexCount - remainingVertexCount);
 			}
+
+			assert remainingVertexCount == 0;
+			transferBuffer.release();
+			allocatedRegions.add(noob);
+			activeBytes += noob.byteCount;
 		}
 
 		//log.append("Noobs cleared after upload").append("\n");
 		noobs.clear();
 		newBytes = 0;
+
+		// WIP: remove - expensive even for dev
+		assert validateAllocation();
 
 		if (canCompact()) {
 			scheduleUpdate();
@@ -188,6 +187,20 @@ public class VertexCluster implements ClusterTask {
 
 		//log.append("Notify closed: ").append(region.id).append("\n");
 
+		// NB: Remove allocations before regions so the assertion the region is present doesn't fail.
+		for (var slabAllocation : region.allocations()) {
+			var slab = slabAllocation.slab();
+			assert slab != null;
+
+			if (slab.isEmpty()) {
+				if (slabs.remove(slab)) {
+					slab.release();
+				} else {
+					assert false : "Region slab not found on region close";
+				}
+			}
+		}
+
 		if (allocatedRegions.remove(region)) {
 			activeBytes -= region.byteCount;
 		} else if (noobs.remove(region)) {
@@ -197,24 +210,17 @@ public class VertexCluster implements ClusterTask {
 			assert false : "Closure notification from region not in clump.";
 		}
 
-		final var slab = region.slab();
-		assert slab != null;
-		assert slabs[slab.holdingClusterSlot()] == slab;
-
-		if (slab.isEmpty()) {
-			slabs[slab.holdingClusterSlot()] = null;
-			slab.release();
-			--slabCount;
-		}
-
 		if (allocatedRegions.isEmpty() && noobs.isEmpty()) {
 			close();
 			owner.notifyClosed(this);
 		}
+
+		// WIP: remove - expensive even for dev
+		assert validateAllocation();
 	}
 
 	public int slabCount() {
-		return slabCount;
+		return slabs.size();
 	}
 
 	private void scheduleUpdate() {
@@ -234,44 +240,30 @@ public class VertexCluster implements ClusterTask {
 		return true;
 	}
 
+	/**
+	 * True if we can reduce the number of small slabs
+	 * or remove at least one small slab of vacated capacity.
+	 */
 	private boolean canCompact() {
-		// Can we probably reduce the number of regions in use by at least one?
-
-		if (slabCount < 2) {
+		if (isClosed || slabs.size() < 2) {
 			return false;
 		}
 
-		int depletedSlabVertexCount = 0;
-		int capacitySlabVertexCount = 0;
-		int removedSlabCount = 0;
+		int slabCapacity = 0, slabActiveBytes = 0, smallCount = 0;
 
-		for (int i = 0; i < maxSlabCount; ++i) {
-			final Slab slab = slabs[i];
+		for (var slab : slabs) {
+			slabCapacity += slab.capacityBytes();
+			slabActiveBytes += slab.usedBytes();
 
-			// first find slabs that are candidates - slabs with at least 1/4 slab waste
-			if (slab == null) {
-				continue;
-			} else if (slab.isVacated()) {
-				depletedSlabVertexCount += slab.usedVertexCount();
-				++removedSlabCount;
-			} else {
-				capacitySlabVertexCount += slab.availableVertexCount();
+			if (slab.allocator.isSmall) {
+				++smallCount;
 			}
 		}
 
-		if (removedSlabCount == 0) {
-			return false;
-		}
+		assert activeBytes == slabActiveBytes : "Cluster and slabs do not agree on allocated capacity";
 
-		final int expectedBytesPerNewSlab = SlabAllocator.expectedBytesForNewSlab(activeBytes);
-		int remainederVertexCount = depletedSlabVertexCount - capacitySlabVertexCount;
-
-		if (remainederVertexCount > 0) {
-			removedSlabCount -= (remainederVertexCount + expectedBytesPerNewSlab - 1) / expectedBytesPerNewSlab;
-		}
-
-		assert removedSlabCount >= 0;
-		return removedSlabCount > 0;
+		return (slabCapacity - activeBytes) >= SlabAllocator.SMALL_SLAB_BYTES
+				|| smallCount >= 3 && activeBytes >= SlabAllocator.LARGE_SLAB_BYTE_THRESHOLD;
 	}
 
 	private void compact() {
@@ -281,36 +273,43 @@ public class VertexCluster implements ClusterTask {
 	}
 
 	private void tryCompact() {
-		final int startingCount = slabCount;
+		final ObjectArrayList<Slab> newSlabs = new ObjectArrayList<>();
+		int remainingBytes = activeBytes;
+		Slab targetSlab = SlabAllocator.claim(remainingBytes);
+		newSlabs.add(targetSlab);
 
-		for (int i = 0; i < maxSlabCount; ++i) {
-			final Slab source = slabs[i];
+		for (var region : allocatedRegions) {
+			for (var allocation : region.prepareForReallocation()) {
+				int transferStart = 0;
 
-			// reallocate slabs with at least 1/4 slab waste
-			if (source != null && source.isVacated()) {
-				for (ClusteredDrawableStorage region : source.regions()) {
-					// Note we don't need to add to allocated or update byte total here
-					// because would have been done when region was first allocated.
-					assert allocatedRegions.contains(region);
-
-					if (!getSlabWithCapacity(region.quadVertexCount, source).transferFromSlab(region, source)) {
-						assert false : "Your code is bad and you should feel bad.";
-						CanvasMod.LOG.error("Unable to allocate memory for render region. This is a bug.");
+				while (transferStart < allocation.quadVertexCount()) {
+					if (targetSlab.isFull()) {
+						targetSlab = SlabAllocator.claim(remainingBytes);
+						newSlabs.add(targetSlab);
 					}
-				}
 
-				assert slabs[source.holdingClusterSlot()] == source;
-				slabs[source.holdingClusterSlot()] = null;
-				source.releaseTransferred();
-				--slabCount;
+					final int transferredVertexCount = targetSlab.transferFromSlabAllocation(region, allocation, transferStart);
+					transferStart += transferredVertexCount;
+					remainingBytes -= transferredVertexCount * SlabAllocator.BYTES_PER_SLAB_VERTEX;
+				}
 			}
 		}
 
-		if (startingCount - slabCount > 0 && !holdingLists.isEmpty()) {
+		assert remainingBytes == 0;
+
+		for (var oldSlab : slabs) {
+			oldSlab.releaseTransferred();
+		}
+
+		if (!holdingLists.isEmpty()) {
 			for (var list : holdingLists) {
 				list.invalidate();
 			}
 		}
+
+		hungrySlab = targetSlab;
+		slabs.clear();
+		slabs = newSlabs;
 
 		// WIP: remove
 		//System.out.println("Compact, slabs retired: " + (startingCount - slabCount));

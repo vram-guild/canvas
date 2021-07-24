@@ -18,24 +18,21 @@ package grondag.canvas.render.terrain.cluster;
 
 import static grondag.canvas.render.terrain.cluster.SlabAllocator.BYTES_PER_SLAB_VERTEX;
 
-import java.util.Set;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.render.AbstractGlBuffer;
+import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.varia.GFX;
 
 public class Slab extends AbstractGlBuffer {
 	final SlabAllocator allocator;
+	private final TransferSlab transferSlab = new TransferSlab();
 	private int headVertexIndex = 0;
 	private boolean isClaimed;
 	private int vaoBufferId = 0;
-	private final ReferenceOpenHashSet<ClusteredDrawableStorage> allocatedRegions = new ReferenceOpenHashSet<>();
 	private int usedVertexCount;
-	/** Used by vertex cluster to efficiently locate slab when there are notifications from regions. */
-	private int holdingClusterSlot = -1;
 
 	Slab(SlabAllocator allocator) {
 		// NB: STATIC makes a huge positive difference on AMD at least
@@ -44,9 +41,14 @@ public class Slab extends AbstractGlBuffer {
 		assert RenderSystem.isOnRenderThread();
 	}
 
+	TransferBuffer asTransferBuffer() {
+		return transferSlab;
+	}
+
 	/** How much vertex capacity is remaining. */
 	int availableVertexCount() {
 		assert RenderSystem.isOnRenderThread();
+		assert headVertexIndex <= allocator.maxSlabQuadVertexCount;
 		return allocator.maxSlabQuadVertexCount - headVertexIndex;
 	}
 
@@ -54,12 +56,16 @@ public class Slab extends AbstractGlBuffer {
 		return usedVertexCount;
 	}
 
+	int usedBytes() {
+		return usedVertexCount * BYTES_PER_SLAB_VERTEX;
+	}
+
 	public int vacatedVertexCount() {
 		return headVertexIndex - usedVertexCount;
 	}
 
-	int holdingClusterSlot() {
-		return holdingClusterSlot;
+	public boolean isFull() {
+		return availableVertexCount() == 0;
 	}
 
 	boolean isEmpty() {
@@ -71,21 +77,13 @@ public class Slab extends AbstractGlBuffer {
 		return vacatedVertexCount() > allocator.vacatedQuadVertexThreshold;
 	}
 
-	Set<ClusteredDrawableStorage> regions() {
-		assert RenderSystem.isOnRenderThread();
-		return allocatedRegions;
-	}
-
-	void prepareForClaim(int slot) {
+	void prepareForClaim() {
 		assert !isClaimed;
-		assert holdingClusterSlot == -1;
 		assert usedVertexCount == 0;
-		holdingClusterSlot = slot;
 		isClaimed = true;
 	}
 
 	void release() {
-		assert allocatedRegions.isEmpty();
 		assert usedVertexCount == 0;
 		releaseInner();
 	}
@@ -97,75 +95,56 @@ public class Slab extends AbstractGlBuffer {
 
 	/** Doesn't assume or require all regions to have closed. */
 	void releaseTransferred() {
-		allocatedRegions.clear();
 		releaseInner();
 	}
 
 	private void releaseInner() {
 		assert RenderSystem.isOnRenderThread();
 		assert isClaimed;
-		assert holdingClusterSlot >= 0;
 		headVertexIndex = 0;
 		isClaimed = false;
-		holdingClusterSlot = -1;
 		addToVertexCounts(-usedVertexCount);
 		allocator.release(this);
 	}
 
-	/** Returns true if successful, or false if capacity would be exceeded. */
-	boolean allocateAndLoad(ClusteredDrawableStorage region) {
-		assert RenderSystem.isOnRenderThread();
+	/** Returns the number of vertices allocated. */
+	int allocateAndLoad(ClusteredDrawableStorage region, TransferBuffer buffer, int sourceStartVertexIndex) {
+		assert sourceStartVertexIndex < region.quadVertexCount;
+		final int allocatedVertexCount = Math.min(availableVertexCount(), region.quadVertexCount - sourceStartVertexIndex);
+		return allocateInner(region, buffer, sourceStartVertexIndex, allocatedVertexCount);
+	}
 
-		final int newHeadVertexIndex = headVertexIndex + region.quadVertexCount;
+	/** Returns the number of quad vertices transfered. */
+	int transferFromSlabAllocation(ClusteredDrawableStorage region, SlabAllocation source, int sourceStartVertexIndex) {
+		assert sourceStartVertexIndex < source.quadVertexCount();
+		final int allocatedVertexCount = Math.min(availableVertexCount(), source.quadVertexCount() - sourceStartVertexIndex);
+		return allocateInner(region, source.slab().asTransferBuffer(), source.baseQuadVertexIndex() + sourceStartVertexIndex, allocatedVertexCount);
+	}
 
-		if (newHeadVertexIndex > allocator.maxSlabQuadVertexCount) {
-			return false;
+	private int allocateInner(ClusteredDrawableStorage region, TransferBuffer buffer, int sourceStartVertexIndex, int allocatedVertexCount) {
+		if (allocatedVertexCount <= 0) {
+			return 0;
 		}
 
-		assert !allocatedRegions.contains(region);
-		allocatedRegions.add(region);
-		region.setLocation(this, headVertexIndex);
-		addToVertexCounts(region.quadVertexCount);
+		final int newHeadVertexIndex = headVertexIndex + allocatedVertexCount;
+		final var allocation = new SlabAllocation(this, headVertexIndex, allocatedVertexCount);
+		region.addAllocation(allocation);
+		addToVertexCounts(allocatedVertexCount);
 
 		GFX.bindBuffer(bindTarget, glBufferId());
-		region.getAndClearTransferBuffer().releaseToBoundBuffer(GFX.GL_ARRAY_BUFFER, headVertexIndex * BYTES_PER_SLAB_VERTEX);
+		buffer.transferToBoundBuffer(bindTarget,
+				headVertexIndex * BYTES_PER_SLAB_VERTEX,
+				sourceStartVertexIndex * BYTES_PER_SLAB_VERTEX,
+				allocatedVertexCount * BYTES_PER_SLAB_VERTEX);
 
 		headVertexIndex = newHeadVertexIndex;
-		return true;
+		return allocatedVertexCount;
 	}
 
-	/** Returns true if successful, or false if capacity would be exceeded. */
-	boolean transferFromSlab(ClusteredDrawableStorage region, Slab source) {
+	void removeAllocation(SlabAllocation allocation) {
 		assert RenderSystem.isOnRenderThread();
-		final int newHeadVertexIndex = headVertexIndex + region.quadVertexCount;
-
-		if (newHeadVertexIndex > allocator.maxSlabQuadVertexCount) {
-			return false;
-		}
-
-		GFX.bindBuffer(GFX.GL_COPY_WRITE_BUFFER, glBufferId());
-		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, source.glBufferId());
-		GFX.copyBufferSubData(GFX.GL_COPY_READ_BUFFER, GFX.GL_COPY_WRITE_BUFFER, region.baseQuadVertexIndex() * BYTES_PER_SLAB_VERTEX, headVertexIndex * BYTES_PER_SLAB_VERTEX, region.byteCount);
-		GFX.bindBuffer(GFX.GL_COPY_WRITE_BUFFER, 0);
-		GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
-
-		assert !allocatedRegions.contains(region);
-		allocatedRegions.add(region);
-		region.setLocation(this, headVertexIndex);
-		addToVertexCounts(region.quadVertexCount);
-
-		headVertexIndex = newHeadVertexIndex;
-		return true;
-	}
-
-	void removeRegion(ClusteredDrawableStorage region) {
-		assert RenderSystem.isOnRenderThread();
-		assert allocatedRegions.contains(region);
 		assert !isClosed;
-
-		if (allocatedRegions.remove(region)) {
-			addToVertexCounts(-region.quadVertexCount);
-		}
+		addToVertexCounts(-allocation.quadVertexCount());
 	}
 
 	@Override
@@ -196,5 +175,36 @@ public class Slab extends AbstractGlBuffer {
 
 		addToVertexCounts(-usedVertexCount);
 		allocator.notifyShutdown(this);
+	}
+
+	private class TransferSlab implements TransferBuffer {
+		@Override
+		public void transferToBoundBuffer(int target, int targetStartBytes, int sourceStartBytes, int lengthBytes) {
+			GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, glBufferId());
+
+			GFX.copyBufferSubData(
+					GFX.GL_COPY_READ_BUFFER,
+					target,
+					sourceStartBytes,
+					targetStartBytes,
+					lengthBytes);
+
+			GFX.bindBuffer(GFX.GL_COPY_READ_BUFFER, 0);
+		}
+
+		@Override
+		public int sizeBytes() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void put(int[] source, int sourceStart, int targetStart, int length) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public @Nullable TransferBuffer release() {
+			throw new UnsupportedOperationException();
+		}
 	}
 }
