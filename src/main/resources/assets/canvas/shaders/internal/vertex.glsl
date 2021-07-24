@@ -15,7 +15,7 @@
 flat out vec4 _cv_modelToWorld;
 flat out vec4 _cv_modelToCamera;
 
-uniform int[184] _cvu_sectors_int;
+uniform int[256] _cvu_sectors_int;
 
 in int in_region;
 in vec3 in_modelpos;
@@ -33,9 +33,9 @@ void _cv_prepareForVertex() {
 	int packedSector = _cvu_sectors_int[in_region >> 1];
 	packedSector = (in_region & 1) == 1 ? ((packedSector >> 16) & 0xFFFF) : (packedSector & 0xFFFF);
 
-	int originX = _cvu_sectors_int[SECTOR_X_ORIGIN_INDEX] + ((packedSector & 0xF) - 5) * 128;
+	int originX = _cvu_sectors_int[SECTOR_X_ORIGIN_INDEX] + ((packedSector & 0xF) - 6) * 128;
 	int originY = ((packedSector >> 4) & 0xF) * 128 - 64;
-	int originZ = _cvu_sectors_int[SECTOR_Z_ORIGIN_INDEX] + (((packedSector >> 8) & 0xF) - 5) * 128;
+	int originZ = _cvu_sectors_int[SECTOR_Z_ORIGIN_INDEX] + (((packedSector >> 8) & 0xF) - 6) * 128;
 
 	_cv_modelToWorld = vec4(originX, originY, originZ, 0.0);
 	_cv_modelToCamera = vec4(_cv_modelToWorld.xyz - _cvu_world[_CV_CAMERA_POS].xyz, 0.0);
