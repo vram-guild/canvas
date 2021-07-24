@@ -52,9 +52,12 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 
 		if (!isPreMapped) {
 			assert RenderSystem.isOnRenderThread();
-			// Invalidate and map buffer
-			GFX.bindBuffer(bindTarget, glBufferId());
-			mappedBuffer = GFX.mapBufferRange(bindTarget, 0, claimedBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_INVALIDATE_BUFFER_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
+
+			// Invalidate and map buffer.
+			// On Windows, the GL_MAP_INVALIDATE_BUFFER_BIT does not seem to orphan the buffer reliably
+			// when GL_MAP_UNSYNCHRONIZED_BIT is also present, so we orphan the buffer the old-fashioned way.
+			bindAndOrphan();
+			mappedBuffer = GFX.mapBufferRange(bindTarget, 0, claimedBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
 			GFX.bindBuffer(bindTarget, 0);
 		}
 
@@ -65,11 +68,13 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		assert !isPreMapped : "Pre-mapped buffer improperly unmapped";
 		assert RenderSystem.isOnRenderThread();
 
-		// Invalidate and map buffer
+		// Invalidate and map buffer.
+		// On Windows, the GL_MAP_INVALIDATE_BUFFER_BIT does not seem to orphan the buffer reliably
+		// when GL_MAP_UNSYNCHRONIZED_BIT is also present, so we orphan the buffer the old-fashioned way.
 		// In this path we map the entire buffer because we don't know in advance how much will be used.
 		isPreMapped = true;
-		GFX.bindBuffer(bindTarget, glBufferId());
-		mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_INVALIDATE_BUFFER_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
+		bindAndOrphan();
+		mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
 		GFX.bindBuffer(bindTarget, 0);
 	}
 

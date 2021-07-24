@@ -49,6 +49,7 @@ public class StreamBuffer extends AbstractMappedBuffer<StreamBuffer> implements 
 		vao.shutdown();
 	}
 
+	@Override
 	public void bind() {
 		vao.bind(GFX.GL_ARRAY_BUFFER, glBufferId());
 	}

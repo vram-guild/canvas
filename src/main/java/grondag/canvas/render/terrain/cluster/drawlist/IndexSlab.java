@@ -156,7 +156,8 @@ public class IndexSlab extends AbstractGlBuffer {
 			result = new IndexSlab();
 			++totalSlabCount;
 		} else {
-			result.orphan();
+			result.bindAndOrphan();
+			result.unbind();
 		}
 
 		result.isClaimed = true;

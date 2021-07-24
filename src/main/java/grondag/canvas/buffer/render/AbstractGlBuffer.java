@@ -60,13 +60,14 @@ public abstract class AbstractGlBuffer {
 		return result;
 	}
 
-	public void orphan() {
-		if (glBufferId != 0) {
-			GFX.bindBuffer(bindTarget, glBufferId);
-			GFX.bufferData(bindTarget, capacityBytes, usageHint);
-			// PERF: need this? Does it matter?
-			GFX.bindBuffer(bindTarget, 0);
+	/** Leaves buffer bound. */
+	public void bindAndOrphan() {
+		if (glBufferId == 0) {
+			glBufferId = GlBufferAllocator.claimBuffer(capacityBytes);
 		}
+
+		GFX.bindBuffer(bindTarget, glBufferId);
+		GFX.bufferData(bindTarget, capacityBytes, usageHint);
 	}
 
 	public final void shutdown() {
