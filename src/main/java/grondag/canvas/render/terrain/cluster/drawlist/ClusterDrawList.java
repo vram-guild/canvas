@@ -124,6 +124,10 @@ public class ClusterDrawList {
 		assert !specAllocations.isEmpty() : "Vertex count is non-zero but region list is empty.";
 
 		if (indexSlab == null || indexSlab.availableQuadVertexCount() < specQuadVertexCount) {
+			if (indexSlab != null) {
+				indexSlab.upload();
+			}
+
 			indexSlab = IndexSlab.claim();
 			owner.indexSlabs.add(indexSlab);
 		}

@@ -59,9 +59,9 @@ public abstract class AbstractGlBuffer {
 
 		return result;
 	}
-	
+
 	protected void createBuffer() {
-		GFX.bufferData(bindTarget, capacityBytes, usageHint);		
+		GFX.bufferData(bindTarget, capacityBytes, usageHint);
 	}
 
 	//	/** Leaves buffer bound. */
