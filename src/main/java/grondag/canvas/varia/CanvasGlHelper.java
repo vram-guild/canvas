@@ -27,12 +27,19 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 
 public class CanvasGlHelper {
+	private static boolean supportsPersistentMapped = false;
+	
+	public static boolean supportsPersistentMapped() {
+		return supportsPersistentMapped;
+	}
+	
 	public static void init() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasGlHelper static init");
 		}
 
 		final GLCapabilities caps = GL.getCapabilities();
+		supportsPersistentMapped = caps.glBufferStorage != 0;
 
 		if (Configurator.logMachineInfo) {
 			logMachineInfo(caps);
@@ -48,6 +55,7 @@ public class CanvasGlHelper {
 		log.info(String.format(" CPU: %s", GLX._getCpuInfo()));
 		log.info(String.format(" LWJGL: %s", GLX._getLWJGLVersion()));
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
+		log.info(String.format(" glBufferStorage: %s", caps.glBufferStorage == 0 ? "N" : "Y"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
 	}
