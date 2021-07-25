@@ -889,8 +889,13 @@ public class GFX extends GL46C {
 	}
 
 	public static int clientWaitSync(long synch, int flags, long timeoutNanos) {
-		final int result = GL46C.glClientWaitSync(synch, flags, timeoutNanos);
+		final int result = glClientWaitSync(synch, flags, timeoutNanos);
 		assert logError("glClientWaitSync");
 		return result;
+	}
+	
+	public static void bufferStorage(int target, long size, int flags) {
+		glBufferStorage(target, size, flags);
+		assert logError("glBufferStorage");
 	}
 }

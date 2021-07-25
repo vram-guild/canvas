@@ -26,23 +26,42 @@ import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.buffer.util.BufferSynchronizer.SynchronizedBuffer;
 import grondag.canvas.render.terrain.cluster.SlabAllocator;
+import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GFX;
 
 public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private boolean isClaimed = false;
 	private int headQuadVertexIndex = 0;
 	private ShortBuffer mappedBuffer = null;
-
+	private final boolean immutable;
+	
 	private IndexSlab() {
 		// NB: STATIC makes a huge positive difference on AMD at least
 		super(BYTES_PER_INDEX_SLAB, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 		assert RenderSystem.isOnRenderThread();
+		immutable = CanvasGlHelper.supportsPersistentMapped();
+				
+		if (immutable) {
+			// Force buffer creation early
+			glBufferId();
+			assert mappedBuffer != null;
+		}
 	}
 
+	@Override
+	protected void createBuffer() {
+		if (immutable) {
+			GFX.bufferStorage(bindTarget, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_PERSISTENT_BIT);
+			mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_PERSISTENT_BIT).asShortBuffer();
+		} else {
+			super.createBuffer();
+		}
+	}
+	
 	void release() {
 		assert RenderSystem.isOnRenderThread();
 		assert isClaimed;
-		assert mappedBuffer == null;
+		assert immutable || mappedBuffer == null;
 		assert !isClosed;
 		isClaimed = false;
 		headQuadVertexIndex = 0;
@@ -116,8 +135,8 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		assert !isClosed;
 
 		if (mappedBuffer == null) {
+			assert !immutable;
 			super.bind();
-			// NB: not using GFX.GL_MAP_INVALIDATE_BUFFER_BIT because we orphan the buffer on claim
 			final ByteBuffer buff = GFX.mapBufferRange(bindTarget, 0, BYTES_PER_INDEX_SLAB, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
 			mappedBuffer = buff.asShortBuffer();
 		}
@@ -129,14 +148,24 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		if (mappedBuffer != null) {
 			GFX.bindBuffer(bindTarget, glBufferId());
 			GFX.flushMappedBufferRange(bindTarget, 0, headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
-			GFX.unmapBuffer(bindTarget);
-			mappedBuffer = null;
+			
+			if (!immutable) {
+				GFX.unmapBuffer(bindTarget);
+				mappedBuffer = null;
+			}
 		}
 	}
 
 	@Override
 	protected void onShutdown() {
 		assert RenderSystem.isOnRenderThread();
+		
+		if (immutable) {
+			GFX.bindBuffer(bindTarget, glBufferId());
+			GFX.unmapBuffer(bindTarget);
+			GFX.bindBuffer(bindTarget, 0);
+		}
+		
 		--totalSlabCount;
 	}
 

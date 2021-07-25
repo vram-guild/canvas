@@ -46,18 +46,22 @@ public abstract class AbstractGlBuffer {
 		GFX.bindBuffer(bindTarget, 0);
 	}
 
-	protected int glBufferId() {
+	protected final int glBufferId() {
 		int result = glBufferId;
 
 		if (result == 0) {
 			result = GlBufferAllocator.claimBuffer(capacityBytes);
 			glBufferId = result;
 			GFX.bindBuffer(bindTarget, result);
-			GFX.bufferData(bindTarget, capacityBytes, usageHint);
+			createBuffer();
 			GFX.bindBuffer(bindTarget, 0);
 		}
 
 		return result;
+	}
+	
+	protected void createBuffer() {
+		GFX.bufferData(bindTarget, capacityBytes, usageHint);		
 	}
 
 	//	/** Leaves buffer bound. */

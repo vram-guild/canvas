@@ -27,6 +27,7 @@ import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.buffer.util.BufferSynchronizer.SynchronizedBuffer;
 import grondag.canvas.buffer.util.BufferTrace;
+import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GFX;
 
 public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends AbstractGlBuffer implements AllocatableBuffer, SynchronizedBuffer {
@@ -36,6 +37,7 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 	private int claimedBytes;
 	private final Consumer<T> releaseQueue;
 	private final BufferTrace trace = BufferTrace.create();
+	private final boolean immutable;
 
 	/** Signal that this buffer has been pre-mapped so that it can be populated off-thread. */
 	private volatile boolean isPreMapped = false;
@@ -44,6 +46,23 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		super(binIndex.capacityBytes(), bindTarget, usageHint);
 		this.binIndex = binIndex;
 		this.releaseQueue = releaseQueue;
+		immutable = CanvasGlHelper.supportsPersistentMapped();
+		
+		if (immutable) {
+			// Force buffer creation early
+			glBufferId();
+			assert mappedBuffer != null;
+		}
+	}
+	
+	@Override
+	protected void createBuffer() {
+		if (immutable) {
+			GFX.bufferStorage(bindTarget, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_PERSISTENT_BIT);
+			mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_PERSISTENT_BIT);
+		} else {
+			super.createBuffer();
+		}
 	}
 
 	@Override
@@ -52,7 +71,7 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		assert this.claimedBytes == 0 || isPreMapped : "Buffer claimed more than once";
 		assert claimedBytes > 0 : "Buffer claimed with zero bytes";
 
-		if (!isPreMapped) {
+		if (!isPreMapped && !immutable) {
 			assert RenderSystem.isOnRenderThread();
 
 			// Map buffer.
@@ -73,15 +92,17 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 	}
 
 	public void prepareForOffThreadUse() {
-		assert !isPreMapped : "Pre-mapped buffer improperly unmapped";
 		assert RenderSystem.isOnRenderThread();
 
-		isPreMapped = true;
-		GFX.bindBuffer(bindTarget, glBufferId());
-		assert mappedBuffer == null;
-		mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
-		assert mappedBuffer != null;
-		GFX.bindBuffer(bindTarget, 0);
+		if (!immutable) {
+			assert !isPreMapped : "Pre-mapped buffer improperly unmapped";
+			isPreMapped = true;
+			GFX.bindBuffer(bindTarget, glBufferId());
+			assert mappedBuffer == null;
+			mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
+			assert mappedBuffer != null;
+			GFX.bindBuffer(bindTarget, 0);
+		}
 	}
 
 	public final int sizeBytes() {
@@ -104,8 +125,8 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 
 	/**
 	 * Un-map and leaves buffer bound if mapped.
-	 * Return true if was mapped and buffer is bound.
-	 * Return false if nothing happened.
+	 * Return true if buffer is bound.
+	 * Return false if buffer is not bound.
 	 */
 	protected final boolean unmap() {
 		if (mappedBuffer == null) {
@@ -114,17 +135,24 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 			isPreMapped = false;
 			GFX.bindBuffer(bindTarget, glBufferId());
 			GFX.flushMappedBufferRange(bindTarget, 0, claimedBytes);
-			GFX.unmapBuffer(bindTarget);
-			mappedBuffer = null;
-			mappedIntBuffer = null;
+			
+			if (!immutable) {
+				GFX.unmapBuffer(bindTarget);
+				mappedBuffer = null;
+				mappedIntBuffer = null;
+			}
+			
 			return true;
 		}
 	}
 
 	public final @Nullable T release() {
 		assert claimedBytes > 0 : "Buffer released while unclaimed";
-		unmap();
-		GFX.bindBuffer(bindTarget, 0);
+		
+		if (unmap()) {
+			GFX.bindBuffer(bindTarget, 0);
+		}
+		
 		claimedBytes = 0;
 		BufferSynchronizer.accept(this);
 		return null;
@@ -138,7 +166,13 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 
 	@Override
 	protected void onShutdown() {
-		unmap();
+		if (immutable) {
+			GFX.bindBuffer(bindTarget, glBufferId());
+			GFX.unmapBuffer(bindTarget);
+			GFX.bindBuffer(bindTarget, 0);
+		} else {
+			unmap();
+		}
 	}
 
 	@Override
