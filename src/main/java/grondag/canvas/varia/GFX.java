@@ -881,4 +881,16 @@ public class GFX extends GL46C {
 		nglBufferSubData(target, offsetBytes, sizeBytes, memAddress(data));
 		assert logError("nglBufferSubData");
 	}
+
+	public static long fenceSynch() {
+		final long result = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		assert logError("glFenceSync");
+		return result;
+	}
+
+	public static int clientWaitSync(long synch, int flags, long timeoutNanos) {
+		final int result = GL46C.glClientWaitSync(synch, flags, timeoutNanos);
+		assert logError("glClientWaitSync");
+		return result;
+	}
 }

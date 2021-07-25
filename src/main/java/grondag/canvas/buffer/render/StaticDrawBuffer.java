@@ -48,6 +48,7 @@ public class StaticDrawBuffer extends AbstractGlBuffer implements UploadableVert
 		vao.shutdown();
 	}
 
+	@Override
 	public void bind() {
 		vao.bind(GFX.GL_ARRAY_BUFFER, glBufferId());
 	}

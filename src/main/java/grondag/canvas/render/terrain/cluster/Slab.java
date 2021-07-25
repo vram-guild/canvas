@@ -23,12 +23,14 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;
+import grondag.canvas.buffer.util.BufferSynchronizer;
+import grondag.canvas.buffer.util.BufferSynchronizer.SynchronizedBuffer;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.VertexCluster.SlabAllocationFactory;
 import grondag.canvas.varia.GFX;
 
-public class Slab extends AbstractGlBuffer {
+public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 	final SlabAllocator allocator;
 	private final TransferSlab transferSlab = new TransferSlab();
 	private int headVertexIndex = 0;
@@ -106,6 +108,11 @@ public class Slab extends AbstractGlBuffer {
 		headVertexIndex = 0;
 		isClaimed = false;
 		addToVertexCounts(-usedVertexCount);
+		BufferSynchronizer.accept(this);
+	}
+
+	@Override
+	public void onBufferSync() {
 		allocator.release(this);
 	}
 

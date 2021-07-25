@@ -47,9 +47,6 @@ public class SlabAllocator {
 		if (result == null) {
 			result = new Slab(this);
 			++totalSlabCount;
-		} else {
-			result.bindAndOrphan();
-			result.unbind();
 		}
 
 		result.prepareForClaim();

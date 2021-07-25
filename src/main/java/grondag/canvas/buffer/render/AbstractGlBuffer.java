@@ -60,15 +60,15 @@ public abstract class AbstractGlBuffer {
 		return result;
 	}
 
-	/** Leaves buffer bound. */
-	public void bindAndOrphan() {
-		if (glBufferId == 0) {
-			glBufferId = GlBufferAllocator.claimBuffer(capacityBytes);
-		}
-
-		GFX.bindBuffer(bindTarget, glBufferId);
-		GFX.bufferData(bindTarget, capacityBytes, usageHint);
-	}
+	//	/** Leaves buffer bound. */
+	//	public void bindAndOrphan() {
+	//		if (glBufferId == 0) {
+	//			glBufferId = GlBufferAllocator.claimBuffer(capacityBytes);
+	//		}
+	//
+	//		GFX.bindBuffer(bindTarget, glBufferId);
+	//		GFX.bufferData(bindTarget, capacityBytes, usageHint);
+	//	}
 
 	public final void shutdown() {
 		assert RenderSystem.isOnRenderThread();

@@ -28,11 +28,11 @@ import grondag.canvas.config.Configurator;
 
 public class CanvasGlHelper {
 	private static boolean supportsPersistentMapped = false;
-	
+
 	public static boolean supportsPersistentMapped() {
 		return supportsPersistentMapped;
 	}
-	
+
 	public static void init() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasGlHelper static init");

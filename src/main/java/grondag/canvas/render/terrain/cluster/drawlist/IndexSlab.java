@@ -23,10 +23,12 @@ import java.util.ArrayDeque;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.render.AbstractGlBuffer;
+import grondag.canvas.buffer.util.BufferSynchronizer;
+import grondag.canvas.buffer.util.BufferSynchronizer.SynchronizedBuffer;
 import grondag.canvas.render.terrain.cluster.SlabAllocator;
 import grondag.canvas.varia.GFX;
 
-public class IndexSlab extends AbstractGlBuffer {
+public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private boolean isClaimed = false;
 	private int headQuadVertexIndex = 0;
 	private ShortBuffer mappedBuffer = null;
@@ -42,9 +44,13 @@ public class IndexSlab extends AbstractGlBuffer {
 		assert isClaimed;
 		assert mappedBuffer == null;
 		assert !isClosed;
-
 		isClaimed = false;
 		headQuadVertexIndex = 0;
+		BufferSynchronizer.accept(this);
+	}
+
+	@Override
+	public void onBufferSync() {
 		POOL.offer(this);
 	}
 
@@ -155,9 +161,6 @@ public class IndexSlab extends AbstractGlBuffer {
 		if (result == null) {
 			result = new IndexSlab();
 			++totalSlabCount;
-		} else {
-			result.bindAndOrphan();
-			result.unbind();
 		}
 
 		result.isClaimed = true;

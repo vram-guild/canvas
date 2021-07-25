@@ -24,10 +24,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.buffer.util.BinIndex;
+import grondag.canvas.buffer.util.BufferSynchronizer;
+import grondag.canvas.buffer.util.BufferSynchronizer.SynchronizedBuffer;
 import grondag.canvas.buffer.util.BufferTrace;
 import grondag.canvas.varia.GFX;
 
-public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends AbstractGlBuffer implements AllocatableBuffer {
+public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends AbstractGlBuffer implements AllocatableBuffer, SynchronizedBuffer {
 	final BinIndex binIndex;
 	private ByteBuffer mappedBuffer;
 	private IntBuffer mappedIntBuffer;
@@ -53,14 +55,20 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		if (!isPreMapped) {
 			assert RenderSystem.isOnRenderThread();
 
-			// Invalidate and map buffer.
-			// On Windows, the GL_MAP_INVALIDATE_BUFFER_BIT does not seem to orphan the buffer reliably
-			// when GL_MAP_UNSYNCHRONIZED_BIT is also present, so we orphan the buffer the old-fashioned way.
-			bindAndOrphan();
+			// Map buffer.
+			// NB: On Windows, the GL_MAP_INVALIDATE_BUFFER_BIT does not seem to orphan the buffer reliably
+			// when GL_MAP_UNSYNCHRONIZED_BIT is also present, so we now use explicit sync instead of orphaning.
+			// Frequent orphaning may cause some drivers to put important buffers in client memory.
+
+			// NB: We don't call bind() here because it can be overridden to use a VAO for drawable buffers
+			// and that can cause an invalid operation because we it doesn't actually leave the buffer bound.
+			GFX.bindBuffer(bindTarget, glBufferId());
+			assert mappedBuffer == null;
 			mappedBuffer = GFX.mapBufferRange(bindTarget, 0, claimedBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
 			GFX.bindBuffer(bindTarget, 0);
 		}
 
+		assert mappedBuffer != null;
 		this.claimedBytes = claimedBytes;
 	}
 
@@ -68,13 +76,11 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		assert !isPreMapped : "Pre-mapped buffer improperly unmapped";
 		assert RenderSystem.isOnRenderThread();
 
-		// Invalidate and map buffer.
-		// On Windows, the GL_MAP_INVALIDATE_BUFFER_BIT does not seem to orphan the buffer reliably
-		// when GL_MAP_UNSYNCHRONIZED_BIT is also present, so we orphan the buffer the old-fashioned way.
-		// In this path we map the entire buffer because we don't know in advance how much will be used.
 		isPreMapped = true;
-		bindAndOrphan();
+		GFX.bindBuffer(bindTarget, glBufferId());
+		assert mappedBuffer == null;
 		mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
+		assert mappedBuffer != null;
 		GFX.bindBuffer(bindTarget, 0);
 	}
 
@@ -85,6 +91,7 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 
 	public final IntBuffer intBuffer() {
 		assert claimedBytes > 0 : "Buffer accessed while unclaimed";
+		assert mappedBuffer != null;
 		IntBuffer result = mappedIntBuffer;
 
 		if (result == null) {
@@ -114,14 +121,19 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public final @Nullable T release() {
 		assert claimedBytes > 0 : "Buffer released while unclaimed";
 		unmap();
 		GFX.bindBuffer(bindTarget, 0);
 		claimedBytes = 0;
-		releaseQueue.accept((T) this);
+		BufferSynchronizer.accept(this);
 		return null;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void onBufferSync() {
+		releaseQueue.accept((T) this);
 	}
 
 	@Override
