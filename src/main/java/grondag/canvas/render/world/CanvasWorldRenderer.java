@@ -77,6 +77,7 @@ import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.buffer.render.StreamBufferAllocator;
 import grondag.canvas.buffer.render.TransferBuffers;
+import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.compat.FirstPersonModelHolder;
@@ -737,6 +738,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 		final boolean wasFabulous = Pipeline.isFabulous();
 
+		BufferSynchronizer.checkPoint();
 		DirectBufferAllocator.update();
 		TransferBuffers.update();
 		PipelineManager.reloadIfNeeded();
@@ -775,6 +777,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderSystem.applyModelViewMatrix();
 		MatrixState.set(MatrixState.SCREEN);
 		ScreenRenderState.setRenderingHand(true);
+		BufferSynchronizer.checkPoint();
 	}
 
 	@Override

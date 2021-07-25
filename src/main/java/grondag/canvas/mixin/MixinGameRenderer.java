@@ -28,7 +28,6 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 
-import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.perf.Timekeeper;
@@ -66,16 +65,6 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
 	private void onRenderWorld(CallbackInfo ci) {
 		Timekeeper.instance.startFrame(Timekeeper.ProfilerGroup.GameRendererSetup, "GameRenderer_setup");
-	}
-
-	@Inject(method = "render", require = 1, at = @At("HEAD"))
-	private void beforeRender(CallbackInfo ci) {
-		BufferSynchronizer.startFrame();
-	}
-
-	@Inject(method = "render", require = 1, at = @At("RETURN"))
-	private void afterRender(CallbackInfo ci) {
-		BufferSynchronizer.endFrame();
 	}
 
 	@Override

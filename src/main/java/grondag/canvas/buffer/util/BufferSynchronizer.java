@@ -19,69 +19,34 @@ package grondag.canvas.buffer.util;
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.varia.GFX;
 
 public class BufferSynchronizer {
 	private static final ObjectArrayFIFOQueue<SyncBufferList> queue = new ObjectArrayFIFOQueue<>(4);
-	private static SyncBufferList currentFrameAccumultator = null;
-	private static boolean isFailed = false;
+	private static SyncBufferList currentFrameAccumultator = new SyncBufferList();
 
 	public static void accept(SynchronizedBuffer buffer) {
-		if (currentFrameAccumultator == null) {
-			// Don't try to recover buffers received outside of render
-			// These should only be from pipeline setup
-			buffer.shutdown();
+		currentFrameAccumultator.add(buffer);
+	}
 
-			// WIP: remove
-			System.out.println("Discarded buffer outside of synch loop");
-		} else {
-			currentFrameAccumultator.add(buffer);
+	public static void checkPoint() {
+		releaseBuffers();
+
+		if (!currentFrameAccumultator.isEmpty()) {
+			currentFrameAccumultator.claimFence();
+			queue.enqueue(currentFrameAccumultator);
+			currentFrameAccumultator = new SyncBufferList();
 		}
 	}
 
-	public static void endFrame() {
-		assert currentFrameAccumultator != null;
-		currentFrameAccumultator.claimFence();
-		queue.enqueue(currentFrameAccumultator);
-		currentFrameAccumultator = null;
-	}
+	private static void releaseBuffers() {
+		while (!queue.isEmpty()) {
+			final var list = queue.dequeue();
 
-	private static final int MAX_FRAME_DEPTH = 5;
-
-	public static void startFrame() {
-		assert currentFrameAccumultator == null;
-
-		if (queue.isEmpty()) {
-			currentFrameAccumultator = new SyncBufferList();
-		} else {
-			assert queue.size() <= MAX_FRAME_DEPTH;
-			var list = queue.first();
-
-			if (queue.size() == MAX_FRAME_DEPTH) {
-				// We don't want to go deeper than triple buffering
-				// so if we have three lists queued up, wait for the
-				// oldest one to complete.
-				if (!list.complete(1000000000L)) {
-					GFX.glFlush();
-					list.release();
-
-					if (!isFailed) {
-						isFailed = true;
-						CanvasMod.LOG.warn("OpenGL command buffer is not processing in a reasonable time.  Performance is degraded.");
-					}
-				}
-
-				queue.dequeue();
-			} else {
-				if (list.complete(0)) {
-					queue.dequeue();
-				} else {
-					list = new SyncBufferList();
-				}
+			if (!list.complete(0)) {
+				queue.enqueueFirst(list);
+				break;
 			}
-
-			currentFrameAccumultator = list;
 		}
 	}
 
