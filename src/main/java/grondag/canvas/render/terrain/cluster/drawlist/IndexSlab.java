@@ -16,55 +16,49 @@
 
 package grondag.canvas.render.terrain.cluster.drawlist;
 
-import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayDeque;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.render.AbstractGlBuffer;
+import grondag.canvas.buffer.render.TransferBuffer;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.buffer.util.BufferSynchronizer.SynchronizedBuffer;
 import grondag.canvas.render.terrain.cluster.SlabAllocator;
-import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GFX;
 
 public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private boolean isClaimed = false;
 	private int headQuadVertexIndex = 0;
-	private ShortBuffer mappedBuffer = null;
-	private final boolean immutable;
-	
+	private TransferBuffer transferBuffer;
+	private ShortBuffer uploadBuffer;
+
 	private IndexSlab() {
 		// NB: STATIC makes a huge positive difference on AMD at least
 		super(BYTES_PER_INDEX_SLAB, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 		assert RenderSystem.isOnRenderThread();
-		immutable = CanvasGlHelper.supportsPersistentMapped();
-				
-		if (immutable) {
-			// Force buffer creation early
-			glBufferId();
-			assert mappedBuffer != null;
-		}
 	}
 
-	@Override
-	protected void createBuffer() {
-		if (immutable) {
-			GFX.bufferStorage(bindTarget, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_PERSISTENT_BIT);
-			mappedBuffer = GFX.mapBufferRange(bindTarget, 0, capacityBytes, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_PERSISTENT_BIT).asShortBuffer();
-		} else {
-			super.createBuffer();
-		}
+	private void prepareForClaim() {
+		isClaimed = true;
+		transferBuffer = TransferBuffers.claim(BYTES_PER_INDEX_SLAB);
+		uploadBuffer = transferBuffer.shortBuffer();
 	}
-	
+
 	void release() {
 		assert RenderSystem.isOnRenderThread();
 		assert isClaimed;
-		assert immutable || mappedBuffer == null;
 		assert !isClosed;
 		isClaimed = false;
 		headQuadVertexIndex = 0;
+
+		if (transferBuffer != null) {
+			transferBuffer.release();
+			uploadBuffer = null;
+		}
+
 		BufferSynchronizer.accept(this);
 	}
 
@@ -100,8 +94,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 			throw new IllegalStateException("Requested index allocation exceeds available capacity");
 		}
 
-		map();
-		final var buff = mappedBuffer;
+		final var buff = uploadBuffer;
 		final int newHead = headQuadVertexIndex + quadVertexCount;
 		int triVertexIndex = headQuadVertexIndex / 4 * 6;
 		int quadVertexIndex = firstQuadVertexIndex;
@@ -120,52 +113,28 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		headQuadVertexIndex = newHead;
 	}
 
-	@Override
-	public void bind() {
-		assert !isClosed;
+	public void upload() {
+		assert transferBuffer != null;
 
-		if (mappedBuffer != null) {
-			unmap();
-		} else {
-			super.bind();
-		}
-	}
-
-	private void map() {
-		assert !isClosed;
-
-		if (mappedBuffer == null) {
-			assert !immutable;
-			super.bind();
-			final ByteBuffer buff = GFX.mapBufferRange(bindTarget, 0, BYTES_PER_INDEX_SLAB, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT);
-			mappedBuffer = buff.asShortBuffer();
-		}
-	}
-
-	private void unmap() {
-		assert !isClosed;
-
-		if (mappedBuffer != null) {
+		if (transferBuffer != null) {
 			GFX.bindBuffer(bindTarget, glBufferId());
-			GFX.flushMappedBufferRange(bindTarget, 0, headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
-			
-			if (!immutable) {
-				GFX.unmapBuffer(bindTarget);
-				mappedBuffer = null;
-			}
+			transferBuffer.transferToBoundBuffer(bindTarget, 0, 0, headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
+			GFX.bindBuffer(bindTarget, 0);
+			transferBuffer.release();
+			transferBuffer = null;
+			uploadBuffer = null;
 		}
 	}
 
 	@Override
 	protected void onShutdown() {
 		assert RenderSystem.isOnRenderThread();
-		
-		if (immutable) {
-			GFX.bindBuffer(bindTarget, glBufferId());
-			GFX.unmapBuffer(bindTarget);
-			GFX.bindBuffer(bindTarget, 0);
+
+		if (transferBuffer != null) {
+			transferBuffer.release();
+			transferBuffer = null;
 		}
-		
+
 		--totalSlabCount;
 	}
 
@@ -192,7 +161,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 			++totalSlabCount;
 		}
 
-		result.isClaimed = true;
+		result.prepareForClaim();
 		return result;
 	}
 
@@ -202,7 +171,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		if (result == null) {
 			result = new IndexSlab();
 			result.allocateAndLoad(0, SlabAllocator.MAX_SLAB_QUAD_VERTEX_COUNT);
-			result.unmap();
+			result.upload();
 			result.unbind();
 			fullSlabIndex = result;
 		}

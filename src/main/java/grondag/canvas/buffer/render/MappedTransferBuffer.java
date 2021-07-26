@@ -23,27 +23,22 @@ import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.varia.GFX;
 
 public class MappedTransferBuffer extends AbstractMappedBuffer<MappedTransferBuffer> implements TransferBuffer {
-	boolean didPut = false;
-
 	public MappedTransferBuffer(BinIndex binIndex) {
 		super(binIndex, GFX.GL_COPY_READ_BUFFER, GFX.GL_STREAM_READ, RENDER_THREAD_ALLOCATOR::release);
 	}
 
 	@Override
 	public void put(int[] source, int sourceStartInts, int targetStartInts, int lengthInts) {
-		didPut = true;
 		intBuffer().put(targetStartInts, source, sourceStartInts, lengthInts);
 	}
 
 	@Override
 	public void prepareForOffThreadUse() {
 		super.prepareForOffThreadUse();
-		didPut = false;
 	}
 
 	@Override
 	public void transferToBoundBuffer(int target, int targetStartBytes, int sourceStartBytes, int lengthBytes) {
-		assert didPut;
 		assert sourceStartBytes + lengthBytes <= sizeBytes();
 
 		if (!unmap()) {

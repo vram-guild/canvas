@@ -18,6 +18,7 @@ package grondag.canvas.buffer.render;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.function.Consumer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -34,6 +35,7 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 	final BinIndex binIndex;
 	private ByteBuffer mappedBuffer;
 	private IntBuffer mappedIntBuffer;
+	private ShortBuffer mappedShortBuffer;
 	private int claimedBytes;
 	private final Consumer<T> releaseQueue;
 	private final BufferTrace trace = BufferTrace.create();
@@ -47,14 +49,14 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		this.binIndex = binIndex;
 		this.releaseQueue = releaseQueue;
 		immutable = CanvasGlHelper.supportsPersistentMapped();
-		
+
 		if (immutable) {
 			// Force buffer creation early
 			glBufferId();
 			assert mappedBuffer != null;
 		}
 	}
-	
+
 	@Override
 	protected void createBuffer() {
 		if (immutable) {
@@ -123,6 +125,19 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 		return result;
 	}
 
+	public final ShortBuffer shortBuffer() {
+		assert claimedBytes > 0 : "Buffer accessed while unclaimed";
+		assert mappedBuffer != null;
+		ShortBuffer result = mappedShortBuffer;
+
+		if (result == null) {
+			result = mappedBuffer.asShortBuffer();
+			mappedShortBuffer = result;
+		}
+
+		return result;
+	}
+
 	/**
 	 * Un-map and leaves buffer bound if mapped.
 	 * Return true if buffer is bound.
@@ -135,24 +150,25 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 			isPreMapped = false;
 			GFX.bindBuffer(bindTarget, glBufferId());
 			GFX.flushMappedBufferRange(bindTarget, 0, claimedBytes);
-			
+
 			if (!immutable) {
 				GFX.unmapBuffer(bindTarget);
 				mappedBuffer = null;
 				mappedIntBuffer = null;
+				mappedShortBuffer = null;
 			}
-			
+
 			return true;
 		}
 	}
 
 	public final @Nullable T release() {
 		assert claimedBytes > 0 : "Buffer released while unclaimed";
-		
+
 		if (unmap()) {
 			GFX.bindBuffer(bindTarget, 0);
 		}
-		
+
 		claimedBytes = 0;
 		BufferSynchronizer.accept(this);
 		return null;
@@ -170,6 +186,9 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 			GFX.bindBuffer(bindTarget, glBufferId());
 			GFX.unmapBuffer(bindTarget);
 			GFX.bindBuffer(bindTarget, 0);
+			mappedBuffer = null;
+			mappedIntBuffer = null;
+			mappedShortBuffer = null;
 		} else {
 			unmap();
 		}

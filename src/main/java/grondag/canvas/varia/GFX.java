@@ -893,7 +893,7 @@ public class GFX extends GL46C {
 		assert logError("glClientWaitSync");
 		return result;
 	}
-	
+
 	public static void bufferStorage(int target, long size, int flags) {
 		glBufferStorage(target, size, flags);
 		assert logError("glBufferStorage");
