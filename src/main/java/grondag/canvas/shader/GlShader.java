@@ -512,11 +512,11 @@ public class GlShader implements Shader {
 			builder.append("\t").append(geometryInput(varName)).append("\n");
 		}
 
-		builder.append("};\n\n");
+		builder.append("} inVars[];\n\n");
 
 		//// built out interface block
 		builder.append("out CanvasVars {\n");
-
+ 
 		for (String varName : varNames) {
 			builder.append("\t").append(StringUtils.replace(varName, "out ", "")).append("\n");
 		}
@@ -549,19 +549,20 @@ public class GlShader implements Shader {
 			builder
 				.append("\toutVars.")
 				.append(varName)
-				.append(" = ")
-				.append(varName)
-				.append("[")
+				.append(" = inVars[")
 				.append(vertex)
-				.append("];\n");
+				.append("].")
+				.append(varName)
+				.append(";\n");
 		}
 
 		builder.append("\tEmitVertex();\n\n");
 	}
 
 	private static String geometryInput(String varName) {
-		varName = varName.replaceAll("out ", "");
-		return varName.replaceAll("((?:[iu]?vec[2-4])|(?:u?int)|(?:float))", "$1\\[\\]");
+		return varName.replaceAll("out ", "");
+		//varName = varName.replaceAll("out ", "");
+		//return varName.replaceAll("((?:[iu]?vec[2-4])|(?:u?int)|(?:float))", "$1\\[\\]");
 	}
 
 	private String updateVertexSourceForGeometry(String source) {
