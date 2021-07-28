@@ -60,20 +60,17 @@ public class GFX extends GL46C {
 		return true;
 	}
 
-	// FIX: VaoTracker should be removed or disabled because it isn't finding anything useful.
-	// And should consider disabling disableVertexAttribArray from vanilla code because both vanilla
+	// TODO: should consider disabling disableVertexAttribArray from vanilla code because both vanilla
 	// and Canvas always use VAOs for drawing, and neither one reuses the same VAO with different formats.
 	// That makes it unnecessary to ever call this method, but Mojang does.  They also hold the last format
 	// used as global state in BufferRenderer and lazily disable, which can cause problems if anyone else does
 	// anything with VAOs.
 	public static void disableVertexAttribArray(int index) {
-		VaoTracker.disable(index);
 		glDisableVertexAttribArray(index);
 		assert logError(String.format("glDisableVertexAttribArray(%d)", index));
 	}
 
 	public static void enableVertexAttribArray(int index) {
-		VaoTracker.enable(index);
 		glEnableVertexAttribArray(index);
 		assert logError(String.format("glEnableVertexAttribArray(%d)", index));
 	}
@@ -232,13 +229,11 @@ public class GFX extends GL46C {
 
 	public static int genVertexArray() {
 		final int result = glGenVertexArrays();
-		VaoTracker.gen(result);
 		assert logError("glGenVertexArrays");
 		return result;
 	}
 
 	public static void deleteVertexArray(int array) {
-		VaoTracker.del(array);
 		glDeleteVertexArrays(array);
 		assert logError(String.format("glDeleteVertexArrays(%d)", array));
 	}
@@ -258,15 +253,7 @@ public class GFX extends GL46C {
 		assert logError(String.format("glBufferData(%s, %d, %d)", GlSymbolLookup.reverseLookup(target), size, usage));
 	}
 
-	private static int currentVertexArray = 0;
-
 	public static void bindVertexArray(int array) {
-		if (array == currentVertexArray) {
-			return;
-		}
-
-		currentVertexArray = array;
-		VaoTracker.bind(array);
 		glBindVertexArray(array);
 		assert logError(String.format("glBindVertexArray(%d)", array));
 	}

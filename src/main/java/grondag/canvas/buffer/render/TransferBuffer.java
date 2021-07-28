@@ -16,6 +16,7 @@
 
 package grondag.canvas.buffer.render;
 
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +27,8 @@ public interface TransferBuffer {
 	void put(int[] source, int sourceStart, int targetStart, int length);
 
 	ShortBuffer shortBuffer();
+
+	ByteBuffer byteBuffer();
 
 	/** MUST be called if one of other release methods isn't. ALWAYS returns null. */
 	@Nullable

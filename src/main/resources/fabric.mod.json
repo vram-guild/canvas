@@ -19,6 +19,9 @@
 	"client": [
 	  "grondag.canvas.CanvasMod"
 	],
+	"preLaunch": [
+      "grondag.canvas.CanvasPreLaunch"
+    ],
 	"modmenu": [
 	  "grondag.canvas.compat.ModMenuHelper"
 	],

@@ -67,7 +67,7 @@ public class SlabAllocator {
 
 	/** We are using short index arrays, which means we can't have more than this many quad vertices per slab. */
 	public static final int MAX_SLAB_QUAD_VERTEX_COUNT = 0x10000;
-	static final int BYTES_PER_SLAB_VERTEX = 28;
+	public static final int BYTES_PER_SLAB_VERTEX = 28;
 
 	static {
 		// Want IDE to show actual numbers above, so check here at run time that nothing changed and got missed.

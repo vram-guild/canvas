@@ -18,6 +18,7 @@ package grondag.canvas.render.terrain.cluster;
 
 import static grondag.canvas.render.terrain.cluster.SlabAllocator.BYTES_PER_SLAB_VERTEX;
 
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -27,7 +28,6 @@ import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.buffer.util.BufferSynchronizer.SynchronizedBuffer;
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.VertexCluster.SlabAllocationFactory;
 import grondag.canvas.varia.GFX;
@@ -37,7 +37,6 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private final TransferSlab transferSlab = new TransferSlab();
 	private int headVertexIndex = 0;
 	private boolean isClaimed;
-	private int vaoBufferId = 0;
 	private int usedVertexCount;
 
 	Slab(SlabAllocator allocator) {
@@ -160,30 +159,8 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 	}
 
 	@Override
-	public void bind() {
-		assert !isClosed;
-
-		if (vaoBufferId == 0) {
-			vaoBufferId = GFX.genVertexArray();
-			GFX.bindVertexArray(vaoBufferId);
-
-			super.bind();
-			TerrainFormat.TERRAIN_MATERIAL.enableAttributes();
-			TerrainFormat.TERRAIN_MATERIAL.bindAttributeLocations(0);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-		} else {
-			GFX.bindVertexArray(vaoBufferId);
-		}
-	}
-
-	@Override
 	protected void onShutdown() {
 		assert RenderSystem.isOnRenderThread();
-
-		if (vaoBufferId != 0) {
-			GFX.deleteVertexArray(vaoBufferId);
-			vaoBufferId = 0;
-		}
 
 		addToVertexCounts(-usedVertexCount);
 		allocator.notifyShutdown(this);
@@ -221,6 +198,11 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 
 		@Override
 		public ShortBuffer shortBuffer() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public ByteBuffer byteBuffer() {
 			throw new UnsupportedOperationException();
 		}
 	}

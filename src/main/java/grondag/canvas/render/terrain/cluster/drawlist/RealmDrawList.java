@@ -96,6 +96,7 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 		rebuildIfInvalid();
 		renderState.enable(0, 0, 0, 0, 0);
 		final int limit = clusterLists.size();
+		GFX.bindVertexArray(0);
 
 		for (int i = 0; i < limit; ++i) {
 			clusterLists.get(i).draw();
@@ -108,11 +109,9 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 
 	@Override
 	protected void closeInner() {
-		for (var indexSlab : indexSlabs) {
-			indexSlab.release();
-		}
-
+		indexSlabs.forEach(IndexSlab::release);
 		indexSlabs.clear();
+		clusterLists.forEach(ClusterDrawList::release);
 		clusterLists.clear();
 	}
 

@@ -26,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.drawlist.ClusterDrawList;
+import grondag.canvas.render.terrain.cluster.drawlist.IndexSlab;
+import grondag.canvas.render.terrain.cluster.drawlist.TerrainVAO;
 
 public class VertexCluster implements ClusterTask {
 	private final ReferenceOpenHashSet<ClusterDrawList> holdingLists = new ReferenceOpenHashSet<>();
@@ -291,7 +293,7 @@ public class VertexCluster implements ClusterTask {
 
 		public void onRegionClosed() {
 			for (var alloc : slabAllocations) {
-				alloc.close();
+				alloc.release();
 			}
 
 			slabAllocations.clear();
@@ -331,31 +333,45 @@ public class VertexCluster implements ClusterTask {
 			public final Slab slab;
 			public final int baseQuadVertexIndex;
 			public final int quadVertexCount;
+			public final int triVertexCount;
+			private final TerrainVAO vao;
+			private boolean isClosed = false;
 
 			private SlabAllocation(Slab slab, int baseQuadVertexIndex, int quadVertexCount) {
+				triVertexCount = quadVertexCount * 6 / 4;
 				this.slab = slab;
 				this.baseQuadVertexIndex = baseQuadVertexIndex;
 				this.quadVertexCount = quadVertexCount;
+
+				vao = new TerrainVAO(() -> slab.glBufferId(), () -> IndexSlab.fullSlabIndex().glBufferId(), baseQuadVertexIndex);
 			}
 
-			public int triVertexCount() {
-				return quadVertexCount / 4 * 6;
+			public void bind() {
+				vao.bind();
 			}
 
-			private void close() {
-				slab.removeAllocation(this);
+			public void release() {
+				assert !isClosed;
 
-				if (slab.isEmpty()) {
-					if (slabs.remove(slab)) {
-						// If the slab is the hungry slab we need to clear it
-						// so that we don't try to add to after release.
-						if (slab == hungrySlab) {
-							hungrySlab = null;
+				if (!isClosed) {
+					isClosed = true;
+
+					vao.shutdown();
+
+					slab.removeAllocation(this);
+
+					if (slab.isEmpty()) {
+						if (slabs.remove(slab)) {
+							// If the slab is the hungry slab we need to clear it
+							// so that we don't try to add to after release.
+							if (slab == hungrySlab) {
+								hungrySlab = null;
+							}
+
+							slab.release();
+						} else {
+							assert false : "Slab not found on empty";
 						}
-
-						slab.release();
-					} else {
-						assert false : "Slab not found on empty";
 					}
 				}
 			}
