@@ -108,11 +108,9 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 
 	@Override
 	protected void closeInner() {
-		for (var indexSlab : indexSlabs) {
-			indexSlab.release();
-		}
-
+		indexSlabs.forEach(IndexSlab::release);
 		indexSlabs.clear();
+		clusterLists.forEach(ClusterDrawList::release);
 		clusterLists.clear();
 	}
 

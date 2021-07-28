@@ -37,7 +37,6 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private final TransferSlab transferSlab = new TransferSlab();
 	private int headVertexIndex = 0;
 	private boolean isClaimed;
-	private int vaoBufferId = 0;
 	private int usedVertexCount;
 
 	Slab(SlabAllocator allocator) {
@@ -160,30 +159,8 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 	}
 
 	@Override
-	public void bind() {
-		assert !isClosed;
-
-		if (vaoBufferId == 0) {
-			vaoBufferId = GFX.genVertexArray();
-			GFX.bindVertexArray(vaoBufferId);
-
-			super.bind();
-			TerrainFormat.TERRAIN_MATERIAL.enableAttributes();
-			TerrainFormat.TERRAIN_MATERIAL.bindAttributeLocations(0);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-		} else {
-			GFX.bindVertexArray(vaoBufferId);
-		}
-	}
-
-	@Override
 	protected void onShutdown() {
 		assert RenderSystem.isOnRenderThread();
-
-		if (vaoBufferId != 0) {
-			GFX.deleteVertexArray(vaoBufferId);
-			vaoBufferId = 0;
-		}
 
 		addToVertexCounts(-usedVertexCount);
 		allocator.notifyShutdown(this);
