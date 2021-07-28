@@ -124,6 +124,10 @@ public class AbstractMappedBuffer<T extends AbstractMappedBuffer<T>> extends Abs
 
 		return result;
 	}
+	
+	public final ByteBuffer byteBuffer() {
+		return mappedBuffer;
+	}
 
 	public final ShortBuffer shortBuffer() {
 		assert claimedBytes > 0 : "Buffer accessed while unclaimed";

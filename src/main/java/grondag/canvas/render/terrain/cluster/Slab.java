@@ -18,6 +18,7 @@ package grondag.canvas.render.terrain.cluster;
 
 import static grondag.canvas.render.terrain.cluster.SlabAllocator.BYTES_PER_SLAB_VERTEX;
 
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -197,6 +198,11 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 
 		@Override
 		public ShortBuffer shortBuffer() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public ByteBuffer byteBuffer() {
 			throw new UnsupportedOperationException();
 		}
 	}

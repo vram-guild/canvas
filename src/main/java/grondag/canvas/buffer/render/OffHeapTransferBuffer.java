@@ -16,6 +16,7 @@
 
 package grondag.canvas.buffer.render;
 
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -45,6 +46,11 @@ class OffHeapTransferBuffer implements TransferBuffer, AllocatableBuffer {
 		return data.buffer().asShortBuffer();
 	}
 
+	@Override
+	public ByteBuffer byteBuffer() {
+		return data.buffer();
+	}
+	
 	@Override
 	public void put(int[] source, int sourceStartInts, int targetStartInts, int lengthInts) {
 		assert claimedBytes > 0 : "Buffer accessed while unclaimed";

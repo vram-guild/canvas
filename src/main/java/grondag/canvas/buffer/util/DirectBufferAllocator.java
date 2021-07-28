@@ -27,10 +27,7 @@ import java.util.function.Consumer;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.Platform;
-import org.lwjgl.system.jemalloc.JEmalloc;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -100,38 +97,6 @@ public class DirectBufferAllocator {
 	private static final AtomicInteger openBytes = new AtomicInteger();
 	//private static final AtomicInteger totalCount = new AtomicInteger();
 	private static final AtomicInteger totalBytes = new AtomicInteger();
-
-	static {
-		// Hat tip to JellySquid for this...
-		// LWJGL 3.2.3 ships Jemalloc 5.2.0 which seems to be broken on Windows and suffers from critical memory leak problems
-		// Using the system allocator prevents memory leaks and other problems
-		// See changelog here: https://github.com/jemalloc/jemalloc/releases/tag/5.2.1
-		if (Platform.get() == Platform.WINDOWS && isJEmallocPotentiallyBuggy()) {
-			if (!"system".equals(Configuration.MEMORY_ALLOCATOR.get())) {
-				Configuration.MEMORY_ALLOCATOR.set("system");
-				CanvasMod.LOG.info("Canvas configured LWJGL to use the system memory allocator due to a potential memory leak in JEmalloc.");
-			}
-		}
-	}
-
-	private static boolean isJEmallocPotentiallyBuggy() {
-		// done this way to make eclipse shut up in dev
-		int major = JEmalloc.JEMALLOC_VERSION_MAJOR;
-		int minor = JEmalloc.JEMALLOC_VERSION_MINOR;
-		int patch = JEmalloc.JEMALLOC_VERSION_BUGFIX;
-
-		if (major == 5) {
-			if (minor < 2) {
-				return true;
-			} else if (minor == 2) {
-				return patch == 0;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
-	}
 
 	public static DirectBufferReference claim(int bytes) {
 		final boolean safe = Configurator.safeNativeMemoryAllocation;

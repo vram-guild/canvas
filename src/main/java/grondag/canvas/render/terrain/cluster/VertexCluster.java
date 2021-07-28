@@ -25,7 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
+import grondag.canvas.render.terrain.cluster.drawlist.AbstractVaoBinding;
 import grondag.canvas.render.terrain.cluster.drawlist.ClusterDrawList;
+import grondag.canvas.render.terrain.cluster.drawlist.IndexSlab;
 
 public class VertexCluster implements ClusterTask {
 	private final ReferenceOpenHashSet<ClusterDrawList> holdingLists = new ReferenceOpenHashSet<>();
@@ -291,7 +293,7 @@ public class VertexCluster implements ClusterTask {
 
 		public void onRegionClosed() {
 			for (var alloc : slabAllocations) {
-				alloc.close();
+				alloc.release();
 			}
 
 			slabAllocations.clear();
@@ -327,22 +329,22 @@ public class VertexCluster implements ClusterTask {
 			return VertexCluster.this;
 		}
 
-		public class SlabAllocation {
+		public class SlabAllocation extends AbstractVaoBinding {
 			public final Slab slab;
 			public final int baseQuadVertexIndex;
 			public final int quadVertexCount;
+			public final int triVertexCount;
 
 			private SlabAllocation(Slab slab, int baseQuadVertexIndex, int quadVertexCount) {
+				super(slab, baseQuadVertexIndex);
+				triVertexCount = quadVertexCount * 6 / 4;
 				this.slab = slab;
 				this.baseQuadVertexIndex = baseQuadVertexIndex;
 				this.quadVertexCount = quadVertexCount;
 			}
 
-			public int triVertexCount() {
-				return quadVertexCount / 4 * 6;
-			}
-
-			private void close() {
+			@Override
+			protected void onRelease() {
 				slab.removeAllocation(this);
 
 				if (slab.isEmpty()) {
@@ -358,6 +360,11 @@ public class VertexCluster implements ClusterTask {
 						assert false : "Slab not found on empty";
 					}
 				}
+			}
+
+			@Override
+			protected IndexSlab indexSlab() {
+				return IndexSlab.fullSlabIndex();
 			}
 		}
 	}

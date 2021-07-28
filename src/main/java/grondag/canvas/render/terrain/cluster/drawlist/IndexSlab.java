@@ -16,6 +16,7 @@
 
 package grondag.canvas.render.terrain.cluster.drawlist;
 
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayDeque;
 
@@ -33,7 +34,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private boolean isClaimed = false;
 	private int headQuadVertexIndex = 0;
 	private TransferBuffer transferBuffer;
-	private ShortBuffer uploadBuffer;
+	private ByteBuffer uploadBuffer;
 
 	private IndexSlab() {
 		// NB: STATIC makes a huge positive difference on AMD at least
@@ -44,7 +45,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private void prepareForClaim() {
 		isClaimed = true;
 		transferBuffer = TransferBuffers.claim(BYTES_PER_INDEX_SLAB);
-		uploadBuffer = transferBuffer.shortBuffer();
+		uploadBuffer = transferBuffer.byteBuffer();
 	}
 
 	void release() {
@@ -101,12 +102,12 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		final int limit = firstQuadVertexIndex + quadVertexCount;
 
 		while (quadVertexIndex < limit) {
-			buff.put(triVertexIndex++, (short) quadVertexIndex);
-			buff.put(triVertexIndex++, (short) (quadVertexIndex + 1));
-			buff.put(triVertexIndex++, (short) (quadVertexIndex + 2));
-			buff.put(triVertexIndex++, (short) (quadVertexIndex + 2));
-			buff.put(triVertexIndex++, (short) (quadVertexIndex + 3));
-			buff.put(triVertexIndex++, (short) quadVertexIndex);
+			buff.putShort(triVertexIndex++, (short) quadVertexIndex);
+			buff.putShort(triVertexIndex++, (short) (quadVertexIndex + 1));
+			buff.putShort(triVertexIndex++, (short) (quadVertexIndex + 2));
+			buff.putShort(triVertexIndex++, (short) (quadVertexIndex + 2));
+			buff.putShort(triVertexIndex++, (short) (quadVertexIndex + 3));
+			buff.putShort(triVertexIndex++, (short) quadVertexIndex);
 			quadVertexIndex += 4;
 		}
 
@@ -142,7 +143,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 	public static final int BYTES_PER_INDEX_SLAB = 0x200000;
 
 	/** Six tri vertices per four quad vertices at 2 bytes each gives 6 / 4 * 2 = 3. */
-	public static final int INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER = 3;
+	public static final int INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER = 6 * 2 / 4;
 
 	/** Largest multiple of four vertices that, when expanded to triangles, will fit within the index buffer. */
 	public static final int MAX_INDEX_SLAB_QUAD_VERTEX_COUNT = (BYTES_PER_INDEX_SLAB / INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER) & 0xFFFFFFF8;
@@ -165,11 +166,11 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		return result;
 	}
 
-	static IndexSlab fullSlabIndex() {
+	public static IndexSlab fullSlabIndex() {
 		IndexSlab result = fullSlabIndex;
 
 		if (result == null) {
-			result = new IndexSlab();
+			result = IndexSlab.claim();
 			result.allocateAndLoad(0, SlabAllocator.MAX_SLAB_QUAD_VERTEX_COUNT);
 			result.upload();
 			result.unbind();

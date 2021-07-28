@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
+import grondag.canvas.render.terrain.cluster.SlabAllocator;
 import grondag.canvas.render.terrain.cluster.VertexCluster;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
@@ -77,6 +78,7 @@ public class ClusterDrawList {
 		return indexSlab;
 	}
 
+	@SuppressWarnings("serial")
 	private static class SolidSpecList extends ObjectArrayList<SlabAllocation> {
 		private int specQuadVertexCount;
 	}
@@ -121,26 +123,37 @@ public class ClusterDrawList {
 
 		assert !specAllocations.isEmpty() : "Vertex count is non-zero but region list is empty.";
 
-		if (indexSlab == null || indexSlab.availableQuadVertexCount() < specQuadVertexCount) {
-			if (indexSlab != null) {
-				indexSlab.upload();
-			}
+		//if (indexSlab == null || indexSlab.availableQuadVertexCount() < specQuadVertexCount) {
+		//	if (indexSlab != null) {
+		//		indexSlab.upload();
+		//	}
+		//
+		//	indexSlab = IndexSlab.claim();
+		//	owner.indexSlabs.add(indexSlab);
+		//}
 
-			indexSlab = IndexSlab.claim();
-			owner.indexSlabs.add(indexSlab);
-		}
+		//final int baseQuadIndex = headQuadVertexIndex;
+		//final int byteOffset = indexSlab.nextByteOffset();
+		final var slab = specAllocations.get(0).slab;
+		final int limit = specAllocations.size();
+		
+		final int[] triVertexCount = new int[limit];
+		final int[] baseQuadVertexOffset = new int[limit];
+		final long[] triIndexOffset = new long[limit];
 
-		final int byteOffset = indexSlab.nextByteOffset();
-		var slab = specAllocations.get(0).slab;
-
-		for (var alloc : specAllocations) {
+		for (int i = 0; i < limit; ++i) {
+			final var alloc = specAllocations.get(i);
 			assert alloc.slab == slab;
-			indexSlab.allocateAndLoad(alloc.baseQuadVertexIndex, alloc.quadVertexCount);
+			triVertexCount[i] = Math.min(12, alloc.triVertexCount);
+			baseQuadVertexOffset[i] = alloc.baseQuadVertexIndex; // * SlabAllocator.BYTES_PER_SLAB_VERTEX;
+			triIndexOffset[i] = 0L;
+			//indexSlab.allocateAndLoad(alloc.baseQuadVertexIndex, alloc.quadVertexCount);
 		}
 
-		assert byteOffset + specQuadVertexCount * IndexSlab.INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER == indexSlab.nextByteOffset();
+		drawSpecs.add(new DrawSpec(slab, indexSlab, triVertexCount, baseQuadVertexOffset, triIndexOffset));
+		//assert byteOffset + specQuadVertexCount * IndexSlab.INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER == indexSlab.nextByteOffset();
 
-		drawSpecs.add(new DrawSpec(slab, indexSlab, specQuadVertexCount / 4 * 6, byteOffset));
+		//drawSpecs.add(new DrawSpec(slab, indexSlab, specQuadVertexCount / 4 * 6, byteOffset));
 		specAllocations.clear();
 
 		return indexSlab;
@@ -154,9 +167,9 @@ public class ClusterDrawList {
 		final int limit = drawSpecs.size();
 
 		for (int i = 0; i < limit; ++i) {
-			var spec = drawSpecs.get(i);
+			final var spec = drawSpecs.get(i);
 			spec.bind();
-			GFX.glMultiDrawElements(GFX.GL_TRIANGLES, spec.triVertexCount(), GFX.GL_UNSIGNED_SHORT, spec.indexBaseByteAddress());
+			GFX.glMultiDrawElementsBaseVertex(GFX.GL_TRIANGLES, spec.triVertexCount(), GFX.GL_UNSIGNED_SHORT, spec.triIndexOffset(), spec.baseQuadVertexOffset());
 		}
 	}
 
@@ -164,27 +177,17 @@ public class ClusterDrawList {
 	public void drawOld() {
 		final int limit = stores.size();
 
-		Slab lastSlab = null;
-
 		for (int regionIndex = 0; regionIndex < limit; ++regionIndex) {
 			ClusteredDrawableStorage store = stores.get(regionIndex);
 
 			for (var alloc : store.allocation().allocations()) {
-				Slab slab = alloc.slab;
-
-				if (slab != lastSlab) {
-					slab.bind();
-					IndexSlab.fullSlabIndex().bind();
-					lastSlab = slab;
-				}
+				alloc.bind();
 
 				// NB offset is baseQuadVertexIndex * 3 because the offset is in bytes
 				// six tri vertices per four quad vertices at 2 bytes each gives 6 / 4 * 2 = 3
-				GFX.drawElements(GFX.GL_TRIANGLES, alloc.triVertexCount(), GFX.GL_UNSIGNED_SHORT, alloc.baseQuadVertexIndex * IndexSlab.INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
+				GFX.drawElements(GFX.GL_TRIANGLES, alloc.triVertexCount, GFX.GL_UNSIGNED_SHORT, 0L);
 			}
 		}
-
-		IndexSlab.fullSlabIndex().unbind();
 	}
 
 	public void add(ClusteredDrawableStorage storage) {

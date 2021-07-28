@@ -21,69 +21,64 @@ import java.nio.IntBuffer;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryUtil;
 
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.cluster.Slab;
-import grondag.canvas.varia.GFX;
 
-class DrawSpec {
-	final Slab slab;
+class DrawSpec extends AbstractVaoBinding {
 	final IndexSlab indexSlab;
 	private IntBuffer triVertexCount;
-	private PointerBuffer indexBaseByteAddress;
-	private int vaoBufferId = 0;
-	boolean isClosed = false;
+	private IntBuffer baseQuadVertexOffset;
+	private PointerBuffer triIndexOffset;
+	private final int size;
 
-	DrawSpec(Slab slab, IndexSlab indexSlab, int triVertexCount, int indexBaseByteAddress) {
-		this.slab = slab;
+	DrawSpec(Slab slab, IndexSlab indexSlab, int[] triVertexCount, int baseQuadVertexOffset[], long triIndexOffset[]) {
+		super(slab, 0);
+		size = triVertexCount.length;
 		this.indexSlab = indexSlab;
-
-		this.triVertexCount = MemoryUtil.memAllocInt(4);
+		
+		this.triVertexCount = MemoryUtil.memAllocInt(size);
 		this.triVertexCount.put(0, triVertexCount);
-		this.triVertexCount.limit(1);
+		
+		this.baseQuadVertexOffset = MemoryUtil.memAllocInt(size);
+		this.baseQuadVertexOffset.put(0, baseQuadVertexOffset);
 
-		this.indexBaseByteAddress = MemoryUtil.memAllocPointer(4);
-		this.indexBaseByteAddress.put(0, indexBaseByteAddress);
-		this.indexBaseByteAddress.limit(1);
+		this.triIndexOffset = MemoryUtil.memAllocPointer(size);
+		this.triIndexOffset.put(triIndexOffset);
+		this.triIndexOffset.position(0);
 	}
 
+	IntBuffer baseQuadVertexOffset() {
+		assert baseQuadVertexOffset.position() == 0;
+		assert baseQuadVertexOffset.limit() == size;
+		return baseQuadVertexOffset;
+	}
+	
 	IntBuffer triVertexCount() {
+		assert triVertexCount.position() == 0;
+		assert triVertexCount.limit() == size;
 		return triVertexCount;
 	}
 
-	PointerBuffer indexBaseByteAddress() {
-		return indexBaseByteAddress;
+	PointerBuffer triIndexOffset() {
+		assert triIndexOffset.position() == 0;
+		assert triIndexOffset.limit() == size;
+		return triIndexOffset;
 	}
 
-	public void bind() {
-		assert !isClosed;
-
-		if (vaoBufferId == 0) {
-			vaoBufferId = GFX.genVertexArray();
-			GFX.bindVertexArray(vaoBufferId);
-
-			slab.bind();
-			indexSlab.bind();
-			TerrainFormat.TERRAIN_MATERIAL.enableAttributes();
-			TerrainFormat.TERRAIN_MATERIAL.bindAttributeLocations(0);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-		} else {
-			GFX.bindVertexArray(vaoBufferId);
-		}
-	}
-
-	void release() {
-		assert !isClosed;
-		isClosed = true;
-
-		if (vaoBufferId != 0) {
-			GFX.deleteVertexArray(vaoBufferId);
-			vaoBufferId = 0;
-		}
-
+	@Override
+	protected void onRelease() {
 		MemoryUtil.memFree(triVertexCount);
 		triVertexCount = null;
 
-		MemoryUtil.memFree(indexBaseByteAddress);
-		indexBaseByteAddress = null;
+		MemoryUtil.memFree(triIndexOffset);
+		triIndexOffset = null;
+		
+		MemoryUtil.memFree(baseQuadVertexOffset);
+		baseQuadVertexOffset = null;
+	}
+
+	@Override
+	protected IndexSlab indexSlab() {
+		return IndexSlab.fullSlabIndex();
+		//return indexSlab;
 	}
 }
