@@ -27,7 +27,6 @@ import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.buffer.util.BufferSynchronizer.SynchronizedBuffer;
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.VertexCluster.SlabAllocationFactory;
 import grondag.canvas.varia.GFX;

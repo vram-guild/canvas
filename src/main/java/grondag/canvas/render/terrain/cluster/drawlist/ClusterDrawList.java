@@ -20,9 +20,7 @@ import java.util.IdentityHashMap;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.PointerBuffer;
 
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
 import grondag.canvas.render.terrain.cluster.VertexCluster;
@@ -31,51 +29,6 @@ import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
 import grondag.canvas.varia.GFX;
 
 public class ClusterDrawList {
-	static class DrawSpec {
-		final Slab slab;
-		final IndexSlab indexSlab;
-		final int triVertexCount;
-		final int indexBaseByteAddress;
-		private int vaoBufferId = 0;
-		boolean isClosed = false;
-		
-		DrawSpec(Slab slab, IndexSlab indexSlab, int triVertexCount, int indexBaseByteAddress) {
-			this.slab = slab;
-			this.indexSlab = indexSlab;
-			this.triVertexCount = triVertexCount;
-			this.indexBaseByteAddress = indexBaseByteAddress;
-		}
-		
-		public void bind() {
-			assert !isClosed;
-
-			if (vaoBufferId == 0) {
-				vaoBufferId = GFX.genVertexArray();
-				GFX.bindVertexArray(vaoBufferId);
-
-				slab.bind();
-				indexSlab.bind();
-				TerrainFormat.TERRAIN_MATERIAL.enableAttributes();
-				TerrainFormat.TERRAIN_MATERIAL.bindAttributeLocations(0);
-				GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
-			} else {
-				GFX.bindVertexArray(vaoBufferId);
-			}
-		}
-		
-		void release() {
-			assert !isClosed;
-			isClosed = true;
-			
-			if (vaoBufferId != 0) {
-				GFX.deleteVertexArray(vaoBufferId);
-				vaoBufferId = 0;
-			}
-			
-			System.out.println("releasing");
-		}
-	}
-
 	final ObjectArrayList<ClusteredDrawableStorage> stores = new ObjectArrayList<>();
 	final VertexCluster cluster;
 	final RealmDrawList owner;
@@ -203,11 +156,7 @@ public class ClusterDrawList {
 		for (int i = 0; i < limit; ++i) {
 			var spec = drawSpecs.get(i);
 			spec.bind();
-			int[] c = new int[1];
-			c[0] = spec.triVertexCount;
-			PointerBuffer pb = PointerBuffer.allocateDirect(1);
-			pb.put(0, spec.indexBaseByteAddress);
-			GFX.glMultiDrawElements(GFX.GL_TRIANGLES, c, GFX.GL_UNSIGNED_SHORT, pb);
+			GFX.glMultiDrawElements(GFX.GL_TRIANGLES, spec.triVertexCount(), GFX.GL_UNSIGNED_SHORT, spec.indexBaseByteAddress());
 		}
 	}
 
@@ -246,7 +195,7 @@ public class ClusterDrawList {
 	public void invalidate() {
 		owner.invalidate();
 	}
-	
+
 	public void release() {
 		drawSpecs.forEach(DrawSpec::release);
 	}
