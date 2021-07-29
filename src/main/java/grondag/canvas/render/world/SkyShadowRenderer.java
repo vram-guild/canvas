@@ -20,10 +20,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.buffer.encoding.DrawableBuffer;
+import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
-import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.varia.GFX;
 
@@ -49,14 +48,14 @@ public class SkyShadowRenderer {
 		return active;
 	}
 
-	public static void render(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
+	public static void render(CanvasWorldRenderer canvasWorldRenderer, DrawableStream entityBuffer, DrawableStream shadowExtrasBuffer) {
 		if (Pipeline.shadowsEnabled()) {
 			begin();
 
 			for (cascade = 0; cascade < ShadowMatrixData.CASCADE_COUNT; ++cascade) {
 				Pipeline.skyShadowFbo.bind();
 				GFX.framebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, Pipeline.shadowMapDepth, 0, cascade);
-				renderInner(canvasWorldRenderer, cameraX, cameraY, cameraZ, entityBuffer, shadowExtrasBuffer);
+				renderInner(canvasWorldRenderer, entityBuffer, shadowExtrasBuffer);
 			}
 
 			Pipeline.defaultFbo.bind();
@@ -65,12 +64,10 @@ public class SkyShadowRenderer {
 		}
 	}
 
-	private static void renderInner(CanvasWorldRenderer canvasWorldRenderer, double cameraX, double cameraY, double cameraZ, DrawableBuffer entityBuffer, DrawableBuffer shadowExtrasBuffer) {
+	private static void renderInner(CanvasWorldRenderer canvasWorldRenderer, DrawableStream entityBuffer, DrawableStream shadowExtrasBuffer) {
 		Pipeline.skyShadowFbo.clear();
 
-		MatrixState.set(MatrixState.REGION);
-		canvasWorldRenderer.renderShadowLayer(cascade, cameraX, cameraY, cameraZ);
-		MatrixState.set(MatrixState.CAMERA);
+		canvasWorldRenderer.worldRenderState.renderShadowLayer(cascade);
 
 		if (Pipeline.config().skyShadow.allowEntities && MinecraftClient.getInstance().options.entityShadows) {
 			entityBuffer.draw(true);

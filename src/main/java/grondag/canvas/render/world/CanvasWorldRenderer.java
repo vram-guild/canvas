@@ -74,8 +74,12 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
-import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.buffer.encoding.DrawableBuffer;
+import grondag.canvas.buffer.input.CanvasImmediate;
+import grondag.canvas.buffer.render.StreamBufferAllocator;
+import grondag.canvas.buffer.render.TransferBuffers;
+import grondag.canvas.buffer.util.BufferSynchronizer;
+import grondag.canvas.buffer.util.DirectBufferAllocator;
+import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.MaterialTarget;
@@ -88,7 +92,6 @@ import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
-import grondag.canvas.render.region.RegionRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
@@ -99,6 +102,7 @@ import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionStorage;
+import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.GFX;
 
 public class CanvasWorldRenderer extends WorldRenderer {
@@ -190,7 +194,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			if (state == TerrainIterator.IDLE) {
 				if (terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks)) {
-					worldRenderState.regionBuilder().executor.execute(terrainIterator);
+					TerrainExecutor.INSTANCE.execute(terrainIterator);
 				}
 			} else {
 				// If we kicked off a new iteration this will happen automatically, but if we are waiting
@@ -201,12 +205,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// Run iteration on main thread
 			if (terrainIterator.prepare(camera, worldRenderState.terrainFrustum, renderDistance, shouldCullChunks)) {
 				terrainIterator.run(null);
+
+				assert terrainIterator.state() == TerrainIterator.COMPLETE : "Iteration cancelled on main thread.";
 				worldRenderState.copyVisibleRegionsFromIterator();
+				regionRebuildManager.scheduleOrBuild(terrainIterator.updateRegions);
 				terrainIterator.idle();
-			} else {
-				// If we kicked off a new iteration this will happen automatically.
-				// Otherwise we want near regions to be updated right away.
-				terrainIterator.buildNearIfNeeded();
 			}
 		}
 
@@ -310,6 +313,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		worldRenderState.regionBuilder().upload();
 		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
+
+		Configurator.terrainRenderConfig.prepareForDraw(worldRenderState);
+		worldRenderState.rebuidDrawListsIfNeeded();
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
 		// but they are left intact to handle any fix-function renders we don't catch
@@ -473,17 +479,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		RenderState.disable();
 
-		try (DrawableBuffer entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
-			DrawableBuffer shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
+		try (DrawableStream entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
+			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
-			SkyShadowRenderer.render(this, frameCameraX, frameCameraY, frameCameraZ, entityBuffer, shadowExtrasBuffer);
+			SkyShadowRenderer.render(this, entityBuffer, shadowExtrasBuffer);
 			shadowExtrasBuffer.close();
 
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "terrain_solid");
-			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(false, frameCameraX, frameCameraY, frameCameraZ);
-			MatrixState.set(MatrixState.CAMERA);
+			worldRenderState.renderSolidTerrain();
 
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "entity_draw_solid");
 			entityBuffer.draw(false);
@@ -491,7 +495,12 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
+
+		// Stuff here should probably expect identity matrix. If not, move matrix operations to relevant compat holders.
+		eventContext.matrixStack().push();
+		eventContext.matrixStack().loadIdentity();
 		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
+		eventContext.matrixStack().pop();
 
 		bufferBuilders.getOutlineVertexConsumers().draw();
 
@@ -599,9 +608,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			// This catches entity layer and any remaining non-main layers
 			immediate.draw();
 
-			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(true, frameCameraX, frameCameraY, frameCameraZ);
-			MatrixState.set(MatrixState.CAMERA);
+			worldRenderState.renderTranslucentTerrain();
 
 			// NB: vanilla renders tripwire here but we combine into translucent
 
@@ -614,9 +621,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			Pipeline.defaultFbo.bind();
 		} else {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "translucent");
-			MatrixState.set(MatrixState.REGION);
-			renderTerrainLayer(true, frameCameraX, frameCameraY, frameCameraZ);
-			MatrixState.set(MatrixState.CAMERA);
+			worldRenderState.renderTranslucentTerrain();
 
 			// without fabulous transparency important that lines
 			// and other translucent elements get drawn on top of terrain
@@ -632,13 +637,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			particleRenderer.renderParticles(mc.particleManager, identityStack, immediate.collectors, lightmapTextureManager, camera, tickDelta);
 		}
 
-		renderSystemModelViewStack.pop();
-		RenderSystem.applyModelViewMatrix();
-
 		RenderState.disable();
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
+
+		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
 		WorldRenderEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(eventContext);
+
+		// Move these up if otherwise.
+		renderSystemModelViewStack.pop();
+		RenderSystem.applyModelViewMatrix();
 
 		// FEAT: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
@@ -676,17 +684,19 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			GFX.depthMask(true);
 		}
 
-		renderSystemModelViewStack.pop();
-		RenderSystem.applyModelViewMatrix();
-
 		// doesn't make any sense with our chunk culling scheme
 		// this.renderChunkDebugInfo(camera);
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.AfterFabulous, "render_last_event");
+
+		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
 		WorldRenderEvents.LAST.invoker().onLast(eventContext);
+
+		// Move these up if otherwise.
+		renderSystemModelViewStack.pop();
+		RenderSystem.applyModelViewMatrix();
 
 		GFX.depthMask(true);
 		GFX.disableBlend();
-		RenderSystem.applyModelViewMatrix();
 		BackgroundRenderer.method_23792();
 		entityBlockContext.collectors = null;
 		blockContext.collectors = null;
@@ -715,14 +725,6 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		}
 	}
 
-	void renderTerrainLayer(boolean isTranslucent, double x, double y, double z) {
-		RegionRenderer.render(worldRenderState.cameraVisibleRegions, x, y, z, isTranslucent);
-	}
-
-	void renderShadowLayer(int cascadeIndex, double x, double y, double z) {
-		RegionRenderer.render(worldRenderState.shadowVisibleRegions[cascadeIndex], x, y, z, false);
-	}
-
 	public void updateNoCullingBlockEntities(ObjectOpenHashSet<BlockEntity> removedBlockEntities, ObjectOpenHashSet<BlockEntity> addedBlockEntities) {
 		((WorldRenderer) vanillaWorldRenderer).updateNoCullingBlockEntities(removedBlockEntities, addedBlockEntities);
 	}
@@ -736,6 +738,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		final MinecraftClient mc = MinecraftClient.getInstance();
 		final boolean wasFabulous = Pipeline.isFabulous();
 
+		BufferSynchronizer.checkPoint();
+		DirectBufferAllocator.update();
+		TransferBuffers.update();
 		PipelineManager.reloadIfNeeded();
 
 		if (wasFabulous != Pipeline.isFabulous()) {
@@ -762,7 +767,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
 
-		eventContext.prepare(this, identityStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, mc.getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), worldRenderState.getWorld());
+		eventContext.prepare(this, viewMatrixStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, mc.getProfiler(), MinecraftClient.isFabulousGraphicsOrBetter(), worldRenderState.getWorld());
 
 		WorldRenderEvents.START.invoker().onStart(eventContext);
 		PipelineManager.beforeWorldRender();
@@ -772,6 +777,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderSystem.applyModelViewMatrix();
 		MatrixState.set(MatrixState.SCREEN);
 		ScreenRenderState.setRenderingHand(true);
+		BufferSynchronizer.checkPoint();
 	}
 
 	@Override
@@ -789,6 +795,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		vanillaWorldRenderer.canvas_reload();
 
 		worldRenderState.clear();
+		TransferBuffers.forceReload();
+		StreamBufferAllocator.forceReload();
 		//ClassInspector.inspect();
 	}
 

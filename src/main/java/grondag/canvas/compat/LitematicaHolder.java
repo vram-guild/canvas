@@ -19,12 +19,14 @@ package grondag.canvas.compat;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.google.common.util.concurrent.Runnables;
 
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -33,9 +35,9 @@ import grondag.canvas.CanvasMod;
 class LitematicaHolder {
 	static Runnable litematicaReload = Runnables.doNothing();
 	static Consumer<Frustum> litematicaTerrainSetup = f -> { };
-	static Consumer<MatrixStack> litematicaRenderSolids = s -> { };
-	static Consumer<MatrixStack> litematicaRenderTranslucent = s -> { };
-	static Consumer<MatrixStack> litematicaRenderOverlay = s -> { };
+	static BiConsumer<MatrixStack, Matrix4f> litematicaRenderSolids = (s, p) -> { };
+	static BiConsumer<MatrixStack, Matrix4f> litematicaRenderTranslucent = (s, p) -> { };
+	static BiConsumer<MatrixStack, Matrix4f> litematicaRenderOverlay = (s, p) -> { };
 	static EntityHandler litematicaEntityHandler = (s, t) -> { };
 
 	private static boolean warnLoad = true;
@@ -62,23 +64,23 @@ class LitematicaHolder {
 				final MethodHandle prepHandler = lookup.unreflect(prep);
 				final MethodHandle boundPrepHandler = prepHandler.bindTo(instance);
 
-				final Method solid = clazz.getDeclaredMethod("piecewiseRenderSolid", MatrixStack.class);
+				final Method solid = clazz.getDeclaredMethod("piecewiseRenderSolid", MatrixStack.class, Matrix4f.class);
 				final MethodHandle solidHandler = lookup.unreflect(solid);
 				final MethodHandle boundSolidHandler = solidHandler.bindTo(instance);
 
-				final Method cutout = clazz.getDeclaredMethod("piecewiseRenderCutout", MatrixStack.class);
+				final Method cutout = clazz.getDeclaredMethod("piecewiseRenderCutout", MatrixStack.class, Matrix4f.class);
 				final MethodHandle cutoutHandler = lookup.unreflect(cutout);
 				final MethodHandle boundCutoutHandler = cutoutHandler.bindTo(instance);
 
-				final Method mipped = clazz.getDeclaredMethod("piecewiseRenderCutoutMipped", MatrixStack.class);
+				final Method mipped = clazz.getDeclaredMethod("piecewiseRenderCutoutMipped", MatrixStack.class, Matrix4f.class);
 				final MethodHandle mippedHandler = lookup.unreflect(mipped);
 				final MethodHandle boundMippedHandler = mippedHandler.bindTo(instance);
 
-				final Method translucent = clazz.getDeclaredMethod("piecewiseRenderTranslucent", MatrixStack.class);
+				final Method translucent = clazz.getDeclaredMethod("piecewiseRenderTranslucent", MatrixStack.class, Matrix4f.class);
 				final MethodHandle translucentHandler = lookup.unreflect(translucent);
 				final MethodHandle boundTranslucentHandler = translucentHandler.bindTo(instance);
 
-				final Method overlay = clazz.getDeclaredMethod("piecewiseRenderOverlay", MatrixStack.class);
+				final Method overlay = clazz.getDeclaredMethod("piecewiseRenderOverlay", MatrixStack.class, Matrix4f.class);
 				final MethodHandle overlayHandler = lookup.unreflect(overlay);
 				final MethodHandle boundOverlayHandler = overlayHandler.bindTo(instance);
 
@@ -110,11 +112,11 @@ class LitematicaHolder {
 					}
 				};
 
-				litematicaRenderSolids = (s) -> {
+				litematicaRenderSolids = (s, p) -> {
 					try {
-						boundSolidHandler.invokeExact(s);
-						boundCutoutHandler.invokeExact(s);
-						boundMippedHandler.invokeExact(s);
+						boundSolidHandler.invokeExact(s, p);
+						boundCutoutHandler.invokeExact(s, p);
+						boundMippedHandler.invokeExact(s, p);
 					} catch (final Throwable e) {
 						if (warnSolid) {
 							CanvasMod.LOG.warn("Unable to call Litematica solids hook due to exception:", e);
@@ -124,9 +126,9 @@ class LitematicaHolder {
 					}
 				};
 
-				litematicaRenderTranslucent = (s) -> {
+				litematicaRenderTranslucent = (s, p) -> {
 					try {
-						boundTranslucentHandler.invokeExact(s);
+						boundTranslucentHandler.invokeExact(s, p);
 					} catch (final Throwable e) {
 						if (warnTranslucent) {
 							CanvasMod.LOG.warn("Unable to call Litematica translucent hook due to exception:", e);
@@ -136,9 +138,9 @@ class LitematicaHolder {
 					}
 				};
 
-				litematicaRenderOverlay = (s) -> {
+				litematicaRenderOverlay = (s, p) -> {
 					try {
-						boundOverlayHandler.invokeExact(s);
+						boundOverlayHandler.invokeExact(s, p);
 					} catch (final Throwable e) {
 						if (warnOverlay) {
 							CanvasMod.LOG.warn("Unable to call Litematica overlay hook due to exception:", e);

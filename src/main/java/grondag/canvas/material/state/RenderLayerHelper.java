@@ -66,6 +66,7 @@ public final class RenderLayerHelper {
 		// draw order is important and our sorting mechanism doesn't cover
 		EXCLUSIONS.add(RenderLayer.getWaterMask());
 		EXCLUSIONS.add(RenderLayer.getEndPortal());
+		EXCLUSIONS.add(RenderLayer.getEndGateway());
 
 		ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
 			EXCLUSIONS.add(renderLayer);

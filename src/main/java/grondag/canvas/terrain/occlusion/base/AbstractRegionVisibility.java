@@ -61,8 +61,9 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 		}
 	}
 
-	public boolean wasRecentlySeen() {
-		return visibility.version() - visibilityVersion < 4 && result != OcclusionResult.REGION_NOT_VISIBLE;
+	/** Used for entity culling so needs to error on the side of caution. */
+	public boolean isPotentiallyVisible() {
+		return visibility.version() != visibilityVersion || result != OcclusionResult.REGION_NOT_VISIBLE;
 	}
 
 	/**

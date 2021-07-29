@@ -24,9 +24,11 @@ import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.buffer.VboBuffer;
-import grondag.canvas.buffer.encoding.ArrayVertexCollector;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.render.StaticDrawBuffer;
+import grondag.canvas.buffer.render.TransferBuffer;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.WorldRendererExt;
@@ -50,7 +52,7 @@ public class PipelineManager {
 	static ProcessShader debugDepthShader;
 	static ProcessShader debugDepthArrayShader;
 
-	static VboBuffer drawBuffer;
+	static StaticDrawBuffer drawBuffer;
 	static int h;
 	static int w;
 	private static int oldTex0;
@@ -219,7 +221,7 @@ public class PipelineManager {
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 
-		final ArrayVertexCollector collector = new ArrayVertexCollector(RenderState.MISSING);
+		final ArrayVertexCollector collector = new ArrayVertexCollector(RenderState.MISSING, false);
 		final int k = collector.allocate(30);
 		final int[] v = collector.data();
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k);
@@ -229,8 +231,9 @@ public class PipelineManager {
 		addVertex(0f, 1f, 0.2f, 0f, 0f, v, k + 20);
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k + 25);
 
-		drawBuffer = new VboBuffer(collector.byteSize(), CanvasVertexFormats.PROCESS_VERTEX_UV);
-		collector.toBuffer(drawBuffer.intBuffer());
+		TransferBuffer transfer = TransferBuffers.claim(collector.byteSize());
+		collector.toBuffer(0, transfer, 0);
+		drawBuffer = new StaticDrawBuffer(CanvasVertexFormats.PROCESS_VERTEX_UV, transfer);
 		drawBuffer.upload();
 
 		collector.clear(); // releases storage
@@ -250,7 +253,7 @@ public class PipelineManager {
 		debugDepthArrayShader = ProcessShader.unload(debugDepthArrayShader);
 
 		if (drawBuffer != null) {
-			drawBuffer.close();
+			drawBuffer.release();
 			drawBuffer = null;
 		}
 	}

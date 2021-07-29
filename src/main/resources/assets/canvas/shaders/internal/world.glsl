@@ -62,8 +62,8 @@
 
 // x = fog start
 // y = fog end
-// z = unused
-// w = unused
+// z = held light inner angle
+// w = held light outer angle
 #define _CV_RENDER_INFO 19
 
 // UINT ARRAY

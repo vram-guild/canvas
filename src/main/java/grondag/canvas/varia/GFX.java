@@ -16,12 +16,15 @@
 
 package grondag.canvas.varia;
 
+import static org.lwjgl.system.MemoryUtil.memAddress;
+
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL46C;
 
@@ -57,6 +60,12 @@ public class GFX extends GL46C {
 		return true;
 	}
 
+	// FIX: VaoTracker should be removed or disabled because it isn't finding anything useful.
+	// And should consider disabling disableVertexAttribArray from vanilla code because both vanilla
+	// and Canvas always use VAOs for drawing, and neither one reuses the same VAO with different formats.
+	// That makes it unnecessary to ever call this method, but Mojang does.  They also hold the last format
+	// used as global state in BufferRenderer and lazily disable, which can cause problems if anyone else does
+	// anything with VAOs.
 	public static void disableVertexAttribArray(int index) {
 		VaoTracker.disable(index);
 		glDisableVertexAttribArray(index);
@@ -214,6 +223,7 @@ public class GFX extends GL46C {
 		assert logError("glGenBuffers");
 	}
 
+	/** Use GLBufferAllocator instead! */
 	public static int genBuffer() {
 		final int result = glGenBuffers();
 		assert logError("glGenBuffers");
@@ -855,5 +865,37 @@ public class GFX extends GL46C {
 	public static void copyBufferSubData(int readTarget, int writeTarget, long readOffset, long writeOffset, long size) {
 		glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
 		assert logError("glCopyBufferSubData");
+	}
+
+	public static void multiDrawArrays(int target, int[] first, int[] count) {
+		glMultiDrawArrays(target, first, count);
+		assert logError("glMultiDrawArrays");
+	}
+
+	public static void multiDrawElementsBaseVertex(int mode, int[] count, int type, PointerBuffer indices, int[] basevertex) {
+		glMultiDrawElementsBaseVertex(mode, count, type, indices, basevertex);
+		assert logError("glMultiDrawElementsBaseVertex");
+	}
+
+	public static void bufferSubData(int target, long offsetBytes, long sizeBytes, ByteBuffer data) {
+		nglBufferSubData(target, offsetBytes, sizeBytes, memAddress(data));
+		assert logError("nglBufferSubData");
+	}
+
+	public static long fenceSynch() {
+		final long result = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		assert logError("glFenceSync");
+		return result;
+	}
+
+	public static int clientWaitSync(long synch, int flags, long timeoutNanos) {
+		final int result = glClientWaitSync(synch, flags, timeoutNanos);
+		assert logError("glClientWaitSync");
+		return result;
+	}
+
+	public static void bufferStorage(int target, long size, int flags) {
+		glBufferStorage(target, size, flags);
+		assert logError("glBufferStorage");
 	}
 }

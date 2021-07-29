@@ -30,6 +30,8 @@ import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
+import static grondag.canvas.config.Configurator.enableNearOccluders;
+import static grondag.canvas.config.Configurator.steadyDebugScreen;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
@@ -54,6 +56,8 @@ import static grondag.canvas.config.Configurator.shaderDebug;
 import static grondag.canvas.config.Configurator.staticFrustumPadding;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
+import static grondag.canvas.config.Configurator.transferBufferMode;
+import static grondag.canvas.config.Configurator.useCombinedThreadPool;
 import static grondag.canvas.config.Configurator.wavyGrass;
 
 import java.lang.ref.WeakReference;
@@ -70,6 +74,7 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineDescription;
@@ -321,6 +326,46 @@ public class ConfigGui {
 				})
 				.build());
 
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.enable_near_occluders"), enableNearOccluders)
+				.setDefaultValue(DEFAULTS.enableNearOccluders)
+				.setTooltip(parse("config.canvas.help.enable_near_occluders"))
+				.setSaveConsumer(b -> {
+					enableNearOccluders = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.use_combined_thread_pool"), useCombinedThreadPool)
+				.setDefaultValue(DEFAULTS.useCombinedThreadPool)
+				.setTooltip(parse("config.canvas.help.use_combined_thread_pool"))
+				.requireRestart()
+				.setSaveConsumer(b -> {
+					useCombinedThreadPool = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER.startEnumSelector(new TranslatableText("config.canvas.value.transfer_buffer_mode"),
+				TransferBuffers.Config.class,
+				transferBufferMode)
+				.setDefaultValue(DEFAULTS.transferBufferMode)
+				.setSaveConsumer(b -> {
+					reload |= transferBufferMode != b;
+					transferBufferMode = b;
+				})
+				.setEnumNameProvider(a -> new LiteralText(a.toString()))
+				.setTooltip(parse("config.canvas.help.transfer_buffer_mode"))
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.steady_debug_screen"), steadyDebugScreen)
+				.setDefaultValue(DEFAULTS.steadyDebugScreen)
+				.setTooltip(parse("config.canvas.help.steady_debug_screen"))
+				.setSaveConsumer(b -> {
+					steadyDebugScreen = b;
+				})
+				.build());
+
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
 
@@ -475,6 +520,20 @@ public class ConfigGui {
 			.setTooltip(parse("config.canvas.help.profiler_overlay_scale"))
 			.setSaveConsumer(b -> profilerOverlayScale = b)
 			.build());
+
+		// WIP: need to ensure old config is fully unloaded on switch
+		//		debug.addEntry(ENTRY_BUILDER.startEnumSelector(
+		//				new TranslatableText("config.canvas.value.terrain_vertex_config"),
+		//				TerrainVertexConfig.class, terrainVertexConfig)
+		//				.setDefaultValue(DEFAULTS.terrainVertexConfig)
+		//				.setSaveConsumer(b -> {
+		//
+		//					reload |= terrainVertexConfig != b;
+		//					terrainVertexConfig = b;
+		//				})
+		//				.setEnumNameProvider(a -> new LiteralText(a.toString()))
+		//				.setTooltip(parse("config.canvas.help.terrain_vertex_config"))
+		//				.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 

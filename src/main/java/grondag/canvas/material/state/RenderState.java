@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
 
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -39,7 +38,6 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
-import grondag.canvas.vf.VfInt;
 import grondag.fermion.bits.BitPacker64;
 
 /**
@@ -98,22 +96,23 @@ public final class RenderState extends AbstractRenderState {
 	}
 
 	public void enable() {
-		enable(0, 0, 0);
+		enable(0, 0, 0, 0, 0);
 	}
 
-	public void enable(int x, int y, int z) {
+	public void enable(int x, int y, int z, int regionBaseIndex, int quadMapBaseIndex) {
 		if (SkyShadowRenderer.isActive()) {
-			enableDepthPass(x, y, z, SkyShadowRenderer.cascade());
+			enableDepthPass(x, y, z, SkyShadowRenderer.cascade(), regionBaseIndex, quadMapBaseIndex);
 		} else {
-			enableMaterial(x, y, z);
+			enableMaterial(x, y, z, regionBaseIndex, quadMapBaseIndex);
 		}
 	}
 
-	private void enableDepthPass(int x, int y, int z, int cascade) {
-		final MaterialShaderImpl depthShader = Configurator.vf ? vfDepthShader : this.depthShader;
+	private void enableDepthPass(int x, int y, int z, int cascade, int regionBaseIndex, int quadMapBaseIndex) {
+		final MatrixState matrixState = MatrixState.get();
+		final MaterialShaderImpl depthShader = matrixState == MatrixState.REGION ? terrainDepthShader : this.depthShader;
 
-		if (shadowActive == this) {
-			depthShader.setModelOrigin(x, y, z);
+		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
+			depthShader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
 			depthShader.setCascade(cascade);
 			return;
 		}
@@ -124,13 +123,10 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		shadowActive = this;
+		shadowCurrentMatrixState = matrixState;
 		active = null;
+		currentMatrixState = null;
 		texture.materialIndexProvider().enable();
-
-		if (Configurator.vf) {
-			VfInt.COLOR.enable();
-			VfInt.UV.enable();
-		}
 
 		texture.enable(blur);
 		transparency.enable();
@@ -147,7 +143,7 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.setEnabled(lines);
 
 		depthShader.updateContextInfo(texture.atlasInfo(), target.index);
-		depthShader.setModelOrigin(x, y, z);
+		depthShader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
 		depthShader.setCascade(cascade);
 
 		GFX.enable(GFX.GL_POLYGON_OFFSET_FILL);
@@ -155,12 +151,13 @@ public final class RenderState extends AbstractRenderState {
 		//GL46.glCullFace(GL46.GL_FRONT);
 	}
 
-	private void enableMaterial(int x, int y, int z) {
+	private void enableMaterial(int x, int y, int z, int regionBaseIndex, int quadMapBaseIndex) {
 		final MaterialShaderImpl shader;
+		final MatrixState matrixState = MatrixState.get();
 
-		switch (MatrixState.get()) {
+		switch (matrixState) {
 			case REGION:
-				shader = Configurator.vf ? vfShader : this.shader;
+				shader = terrainShader;
 				break;
 			case SCREEN:
 				shader = guiShader;
@@ -171,8 +168,8 @@ public final class RenderState extends AbstractRenderState {
 				break;
 		}
 
-		if (active == this) {
-			shader.setModelOrigin(x, y, z);
+		if (active == this && matrixState == currentMatrixState) {
+			shader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
 			return;
 		}
 
@@ -185,14 +182,10 @@ public final class RenderState extends AbstractRenderState {
 		}
 
 		active = this;
+		currentMatrixState = matrixState;
 		shadowActive = null;
+		shadowCurrentMatrixState = null;
 		texture.materialIndexProvider().enable();
-
-		if (shader.programType.vf) {
-			VfInt.COLOR.enable();
-			VfInt.UV.enable();
-			assert MatrixState.get() == MatrixState.REGION;
-		}
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
@@ -228,7 +221,7 @@ public final class RenderState extends AbstractRenderState {
 		LINE_STATE.setEnabled(lines);
 
 		shader.updateContextInfo(texture.atlasInfo(), target.index);
-		shader.setModelOrigin(x, y, z);
+		shader.setModelOrigin(x, y, z, regionBaseIndex, quadMapBaseIndex);
 	}
 
 	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(GFX::enableCull, GFX::disableCull);
@@ -257,6 +250,8 @@ public final class RenderState extends AbstractRenderState {
 
 		active = null;
 		shadowActive = null;
+		currentMatrixState = null;
+		shadowCurrentMatrixState = null;
 
 		GFX.glDisable(GFX.GL_POLYGON_OFFSET_FILL);
 		GFX.glCullFace(GFX.GL_BACK);
@@ -272,11 +267,6 @@ public final class RenderState extends AbstractRenderState {
 		MaterialTextureState.disable();
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		MaterialIndexTexture.disable();
-
-		if (Configurator.vf) {
-			VfInt.COLOR.disable();
-			VfInt.UV.disable();
-		}
 
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
@@ -294,6 +284,8 @@ public final class RenderState extends AbstractRenderState {
 
 	private static RenderState active = null;
 	private static RenderState shadowActive = null;
+	private static MatrixState currentMatrixState = null;
+	private static MatrixState shadowCurrentMatrixState = null;
 
 	public static final RenderState MISSING = new RenderState(0);
 

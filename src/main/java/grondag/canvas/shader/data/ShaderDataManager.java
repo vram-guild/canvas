@@ -30,7 +30,9 @@ import static grondag.canvas.shader.data.FloatData.FOG_END;
 import static grondag.canvas.shader.data.FloatData.FOG_START;
 import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_BLUE;
 import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_GREEN;
+import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_INNER_ANGLE;
 import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_INTENSITY;
+import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_OUTER_ANGLE;
 import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_RED;
 import static grondag.canvas.shader.data.FloatData.MOON_SIZE;
 import static grondag.canvas.shader.data.FloatData.NIGHT_VISION_STRENGTH;
@@ -132,6 +134,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -149,6 +152,7 @@ import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.varia.CelestialObjectFunction;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectInput;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
+import grondag.frex.api.event.HeldItemLightListener;
 import grondag.frex.api.light.ItemLight;
 
 public class ShaderDataManager {
@@ -541,21 +545,27 @@ public class ShaderDataManager {
 			ItemLight light = ItemLight.NONE;
 
 			if (player != null) {
-				light = ItemLight.get(player.getMainHandStack());
+				ItemStack stack = player.getMainHandStack();
+				light = ItemLight.get(stack);
 
 				if (light == ItemLight.NONE) {
-					light = ItemLight.get(player.getOffHandStack());
+					stack = player.getOffHandStack();
+					light = ItemLight.get(stack);
 				}
 
 				if (!light.worksInFluid() && player.isSubmergedInWater()) {
 					light = ItemLight.NONE;
 				}
+
+				light = HeldItemLightListener.apply(player, stack, light);
 			}
 
 			FLOAT_VECTOR_DATA.put(HELD_LIGHT_RED, light.red());
 			FLOAT_VECTOR_DATA.put(HELD_LIGHT_GREEN, light.green());
 			FLOAT_VECTOR_DATA.put(HELD_LIGHT_BLUE, light.blue());
 			FLOAT_VECTOR_DATA.put(HELD_LIGHT_INTENSITY, light.intensity());
+			FLOAT_VECTOR_DATA.put(HELD_LIGHT_INNER_ANGLE, (float) (0.5 * Math.toRadians(light.innerConeAngleDegrees())));
+			FLOAT_VECTOR_DATA.put(HELD_LIGHT_OUTER_ANGLE, (float) (0.5 * Math.toRadians(light.outerConeAngleDegrees())));
 
 			FLOAT_VECTOR_DATA.put(AMBIENT_INTENSITY, world.method_23783(1.0F));
 			FLOAT_VECTOR_DATA.put(MOON_SIZE, world.getMoonSize());

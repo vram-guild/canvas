@@ -118,7 +118,6 @@ public abstract class AbstractVisbility<T extends AbstractVisbility<T, U, V, W>,
 		shouldInvalidateNextPass = false;
 
 		if (pvrsVersion != pvrs.version()) {
-			pvrsVersion = pvrs.version();
 			result = true;
 		}
 
@@ -136,6 +135,8 @@ public abstract class AbstractVisbility<T extends AbstractVisbility<T, U, V, W>,
 		} else {
 			pvrs.returnToStart();
 		}
+
+		pvrsVersion = pvrs.version();
 
 		return result;
 	}

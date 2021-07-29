@@ -40,6 +40,7 @@ import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
+import grondag.canvas.texture.ResourceCacheManager;
 import grondag.frex.api.RendererFeature;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
@@ -59,9 +60,12 @@ public class CanvasMod implements ClientModInitializer {
 	public static KeyBinding DEBUG_PREV = new KeyBinding("key.canvas.debug_prev", Character.valueOf('['), "key.canvas.category");
 	public static KeyBinding DEBUG_NEXT = new KeyBinding("key.canvas.debug_next", Character.valueOf(']'), "key.canvas.category");
 	public static KeyBinding RECOMPILE = new KeyBinding("key.canvas.recompile", Character.valueOf('='), "key.canvas.category");
+	public static String versionString = "unknown";
 
 	@Override
 	public void onInitializeClient() {
+		versionString = FabricLoader.getInstance().getModContainer(CanvasMod.MODID).get().getMetadata().getVersion().getFriendlyString();
+
 		ConfigManager.init();
 		RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
 		RendererFeature.registerFeatures(RendererFeature.UPDATE_MATERIAL_REGISTRATION);
@@ -93,5 +97,6 @@ public class CanvasMod implements ClientModInitializer {
 		});
 
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(PipelineLoader.INSTANCE);
+		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(ResourceCacheManager.cacheReloader);
 	}
 }

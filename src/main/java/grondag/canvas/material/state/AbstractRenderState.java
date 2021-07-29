@@ -58,7 +58,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final String fragmentShader;
 	public final MaterialShaderImpl shader;
 	public final MaterialShaderImpl guiShader;
-	public final MaterialShaderImpl vfShader;
+	public final MaterialShaderImpl terrainShader;
 
 	public final int depthVertexShaderIndex;
 	public final Identifier depthVertexShaderId;
@@ -67,7 +67,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final Identifier depthFragmentShaderId;
 	public final String depthFragmentShader;
 	public final MaterialShaderImpl depthShader;
-	public final MaterialShaderImpl vfDepthShader;
+	public final MaterialShaderImpl terrainDepthShader;
 	/**
 	 * Will be always visible condition in vertex-controlled render state.
 	 * This is ensured by the state mask.
@@ -122,10 +122,10 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 
 		primaryTargetTransparency = primaryTargetTransparency();
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
-		vfShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_VF);
 		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
 		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
-		vfDepthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_VF);
+		terrainShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
+		terrainDepthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
 		blendMode = blendMode();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();

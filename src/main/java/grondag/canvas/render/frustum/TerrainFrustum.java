@@ -172,6 +172,9 @@ public class TerrainFrustum extends CanvasFrustum {
 		final double y = cameraPos.y;
 		final double z = cameraPos.z;
 
+		// Ignore near occluders if they aren't occluding!
+		nearOccludersPresent &= Configurator.enableNearOccluders;
+
 		final long cameraBlockPos = camera.getBlockPos().asLong();
 		boolean movedEnoughToInvalidateOcclusion = false;
 
@@ -183,7 +186,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			final double dx = x - lastOcclusionPositionX;
 			final double dy = y - lastOcclusionPositionY;
 			final double dz = z - lastOcclusionPositionZ;
-			movedEnoughToInvalidateOcclusion = dx * dx + dy * dy + dz * dz >= (nearOccludersPresent ? 0.01D : 1.0D);
+			movedEnoughToInvalidateOcclusion = dx * dx + dy * dy + dz * dz >= (nearOccludersPresent ? 0.0005D : 1.0D);
 		}
 
 		if (movedEnoughToInvalidateOcclusion) {
@@ -230,6 +233,10 @@ public class TerrainFrustum extends CanvasFrustum {
 
 			viewDistanceSquared = MinecraftClient.getInstance().options.viewDistance * 16;
 			viewDistanceSquared *= viewDistanceSquared;
+
+			// compatibility with mods that expect vanilla frustum
+			super.setPosition(x, y, z);
+			super.init(modelMatrix, projectionMatrix);
 		}
 	}
 

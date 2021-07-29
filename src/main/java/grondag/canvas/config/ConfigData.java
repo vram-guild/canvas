@@ -18,6 +18,7 @@ package grondag.canvas.config;
 
 import blue.endless.jankson.Comment;
 
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.pipeline.config.PipelineConfig;
 
 class ConfigData {
@@ -67,6 +68,10 @@ class ConfigData {
 	int dynamicFrustumPadding = 20;
 	@Comment("Culls particles that are not in view. Should always be faster.")
 	boolean cullParticles = true;
+	@Comment("Use Canvas thread pool for rendering and local server tasks. May reduce lag spikes caused by thread contention.")
+	boolean useCombinedThreadPool = false;
+	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
+	boolean steadyDebugScreen = true;
 
 	// DEBUG
 	@Comment("Output runtime per-material shader source. For shader development debugging.")
@@ -109,6 +114,10 @@ class ConfigData {
 	int profilerDetailLevel = 0;
 	@Comment("Size of the profiler overlay relative to GUI scale.")
 	float profilerOverlayScale = 0.5f;
-	//WIP: remove
-	boolean vf = false;
+	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
+	boolean enableNearOccluders = false;
+	//WIP: docs
+	TerrainRenderConfigOption terrainRenderConfig = TerrainRenderConfigOption.DEFAULT;
+	@Comment("Method used to transfer data to GPU. AUTO is recommended but performance can be specific to your system. Other options are DIRECT, HYBRID, and MAPPED")
+	public TransferBuffers.Config transferBufferMode = TransferBuffers.Config.AUTO;
 }

@@ -27,7 +27,7 @@ import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 
-import grondag.canvas.buffer.encoding.CanvasImmediate;
+import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.mixinterface.BufferBuilderStorageExt;
 
 @Mixin(BufferBuilderStorage.class)

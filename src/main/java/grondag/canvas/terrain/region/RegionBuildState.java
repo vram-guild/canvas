@@ -26,8 +26,8 @@ import net.minecraft.block.entity.BlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.buffer.encoding.ArrayVertexCollector;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 
@@ -46,8 +46,12 @@ public class RegionBuildState {
 		return blockEntities;
 	}
 
-	public void endBuffering(float x, float y, float z, VertexCollectorList buffers) {
-		final ArrayVertexCollector buffer = buffers.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
+	/**
+	 * Persists data for translucency resort if needed, also performing initial sort.
+	 * Should be called after vertex collection is complete.
+	 */
+	public void prepareTranslucentIfNeeded(float x, float y, float z, VertexCollectorList collectors) {
+		final ArrayVertexCollector buffer = collectors.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null && !buffer.isEmpty()) {
 			buffer.sortQuads(x, y, z);
@@ -59,7 +63,7 @@ public class RegionBuildState {
 		return occlusionData;
 	}
 
-	public void complete(int[] occlusionData) {
+	public void setOcclusionData(int[] occlusionData) {
 		this.occlusionData = occlusionData;
 	}
 

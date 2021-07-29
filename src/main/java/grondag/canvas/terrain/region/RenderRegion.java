@@ -46,12 +46,14 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.buffer.encoding.ArrayVertexCollector;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.input.VertexCollectorList;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.render.region.DrawableRegion;
-import grondag.canvas.render.region.UploadableRegion;
+import grondag.canvas.render.terrain.RegionRenderSectorMap.RegionRenderSector;
+import grondag.canvas.render.terrain.base.DrawableRegion;
+import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.camera.CameraRegionVisibility;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
@@ -60,7 +62,8 @@ import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.region.input.SignalInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
-import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
+import grondag.canvas.terrain.util.TerrainExecutor;
+import grondag.canvas.terrain.util.TerrainExecutorTask;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
@@ -75,6 +78,8 @@ public class RenderRegion implements TerrainExecutorTask {
 	public final CameraRegionVisibility cameraVisibility;
 	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
+
+	private RegionRenderSector renderSector = null;
 
 	/**
 	 * Set by main thread during schedule. Retrieved and set to null by worker
@@ -155,14 +160,18 @@ public class RenderRegion implements TerrainExecutorTask {
 			buildState.set(RegionBuildState.UNBUILT);
 			needsRebuild = true;
 			origin.close();
+
+			if (renderSector != null) {
+				renderSector = renderSector.release(origin);
+			}
 		}
 	}
 
 	private void releaseDrawables() {
-		solidDrawable.close();
+		solidDrawable.releaseFromRegion();
 		solidDrawable = DrawableRegion.EMPTY_DRAWABLE;
 
-		translucentDrawable.close();
+		translucentDrawable.releaseFromRegion();
 		translucentDrawable = DrawableRegion.EMPTY_DRAWABLE;
 	}
 
@@ -195,7 +204,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		// If region is something other than idle, we are already in the queue
 		// and we only need to update the input protoRegion (which we do here.)
 		if (inputState.getAndSet(region) == SignalInputRegion.IDLE) {
-			renderRegionBuilder.executor.execute(this);
+			TerrainExecutor.INSTANCE.execute(this);
 		}
 
 		markBuilt();
@@ -223,7 +232,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		if (regionData.translucentState != null && inputState.compareAndSet(SignalInputRegion.IDLE, SignalInputRegion.RESORT_ONLY)) {
 			// null means need to reschedule, otherwise was already scheduled for either
 			// resort or rebuild, or is invalid, not ready to be built.
-			renderRegionBuilder.executor.execute(this);
+			TerrainExecutor.INSTANCE.execute(this);
 			return true;
 		} else {
 			return false;
@@ -256,7 +265,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		if (protoRegion == SignalInputRegion.EMPTY) {
 			final RegionBuildState chunkData = new RegionBuildState();
-			chunkData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
+			chunkData.setOcclusionData(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
 			final RegionBuildState oldBuildData = buildState.getAndSet(chunkData);
@@ -307,7 +316,7 @@ public class RenderRegion implements TerrainExecutorTask {
 					regionData.translucentState = collector.saveState(state);
 
 					if (runningState.get() != SignalInputRegion.INVALID) {
-						final UploadableRegion upload = collectors.toUploadableChunk(true);
+						final UploadableRegion upload = collectors.toUploadableChunk(true, origin.asLong());
 
 						if (upload != UploadableRegion.EMPTY_UPLOADABLE) {
 							renderRegionBuilder.scheduleUpload(() -> {
@@ -315,8 +324,9 @@ public class RenderRegion implements TerrainExecutorTask {
 									ChunkRebuildCounters.startUpload();
 								}
 
-								translucentDrawable.close();
+								translucentDrawable.releaseFromRegion();
 								translucentDrawable = upload.produceDrawable();
+								worldRenderState.invalidateDrawLists();
 
 								if (ChunkRebuildCounters.ENABLED) {
 									ChunkRebuildCounters.completeUpload();
@@ -330,8 +340,9 @@ public class RenderRegion implements TerrainExecutorTask {
 			}
 		} else {
 			context.prepareForRegion(protoRegion);
-			final RegionBuildState chunkData = captureBuildState(context, origin.isNear());
-
+			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
+			context.sectorId = renderSector.sectorId();
+			context.sectorRelativeRegionOrigin = renderSector.sectorRelativeRegionOrigin(origin);
 			final VertexCollectorList collectors = context.collectors;
 
 			if (runningState.get() == SignalInputRegion.INVALID) {
@@ -340,11 +351,11 @@ public class RenderRegion implements TerrainExecutorTask {
 				return;
 			}
 
-			buildTerrain(context, chunkData);
+			buildTerrain(context, newBuildState);
 
 			if (runningState.get() != SignalInputRegion.INVALID) {
-				final UploadableRegion solidUpload = collectors.toUploadableChunk(false);
-				final UploadableRegion translucentUpload = collectors.toUploadableChunk(true);
+				final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin.asLong());
+				final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin.asLong());
 
 				if (solidUpload != UploadableRegion.EMPTY_UPLOADABLE || translucentUpload != UploadableRegion.EMPTY_UPLOADABLE) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -355,6 +366,7 @@ public class RenderRegion implements TerrainExecutorTask {
 						releaseDrawables();
 						solidDrawable = solidUpload.produceDrawable();
 						translucentDrawable = translucentUpload.produceDrawable();
+						worldRenderState.invalidateDrawLists();
 
 						if (ChunkRebuildCounters.ENABLED) {
 							ChunkRebuildCounters.completeUpload();
@@ -368,13 +380,19 @@ public class RenderRegion implements TerrainExecutorTask {
 		}
 	}
 
-	private RegionBuildState captureBuildState(TerrainRenderContext context, boolean isNear) {
+	private RegionBuildState captureAndSetBuildState(TerrainRenderContext context, boolean isNear) {
 		final RegionBuildState newBuildState = new RegionBuildState();
-		newBuildState.complete(context.region.occlusion.build(isNear));
+		newBuildState.setOcclusionData(context.region.occlusion.build(isNear));
 		handleBlockEntities(newBuildState, context);
 
 		// don't rebuild occlusion if occlusion did not change
 		final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
+
+		assert renderSector == null || oldBuildState != RegionBuildState.UNBUILT;
+
+		if (renderSector == null) {
+			renderSector = worldRenderState.sectorManager.findSector(origin);
+		}
 
 		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
 			notifyOcclusionChange();
@@ -383,7 +401,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		return newBuildState;
 	}
 
-	private void buildTerrain(TerrainRenderContext context, RegionBuildState regionData) {
+	private void buildTerrain(TerrainRenderContext context, RegionBuildState buildState) {
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startChunk();
 		}
@@ -403,6 +421,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
+		final boolean applyBlockPosTranslation = Configurator.terrainRenderConfig.shouldApplyBlockPosTranslation;
 
 		for (int i = 0; i < RenderRegionStateIndexer.INTERIOR_STATE_COUNT; i++) {
 			if (occlusionRegion.shouldRender(i)) {
@@ -419,7 +438,11 @@ public class RenderRegion implements TerrainExecutorTask {
 				if (hasFluid || hasBlock) {
 					// Vanilla does a push/pop for each block but that creates needless allocation spam.
 					modelMatrix.loadIdentity();
-					modelMatrix.multiplyByTranslation(x, y, z);
+
+					if (applyBlockPosTranslation) {
+						modelMatrix.multiplyByTranslation(x, y, z);
+					}
+
 					normalMatrix.loadIdentity();
 
 					if (hasFluid) {
@@ -443,7 +466,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		}
 
 		final Vec3d sortPos = worldRenderState.cameraVisibleRegions.lastSortPos();
-		regionData.endBuffering((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
+		buildState.prepareTranslucentIfNeeded((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();
@@ -493,43 +516,46 @@ public class RenderRegion implements TerrainExecutorTask {
 	}
 
 	public void rebuildOnMainThread() {
-		final PackedInputRegion region = PackedInputRegion.claim(worldRenderState.getWorld(), origin);
+		final PackedInputRegion inputRegion = PackedInputRegion.claim(worldRenderState.getWorld(), origin);
 
-		if (region == SignalInputRegion.EMPTY) {
-			final RegionBuildState regionData = new RegionBuildState();
-			regionData.complete(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
+		if (inputRegion == SignalInputRegion.EMPTY) {
+			final RegionBuildState newBuildState = new RegionBuildState();
+			newBuildState.setOcclusionData(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
-			final RegionBuildState oldBuildData = buildState.getAndSet(regionData);
+			final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
-			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(regionData.occlusionData, oldBuildData.occlusionData)) {
+			if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
 				// Even if empty the chunk may still be needed for visibility search to progress
 				notifyOcclusionChange();
 			}
 		} else {
-			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(region);
-			final RegionBuildState regionData = captureBuildState(context, origin.isNear());
+			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(inputRegion);
+			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
+			context.sectorId = renderSector.sectorId();
+			context.sectorRelativeRegionOrigin = renderSector.sectorRelativeRegionOrigin(origin);
 
-			buildTerrain(context, regionData);
+			buildTerrain(context, newBuildState);
 
 			if (ChunkRebuildCounters.ENABLED) {
 				ChunkRebuildCounters.startUpload();
 			}
 
 			final VertexCollectorList collectors = context.collectors;
-			final UploadableRegion solidUpload = collectors.toUploadableChunk(false);
-			final UploadableRegion translucentUpload = collectors.toUploadableChunk(true);
+			final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin.asLong());
+			final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin.asLong());
 
 			releaseDrawables();
 			solidDrawable = solidUpload.produceDrawable();
 			translucentDrawable = translucentUpload.produceDrawable();
+			worldRenderState.invalidateDrawLists();
 
 			if (ChunkRebuildCounters.ENABLED) {
 				ChunkRebuildCounters.completeUpload();
 			}
 
 			collectors.clear();
-			region.release();
+			inputRegion.release();
 		}
 
 		markBuilt();

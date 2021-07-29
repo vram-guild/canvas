@@ -18,6 +18,7 @@ package grondag.canvas.terrain.occlusion.camera;
 
 import net.minecraft.util.math.Vec3d;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.base.AbstractVisbility;
@@ -66,6 +67,9 @@ public class CameraVisibility extends AbstractVisbility<CameraVisibility, Camera
 	public void updateView(TerrainFrustum frustum, long cameraRegionOrigin) {
 		occluder.copyFrustum(frustum);
 
+		// Player can elect not to occlude near regions to prevent transient gaps
+		occluder.drawNearOccluders(Configurator.enableNearOccluders);
+
 		super.updateView(frustum, cameraRegionOrigin);
 	}
 
@@ -79,6 +83,7 @@ public class CameraVisibility extends AbstractVisbility<CameraVisibility, Camera
 		}
 
 		lastOrigin = origin;
+
 		occluder.prepareRegion(origin);
 	}
 
@@ -89,6 +94,7 @@ public class CameraVisibility extends AbstractVisbility<CameraVisibility, Camera
 
 	@Override
 	public void occlude(int[] occlusionData) {
+		// Note some occluders may not be drawn if near occluders are disabled.
 		occluder.occlude(occlusionData);
 
 		if (worldRenderState.shadowsEnabled()) {

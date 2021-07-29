@@ -23,7 +23,9 @@ import net.minecraft.util.math.MathHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.render.terrain.TerrainRenderConfig;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
@@ -46,6 +48,7 @@ public class Configurator {
 	public static int staticFrustumPadding = DEFAULTS.staticFrustumPadding;
 	public static int dynamicFrustumPadding = DEFAULTS.dynamicFrustumPadding;
 	public static boolean cullParticles = DEFAULTS.cullParticles;
+	public static boolean useCombinedThreadPool = DEFAULTS.useCombinedThreadPool;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -68,7 +71,11 @@ public class Configurator {
 	public static boolean profileGpuTime = DEFAULTS.profileGpuTime;
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
-	public static boolean vf = DEFAULTS.vf;
+	public static boolean enableNearOccluders = DEFAULTS.enableNearOccluders;
+	public static TerrainRenderConfigOption terrainRenderConfigOption = DEFAULTS.terrainRenderConfig;
+	public static TerrainRenderConfig terrainRenderConfig = terrainRenderConfigOption.config;
+	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
+	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -116,6 +123,9 @@ public class Configurator {
 		dynamicFrustumPadding = MathHelper.clamp(config.dynamicFrustumPadding, 0, 20);
 		staticFrustumPadding = MathHelper.clamp(config.staticFrustumPadding, 0, 30);
 		cullParticles = config.cullParticles;
+		useCombinedThreadPool = config.useCombinedThreadPool;
+		transferBufferMode = config.transferBufferMode;
+		steadyDebugScreen = config.steadyDebugScreen;
 
 		// lightmapDebug = config.lightmapDebug;
 		conciseErrors = config.conciseErrors;
@@ -137,7 +147,9 @@ public class Configurator {
 		profileGpuTime = config.profileGpuTime;
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
-		vf = config.vf;
+		enableNearOccluders = config.enableNearOccluders;
+		terrainRenderConfigOption = config.terrainRenderConfig;
+		terrainRenderConfig = terrainRenderConfigOption.config;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -166,6 +178,9 @@ public class Configurator {
 		config.staticFrustumPadding = staticFrustumPadding;
 		config.dynamicFrustumPadding = dynamicFrustumPadding;
 		config.cullParticles = cullParticles;
+		config.useCombinedThreadPool = useCombinedThreadPool;
+		config.transferBufferMode = transferBufferMode;
+		config.steadyDebugScreen = steadyDebugScreen;
 
 		// config.lightmapDebug = lightmapDebug;
 		config.conciseErrors = conciseErrors;
@@ -187,6 +202,7 @@ public class Configurator {
 		config.profileGpuTime = profileGpuTime;
 		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
-		config.vf = vf;
+		config.enableNearOccluders = enableNearOccluders;
+		config.terrainRenderConfig = terrainRenderConfigOption;
 	}
 }

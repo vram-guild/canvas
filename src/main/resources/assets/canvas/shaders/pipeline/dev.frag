@@ -24,6 +24,12 @@
 in vec4 shadowPos;
 out vec4[2] fragColor;
 
+#if HANDHELD_LIGHT_RADIUS != 0
+flat in float _cvInnerAngle;
+flat in float _cvOuterAngle;
+in vec4 _cvViewVertex;
+#endif
+
 /**
  * Offers results similar to vanilla in GUI, assumes a fixed transform.
  */
@@ -46,31 +52,6 @@ vec4 aoFactor(vec2 lightCoord, float ao) {
 	vec4 sky = texture(frxs_lightmap, vec2(0.03125, lightCoord.y));
 	ao = mix(bao, ao, frx_luminance(sky.rgb));
 	return vec4(ao, ao, ao, 1.0);
-}
-
-vec4 ambientLight(frx_FragmentData fragData, float exposure) {
-	vec4 result;
-	vec4 block = texture(frxs_lightmap, vec2(fragData.light.x, 0.03125));
-	vec4 sky = texture(frxs_lightmap, vec2(0.03125, fragData.light.y));
-	float skyFactor = fragData.diffuse ? 0.5 + exposure * 0.2 : 0.7;
-	result = max(block, sky * skyFactor);
-
-#if HANDHELD_LIGHT_RADIUS != 0
-	vec4 held = frx_heldLight();
-
-	if (held.w > 0.0 && !frx_isGui()) {
-		float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
-		d = 1.0 - d * d;
-
-		vec4 maxBlock = texture(frxs_lightmap, vec2(0.96875, 0.03125));
-
-		held = vec4(held.xyz, 1.0) * maxBlock * d;
-
-		result = min(result + held, 1.0);
-	}
-#endif
-
-	return result;
 }
 
 frx_FragmentData frx_createPipelineFragment() {
@@ -149,6 +130,18 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		if (held.w > 0.0) {
 			float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 			d = 1.0 - d * d;
+
+			// handle spot lights
+			if (_cvInnerAngle != 0.0) {
+				float distSq = _cvViewVertex.x * _cvViewVertex.x + _cvViewVertex.y * _cvViewVertex.y;
+				float innerLimitSq = _cvInnerAngle * frx_distance;
+				innerLimitSq *= innerLimitSq;
+				float outerLimitSq = _cvOuterAngle * frx_distance;
+				outerLimitSq *= outerLimitSq;
+
+				d = distSq < innerLimitSq ? d :
+						distSq < outerLimitSq ? d * (1.0 - (distSq - innerLimitSq) / (outerLimitSq - innerLimitSq)) : 0.0;
+			}
 
 			vec4 maxBlock = texture(frxs_lightmap, vec2(0.96875, 0.03125));
 

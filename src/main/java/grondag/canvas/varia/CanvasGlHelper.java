@@ -23,18 +23,23 @@ import org.lwjgl.opengl.GLCapabilities;
 
 import net.minecraft.client.MinecraftClient;
 
-import net.fabricmc.loader.api.FabricLoader;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 
 public class CanvasGlHelper {
+	private static boolean supportsPersistentMapped = false;
+
+	public static boolean supportsPersistentMapped() {
+		return supportsPersistentMapped;
+	}
+
 	public static void init() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasGlHelper static init");
 		}
 
 		final GLCapabilities caps = GL.getCapabilities();
+		supportsPersistentMapped = caps.glBufferStorage != 0;
 
 		if (Configurator.logMachineInfo) {
 			logMachineInfo(caps);
@@ -46,11 +51,11 @@ public class CanvasGlHelper {
 		final MinecraftClient client = MinecraftClient.getInstance();
 
 		log.info("==================  CANVAS RENDERER DEBUG INFORMATION ==================");
-		log.info(String.format(" Java: %s %dbit   Canvas: %s", System.getProperty("java.version"), client.is64Bit() ? 64 : 32,
-				FabricLoader.getInstance().getModContainer(CanvasMod.MODID).get().getMetadata().getVersion()));
+		log.info(String.format(" Java: %s %dbit   Canvas: %s", System.getProperty("java.version"), client.is64Bit() ? 64 : 32, CanvasMod.versionString));
 		log.info(String.format(" CPU: %s", GLX._getCpuInfo()));
 		log.info(String.format(" LWJGL: %s", GLX._getLWJGLVersion()));
 		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
+		log.info(String.format(" glBufferStorage: %s", caps.glBufferStorage == 0 ? "N" : "Y"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
 	}

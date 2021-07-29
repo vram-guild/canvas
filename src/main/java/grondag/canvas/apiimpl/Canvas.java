@@ -33,6 +33,7 @@ import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.buffer.format.CleanVAO;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.MaterialTextureState;
@@ -49,7 +50,6 @@ import grondag.canvas.shader.MaterialProgramManager;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
-import grondag.canvas.vf.VfInt;
 import grondag.frex.api.Renderer;
 import grondag.frex.api.material.MaterialCondition;
 
@@ -109,11 +109,7 @@ public class Canvas implements Renderer {
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
-
-		if (Configurator.vf) {
-			VfInt.UV.clear();
-			VfInt.COLOR.clear();
-		}
+		CanvasMod.LOG.info("Active terrain render config: " + Configurator.terrainRenderConfig.name);
 
 		recompile();
 	}
@@ -130,6 +126,7 @@ public class Canvas implements Renderer {
 		MaterialTextureState.reload();
 		ShaderDataManager.reload();
 		Timekeeper.configOrPipelineReload();
+		CleanVAO.reset();
 	}
 
 	@Override

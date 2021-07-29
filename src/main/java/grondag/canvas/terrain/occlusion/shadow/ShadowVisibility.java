@@ -75,15 +75,7 @@ public class ShadowVisibility extends AbstractVisbility<ShadowVisibility, Shadow
 
 	@Override
 	protected boolean prepareOccluder() {
-		boolean result = super.prepareOccluder();
-
-		if (result) {
-			targetOccluder.invalidate();
-		}
-
-		targetOccluder.prepareScene();
-
-		return result;
+		return super.prepareOccluder();
 	}
 
 	@Override

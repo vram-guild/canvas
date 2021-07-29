@@ -17,6 +17,8 @@ void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 }
 
 void main() {
+	_cv_prepareForVertex();
+
 #ifdef VANILLA_LIGHTING
 	frx_VertexData data = frx_VertexData(
 		vec4(in_vertex, 1.0),

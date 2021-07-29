@@ -36,7 +36,7 @@ import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
+import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -49,6 +49,10 @@ public abstract class AbstractRenderContext implements RenderContext {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
+
+	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
+	public int sectorId;
+	public int sectorRelativeRegionOrigin;
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;
@@ -272,5 +276,10 @@ public abstract class AbstractRenderContext implements RenderContext {
 			default:
 				assert false : "Unhandled blend mode";
 		}
+	}
+
+	public int packedRelativeBlockPos() {
+		assert false : "packedRelativeBlockPos unsupported outside of terrain rendering";
+		return 0;
 	}
 }

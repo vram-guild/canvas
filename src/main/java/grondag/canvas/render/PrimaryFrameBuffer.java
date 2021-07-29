@@ -55,9 +55,17 @@ public class PrimaryFrameBuffer extends WindowFramebuffer {
 		endRead();
 	}
 
+	private int clearCount = 0;
+
 	@Override
 	public void clear(boolean getError) {
-		// NOOP - should be done in pipeline buffers
-		CanvasMod.LOG.info("Unmanaged framebuffer clear");
+		// Should be handled in pipeline buffers so do nothing
+		// and warn when it does.
+
+		// We ignore the first call because it happens before we can prevent it
+		// and this avoids people asking us why the message is in the log.
+		if (++clearCount == 2) {
+			CanvasMod.LOG.info("Another mod is clearing the vanilla framebuffer. This message is a diagnostic aid and does not necessarily indicate a problem.");
+		}
 	}
 }

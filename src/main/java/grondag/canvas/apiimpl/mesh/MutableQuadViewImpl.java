@@ -31,6 +31,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 
 import net.minecraft.client.render.model.BakedQuad;
+import net.minecraft.client.texture.MissingSprite;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix3f;
@@ -59,7 +60,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
 	// vanilla light outputs
-	public final float[] ao = new float[4];
+	public final float[] ao = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
 	protected RenderMaterialImpl defaultMaterial = Canvas.MATERIAL_STANDARD;
 
 	private int vertexIndex = 0;
@@ -310,7 +311,14 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			v += spriteFloatV(i);
 		}
 
-		return material().texture.atlasInfo().spriteFinder().find(u * 0.25f, v * 0.25f);
+		final Sprite result = material().texture.atlasInfo().spriteFinder().find(u * 0.25f, v * 0.25f);
+
+		// Handle bug in SpriteFinder that can return sprite for the wrong atlas
+		if (result instanceof MissingSprite) {
+			return material().texture.atlasInfo().atlas().getSprite(MissingSprite.getMissingSpriteId());
+		} else {
+			return result;
+		}
 	}
 
 	@Override
@@ -470,5 +478,46 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		final float tz = mat.a20() * x + mat.a21() * y + mat.a22() * z;
 
 		return this.normal(tx, ty, tz);
+	}
+
+	public void transformAndAppendPackedVertices(final Matrix4fExt matrix, Matrix3fExt normalMatrix, int[] target, int targetIndex) {
+		final int[] data = this.data;
+		final boolean hasNormals = hasVertexNormals();
+
+		int packedNormal = 0;
+		int transformedNormal = 0;
+
+		if (hasNormals) {
+			populateMissingNormals();
+		} else {
+			packedNormal = packedFaceNormal();
+			transformedNormal = NormalHelper.shaderPackedNormal(normalMatrix.canvas_transform(packedNormal));
+		}
+
+		for (int vertexIndex = 0; vertexIndex < 4; ++vertexIndex) {
+			final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+			final float x = Float.intBitsToFloat(data[index]);
+			final float y = Float.intBitsToFloat(data[index + 1]);
+			final float z = Float.intBitsToFloat(data[index + 2]);
+
+			final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
+			final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
+			final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
+
+			target[targetIndex++] = Float.floatToRawIntBits(xOut);
+			target[targetIndex++] = Float.floatToRawIntBits(yOut);
+			target[targetIndex++] = Float.floatToRawIntBits(zOut);
+
+			if (hasNormals) {
+				final int p = packedNormal(vertexIndex);
+
+				if (p != packedNormal) {
+					packedNormal = p;
+					transformedNormal = NormalHelper.shaderPackedNormal(normalMatrix.canvas_transform(packedNormal));
+				}
+			}
+
+			target[targetIndex++] = transformedNormal;
+		}
 	}
 }

@@ -48,7 +48,7 @@ public final class MaterialShaderImpl {
 		return result;
 	}
 
-	public void setModelOrigin(int x, int y, int z) {
+	public void setModelOrigin(int x, int y, int z, int regionBaseIndex, int quadMapBaseIndex) {
 		getOrCreate().activate();
 		program.setModelOrigin(x, y, z);
 	}

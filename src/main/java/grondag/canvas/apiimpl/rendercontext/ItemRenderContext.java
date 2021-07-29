@@ -48,8 +48,8 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.CanvasImmediate;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.format.QuadEncoders;
+import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
@@ -124,7 +124,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 	@Override
 	public int indexedColor(int colorIndex) {
-		return colorIndex == -1 ? -1 : (colorMap.getColorMultiplier(itemStack, colorIndex) | 0xFF000000);
+		return colorIndex == -1 ? -1 : (colorMap.getColor(itemStack, colorIndex) | 0xFF000000);
 	}
 
 	@Override
@@ -299,7 +299,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			CanvasVertexFormats.MATERIAL_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
+			QuadEncoders.STANDARD_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
 		}
 	}
 

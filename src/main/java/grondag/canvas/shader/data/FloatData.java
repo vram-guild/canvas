@@ -101,4 +101,6 @@ public final class FloatData {
 	static final int VEC_RENDER_INFO = 4 * 19;
 	static final int FOG_START = VEC_RENDER_INFO;
 	static final int FOG_END = VEC_RENDER_INFO + 1;
+	static final int HELD_LIGHT_INNER_ANGLE = VEC_RENDER_INFO + 2;
+	static final int HELD_LIGHT_OUTER_ANGLE = VEC_RENDER_INFO + 3;
 }

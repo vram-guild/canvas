@@ -36,8 +36,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.encoding.VertexCollectorList;
-import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
@@ -56,6 +55,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
+
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
 		protected int ao(int cacheIndex) {
@@ -72,13 +72,21 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			return region.isClosed(cacheIndex);
 		}
 	};
+
 	private int cullCompletionFlags;
 	private int cullResultFlags;
+
+	private int packedRelativeBlockPos;
+
+	@Override
+	public int packedRelativeBlockPos() {
+		return packedRelativeBlockPos;
+	}
 
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new InputRegion(this);
-		collectors = new VertexCollectorList();
+		collectors = new VertexCollectorList(true);
 	}
 
 	public TerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {
@@ -115,6 +123,11 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		try {
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
+
+			if (!Configurator.terrainRenderConfig.shouldApplyBlockPosTranslation) {
+				packedRelativeBlockPos = (blockPos.getX() & 0xF) | ((blockPos.getY() & 0xF) << 4) | ((blockPos.getZ() & 0xF) << 8);
+			}
+
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;
 			model.emitBlockQuads(region, blockState, blockPos, randomSupplier, this);
@@ -182,6 +195,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		CanvasVertexFormats.TERRAIN_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
+		Configurator.terrainRenderConfig.transcoder.encode(quad, this, collectors.get(quad.material()));
 	}
 }

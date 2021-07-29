@@ -21,17 +21,18 @@ uniform int[4] _cvu_context;
 uniform isamplerBuffer _cvu_materialInfo;
 
 #ifdef VERTEX_SHADER
-
-	#ifdef CV_VF
-		uniform samplerBuffer _cvu_vfColor;
-		uniform samplerBuffer _cvu_vfUV;
-	#endif
-
 	flat out ivec4 _cvu_program;
 	flat out vec4 _cvv_spriteBounds;
+
+	// UGLY: _cv_modelOrigin is in vertex.glsl due to include order
 #else
 	flat in ivec4 _cvu_program;
 	flat in vec4 _cvv_spriteBounds;
+
+	#ifndef _CV_VERTEX_DEFAULT
+	flat in vec4 _cv_modelToWorld;
+	flat in vec4 _cv_modelToCamera;
+	#endif
 #endif
 
 int _cv_vertexProgramId() {

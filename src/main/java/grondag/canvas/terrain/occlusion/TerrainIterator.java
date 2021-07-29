@@ -40,7 +40,7 @@ import grondag.canvas.terrain.region.RegionBuildState;
 import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
-import grondag.canvas.terrain.util.TerrainExecutor.TerrainExecutorTask;
+import grondag.canvas.terrain.util.TerrainExecutorTask;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 
@@ -92,6 +92,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 	public void updateViewDependencies(Camera camera, TerrainFrustum frustum, int renderDistance) {
 		final BlockPos cameraBlockPos = camera.getBlockPos();
+		worldRenderState.sectorManager.setCameraXZ(cameraBlockPos.getX(), cameraBlockPos.getZ());
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		regionBoundingSphere.update(renderDistance);
 		this.renderDistance = renderDistance;
@@ -123,7 +124,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		this.chunkCullingEnabled = chunkCullingEnabled;
 
-		state.set(READY);
 		cancelled = false;
 
 		resetCameraOccluder = cameraVisibility.prepareForIteration();
@@ -131,6 +131,31 @@ public class TerrainIterator implements TerrainExecutorTask {
 		if (worldRenderState.shadowsEnabled()) {
 			if (resetCameraOccluder) {
 				shadowVisibility.invalidate();
+
+				// Target occluder should be reset when camera resets
+				// But not necessrily if shadow occluder resets.
+				// It's content isn't driven by the shadow occluder.
+				shadowVisibility.targetOccluder.invalidate();
+			}
+
+			if (shadowVisibility.targetOccluder.prepareScene() && !resetCameraOccluder) {
+				// If the target occluder reset for some reason other than
+				// camera occluder reset, then it will be missing all the visible
+				// terrain regions and we need to redraw them.
+				final int limit = visibleRegions.size();
+
+				for (int i = 0; i < limit; ++i) {
+					final RenderRegion r = visibleRegions.get(i);
+
+					if (r.isClosed()) continue;
+
+					final RegionBuildState buildState = r.getBuildState();
+
+					if (buildState.canOcclude()) {
+						shadowVisibility.targetOccluder.prepareRegion(r.origin);
+						shadowVisibility.targetOccluder.occludeBox(buildState.getOcclusionData()[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX]);
+					}
+				}
 			}
 
 			resetShadowOccluder = shadowVisibility.prepareForIteration();
@@ -141,7 +166,13 @@ public class TerrainIterator implements TerrainExecutorTask {
 			resetShadowOccluder = false;
 		}
 
-		return resetCameraOccluder || resetShadowOccluder;
+		final boolean result = resetCameraOccluder || resetShadowOccluder;
+
+		if (result) {
+			state.set(READY);
+		}
+
+		return result;
 	}
 
 	public int state() {
@@ -191,8 +222,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		if (cancelled) {
 			state.set(IDLE);
-			visibleRegions.clear();
-			clearShadowRegions();
 		} else {
 			assert state.get() == RUNNING;
 			state.set(COMPLETE);
@@ -295,9 +324,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 				// We are aren't culling, just add it.
 				region.neighbors.enqueueUnvistedCameraNeighbors();
 				visibleRegions.add(region);
+				state.setResult(OcclusionResult.REGION_VISIBLE);
 				cameraVisibility.prepareRegion(region.origin);
 				cameraVisibility.occlude(buildState.getOcclusionData());
-				state.setResult(OcclusionResult.REGION_VISIBLE);
 			} else {
 				cameraVisibility.prepareRegion(region.origin);
 				final int[] occlusionData = buildState.getOcclusionData();
