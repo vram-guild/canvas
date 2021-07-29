@@ -35,16 +35,19 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private int headQuadVertexIndex = 0;
 	private TransferBuffer transferBuffer;
 	private ByteBuffer uploadBuffer;
+	private final int quadVertexCapacity;
 
-	private IndexSlab() {
+	private IndexSlab(int quadVertexCapacity) {
 		// NB: STATIC makes a huge positive difference on AMD at least
-		super(BYTES_PER_INDEX_SLAB, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		super(quadVertexCapacity * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		//super(BYTES_PER_INDEX_SLAB, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		this.quadVertexCapacity = quadVertexCapacity;
 		assert RenderSystem.isOnRenderThread();
 	}
 
 	private void prepareForClaim() {
 		isClaimed = true;
-		transferBuffer = TransferBuffers.claim(BYTES_PER_INDEX_SLAB);
+		transferBuffer = TransferBuffers.claim(this.capacityBytes); //.BYTES_PER_INDEX_SLAB);
 		uploadBuffer = transferBuffer.byteBuffer();
 	}
 
@@ -65,7 +68,8 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 
 	@Override
 	public void onBufferSync() {
-		POOL.offer(this);
+		shutdown();
+		//POOL.offer(this);
 	}
 
 	/** How much vertex capacity is remaining. */
@@ -73,7 +77,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		assert !isClosed;
 		assert RenderSystem.isOnRenderThread();
 
-		return MAX_INDEX_SLAB_QUAD_VERTEX_COUNT - headQuadVertexIndex;
+		return quadVertexCapacity - headQuadVertexIndex;
 	}
 
 	/**
@@ -102,12 +106,18 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		final int limit = firstQuadVertexIndex + quadVertexCount;
 
 		while (quadVertexIndex < limit) {
-			buff.putShort(triVertexIndex++, (short) quadVertexIndex);
-			buff.putShort(triVertexIndex++, (short) (quadVertexIndex + 1));
-			buff.putShort(triVertexIndex++, (short) (quadVertexIndex + 2));
-			buff.putShort(triVertexIndex++, (short) (quadVertexIndex + 2));
-			buff.putShort(triVertexIndex++, (short) (quadVertexIndex + 3));
-			buff.putShort(triVertexIndex++, (short) quadVertexIndex);
+			buff.putShort(triVertexIndex, (short) quadVertexIndex);
+			triVertexIndex += 2;
+			buff.putShort(triVertexIndex, (short) (quadVertexIndex + 1));
+			triVertexIndex += 2;
+			buff.putShort(triVertexIndex, (short) (quadVertexIndex + 2));
+			triVertexIndex += 2;
+			buff.putShort(triVertexIndex, (short) (quadVertexIndex + 2));
+			triVertexIndex += 2;
+			buff.putShort(triVertexIndex, (short) (quadVertexIndex + 3));
+			triVertexIndex += 2;
+			buff.putShort(triVertexIndex, (short) quadVertexIndex);
+			triVertexIndex += 2;
 			quadVertexIndex += 4;
 		}
 
@@ -152,13 +162,13 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 	private static int totalSlabCount = 0;
 	private static IndexSlab fullSlabIndex;
 
-	static IndexSlab claim() {
+	static IndexSlab claim(int vertexCapacity) {
 		assert RenderSystem.isOnRenderThread();
 
 		IndexSlab result = POOL.poll();
 
 		if (result == null) {
-			result = new IndexSlab();
+			result = new IndexSlab(vertexCapacity);
 			++totalSlabCount;
 		}
 
@@ -170,7 +180,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		IndexSlab result = fullSlabIndex;
 
 		if (result == null) {
-			result = IndexSlab.claim();
+			result = IndexSlab.claim(SlabAllocator.MAX_SLAB_QUAD_VERTEX_COUNT);
 			result.allocateAndLoad(0, SlabAllocator.MAX_SLAB_QUAD_VERTEX_COUNT);
 			result.upload();
 			result.unbind();

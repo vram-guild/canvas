@@ -24,16 +24,18 @@ import org.lwjgl.system.MemoryUtil;
 import grondag.canvas.render.terrain.cluster.Slab;
 
 class DrawSpec extends AbstractVaoBinding {
-	final IndexSlab indexSlab;
+	private IndexSlab indexSlab;
 	private IntBuffer triVertexCount;
 	private IntBuffer baseQuadVertexOffset;
 	private PointerBuffer triIndexOffset;
 	private final int size;
 
-	DrawSpec(Slab slab, IndexSlab indexSlab, int[] triVertexCount, int baseQuadVertexOffset[], long triIndexOffset[]) {
+	DrawSpec(Slab slab, int maxTriVertexCount, int[] triVertexCount, int baseQuadVertexOffset[], long triIndexOffset[]) {
 		super(slab, 0);
 		size = triVertexCount.length;
-		this.indexSlab = indexSlab;
+		this.indexSlab = IndexSlab.claim(maxTriVertexCount / 6 * 4);
+		indexSlab.allocateAndLoad(0, maxTriVertexCount / 6 * 4);
+		indexSlab.upload();
 		
 		this.triVertexCount = MemoryUtil.memAllocInt(size);
 		this.triVertexCount.put(0, triVertexCount);
@@ -74,11 +76,13 @@ class DrawSpec extends AbstractVaoBinding {
 		
 		MemoryUtil.memFree(baseQuadVertexOffset);
 		baseQuadVertexOffset = null;
+		
+		indexSlab.release();
+		indexSlab = null;
 	}
 
 	@Override
 	protected IndexSlab indexSlab() {
-		return IndexSlab.fullSlabIndex();
-		//return indexSlab;
+		return indexSlab;
 	}
 }

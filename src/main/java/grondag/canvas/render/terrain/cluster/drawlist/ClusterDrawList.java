@@ -141,16 +141,19 @@ public class ClusterDrawList {
 		final int[] baseQuadVertexOffset = new int[limit];
 		final long[] triIndexOffset = new long[limit];
 
+		int maxTriVertexCount = 0;
+		
 		for (int i = 0; i < limit; ++i) {
 			final var alloc = specAllocations.get(i);
 			assert alloc.slab == slab;
-			triVertexCount[i] = Math.min(12, alloc.triVertexCount);
+			maxTriVertexCount = Math.max(maxTriVertexCount, alloc.triVertexCount);
+			triVertexCount[i] = alloc.triVertexCount; //Math.min(12, alloc.triVertexCount);
 			baseQuadVertexOffset[i] = alloc.baseQuadVertexIndex; // * SlabAllocator.BYTES_PER_SLAB_VERTEX;
 			triIndexOffset[i] = 0L;
 			//indexSlab.allocateAndLoad(alloc.baseQuadVertexIndex, alloc.quadVertexCount);
 		}
 
-		drawSpecs.add(new DrawSpec(slab, indexSlab, triVertexCount, baseQuadVertexOffset, triIndexOffset));
+		drawSpecs.add(new DrawSpec(slab, maxTriVertexCount + 6, triVertexCount, baseQuadVertexOffset, triIndexOffset));
 		//assert byteOffset + specQuadVertexCount * IndexSlab.INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER == indexSlab.nextByteOffset();
 
 		//drawSpecs.add(new DrawSpec(slab, indexSlab, specQuadVertexCount / 4 * 6, byteOffset));
