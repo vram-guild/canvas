@@ -149,7 +149,7 @@ public class ClusterDrawList {
 			maxTriVertexCount = Math.max(maxTriVertexCount, alloc.triVertexCount);
 			triVertexCount[i] = alloc.triVertexCount; //Math.min(12, alloc.triVertexCount);
 			baseQuadVertexOffset[i] = alloc.baseQuadVertexIndex; // * SlabAllocator.BYTES_PER_SLAB_VERTEX;
-			triIndexOffset[i] = 0L;
+			triIndexOffset[i] = IndexSlab.BYTES_PER_INDEX_SLAB; //0L;
 			//indexSlab.allocateAndLoad(alloc.baseQuadVertexIndex, alloc.quadVertexCount);
 		}
 

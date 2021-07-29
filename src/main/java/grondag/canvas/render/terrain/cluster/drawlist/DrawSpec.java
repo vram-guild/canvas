@@ -33,7 +33,9 @@ class DrawSpec extends AbstractVaoBinding {
 	DrawSpec(Slab slab, int maxTriVertexCount, int[] triVertexCount, int baseQuadVertexOffset[], long triIndexOffset[]) {
 		super(slab, 0);
 		size = triVertexCount.length;
-		this.indexSlab = IndexSlab.claim(maxTriVertexCount / 6 * 4);
+		int allocationLen = maxTriVertexCount / 6 * 4 + 4095;
+		allocationLen &= ~4095;
+		this.indexSlab = IndexSlab.claim(allocationLen);
 		indexSlab.allocateAndLoad(0, maxTriVertexCount / 6 * 4);
 		indexSlab.upload();
 		
