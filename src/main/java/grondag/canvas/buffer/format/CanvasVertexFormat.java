@@ -46,7 +46,7 @@ public class CanvasVertexFormat {
 		final int limit = elements.length;
 
 		for (int i = 0; i < limit; i++) {
-			GFX.enableVertexAttribArray(i);
+			GFX.enableVertexAttribArray(1 + i);
 		}
 	}
 
@@ -54,7 +54,7 @@ public class CanvasVertexFormat {
 		final int limit = elements.length;
 
 		for (int i = 0; i < limit; i++) {
-			GFX.disableVertexAttribArray(i);
+			GFX.disableVertexAttribArray(1 + i);
 		}
 	}
 
@@ -66,9 +66,9 @@ public class CanvasVertexFormat {
 			final CanvasVertexFormatElement e = elements[i];
 
 			if (e.isInteger) {
-				GFX.nglVertexAttribIPointer(i, e.elementCount, e.glConstant, vertexStrideBytes, bufferOffset + offset);
+				GFX.nglVertexAttribIPointer(1 + i, e.elementCount, e.glConstant, vertexStrideBytes, bufferOffset + offset);
 			} else {
-				GFX.vertexAttribPointer(i, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
+				GFX.vertexAttribPointer(1 + i, e.elementCount, e.glConstant, e.isNormalized, vertexStrideBytes, bufferOffset + offset);
 			}
 
 			offset += e.byteSize;
@@ -83,7 +83,7 @@ public class CanvasVertexFormat {
 
 		for (int i = 0; i < limit; i++) {
 			final CanvasVertexFormatElement e = elements[i];
-			GFX.bindAttribLocation(programID, i, e.attributeName);
+			GFX.bindAttribLocation(programID, 1 + i, e.attributeName);
 		}
 	}
 

@@ -108,6 +108,11 @@ public class ClusterDrawList {
 
 		return indexSlab;
 	}
+	
+	// WIP: THINGS THAT DON'T WORK
+	// Using vanilla vertex stide (32 instead of 28)
+	// Pad the start of the element array
+	// Avoid using element index 0
 
 	/**
 	 * Returns the index slab that should be used for next call.
