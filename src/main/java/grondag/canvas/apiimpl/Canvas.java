@@ -33,7 +33,6 @@ import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
-import grondag.canvas.buffer.format.CleanVAO;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.MaterialTextureState;
@@ -126,7 +125,6 @@ public class Canvas implements Renderer {
 		MaterialTextureState.reload();
 		ShaderDataManager.reload();
 		Timekeeper.configOrPipelineReload();
-		CleanVAO.reset();
 	}
 
 	@Override
