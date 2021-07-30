@@ -30,7 +30,6 @@ import grondag.canvas.render.terrain.cluster.SlabAllocator;
 import grondag.canvas.varia.GFX;
 
 public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
-	public static final int PADDING_BYTES = 4096;
 	private boolean isClaimed = false;
 	private int headQuadVertexIndex = 0;
 	private TransferBuffer transferBuffer;
@@ -39,7 +38,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 
 	private IndexSlab(int quadVertexCapacity) {
 		// NB: STATIC makes a huge positive difference on AMD at least
-		super(PADDING_BYTES + quadVertexCapacity * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
+		super(quadVertexCapacity * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 		//super(BYTES_PER_INDEX_SLAB, GFX.GL_ELEMENT_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 		this.quadVertexCapacity = quadVertexCapacity;
 		assert RenderSystem.isOnRenderThread();
@@ -101,7 +100,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 
 		final var buff = uploadBuffer;
 		final int newHead = headQuadVertexIndex + quadVertexCount;
-		int triVertexIndex = PADDING_BYTES + headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER;
+		int triVertexIndex = headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER;
 		int quadVertexIndex = firstQuadVertexIndex;
 		final int limit = firstQuadVertexIndex + quadVertexCount;
 
@@ -129,7 +128,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 
 		if (transferBuffer != null) {
 			GFX.bindBuffer(bindTarget, glBufferId());
-			transferBuffer.transferToBoundBuffer(bindTarget, 0, 0, PADDING_BYTES + headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
+			transferBuffer.transferToBoundBuffer(bindTarget, 0, 0, headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER);
 			GFX.bindBuffer(bindTarget, 0);
 			transferBuffer.release();
 			transferBuffer = null;
