@@ -55,11 +55,11 @@ public abstract class AbstractVaoBinding {
 			GFX.deleteVertexArray(vaoBufferId);
 			vaoBufferId = 0;
 		}
-		
+
 		onRelease();
 	}
-	
+
 	protected abstract void onRelease();
-	
+
 	protected abstract IndexSlab indexSlab();
 }

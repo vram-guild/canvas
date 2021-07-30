@@ -50,7 +50,7 @@ class OffHeapTransferBuffer implements TransferBuffer, AllocatableBuffer {
 	public ByteBuffer byteBuffer() {
 		return data.buffer();
 	}
-	
+
 	@Override
 	public void put(int[] source, int sourceStartInts, int targetStartInts, int lengthInts) {
 		assert claimedBytes > 0 : "Buffer accessed while unclaimed";

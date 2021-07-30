@@ -25,7 +25,7 @@ import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 
 public class CanvasPreLaunch implements PreLaunchEntrypoint {
 	@Override
-    public void onPreLaunch() {
+	public void onPreLaunch() {
 		// Hat tip to JellySquid for this...
 		// LWJGL 3.2.3 ships Jemalloc 5.2.0 which seems to be broken on Windows and suffers from critical memory leak problems
 		// Using the system allocator prevents memory leaks and other problems
@@ -56,5 +56,4 @@ public class CanvasPreLaunch implements PreLaunchEntrypoint {
 			return false;
 		}
 	}
-
 }

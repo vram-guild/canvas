@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
-import grondag.canvas.render.terrain.cluster.SlabAllocator;
 import grondag.canvas.render.terrain.cluster.VertexCluster;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
@@ -136,20 +135,20 @@ public class ClusterDrawList {
 		//final int byteOffset = indexSlab.nextByteOffset();
 		final var slab = specAllocations.get(0).slab;
 		final int limit = specAllocations.size();
-		
+
 		final int[] triVertexCount = new int[limit];
 		final int[] baseQuadVertexOffset = new int[limit];
 		final long[] triIndexOffset = new long[limit];
 
 		int maxTriVertexCount = 0;
-		
+
 		for (int i = 0; i < limit; ++i) {
 			final var alloc = specAllocations.get(i);
 			assert alloc.slab == slab;
 			maxTriVertexCount = Math.max(maxTriVertexCount, alloc.triVertexCount);
 			triVertexCount[i] = alloc.triVertexCount; //Math.min(12, alloc.triVertexCount);
 			baseQuadVertexOffset[i] = alloc.baseQuadVertexIndex; // * SlabAllocator.BYTES_PER_SLAB_VERTEX;
-			triIndexOffset[i] = IndexSlab.BYTES_PER_INDEX_SLAB; //0L;
+			triIndexOffset[i] = IndexSlab.PADDING_BYTES; //0L;
 			//indexSlab.allocateAndLoad(alloc.baseQuadVertexIndex, alloc.quadVertexCount);
 		}
 

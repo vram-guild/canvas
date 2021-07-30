@@ -17,7 +17,6 @@
 package grondag.canvas.render.terrain.cluster.drawlist;
 
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
 import java.util.ArrayDeque;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -48,7 +47,7 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 
 	private void prepareForClaim() {
 		isClaimed = true;
-		transferBuffer = TransferBuffers.claim(this.capacityBytes); //.BYTES_PER_INDEX_SLAB);
+		transferBuffer = TransferBuffers.claim(capacityBytes); //.BYTES_PER_INDEX_SLAB);
 		uploadBuffer = transferBuffer.byteBuffer();
 	}
 
@@ -81,15 +80,15 @@ public class IndexSlab extends AbstractGlBuffer implements SynchronizedBuffer {
 		return quadVertexCapacity - headQuadVertexIndex;
 	}
 
-	/**
-	 * The index buffer byte offset for the next allocation.
-	 */
-	int nextByteOffset() {
-		assert RenderSystem.isOnRenderThread();
-		assert !isClosed;
-
-		return headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER;
-	}
+	///**
+	// * The index buffer byte offset for the next allocation.
+	// */
+	//int nextByteOffset() {
+	//	assert RenderSystem.isOnRenderThread();
+	//	assert !isClosed;
+	//
+	//	return headQuadVertexIndex * INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER;
+	//}
 
 	/** Throws exception if insufficient capacity. Check {@link #availableQuadVertexCount()} prior to calling. */
 	void allocateAndLoad(final int firstQuadVertexIndex, final int quadVertexCount) {

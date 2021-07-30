@@ -30,18 +30,18 @@ class DrawSpec extends AbstractVaoBinding {
 	private PointerBuffer triIndexOffset;
 	private final int size;
 
-	DrawSpec(Slab slab, int maxTriVertexCount, int[] triVertexCount, int baseQuadVertexOffset[], long triIndexOffset[]) {
+	DrawSpec (Slab slab, int maxTriVertexCount, int[] triVertexCount, int[] baseQuadVertexOffset, long[] triIndexOffset) {
 		super(slab, 0);
 		size = triVertexCount.length;
 		int allocationLen = maxTriVertexCount / 6 * 4 + 4095;
 		allocationLen &= ~4095;
-		this.indexSlab = IndexSlab.claim(allocationLen);
+		indexSlab = IndexSlab.claim(allocationLen);
 		indexSlab.allocateAndLoad(0, maxTriVertexCount / 6 * 4);
 		indexSlab.upload();
-		
+
 		this.triVertexCount = MemoryUtil.memAllocInt(size);
 		this.triVertexCount.put(0, triVertexCount);
-		
+
 		this.baseQuadVertexOffset = MemoryUtil.memAllocInt(size);
 		this.baseQuadVertexOffset.put(0, baseQuadVertexOffset);
 
@@ -55,7 +55,7 @@ class DrawSpec extends AbstractVaoBinding {
 		assert baseQuadVertexOffset.limit() == size;
 		return baseQuadVertexOffset;
 	}
-	
+
 	IntBuffer triVertexCount() {
 		assert triVertexCount.position() == 0;
 		assert triVertexCount.limit() == size;
@@ -75,10 +75,10 @@ class DrawSpec extends AbstractVaoBinding {
 
 		MemoryUtil.memFree(triIndexOffset);
 		triIndexOffset = null;
-		
+
 		MemoryUtil.memFree(baseQuadVertexOffset);
 		baseQuadVertexOffset = null;
-		
+
 		indexSlab.release();
 		indexSlab = null;
 	}
