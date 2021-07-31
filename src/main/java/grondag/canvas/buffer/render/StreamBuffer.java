@@ -30,7 +30,7 @@ public class StreamBuffer extends AbstractMappedBuffer<StreamBuffer> implements 
 	protected StreamBuffer(BinIndex binIndex, CanvasVertexFormat format) {
 		super(binIndex, GFX.GL_ARRAY_BUFFER, GFX.GL_STREAM_DRAW, StreamBufferAllocator::release);
 		this.format = format;
-		vao = new BufferVAO(format, () -> GFX.bindBuffer(bindTarget, glBufferId()));
+		vao = new BufferVAO(format, () -> glBufferId(), () -> 0);
 	}
 
 	public static @Nullable StreamBuffer claim(int claimedBytes, CanvasVertexFormat standardMaterialFormat) {

@@ -343,7 +343,7 @@ public class VertexCluster implements ClusterTask {
 				this.baseQuadVertexIndex = baseQuadVertexIndex;
 				this.quadVertexCount = quadVertexCount;
 				
-				vao = new TerrainVAO(() -> {slab.bind(); IndexSlab.fullSlabIndex().bind();}, baseQuadVertexIndex);
+				vao = new TerrainVAO(() -> slab.glBufferId(), () -> IndexSlab.fullSlabIndex().glBufferId(), baseQuadVertexIndex);
 			}
 
 			public void bind() {

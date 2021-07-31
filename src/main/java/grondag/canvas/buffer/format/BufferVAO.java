@@ -16,20 +16,24 @@
 
 package grondag.canvas.buffer.format;
 
+import java.util.function.IntSupplier;
+
 import grondag.canvas.varia.GFX;
 
 public class BufferVAO {
 	public final CanvasVertexFormat format;
-	private final Runnable bufferBinding;
+	private final IntSupplier arrayIdSupplier;
+	private final IntSupplier elementIdSupplier;
 
 	/**
 	 * VAO Buffer name if enabled and initialized.
 	 */
 	private int vaoBufferId = 0;
 
-	public BufferVAO(CanvasVertexFormat format, Runnable bufferBinding) {
+	public BufferVAO(CanvasVertexFormat format, IntSupplier arrayIdSupplier, IntSupplier elementIdSupplier) {
 		this.format = format;
-		this.bufferBinding = bufferBinding;
+		this.arrayIdSupplier = arrayIdSupplier;
+		this.elementIdSupplier = elementIdSupplier;
 	}
 
 	public void bind() {
@@ -40,12 +44,15 @@ public class BufferVAO {
 		if (vaoBufferId == 0) {
 			vaoBufferId = GFX.genVertexArray();
 			GFX.bindVertexArray(vaoBufferId);
-			bufferBinding.run();
-			format.enableAttributes();
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, arrayIdSupplier.getAsInt());
 			format.bindAttributeLocations(offset);
-		} else {
-			GFX.bindVertexArray(vaoBufferId);
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, elementIdSupplier.getAsInt());
+			GFX.bindVertexArray(0);
+			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, 0);
+			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
+
+		GFX.bindVertexArray(vaoBufferId);
 	}
 
 	public final void shutdown() {

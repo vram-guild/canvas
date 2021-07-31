@@ -26,7 +26,7 @@ public class StaticDrawBuffer extends AbstractGlBuffer implements UploadableVert
 
 	public StaticDrawBuffer(CanvasVertexFormat format, TransferBuffer transferBuffer) {
 		super(transferBuffer.sizeBytes(), GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
-		vao = new BufferVAO(format, () -> GFX.bindBuffer(bindTarget, glBufferId()));
+		vao = new BufferVAO(format, () -> glBufferId(), () -> 0);
 		this.transferBuffer = transferBuffer;
 	}
 

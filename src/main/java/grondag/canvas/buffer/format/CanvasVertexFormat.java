@@ -42,21 +42,14 @@ public class CanvasVertexFormat {
 		quadStrideInts = vertexStrideInts * 4;
 	}
 
-	public void enableAttributes() {
-		final int limit = elements.length;
-
-		for (int i = 0; i < limit; i++) {
-			GFX.enableVertexAttribArray(1 + i);
-		}
-	}
-
 	public void bindAttributeLocations(long bufferOffset) {
 		int offset = 0;
 		final int limit = elements.length;
 
 		for (int i = 0; i < limit; i++) {
 			final CanvasVertexFormatElement e = elements[i];
-
+			GFX.enableVertexAttribArray(1 + i);
+			
 			if (e.isInteger) {
 				GFX.nglVertexAttribIPointer(1 + i, e.elementCount, e.glConstant, vertexStrideBytes, bufferOffset + offset);
 			} else {

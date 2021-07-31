@@ -50,7 +50,7 @@ class DrawSpec {
 		this.triIndexOffset.put(triIndexOffset);
 		this.triIndexOffset.position(0);
 		
-		vao = new TerrainVAO(() -> {slab.bind(); indexSlab.bind();}, 0);
+		vao = new TerrainVAO(() -> slab.glBufferId(), () -> indexSlab.glBufferId(), 0);
 	}
 
 	IntBuffer baseQuadVertexOffset() {

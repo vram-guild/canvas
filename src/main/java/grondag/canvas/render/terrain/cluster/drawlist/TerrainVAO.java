@@ -16,14 +16,16 @@
 
 package grondag.canvas.render.terrain.cluster.drawlist;
 
+import java.util.function.IntSupplier;
+
 import grondag.canvas.buffer.format.BufferVAO;
 import grondag.canvas.render.terrain.TerrainFormat;
 
 public class TerrainVAO extends BufferVAO {
 	public final int baseQuadVertexIndex;
 
-	public TerrainVAO(Runnable bufferBinding, int baseQuadVertexIndex) {
-		super(TerrainFormat.TERRAIN_MATERIAL, bufferBinding);
+	public TerrainVAO(IntSupplier arrayIdSupplier, IntSupplier elementIdSupplier, int baseQuadVertexIndex) {
+		super(TerrainFormat.TERRAIN_MATERIAL, arrayIdSupplier, elementIdSupplier);
 		this.baseQuadVertexIndex = baseQuadVertexIndex;
 	}
 	
