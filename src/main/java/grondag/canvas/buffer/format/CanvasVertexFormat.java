@@ -50,14 +50,6 @@ public class CanvasVertexFormat {
 		}
 	}
 
-	public void disableAttributes() {
-		final int limit = elements.length;
-
-		for (int i = 0; i < limit; i++) {
-			GFX.disableVertexAttribArray(1 + i);
-		}
-	}
-
 	public void bindAttributeLocations(long bufferOffset) {
 		int offset = 0;
 		final int limit = elements.length;

@@ -115,6 +115,7 @@ public class ClusterDrawList {
 	// Avoid using element index 0
 	// Use GL_ARRAY_BUFFER to create element buffer
 	// Move element binding call after attributes are configured
+	// Remove VAO state tracker
 
 	/**
 	 * Returns the index slab that should be used for next call.
