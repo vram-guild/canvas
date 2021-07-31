@@ -36,6 +36,19 @@ public class CanvasPreLaunch implements PreLaunchEntrypoint {
 				LogManager.getLogger("Canvas").info("Canvas configured LWJGL to use the system memory allocator due to a potential memory leak in JEmalloc.");
 			}
 		}
+		
+		assert enableRenderDocInDev();
+	}
+	
+	// UGLY: need a proper dev config
+	private static boolean enableRenderDocInDev() {
+		try {
+			System.loadLibrary("renderdoc");
+		} catch (Exception e) {
+			// eat it
+		}
+		
+		return true;
 	}
 
 	private static boolean isJEmallocPotentiallyBuggy() {

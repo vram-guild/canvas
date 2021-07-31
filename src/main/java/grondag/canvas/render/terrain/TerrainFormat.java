@@ -38,16 +38,12 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 public class TerrainFormat {
 	private TerrainFormat() { }
 
-	private static final CanvasVertexFormatElement REGION_ID = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 1, "in_region", false, true);
-	private static final CanvasVertexFormatElement MODEL_POS = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 3, "in_modelpos", true, false);
-	private static final CanvasVertexFormatElement BLOCK_POS = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 3, "in_blockpos", false, true);
-	private static final CanvasVertexFormatElement PADDING = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 1, "in_padding", false, true);
+	private static final CanvasVertexFormatElement REGION = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 4, "in_region", false, true);
+	private static final CanvasVertexFormatElement BLOCK_POS = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 4, "in_blockpos", false, true);
 
 	public static final CanvasVertexFormat TERRAIN_MATERIAL = new CanvasVertexFormat(
-			REGION_ID,
-			MODEL_POS,
+			REGION,
 			BLOCK_POS,
-			PADDING,
 			BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
 
 	static final int TERRAIN_QUAD_STRIDE = TERRAIN_MATERIAL.quadStrideInts;
