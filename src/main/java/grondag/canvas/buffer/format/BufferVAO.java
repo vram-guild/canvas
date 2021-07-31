@@ -20,25 +20,29 @@ import grondag.canvas.varia.GFX;
 
 public class BufferVAO {
 	public final CanvasVertexFormat format;
+	private final Runnable bufferBinding;
 
 	/**
 	 * VAO Buffer name if enabled and initialized.
 	 */
 	private int vaoBufferId = 0;
 
-	public BufferVAO(CanvasVertexFormat format) {
+	public BufferVAO(CanvasVertexFormat format, Runnable bufferBinding) {
 		this.format = format;
+		this.bufferBinding = bufferBinding;
 	}
 
-	public final void bind(int target, int glBufferId) {
+	public void bind() {
+		bind(0);
+	}
+	
+	public final void bind(int offset) {
 		if (vaoBufferId == 0) {
 			vaoBufferId = GFX.genVertexArray();
 			GFX.bindVertexArray(vaoBufferId);
-
-			GFX.bindBuffer(target, glBufferId);
+			bufferBinding.run();
 			format.enableAttributes();
-			format.bindAttributeLocations(0);
-			GFX.bindBuffer(target, 0);
+			format.bindAttributeLocations(offset);
 		} else {
 			GFX.bindVertexArray(vaoBufferId);
 		}

@@ -25,9 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
-import grondag.canvas.render.terrain.cluster.drawlist.AbstractVaoBinding;
 import grondag.canvas.render.terrain.cluster.drawlist.ClusterDrawList;
 import grondag.canvas.render.terrain.cluster.drawlist.IndexSlab;
+import grondag.canvas.render.terrain.cluster.drawlist.TerrainVAO;
 
 public class VertexCluster implements ClusterTask {
 	private final ReferenceOpenHashSet<ClusterDrawList> holdingLists = new ReferenceOpenHashSet<>();
@@ -329,42 +329,51 @@ public class VertexCluster implements ClusterTask {
 			return VertexCluster.this;
 		}
 
-		public class SlabAllocation extends AbstractVaoBinding {
+		public class SlabAllocation {
 			public final Slab slab;
 			public final int baseQuadVertexIndex;
 			public final int quadVertexCount;
 			public final int triVertexCount;
+			private final TerrainVAO vao;
+			private boolean isClosed = false;
 
 			private SlabAllocation(Slab slab, int baseQuadVertexIndex, int quadVertexCount) {
-				super(slab, baseQuadVertexIndex);
 				triVertexCount = quadVertexCount * 6 / 4;
 				this.slab = slab;
 				this.baseQuadVertexIndex = baseQuadVertexIndex;
 				this.quadVertexCount = quadVertexCount;
+				
+				vao = new TerrainVAO(() -> {slab.bind(); IndexSlab.fullSlabIndex().bind();}, baseQuadVertexIndex);
 			}
 
-			@Override
-			protected void onRelease() {
-				slab.removeAllocation(this);
-
-				if (slab.isEmpty()) {
-					if (slabs.remove(slab)) {
-						// If the slab is the hungry slab we need to clear it
-						// so that we don't try to add to after release.
-						if (slab == hungrySlab) {
-							hungrySlab = null;
+			public void bind() {
+				vao.bind();
+			}
+			
+			public void release() {
+				assert !isClosed;
+				
+				if(!isClosed) {
+					isClosed = true;
+					
+					vao.shutdown();
+					
+					slab.removeAllocation(this);
+	
+					if (slab.isEmpty()) {
+						if (slabs.remove(slab)) {
+							// If the slab is the hungry slab we need to clear it
+							// so that we don't try to add to after release.
+							if (slab == hungrySlab) {
+								hungrySlab = null;
+							}
+	
+							slab.release();
+						} else {
+							assert false : "Slab not found on empty";
 						}
-
-						slab.release();
-					} else {
-						assert false : "Slab not found on empty";
 					}
 				}
-			}
-
-			@Override
-			protected IndexSlab indexSlab() {
-				return IndexSlab.fullSlabIndex();
 			}
 		}
 	}

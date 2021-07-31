@@ -23,15 +23,16 @@ import org.lwjgl.system.MemoryUtil;
 
 import grondag.canvas.render.terrain.cluster.Slab;
 
-class DrawSpec extends AbstractVaoBinding {
+class DrawSpec {
 	private IndexSlab indexSlab;
 	private IntBuffer triVertexCount;
 	private IntBuffer baseQuadVertexOffset;
 	private PointerBuffer triIndexOffset;
 	private final int size;
+	private final TerrainVAO vao;
+	private boolean isClosed = false;
 
 	DrawSpec (Slab slab, int maxTriVertexCount, int[] triVertexCount, int[] baseQuadVertexOffset, long[] triIndexOffset) {
-		super(slab, 0);
 		size = triVertexCount.length;
 		int allocationLen = maxTriVertexCount / 6 * 4 + 4095;
 		allocationLen &= ~4095;
@@ -48,6 +49,8 @@ class DrawSpec extends AbstractVaoBinding {
 		this.triIndexOffset = MemoryUtil.memAllocPointer(size);
 		this.triIndexOffset.put(triIndexOffset);
 		this.triIndexOffset.position(0);
+		
+		vao = new TerrainVAO(() -> {slab.bind(); indexSlab.bind();}, 0);
 	}
 
 	IntBuffer baseQuadVertexOffset() {
@@ -68,23 +71,29 @@ class DrawSpec extends AbstractVaoBinding {
 		return triIndexOffset;
 	}
 
-	@Override
-	protected void onRelease() {
-		MemoryUtil.memFree(triVertexCount);
-		triVertexCount = null;
-
-		MemoryUtil.memFree(triIndexOffset);
-		triIndexOffset = null;
-
-		MemoryUtil.memFree(baseQuadVertexOffset);
-		baseQuadVertexOffset = null;
-
-		indexSlab.release();
-		indexSlab = null;
+	protected void release() {
+		assert !isClosed;
+		
+		if(!isClosed) {
+			isClosed = true;
+			
+			vao.shutdown();
+			
+			MemoryUtil.memFree(triVertexCount);
+			triVertexCount = null;
+	
+			MemoryUtil.memFree(triIndexOffset);
+			triIndexOffset = null;
+	
+			MemoryUtil.memFree(baseQuadVertexOffset);
+			baseQuadVertexOffset = null;
+	
+			indexSlab.release();
+			indexSlab = null;
+		}
 	}
-
-	@Override
-	protected IndexSlab indexSlab() {
-		return indexSlab;
+	
+	public void bind() {
+		vao.bind();
 	}
 }
