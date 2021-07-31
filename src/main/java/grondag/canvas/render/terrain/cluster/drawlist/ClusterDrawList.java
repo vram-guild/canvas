@@ -110,9 +110,11 @@ public class ClusterDrawList {
 	}
 	
 	// WIP: THINGS THAT DON'T WORK
-	// Using vanilla vertex stide (32 instead of 28)
+	// Using vanilla vertex stride (32 instead of 28)
 	// Pad the start of the element array
 	// Avoid using element index 0
+	// Use GL_ARRAY_BUFFER to create element buffer
+	// Move element binding call after attributes are configured
 
 	/**
 	 * Returns the index slab that should be used for next call.
