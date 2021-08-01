@@ -49,7 +49,7 @@ class DrawSpec {
 		this.triIndexOffset = MemoryUtil.memAllocPointer(size);
 		this.triIndexOffset.put(triIndexOffset);
 		this.triIndexOffset.position(0);
-		
+
 		vao = new TerrainVAO(() -> slab.glBufferId(), () -> indexSlab.glBufferId(), 0);
 	}
 
@@ -73,26 +73,26 @@ class DrawSpec {
 
 	protected void release() {
 		assert !isClosed;
-		
-		if(!isClosed) {
+
+		if (!isClosed) {
 			isClosed = true;
-			
+
 			vao.shutdown();
-			
+
 			MemoryUtil.memFree(triVertexCount);
 			triVertexCount = null;
-	
+
 			MemoryUtil.memFree(triIndexOffset);
 			triIndexOffset = null;
-	
+
 			MemoryUtil.memFree(baseQuadVertexOffset);
 			baseQuadVertexOffset = null;
-	
+
 			indexSlab.release();
 			indexSlab = null;
 		}
 	}
-	
+
 	public void bind() {
 		vao.bind();
 	}

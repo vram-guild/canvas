@@ -49,7 +49,7 @@ public class CanvasVertexFormat {
 		for (int i = 0; i < limit; i++) {
 			final CanvasVertexFormatElement e = elements[i];
 			GFX.enableVertexAttribArray(1 + i);
-			
+
 			if (e.isInteger) {
 				GFX.nglVertexAttribIPointer(1 + i, e.elementCount, e.glConstant, vertexStrideBytes, bufferOffset + offset);
 			} else {

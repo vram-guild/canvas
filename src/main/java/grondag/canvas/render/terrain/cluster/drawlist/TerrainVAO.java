@@ -28,7 +28,8 @@ public class TerrainVAO extends BufferVAO {
 		super(TerrainFormat.TERRAIN_MATERIAL, arrayIdSupplier, elementIdSupplier);
 		this.baseQuadVertexIndex = baseQuadVertexIndex;
 	}
-	
+
+	@Override
 	public void bind() {
 		super.bind(baseQuadVertexIndex * TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes);
 	}

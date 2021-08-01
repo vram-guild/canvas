@@ -108,16 +108,6 @@ public class ClusterDrawList {
 
 		return indexSlab;
 	}
-	
-	// WIP: THINGS THAT DON'T WORK
-	// Using vanilla vertex stride (32 instead of 28)
-	// Pad the start of the element array
-	// Avoid using element index 0
-	// Use GL_ARRAY_BUFFER to create element buffer
-	// Move element binding call after attributes are configured
-	// Remove VAO state tracker
-	// Ensure VAO and all involved buffers are unbound after VAO state setup
-	//		Seems to alter behavior somehow.
 
 	/**
 	 * Returns the index slab that should be used for next call.

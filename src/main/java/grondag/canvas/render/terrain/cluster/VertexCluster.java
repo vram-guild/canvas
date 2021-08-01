@@ -342,24 +342,24 @@ public class VertexCluster implements ClusterTask {
 				this.slab = slab;
 				this.baseQuadVertexIndex = baseQuadVertexIndex;
 				this.quadVertexCount = quadVertexCount;
-				
+
 				vao = new TerrainVAO(() -> slab.glBufferId(), () -> IndexSlab.fullSlabIndex().glBufferId(), baseQuadVertexIndex);
 			}
 
 			public void bind() {
 				vao.bind();
 			}
-			
+
 			public void release() {
 				assert !isClosed;
-				
-				if(!isClosed) {
+
+				if (!isClosed) {
 					isClosed = true;
-					
+
 					vao.shutdown();
-					
+
 					slab.removeAllocation(this);
-	
+
 					if (slab.isEmpty()) {
 						if (slabs.remove(slab)) {
 							// If the slab is the hungry slab we need to clear it
@@ -367,7 +367,7 @@ public class VertexCluster implements ClusterTask {
 							if (slab == hungrySlab) {
 								hungrySlab = null;
 							}
-	
+
 							slab.release();
 						} else {
 							assert false : "Slab not found on empty";

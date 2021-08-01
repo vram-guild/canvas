@@ -39,7 +39,7 @@ public class BufferVAO {
 	public void bind() {
 		bind(0);
 	}
-	
+
 	public final void bind(int offset) {
 		if (vaoBufferId == 0) {
 			vaoBufferId = GFX.genVertexArray();
