@@ -44,7 +44,7 @@ public class CanvasPreLaunch implements PreLaunchEntrypoint {
 	private static boolean enableRenderDocInDev() {
 		try {
 			System.loadLibrary("renderdoc");
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			// eat it
 		}
 
