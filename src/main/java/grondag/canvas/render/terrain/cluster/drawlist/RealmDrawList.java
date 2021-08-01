@@ -29,7 +29,6 @@ import grondag.canvas.varia.GFX;
 
 public class RealmDrawList extends AbstractDrawableRegionList {
 	final ObjectArrayList<ClusterDrawList> clusterLists = new ObjectArrayList<>();
-	final ObjectArrayList<IndexSlab> indexSlabs = new ObjectArrayList<>();
 	boolean isInvalid = false;
 
 	private RealmDrawList(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
@@ -55,25 +54,7 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 			clusterList.add(storage);
 		}
 
-		IndexSlab indexSlab = null;
-		final int listCount = clusterLists.size();
-
-		for (int i = 0; i < listCount; ++i) {
-			indexSlab = clusterLists.get(i).build(indexSlab);
-		}
-
-		if (indexSlab != null) {
-			indexSlab.upload();
-		}
-
-		//int indexUsedBytes = 0; int indexCapacityBytes = 0;
-		//
-		//for (var idxSlab : indexSlabs) {
-		//	indexUsedBytes += idxSlab.nextByteOffset();
-		//	indexCapacityBytes += idxSlab.capacityBytes();
-		//}
-
-		//System.out.println(String.format("Slabs: %d occ: %d", indexSlabs.size(), 100L * indexUsedBytes / indexCapacityBytes));
+		clusterLists.forEach(cl -> cl.build());
 	}
 
 	private void rebuildIfInvalid() {
@@ -109,8 +90,6 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 
 	@Override
 	protected void closeInner() {
-		indexSlabs.forEach(IndexSlab::release);
-		indexSlabs.clear();
 		clusterLists.forEach(ClusterDrawList::release);
 		clusterLists.clear();
 	}

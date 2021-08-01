@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 import grondag.canvas.render.terrain.cluster.drawlist.ClusterDrawList;
-import grondag.canvas.render.terrain.cluster.drawlist.IndexSlab;
+import grondag.canvas.render.terrain.cluster.drawlist.SlabIndex;
 import grondag.canvas.render.terrain.cluster.drawlist.TerrainVAO;
 
 public class VertexCluster implements ClusterTask {
@@ -343,7 +343,7 @@ public class VertexCluster implements ClusterTask {
 				this.baseQuadVertexIndex = baseQuadVertexIndex;
 				this.quadVertexCount = quadVertexCount;
 
-				vao = new TerrainVAO(() -> slab.glBufferId(), () -> IndexSlab.fullSlabIndex().glBufferId(), baseQuadVertexIndex);
+				vao = new TerrainVAO(() -> slab.glBufferId(), () -> SlabIndex.get().glBufferId(), baseQuadVertexIndex);
 			}
 
 			public void bind() {

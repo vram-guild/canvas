@@ -24,7 +24,6 @@ import org.lwjgl.system.MemoryUtil;
 import grondag.canvas.render.terrain.cluster.Slab;
 
 class DrawSpec {
-	private IndexSlab indexSlab;
 	private IntBuffer triVertexCount;
 	private IntBuffer baseQuadVertexOffset;
 	private PointerBuffer triIndexOffset;
@@ -32,13 +31,8 @@ class DrawSpec {
 	private final TerrainVAO vao;
 	private boolean isClosed = false;
 
-	DrawSpec (Slab slab, int maxTriVertexCount, int[] triVertexCount, int[] baseQuadVertexOffset, long[] triIndexOffset) {
+	DrawSpec (Slab slab, int maxTriVertexCount, int[] triVertexCount, int[] baseQuadVertexOffset) {
 		size = triVertexCount.length;
-		int allocationLen = maxTriVertexCount / 6 * 4 + 4095;
-		allocationLen &= ~4095;
-		indexSlab = IndexSlab.claim(allocationLen);
-		indexSlab.allocateAndLoad(0, maxTriVertexCount / 6 * 4);
-		indexSlab.upload();
 
 		this.triVertexCount = MemoryUtil.memAllocInt(size);
 		this.triVertexCount.put(0, triVertexCount);
@@ -46,11 +40,15 @@ class DrawSpec {
 		this.baseQuadVertexOffset = MemoryUtil.memAllocInt(size);
 		this.baseQuadVertexOffset.put(0, baseQuadVertexOffset);
 
-		this.triIndexOffset = MemoryUtil.memAllocPointer(size);
-		this.triIndexOffset.put(triIndexOffset);
-		this.triIndexOffset.position(0);
+		triIndexOffset = MemoryUtil.memAllocPointer(size);
 
-		vao = new TerrainVAO(() -> slab.glBufferId(), () -> indexSlab.glBufferId(), 0);
+		for (int i = 0; i < size; ++i) {
+			triIndexOffset.put(i, 0L);
+		}
+
+		triIndexOffset.position(0);
+
+		vao = new TerrainVAO(() -> slab.glBufferId(), () -> SlabIndex.get().glBufferId(), 0);
 	}
 
 	IntBuffer baseQuadVertexOffset() {
@@ -87,9 +85,6 @@ class DrawSpec {
 
 			MemoryUtil.memFree(baseQuadVertexOffset);
 			baseQuadVertexOffset = null;
-
-			indexSlab.release();
-			indexSlab = null;
 		}
 	}
 

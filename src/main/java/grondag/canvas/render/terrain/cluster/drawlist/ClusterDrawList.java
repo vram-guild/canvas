@@ -19,7 +19,6 @@ package grondag.canvas.render.terrain.cluster.drawlist;
 import java.util.IdentityHashMap;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
@@ -39,20 +38,18 @@ public class ClusterDrawList {
 		this.owner = owner;
 	}
 
-	IndexSlab build(IndexSlab indexSlab) {
+	void build() {
 		assert drawSpecs.isEmpty();
 
 		if (cluster.realm == VertexClusterRealm.TRANSLUCENT) {
-			indexSlab = buildTranslucent(indexSlab);
+			buildTranslucent();
 		} else {
-			indexSlab = buildSolid(indexSlab);
+			buildSolid();
 		}
-
-		return indexSlab;
 	}
 
 	/** Maintains region sort order at the cost of extra binds/calls if needed. */
-	private IndexSlab buildTranslucent(IndexSlab indexSlab) {
+	private void buildTranslucent() {
 		Slab lastSlab = null;
 		final ObjectArrayList<SlabAllocation> specAllocations = new ObjectArrayList<>();
 		int specQuadVertexCount = 0;
@@ -62,7 +59,7 @@ public class ClusterDrawList {
 				if (alloc.slab != lastSlab) {
 					// NB: addSpec checks for empty region list (will be true for first region)
 					// and also clears the list when done.
-					indexSlab = addSpec(indexSlab, specAllocations, specQuadVertexCount);
+					addSpec(specAllocations, specQuadVertexCount);
 					specQuadVertexCount = 0;
 					lastSlab = alloc.slab;
 				}
@@ -72,18 +69,15 @@ public class ClusterDrawList {
 			}
 		}
 
-		indexSlab = addSpec(indexSlab, specAllocations, specQuadVertexCount);
-
-		return indexSlab;
+		addSpec(specAllocations, specQuadVertexCount);
 	}
 
-	@SuppressWarnings("serial")
 	private static class SolidSpecList extends ObjectArrayList<SlabAllocation> {
 		private int specQuadVertexCount;
 	}
 
 	/** Minimizes binds/calls. */
-	private IndexSlab buildSolid(IndexSlab indexSlab) {
+	private void buildSolid() {
 		final IdentityHashMap<Slab, SolidSpecList> map = new IdentityHashMap<>();
 
 		// first group regions by slab
@@ -102,63 +96,40 @@ public class ClusterDrawList {
 		}
 
 		for (var list: map.values()) {
-			assert list.specQuadVertexCount <= IndexSlab.MAX_INDEX_SLAB_QUAD_VERTEX_COUNT;
-			indexSlab = addSpec(indexSlab, list, list.specQuadVertexCount);
+			assert list.specQuadVertexCount <= SlabIndex.MAX_SLAB_INDEX_QUAD_VERTEX_COUNT;
+			addSpec(list, list.specQuadVertexCount);
 		}
-
-		return indexSlab;
 	}
 
 	/**
 	 * Returns the index slab that should be used for next call.
 	 * Does nothing if region list is empty and clears region list when done.
 	 */
-	private @Nullable IndexSlab addSpec(@Nullable IndexSlab indexSlab, ObjectArrayList<SlabAllocation> specAllocations, int specQuadVertexCount) {
+	private void addSpec(ObjectArrayList<SlabAllocation> specAllocations, int specQuadVertexCount) {
 		assert specQuadVertexCount >= 0;
 
 		if (specQuadVertexCount == 0) {
-			return indexSlab;
+			return;
 		}
 
 		assert !specAllocations.isEmpty() : "Vertex count is non-zero but region list is empty.";
 
-		//if (indexSlab == null || indexSlab.availableQuadVertexCount() < specQuadVertexCount) {
-		//	if (indexSlab != null) {
-		//		indexSlab.upload();
-		//	}
-		//
-		//	indexSlab = IndexSlab.claim();
-		//	owner.indexSlabs.add(indexSlab);
-		//}
-
-		//final int baseQuadIndex = headQuadVertexIndex;
-		//final int byteOffset = indexSlab.nextByteOffset();
 		final var slab = specAllocations.get(0).slab;
 		final int limit = specAllocations.size();
-
 		final int[] triVertexCount = new int[limit];
 		final int[] baseQuadVertexOffset = new int[limit];
-		final long[] triIndexOffset = new long[limit];
-
 		int maxTriVertexCount = 0;
 
 		for (int i = 0; i < limit; ++i) {
 			final var alloc = specAllocations.get(i);
 			assert alloc.slab == slab;
 			maxTriVertexCount = Math.max(maxTriVertexCount, alloc.triVertexCount);
-			triVertexCount[i] = alloc.triVertexCount; //Math.min(12, alloc.triVertexCount);
-			baseQuadVertexOffset[i] = alloc.baseQuadVertexIndex; // * SlabAllocator.BYTES_PER_SLAB_VERTEX;
-			triIndexOffset[i] = 0L;
-			//indexSlab.allocateAndLoad(alloc.baseQuadVertexIndex, alloc.quadVertexCount);
+			triVertexCount[i] = alloc.triVertexCount;
+			baseQuadVertexOffset[i] = alloc.baseQuadVertexIndex;
 		}
 
-		drawSpecs.add(new DrawSpec(slab, maxTriVertexCount + 6, triVertexCount, baseQuadVertexOffset, triIndexOffset));
-		//assert byteOffset + specQuadVertexCount * IndexSlab.INDEX_QUAD_VERTEX_TO_TRIANGLE_BYTES_MULTIPLIER == indexSlab.nextByteOffset();
-
-		//drawSpecs.add(new DrawSpec(slab, indexSlab, specQuadVertexCount / 4 * 6, byteOffset));
+		drawSpecs.add(new DrawSpec(slab, maxTriVertexCount + 6, triVertexCount, baseQuadVertexOffset));
 		specAllocations.clear();
-
-		return indexSlab;
 	}
 
 	public void draw() {
