@@ -23,7 +23,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
-import grondag.canvas.render.terrain.cluster.SlabAllocator;
 import grondag.canvas.varia.GFX;
 
 public class SlabIndex extends AbstractGlBuffer {
@@ -37,7 +36,7 @@ public class SlabIndex extends AbstractGlBuffer {
 		int triVertexIndex = 0;
 		int quadVertexIndex = 0;
 
-		while (quadVertexIndex < SlabAllocator.MAX_SLAB_QUAD_VERTEX_COUNT) {
+		while (quadVertexIndex < MAX_SLAB_INDEX_QUAD_VERTEX_COUNT) {
 			buff.putShort(triVertexIndex, (short) quadVertexIndex);
 			triVertexIndex += 2;
 			buff.putShort(triVertexIndex, (short) (quadVertexIndex + 1));

@@ -18,7 +18,6 @@ package grondag.canvas.render.terrain.cluster;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.util.math.BlockPos;
 
@@ -28,7 +27,6 @@ public class VertexClusterRealm {
 	public static final VertexClusterRealm SOLID = new VertexClusterRealm();
 	public static final VertexClusterRealm TRANSLUCENT = new VertexClusterRealm();
 
-	// WIP: allow for non-cubic clusters
 	/**
 	 * Number of bits we right-shift "chunk" coordinates to get cluster coordinates.
 	 * Determines the size of clusters.
@@ -48,7 +46,6 @@ public class VertexClusterRealm {
 	}
 
 	private final Long2ObjectOpenHashMap<VertexCluster> clusters = new Long2ObjectOpenHashMap<>();
-	private final ReferenceOpenHashSet<VertexCluster> clusterUpdates = new ReferenceOpenHashSet<>();
 
 	private boolean isClosed = false;
 
@@ -57,12 +54,11 @@ public class VertexClusterRealm {
 	public void clear() {
 		assert RenderSystem.isOnRenderThread();
 
-		for (VertexCluster clump : clusters.values()) {
-			clump.close();
+		for (VertexCluster cluster : clusters.values()) {
+			cluster.close();
 		}
 
 		clusters.clear();
-		clusterUpdates.clear();
 	}
 
 	public void close() {
@@ -76,9 +72,7 @@ public class VertexClusterRealm {
 
 	RegionAllocation allocate(ClusteredDrawableStorage storage) {
 		assert RenderSystem.isOnRenderThread();
-
-		VertexCluster cluster = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterRealm.this, p));
-		clusterUpdates.add(cluster);
+		final VertexCluster cluster = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterRealm.this, p));
 		return cluster.allocate(storage);
 	}
 
@@ -86,24 +80,6 @@ public class VertexClusterRealm {
 		assert RenderSystem.isOnRenderThread();
 		VertexCluster deadCluster = clusters.remove(cluster.clusterPos);
 		assert deadCluster != null : "Clump gone missing.";
-	}
-
-	public void update() {
-		assert RenderSystem.isOnRenderThread();
-
-		// WIP: regions now allocate immediate and compaction isn't every frame
-		// Do we still need to have an update set and run this every frame?
-		if (!clusterUpdates.isEmpty()) {
-			for (VertexCluster clump : clusterUpdates) {
-				clump.update();
-			}
-
-			clusterUpdates.clear();
-		}
-
-		// WIP: need a way to set the deadline appropriately based on steady frame rate and time already elapsed.
-		// Method must ensure we don't have starvation - task queue can't grow indefinitely.
-		ClusterTaskManager.run(System.nanoTime() + 2000000);
 	}
 
 	//private int lastFrame = 0;

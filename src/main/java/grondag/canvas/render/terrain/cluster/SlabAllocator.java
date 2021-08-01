@@ -16,85 +16,46 @@
 
 package grondag.canvas.render.terrain.cluster;
 
-import java.util.ArrayDeque;
-
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.render.terrain.TerrainFormat;
 
 public class SlabAllocator {
-	private final ArrayDeque<Slab> POOL = new ArrayDeque<>();
+	private static int slabCount = 0;
+	private static long usedBytes = 0;
+	private static long capacityBytes = 0;
 
-	private int totalSlabCount = 0;
-	private int totalUsedVertexCount = 0;
-	final int maxSlabQuadVertexCount;
-	final int vacatedQuadVertexThreshold;
-	final int bytesPerSlab;
-	final boolean isSmall;
-
-	private SlabAllocator(boolean isSmall) {
-		this.isSmall = isSmall;
-		maxSlabQuadVertexCount = isSmall ? MAX_SLAB_QUAD_VERTEX_COUNT / 4 : MAX_SLAB_QUAD_VERTEX_COUNT;
-		bytesPerSlab = maxSlabQuadVertexCount * BYTES_PER_SLAB_VERTEX;
-		vacatedQuadVertexThreshold = maxSlabQuadVertexCount / 4;
+	static void addToVertexCount(int vertexCount) {
+		usedBytes += vertexCount * BYTES_PER_SLAB_VERTEX;
 	}
 
-	Slab claim() {
-		assert RenderSystem.isOnRenderThread();
-
-		Slab result = POOL.poll();
-
-		if (result == null) {
-			result = new Slab(this);
-			++totalSlabCount;
-		}
-
-		result.prepareForClaim();
-		return result;
+	static void notifyShutdown(Slab slab) {
+		assert slab.usedVertexCount() == 0;
+		--slabCount;
+		capacityBytes -= slab.capacityBytes();
 	}
 
-	void addToVertexCount(int vertexCount) {
-		totalUsedVertexCount += vertexCount;
-	}
-
-	void release(Slab slab) {
-		POOL.offer(slab);
-	}
-
-	void notifyShutdown(Slab slab) {
-		--totalSlabCount;
-	}
-
-	/** We are using short index arrays, which means we can't have more than this many quad vertices per slab. */
-	public static final int MAX_SLAB_QUAD_VERTEX_COUNT = 0x10000;
+	public static final int SLAB_QUAD_VERTEX_COUNT_INCREMENT = 0x4000;
 	public static final int BYTES_PER_SLAB_VERTEX = 28;
+	static final int SLAB_BYTES_INCREMENT = SLAB_QUAD_VERTEX_COUNT_INCREMENT * BYTES_PER_SLAB_VERTEX;
 
 	static {
 		// Want IDE to show actual numbers above, so check here at run time that nothing changed and got missed.
 		assert BYTES_PER_SLAB_VERTEX == TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes : "Slab vertex size doesn't match vertex format";
 	}
 
-	private static final SlabAllocator LARGE = new SlabAllocator(false);
-	private static final SlabAllocator SMALL = new SlabAllocator(true);
-	public static final int LARGE_SLAB_QUAD_VERTEX_COUNT = LARGE.maxSlabQuadVertexCount;
-	public static final int LARGE_SLAB_BYTES = LARGE.bytesPerSlab;
-	public static final int SMALL_SLAB_QUAD_VERTEX_COUNT = SMALL.maxSlabQuadVertexCount;
-	public static final int SMALL_SLAB_BYTES = SMALL.bytesPerSlab;
-	public static final int LARGE_SLAB_QUAD_VERTEX_THRESHOLD = SMALL.maxSlabQuadVertexCount * 3;
-	public static final int LARGE_SLAB_BYTE_THRESHOLD = SMALL.bytesPerSlab * 3;
-
-	static Slab claim(int newBytes) {
-		return newBytes >= LARGE_SLAB_BYTE_THRESHOLD ? LARGE.claim() : SMALL.claim();
-	}
-
-	static int expectedBytesForNewSlab(int activeBytes) {
-		return activeBytes >= LARGE_SLAB_BYTE_THRESHOLD ? LARGE.bytesPerSlab : SMALL.bytesPerSlab;
+	static Slab claim(int minCapacityBytes) {
+		assert RenderSystem.isOnRenderThread();
+		++slabCount;
+		final var result = new Slab((minCapacityBytes + SLAB_BYTES_INCREMENT - 1) / SLAB_BYTES_INCREMENT * SLAB_BYTES_INCREMENT);
+		capacityBytes += result.capacityBytes();
+		return result;
 	}
 
 	public static String debugSummary() {
-		return String.format("Slabs:%dMb/%dMb occ:%d",
-				((LARGE.totalSlabCount - LARGE.POOL.size()) * LARGE.bytesPerSlab + (SMALL.totalSlabCount - SMALL.POOL.size()) * SMALL.bytesPerSlab) / 0x100000,
-				(LARGE.totalSlabCount * LARGE.bytesPerSlab + SMALL.totalSlabCount * SMALL.bytesPerSlab) / 0x100000,
-				((LARGE.totalUsedVertexCount + SMALL.totalUsedVertexCount) * 100L) / (LARGE.totalSlabCount * LARGE.maxSlabQuadVertexCount + SMALL.totalSlabCount * SMALL.maxSlabQuadVertexCount));
+		return String.format("%d slabs %dMb occ:%d",
+				slabCount,
+				capacityBytes / 0x100000L,
+				usedBytes * 100L / capacityBytes);
 	}
 }

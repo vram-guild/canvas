@@ -82,8 +82,9 @@ public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 
 	@Override
 	public void prepareForDraw(WorldRenderState worldRenderState) {
-		VertexClusterRealm.SOLID.update();
-		VertexClusterRealm.TRANSLUCENT.update();
+		// WIP: need a way to set the deadline appropriately based on steady frame rate and time already elapsed.
+		// Method must ensure we don't have starvation - task queue can't grow indefinitely.
+		ClusterTaskManager.run(System.nanoTime() + 2000000);
 	}
 
 	@Override

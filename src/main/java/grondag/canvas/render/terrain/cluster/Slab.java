@@ -33,17 +33,16 @@ import grondag.canvas.render.terrain.cluster.VertexCluster.SlabAllocationFactory
 import grondag.canvas.varia.GFX;
 
 public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
-	final SlabAllocator allocator;
 	private final TransferSlab transferSlab = new TransferSlab();
 	private int headVertexIndex = 0;
-	private boolean isClaimed;
 	private int usedVertexCount;
+	private final int maxVertexCount;
 
-	Slab(SlabAllocator allocator) {
+	Slab(int capacityBytes) {
 		// NB: STATIC makes a huge positive difference on AMD at least
-		super(allocator.bytesPerSlab, GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
-		this.allocator = allocator;
+		super(capacityBytes, GFX.GL_ARRAY_BUFFER, GFX.GL_STATIC_DRAW);
 		assert RenderSystem.isOnRenderThread();
+		maxVertexCount = (capacityBytes / BYTES_PER_SLAB_VERTEX) & ~3;
 	}
 
 	TransferBuffer asTransferBuffer() {
@@ -53,20 +52,24 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 	/** How much vertex capacity is remaining. */
 	int availableVertexCount() {
 		assert RenderSystem.isOnRenderThread();
-		assert headVertexIndex <= allocator.maxSlabQuadVertexCount;
-		return allocator.maxSlabQuadVertexCount - headVertexIndex;
+		assert headVertexIndex <= maxVertexCount;
+		return maxVertexCount - headVertexIndex;
 	}
 
 	int usedVertexCount() {
 		return usedVertexCount;
 	}
 
+	/**
+	 * Excludes bytes no longer used by their allocation.
+	 * Thus, may not match {@link #capacityBytes()} - {@link #availableBytes()}.
+	 */
 	int usedBytes() {
 		return usedVertexCount * BYTES_PER_SLAB_VERTEX;
 	}
 
-	public int vacatedVertexCount() {
-		return headVertexIndex - usedVertexCount;
+	int availableBytes() {
+		return availableVertexCount() * BYTES_PER_SLAB_VERTEX;
 	}
 
 	public boolean isFull() {
@@ -78,59 +81,34 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 		return usedVertexCount == 0;
 	}
 
-	boolean isVacated() {
-		return vacatedVertexCount() > allocator.vacatedQuadVertexThreshold;
-	}
-
-	void prepareForClaim() {
-		assert !isClaimed;
-		assert usedVertexCount == 0;
-		isClaimed = true;
-	}
-
 	void release() {
+		assert RenderSystem.isOnRenderThread();
 		assert usedVertexCount == 0;
-		releaseInner();
+		headVertexIndex = 0;
+		BufferSynchronizer.accept(this);
 	}
 
 	private void addToVertexCounts(int vertexCount) {
 		usedVertexCount += vertexCount;
-		allocator.addToVertexCount(vertexCount);
-	}
-
-	/** Doesn't assume or require all regions to have closed. */
-	void releaseTransferred() {
-		releaseInner();
-	}
-
-	private void releaseInner() {
-		assert RenderSystem.isOnRenderThread();
-		assert isClaimed;
-		headVertexIndex = 0;
-		isClaimed = false;
-		addToVertexCounts(-usedVertexCount);
-		BufferSynchronizer.accept(this);
+		assert usedVertexCount >= 0;
+		SlabAllocator.addToVertexCount(vertexCount);
 	}
 
 	@Override
 	public void onBufferSync() {
-		allocator.release(this);
+		shutdown();
 	}
 
 	/** Returns the number of vertices allocated. */
-	SlabAllocation allocateAndLoad(SlabAllocationFactory factory, TransferBuffer buffer, int sourceStartVertexIndex) {
+	SlabAllocation allocateAndLoad(SlabAllocationFactory factory, TransferBuffer buffer) {
 		final int quadVertexCount = buffer.sizeBytes() / BYTES_PER_SLAB_VERTEX;
 		assert quadVertexCount * BYTES_PER_SLAB_VERTEX == buffer.sizeBytes();
-		assert sourceStartVertexIndex < quadVertexCount;
-		final int allocatedVertexCount = Math.min(availableVertexCount(), quadVertexCount - sourceStartVertexIndex);
-		return allocateInner(factory, buffer, sourceStartVertexIndex, allocatedVertexCount);
+		return allocateInner(factory, buffer, 0, quadVertexCount);
 	}
 
 	/** Returns the number of quad vertices transfered. */
-	SlabAllocation transferFromSlabAllocation(SlabAllocationFactory factory, SlabAllocation source, int sourceStartVertexIndex) {
-		assert sourceStartVertexIndex < source.quadVertexCount;
-		final int allocatedVertexCount = Math.min(availableVertexCount(), source.quadVertexCount - sourceStartVertexIndex);
-		return allocateInner(factory, source.slab.asTransferBuffer(), source.baseQuadVertexIndex + sourceStartVertexIndex, allocatedVertexCount);
+	SlabAllocation transferFromSlabAllocation(SlabAllocationFactory factory, SlabAllocation source) {
+		return allocateInner(factory, source.slab.asTransferBuffer(), source.baseQuadVertexIndex, source.quadVertexCount);
 	}
 
 	private SlabAllocation allocateInner(SlabAllocationFactory factory, TransferBuffer buffer, int sourceStartVertexIndex, int allocatedVertexCount) {
@@ -161,9 +139,8 @@ public class Slab extends AbstractGlBuffer implements SynchronizedBuffer {
 	@Override
 	protected void onShutdown() {
 		assert RenderSystem.isOnRenderThread();
-
-		addToVertexCounts(-usedVertexCount);
-		allocator.notifyShutdown(this);
+		assert usedVertexCount == 0;
+		SlabAllocator.notifyShutdown(this);
 	}
 
 	private class TransferSlab implements TransferBuffer {
