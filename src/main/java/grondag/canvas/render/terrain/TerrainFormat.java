@@ -41,6 +41,9 @@ public class TerrainFormat {
 	private static final CanvasVertexFormatElement REGION = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 4, "in_region", false, true);
 	private static final CanvasVertexFormatElement BLOCK_POS = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 4, "in_blockpos", false, true);
 
+	// Would be nice to make this smaller but with less precision in position we start
+	// to see Z-fighting on iron bars, fire, etc. Iron bars require a resolution of 1/16000.
+	// Reducing resolution of UV is problematic for multi-block textures.
 	public static final CanvasVertexFormat TERRAIN_MATERIAL = new CanvasVertexFormat(
 			REGION,
 			BLOCK_POS,
@@ -83,7 +86,7 @@ public class TerrainFormat {
 		final int sectorRelativeRegionOrigin = context.sectorRelativeRegionOrigin;
 
 		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppendRegionVertexNew(i, matrix, target, k, sectorId, sectorRelativeRegionOrigin);
+			quad.transformAndAppendRegionVertex(i, matrix, target, k, sectorId, sectorRelativeRegionOrigin);
 			k += 3;
 
 			target[k++] = quad.vertexColor(i);

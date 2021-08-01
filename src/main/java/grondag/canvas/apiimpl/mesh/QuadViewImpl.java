@@ -436,38 +436,6 @@ public class QuadViewImpl implements QuadView {
 		target[targetIndex + 2] = Float.floatToRawIntBits(zOut);
 	}
 
-	public void transformAndAppendRegionVertex(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex, int regionId) {
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		final float x = Float.intBitsToFloat(data[index]);
-		final float y = Float.intBitsToFloat(data[index + 1]);
-		final float z = Float.intBitsToFloat(data[index + 2]);
-
-		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
-
-		// typical range is 0 to 15 but some bad models might go outside that range
-		// we handle block pos range from -119 to 135 by adding 119 to the integer portion
-		// the shader must subtract 119 to get the actual value
-
-		int xInt = MathHelper.floor(xOut);
-		int yInt = MathHelper.floor(yOut);
-		int zInt = MathHelper.floor(zOut);
-
-		int xFract = Math.round((xOut - xInt) * 0xFFFF);
-		int yFract = Math.round((yOut - yInt) * 0xFFFF);
-		int zFract = Math.round((zOut - zInt) * 0xFFFF);
-
-		xInt += 119;
-		yInt += 119;
-		zInt += 119;
-
-		target[targetIndex] = regionId | (xFract << 16);
-		target[targetIndex + 1] = yFract | (zFract << 16);
-		target[targetIndex + 2] = xInt | (yInt << 8) | (zInt << 16);
-	}
-
 	/**
 	 * The sector-relative origin should be added to the block component and
 	 * is not zero-based to allow for vertices extending outside the sector.
@@ -478,8 +446,8 @@ public class QuadViewImpl implements QuadView {
 	 * @param targetIndex
 	 * @param sectorRelativeRegionOrigin 24-bit unsigned XYZ
 	 */
-	public void transformAndAppendRegionVertexNew(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex, int sectorId, int sectorRelativeRegionOrigin) {
-		// WIP: given the size of the call stack, probably better to move this to the encoder
+	public void transformAndAppendRegionVertex(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex, int sectorId, int sectorRelativeRegionOrigin) {
+		// PERF: given the size of the call stack, possibly better to move this to the encoder
 
 		final int[] data = this.data;
 		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;

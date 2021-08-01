@@ -335,7 +335,7 @@ public class VertexCluster implements ClusterTask {
 			public final int quadVertexCount;
 			public final int triVertexCount;
 			private final TerrainVAO vao;
-			private boolean isClosed = false;
+			private boolean isSlabAllocationClosed = false;
 
 			private SlabAllocation(Slab slab, int baseQuadVertexIndex, int quadVertexCount) {
 				triVertexCount = quadVertexCount * 6 / 4;
@@ -351,10 +351,10 @@ public class VertexCluster implements ClusterTask {
 			}
 
 			public void release() {
-				assert !isClosed;
+				assert !isSlabAllocationClosed;
 
-				if (!isClosed) {
-					isClosed = true;
+				if (!isSlabAllocationClosed) {
+					isSlabAllocationClosed = true;
 
 					vao.shutdown();
 
