@@ -16,9 +16,6 @@
 
 package grondag.canvas.texture;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import net.minecraft.client.texture.Sprite;
@@ -27,6 +24,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.render.TransferBuffer;
+import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.buffer.util.GlBufferAllocator;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.GFX;
@@ -99,6 +98,10 @@ public final class MaterialIndexImage {
 		assert len / 4 == data.size();
 
 		if (len != 0) {
+			final TransferBuffer xferBuff = TransferBuffers.claim(len);
+			xferBuff.put(data.elements(), 0, 0, len / 4);
+			data.clear();
+
 			if (bufferId == 0) {
 				final int size = isAtlas ? MaterialIndexTexture.ATLAS_BUFFER_SIZE_BYTES : MaterialIndexTexture.BUFFER_SIZE_BYTES;
 				bufferId = GlBufferAllocator.claimBuffer(size);
@@ -109,19 +112,9 @@ public final class MaterialIndexImage {
 				GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, bufferId);
 			}
 
-			final ByteBuffer bBuff = GFX.mapBufferRange(GFX.GL_TEXTURE_BUFFER, head, len, GFX.GL_MAP_WRITE_BIT | GFX.GL_MAP_UNSYNCHRONIZED_BIT | GFX.GL_MAP_FLUSH_EXPLICIT_BIT);
-
-			if (bBuff != null) {
-				final IntBuffer iBuff = bBuff.asIntBuffer();
-				iBuff.put(data.elements(), 0, len / 4);
-				data.clear();
-				head = tail;
-			}
-
-			GFX.flushMappedBufferRange(GFX.GL_TEXTURE_BUFFER, 0, len);
-			GFX.unmapBuffer(GFX.GL_TEXTURE_BUFFER);
-
+			xferBuff.releaseToBoundBuffer(GFX.GL_TEXTURE_BUFFER, head);
 			GFX.bindBuffer(GFX.GL_TEXTURE_BUFFER, 0);
+			head = tail;
 		}
 	}
 }
