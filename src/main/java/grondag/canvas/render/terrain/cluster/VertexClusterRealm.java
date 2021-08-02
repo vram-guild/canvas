@@ -22,11 +22,9 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
+import grondag.canvas.render.terrain.cluster.drawlist.DrawListCullingHelper;
 
 public class VertexClusterRealm {
-	public static final VertexClusterRealm SOLID = new VertexClusterRealm();
-	public static final VertexClusterRealm TRANSLUCENT = new VertexClusterRealm();
-
 	/**
 	 * Number of bits we right-shift "chunk" coordinates to get cluster coordinates.
 	 * Determines the size of clusters.
@@ -49,7 +47,14 @@ public class VertexClusterRealm {
 
 	private boolean isClosed = false;
 
-	private VertexClusterRealm() { }
+	public final DrawListCullingHelper drawListCullingHelper;
+
+	public final boolean isTranslucent;
+
+	public VertexClusterRealm(DrawListCullingHelper drawListCullingHelper, boolean isTranslucent) {
+		this.drawListCullingHelper = drawListCullingHelper;
+		this.isTranslucent = isTranslucent;
+	}
 
 	public void clear() {
 		assert RenderSystem.isOnRenderThread();

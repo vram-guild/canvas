@@ -34,7 +34,7 @@ public class VboDrawList extends AbstractDrawableRegionList {
 		super(regions, renderState);
 	}
 
-	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
+	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState, boolean isShadowMap) {
 		if (regions.isEmpty()) {
 			return DrawableRegionList.EMPTY;
 		}

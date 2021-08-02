@@ -31,14 +31,13 @@ class DrawSpec {
 	private final TerrainVAO vao;
 	private boolean isClosed = false;
 
-	DrawSpec (Slab slab, int maxTriVertexCount, int[] triVertexCount, int[] baseQuadVertexOffset) {
-		size = triVertexCount.length;
-
+	DrawSpec (Slab slab, int size, int[] triVertexCount, int[] baseQuadVertexOffset) {
+		this.size = size;
 		this.triVertexCount = MemoryUtil.memAllocInt(size);
-		this.triVertexCount.put(0, triVertexCount);
+		this.triVertexCount.put(0, triVertexCount, 0, size);
 
 		this.baseQuadVertexOffset = MemoryUtil.memAllocInt(size);
-		this.baseQuadVertexOffset.put(0, baseQuadVertexOffset);
+		this.baseQuadVertexOffset.put(0, baseQuadVertexOffset, 0, size);
 
 		triIndexOffset = MemoryUtil.memAllocPointer(size);
 

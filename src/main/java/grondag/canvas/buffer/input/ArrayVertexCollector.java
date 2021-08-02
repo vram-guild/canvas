@@ -44,10 +44,12 @@ public class ArrayVertexCollector implements VertexCollector {
 	private int integerSize = 0;
 
 	public final RenderState renderState;
+	private final VertexBucket.Sorter bucketSorter;
 
 	public ArrayVertexCollector(RenderState renderState, boolean isTerrain) {
 		this.renderState = renderState;
 		this.isTerrain = isTerrain;
+		bucketSorter = isTerrain && !renderState.sorted ? new VertexBucket.Sorter() : null;
 		// VF quads use vertex stride because of indexing
 		quadStrideInts = isTerrain ? Configurator.terrainRenderConfig.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
@@ -105,6 +107,17 @@ public class ArrayVertexCollector implements VertexCollector {
 		return result;
 	}
 
+	@Override
+	public int allocate(int size, int bucketIndex) {
+		assert isTerrain;
+
+		if (bucketSorter != null) {
+			bucketSorter.add(bucketIndex, integerSize);
+		}
+
+		return allocate(size);
+	}
+
 	public void toBuffer(IntBuffer intBuffer, int startingIndex) {
 		intBuffer.put(vertexData, startingIndex, integerSize);
 	}
@@ -115,6 +128,14 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	public void clear() {
 		integerSize = 0;
+
+		if (bucketSorter != null) {
+			bucketSorter.clear();
+		}
+	}
+
+	public VertexBucket[] sortVertexBuckets() {
+		return bucketSorter == null ? null : bucketSorter.sort(vertexData, integerSize);
 	}
 
 	public boolean sortQuads(float x, float y, float z) {

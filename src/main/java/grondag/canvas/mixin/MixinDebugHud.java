@@ -49,7 +49,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.config.TerrainRenderConfigOption;
 import grondag.canvas.mixinterface.BufferBuilderExt;
 import grondag.canvas.render.terrain.cluster.SlabAllocator;
-import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
+import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.AutoImmediate;
 
@@ -194,8 +194,10 @@ public class MixinDebugHud extends DrawableHelper {
 		TerrainExecutor.INSTANCE.debugReport(result);
 
 		if (Configurator.terrainRenderConfigOption == TerrainRenderConfigOption.CLUSTERED) {
-			result.add("Solid " + VertexClusterRealm.SOLID.debugSummary());
-			result.add("Translucent " + VertexClusterRealm.TRANSLUCENT.debugSummary());
+			@SuppressWarnings("resource")
+			final var worldRenderState = CanvasWorldRenderer.instance().worldRenderState;
+			result.add("Solid " + worldRenderState.solidClusterRealm.debugSummary());
+			result.add("Translucent " + worldRenderState.translucentClusterRealm.debugSummary());
 			result.add(SlabAllocator.debugSummary());
 		}
 

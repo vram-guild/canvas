@@ -29,10 +29,13 @@ import grondag.canvas.varia.GFX;
 
 public class RealmDrawList extends AbstractDrawableRegionList {
 	final ObjectArrayList<ClusterDrawList> clusterLists = new ObjectArrayList<>();
+	final boolean isShadowMap;
+
 	boolean isInvalid = false;
 
-	private RealmDrawList(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
+	private RealmDrawList(final ObjectArrayList<DrawableRegion> regions, RenderState renderState, boolean isShadowMap) {
 		super(regions, renderState);
+		this.isShadowMap = isShadowMap;
 		build();
 	}
 
@@ -68,8 +71,8 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 		}
 	}
 
-	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState) {
-		return regions.isEmpty() ? DrawableRegionList.EMPTY : new RealmDrawList(regions, renderState);
+	public static DrawableRegionList build(final ObjectArrayList<DrawableRegion> regions, RenderState renderState, boolean isShadowMap) {
+		return regions.isEmpty() ? DrawableRegionList.EMPTY : new RealmDrawList(regions, renderState, isShadowMap);
 	}
 
 	@Override

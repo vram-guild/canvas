@@ -47,27 +47,12 @@ public class VboRegionRenderConfig extends TerrainRenderConfig {
 	}
 
 	@Override
-	public void reload(WorldRenderState worldRenderState) {
-		// NOOP
-	}
-
-	@Override
 	public void onDeactiveProgram() {
 		// NOOP
 	}
 
 	@Override
 	public void onActivateProgram() {
-		// NOOP
-	}
-
-	@Override
-	public void beforeDrawListBuild() {
-		// NOOP
-	}
-
-	@Override
-	public void afterDrawListBuild() {
 		// NOOP
 	}
 
@@ -82,7 +67,7 @@ public class VboRegionRenderConfig extends TerrainRenderConfig {
 	}
 
 	@Override
-	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos) {
+	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos, WorldRenderState worldRenderState) {
 		return VboDrawableRegion.uploadable(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
 	}
 }

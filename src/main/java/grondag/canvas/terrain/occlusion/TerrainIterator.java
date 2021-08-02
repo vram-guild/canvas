@@ -201,6 +201,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		assert state.get() == READY;
 		state.set(RUNNING);
 		worldRenderState.renderRegionStorage.updateRegionPositionAndVisibility();
+		worldRenderState.drawListCullingHlper.update();
 
 		if (resetCameraOccluder) {
 			visibleRegions.clear();

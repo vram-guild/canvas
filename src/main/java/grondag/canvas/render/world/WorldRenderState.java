@@ -16,9 +16,6 @@
 
 package grondag.canvas.render.world;
 
-import java.util.function.BiFunction;
-
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
@@ -26,13 +23,13 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.terrain.RegionRenderSectorMap;
-import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
-import grondag.canvas.render.terrain.base.DrawableRegionListBuilder;
+import grondag.canvas.render.terrain.base.DrawableRegionList.DrawableRegionListFunc;
+import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
+import grondag.canvas.render.terrain.cluster.drawlist.DrawListCullingHelper;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
@@ -84,6 +81,10 @@ public class WorldRenderState {
 	private int squaredChunkRenderDistance;
 	private int squaredChunkRetentionDistance;
 
+	public final DrawListCullingHelper drawListCullingHlper = new DrawListCullingHelper(this);
+	public final VertexClusterRealm solidClusterRealm = new VertexClusterRealm(drawListCullingHlper, false);
+	public final VertexClusterRealm translucentClusterRealm = new VertexClusterRealm(drawListCullingHlper, true);
+
 	public WorldRenderState(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
 
@@ -115,6 +116,8 @@ public class WorldRenderState {
 		terrainIterator.reset();
 		renderRegionStorage.clear();
 		hasSkylight = world != null && world.getDimension().hasSkyLight();
+		solidClusterRealm.clear();
+		translucentClusterRealm.clear();
 	}
 
 	public ClientWorld getWorld() {
@@ -169,23 +172,19 @@ public class WorldRenderState {
 
 		areDrawListsValid = true;
 
-		final BiFunction<ObjectArrayList<DrawableRegion>, RenderState, DrawableRegionList> drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
-
-		Configurator.terrainRenderConfig.beforeDrawListBuild();
+		final DrawableRegionListFunc drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
 
 		solidDrawList.close();
-		solidDrawList = DrawableRegionListBuilder.build(cameraVisibleRegions, drawListFunc, false);
+		solidDrawList = DrawableRegionList.build(cameraVisibleRegions, drawListFunc, false, false);
 		translucentDrawList.close();
-		translucentDrawList = DrawableRegionListBuilder.build(cameraVisibleRegions, drawListFunc, true);
+		translucentDrawList = DrawableRegionList.build(cameraVisibleRegions, drawListFunc, true, false);
 
 		if (shadowsEnabled()) {
 			for (int i = 0; i < 4; ++i) {
 				shadowDrawLists[i].close();
-				shadowDrawLists[i] = DrawableRegionListBuilder.build(shadowVisibleRegions[i], drawListFunc, false);
+				shadowDrawLists[i] = DrawableRegionList.build(shadowVisibleRegions[i], drawListFunc, false, true);
 			}
 		}
-
-		Configurator.terrainRenderConfig.afterDrawListBuild();
 	}
 
 	void clear() {
@@ -202,7 +201,8 @@ public class WorldRenderState {
 		terrainFrustum.reload();
 		clearDrawSpecs();
 		sectorManager.clear();
-		Configurator.terrainRenderConfig.reload(this);
+		solidClusterRealm.clear();
+		translucentClusterRealm.clear();
 	}
 
 	void clearDrawSpecs() {

@@ -287,6 +287,10 @@ public class VertexCluster implements ClusterTask {
 				vao = new TerrainVAO(() -> slab.glBufferId(), () -> SlabIndex.get().glBufferId(), baseQuadVertexIndex);
 			}
 
+			public ClusteredDrawableStorage region() {
+				return region;
+			}
+
 			public void bind() {
 				vao.bind();
 			}

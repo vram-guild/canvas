@@ -16,18 +16,12 @@
 
 package grondag.canvas.render.terrain;
 
-import java.util.function.BiFunction;
-
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.QuadTranscoder;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.terrain.base.DrawableRegion;
-import grondag.canvas.render.terrain.base.DrawableRegionList;
+import grondag.canvas.render.terrain.base.DrawableRegionList.DrawableRegionListFunc;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.GlProgram;
@@ -47,7 +41,7 @@ public abstract class TerrainRenderConfig {
 
 	public final QuadTranscoder transcoder;
 
-	public final BiFunction<ObjectArrayList<DrawableRegion>, RenderState, DrawableRegionList> drawListFunc;
+	public final DrawableRegionListFunc drawListFunc;
 
 	protected TerrainRenderConfig(
 		String name,
@@ -56,7 +50,7 @@ public abstract class TerrainRenderConfig {
 		int quadStrideInts,
 		boolean shouldApplyBlockPosTranslation,
 		QuadTranscoder transcoder,
-		BiFunction<ObjectArrayList<DrawableRegion>, RenderState, DrawableRegionList> drawListFunc
+		DrawableRegionListFunc drawListFunc
 	) {
 		this.name = name;
 		this.shaderConfigTag = shaderConfigTag;
@@ -69,19 +63,13 @@ public abstract class TerrainRenderConfig {
 
 	public abstract void setupUniforms(GlProgram program);
 
-	public abstract void reload(WorldRenderState worldRenderState);
-
 	public abstract void onDeactiveProgram();
 
 	public abstract void onActivateProgram();
-
-	public abstract void beforeDrawListBuild();
-
-	public abstract void afterDrawListBuild();
 
 	public abstract QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector);
 
 	public abstract void prepareForDraw(WorldRenderState worldRenderState);
 
-	public abstract UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos);
+	public abstract UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos, WorldRenderState worldRenderStat);
 }

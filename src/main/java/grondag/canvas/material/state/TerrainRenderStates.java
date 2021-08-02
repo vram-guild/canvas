@@ -14,22 +14,16 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.input;
+package grondag.canvas.material.state;
+
+import net.minecraft.client.render.RenderLayer;
 
 /**
- * Thin access layer to vertex buffer/mapped memory range.
- * Caller must know vertex format, boundaries, etc.
- * NOT THREAD SAFE.
+ * Here do defer initialization when referencing classes are loaded.
  */
-public interface VertexCollector {
-	int allocate(int size);
+public final class TerrainRenderStates {
+	private TerrainRenderStates() { }
 
-	default int allocate(int size, int bucketIndex) {
-		return allocate(size);
-	}
-
-	/**
-	 * Must be called AFTER #allocate() and before any other allocations happen.
-	 */
-	int[] data();
+	public static final RenderState TRANSLUCENT = RenderLayerHelper.TRANSLUCENT_TERRAIN.renderState;
+	public static final RenderState SOLID = RenderLayerHelper.copyFromLayer(RenderLayer.getSolid()).renderState;
 }

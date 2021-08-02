@@ -77,7 +77,7 @@ public class TerrainFormat {
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
-		int k = buff.allocate(TERRAIN_QUAD_STRIDE);
+		int k = buff.allocate(TERRAIN_QUAD_STRIDE, quad.cullFaceId());
 		final int[] target = buff.data();
 
 		// This and pos vertex encoding are the only differences from standard format

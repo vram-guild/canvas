@@ -31,6 +31,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.UploadableRegion;
+import grondag.canvas.render.world.WorldRenderState;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
@@ -144,9 +145,9 @@ public class VertexCollectorList {
 		return intSize * 4;
 	}
 
-	public UploadableRegion toUploadableChunk(boolean sorted, long packedOriginBlockPos) {
+	public UploadableRegion toUploadableChunk(boolean sorted, long packedOriginBlockPos, WorldRenderState worldRenderState) {
 		final int bytes = totalBytes(sorted);
-		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : Configurator.terrainRenderConfig.createUploadableRegion(this, sorted, bytes, packedOriginBlockPos);
+		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : Configurator.terrainRenderConfig.createUploadableRegion(this, sorted, bytes, packedOriginBlockPos, worldRenderState);
 	}
 
 	/**

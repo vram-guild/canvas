@@ -24,7 +24,6 @@ import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
 import grondag.canvas.render.terrain.cluster.VertexCluster;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
-import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
 import grondag.canvas.varia.GFX;
 
 public class ClusterDrawList {
@@ -41,7 +40,7 @@ public class ClusterDrawList {
 	void build() {
 		assert drawSpecs.isEmpty();
 
-		if (cluster.realm == VertexClusterRealm.TRANSLUCENT) {
+		if (cluster.realm.isTranslucent) {
 			buildTranslucent();
 		} else {
 			buildSolid();
@@ -52,33 +51,26 @@ public class ClusterDrawList {
 	private void buildTranslucent() {
 		Slab lastSlab = null;
 		final ObjectArrayList<SlabAllocation> specAllocations = new ObjectArrayList<>();
-		int specQuadVertexCount = 0;
 
 		for (var region : regions) {
 			var alloc = region.allocation().getAllocation();
 
 			if (alloc.slab != lastSlab) {
-				// NB: addSpec checks for empty region list (will be true for first region)
+				// NB: builder checks for empty region list (will be true for first region)
 				// and also clears the list when done.
-				addSpec(specAllocations, specQuadVertexCount);
-				specQuadVertexCount = 0;
+				DrawSpecBuilder.TRANSLUCENT.build(specAllocations, drawSpecs);
 				lastSlab = alloc.slab;
 			}
 
 			specAllocations.add(alloc);
-			specQuadVertexCount += alloc.quadVertexCount;
 		}
 
-		addSpec(specAllocations, specQuadVertexCount);
-	}
-
-	private static class SolidSpecList extends ObjectArrayList<SlabAllocation> {
-		private int specQuadVertexCount;
+		DrawSpecBuilder.TRANSLUCENT.build(specAllocations, drawSpecs);
 	}
 
 	/** Minimizes binds/calls. */
 	private void buildSolid() {
-		final IdentityHashMap<Slab, SolidSpecList> map = new IdentityHashMap<>();
+		final IdentityHashMap<Slab, ObjectArrayList<SlabAllocation>> map = new IdentityHashMap<>();
 
 		// first group regions by slab
 		for (var region : regions) {
@@ -86,48 +78,16 @@ public class ClusterDrawList {
 			var list = map.get(alloc.slab);
 
 			if (list == null) {
-				list = new SolidSpecList();
+				list = new ObjectArrayList<>();
 				map.put(alloc.slab, list);
 			}
 
 			list.add(alloc);
-			list.specQuadVertexCount += alloc.quadVertexCount;
 		}
 
 		for (var list: map.values()) {
-			addSpec(list, list.specQuadVertexCount);
+			DrawSpecBuilder.SOLID.build(list, drawSpecs);
 		}
-	}
-
-	/**
-	 * Returns the index slab that should be used for next call.
-	 * Does nothing if region list is empty and clears region list when done.
-	 */
-	private void addSpec(ObjectArrayList<SlabAllocation> specAllocations, int specQuadVertexCount) {
-		assert specQuadVertexCount >= 0;
-
-		if (specQuadVertexCount == 0) {
-			return;
-		}
-
-		assert !specAllocations.isEmpty() : "Vertex count is non-zero but region list is empty.";
-
-		final var slab = specAllocations.get(0).slab;
-		final int limit = specAllocations.size();
-		final int[] triVertexCount = new int[limit];
-		final int[] baseQuadVertexOffset = new int[limit];
-		int maxTriVertexCount = 0;
-
-		for (int i = 0; i < limit; ++i) {
-			final var alloc = specAllocations.get(i);
-			assert alloc.slab == slab;
-			maxTriVertexCount = Math.max(maxTriVertexCount, alloc.triVertexCount);
-			triVertexCount[i] = alloc.triVertexCount;
-			baseQuadVertexOffset[i] = alloc.baseQuadVertexIndex;
-		}
-
-		drawSpecs.add(new DrawSpec(slab, maxTriVertexCount + 6, triVertexCount, baseQuadVertexOffset));
-		specAllocations.clear();
 	}
 
 	public void draw() {
