@@ -4,7 +4,7 @@
 
 	materialProgram: {
 		vertexSource: "canvas:shaders/pipeline/standard.vert",
-		fragmentSource: "canvas:shaders/pipeline/standard.frag",
+		fragmentSource: "canvas:shaders/pipeline/basic.frag",
 		// glsl names for samplers additive to the FREX pre-defined samplers
 		samplers: ["cvu_glint"],
 		// image names for samplers additive to the FREX pre-defined samplers
