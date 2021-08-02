@@ -21,7 +21,7 @@ import org.lwjgl.opengl.GL21;
 public class TextureData {
 	// bindings MC uses during world rendering
 	public static final int MC_SPRITE_ATLAS = GL21.GL_TEXTURE0;
-	public static final int MC_OVELAY = GL21.GL_TEXTURE1;
+	//public static final int MC_OVELAY = GL21.GL_TEXTURE1;
 	public static final int MC_LIGHTMAP = GL21.GL_TEXTURE2;
 
 	// want these outside of the range managed by Mojang's damn GlStateManager
@@ -29,6 +29,5 @@ public class TextureData {
 	public static final int SHADOWMAP_TEXTURE = SHADOWMAP + 1;
 	public static final int HD_LIGHTMAP = SHADOWMAP_TEXTURE + 1;
 	public static final int MATERIAL_INFO = HD_LIGHTMAP + 1;
-	public static final int VF_REGIONS = MATERIAL_INFO + 1;
-	public static final int PROGRAM_SAMPLERS = VF_REGIONS + 1;
+	public static final int PROGRAM_SAMPLERS = MATERIAL_INFO + 1;
 }
