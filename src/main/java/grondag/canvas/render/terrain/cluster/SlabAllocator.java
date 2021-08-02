@@ -35,7 +35,7 @@ public class SlabAllocator {
 		capacityBytes -= slab.capacityBytes();
 	}
 
-	public static final int SLAB_QUAD_VERTEX_COUNT_INCREMENT = 0x4000;
+	public static final int SLAB_QUAD_VERTEX_COUNT_INCREMENT = 0x2000;
 	public static final int BYTES_PER_SLAB_VERTEX = 28;
 	static final int SLAB_BYTES_INCREMENT = SLAB_QUAD_VERTEX_COUNT_INCREMENT * BYTES_PER_SLAB_VERTEX;
 

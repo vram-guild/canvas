@@ -48,6 +48,7 @@ public class DrawListCullingHelper {
 		northMinZ = z - 1;
 	}
 
+	// WIP: need shadowmap version
 	/** Flag 6 (unassigned) will always be set. */
 	public int computeFlags(long packedOriginBlockPos) {
 		final int x = BlockPos.unpackLongX(packedOriginBlockPos) >> 4;
