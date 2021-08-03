@@ -56,6 +56,6 @@ public class SlabAllocator {
 		return String.format("%d slabs %dMb occ:%d",
 				slabCount,
 				capacityBytes / 0x100000L,
-				usedBytes * 100L / capacityBytes);
+				capacityBytes > 0 ? usedBytes * 100L / capacityBytes : 0);
 	}
 }
