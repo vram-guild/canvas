@@ -305,14 +305,9 @@ public class RenderRegion implements TerrainExecutorTask {
 			if (state != null) {
 				final VertexCollectorList collectors = context.collectors;
 				final ArrayVertexCollector collector = collectors.get(RenderLayerHelper.TRANSLUCENT_TERRAIN);
-				final Vec3d sortPos = worldRenderState.cameraVisibleRegions.lastSortPos();
 				collector.loadState(state);
 
-				if (collector.sortQuads(
-					(float) (sortPos.x - origin.getX()),
-					(float) (sortPos.y - origin.getY()),
-					(float) (sortPos.z - origin.getZ()))
-				) {
+				if (collector.sortTerrainQuads(worldRenderState.sectorManager.cameraPos(), renderSector)) {
 					regionData.translucentState = collector.saveState(state);
 
 					if (runningState.get() != SignalInputRegion.INVALID) {
@@ -465,8 +460,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			}
 		}
 
-		final Vec3d sortPos = worldRenderState.cameraVisibleRegions.lastSortPos();
-		buildState.prepareTranslucentIfNeeded((float) (sortPos.x - xOrigin), (float) (sortPos.y - yOrigin), (float) (sortPos.z - zOrigin), collectors);
+		buildState.prepareTranslucentIfNeeded(worldRenderState.sectorManager.cameraPos(), renderSector, collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.completeChunk();

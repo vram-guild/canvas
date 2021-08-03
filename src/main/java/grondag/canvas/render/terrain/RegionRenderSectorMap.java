@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.varia.FixedCapacityIndexAllocator;
@@ -63,6 +64,7 @@ public class RegionRenderSectorMap {
 	private final FixedCapacityIndexAllocator allocator = new FixedCapacityIndexAllocator(MAX_SECTORS_LOADED);
 	private int originBlockX, originBlockZ;
 	private int originSectorX, originSectorZ;
+	private Vec3d cameraPos;
 	private final int[] sectorOffsets = new int[UNIFORM_ARRAY_LENGTH];
 
 	public void clear() {
@@ -70,6 +72,10 @@ public class RegionRenderSectorMap {
 			map.clear();
 			allocator.clear();
 		}
+	}
+
+	public Vec3d cameraPos() {
+		return cameraPos;
 	}
 
 	public int[] uniformData() {
@@ -95,7 +101,11 @@ public class RegionRenderSectorMap {
 		}
 	}
 
-	public void setCameraXZ(int blockX, int blockZ) {
+	public void setCamera(Vec3d cameraPos, BlockPos cameraBlockPos) {
+		this.cameraPos = cameraPos;
+		final int blockX = cameraBlockPos.getX();
+		final int blockZ = cameraBlockPos.getZ();
+
 		final int newBlockX = blockX & SECTOR_COORDINATE_MASK;
 		final int newBlockZ = blockZ & SECTOR_COORDINATE_MASK;
 
@@ -123,8 +133,8 @@ public class RegionRenderSectorMap {
 		int retainCount = 0;
 
 		final long sectorKey;
-		final int paddedBlockOriginX, paddedBlockOriginY, paddedBlockOriginZ;
-		final int sectorOriginX, sectorOriginY, sectorOriginZ;
+		public final int paddedBlockOriginX, paddedBlockOriginY, paddedBlockOriginZ;
+		public final int sectorOriginX, sectorOriginY, sectorOriginZ;
 		int sectorId = -1;
 
 		private RegionRenderSector(RegionPosition origin) {
