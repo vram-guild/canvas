@@ -433,25 +433,32 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			while (itBER.hasNext()) {
 				final BlockEntity blockEntity = itBER.next();
 				final BlockPos blockPos = blockEntity.getPos();
+				final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
+				int stage = -1;
+
+				if (sortedSet != null && !sortedSet.isEmpty()) {
+					stage = sortedSet.last().getStage();
+				}
+
+				if (stage >= 0 && noCullingBlockEntities.contains(blockEntity)) {
+					// no need to render global BERs twice if no block breaking overlay
+					continue;
+				}
+
 				VertexConsumerProvider outputConsumer = immediate;
 				contextState.setCurrentBlockEntity(blockEntity);
 
 				identityStack.push();
 				identityStack.translate(blockPos.getX() - frameCameraX, blockPos.getY() - frameCameraY, blockPos.getZ() - frameCameraZ);
-				final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
 
-				if (sortedSet != null && !sortedSet.isEmpty()) {
-					final int stage = sortedSet.last().getStage();
+				if (stage >= 0) {
+					final MatrixStack.Entry xform = identityStack.peek();
+					final VertexConsumer overlayConsumer = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
 
-					if (stage >= 0) {
-						final MatrixStack.Entry xform = identityStack.peek();
-						final VertexConsumer overlayConsumer = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
-
-						outputConsumer = (renderLayer) -> {
-							final VertexConsumer baseConsumer = immediate.getBuffer(renderLayer);
-							return renderLayer.hasCrumbling() ? VertexConsumers.union(overlayConsumer, baseConsumer) : baseConsumer;
-						};
-					}
+					outputConsumer = (renderLayer) -> {
+						final VertexConsumer baseConsumer = immediate.getBuffer(renderLayer);
+						return renderLayer.hasCrumbling() ? VertexConsumers.union(overlayConsumer, baseConsumer) : baseConsumer;
+					};
 				}
 
 				++blockEntityCount;
