@@ -140,14 +140,13 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	public boolean sortQuads(float x, float y, float z) {
 		final int quadCount = quadCount();
-		final QuadDistanceFunc distanceFunc = isTerrain ? Configurator.terrainRenderConfig.selectQuadDistanceFunction(this) : quadDistanceStandard;
 
 		if (perQuadDistance.length < quadCount) {
 			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
 		}
 
 		for (int j = 0; j < quadCount; ++j) {
-			perQuadDistance[j] = distanceFunc.compute(x, y, z, j);
+			perQuadDistance[j] = getDistanceSq(x, y, z, j);
 		}
 
 		didSwap = false;
@@ -159,10 +158,6 @@ public class ArrayVertexCollector implements VertexCollector {
 		it.unimi.dsi.fastutil.Arrays.mergeSort(0, quadCount, comparator, swapper);
 
 		return didSwap;
-	}
-
-	public interface QuadDistanceFunc {
-		float compute(float x, float y, float z, int quadIndex);
 	}
 
 	private final IntComparator comparator = new IntComparator() {
@@ -189,8 +184,6 @@ public class ArrayVertexCollector implements VertexCollector {
 			System.arraycopy(swapData, quadStrideInts, vertexData, aIndex, quadStrideInts);
 		}
 	};
-
-	public final QuadDistanceFunc quadDistanceStandard = this::getDistanceSq;
 
 	private float getDistanceSq(float x, float y, float z, int quadIndex) {
 		final int integerStride = quadStrideInts / 4;

@@ -18,7 +18,7 @@ package grondag.canvas.render.terrain.cluster;
 
 import java.util.ArrayDeque;
 
-class ClusterTaskManager {
+public class ClusterTaskManager {
 	@FunctionalInterface interface ClusterTask {
 		/** Task should return false if unable to complete and needs more time next frame. */
 		boolean run(long deadlineNanos);
@@ -28,7 +28,7 @@ class ClusterTaskManager {
 
 	private ClusterTaskManager() { }
 
-	static void run(long deadlineNanos) {
+	public static void run(long deadlineNanos) {
 		do {
 			var task = TASKS.poll();
 

@@ -18,12 +18,7 @@ package grondag.canvas.render.terrain;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.QuadTranscoder;
-import grondag.canvas.buffer.input.ArrayVertexCollector;
-import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
-import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.terrain.base.DrawableRegionList.DrawableRegionListFunc;
-import grondag.canvas.render.terrain.base.UploadableRegion;
-import grondag.canvas.render.world.WorldRenderState;
 
 public abstract class TerrainRenderConfig {
 	public final String name;
@@ -59,10 +54,4 @@ public abstract class TerrainRenderConfig {
 		this.transcoder = transcoder;
 		this.drawListFunc = drawListFunc;
 	}
-
-	public abstract QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector);
-
-	public abstract void prepareForDraw(WorldRenderState worldRenderState);
-
-	public abstract UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos, WorldRenderState worldRenderStat);
 }

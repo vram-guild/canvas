@@ -92,6 +92,7 @@ import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
+import grondag.canvas.render.terrain.cluster.ClusterTaskManager;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
@@ -314,7 +315,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		worldRenderState.regionBuilder().upload();
 		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
 
-		Configurator.terrainRenderConfig.prepareForDraw(worldRenderState);
+		// WIP: need a way to set the deadline appropriately based on steady frame rate and time already elapsed.
+		// Method must ensure we don't have starvation - task queue can't grow indefinitely.
+		ClusterTaskManager.run(System.nanoTime() + 2000000);
 		worldRenderState.rebuidDrawListsIfNeeded();
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader

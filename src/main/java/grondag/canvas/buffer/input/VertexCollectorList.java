@@ -27,10 +27,10 @@ import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.UploadableRegion;
+import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
 import grondag.canvas.render.world.WorldRenderState;
 
 /**
@@ -147,7 +147,7 @@ public class VertexCollectorList {
 
 	public UploadableRegion toUploadableChunk(boolean sorted, long packedOriginBlockPos, WorldRenderState worldRenderState) {
 		final int bytes = totalBytes(sorted);
-		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : Configurator.terrainRenderConfig.createUploadableRegion(this, sorted, bytes, packedOriginBlockPos, worldRenderState);
+		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : ClusteredDrawableRegion.uploadable(this, sorted ? worldRenderState.translucentClusterRealm : worldRenderState.solidClusterRealm, bytes, packedOriginBlockPos);
 	}
 
 	/**

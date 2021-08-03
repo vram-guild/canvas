@@ -16,14 +16,9 @@
 
 package grondag.canvas.render.terrain.cluster;
 
-import grondag.canvas.buffer.input.ArrayVertexCollector;
-import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
-import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.TerrainRenderConfig;
-import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.terrain.cluster.drawlist.RealmDrawList;
-import grondag.canvas.render.world.WorldRenderState;
 
 public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 	public static final ClusteredRegionRenderConfig INSTANCE = new ClusteredRegionRenderConfig();
@@ -38,22 +33,5 @@ public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 			TerrainFormat.TERRAIN_TRANSCODER,
 			RealmDrawList::build
 		);
-	}
-
-	@Override
-	public QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector) {
-		return arrayVertexCollector.quadDistanceStandard;
-	}
-
-	@Override
-	public void prepareForDraw(WorldRenderState worldRenderState) {
-		// WIP: need a way to set the deadline appropriately based on steady frame rate and time already elapsed.
-		// Method must ensure we don't have starvation - task queue can't grow indefinitely.
-		ClusterTaskManager.run(System.nanoTime() + 2000000);
-	}
-
-	@Override
-	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos, WorldRenderState worldRenderState) {
-		return ClusteredDrawableRegion.uploadable(vertexCollectorList, sorted ? worldRenderState.translucentClusterRealm : worldRenderState.solidClusterRealm, bytes, packedOriginBlockPos);
 	}
 }

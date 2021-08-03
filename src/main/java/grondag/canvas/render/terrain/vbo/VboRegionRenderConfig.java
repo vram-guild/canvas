@@ -18,12 +18,7 @@ package grondag.canvas.render.terrain.vbo;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.format.QuadEncoders;
-import grondag.canvas.buffer.input.ArrayVertexCollector;
-import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
-import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.terrain.TerrainRenderConfig;
-import grondag.canvas.render.terrain.base.UploadableRegion;
-import grondag.canvas.render.world.WorldRenderState;
 
 public class VboRegionRenderConfig extends TerrainRenderConfig {
 	public static final VboRegionRenderConfig INSTANCE = new VboRegionRenderConfig();
@@ -38,20 +33,5 @@ public class VboRegionRenderConfig extends TerrainRenderConfig {
 			QuadEncoders.STANDARD_TRANSCODER,
 			VboDrawList::build
 		);
-	}
-
-	@Override
-	public QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector) {
-		return arrayVertexCollector.quadDistanceStandard;
-	}
-
-	@Override
-	public void prepareForDraw(WorldRenderState worldRenderState) {
-		// NOOP
-	}
-
-	@Override
-	public UploadableRegion createUploadableRegion(VertexCollectorList vertexCollectorList, boolean sorted, int bytes, long packedOriginBlockPos, WorldRenderState worldRenderState) {
-		return VboDrawableRegion.uploadable(vertexCollectorList, sorted, bytes, packedOriginBlockPos);
 	}
 }
