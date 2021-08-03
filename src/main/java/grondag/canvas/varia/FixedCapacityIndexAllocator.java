@@ -57,7 +57,7 @@ public class FixedCapacityIndexAllocator {
 	public synchronized void releaseIndex(final int index) {
 		assert bits.get(index);
 		bits.clear(index);
-		++inUseCount;
+		--inUseCount;
 	}
 
 	public synchronized void clear() {
