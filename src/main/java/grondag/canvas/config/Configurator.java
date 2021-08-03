@@ -71,8 +71,6 @@ public class Configurator {
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 	public static boolean enableNearOccluders = DEFAULTS.enableNearOccluders;
-	public static TerrainRenderConfigOption terrainRenderConfigOption = DEFAULTS.terrainRenderConfig;
-	public static TerrainRenderConfig terrainRenderConfig = terrainRenderConfigOption.config;
 	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
 	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
 
@@ -81,6 +79,10 @@ public class Configurator {
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
 	static boolean reload = false;
+
+	// WIP: remove
+	public static final TerrainRenderConfig terrainRenderConfig = TerrainRenderConfigOption.CLUSTERED.config;
+
 	// static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean hdLightmaps() {
 		return false;
@@ -146,8 +148,6 @@ public class Configurator {
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
 		enableNearOccluders = config.enableNearOccluders;
-		terrainRenderConfigOption = config.terrainRenderConfig;
-		terrainRenderConfig = terrainRenderConfigOption.config;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -200,6 +200,5 @@ public class Configurator {
 		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
 		config.enableNearOccluders = enableNearOccluders;
-		config.terrainRenderConfig = terrainRenderConfigOption;
 	}
 }

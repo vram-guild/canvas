@@ -114,8 +114,6 @@ class ConfigData {
 	float profilerOverlayScale = 0.5f;
 	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
 	boolean enableNearOccluders = false;
-	//WIP: docs
-	TerrainRenderConfigOption terrainRenderConfig = TerrainRenderConfigOption.DEFAULT;
 	@Comment("Method used to transfer data to GPU. AUTO is recommended but performance can be specific to your system. Other options are DIRECT, HYBRID, and MAPPED")
 	public TransferBuffers.Config transferBufferMode = TransferBuffers.Config.AUTO;
 }
