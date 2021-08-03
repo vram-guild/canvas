@@ -20,6 +20,7 @@ import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.shader.data.ShaderDataManager;
 
 public class DrawListCullingHelper {
 	final WorldRenderState worldRenderState;
@@ -34,6 +35,7 @@ public class DrawListCullingHelper {
 	private int westMinX;
 	private int southMaxZ;
 	private int northMinZ;
+	private int shadowFlags = FaceConstants.UNASSIGNED_FLAG;
 
 	public void update() {
 		final long packedCameraRegionOrign = worldRenderState.terrainIterator.cameraRegionOrigin();
@@ -46,9 +48,13 @@ public class DrawListCullingHelper {
 		westMinX = x - 1;
 		southMaxZ = z + 1;
 		northMinZ = z - 1;
+
+		shadowFlags = FaceConstants.UNASSIGNED_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.getX() > 0 ? FaceConstants.EAST_FLAG : FaceConstants.WEST_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.getY() > 0 ? FaceConstants.UP_FLAG : FaceConstants.DOWN_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.getZ() > 0 ? FaceConstants.SOUTH_FLAG : FaceConstants.NORTH_FLAG;
 	}
 
-	// WIP: need shadowmap version
 	/** Flag 6 (unassigned) will always be set. */
 	public int computeFlags(long packedOriginBlockPos) {
 		final int x = BlockPos.unpackLongX(packedOriginBlockPos) >> 4;
@@ -67,5 +73,10 @@ public class DrawListCullingHelper {
 		if (z > northMinZ) result |= FaceConstants.NORTH_FLAG;
 
 		return result;
+	}
+
+	/** Flag 6 (unassigned) will always be set. */
+	public int shadowFlags() {
+		return shadowFlags;
 	}
 }

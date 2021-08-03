@@ -24,13 +24,16 @@ import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.Slab
 
 abstract class DrawSpecBuilder {
 	protected abstract void acceptAlloc(SlabAllocation alloc);
+	protected boolean isShadowMap = false;
 
-	final void build(ObjectArrayList<SlabAllocation> inputs, ObjectArrayList<DrawSpec> output) {
+	final void build(ObjectArrayList<SlabAllocation> inputs, ObjectArrayList<DrawSpec> output, boolean isShadowMap) {
 		assert RenderSystem.isOnRenderThread();
 
 		if (inputs.isEmpty()) {
 			return;
 		}
+
+		this.isShadowMap = isShadowMap;
 
 		final var slab = inputs.get(0).slab;
 		final int limit = inputs.size();
@@ -53,8 +56,9 @@ abstract class DrawSpecBuilder {
 	static final DrawSpecBuilder SOLID = new DrawSpecBuilder() {
 		@Override
 		protected void acceptAlloc(SlabAllocation alloc) {
-			final int bucketFlags = alloc.region().bucketFlags();
-			final var buckets = alloc.region().buckets;
+			final var region = alloc.region();
+			final int bucketFlags = isShadowMap ? region.shadowCullFlags() : region.cullFlags();
+			final var buckets = alloc.region().cullBuckets;
 
 			for (int i = 0; i < 7; ++i) {
 				if (((1 << i) & bucketFlags) == 0) {

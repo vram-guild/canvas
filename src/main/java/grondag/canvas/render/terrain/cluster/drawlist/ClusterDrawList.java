@@ -58,14 +58,14 @@ public class ClusterDrawList {
 			if (alloc.slab != lastSlab) {
 				// NB: builder checks for empty region list (will be true for first region)
 				// and also clears the list when done.
-				DrawSpecBuilder.TRANSLUCENT.build(specAllocations, drawSpecs);
+				DrawSpecBuilder.TRANSLUCENT.build(specAllocations, drawSpecs, false);
 				lastSlab = alloc.slab;
 			}
 
 			specAllocations.add(alloc);
 		}
 
-		DrawSpecBuilder.TRANSLUCENT.build(specAllocations, drawSpecs);
+		DrawSpecBuilder.TRANSLUCENT.build(specAllocations, drawSpecs, false);
 	}
 
 	/** Minimizes binds/calls. */
@@ -86,7 +86,7 @@ public class ClusterDrawList {
 		}
 
 		for (var list: map.values()) {
-			DrawSpecBuilder.SOLID.build(list, drawSpecs);
+			DrawSpecBuilder.SOLID.build(list, drawSpecs, owner.isShadowMap);
 		}
 	}
 

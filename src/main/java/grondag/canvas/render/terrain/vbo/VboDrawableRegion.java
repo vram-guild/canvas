@@ -24,6 +24,7 @@ import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.buffer.render.StaticDrawBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
+import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.UploadableRegion;
@@ -34,7 +35,7 @@ public class VboDrawableRegion extends AbstractDrawableRegion<StaticDrawBuffer> 
 	}
 
 	public static UploadableRegion uploadable(VertexCollectorList collectorList, boolean translucent, int bytes, long packedOriginBlockPos) {
-		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
+		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TerrainRenderStates.TRANSLUCENT_PREDICATE : TerrainRenderStates.SOLID_PREDICATE);
 
 		if (drawList.isEmpty()) {
 			return UploadableRegion.EMPTY_UPLOADABLE;

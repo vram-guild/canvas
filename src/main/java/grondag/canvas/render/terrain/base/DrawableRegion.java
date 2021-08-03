@@ -16,11 +16,7 @@
 
 package grondag.canvas.render.terrain.base;
 
-import java.util.function.Predicate;
-
 import grondag.canvas.buffer.render.UploadableVertexStorage;
-import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.state.RenderState;
 
 /**
  * Token for the region-specific resources (vertex buffers, storage buffers)
@@ -79,8 +75,4 @@ public interface DrawableRegion {
 			return null;
 		}
 	};
-
-	// WIP: find a better place for these
-	Predicate<RenderState> TRANSLUCENT = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
-	Predicate<RenderState> SOLID = m -> !TRANSLUCENT.test(m);
 }

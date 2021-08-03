@@ -30,7 +30,7 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	public final int triVertexCount;
 	public final long clusterPos;
 	public final long packedOriginBlockPos;
-	public final VertexBucket[] buckets;
+	public final VertexBucket[] cullBuckets;
 
 	private TransferBuffer transferBuffer;
 	private boolean isClosed = false;
@@ -41,7 +41,7 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 		this.quadVertexCount = quadVertexCount;
-		this.buckets = buckets;
+		cullBuckets = buckets;
 		this.packedOriginBlockPos = packedOriginBlockPos;
 		triVertexCount = quadVertexCount / 4 * 6;
 		clusterPos = VertexClusterRealm.clusterPos(packedOriginBlockPos);
@@ -90,9 +90,17 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 		allocation = realm.allocate(this);
 	}
 
-	/** Flag 6 (unassigned) will always be set. */
-	public int bucketFlags() {
-		assert buckets != null : "bucket flags requested when buckets not present";
+	/** Flag 6 (unassigned) will always be set.
+	 * @param isShadowMap */
+	public int cullFlags() {
+		assert cullBuckets != null : "bucket flags requested when buckets not present";
 		return realm.drawListCullingHelper.computeFlags(packedOriginBlockPos);
+	}
+
+	/** Flag 6 (unassigned) will always be set.
+	 * @param isShadowMap */
+	public int shadowCullFlags() {
+		assert cullBuckets != null : "bucket flags requested when buckets not present";
+		return realm.drawListCullingHelper.shadowFlags();
 	}
 }

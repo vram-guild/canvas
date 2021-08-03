@@ -41,6 +41,7 @@ public class VertexCluster implements ClusterTask {
 	private ObjectArrayList<Slab> slabs = new ObjectArrayList<>();
 	private @Nullable Slab hungrySlab = null;
 	private boolean isScheduled = false;
+	private boolean itMe = false;
 
 	public VertexCluster(VertexClusterRealm owner, long clumpPos) {
 		realm = owner;
@@ -109,11 +110,14 @@ public class VertexCluster implements ClusterTask {
 			activeBytes = 0;
 
 			if (!allocatedRegions.isEmpty()) {
+				itMe = true;
+
 				for (RegionAllocation alloc : allocatedRegions.values()) {
 					alloc.closeRegion();
 				}
 
 				allocatedRegions.clear();
+				itMe = false;
 			}
 
 			for (var slab : slabs) {
@@ -180,7 +184,7 @@ public class VertexCluster implements ClusterTask {
 		// NB: hungry slab can't be null here because we have at least two slabs. But
 		// it may not be big enough. Ensure hungry slab can hold everything, including own contents
 		assert hungrySlab.usedBytes() >= 0;
-		assert hungrySlab.usedBytes() < hungrySlab.capacityBytes();
+		assert hungrySlab.usedBytes() <= hungrySlab.capacityBytes();
 		final Slab hungrySlab = getHungrySlab(activeBytes - this.hungrySlab.usedBytes());
 		final boolean copyHungrySlab = hungrySlab != this.hungrySlab;
 
@@ -245,7 +249,8 @@ public class VertexCluster implements ClusterTask {
 				slabAllocation = null;
 			}
 
-			if (allocatedRegions.remove(region) == null) {
+			// Don't remove from map when closing - avoids CME
+			if (!itMe && allocatedRegions.remove(region) == null) {
 				assert false : "Closure notification from region not in cluster.";
 			} else {
 				activeBytes -= region.byteCount;

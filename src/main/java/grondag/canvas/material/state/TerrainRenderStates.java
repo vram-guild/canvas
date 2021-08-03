@@ -16,14 +16,21 @@
 
 package grondag.canvas.material.state;
 
+import java.util.function.Predicate;
+
 import net.minecraft.client.render.RenderLayer;
 
+import grondag.canvas.material.property.MaterialTarget;
+
 /**
- * Here do defer initialization when referencing classes are loaded.
+ * Here to defer initialization when referencing classes are loaded.
  */
 public final class TerrainRenderStates {
 	private TerrainRenderStates() { }
 
 	public static final RenderState TRANSLUCENT = RenderLayerHelper.TRANSLUCENT_TERRAIN.renderState;
 	public static final RenderState SOLID = RenderLayerHelper.copyFromLayer(RenderLayer.getSolid()).renderState;
+
+	public static final Predicate<RenderState> TRANSLUCENT_PREDICATE = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
+	public static final Predicate<RenderState> SOLID_PREDICATE = m -> !TRANSLUCENT_PREDICATE.test(m);
 }
