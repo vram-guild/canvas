@@ -24,7 +24,6 @@ import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.terrain.TerrainRenderConfig;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.world.WorldRenderState;
-import grondag.canvas.shader.GlProgram;
 
 public class VboRegionRenderConfig extends TerrainRenderConfig {
 	public static final VboRegionRenderConfig INSTANCE = new VboRegionRenderConfig();
@@ -39,21 +38,6 @@ public class VboRegionRenderConfig extends TerrainRenderConfig {
 			QuadEncoders.STANDARD_TRANSCODER,
 			VboDrawList::build
 		);
-	}
-
-	@Override
-	public void setupUniforms(GlProgram program) {
-		// NOOP
-	}
-
-	@Override
-	public void onDeactiveProgram() {
-		// NOOP
-	}
-
-	@Override
-	public void onActivateProgram() {
-		// NOOP
 	}
 
 	@Override

@@ -19,15 +19,11 @@ package grondag.canvas.render.terrain.cluster;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.ArrayVertexCollector.QuadDistanceFunc;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.render.terrain.RegionRenderSectorMap;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.TerrainRenderConfig;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.terrain.cluster.drawlist.RealmDrawList;
-import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.render.world.WorldRenderState;
-import grondag.canvas.shader.GlProgram;
-import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 	public static final ClusteredRegionRenderConfig INSTANCE = new ClusteredRegionRenderConfig();
@@ -42,21 +38,6 @@ public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 			TerrainFormat.TERRAIN_TRANSCODER,
 			RealmDrawList::build
 		);
-	}
-
-	@Override
-	public void setupUniforms(GlProgram program) {
-		program.uniformArrayi("_cvu_sectors_int", UniformRefreshFrequency.PER_FRAME, u -> u.set(CanvasWorldRenderer.instance().worldRenderState.sectorManager.uniformData()), RegionRenderSectorMap.UNIFORM_ARRAY_LENGTH);
-	}
-
-	@Override
-	public void onActivateProgram() {
-		// NOOP
-	}
-
-	@Override
-	public void onDeactiveProgram() {
-		// NOOP
 	}
 
 	@Override

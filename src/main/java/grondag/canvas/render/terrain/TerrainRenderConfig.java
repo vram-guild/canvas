@@ -24,7 +24,6 @@ import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.render.terrain.base.DrawableRegionList.DrawableRegionListFunc;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.world.WorldRenderState;
-import grondag.canvas.shader.GlProgram;
 
 public abstract class TerrainRenderConfig {
 	public final String name;
@@ -60,12 +59,6 @@ public abstract class TerrainRenderConfig {
 		this.transcoder = transcoder;
 		this.drawListFunc = drawListFunc;
 	}
-
-	public abstract void setupUniforms(GlProgram program);
-
-	public abstract void onDeactiveProgram();
-
-	public abstract void onActivateProgram();
 
 	public abstract QuadDistanceFunc selectQuadDistanceFunction(ArrayVertexCollector arrayVertexCollector);
 

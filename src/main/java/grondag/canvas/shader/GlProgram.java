@@ -88,10 +88,6 @@ public class GlProgram {
 
 	public static void deactivate() {
 		if (activeProgram != null) {
-			if (activeProgram.programType.isTerrain) {
-				Configurator.terrainRenderConfig.onDeactiveProgram();
-			}
-
 			activeProgram = null;
 			GFX.useProgram(0);
 		}
@@ -190,16 +186,7 @@ public class GlProgram {
 		}
 
 		if (activeProgram != this) {
-			if (activeProgram != null && activeProgram.programType.isTerrain) {
-				Configurator.terrainRenderConfig.onDeactiveProgram();
-			}
-
 			activeProgram = this;
-
-			if (programType.isTerrain) {
-				Configurator.terrainRenderConfig.onActivateProgram();
-			}
-
 			activateInner();
 		}
 	}
