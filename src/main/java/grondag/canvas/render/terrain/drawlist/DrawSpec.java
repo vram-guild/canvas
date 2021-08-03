@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render.terrain.cluster.drawlist;
+package grondag.canvas.render.terrain.drawlist;
 
 import java.nio.IntBuffer;
 

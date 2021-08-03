@@ -27,7 +27,7 @@ import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.terrain.RegionRenderSectorMap;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
 import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
-import grondag.canvas.render.terrain.cluster.drawlist.DrawListCullingHelper;
+import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;

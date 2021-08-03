@@ -20,7 +20,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.material.state.TerrainRenderStates;
-import grondag.canvas.render.terrain.cluster.drawlist.RealmDrawList;
+import grondag.canvas.render.terrain.drawlist.RealmDrawList;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 

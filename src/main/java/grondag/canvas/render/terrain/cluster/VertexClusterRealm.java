@@ -22,7 +22,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
-import grondag.canvas.render.terrain.cluster.drawlist.DrawListCullingHelper;
+import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
 
 public class VertexClusterRealm {
 	/**

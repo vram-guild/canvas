@@ -14,7 +14,7 @@
  *  the License.
  */
 
-package grondag.canvas.render.terrain.cluster.drawlist;
+package grondag.canvas.render.terrain.drawlist;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
