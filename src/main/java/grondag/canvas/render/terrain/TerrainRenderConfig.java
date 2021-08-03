@@ -21,10 +21,6 @@ import grondag.canvas.buffer.format.QuadTranscoder;
 import grondag.canvas.render.terrain.base.DrawableRegionList.DrawableRegionListFunc;
 
 public abstract class TerrainRenderConfig {
-	public final String name;
-
-	public final String shaderConfigTag;
-
 	public final CanvasVertexFormat vertexFormat;
 
 	/** Controls allocation in vertex collectors. */
@@ -38,16 +34,12 @@ public abstract class TerrainRenderConfig {
 	public final DrawableRegionListFunc drawListFunc;
 
 	protected TerrainRenderConfig(
-		String name,
-		String shaderConfigTag,
 		CanvasVertexFormat vertexFormat,
 		int quadStrideInts,
 		boolean shouldApplyBlockPosTranslation,
 		QuadTranscoder transcoder,
 		DrawableRegionListFunc drawListFunc
 	) {
-		this.name = name;
-		this.shaderConfigTag = shaderConfigTag;
 		this.vertexFormat = vertexFormat;
 		this.quadStrideInts = quadStrideInts;
 		this.shouldApplyBlockPosTranslation = shouldApplyBlockPosTranslation;

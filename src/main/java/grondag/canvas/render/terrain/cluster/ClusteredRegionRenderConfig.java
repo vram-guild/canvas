@@ -25,8 +25,6 @@ public class ClusteredRegionRenderConfig extends TerrainRenderConfig {
 
 	private ClusteredRegionRenderConfig() {
 		super(
-			"CLUSTERED",
-			"REGION",
 			TerrainFormat.TERRAIN_MATERIAL,
 			TerrainFormat.TERRAIN_MATERIAL.quadStrideInts,
 			true,

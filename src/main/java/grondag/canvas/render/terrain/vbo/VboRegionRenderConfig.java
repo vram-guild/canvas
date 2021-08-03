@@ -25,8 +25,6 @@ public class VboRegionRenderConfig extends TerrainRenderConfig {
 
 	private VboRegionRenderConfig() {
 		super(
-			"DEFAULT (VBO)",
-			"DEFAULT",
 			CanvasVertexFormats.STANDARD_MATERIAL_FORMAT,
 			CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts,
 			true,

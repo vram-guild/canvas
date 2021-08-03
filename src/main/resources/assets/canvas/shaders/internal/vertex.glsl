@@ -7,7 +7,7 @@
 
 // Same as default but region is looked up based on a vertex attribute.
 // This avoid a uniform update per draw call.
-#ifdef _CV_VERTEX_REGION
+#ifdef _CV_VERTEX_TERRAIN
 
 #define SECTOR_X_ORIGIN_INDEX 182
 #define SECTOR_Z_ORIGIN_INDEX 183
