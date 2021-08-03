@@ -25,7 +25,6 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.pipeline.config.PipelineConfig;
-import grondag.canvas.render.terrain.TerrainRenderConfig;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
@@ -79,9 +78,6 @@ public class Configurator {
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
 	static boolean reload = false;
-
-	// WIP: remove
-	public static final TerrainRenderConfig terrainRenderConfig = TerrainRenderConfigOption.CLUSTERED.config;
 
 	// static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean hdLightmaps() {

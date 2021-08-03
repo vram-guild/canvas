@@ -29,9 +29,9 @@ import net.minecraft.util.math.Vec3d;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.util.DrawableStream;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.RegionRenderSectorMap.RegionRenderSector;
+import grondag.canvas.render.terrain.TerrainFormat;
 
 public class ArrayVertexCollector implements VertexCollector {
 	private final int quadStrideInts;
@@ -52,8 +52,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		this.renderState = renderState;
 		this.isTerrain = isTerrain;
 		bucketSorter = isTerrain && !renderState.sorted ? new VertexBucket.Sorter() : null;
-		// VF quads use vertex stride because of indexing
-		quadStrideInts = isTerrain ? Configurator.terrainRenderConfig.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts;
+		quadStrideInts = isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);

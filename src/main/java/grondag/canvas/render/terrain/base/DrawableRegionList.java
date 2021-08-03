@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.material.state.TerrainRenderStates;
+import grondag.canvas.render.terrain.cluster.drawlist.RealmDrawList;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 
@@ -49,7 +50,6 @@ public interface DrawableRegionList {
 
 	static DrawableRegionList build(
 			final VisibleRegionList visibleRegions,
-			DrawableRegionListFunc drawListFunc,
 			boolean isTranslucent,
 			boolean isShadowMap
 	) {
@@ -71,7 +71,7 @@ public interface DrawableRegionList {
 		}
 
 		final var renderState = isTranslucent ? TerrainRenderStates.TRANSLUCENT : TerrainRenderStates.SOLID;
-		return drawables.isEmpty() ? DrawableRegionList.EMPTY : drawListFunc.apply(drawables, renderState, isShadowMap);
+		return drawables.isEmpty() ? DrawableRegionList.EMPTY : RealmDrawList.build(drawables, renderState, isShadowMap);
 	}
 
 	@FunctionalInterface

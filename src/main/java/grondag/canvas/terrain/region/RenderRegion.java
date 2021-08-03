@@ -48,7 +48,6 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.render.terrain.RegionRenderSectorMap.RegionRenderSector;
@@ -416,7 +415,6 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
-		final boolean applyBlockPosTranslation = Configurator.terrainRenderConfig.shouldApplyBlockPosTranslation;
 
 		for (int i = 0; i < RenderRegionStateIndexer.INTERIOR_STATE_COUNT; i++) {
 			if (occlusionRegion.shouldRender(i)) {
@@ -433,10 +431,7 @@ public class RenderRegion implements TerrainExecutorTask {
 				if (hasFluid || hasBlock) {
 					// Vanilla does a push/pop for each block but that creates needless allocation spam.
 					modelMatrix.loadIdentity();
-
-					if (applyBlockPosTranslation) {
-						modelMatrix.multiplyByTranslation(x, y, z);
-					}
+					modelMatrix.multiplyByTranslation(x, y, z);
 
 					normalMatrix.loadIdentity();
 

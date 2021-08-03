@@ -31,7 +31,6 @@ import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
 import static grondag.canvas.config.Configurator.enableNearOccluders;
-import static grondag.canvas.config.Configurator.steadyDebugScreen;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
@@ -53,6 +52,7 @@ import static grondag.canvas.config.Configurator.safeNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.semiFlatLighting;
 import static grondag.canvas.config.Configurator.shaderDebug;
 import static grondag.canvas.config.Configurator.staticFrustumPadding;
+import static grondag.canvas.config.Configurator.steadyDebugScreen;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
 import static grondag.canvas.config.Configurator.transferBufferMode;
@@ -509,20 +509,6 @@ public class ConfigGui {
 			.setTooltip(parse("config.canvas.help.profiler_overlay_scale"))
 			.setSaveConsumer(b -> profilerOverlayScale = b)
 			.build());
-
-		// WIP: need to ensure old config is fully unloaded on switch
-		//		debug.addEntry(ENTRY_BUILDER.startEnumSelector(
-		//				new TranslatableText("config.canvas.value.terrain_vertex_config"),
-		//				TerrainVertexConfig.class, terrainVertexConfig)
-		//				.setDefaultValue(DEFAULTS.terrainVertexConfig)
-		//				.setSaveConsumer(b -> {
-		//
-		//					reload |= terrainVertexConfig != b;
-		//					terrainVertexConfig = b;
-		//				})
-		//				.setEnumNameProvider(a -> new LiteralText(a.toString()))
-		//				.setTooltip(parse("config.canvas.help.terrain_vertex_config"))
-		//				.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 

@@ -22,12 +22,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.profiler.Profiler;
 
-import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.terrain.RegionRenderSectorMap;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
-import grondag.canvas.render.terrain.base.DrawableRegionList.DrawableRegionListFunc;
 import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
 import grondag.canvas.render.terrain.cluster.drawlist.DrawListCullingHelper;
 import grondag.canvas.shader.data.MatrixState;
@@ -172,17 +170,15 @@ public class WorldRenderState {
 
 		areDrawListsValid = true;
 
-		final DrawableRegionListFunc drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
-
 		solidDrawList.close();
-		solidDrawList = DrawableRegionList.build(cameraVisibleRegions, drawListFunc, false, false);
+		solidDrawList = DrawableRegionList.build(cameraVisibleRegions, false, false);
 		translucentDrawList.close();
-		translucentDrawList = DrawableRegionList.build(cameraVisibleRegions, drawListFunc, true, false);
+		translucentDrawList = DrawableRegionList.build(cameraVisibleRegions, true, false);
 
 		if (shadowsEnabled()) {
 			for (int i = 0; i < 4; ++i) {
 				shadowDrawLists[i].close();
-				shadowDrawLists[i] = DrawableRegionList.build(shadowVisibleRegions[i], drawListFunc, false, true);
+				shadowDrawLists[i] = DrawableRegionList.build(shadowVisibleRegions[i], false, true);
 			}
 		}
 	}
