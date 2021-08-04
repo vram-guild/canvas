@@ -43,53 +43,14 @@ public class VertexCluster implements ClusterTask {
 	private boolean isScheduled = false;
 	private boolean itMe = false;
 
-	public VertexCluster(VertexClusterRealm owner, long clumpPos) {
+	public VertexCluster(VertexClusterRealm owner, long clusterPos) {
 		realm = owner;
-		clusterPos = clumpPos;
+		this.clusterPos = clusterPos;
 	}
 
 	int activeBytes() {
 		return activeBytes;
 	}
-
-	// Kept for testing, expensive even for dev...
-	//private boolean validateAllocation() {
-	//	final var slabMap = new Object2IntOpenHashMap<Slab>();
-	//	int regionTotalBytes = 0, slabAllocationBytes = 0;
-	//
-	//	for (var allocRegion : allocatedRegions.values()) {
-	//		int regionBytes = 0;
-	//		regionTotalBytes += allocRegion.region.byteCount;
-	//		assert !allocRegion.region.isClosed();
-	//
-	//		for (var slabAllocation : allocRegion.allocations()) {
-	//			final int bytes = slabAllocation.quadVertexCount * SlabAllocator.BYTES_PER_SLAB_VERTEX;
-	//			regionBytes += bytes;
-	//			slabAllocationBytes += bytes;
-	//
-	//			if (!slabMap.containsKey(slabAllocation.slab)) {
-	//				slabMap.put(slabAllocation.slab, 0);
-	//			}
-	//
-	//			slabMap.addTo(slabAllocation.slab, bytes);
-	//		}
-	//
-	//		assert regionBytes == allocRegion.region.byteCount;
-	//	}
-	//
-	//	assert regionTotalBytes == activeBytes;
-	//	assert slabAllocationBytes == activeBytes;
-	//	assert slabMap.size() == slabs.size();
-	//	int slabActiveBytes = 0;
-	//
-	//	for (var slab : slabs) {
-	//		slabActiveBytes += slab.usedBytes();
-	//		assert slab.usedBytes() == slabMap.getInt(slab);
-	//	}
-	//
-	//	assert slabActiveBytes == activeBytes;
-	//	return true;
-	//}
 
 	private Slab getHungrySlab(int slabBytes) {
 		if (hungrySlab == null || hungrySlab.availableBytes() < slabBytes) {
@@ -153,8 +114,6 @@ public class VertexCluster implements ClusterTask {
 	}
 
 	private void scheduleIfNeeded() {
-		//assert validateAllocation();
-
 		if (!isClosed && slabs.size() > 1 && !isScheduled) {
 			isScheduled = true;
 			ClusterTaskManager.schedule(this);
@@ -185,13 +144,18 @@ public class VertexCluster implements ClusterTask {
 		// it may not be big enough. Ensure hungry slab can hold everything, including own contents
 		assert hungrySlab.usedBytes() >= 0;
 		assert hungrySlab.usedBytes() <= hungrySlab.capacityBytes();
-		final Slab hungrySlab = getHungrySlab(activeBytes - this.hungrySlab.usedBytes());
-		final boolean copyHungrySlab = hungrySlab != this.hungrySlab;
+
+		if (hungrySlab.availableBytes() < activeBytes - hungrySlab.usedBytes()) {
+			hungrySlab = SlabAllocator.claim(activeBytes);
+			slabs.add(hungrySlab);
+		}
+
+		final Slab hungrySlab = this.hungrySlab;
 
 		for (final var region : allocatedRegions.values()) {
 			final var oldAllocation = region.getAllocation();
 
-			if (copyHungrySlab || oldAllocation.slab != hungrySlab) {
+			if (oldAllocation.slab != hungrySlab) {
 				var newAllocation = hungrySlab.transferFromSlabAllocation(region.factory, oldAllocation);
 				region.setAllocation(newAllocation);
 				oldAllocation.release();
@@ -307,6 +271,7 @@ public class VertexCluster implements ClusterTask {
 					isSlabAllocationClosed = true;
 					vao.shutdown();
 					slab.removeAllocation(this);
+					scheduleIfNeeded();
 
 					if (slab.isEmpty() && slab != hungrySlab) {
 						if (slabs.remove(slab)) {

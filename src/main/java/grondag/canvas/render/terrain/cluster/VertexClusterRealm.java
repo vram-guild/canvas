@@ -38,9 +38,8 @@ public class VertexClusterRealm {
 
 	static long clusterPos(long packedOriginBlockPos) {
 		final int x = BlockPos.unpackLongX(packedOriginBlockPos);
-		final int y = BlockPos.unpackLongY(packedOriginBlockPos);
 		final int z = BlockPos.unpackLongZ(packedOriginBlockPos);
-		return BlockPos.asLong(x >> BLOCKPOS_TO_CLUSTER_SHIFT, y >> BLOCKPOS_TO_CLUSTER_SHIFT, z >> BLOCKPOS_TO_CLUSTER_SHIFT);
+		return BlockPos.asLong(x >> BLOCKPOS_TO_CLUSTER_SHIFT, 0, z >> BLOCKPOS_TO_CLUSTER_SHIFT);
 	}
 
 	private final Long2ObjectOpenHashMap<VertexCluster> clusters = new Long2ObjectOpenHashMap<>();
@@ -89,15 +88,16 @@ public class VertexClusterRealm {
 
 	//private int lastFrame = 0;
 
+	// WIP: make this faster
 	public String debugSummary() {
 		if (clusters.isEmpty()) {
 			return "Empty";
 		}
 
-		int total = 0;
+		long activeByes = 0;
 
 		for (var cluster : clusters.values()) {
-			total += cluster.activeBytes();
+			activeByes += cluster.activeBytes();
 		}
 
 		//if (++lastFrame >= 200) {
@@ -113,6 +113,6 @@ public class VertexClusterRealm {
 		//	}
 		//}
 
-		return String.format("clusters:%d %dMb", clusters.size(), total / 0x100000);
+		return String.format("clusters: %d %dMb", clusters.size(), activeByes / 0x100000);
 	}
 }
