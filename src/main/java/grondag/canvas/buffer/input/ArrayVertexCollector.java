@@ -30,7 +30,7 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.terrain.RegionRenderSectorMap.RegionRenderSector;
+import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.render.terrain.TerrainFormat;
 
 public class ArrayVertexCollector implements VertexCollector {

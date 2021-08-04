@@ -19,7 +19,7 @@ package grondag.canvas.shader;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.render.terrain.RegionRenderSectorMap;
+import grondag.canvas.render.terrain.TerrainSectorMap;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.shader.data.ShaderUniforms;
@@ -49,7 +49,7 @@ public enum MaterialProgramManager {
 			ShaderUniforms.MATERIAL_UNIFORM_SETUP.accept(result);
 
 			if (programType.isTerrain) {
-				result.uniformArrayi("_cvu_sectors_int", UniformRefreshFrequency.PER_FRAME, u -> u.set(CanvasWorldRenderer.instance().worldRenderState.sectorManager.uniformData()), RegionRenderSectorMap.UNIFORM_ARRAY_LENGTH);
+				result.uniformArrayi("_cvu_sectors_int", UniformRefreshFrequency.PER_FRAME, u -> u.set(CanvasWorldRenderer.instance().worldRenderState.sectorManager.uniformData()), TerrainSectorMap.UNIFORM_ARRAY_LENGTH);
 			}
 
 			materialPrograms[key] = result;

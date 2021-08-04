@@ -24,7 +24,7 @@ import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
-import grondag.canvas.render.terrain.RegionRenderSectorMap;
+import grondag.canvas.render.terrain.TerrainSectorMap;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
 import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
 import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
@@ -52,7 +52,7 @@ public class WorldRenderState {
 
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	public final RegionRenderSectorMap sectorManager = new RegionRenderSectorMap();
+	public final TerrainSectorMap sectorManager = new TerrainSectorMap();
 
 	/**
 	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
@@ -218,7 +218,7 @@ public class WorldRenderState {
 		final Profiler prof = MinecraftClient.getInstance().getProfiler();
 		prof.push("render_solid");
 		MatrixState.set(MatrixState.REGION);
-		solidDrawList.draw();
+		solidDrawList.draw(this);
 		MatrixState.set(MatrixState.CAMERA);
 		prof.pop();
 	}
@@ -227,7 +227,7 @@ public class WorldRenderState {
 		final Profiler prof = MinecraftClient.getInstance().getProfiler();
 		prof.push("render_translucent");
 		MatrixState.set(MatrixState.REGION);
-		translucentDrawList.draw();
+		translucentDrawList.draw(this);
 		MatrixState.set(MatrixState.CAMERA);
 		prof.pop();
 	}
@@ -236,7 +236,7 @@ public class WorldRenderState {
 		final Profiler prof = MinecraftClient.getInstance().getProfiler();
 		prof.push("render_shadow");
 		MatrixState.set(MatrixState.REGION);
-		shadowDrawLists[cascadeIndex].draw();
+		shadowDrawLists[cascadeIndex].draw(this);
 		MatrixState.set(MatrixState.CAMERA);
 		prof.pop();
 	}

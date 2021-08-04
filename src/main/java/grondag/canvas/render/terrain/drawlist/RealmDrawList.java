@@ -25,6 +25,7 @@ import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.varia.GFX;
 
 public class RealmDrawList extends AbstractDrawableRegionList {
@@ -76,9 +77,10 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 	}
 
 	@Override
-	public void draw() {
+	public void draw(WorldRenderState worldRenderState) {
 		rebuildIfInvalid();
-		renderState.enable(0, 0, 0, 0, 0);
+		final var sectorManager = worldRenderState.sectorManager;
+		renderState.enable(sectorManager.originBlockX(), 0, sectorManager.originBlockZ());
 		final int limit = clusterLists.size();
 		GFX.bindVertexArray(0);
 

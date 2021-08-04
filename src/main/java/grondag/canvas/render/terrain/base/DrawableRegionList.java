@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.render.terrain.drawlist.RealmDrawList;
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.VisibleRegionList;
 import grondag.canvas.terrain.region.RenderRegion;
 
@@ -29,7 +30,7 @@ public interface DrawableRegionList {
 
 	boolean isClosed();
 
-	void draw();
+	void draw(WorldRenderState worldRenderState);
 
 	DrawableRegionList EMPTY = new DrawableRegionList() {
 		@Override
@@ -43,7 +44,7 @@ public interface DrawableRegionList {
 		}
 
 		@Override
-		public void draw() {
+		public void draw(WorldRenderState worldRenderState) {
 			// NOOP
 		}
 	};

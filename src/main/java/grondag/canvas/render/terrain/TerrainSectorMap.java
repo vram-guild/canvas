@@ -25,7 +25,7 @@ import net.minecraft.util.math.Vec3d;
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.varia.FixedCapacityIndexAllocator;
 
-public class RegionRenderSectorMap {
+public class TerrainSectorMap {
 	private static final int SECTOR_AXIS_LENGTH_BLOCKS = 128;
 	private static final int SECTOR_BLOCK_MASK = SECTOR_AXIS_LENGTH_BLOCKS - 1;
 	private static final int SECTOR_COORDINATE_MASK = ~SECTOR_BLOCK_MASK;
@@ -40,9 +40,7 @@ public class RegionRenderSectorMap {
 	private static final int SECTOR_Y_DIAMETER = (SECTOR_Y_DIAMETER_BLOCKS + SECTOR_AXIS_LENGTH_BLOCKS - 1) / SECTOR_AXIS_LENGTH_BLOCKS;
 	private static final int MAX_SECTORS_LOADED = (SECTOR_XZ_DIAMETER * SECTOR_XZ_DIAMETER * SECTOR_Y_DIAMETER + 1) / 2 * 2;
 	// Two extra ints at end for
-	public static final int UNIFORM_ARRAY_LENGTH = MAX_SECTORS_LOADED / 2 + 2;
-	public static final int UNIFORM_X_ORIGIN_INDEX = UNIFORM_ARRAY_LENGTH - 2;
-	public static final int UNIFORM_Z_ORIGIN_INDEX = UNIFORM_ARRAY_LENGTH - 1;
+	public static final int UNIFORM_ARRAY_LENGTH = MAX_SECTORS_LOADED / 2;
 
 	private static long sectorKey(int blockX, int blockY, int blockZ) {
 		// shift Y up so we only have 3 sectors vertically
@@ -66,6 +64,14 @@ public class RegionRenderSectorMap {
 	private int originSectorX, originSectorZ;
 	private Vec3d cameraPos;
 	private final int[] sectorOffsets = new int[UNIFORM_ARRAY_LENGTH];
+
+	public int originBlockX() {
+		return originBlockX;
+	}
+
+	public int originBlockZ() {
+		return originBlockZ;
+	}
 
 	public void clear() {
 		synchronized (map) {
@@ -112,9 +118,6 @@ public class RegionRenderSectorMap {
 		if (newBlockX != originBlockX || newBlockZ != originBlockZ) {
 			originBlockX = newBlockX;
 			originBlockZ = newBlockZ;
-
-			sectorOffsets[UNIFORM_X_ORIGIN_INDEX] = originBlockX;
-			sectorOffsets[UNIFORM_Z_ORIGIN_INDEX] = originBlockZ;
 			originSectorX = sectorXorZ(blockX);
 			originSectorZ = sectorXorZ(blockZ);
 

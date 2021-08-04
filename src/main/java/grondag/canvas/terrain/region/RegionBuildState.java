@@ -30,7 +30,7 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
-import grondag.canvas.render.terrain.RegionRenderSectorMap.RegionRenderSector;
+import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 
 @Environment(EnvType.CLIENT)
