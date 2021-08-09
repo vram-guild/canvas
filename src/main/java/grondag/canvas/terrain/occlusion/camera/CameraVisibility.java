@@ -88,8 +88,8 @@ public class CameraVisibility extends AbstractVisbility<CameraVisibility, Camera
 	}
 
 	@Override
-	public boolean isBoxVisible(int packedBox) {
-		return occluder.isBoxVisible(packedBox);
+	public boolean isBoxVisible(int packedBox, int fuzz) {
+		return occluder.isBoxVisible(packedBox, fuzz);
 	}
 
 	@Override

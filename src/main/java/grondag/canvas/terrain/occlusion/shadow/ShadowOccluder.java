@@ -168,11 +168,11 @@ public class ShadowOccluder extends AbstractOccluder {
 	}
 
 	/**
-	 * Does not pad region, unlike terrain.
+	 * Does not ever fuzz, unlike perspective.
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isBoxVisible(int packedBox) {
+	public boolean isBoxVisible(int packedBox, int fuzz) {
 		final int x0 = PackedBox.x0(packedBox);
 		final int y0 = PackedBox.y0(packedBox);
 		final int z0 = PackedBox.z0(packedBox);

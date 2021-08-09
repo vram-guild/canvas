@@ -85,9 +85,9 @@ public class ShadowVisibility extends AbstractVisbility<ShadowVisibility, Shadow
 	}
 
 	@Override
-	public boolean isBoxVisible(int packedBox) {
+	public boolean isBoxVisible(int packedBox, int fuzz) {
 		// If can't shadow any terrain then consider it invisible
-		return targetOccluder.isBoxOccluded(packedBox) && occluder.isBoxVisible(packedBox);
+		return targetOccluder.isBoxOccluded(packedBox) && occluder.isBoxVisible(packedBox, fuzz);
 	}
 
 	@Override

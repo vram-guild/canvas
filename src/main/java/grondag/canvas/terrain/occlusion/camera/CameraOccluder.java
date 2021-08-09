@@ -80,8 +80,8 @@ public class CameraOccluder extends AbstractOccluder {
 	}
 
 	@Override
-	public boolean isBoxVisible(int packedBox) {
-		return isBoxVisibleFromPerspective(packedBox);
+	public boolean isBoxVisible(int packedBox, int fuzz) {
+		return isBoxVisibleFromPerspective(packedBox, fuzz);
 	}
 
 	@Override

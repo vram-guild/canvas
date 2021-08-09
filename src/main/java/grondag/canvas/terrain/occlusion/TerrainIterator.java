@@ -303,15 +303,11 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			// If we get to here, we need to classify the region and possibly draw it to the rasterizer
 
-			// for empty regions, check neighbors if visible but don't add to visible set
+			// For empty regions, check neighbors but don't add to visible set
+			// We currently don't test these against rasterizer because there are many and it would be too expensive.
 			if (!buildState.canOcclude()) {
-				if (!chunkCullingEnabled || region.origin.isNear() || cameraVisibility.isEmptyRegionVisible(region.origin)) {
-					region.neighbors.enqueueUnvistedCameraNeighbors();
-					state.setResult(OcclusionResult.ENTITIES_VISIBLE);
-				} else {
-					state.setResult(OcclusionResult.REGION_NOT_VISIBLE);
-				}
-
+				region.neighbors.enqueueUnvistedCameraNeighbors();
+				state.setResult(OcclusionResult.ENTITIES_VISIBLE);
 				continue;
 			}
 
@@ -328,7 +324,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				cameraVisibility.prepareRegion(region.origin);
 				final int[] occlusionData = buildState.getOcclusionData();
 
-				if (cameraVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
+				if (cameraVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX], region.origin.fuzz())) {
 					// Renderable portion is visible
 					// Continue search, mark visible, add to render list and draw to occluder
 					region.neighbors.enqueueUnvistedCameraNeighbors();
@@ -336,7 +332,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 					state.setResult(OcclusionResult.REGION_VISIBLE);
 					cameraVisibility.occlude(occlusionData);
 				} else {
-					if (cameraVisibility.isBoxVisible(PackedBox.FULL_BOX)) {
+					if (cameraVisibility.isBoxVisible(PackedBox.FULL_BOX, region.origin.fuzz())) {
 						// need to progress through the region if part of it is visible
 						// Like renderable, but we don't need to draw or add to render list
 						region.neighbors.enqueueUnvistedCameraNeighbors();
@@ -429,7 +425,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			// for empty regions, check neighbors if visible but don't add to visible set
 			if (!buildState.canOcclude()) {
 				// only check neighbors if the region is potentially visible
-				if (shadowVisibility.isEmptyRegionVisible(region.origin)) {
+				if (shadowVisibility.isEmptyRegionVisible(region.origin, 0)) {
 					state.setResult(OcclusionResult.ENTITIES_VISIBLE);
 					region.neighbors.enqueueUnvistedShadowNeighbors();
 				} else {
@@ -444,13 +440,13 @@ public class TerrainIterator implements TerrainExecutorTask {
 			shadowVisibility.prepareRegion(region.origin);
 			final int[] occlusionData = buildState.getOcclusionData();
 
-			if (shadowVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX])) {
+			if (shadowVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX], 0)) {
 				region.neighbors.enqueueUnvistedShadowNeighbors();
 				addShadowRegion(region);
 				state.setResult(OcclusionResult.REGION_VISIBLE);
 				shadowVisibility.occlude(occlusionData);
 			} else {
-				if (shadowVisibility.isBoxVisible(PackedBox.FULL_BOX)) {
+				if (shadowVisibility.isBoxVisible(PackedBox.FULL_BOX, 0)) {
 					region.neighbors.enqueueUnvistedShadowNeighbors();
 					state.setResult(OcclusionResult.ENTITIES_VISIBLE);
 				} else {

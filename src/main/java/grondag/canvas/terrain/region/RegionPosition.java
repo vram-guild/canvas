@@ -55,6 +55,9 @@ public class RegionPosition extends BlockPos {
 	/** See {@link #isNear()}. */
 	private boolean isNear;
 
+	/** See {@link #fuzz()}. */
+	private int fuzz;
+
 	/** See {@link #isInsideRenderDistance()}. */
 	private boolean isInsideRenderDistance;
 
@@ -106,6 +109,8 @@ public class RegionPosition extends BlockPos {
 			squaredCameraChunkDistance = owner.renderChunk.horizontalSquaredDistance + cy * cy;
 			isInsideRenderDistance = squaredCameraChunkDistance <= owner.worldRenderState.maxSquaredChunkRenderDistance();
 			isNear = squaredCameraChunkDistance <= 3;
+			// Based on trial-and-error
+			fuzz = squaredCameraChunkDistance >= 7 * 7 ? 1 : 0;
 			occlusionRange = PackedBox.rangeFromSquareChunkDist(squaredCameraChunkDistance);
 		}
 	}
@@ -202,6 +207,15 @@ public class RegionPosition extends BlockPos {
 	 */
 	public int occlusionRange() {
 		return occlusionRange;
+	}
+
+	/**
+	 * Non-zero if visibility tests should include "fuzz" in perspective view because region is so
+	 * distant it may not be visible within the precision of the rasterizer.
+	 * @return Blocks of padding region should have for visibility testing in perspective.
+	 */
+	public int fuzz() {
+		return fuzz;
 	}
 
 	public float cameraRelativeCenterX() {
