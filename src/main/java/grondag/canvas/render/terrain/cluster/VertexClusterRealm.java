@@ -22,7 +22,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
-import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
 
 public class VertexClusterRealm {
 	/**
@@ -46,12 +45,9 @@ public class VertexClusterRealm {
 
 	private boolean isClosed = false;
 
-	public final DrawListCullingHelper drawListCullingHelper;
-
 	public final boolean isTranslucent;
 
-	public VertexClusterRealm(DrawListCullingHelper drawListCullingHelper, boolean isTranslucent) {
-		this.drawListCullingHelper = drawListCullingHelper;
+	public VertexClusterRealm(boolean isTranslucent) {
 		this.isTranslucent = isTranslucent;
 	}
 

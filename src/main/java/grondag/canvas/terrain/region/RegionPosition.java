@@ -25,6 +25,7 @@ import grondag.canvas.terrain.occlusion.camera.CameraVisibility;
 public class RegionPosition extends BlockPos {
 	/** Region that holds this position as its origin. Provides access to world render state. */
 	private final RenderRegion owner;
+	private final long packed;
 
 	/**
 	 * The y coordinate of this position in chunks (16 blocks each), relative to world Y = 0. (Can be negative.)
@@ -76,10 +77,18 @@ public class RegionPosition extends BlockPos {
 
 	private int shadowDistanceRank;
 
+	private int cullFlags;
+
 	public RegionPosition(long packedPos, RenderRegion owner) {
 		super(unpackLongX(packedPos), unpackLongY(packedPos), unpackLongZ(packedPos));
 		this.owner = owner;
 		chunkY = getY() >> 4;
+		packed = packedPos;
+	}
+
+	@Override
+	public long asLong() {
+		return packed;
 	}
 
 	public void update() {
@@ -124,6 +133,8 @@ public class RegionPosition extends BlockPos {
 
 			final int positionVersion = cameraPVS.frustumPositionVersion();
 
+			cullFlags = owner.worldRenderState.drawListCullingHlper.computeFlags(packed);
+
 			// These checks depend on the camera occluder position version,
 			// which may not necessarily change when view version change.
 			if (positionVersion != cameraOccluderPositionVersion) {
@@ -145,6 +156,16 @@ public class RegionPosition extends BlockPos {
 			//  PERF: implement hierarchical tests with propagation of per-plane inside test results
 			isPotentiallyVisibleFromCamera = isInsideRenderDistance() && cameraPVS.isRegionInFrustum(this);
 		}
+	}
+
+	/** Flag 6 (unassigned) will always be set. */
+	public int cullFlags() {
+		return cullFlags;
+	}
+
+	/** Flag 6 (unassigned) will always be set. */
+	public int shadowCullFlags() {
+		return owner.worldRenderState.drawListCullingHlper.shadowFlags();
 	}
 
 	public void close() {

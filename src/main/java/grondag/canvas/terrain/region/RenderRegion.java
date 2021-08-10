@@ -310,7 +310,7 @@ public class RenderRegion implements TerrainExecutorTask {
 					regionData.translucentState = collector.saveState(state);
 
 					if (runningState.get() != SignalInputRegion.INVALID) {
-						final UploadableRegion upload = collectors.toUploadableChunk(true, origin.asLong(), worldRenderState);
+						final UploadableRegion upload = collectors.toUploadableChunk(true, origin, worldRenderState);
 
 						if (upload != UploadableRegion.EMPTY_UPLOADABLE) {
 							renderRegionBuilder.scheduleUpload(() -> {
@@ -348,8 +348,8 @@ public class RenderRegion implements TerrainExecutorTask {
 			buildTerrain(context, newBuildState);
 
 			if (runningState.get() != SignalInputRegion.INVALID) {
-				final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin.asLong(), worldRenderState);
-				final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin.asLong(), worldRenderState);
+				final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin, worldRenderState);
+				final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin, worldRenderState);
 
 				if (solidUpload != UploadableRegion.EMPTY_UPLOADABLE || translucentUpload != UploadableRegion.EMPTY_UPLOADABLE) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -531,8 +531,8 @@ public class RenderRegion implements TerrainExecutorTask {
 			}
 
 			final VertexCollectorList collectors = context.collectors;
-			final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin.asLong(), worldRenderState);
-			final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin.asLong(), worldRenderState);
+			final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin, worldRenderState);
+			final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin, worldRenderState);
 
 			releaseDrawables();
 			solidDrawable = solidUpload.produceDrawable();
