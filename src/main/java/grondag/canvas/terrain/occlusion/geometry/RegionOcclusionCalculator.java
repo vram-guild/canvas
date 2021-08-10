@@ -35,7 +35,8 @@ import grondag.canvas.config.Configurator;
 public abstract class RegionOcclusionCalculator {
 	public static final int OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX = 0;
 	public static final int OCCLUSION_RESULT_FIRST_BOX_INDEX = 1;
-	public static final int[] EMPTY_OCCLUSION_RESULT = {PackedBox.EMPTY_BOX};
+	public static final int[] EMPTY_OCCLUSION_DATA = {PackedBox.EMPTY_BOX};
+	public static final OcclusionResult EMPTY_OCCLUSION_RESULT = new OcclusionResult(EMPTY_OCCLUSION_DATA, -1L);
 
 	private static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
 	private static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
@@ -547,34 +548,6 @@ public abstract class RegionOcclusionCalculator {
 			}
 		}
 
-		//		for (int i = 0; i < 16; i++) {
-		//			for (int j = 0; j < 16; j++) {
-		//				if (!isClosed(regionIndex(-1, i, j))) {
-		//					visitSurfaceIfPossible(0, i, j);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(16, i, j))) {
-		//					visitSurfaceIfPossible(15, i, j);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(i, j, -1))) {
-		//					visitSurfaceIfPossible(i, j, 0);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(i, j, 16))) {
-		//					visitSurfaceIfPossible(i, j, 15);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(i, -1, j))) {
-		//					visitSurfaceIfPossible(i, 0, j);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(i, 16, j))) {
-		//					visitSurfaceIfPossible(i, 15, j);
-		//				}
-		//			}
-		//		}
-
 		// don't hide inside position if we may be inside the chunk!
 		if (!isNear) {
 			hideInteriorClosedPositions();
@@ -613,7 +586,7 @@ public abstract class RegionOcclusionCalculator {
 		return result;
 	}
 
-	public int[] build(boolean isNear) {
+	public OcclusionResult build(boolean isNear) {
 		if (openCount == 0) {
 			// If there are no open interior positions then only surface blocks can be visible,
 			// and only if they not covered by positions in adjacent sections.
@@ -629,23 +602,22 @@ public abstract class RegionOcclusionCalculator {
 
 			// entire region acts as an occluder
 			result[OCCLUSION_RESULT_FIRST_BOX_INDEX] = PackedBox.FULL_BOX;
-			return result;
+			return new OcclusionResult(result, 0L);
 		} else {
-			return computeOcclusion(isNear);
+			return new OcclusionResult(computeOcclusion(isNear), -1L);
 		}
 	}
 
 	private void fill(int xyz4) {
-		final int faceBits = 0;
-		visit(xyz4, faceBits);
+		visit(xyz4);
 
 		while (!queue.isEmpty()) {
 			final int nextXyz4 = queue.dequeueInt();
-			visit(nextXyz4, faceBits);
+			visit(nextXyz4);
 		}
 	}
 
-	private void visit(int xyz4, int faceBits) {
+	private void visit(int xyz4) {
 		final int x = xyz4 & 0xF;
 
 		if (x == 0) {

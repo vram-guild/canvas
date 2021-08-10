@@ -149,7 +149,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 					if (buildState.canOcclude()) {
 						shadowVisibility.targetOccluder.prepareRegion(r.origin);
-						shadowVisibility.targetOccluder.occludeBox(buildState.getOcclusionData()[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX]);
+						shadowVisibility.targetOccluder.occludeBox(buildState.getOcclusionResult().occlusionData()[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX]);
 					}
 				}
 			}
@@ -319,10 +319,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 				visibleRegions.add(region);
 				state.setResult(OcclusionResult.REGION_VISIBLE);
 				cameraVisibility.prepareRegion(region.origin);
-				cameraVisibility.occlude(buildState.getOcclusionData());
+				cameraVisibility.occlude(buildState.getOcclusionResult().occlusionData());
 			} else {
 				cameraVisibility.prepareRegion(region.origin);
-				final int[] occlusionData = buildState.getOcclusionData();
+				final int[] occlusionData = buildState.getOcclusionResult().occlusionData();
 
 				if (cameraVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX], region.origin.fuzz())) {
 					// Renderable portion is visible
@@ -438,7 +438,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			// If we get to here, region is not empty
 
 			shadowVisibility.prepareRegion(region.origin);
-			final int[] occlusionData = buildState.getOcclusionData();
+			final int[] occlusionData = buildState.getOcclusionResult().occlusionData();
 
 			if (shadowVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX], 0)) {
 				region.neighbors.enqueueUnvistedShadowNeighbors();

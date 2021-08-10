@@ -97,7 +97,7 @@ public class WorldRenderDraws {
 			return;
 		}
 
-		final int[] boxes = region.getBuildState().getOcclusionData();
+		final int[] boxes = region.getBuildState().getOcclusionResult().occlusionData();
 
 		if (boxes == null || boxes.length < RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX) {
 			return;
