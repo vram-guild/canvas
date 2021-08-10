@@ -29,15 +29,18 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.texture.CanvasSpriteAtlasHandler;
 import grondag.canvas.texture.SpriteIndex;
 
 @Mixin(SpriteAtlasTexture.class)
-public class MixinSpriteAtlasTexture {
-	@Shadow
-	private Identifier id;
-	@Shadow
-	private Map<Identifier, Sprite> sprites;
+public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
+	@Shadow private Identifier id;
+	@Shadow private Map<Identifier, Sprite> sprites;
+	@Shadow private int maxTextureSize;
+
+	private final CanvasSpriteAtlasHandler canvasHandler = new CanvasSpriteAtlasHandler((SpriteAtlasTexture) (Object) this);
 
 	@Inject(at = @At("RETURN"), method = "upload")
 	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo info) {
@@ -50,5 +53,12 @@ public class MixinSpriteAtlasTexture {
 		}
 
 		SpriteIndex.getOrCreate(id).reset(input, spriteIndex, (SpriteAtlasTexture) (Object) this);
+
+		canvasHandler.afterUpload(sprites);
+	}
+
+	@Override
+	public int canvas_maxTextureSize() {
+		return maxTextureSize;
 	}
 }

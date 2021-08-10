@@ -16,16 +16,6 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.client.texture.NativeImage;
-
-import grondag.canvas.texture.CanvasSpriteHandler;
-
-public interface SpriteExt {
-	int canvas_id();
-
-	void canvas_id(int id);
-
-	CanvasSpriteHandler canvas_handler();
-
-	NativeImage[] canvas_images();
+public interface SpriteAtlasTextureExt {
+	int canvas_maxTextureSize();
 }

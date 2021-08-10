@@ -17,14 +17,21 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
+import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.texture.CanvasSpriteHandler;
 
 @Mixin(Sprite.class)
 public class MixinSprite implements SpriteExt {
+	@Shadow protected NativeImage[] images;
+
 	private int canvasId;
+
+	private final CanvasSpriteHandler canvasHandler = new CanvasSpriteHandler((Sprite) (Object) this);
 
 	@Override
 	public int canvas_id() {
@@ -34,5 +41,15 @@ public class MixinSprite implements SpriteExt {
 	@Override
 	public void canvas_id(int id) {
 		canvasId = id;
+	}
+
+	@Override
+	public CanvasSpriteHandler canvas_handler() {
+		return canvasHandler;
+	}
+
+	@Override
+	public NativeImage[] canvas_images() {
+		return images;
 	}
 }
