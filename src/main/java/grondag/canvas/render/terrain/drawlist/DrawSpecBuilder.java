@@ -57,7 +57,7 @@ abstract class DrawSpecBuilder {
 		@Override
 		protected void acceptAlloc(SlabAllocation alloc) {
 			final var region = alloc.region();
-			final int bucketFlags = isShadowMap ? region.shadowCullFlags() : region.cullFlags();
+			final int bucketFlags = isShadowMap ? region.shadowVisibleFaceFlags() : region.visibleFaceFlags();
 			final var buckets = alloc.region().cullBuckets;
 
 			for (int i = 0; i < 7; ++i) {

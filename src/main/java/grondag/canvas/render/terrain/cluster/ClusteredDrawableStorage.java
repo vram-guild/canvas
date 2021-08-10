@@ -92,14 +92,14 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
-	public int cullFlags() {
+	public int visibleFaceFlags() {
 		assert cullBuckets != null : "bucket flags requested when buckets not present";
-		return regionOrigin.cullFlags();
+		return regionOrigin.visibleFaceFlags();
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
-	public int shadowCullFlags() {
+	public int shadowVisibleFaceFlags() {
 		assert cullBuckets != null : "bucket flags requested when buckets not present";
-		return regionOrigin.shadowCullFlags();
+		return regionOrigin.shadowVisibleFaceFlags();
 	}
 }

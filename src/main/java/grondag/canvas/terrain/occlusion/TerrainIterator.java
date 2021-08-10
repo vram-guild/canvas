@@ -26,6 +26,7 @@ import net.minecraft.util.math.Vec3i;
 
 import grondag.bitraster.PackedBox;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
@@ -237,22 +238,24 @@ public class TerrainIterator implements TerrainExecutorTask {
 		if (cameraRegion == null) {
 			// prime visible when above or below world and camera region is null
 			final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
-			final int y = BlockPos.unpackLongY(cameraChunkOrigin) > 0 ? (worldRenderState.getWorld().getTopY() - 1) & 0xFFFFFFF0 : worldRenderState.getWorld().getBottomY() & 0xFFFFFFF0;
+			final boolean above = BlockPos.unpackLongY(cameraChunkOrigin) > 0;
+			final int y = above ? (worldRenderState.getWorld().getTopY() - 1) & 0xFFFFFFF0 : worldRenderState.getWorld().getBottomY() & 0xFFFFFFF0;
 			final int x = BlockPos.unpackLongX(cameraChunkOrigin);
 			final int z = BlockPos.unpackLongZ(cameraChunkOrigin);
 			final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
+			final int entryFace = above ? FaceConstants.UP_FLAG : FaceConstants.DOWN_FLAG;
 
 			for (int i = 0; i < limit; ++i) {
 				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
 				final RenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
 
 				if (region != null) {
-					region.cameraVisibility.addIfValid();
+					region.cameraVisibility.addIfValid(entryFace);
 				}
 			}
 		} else {
 			cameraRegion.origin.forceCameraPotentialVisibility();
-			cameraRegion.cameraVisibility.addIfValid();
+			cameraRegion.cameraVisibility.addIfValid(FaceConstants.ALL_REAL_FACE_FLAGS);
 		}
 	}
 
@@ -354,6 +357,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
 		final int yMin = worldRenderState.getWorld().getBottomY() & 0xFFFFFFF0;
 		final int yMax = (worldRenderState.getWorld().getTopY() - 1) & 0xFFFFFFF0;
+		final int entryFlags = (~worldRenderState.drawListCullingHlper.shadowVisibleFaceFlags()) & FaceConstants.ALL_REAL_FACE_FLAGS;
 
 		for (int i = 0; i < limit; ++i) {
 			final int ySphere = regionBoundingSphere.getY(i);
@@ -371,7 +375,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 					(offset.getZ() << 4) + z);
 
 			if (region != null) {
-				region.shadowVisibility.addIfValid();
+				region.shadowVisibility.addIfValid(entryFlags);
 			}
 		}
 	}

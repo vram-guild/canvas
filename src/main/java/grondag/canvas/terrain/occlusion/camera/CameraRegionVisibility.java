@@ -25,8 +25,8 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	}
 
 	/**
-	 * Accepts the squared chunk distance of the region from which this region was reached.
-	 * If this region's distance is less than the input distance, it will not be added.
+	 * If this region's distance is less than the input distance this region will not be added.
+	 * Also tracks which faces were used to "enter" into this regions for later outbound propagation.
 	 *
 	 * <p>This prevents the addition of invisible regions that "backtrack" during camera iteration.
 	 * We know such regions must be invisible because camera terrain iteration always proceeds in
@@ -36,17 +36,21 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	 * <p>If we are going backwards, then this region is not visible from a nearer region,
 	 * which means all nearer regions must fully occlude it, and we are "wrapping around"
 	 * from a more distance region.
+	 *
+	 * @param faceIndex the face of this region from which this region was reached
+	 * @param fromSquaredDistance the squared chunk distance of the region from which this region was reached
 	 */
-	public void addIfValid(int fromSquaredDistance) {
+	public void addIfFrontFacing(int faceFlags, int fromSquaredDistance) {
 		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance) {
-			this.addIfValid();
+			assert region.origin.isNear() || (region.origin.visibleFaceFlags() & faceFlags) != 0 : "Region entered from back face";
+			addIfValid(faceFlags);
 		}
 	}
 
 	@Override
-	public void addIfValid() {
+	public void addIfValid(int faceFlags) {
 		if (region.origin.isPotentiallyVisibleFromCamera() && !region.isClosed() && region.isNearOrHasLoadedNeighbors()) {
-			addVisitedIfNotPresent();
+			addVisitedIfNotPresent(faceFlags);
 		}
 	}
 }

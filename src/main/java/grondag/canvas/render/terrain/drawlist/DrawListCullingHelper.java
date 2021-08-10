@@ -56,7 +56,7 @@ public class DrawListCullingHelper {
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
-	public int computeFlags(long packedOriginBlockPos) {
+	public int computeVisibleFaceFlags(long packedOriginBlockPos) {
 		final int x = BlockPos.unpackLongX(packedOriginBlockPos) >> 4;
 		final int y = BlockPos.unpackLongY(packedOriginBlockPos) >> 4;
 		final int z = BlockPos.unpackLongZ(packedOriginBlockPos) >> 4;
@@ -76,7 +76,7 @@ public class DrawListCullingHelper {
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
-	public int shadowFlags() {
+	public int shadowVisibleFaceFlags() {
 		return shadowFlags;
 	}
 }

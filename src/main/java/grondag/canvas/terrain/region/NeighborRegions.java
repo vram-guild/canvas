@@ -103,32 +103,32 @@ public class NeighborRegions {
 	public void enqueueUnvistedCameraNeighbors() {
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 
-		getNeighbor(FaceConstants.EAST_INDEX).cameraVisibility.addIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.WEST_INDEX).cameraVisibility.addIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.NORTH_INDEX).cameraVisibility.addIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.SOUTH_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+		getNeighbor(FaceConstants.EAST_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.WEST_FLAG, mySquaredDist);
+		getNeighbor(FaceConstants.WEST_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.EAST_FLAG, mySquaredDist);
+		getNeighbor(FaceConstants.NORTH_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.SOUTH_FLAG, mySquaredDist);
+		getNeighbor(FaceConstants.SOUTH_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.NORTH_FLAG, mySquaredDist);
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+			getNeighbor(FaceConstants.UP_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.DOWN_FLAG, mySquaredDist);
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+			getNeighbor(FaceConstants.DOWN_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.UP_FLAG, mySquaredDist);
 		}
 	}
 
 	public void enqueueUnvistedShadowNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(FaceConstants.WEST_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(FaceConstants.NORTH_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(FaceConstants.SOUTH_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceConstants.EAST_INDEX).shadowVisibility.addIfValid(FaceConstants.WEST_FLAG);
+		getNeighbor(FaceConstants.WEST_INDEX).shadowVisibility.addIfValid(FaceConstants.EAST_FLAG);
+		getNeighbor(FaceConstants.NORTH_INDEX).shadowVisibility.addIfValid(FaceConstants.SOUTH_FLAG);
+		getNeighbor(FaceConstants.SOUTH_INDEX).shadowVisibility.addIfValid(FaceConstants.NORTH_FLAG);
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).shadowVisibility.addIfValid();
+			getNeighbor(FaceConstants.UP_INDEX).shadowVisibility.addIfValid(FaceConstants.DOWN_FLAG);
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).shadowVisibility.addIfValid();
+			getNeighbor(FaceConstants.DOWN_INDEX).shadowVisibility.addIfValid(FaceConstants.UP_FLAG);
 		}
 	}
 }

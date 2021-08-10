@@ -77,7 +77,7 @@ public class RegionPosition extends BlockPos {
 
 	private int shadowDistanceRank;
 
-	private int cullFlags;
+	private int visibleFaceFlags;
 
 	public RegionPosition(long packedPos, RenderRegion owner) {
 		super(unpackLongX(packedPos), unpackLongY(packedPos), unpackLongZ(packedPos));
@@ -133,7 +133,7 @@ public class RegionPosition extends BlockPos {
 
 			final int positionVersion = cameraPVS.frustumPositionVersion();
 
-			cullFlags = owner.worldRenderState.drawListCullingHlper.computeFlags(packed);
+			visibleFaceFlags = owner.worldRenderState.drawListCullingHlper.computeVisibleFaceFlags(packed);
 
 			// These checks depend on the camera occluder position version,
 			// which may not necessarily change when view version change.
@@ -159,13 +159,13 @@ public class RegionPosition extends BlockPos {
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
-	public int cullFlags() {
-		return cullFlags;
+	public int visibleFaceFlags() {
+		return visibleFaceFlags;
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
-	public int shadowCullFlags() {
-		return owner.worldRenderState.drawListCullingHlper.shadowFlags();
+	public int shadowVisibleFaceFlags() {
+		return owner.worldRenderState.drawListCullingHlper.shadowVisibleFaceFlags();
 	}
 
 	public void close() {

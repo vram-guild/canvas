@@ -24,6 +24,7 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 	private final T visibility;
 	private int visibilityVersion;
 	private OcclusionResult result = OcclusionResult.UNDETERMINED;
+	protected int entryFaceFlags;
 
 	public AbstractRegionVisibility(T visbility, RenderRegion region) {
 		this.visibility = visbility;
@@ -51,13 +52,16 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 	 * Will mark region with result {@link OcclusionResult#VISITED}.
 	 */
 	@SuppressWarnings("unchecked")
-	public void addVisitedIfNotPresent() {
+	public void addVisitedIfNotPresent(int entryFaceFlags) {
 		final int v = visibility.version();
 
 		if (visibilityVersion != v) {
 			visibilityVersion = v;
 			result = OcclusionResult.VISITED;
 			visibility.add((U) this);
+			this.entryFaceFlags = entryFaceFlags;
+		} else {
+			this.entryFaceFlags |= entryFaceFlags;
 		}
 	}
 
@@ -84,5 +88,5 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 		}
 	}
 
-	public abstract void addIfValid();
+	public abstract void addIfValid(int faceIndex);
 }
