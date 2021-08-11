@@ -41,8 +41,7 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	 * @param fromSquaredDistance the squared chunk distance of the region from which this region was reached
 	 */
 	public void addIfFrontFacing(int faceFlags, int fromSquaredDistance) {
-		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance) {
-			assert region.origin.isNear() || (region.origin.visibleFaceFlags() & faceFlags) != 0 : "Region entered from back face";
+		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance && (region.origin.isNear() || (region.origin.visibleFaceFlags() & faceFlags) != 0)) {
 			addIfValid(faceFlags);
 		}
 	}
