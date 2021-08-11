@@ -26,6 +26,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.varia.GFX;
@@ -138,7 +139,7 @@ public class BufferDebug {
 	}
 
 	public static void renderOverlay(MatrixStack matrices, TextRenderer fontRenderer) {
-		if (!enabled) {
+		if (!enabled || !Configurator.enableBufferDebug) {
 			return;
 		}
 
