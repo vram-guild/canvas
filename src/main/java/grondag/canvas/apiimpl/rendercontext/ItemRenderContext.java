@@ -172,8 +172,12 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		matrices.push();
 		final boolean detachedPerspective = renderMode == ModelTransformation.Mode.GUI || renderMode == ModelTransformation.Mode.GROUND || renderMode == ModelTransformation.Mode.FIXED;
 
-		if (stack.getItem() == Items.TRIDENT && detachedPerspective) {
-			model = models.getModelManager().getModel(new ModelIdentifier("minecraft:trident#inventory"));
+		if (detachedPerspective) {
+			if (stack.isOf(Items.TRIDENT)) {
+				model = models.getModelManager().getModel(new ModelIdentifier("minecraft:trident#inventory"));
+			} else if (stack.isOf(Items.SPYGLASS)) {
+				model = models.getModelManager().getModel(new ModelIdentifier("minecraft:spyglass#inventory"));
+			}
 		}
 
 		// PERF: optimize matrix stack operations
