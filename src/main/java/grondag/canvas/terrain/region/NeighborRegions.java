@@ -25,6 +25,7 @@ import net.minecraft.util.math.Direction;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.FaceConstants;
+import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
 import grondag.canvas.varia.BlockPosHelper;
 
 /** Caches directly adjacent regions for fast access and provides visitor operations for terrain iteration. */
@@ -100,19 +101,31 @@ public class NeighborRegions {
 		neighbors[closedFaceIndex] = null;
 	}
 
-	public void enqueueUnvistedCameraNeighbors() {
+	public void enqueueUnvistedCameraNeighbors(final long mutalOcclusionFaceFlags) {
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
+		final int entryFaceFlags = owner.cameraVisibility.entryFaceFlags();
 
-		getNeighbor(FaceConstants.EAST_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.WEST_FLAG, mySquaredDist);
-		getNeighbor(FaceConstants.WEST_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.EAST_FLAG, mySquaredDist);
-		getNeighbor(FaceConstants.NORTH_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.SOUTH_FLAG, mySquaredDist);
-		getNeighbor(FaceConstants.SOUTH_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.NORTH_FLAG, mySquaredDist);
+		if (OcclusionResult.canVisitFace(mutalOcclusionFaceFlags, entryFaceFlags, FaceConstants.EAST_INDEX)) {
+			getNeighbor(FaceConstants.EAST_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.WEST_FLAG, mySquaredDist);
+		}
 
-		if (!isTop) {
+		if (OcclusionResult.canVisitFace(mutalOcclusionFaceFlags, entryFaceFlags, FaceConstants.WEST_INDEX)) {
+			getNeighbor(FaceConstants.WEST_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.EAST_FLAG, mySquaredDist);
+		}
+
+		if (OcclusionResult.canVisitFace(mutalOcclusionFaceFlags, entryFaceFlags, FaceConstants.NORTH_INDEX)) {
+			getNeighbor(FaceConstants.NORTH_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.SOUTH_FLAG, mySquaredDist);
+		}
+
+		if (OcclusionResult.canVisitFace(mutalOcclusionFaceFlags, entryFaceFlags, FaceConstants.SOUTH_INDEX)) {
+			getNeighbor(FaceConstants.SOUTH_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.NORTH_FLAG, mySquaredDist);
+		}
+
+		if (!isTop && OcclusionResult.canVisitFace(mutalOcclusionFaceFlags, entryFaceFlags, FaceConstants.UP_INDEX)) {
 			getNeighbor(FaceConstants.UP_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.DOWN_FLAG, mySquaredDist);
 		}
 
-		if (!isBottom) {
+		if (!isBottom && OcclusionResult.canVisitFace(mutalOcclusionFaceFlags, entryFaceFlags, FaceConstants.DOWN_INDEX)) {
 			getNeighbor(FaceConstants.DOWN_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.UP_FLAG, mySquaredDist);
 		}
 	}

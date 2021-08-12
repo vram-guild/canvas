@@ -24,7 +24,7 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 	private final T visibility;
 	private int visibilityVersion;
 	private OcclusionStatus occlusionStatus = OcclusionStatus.UNDETERMINED;
-	protected int entryFaceFlags;
+	private int entryFaceFlags;
 
 	public AbstractRegionVisibility(T visbility, RenderRegion region) {
 		this.visibility = visbility;
@@ -33,6 +33,10 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 
 	public OcclusionStatus getOcclusionStatus() {
 		return visibilityVersion == visibility.version() ? occlusionStatus : OcclusionStatus.UNDETERMINED;
+	}
+
+	public final int entryFaceFlags() {
+		return entryFaceFlags;
 	}
 
 	/**

@@ -298,7 +298,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				// time if the result indicates we should.
 
 				if (priorResult != OcclusionStatus.REGION_NOT_VISIBLE) {
-					region.neighbors.enqueueUnvistedCameraNeighbors();
+					region.neighbors.enqueueUnvistedCameraNeighbors(-1L);
 				}
 
 				continue;
@@ -309,7 +309,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			// For empty regions, check neighbors but don't add to visible set
 			// We currently don't test these against rasterizer because there are many and it would be too expensive.
 			if (!buildState.canOcclude()) {
-				region.neighbors.enqueueUnvistedCameraNeighbors();
+				region.neighbors.enqueueUnvistedCameraNeighbors(buildState.getOcclusionResult().mutalFaceMask());
 				state.setOcclusionStatus(OcclusionStatus.ENTITIES_VISIBLE);
 				continue;
 			}
@@ -318,7 +318,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			if (!chunkCullingEnabled || region.origin.isNear()) {
 				// We are aren't culling, just add it.
-				region.neighbors.enqueueUnvistedCameraNeighbors();
+				region.neighbors.enqueueUnvistedCameraNeighbors(buildState.getOcclusionResult().mutalFaceMask());
 				visibleRegions.add(region);
 				state.setOcclusionStatus(OcclusionStatus.REGION_VISIBLE);
 				cameraVisibility.prepareRegion(region.origin);
@@ -330,7 +330,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				if (cameraVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX], region.origin.fuzz())) {
 					// Renderable portion is visible
 					// Continue search, mark visible, add to render list and draw to occluder
-					region.neighbors.enqueueUnvistedCameraNeighbors();
+					region.neighbors.enqueueUnvistedCameraNeighbors(buildState.getOcclusionResult().mutalFaceMask());
 					visibleRegions.add(region);
 					state.setOcclusionStatus(OcclusionStatus.REGION_VISIBLE);
 					cameraVisibility.occlude(occlusionData);
@@ -338,7 +338,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 					if (cameraVisibility.isBoxVisible(PackedBox.FULL_BOX, region.origin.fuzz())) {
 						// need to progress through the region if part of it is visible
 						// Like renderable, but we don't need to draw or add to render list
-						region.neighbors.enqueueUnvistedCameraNeighbors();
+						region.neighbors.enqueueUnvistedCameraNeighbors(buildState.getOcclusionResult().mutalFaceMask());
 						state.setOcclusionStatus(OcclusionStatus.ENTITIES_VISIBLE);
 					} else {
 						// no portion is visible
