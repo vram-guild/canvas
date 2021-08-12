@@ -21,22 +21,23 @@ public record OcclusionResult(int[] occlusionData, long mutalFaceMask) {
 		return (mutalFaceMask & mask(fromFaceIndex, toFaceIndex)) != 0L;
 	}
 
-	public static long mask(int fromFaceIndex, int toFaceIndex) {
-		return 1L << ((fromFaceIndex << 3) | toFaceIndex);
+	// packing is inefficient (only 30 bits really needed) but avoids multiply
+	private static long mask(int highIndex, int lowIndex) {
+		return 1L << ((highIndex << 3) | lowIndex);
 	}
 
-	public static long mutualMask(int faceIndexA, int faceIndexB) {
-		return mask(faceIndexA, faceIndexB) | mask(faceIndexB, faceIndexA);
+	private static long mutualMask(int faceIndexA, int faceIndexB) {
+		return faceIndexA > faceIndexB ? mask(faceIndexA, faceIndexB) : mask(faceIndexB, faceIndexA);
 	}
 
-	public static long buildMutualFaceMask(int mutualFaces) {
-		assert (mutualFaces & 0b111111) == mutualFaces : "More than six face bits provided to mutual mask input";
+	public static long buildMutualFaceMask(int mutualFaceMasks) {
+		assert (mutualFaceMasks & 0b111111) == mutualFaceMasks : "More than six face bits provided to mutual mask input";
 		long result = 0L;
 
 		for (int i = 0; i < 5; ++i) {
-			if (((1 << i) & mutualFaces) != 0) {
+			if (((1 << i) & mutualFaceMasks) != 0) {
 				for (int j = i + 1; j < 6; ++j) {
-					if (((1 << j) & mutualFaces) != 0) {
+					if (((1 << j) & mutualFaceMasks) != 0) {
 						result |= mutualMask(i, j);
 					}
 				}
@@ -44,5 +45,47 @@ public record OcclusionResult(int[] occlusionData, long mutalFaceMask) {
 		}
 
 		return result;
+	}
+
+	/**
+	 * For terrain iteration face-based culling.
+	 * @param mutualFaceMask indicates which faces are connected, built with {@link #buildMutualFaceMask(int)}
+	 * @param fromFaceFlags BIT FLAGS for faces visible from outside the section from which it was entered
+	 * @param toFaceFlag INDEX (0-5) of exit face being tested
+	 * @return true if the exit face is open to any of the entry faces
+	 */
+	public static boolean canVisitFace(long mutualFaceMask, int fromFaceFlags, int toFaceIndex) {
+		assert toFaceIndex >= 0;
+		assert toFaceIndex < 6;
+
+		if (fromFaceFlags == 0) {
+			return false;
+		}
+
+		if ((fromFaceFlags & 1) != 0 && (mutualMask(toFaceIndex, 0) & mutualFaceMask) != 0) {
+			return true;
+		}
+
+		if ((fromFaceFlags & 2) != 0 && (mutualMask(toFaceIndex, 1) & mutualFaceMask) != 0) {
+			return true;
+		}
+
+		if ((fromFaceFlags & 4) != 0 && (mutualMask(toFaceIndex, 2) & mutualFaceMask) != 0) {
+			return true;
+		}
+
+		if ((fromFaceFlags & 8) != 0 && (mutualMask(toFaceIndex, 3) & mutualFaceMask) != 0) {
+			return true;
+		}
+
+		if ((fromFaceFlags & 16) != 0 && (mutualMask(toFaceIndex, 4) & mutualFaceMask) != 0) {
+			return true;
+		}
+
+		if ((fromFaceFlags & 32) != 0 && (mutualMask(toFaceIndex, 5) & mutualFaceMask) != 0) {
+			return true;
+		}
+
+		return false;
 	}
 }

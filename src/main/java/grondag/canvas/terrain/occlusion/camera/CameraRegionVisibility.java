@@ -37,7 +37,7 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	 * which means all nearer regions must fully occlude it, and we are "wrapping around"
 	 * from a more distance region.
 	 *
-	 * @param faceIndex the face of this region from which this region was reached
+	 * @param entryFaceFlagFlags the face(s) of this region from which this region was reached
 	 * @param fromSquaredDistance the squared chunk distance of the region from which this region was reached
 	 */
 	public void addIfFrontFacing(int entryFaceFlagFlags, int fromSquaredDistance) {
@@ -47,9 +47,9 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	}
 
 	@Override
-	public void addIfValid(int faceFlags) {
+	public void addIfValid(int entryFaceFlags) {
 		if (region.origin.isPotentiallyVisibleFromCamera() && !region.isClosed() && region.isNearOrHasLoadedNeighbors()) {
-			addVisitedIfNotPresent(faceFlags);
+			addVisitedIfNotPresent(entryFaceFlags);
 		}
 	}
 }
