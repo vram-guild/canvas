@@ -288,16 +288,16 @@ public class TerrainIterator implements TerrainExecutorTask {
 				updateRegions.add(region);
 			}
 
-			OcclusionResult priorResult = state.getResult();
+			OcclusionStatus priorResult = state.getOcclusionStatus();
 
 			// Undetermined should not be in iteration because they have been visited.
-			assert priorResult != OcclusionResult.UNDETERMINED;
+			assert priorResult != OcclusionStatus.UNDETERMINED;
 
-			if (priorResult != OcclusionResult.VISITED) {
+			if (priorResult != OcclusionStatus.VISITED) {
 				// if prior test results still good just enqueue any neighbors we missed last
 				// time if the result indicates we should.
 
-				if (priorResult != OcclusionResult.REGION_NOT_VISIBLE) {
+				if (priorResult != OcclusionStatus.REGION_NOT_VISIBLE) {
 					region.neighbors.enqueueUnvistedCameraNeighbors();
 				}
 
@@ -310,7 +310,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			// We currently don't test these against rasterizer because there are many and it would be too expensive.
 			if (!buildState.canOcclude()) {
 				region.neighbors.enqueueUnvistedCameraNeighbors();
-				state.setResult(OcclusionResult.ENTITIES_VISIBLE);
+				state.setOcclusionStatus(OcclusionStatus.ENTITIES_VISIBLE);
 				continue;
 			}
 
@@ -320,7 +320,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				// We are aren't culling, just add it.
 				region.neighbors.enqueueUnvistedCameraNeighbors();
 				visibleRegions.add(region);
-				state.setResult(OcclusionResult.REGION_VISIBLE);
+				state.setOcclusionStatus(OcclusionStatus.REGION_VISIBLE);
 				cameraVisibility.prepareRegion(region.origin);
 				cameraVisibility.occlude(buildState.getOcclusionResult().occlusionData());
 			} else {
@@ -332,17 +332,17 @@ public class TerrainIterator implements TerrainExecutorTask {
 					// Continue search, mark visible, add to render list and draw to occluder
 					region.neighbors.enqueueUnvistedCameraNeighbors();
 					visibleRegions.add(region);
-					state.setResult(OcclusionResult.REGION_VISIBLE);
+					state.setOcclusionStatus(OcclusionStatus.REGION_VISIBLE);
 					cameraVisibility.occlude(occlusionData);
 				} else {
 					if (cameraVisibility.isBoxVisible(PackedBox.FULL_BOX, region.origin.fuzz())) {
 						// need to progress through the region if part of it is visible
 						// Like renderable, but we don't need to draw or add to render list
 						region.neighbors.enqueueUnvistedCameraNeighbors();
-						state.setResult(OcclusionResult.ENTITIES_VISIBLE);
+						state.setOcclusionStatus(OcclusionStatus.ENTITIES_VISIBLE);
 					} else {
 						// no portion is visible
-						state.setResult(OcclusionResult.REGION_NOT_VISIBLE);
+						state.setOcclusionStatus(OcclusionStatus.REGION_NOT_VISIBLE);
 					}
 				}
 			}
@@ -407,17 +407,17 @@ public class TerrainIterator implements TerrainExecutorTask {
 				updateRegions.add(region);
 			}
 
-			OcclusionResult priorResult = state.getResult();
+			OcclusionStatus priorResult = state.getOcclusionStatus();
 
 			// Undetermined should not be in iteration because they have been visited.
-			assert priorResult != OcclusionResult.UNDETERMINED;
+			assert priorResult != OcclusionStatus.UNDETERMINED;
 
-			if (priorResult != OcclusionResult.VISITED) {
+			if (priorResult != OcclusionStatus.VISITED) {
 				// if prior test results still good just enqueue any neighbors we missed last
 				// time if the result indicates we should.
 
 				// if (region.occlusionState.cameraOccluderResult() != OcclusionResult.REGION_NOT_VISIBLE) { //
-				if (priorResult != OcclusionResult.REGION_NOT_VISIBLE) {
+				if (priorResult != OcclusionStatus.REGION_NOT_VISIBLE) {
 					region.neighbors.enqueueUnvistedShadowNeighbors();
 				}
 
@@ -430,10 +430,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 			if (!buildState.canOcclude()) {
 				// only check neighbors if the region is potentially visible
 				if (shadowVisibility.isEmptyRegionVisible(region.origin, 0)) {
-					state.setResult(OcclusionResult.ENTITIES_VISIBLE);
+					state.setOcclusionStatus(OcclusionStatus.ENTITIES_VISIBLE);
 					region.neighbors.enqueueUnvistedShadowNeighbors();
 				} else {
-					state.setResult(OcclusionResult.REGION_NOT_VISIBLE);
+					state.setOcclusionStatus(OcclusionStatus.REGION_NOT_VISIBLE);
 				}
 
 				continue;
@@ -447,14 +447,14 @@ public class TerrainIterator implements TerrainExecutorTask {
 			if (shadowVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX], 0)) {
 				region.neighbors.enqueueUnvistedShadowNeighbors();
 				addShadowRegion(region);
-				state.setResult(OcclusionResult.REGION_VISIBLE);
+				state.setOcclusionStatus(OcclusionStatus.REGION_VISIBLE);
 				shadowVisibility.occlude(occlusionData);
 			} else {
 				if (shadowVisibility.isBoxVisible(PackedBox.FULL_BOX, 0)) {
 					region.neighbors.enqueueUnvistedShadowNeighbors();
-					state.setResult(OcclusionResult.ENTITIES_VISIBLE);
+					state.setOcclusionStatus(OcclusionStatus.ENTITIES_VISIBLE);
 				} else {
-					state.setResult(OcclusionResult.REGION_NOT_VISIBLE);
+					state.setOcclusionStatus(OcclusionStatus.REGION_NOT_VISIBLE);
 				}
 			}
 		}
