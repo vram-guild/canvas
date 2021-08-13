@@ -25,6 +25,7 @@ import net.minecraft.util.math.Direction;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.FaceConstants;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
 import grondag.canvas.varia.BlockPosHelper;
 
@@ -101,7 +102,10 @@ public class NeighborRegions {
 		neighbors[closedFaceIndex] = null;
 	}
 
+	/** Used in simple occlusion config. */
 	public void enqueueUnvistedCameraNeighbors(final long mutalOcclusionFaceFlags) {
+		assert !Configurator.advancedTerrainCulling;
+
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 		final int entryFaceFlags = owner.cameraVisibility.entryFaceFlags();
 
@@ -127,6 +131,26 @@ public class NeighborRegions {
 
 		if (!isBottom && OcclusionResult.canVisitFace(mutalOcclusionFaceFlags, entryFaceFlags, FaceConstants.DOWN_INDEX)) {
 			getNeighbor(FaceConstants.DOWN_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.UP_FLAG, mySquaredDist);
+		}
+	}
+
+	/** Used in advanced occlusion config. */
+	public void enqueueUnvistedCameraNeighbors() {
+		assert Configurator.advancedTerrainCulling;
+
+		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
+
+		getNeighbor(FaceConstants.EAST_INDEX).cameraVisibility.addIfFrontFacing(mySquaredDist);
+		getNeighbor(FaceConstants.WEST_INDEX).cameraVisibility.addIfFrontFacing(mySquaredDist);
+		getNeighbor(FaceConstants.NORTH_INDEX).cameraVisibility.addIfFrontFacing(mySquaredDist);
+		getNeighbor(FaceConstants.SOUTH_INDEX).cameraVisibility.addIfFrontFacing(mySquaredDist);
+
+		if (!isTop) {
+			getNeighbor(FaceConstants.UP_INDEX).cameraVisibility.addIfFrontFacing(mySquaredDist);
+		}
+
+		if (!isBottom) {
+			getNeighbor(FaceConstants.DOWN_INDEX).cameraVisibility.addIfFrontFacing(mySquaredDist);
 		}
 	}
 

@@ -16,6 +16,7 @@
 
 package grondag.canvas.terrain.occlusion.base;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.terrain.occlusion.OcclusionStatus;
 import grondag.canvas.terrain.region.RenderRegion;
 
@@ -36,6 +37,7 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 	}
 
 	public final int entryFaceFlags() {
+		assert !Configurator.advancedTerrainCulling;
 		return entryFaceFlags;
 	}
 
@@ -57,6 +59,8 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 	 */
 	@SuppressWarnings("unchecked")
 	public void addVisitedIfNotPresent(int entryFaceFlags) {
+		assert !Configurator.advancedTerrainCulling;
+
 		final int v = visibility.version();
 
 		if (visibilityVersion != v) {
@@ -66,6 +70,19 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 			this.entryFaceFlags = entryFaceFlags;
 		} else {
 			this.entryFaceFlags |= entryFaceFlags;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public void addVisitedIfNotPresent() {
+		assert Configurator.advancedTerrainCulling;
+
+		final int v = visibility.version();
+
+		if (visibilityVersion != v) {
+			visibilityVersion = v;
+			occlusionStatus = OcclusionStatus.VISITED;
+			visibility.add((U) this);
 		}
 	}
 
@@ -93,4 +110,6 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 	}
 
 	public abstract void addIfValid(int faceIndex);
+
+	public abstract void addIfValid();
 }

@@ -16,6 +16,7 @@
 
 package grondag.canvas.terrain.occlusion.camera;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.terrain.occlusion.base.AbstractRegionVisibility;
 import grondag.canvas.terrain.region.RenderRegion;
 
@@ -41,8 +42,18 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	 * @param fromSquaredDistance the squared chunk distance of the region from which this region was reached
 	 */
 	public void addIfFrontFacing(int entryFaceFlags, int fromSquaredDistance) {
+		assert !Configurator.advancedTerrainCulling;
+
 		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance && (region.origin.isNear() || (region.origin.visibleFaceFlags() & entryFaceFlags) != 0)) {
 			addIfValid(entryFaceFlags);
+		}
+	}
+
+	public void addIfFrontFacing(int fromSquaredDistance) {
+		assert Configurator.advancedTerrainCulling;
+
+		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance || region.origin.isNear()) {
+			addIfValid();
 		}
 	}
 
@@ -50,6 +61,13 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	public void addIfValid(int entryFaceFlags) {
 		if (region.origin.isPotentiallyVisibleFromCamera() && !region.isClosed() && region.isNearOrHasLoadedNeighbors()) {
 			addVisitedIfNotPresent(entryFaceFlags);
+		}
+	}
+
+	@Override
+	public void addIfValid() {
+		if (region.origin.isPotentiallyVisibleFromCamera() && !region.isClosed() && region.isNearOrHasLoadedNeighbors()) {
+			addVisitedIfNotPresent();
 		}
 	}
 }

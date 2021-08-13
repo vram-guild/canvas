@@ -30,6 +30,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 
 import grondag.bitraster.PackedBox;
+import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
 
 public abstract class RegionOcclusionCalculator {
@@ -66,6 +67,12 @@ public abstract class RegionOcclusionCalculator {
 	private int maxRenderableX;
 	private int maxRenderableY;
 	private int maxRenderableZ;
+
+	/**
+	 * Accumulates exterior faces visited during fill to track which exterior
+	 * faces are connected. Used for occlusion.
+	 */
+	private int visitedFacesMask;
 
 	public void prepare() {
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
@@ -263,7 +270,15 @@ public abstract class RegionOcclusionCalculator {
 			bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] |= mask;
 
 			// return opacity result
-			return (bits[wordIndex] & mask) == 0;
+			if ((bits[wordIndex] & mask) == 0) {
+				if (!Configurator.advancedTerrainCulling) {
+					trackVistedFaces(index);
+				}
+
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			// already visited
 			return false;
@@ -538,13 +553,37 @@ public abstract class RegionOcclusionCalculator {
 		}
 	}
 
-	private int[] computeOcclusion(boolean isNear) {
+	private OcclusionResult computeOcclusion(boolean isNear) {
 		// Determine which blocks are visible by visiting exterior blocks
 		// that aren't occluded by neighboring regions and doing a fill from there.
+		long mutualFaceMask = 0;
 
-		for (int i = 0; i < COVERING_INDEX_COUNT; ++i) {
-			if (!isClosed(COVERING_INDEXES[i])) {
-				visitSurfaceIfPossible(COVERED_INDEXES[i]);
+		if (Configurator.advancedTerrainCulling) {
+			for (int i = 0; i < COVERING_INDEX_COUNT; ++i) {
+				if (!isClosed(COVERING_INDEXES[i])) {
+					visitSurfaceIfPossible(COVERED_INDEXES[i]);
+				}
+			}
+		} else {
+			for (int i = 0; i < COVERING_INDEX_COUNT; ++i) {
+				// face indices are six groups of 256, one for each face.
+				// We want to reset visibility search on each new face and
+				// exploit this fact to know when we progress to the next face
+				if ((i & 0xFF) == 0) {
+					if (visitedFacesMask != 0) {
+						mutualFaceMask |= OcclusionResult.buildMutualFaceMask(visitedFacesMask);
+						visitedFacesMask = 0;
+					}
+				}
+
+				if (!isClosed(COVERING_INDEXES[i])) {
+					visitSurfaceIfPossible(COVERED_INDEXES[i]);
+				}
+			}
+
+			if (visitedFacesMask != 0) {
+				mutualFaceMask |= OcclusionResult.buildMutualFaceMask(visitedFacesMask);
+				visitedFacesMask = 0;
 			}
 		}
 
@@ -583,7 +622,7 @@ public abstract class RegionOcclusionCalculator {
 			}
 		}
 
-		return result;
+		return new OcclusionResult(result, mutualFaceMask);
 	}
 
 	public OcclusionResult build(boolean isNear) {
@@ -604,7 +643,7 @@ public abstract class RegionOcclusionCalculator {
 			result[OCCLUSION_RESULT_FIRST_BOX_INDEX] = PackedBox.FULL_BOX;
 			return new OcclusionResult(result, 0L);
 		} else {
-			return new OcclusionResult(computeOcclusion(isNear), -1L);
+			return computeOcclusion(isNear);
 		}
 	}
 
@@ -649,6 +688,36 @@ public abstract class RegionOcclusionCalculator {
 		} else {
 			enqueIfUnvisited(xyz4 - 0x100);
 			enqueIfUnvisited(xyz4 + 0x100);
+		}
+	}
+
+	private void trackVistedFaces(int xyz4) {
+		final int x = xyz4 & 0xF;
+
+		if (x == 0) {
+			visitedFacesMask |= FaceConstants.WEST_FLAG;
+			return;
+		} else if (x == 15) {
+			visitedFacesMask |= FaceConstants.EAST_FLAG;
+			return;
+		}
+
+		final int y = xyz4 & 0xF0;
+
+		if (y == 0) {
+			visitedFacesMask |= FaceConstants.DOWN_FLAG;
+			return;
+		} else if (y == 0xF0) {
+			visitedFacesMask |= FaceConstants.UP_FLAG;
+			return;
+		}
+
+		final int z = xyz4 & 0xF00;
+
+		if (z == 0) {
+			visitedFacesMask |= FaceConstants.NORTH_FLAG;
+		} else if (z == 0xF00) {
+			visitedFacesMask |= FaceConstants.SOUTH_FLAG;
 		}
 	}
 

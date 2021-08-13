@@ -30,4 +30,11 @@ public class ShadowRegionVisibility extends AbstractRegionVisibility<ShadowVisib
 			addVisitedIfNotPresent(entryFaceFlags);
 		}
 	}
+
+	@Override
+	public void addIfValid() {
+		if (region.origin.isPotentiallyVisibleFromSkylight() && !region.isClosed() && region.renderChunk.areCornersLoaded()) {
+			addVisitedIfNotPresent();
+		}
+	}
 }
