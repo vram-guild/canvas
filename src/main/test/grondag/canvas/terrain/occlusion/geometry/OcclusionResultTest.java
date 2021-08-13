@@ -19,47 +19,54 @@ package grondag.canvas.terrain.occlusion.geometry;
 import org.junit.jupiter.api.Test;
 
 class OcclusionResultTest {
-	private static final int IDX_A = 0;
-	private static final int IDX_B = 1;
-	private static final int IDX_C = 2;
-	private static final int IDX_D = 3;
-	private static final int IDX_E = 4;
-	private static final int IDX_F = 5;
-
-	private static final int BIT_A = 1 << IDX_A;
-	private static final int BIT_B = 1 << IDX_B;
-	private static final int BIT_C = 1 << IDX_C;
-	private static final int BIT_D = 1 << IDX_D;
-	private static final int BIT_E = 1 << IDX_E;
-	private static final int BIT_F = 1 << IDX_F;
+	private static final int BIT_A = 1;
+	private static final int BIT_B = 2;
+	private static final int BIT_C = 4;
+	private static final int BIT_D = 8;
+	private static final int BIT_E = 16;
+	private static final int BIT_F = 32;
 
 	@Test
 	void test() {
 		long mutualMask = 0L;
 
-		for (int i = 0; i < 6; ++i) {
-			for (int j = i; j < 6; ++j) {
-				assert !OcclusionResult.canVisitFace(mutualMask, 1 << i, j);
-			}
-		}
+		assert OcclusionResult.openFacesFlag(mutualMask, 63) == 0;
 
 		mutualMask |= OcclusionResult.buildMutualFaceMask(BIT_A | BIT_B);
-		assert OcclusionResult.canVisitFace(mutualMask, BIT_A, IDX_B);
-		assert OcclusionResult.canVisitFace(mutualMask, BIT_B, IDX_A);
-		assert !OcclusionResult.canVisitFace(mutualMask, BIT_B, IDX_C);
-		assert !OcclusionResult.canVisitFace(mutualMask, BIT_C, IDX_B);
-		assert !OcclusionResult.canVisitFace(mutualMask, BIT_D, IDX_E);
+
+		int openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_A);
+		assert openMask == (BIT_A | BIT_B);
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_B);
+		assert openMask == (BIT_A | BIT_B);
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_A | BIT_B);
+		assert openMask == (BIT_A | BIT_B);
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, 63);
+		assert openMask == (BIT_A | BIT_B);
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, 0);
+		assert openMask == 0;
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_C);
+		assert openMask == 0;
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_C | BIT_D | BIT_E | BIT_F);
+		assert openMask == 0;
 
 		mutualMask |= OcclusionResult.buildMutualFaceMask(BIT_B | BIT_D | BIT_E);
 
-		assert OcclusionResult.canVisitFace(mutualMask, BIT_A, IDX_B);
-		assert OcclusionResult.canVisitFace(mutualMask, BIT_B, IDX_A);
-		assert OcclusionResult.canVisitFace(mutualMask, BIT_D, IDX_B);
-		assert OcclusionResult.canVisitFace(mutualMask, BIT_D, IDX_E);
-		assert OcclusionResult.canVisitFace(mutualMask, BIT_B, IDX_E);
-		assert !OcclusionResult.canVisitFace(mutualMask, BIT_B, IDX_C);
-		assert !OcclusionResult.canVisitFace(mutualMask, BIT_A, IDX_C);
-		assert !OcclusionResult.canVisitFace(mutualMask, BIT_E, IDX_F);
-		assert !OcclusionResult.canVisitFace(mutualMask, BIT_F, IDX_A);
+		openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_A);
+		assert openMask == (BIT_A | BIT_B);
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_B);
+		assert openMask == (BIT_A | BIT_B | BIT_D | BIT_E);
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_D);
+		assert openMask == (BIT_B | BIT_D | BIT_E);
+
+		openMask = OcclusionResult.openFacesFlag(mutualMask, BIT_C);
+		assert openMask == 0;
 	}
 }

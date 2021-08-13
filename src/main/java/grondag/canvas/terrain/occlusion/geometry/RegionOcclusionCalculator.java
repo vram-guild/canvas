@@ -587,42 +587,46 @@ public abstract class RegionOcclusionCalculator {
 			}
 		}
 
-		// don't hide inside position if we may be inside the chunk!
-		if (!isNear) {
-			hideInteriorClosedPositions();
-		}
-
-		computeRenderableBounds();
-
-		final BoxFinder boxFinder = this.boxFinder;
-		final IntArrayList boxes = boxFinder.boxes;
-
-		boxFinder.findBoxes(bits, 0);
-
-		final int boxCount = boxes.size();
-
-		final int[] result = new int[boxCount + 1];
-
-		int n = RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX;
-
-		if (boxCount > 0) {
-			for (int i = 0; i < boxCount; i++) {
-				result[n++] = boxes.getInt(i);
+		if (Configurator.advancedTerrainCulling) {
+			// don't hide inside position if we may be inside the chunk!
+			if (!isNear) {
+				hideInteriorClosedPositions();
 			}
-		}
 
-		if (minRenderableX == Integer.MAX_VALUE) {
-			result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.EMPTY_BOX;
-		} else {
-			if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
-				result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.FULL_BOX;
+			computeRenderableBounds();
+
+			final BoxFinder boxFinder = this.boxFinder;
+			final IntArrayList boxes = boxFinder.boxes;
+
+			boxFinder.findBoxes(bits, 0);
+
+			final int boxCount = boxes.size();
+
+			final int[] result = new int[boxCount + 1];
+
+			int n = RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX;
+
+			if (boxCount > 0) {
+				for (int i = 0; i < boxCount; i++) {
+					result[n++] = boxes.getInt(i);
+				}
+			}
+
+			if (minRenderableX == Integer.MAX_VALUE) {
+				result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.EMPTY_BOX;
 			} else {
-				result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
-						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_EXTREME);
+				if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
+					result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.FULL_BOX;
+				} else {
+					result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
+							maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_EXTREME);
+				}
 			}
-		}
 
-		return new OcclusionResult(result, mutualFaceMask);
+			return new OcclusionResult(result, 0L);
+		} else {
+			return new OcclusionResult(null, mutualFaceMask);
+		}
 	}
 
 	public OcclusionResult build(boolean isNear) {

@@ -17,30 +17,13 @@
 package grondag.canvas.terrain.occlusion.geometry;
 
 public record OcclusionResult(int[] occlusionData, long mutalFaceMask) {
-	public boolean areFacesOpen(int fromFaceIndex, int toFaceIndex) {
-		return (mutalFaceMask & mask(fromFaceIndex, toFaceIndex)) != 0L;
-	}
-
-	// packing is inefficient (only 30 bits really needed) but avoids multiply
-	private static long mask(int highIndex, int lowIndex) {
-		return 1L << ((highIndex << 3) | lowIndex);
-	}
-
-	private static long mutualMask(int faceIndexA, int faceIndexB) {
-		return faceIndexA > faceIndexB ? mask(faceIndexA, faceIndexB) : mask(faceIndexB, faceIndexA);
-	}
-
-	public static long buildMutualFaceMask(int mutualFaceMasks) {
+	public static long buildMutualFaceMask(long mutualFaceMasks) {
 		assert (mutualFaceMasks & 0b111111) == mutualFaceMasks : "More than six face bits provided to mutual mask input";
 		long result = 0L;
 
-		for (int i = 0; i < 5; ++i) {
+		for (int i = 0; i < 6; ++i) {
 			if (((1 << i) & mutualFaceMasks) != 0) {
-				for (int j = i + 1; j < 6; ++j) {
-					if (((1 << j) & mutualFaceMasks) != 0) {
-						result |= mutualMask(i, j);
-					}
-				}
+				result |= (mutualFaceMasks << (i << 3));
 			}
 		}
 
@@ -54,38 +37,37 @@ public record OcclusionResult(int[] occlusionData, long mutalFaceMask) {
 	 * @param toFaceFlag INDEX (0-5) of exit face being tested
 	 * @return true if the exit face is open to any of the entry faces
 	 */
-	public static boolean canVisitFace(long mutualFaceMask, int fromFaceFlags, int toFaceIndex) {
-		assert toFaceIndex >= 0;
-		assert toFaceIndex < 6;
-
-		if (fromFaceFlags == 0) {
-			return false;
+	public static int openFacesFlag(long mutualFaceMask, int fromFaceFlags) {
+		if (fromFaceFlags == 0 || mutualFaceMask == 0) {
+			return 0;
 		}
 
-		if ((fromFaceFlags & 1) != 0 && (mutualMask(toFaceIndex, 0) & mutualFaceMask) != 0) {
-			return true;
+		int result = 0;
+
+		if ((fromFaceFlags & 1) != 0) {
+			result |= (mutualFaceMask & 63);
 		}
 
-		if ((fromFaceFlags & 2) != 0 && (mutualMask(toFaceIndex, 1) & mutualFaceMask) != 0) {
-			return true;
+		if ((fromFaceFlags & 2) != 00) {
+			result |= ((mutualFaceMask >> 8) & 63);
 		}
 
-		if ((fromFaceFlags & 4) != 0 && (mutualMask(toFaceIndex, 2) & mutualFaceMask) != 0) {
-			return true;
+		if ((fromFaceFlags & 4) != 0) {
+			result |= ((mutualFaceMask >> 16) & 63);
 		}
 
-		if ((fromFaceFlags & 8) != 0 && (mutualMask(toFaceIndex, 3) & mutualFaceMask) != 0) {
-			return true;
+		if ((fromFaceFlags & 8) != 0) {
+			result |= ((mutualFaceMask >> 24) & 63);
 		}
 
-		if ((fromFaceFlags & 16) != 0 && (mutualMask(toFaceIndex, 4) & mutualFaceMask) != 0) {
-			return true;
+		if ((fromFaceFlags & 16) != 0) {
+			result |= ((mutualFaceMask >> 32) & 63);
 		}
 
-		if ((fromFaceFlags & 32) != 0 && (mutualMask(toFaceIndex, 5) & mutualFaceMask) != 0) {
-			return true;
+		if ((fromFaceFlags & 32) != 0) {
+			result |= ((mutualFaceMask >> 40) & 63);
 		}
 
-		return false;
+		return result;
 	}
 }

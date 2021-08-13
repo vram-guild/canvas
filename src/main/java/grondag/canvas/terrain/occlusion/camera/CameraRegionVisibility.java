@@ -43,8 +43,9 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	 */
 	public void addIfFrontFacing(int entryFaceFlags, int fromSquaredDistance) {
 		assert !Configurator.advancedTerrainCulling;
+		final var origin = region.origin;
 
-		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance && (region.origin.isNear() || (region.origin.visibleFaceFlags() & entryFaceFlags) != 0)) {
+		if ((origin.squaredCameraChunkDistance() >= fromSquaredDistance && (origin.visibleFaceFlags() & entryFaceFlags) != 0) || origin.isNear()) {
 			addIfValid(entryFaceFlags);
 		}
 	}

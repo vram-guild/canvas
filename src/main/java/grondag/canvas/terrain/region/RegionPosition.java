@@ -20,6 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import grondag.bitraster.PackedBox;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.terrain.occlusion.camera.CameraVisibility;
 
 public class RegionPosition extends BlockPos {
@@ -284,5 +285,31 @@ public class RegionPosition extends BlockPos {
 
 	public boolean isPotentiallyVisibleFromSkylight() {
 		return owner.origin.isInsideRenderDistance() & shadowCascade != -1;
+	}
+
+	/**
+	 * If this region's distance is less than the input distance this region will not be added.
+	 * Also tracks which faces were used to "enter" into this regions for later outbound propagation.
+	 *
+	 * <p>This prevents the addition of invisible regions that "backtrack" during camera iteration.
+	 * We know such regions must be invisible because camera terrain iteration always proceeds in
+	 * near-to-far order and if the region was visible from a nearer region, then that region
+	 * would have already been added and checked.
+	 *
+	 * <p>If we are going backwards, then this region is not visible from a nearer region,
+	 * which means all nearer regions must fully occlude it, and we are "wrapping around"
+	 * from a more distance region.
+	 *
+	 * @param entryFaceFlags the face(s) of this region from which this region was reached
+	 * @param fromSquaredDistance the squared chunk distance of the region from which this region was reached
+	 */
+	public boolean isFrontFacing(int entryFaceFlags, int fromSquaredDistance) {
+		assert !Configurator.advancedTerrainCulling;
+		return (squaredCameraChunkDistance >= fromSquaredDistance && (visibleFaceFlags & entryFaceFlags) != 0) || isNear;
+	}
+
+	public boolean isFrontFacing(int fromSquaredDistance) {
+		assert Configurator.advancedTerrainCulling;
+		return isPotentiallyVisibleFromCamera && squaredCameraChunkDistance >= fromSquaredDistance || isNear;
 	}
 }
