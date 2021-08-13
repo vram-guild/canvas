@@ -120,28 +120,14 @@ public class NeighborRegions {
 	//[11:28:32] [Render thread/INFO] (Canvas) Avg enqueu duration = 251 ns, min = 67, max = 25229, total duration = 125, total runs = 500,000
 	//[11:28:33] [Render thread/INFO] (Canvas) Avg enqueu duration = 254 ns, min = 67, max = 30776, total duration = 127, total runs = 500,000
 
-	//[11:35:36] [Render thread/INFO] (Canvas) Avg enqueu duration = 241 ns, min = 52, max = 40739, total duration = 120, total runs = 500,000
-	//[11:35:37] [Render thread/INFO] (Canvas) Avg enqueu duration = 243 ns, min = 55, max = 31537, total duration = 121, total runs = 500,000
-	//[11:35:38] [Render thread/INFO] (Canvas) Avg enqueu duration = 243 ns, min = 58, max = 43481, total duration = 121, total runs = 500,000
-	//[11:35:39] [Render thread/INFO] (Canvas) Avg enqueu duration = 240 ns, min = 28, max = 32471, total duration = 120, total runs = 500,000
-	//[11:35:40] [Render thread/INFO] (Canvas) Avg enqueu duration = 246 ns, min = 58, max = 40397, total duration = 123, total runs = 500,000
-	//[11:35:40] [Render thread/INFO] (Canvas) Avg enqueu duration = 237 ns, min = 58, max = 42871, total duration = 118, total runs = 500,000
-	//[11:35:41] [Render thread/INFO] (Canvas) Avg enqueu duration = 253 ns, min = 39, max = 31407, total duration = 126, total runs = 500,000
-	//[11:35:42] [Render thread/INFO] (Canvas) Avg enqueu duration = 251 ns, min = 58, max = 49151, total duration = 125, total runs = 500,000
-	//[11:35:42] [Render thread/INFO] (Canvas) Avg enqueu duration = 244 ns, min = 58, max = 78472, total duration = 122, total runs = 500,000
-	//[11:35:43] [Render thread/INFO] (Canvas) Avg enqueu duration = 257 ns, min = 58, max = 31279, total duration = 128, total runs = 500,000
-	//[11:35:43] [Render thread/INFO] (Canvas) Avg enqueu duration = 241 ns, min = 58, max = 27262, total duration = 120, total runs = 500,000
-
-	//[13:15:09] [Render thread/INFO] (Canvas) Avg enqueu duration = 206 ns, min = 37, max = 28088, total duration = 103, total runs = 500,000
-	//[13:15:10] [Render thread/INFO] (Canvas) Avg enqueu duration = 211 ns, min = 38, max = 43385, total duration = 105, total runs = 500,000
-	//[13:15:11] [Render thread/INFO] (Canvas) Avg enqueu duration = 211 ns, min = 36, max = 45818, total duration = 105, total runs = 500,000
-	//[13:15:12] [Render thread/INFO] (Canvas) Avg enqueu duration = 204 ns, min = 37, max = 29404, total duration = 102, total runs = 500,000
-	//[13:15:13] [Render thread/INFO] (Canvas) Avg enqueu duration = 211 ns, min = 22, max = 31342, total duration = 105, total runs = 500,000
-	//[13:15:14] [Render thread/INFO] (Canvas) Avg enqueu duration = 220 ns, min = 1, max = 90447, total duration = 110, total runs = 500,000
-	//[13:15:15] [Render thread/INFO] (Canvas) Avg enqueu duration = 210 ns, min = 37, max = 24938, total duration = 105, total runs = 500,000
-	//[13:15:15] [Render thread/INFO] (Canvas) Avg enqueu duration = 209 ns, min = 36, max = 29978, total duration = 104, total runs = 500,000
-	//[13:15:17] [Render thread/INFO] (Canvas) Avg enqueu duration = 212 ns, min = 38, max = 40256, total duration = 106, total runs = 500,000
-	//[13:15:18] [Render thread/INFO] (Canvas) Avg enqueu duration = 220 ns, min = 35, max = 38265, total duration = 110, total runs = 500,000
+	//[14:46:32] [Render thread/INFO] (Canvas) Avg enqueu duration = 177 ns, min = 27, max = 30277, total duration = 88, total runs = 500,000
+	//[14:46:33] [Render thread/INFO] (Canvas) Avg enqueu duration = 180 ns, min = 30, max = 52374, total duration = 90, total runs = 500,000
+	//[14:46:33] [Render thread/INFO] (Canvas) Avg enqueu duration = 182 ns, min = 30, max = 34768, total duration = 91, total runs = 500,000
+	//[14:46:34] [Render thread/INFO] (Canvas) Avg enqueu duration = 181 ns, min = 32, max = 41480, total duration = 90, total runs = 500,000
+	//[14:46:35] [Render thread/INFO] (Canvas) Avg enqueu duration = 175 ns, min = 31, max = 30703, total duration = 87, total runs = 500,000
+	//[14:46:36] [Render thread/INFO] (Canvas) Avg enqueu duration = 175 ns, min = 31, max = 25705, total duration = 87, total runs = 500,000
+	//[14:46:37] [Render thread/INFO] (Canvas) Avg enqueu duration = 183 ns, min = 30, max = 70272, total duration = 91, total runs = 500,000
+	//[14:46:37] [Render thread/INFO] (Canvas) Avg enqueu duration = 186 ns, min = 32, max = 31781, total duration = 93, total runs = 500,000
 
 	/** Used in simple occlusion config. */
 	public void enqueueUnvistedCameraNeighbors(final long mutalOcclusionFaceFlags) {
@@ -153,27 +139,27 @@ public class NeighborRegions {
 		final int openFlags = OcclusionResult.openFacesFlag(mutalOcclusionFaceFlags, owner.cameraVisibility.entryFaceFlags());
 
 		if ((openFlags & FaceConstants.EAST_FLAG) != 0) {
-			getNeighbor(FaceConstants.EAST_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.WEST_FLAG, mySquaredDist);
+			getNeighbor(FaceConstants.EAST_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.WEST_FLAG, mySquaredDist);
 		}
 
 		if ((openFlags & FaceConstants.WEST_FLAG) != 0) {
-			getNeighbor(FaceConstants.WEST_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.EAST_FLAG, mySquaredDist);
+			getNeighbor(FaceConstants.WEST_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.EAST_FLAG, mySquaredDist);
 		}
 
 		if ((openFlags & FaceConstants.NORTH_FLAG) != 0) {
-			getNeighbor(FaceConstants.NORTH_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.SOUTH_FLAG, mySquaredDist);
+			getNeighbor(FaceConstants.NORTH_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.SOUTH_FLAG, mySquaredDist);
 		}
 
 		if ((openFlags & FaceConstants.SOUTH_FLAG) != 0) {
-			getNeighbor(FaceConstants.SOUTH_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.NORTH_FLAG, mySquaredDist);
+			getNeighbor(FaceConstants.SOUTH_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.NORTH_FLAG, mySquaredDist);
 		}
 
 		if (!isTop && (openFlags & FaceConstants.UP_FLAG) != 0) {
-			getNeighbor(FaceConstants.UP_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.DOWN_FLAG, mySquaredDist);
+			getNeighbor(FaceConstants.UP_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.DOWN_FLAG, mySquaredDist);
 		}
 
 		if (!isBottom && (openFlags & FaceConstants.DOWN_FLAG) != 0) {
-			getNeighbor(FaceConstants.DOWN_INDEX).cameraVisibility.addIfFrontFacing(FaceConstants.UP_FLAG, mySquaredDist);
+			getNeighbor(FaceConstants.DOWN_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.UP_FLAG, mySquaredDist);
 		}
 
 		timer.stop();
@@ -187,16 +173,16 @@ public class NeighborRegions {
 
 		var region = getNeighbor(FaceConstants.EAST_INDEX);
 		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
-		
+
 		region = getNeighbor(FaceConstants.WEST_INDEX);
 		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
-		
+
 		region = getNeighbor(FaceConstants.NORTH_INDEX);
 		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
 		region = getNeighbor(FaceConstants.SOUTH_INDEX);
 		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
-		
+
 		if (!isTop) {
 			region = getNeighbor(FaceConstants.UP_INDEX);
 			if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
