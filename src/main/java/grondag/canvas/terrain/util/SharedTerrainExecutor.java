@@ -18,7 +18,7 @@ package grondag.canvas.terrain.util;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,7 +43,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 		}
 	});
 
-	private final ArrayBlockingQueue<Runnable> serverQueue = new ArrayBlockingQueue<>(4096);
+	private final LinkedBlockingQueue<Runnable> serverQueue = new LinkedBlockingQueue<>();
 
 	private final int poolSize = threadCount();
 	private final Semaphore mixedSignal = new Semaphore(poolSize - 2);
