@@ -21,11 +21,20 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.bitraster.PackedBox;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.render.frustum.TerrainFrustum.RegionVisibilityTest;
+import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
+import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.camera.CameraVisibility;
 
 public class RegionPosition extends BlockPos {
 	/** Region that holds this position as its origin. Provides access to world render state. */
 	private final RenderRegion owner;
+	private final WorldRenderState worldRenderState;
+	private final TerrainIterator terrainIterator;
+	private final DrawListCullingHelper cullingHelper;
+	private final RegionVisibilityTest cameraFrustumTest;
+
 	private final long packed;
 
 	/**
@@ -37,16 +46,16 @@ public class RegionPosition extends BlockPos {
 	private long cameraRegionOrigin = -1;
 
 	/** Tracks the version of the camera occluder view transform to know when we must recompute dependent values. */
-	private int cameraOccluderViewVersion = -1;
+	private int cameraFrustumViewVersion = -1;
 
 	/**
 	 * Tracks the version of the camera occluder position to know when we must recompute dependent values.
 	 * The occlusion position is much more sensitive and changes more frequently than {@link #chunkDistVersion}.
 	 *
 	 * <p>Position cannot change without view also changing, so there is no need to check this unless
-	 * {@link #cameraOccluderViewVersion} has changed.
+	 * {@link #cameraFrustumViewVersion} has changed.
 	 */
-	private int cameraOccluderPositionVersion = -1;
+	private int cameraFrustumPositionVersion = -1;
 
 	/** See {@link #occlusionRange()}. */
 	private int occlusionRange;
@@ -83,6 +92,11 @@ public class RegionPosition extends BlockPos {
 	public RegionPosition(long packedPos, RenderRegion owner) {
 		super(unpackLongX(packedPos), unpackLongY(packedPos), unpackLongZ(packedPos));
 		this.owner = owner;
+		worldRenderState = owner.worldRenderState;
+		terrainIterator = worldRenderState.terrainIterator;
+		cullingHelper = worldRenderState.drawListCullingHlper;
+		cameraFrustumTest = worldRenderState.terrainFrustum.visibilityTest;
+
 		chunkY = getY() >> 4;
 		packed = packedPos;
 	}
@@ -99,8 +113,8 @@ public class RegionPosition extends BlockPos {
 		if (owner.worldRenderState.shadowsEnabled()) {
 			if (isInsideRenderDistance) {
 				// PERF: pointer chase hell
-				shadowCascade = owner.worldRenderState.terrainIterator.shadowVisibility.cascade(this);
-				shadowDistanceRank = shadowCascade == -1 ? -1 : owner.worldRenderState.terrainIterator.shadowVisibility.distanceRank(owner);
+				shadowCascade = terrainIterator.shadowVisibility.cascade(this);
+				shadowDistanceRank = shadowCascade == -1 ? -1 : terrainIterator.shadowVisibility.distanceRank(owner);
 			} else {
 				shadowCascade = -1;
 				shadowDistanceRank = -1;
@@ -111,13 +125,13 @@ public class RegionPosition extends BlockPos {
 	}
 
 	private void computeRegionDependentValues() {
-		final long cameraRegionOrigin = owner.worldRenderState.terrainIterator.cameraRegionOrigin();
+		final long cameraRegionOrigin = terrainIterator.cameraRegionOrigin();
 
 		if (this.cameraRegionOrigin != cameraRegionOrigin) {
 			this.cameraRegionOrigin = cameraRegionOrigin;
 			final int cy = (BlockPos.unpackLongY(cameraRegionOrigin) >> 4) - chunkY;
 			squaredCameraChunkDistance = owner.renderChunk.horizontalSquaredDistance + cy * cy;
-			isInsideRenderDistance = squaredCameraChunkDistance <= owner.worldRenderState.maxSquaredChunkRenderDistance();
+			isInsideRenderDistance = squaredCameraChunkDistance <= worldRenderState.maxSquaredChunkRenderDistance();
 			isNear = squaredCameraChunkDistance <= 3;
 			// Based on trial-and-error
 			fuzz = squaredCameraChunkDistance >= 7 * 7 ? 1 : 0;
@@ -126,36 +140,32 @@ public class RegionPosition extends BlockPos {
 	}
 
 	private void computeViewDependentValues() {
-		final CameraVisibility cameraPVS = owner.worldRenderState.terrainIterator.cameraVisibility;
-		final int viewVersion = cameraPVS.frustumViewVersion();
+		final CameraVisibility cameraPVS = terrainIterator.cameraVisibility;
+		final int frustumViewVersion = cameraPVS.frustumViewVersion();
 
-		if (viewVersion != cameraOccluderViewVersion) {
-			cameraOccluderViewVersion = viewVersion;
+		if (cameraFrustumViewVersion != frustumViewVersion) {
+			cameraFrustumViewVersion = frustumViewVersion;
+			visibleFaceFlags = cullingHelper.computeVisibleFaceFlags(packed);
 
-			final int positionVersion = cameraPVS.frustumPositionVersion();
-
-			visibleFaceFlags = owner.worldRenderState.drawListCullingHlper.computeVisibleFaceFlags(packed);
+			final int frustumPositionVersion = cameraPVS.frustumPositionVersion();
 
 			// These checks depend on the camera occluder position version,
 			// which may not necessarily change when view version change.
-			if (positionVersion != cameraOccluderPositionVersion) {
-				cameraOccluderPositionVersion = positionVersion;
+			if (cameraFrustumPositionVersion != frustumPositionVersion) {
+				cameraFrustumPositionVersion = frustumPositionVersion;
 
 				// These are needed by frustum tests, which happen below, after this update.
 				// not needed at all if outside of render distance
-				if (isInsideRenderDistance()) {
+				if (isInsideRenderDistance) {
 					final Vec3d cameraPos = cameraPVS.frustumCameraPos();
-					final float dx = (float) (getX() + 8 - cameraPos.x);
-					final float dy = (float) (getY() + 8 - cameraPos.y);
-					final float dz = (float) (getZ() + 8 - cameraPos.z);
-					cameraRelativeCenterX = dx;
-					cameraRelativeCenterY = dy;
-					cameraRelativeCenterZ = dz;
+					cameraRelativeCenterX = (float) (getX() + 8 - cameraPos.x);
+					cameraRelativeCenterY = (float) (getY() + 8 - cameraPos.y);
+					cameraRelativeCenterZ = (float) (getZ() + 8 - cameraPos.z);
 				}
 			}
 
 			//  PERF: implement hierarchical tests with propagation of per-plane inside test results
-			isPotentiallyVisibleFromCamera = isInsideRenderDistance() && cameraPVS.isRegionInFrustum(this);
+			isPotentiallyVisibleFromCamera = isInsideRenderDistance && cameraFrustumTest.isVisible(this);
 		}
 	}
 
@@ -166,14 +176,14 @@ public class RegionPosition extends BlockPos {
 
 	/** Flag 6 (unassigned) will always be set. */
 	public int shadowVisibleFaceFlags() {
-		return owner.worldRenderState.drawListCullingHlper.shadowVisibleFaceFlags();
+		return cullingHelper.shadowVisibleFaceFlags();
 	}
 
 	public void close() {
 		isInsideRenderDistance = false;
 		isNear = false;
-		cameraOccluderPositionVersion = -1;
-		cameraOccluderViewVersion = -1;
+		cameraFrustumPositionVersion = -1;
+		cameraFrustumViewVersion = -1;
 		cameraRegionOrigin = -1;
 		isPotentiallyVisibleFromCamera = false;
 	}

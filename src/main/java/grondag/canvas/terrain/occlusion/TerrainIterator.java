@@ -28,6 +28,7 @@ import grondag.bitraster.PackedBox;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.perf.MicroTimer;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShadowMatrixData;
@@ -193,11 +194,32 @@ public class TerrainIterator implements TerrainExecutorTask {
 		cancelled = true;
 	}
 
+	// WIP: remove
+	private static final MicroTimer timer = new MicroTimer("terrain", 500);
+
+	// simple
+	//[16:16:30] [Render thread/INFO] (Canvas) Avg terrain duration = 9,887,389 ns, min = 7335317, max = 41183792, total duration = 988, total runs = 100
+	//[16:16:34] [Render thread/INFO] (Canvas) Avg terrain duration = 10,550,032 ns, min = 8390799, max = 40774568, total duration = 1,055, total runs = 100
+	//[16:16:38] [Render thread/INFO] (Canvas) Avg terrain duration = 10,661,877 ns, min = 8497314, max = 50158853, total duration = 1,066, total runs = 100
+	//[16:16:41] [Render thread/INFO] (Canvas) Avg terrain duration = 10,345,274 ns, min = 7886481, max = 42079618, total duration = 1,034, total runs = 100
+	//[16:16:44] [Render thread/INFO] (Canvas) Avg terrain duration = 10,543,065 ns, min = 8596345, max = 42447681, total duration = 1,054, total runs = 100
+	//[16:16:47] [Render thread/INFO] (Canvas) Avg terrain duration = 11,369,362 ns, min = 8434941, max = 43445184, total duration = 1,136, total runs = 100
+
+	// Advanced
+	//[16:20:29] [Render thread/INFO] (Canvas) Avg terrain duration = 21,458,842 ns, min = 17283713, max = 80763701, total duration = 10,729, total runs = 500
+	//[16:20:47] [Render thread/INFO] (Canvas) Avg terrain duration = 21,751,990 ns, min = 18893295, max = 65478779, total duration = 10,875, total runs = 500
+	//[16:21:06] [Render thread/INFO] (Canvas) Avg terrain duration = 21,536,177 ns, min = 18289642, max = 63633749, total duration = 10,768, total runs = 500
+
 	@Override
 	public void run(TerrainRenderContext ignored) {
 		assert state.get() == READY;
 		state.set(RUNNING);
+
+		// [17:06:37] [Render thread/INFO] (Canvas) Avg terrain duration = 2,368,432 ns, min = 1451469, max = 2886963, total duration = 1,184, total runs = 500
+		// [17:07:00] [Render thread/INFO] (Canvas) Avg terrain duration = 2,425,981 ns, min = 1578724, max = 3340878, total duration = 1,212, total runs = 500
+		timer.start();
 		worldRenderState.renderRegionStorage.updateRegionPositionAndVisibility();
+		timer.stop();
 		worldRenderState.drawListCullingHlper.update();
 
 		if (resetCameraOccluder) {

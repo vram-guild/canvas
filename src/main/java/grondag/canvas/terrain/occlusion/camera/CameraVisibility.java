@@ -55,10 +55,6 @@ public class CameraVisibility extends AbstractVisbility<CameraVisibility, Camera
 		return occluder.frustumCameraPos();
 	}
 
-	public boolean isRegionInFrustum(RegionPosition regionPosition) {
-		return occluder.isRegionVisible(regionPosition);
-	}
-
 	public boolean hasNearOccluders() {
 		return occluder.hasNearOccluders();
 	}
