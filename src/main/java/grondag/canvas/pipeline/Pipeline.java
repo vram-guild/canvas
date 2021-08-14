@@ -88,8 +88,14 @@ public class Pipeline {
 
 	private static PipelineConfig config;
 
+	private static boolean advancedTerrainCulling;
+
 	public static boolean shadowsEnabled() {
 		return skyShadowFbo != null;
+	}
+
+	public static boolean advancedTerrainCulling() {
+		return advancedTerrainCulling;
 	}
 
 	public static PipelineConfig config() {
@@ -224,12 +230,14 @@ public class Pipeline {
 			skyShadowSize = sd.config.width;
 			shadowSlopeFactor = config.skyShadow.offsetSlopeFactor;
 			shadowBiasUnits = config.skyShadow.offsetBiasUnits;
+			advancedTerrainCulling = true;
 		} else {
 			skyShadowFbo = null;
 			shadowMapDepth = -1;
 			skyShadowSize = 0;
 			shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
 			shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
+			advancedTerrainCulling = Configurator.advancedTerrainCulling;
 		}
 
 		if (config.sky != null) {

@@ -20,7 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import grondag.bitraster.PackedBox;
-import grondag.canvas.config.Configurator;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum.RegionVisibilityTest;
 import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
 import grondag.canvas.render.world.WorldRenderState;
@@ -314,12 +314,12 @@ public class RegionPosition extends BlockPos {
 	 * @param fromSquaredDistance the squared chunk distance of the region from which this region was reached
 	 */
 	public boolean isFrontFacing(int entryFaceFlags, int fromSquaredDistance) {
-		assert !Configurator.advancedTerrainCulling;
+		assert !Pipeline.advancedTerrainCulling();
 		return (squaredCameraChunkDistance >= fromSquaredDistance && (visibleFaceFlags & entryFaceFlags) != 0) || isNear;
 	}
 
 	public boolean isFrontFacing(int fromSquaredDistance) {
-		assert Configurator.advancedTerrainCulling;
+		assert Pipeline.advancedTerrainCulling();
 		return isPotentiallyVisibleFromCamera && squaredCameraChunkDistance >= fromSquaredDistance || isNear;
 	}
 }

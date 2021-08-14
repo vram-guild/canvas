@@ -48,9 +48,9 @@ import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.UploadableRegion;
@@ -568,7 +568,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	}
 
 	public void enqueueAsUnvistedCameraNeighbor(int entryFaceFlags, int fromSquaredDistance) {
-		assert !Configurator.advancedTerrainCulling;
+		assert !Pipeline.advancedTerrainCulling();
 		final var origin = this.origin;
 
 		if ((origin.squaredCameraChunkDistance() >= fromSquaredDistance && (origin.visibleFaceFlags() & entryFaceFlags) != 0) || origin.isNear()) {

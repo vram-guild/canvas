@@ -16,7 +16,7 @@
 
 package grondag.canvas.terrain.occlusion.camera;
 
-import grondag.canvas.config.Configurator;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.terrain.occlusion.base.AbstractRegionVisibility;
 import grondag.canvas.terrain.region.RenderRegion;
 
@@ -26,7 +26,7 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 	}
 
 	public void addIfFrontFacing(int fromSquaredDistance) {
-		assert Configurator.advancedTerrainCulling;
+		assert Pipeline.advancedTerrainCulling();
 
 		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance || region.origin.isNear()) {
 			addIfValid();

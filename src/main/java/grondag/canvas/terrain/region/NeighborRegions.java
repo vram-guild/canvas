@@ -25,7 +25,7 @@ import net.minecraft.util.math.Direction;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.FaceConstants;
-import grondag.canvas.config.Configurator;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
 import grondag.canvas.varia.BlockPosHelper;
 
@@ -104,7 +104,7 @@ public class NeighborRegions {
 
 	/** Used in simple occlusion config. */
 	public void enqueueUnvistedCameraNeighbors(final long mutalOcclusionFaceFlags) {
-		assert !Configurator.advancedTerrainCulling;
+		assert !Pipeline.advancedTerrainCulling();
 
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 		final int openFlags = OcclusionResult.openFacesFlag(mutalOcclusionFaceFlags, owner.cameraVisibility.entryFaceFlags());
@@ -136,7 +136,7 @@ public class NeighborRegions {
 
 	/** Used in advanced occlusion config. */
 	public void enqueueUnvistedCameraNeighbors() {
-		assert Configurator.advancedTerrainCulling;
+		assert Pipeline.advancedTerrainCulling();
 
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 

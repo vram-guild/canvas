@@ -32,6 +32,7 @@ import net.minecraft.block.Blocks;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.pipeline.Pipeline;
 
 public abstract class RegionOcclusionCalculator {
 	public static final int OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX = 0;
@@ -271,7 +272,7 @@ public abstract class RegionOcclusionCalculator {
 
 			// return opacity result
 			if ((bits[wordIndex] & mask) == 0) {
-				if (!Configurator.advancedTerrainCulling) {
+				if (!Pipeline.advancedTerrainCulling()) {
 					trackVistedFaces(index);
 				}
 
@@ -558,7 +559,7 @@ public abstract class RegionOcclusionCalculator {
 		// that aren't occluded by neighboring regions and doing a fill from there.
 		long mutualFaceMask = 0;
 
-		if (Configurator.advancedTerrainCulling) {
+		if (Pipeline.advancedTerrainCulling()) {
 			for (int i = 0; i < COVERING_INDEX_COUNT; ++i) {
 				if (!isClosed(COVERING_INDEXES[i])) {
 					visitSurfaceIfPossible(COVERED_INDEXES[i]);
@@ -587,7 +588,7 @@ public abstract class RegionOcclusionCalculator {
 			}
 		}
 
-		if (Configurator.advancedTerrainCulling) {
+		if (Pipeline.advancedTerrainCulling()) {
 			// don't hide inside position if we may be inside the chunk!
 			if (!isNear) {
 				hideInteriorClosedPositions();

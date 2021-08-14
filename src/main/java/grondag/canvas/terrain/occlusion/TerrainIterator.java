@@ -29,6 +29,7 @@ import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.perf.MicroTimer;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShadowMatrixData;
@@ -229,7 +230,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		updateRegions.clear();
 
-		if (Configurator.advancedTerrainCulling) {
+		if (Pipeline.advancedTerrainCulling()) {
 			iterateTerrain();
 		} else {
 			iterateTerrainSimply();
@@ -276,7 +277,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				final RenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
 
 				if (region != null) {
-					if (Configurator.advancedTerrainCulling) {
+					if (Pipeline.advancedTerrainCulling()) {
 						region.cameraVisibility.addIfValid();
 					} else {
 						region.cameraVisibility.addIfValid(entryFace);
@@ -286,7 +287,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		} else {
 			cameraRegion.origin.forceCameraPotentialVisibility();
 
-			if (Configurator.advancedTerrainCulling) {
+			if (Pipeline.advancedTerrainCulling()) {
 				cameraRegion.cameraVisibility.addIfValid();
 			} else {
 				cameraRegion.cameraVisibility.addIfValid(FaceConstants.ALL_REAL_FACE_FLAGS);
