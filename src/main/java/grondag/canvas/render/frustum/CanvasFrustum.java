@@ -146,7 +146,7 @@ public abstract class CanvasFrustum extends Frustum {
 		leftXe = xe;
 		leftYe = ye;
 		leftZe = ze;
-		leftRegionExtent = w - 8 * (xe + ye + ze);
+		leftRegionExtent = w - 8 * (xe + ye + ze) - MIN_GAP;
 
 		x = a30 - a00;
 		y = a31 - a01;
@@ -167,7 +167,7 @@ public abstract class CanvasFrustum extends Frustum {
 		rightXe = xe;
 		rightYe = ye;
 		rightZe = ze;
-		rightRegionExtent = w - 8 * (xe + ye + ze);
+		rightRegionExtent = w - 8 * (xe + ye + ze) - MIN_GAP;
 
 		x = a30 - a10;
 		y = a31 - a11;
@@ -188,7 +188,7 @@ public abstract class CanvasFrustum extends Frustum {
 		topXe = xe;
 		topYe = ye;
 		topZe = ze;
-		topRegionExtent = w - 8 * (xe + ye + ze);
+		topRegionExtent = w - 8 * (xe + ye + ze) - MIN_GAP;
 
 		x = a30 + a10;
 		y = a31 + a11;
@@ -209,7 +209,7 @@ public abstract class CanvasFrustum extends Frustum {
 		bottomXe = xe;
 		bottomYe = ye;
 		bottomZe = ze;
-		bottomRegionExtent = w - 8 * (xe + ye + ze);
+		bottomRegionExtent = w - 8 * (xe + ye + ze) - MIN_GAP;
 
 		x = a30 + matrix.a20();
 		y = a31 + matrix.a21();
@@ -230,6 +230,6 @@ public abstract class CanvasFrustum extends Frustum {
 		nearXe = xe;
 		nearYe = ye;
 		nearZe = ze;
-		nearRegionExtent = w - 8 * (xe + ye + ze);
+		nearRegionExtent = w - 8 * (xe + ye + ze) - MIN_GAP;
 	}
 }

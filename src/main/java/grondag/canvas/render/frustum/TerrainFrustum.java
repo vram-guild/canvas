@@ -290,23 +290,23 @@ public class TerrainFrustum extends CanvasFrustum {
 		final float cy = p.cameraRelativeCenterY();
 		final float cz = p.cameraRelativeCenterZ();
 
-		if (cx * leftX + cy * leftY + cz * leftZ + leftRegionExtent > MIN_GAP) {
+		if (cx * leftX + cy * leftY + cz * leftZ + leftRegionExtent > 0) {
 			return false;
 		}
 
-		if (cx * rightX + cy * rightY + cz * rightZ + rightRegionExtent > MIN_GAP) {
+		if (cx * rightX + cy * rightY + cz * rightZ + rightRegionExtent > 0) {
 			return false;
 		}
 
-		if (cx * nearX + cy * nearY + cz * nearZ + nearRegionExtent > MIN_GAP) {
+		if (cx * nearX + cy * nearY + cz * nearZ + nearRegionExtent > 0) {
 			return false;
 		}
 
-		if (cx * topX + cy * topY + cz * topZ + topRegionExtent > MIN_GAP) {
+		if (cx * topX + cy * topY + cz * topZ + topRegionExtent > 0) {
 			return false;
 		}
 
-		return !(cx * bottomX + cy * bottomY + cz * bottomZ + bottomRegionExtent > MIN_GAP);
+		return !(cx * bottomX + cy * bottomY + cz * bottomZ + bottomRegionExtent > 0);
 	};
 
 	public interface RegionVisibilityTest {
