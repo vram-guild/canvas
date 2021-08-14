@@ -80,8 +80,8 @@ public class WorldRenderState {
 	private int squaredChunkRetentionDistance;
 
 	public final DrawListCullingHelper drawListCullingHlper = new DrawListCullingHelper(this);
-	public final VertexClusterRealm solidClusterRealm = new VertexClusterRealm(drawListCullingHlper, false);
-	public final VertexClusterRealm translucentClusterRealm = new VertexClusterRealm(drawListCullingHlper, true);
+	public final VertexClusterRealm solidClusterRealm = new VertexClusterRealm(false);
+	public final VertexClusterRealm translucentClusterRealm = new VertexClusterRealm(true);
 
 	public WorldRenderState(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;

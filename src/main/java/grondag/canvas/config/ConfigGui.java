@@ -18,6 +18,7 @@ package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 import static grondag.canvas.config.ConfigManager.parse;
+import static grondag.canvas.config.Configurator.advancedTerrainCulling;
 import static grondag.canvas.config.Configurator.blendFluidColors;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
 import static grondag.canvas.config.Configurator.conciseErrors;
@@ -242,6 +243,16 @@ public class ConfigGui {
 				.setSaveConsumer(b -> {
 					reload |= fixLuminousBlockShading != b;
 					fixLuminousBlockShading = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.advanced_terrain_culling"), advancedTerrainCulling)
+				.setDefaultValue(DEFAULTS.advancedTerrainCulling)
+				.setTooltip(parse("config.canvas.help.advanced_terrain_culling"))
+				.setSaveConsumer(b -> {
+					reload |= advancedTerrainCulling != b;
+					advancedTerrainCulling = b;
 				})
 				.build());
 

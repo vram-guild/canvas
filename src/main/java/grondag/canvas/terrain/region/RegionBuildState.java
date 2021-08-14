@@ -31,6 +31,7 @@ import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
+import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 
 @Environment(EnvType.CLIENT)
@@ -39,7 +40,7 @@ public class RegionBuildState {
 	public static final RegionBuildState UNBUILT = new RegionBuildState();
 
 	final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
-	int[] occlusionData = RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT;
+	OcclusionResult occlusionResult = RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT;
 
 	@Nullable
 	int[] translucentState;
@@ -61,15 +62,15 @@ public class RegionBuildState {
 		}
 	}
 
-	public int[] getOcclusionData() {
-		return occlusionData;
+	public OcclusionResult getOcclusionResult() {
+		return occlusionResult;
 	}
 
-	public void setOcclusionData(int[] occlusionData) {
-		this.occlusionData = occlusionData;
+	public void setOcclusionResult(OcclusionResult occlusionResult) {
+		this.occlusionResult = occlusionResult;
 	}
 
 	public boolean canOcclude() {
-		return occlusionData != RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT;
+		return occlusionResult != RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT;
 	}
 }

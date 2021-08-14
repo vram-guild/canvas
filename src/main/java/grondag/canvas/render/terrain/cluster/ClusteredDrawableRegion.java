@@ -27,13 +27,14 @@ import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.UploadableRegion;
+import grondag.canvas.terrain.region.RegionPosition;
 
 public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDrawableStorage> {
-	private ClusteredDrawableRegion(long packedOriginBlockPos, int quadVertexCount, ClusteredDrawableStorage storage) {
-		super(packedOriginBlockPos, quadVertexCount, storage);
+	private ClusteredDrawableRegion(int quadVertexCount, ClusteredDrawableStorage storage) {
+		super(quadVertexCount, storage);
 	}
 
-	public static UploadableRegion uploadable(VertexCollectorList collectorList, VertexClusterRealm realm, int byteCount, long packedOriginBlockPos) {
+	public static UploadableRegion uploadable(VertexCollectorList collectorList, VertexClusterRealm realm, int byteCount, RegionPosition origin) {
 		final boolean translucent = realm.isTranslucent;
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TerrainRenderStates.TRANSLUCENT_PREDICATE : TerrainRenderStates.SOLID_PREDICATE);
 
@@ -55,10 +56,10 @@ public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDra
 		collector.toBuffer(0, transferBuffer, 0);
 		ClusteredDrawableStorage storage = new ClusteredDrawableStorage(
 				realm,
-				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 4,
+				transferBuffer, byteCount, origin, collector.quadCount() * 4,
 				buckets);
 
-		return new ClusteredDrawableRegion(packedOriginBlockPos, collector.quadCount() * 4, storage);
+		return new ClusteredDrawableRegion(collector.quadCount() * 4, storage);
 	}
 
 	@Override

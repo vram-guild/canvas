@@ -38,8 +38,6 @@ public interface DrawableRegion {
 
 	void releaseFromDrawList();
 
-	long packedOriginBlockPos();
-
 	int quadVertexCount();
 
 	UploadableVertexStorage storage();
@@ -58,11 +56,6 @@ public interface DrawableRegion {
 		@Override
 		public void releaseFromDrawList() {
 			// NOOP
-		}
-
-		@Override
-		public long packedOriginBlockPos() {
-			return 0;
 		}
 
 		@Override

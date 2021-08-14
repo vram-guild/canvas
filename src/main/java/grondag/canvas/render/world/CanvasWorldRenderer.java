@@ -114,6 +114,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(worldRenderState);
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+	/** Contains the player model output for First Person Model, separate to draw in material pass only. */
+	private final CanvasImmediate materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
 	private final CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(entityCullingFrustum);
@@ -371,24 +373,25 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
-			boolean isFirstPersonPlayer = false;
 
 			if (!entityRenderDispatcher.shouldRender(entity, entityCullingFrustum, frameCameraX, frameCameraY, frameCameraZ) && !entity.hasPassengerDeep(mc.player)) {
 				continue;
 			}
 
-			if ((entity == camera.getFocusedEntity() && !FirstPersonModelHolder.handler.isThirdPerson(this, camera, viewMatrixStack) && (!(camera.getFocusedEntity() instanceof LivingEntity)
-					|| !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
-					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)
-			) {
-				if (!worldRenderState.shadowsEnabled()) {
-					continue;
-				}
+			if (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity) {
+				continue;
+			}
 
-				isFirstPersonPlayer = true;
+			final boolean isFirstPersonPlayer = entity == camera.getFocusedEntity() && !camera.isThirdPerson()
+					&& (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping());
+			final boolean renderFirstPersonPlayer = isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.renderFirstPersonPlayer();
+
+			if (isFirstPersonPlayer && !renderFirstPersonPlayer && !worldRenderState.shadowsEnabled()) {
+				continue;
 			}
 
 			++entityCount;
+
 			contextState.setCurrentEntity(entity);
 
 			if (entity.age == 0) {
@@ -400,8 +403,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			VertexConsumerProvider renderProvider;
 
 			if (isFirstPersonPlayer) {
-				// only render as shadow
-				renderProvider = shadowExtrasImmediate;
+				if (renderFirstPersonPlayer) {
+					// TODO: utilize castShadow in entityFunc instead of using separate buffer
+					renderProvider = materialExtrasImmediate;
+				} else {
+					// only render as shadow
+					renderProvider = shadowExtrasImmediate;
+				}
 			} else if (canDrawEntityOutlines && mc.hasOutline(entity)) {
 				didRenderOutlines = true;
 				final OutlineVertexConsumerProvider outlineVertexConsumerProvider = bufferBuilders.getOutlineVertexConsumers();
@@ -417,8 +425,17 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			entityBlockContext.setPosAndWorldFromEntity(entity);
 
+			FirstPersonModelHolder.renderHandler.setIsRenderingPlayer(renderFirstPersonPlayer);
+
 			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, renderProvider);
+
+			FirstPersonModelHolder.renderHandler.setIsRenderingPlayer(false);
+
+			if (renderFirstPersonPlayer && worldRenderState.shadowsEnabled()) {
+				// render unmodified player model as shadow
+				wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, shadowExtrasImmediate);
+			}
 		}
 
 		contextState.setCurrentEntity(null);
@@ -490,6 +507,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderState.disable();
 
 		try (DrawableStream entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
+			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(MaterialTarget.MAIN);
 			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
@@ -502,6 +520,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "entity_draw_solid");
 			entityBuffer.draw(false);
 			entityBuffer.close();
+
+			materialExtrasBuffer.draw(false);
+			materialExtrasBuffer.close();
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
