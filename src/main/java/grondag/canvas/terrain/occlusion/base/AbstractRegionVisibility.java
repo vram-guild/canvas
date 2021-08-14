@@ -22,10 +22,9 @@ import grondag.canvas.terrain.region.RenderRegion;
 
 public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U, ?, ?>, U extends AbstractRegionVisibility<T, U>> {
 	public final RenderRegion region;
-	private final T visibility;
-	private int visibilityVersion;
-	private OcclusionStatus occlusionStatus = OcclusionStatus.UNDETERMINED;
-	private int entryFaceFlags;
+	protected final T visibility;
+	protected int visibilityVersion;
+	protected OcclusionStatus occlusionStatus = OcclusionStatus.UNDETERMINED;
 
 	public AbstractRegionVisibility(T visbility, RenderRegion region) {
 		this.visibility = visbility;
@@ -34,11 +33,6 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 
 	public OcclusionStatus getOcclusionStatus() {
 		return visibilityVersion == visibility.version() ? occlusionStatus : OcclusionStatus.UNDETERMINED;
-	}
-
-	public final int entryFaceFlags() {
-		assert !Pipeline.advancedTerrainCulling();
-		return entryFaceFlags;
 	}
 
 	/**
@@ -50,27 +44,6 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 
 		this.occlusionStatus = occlusionStatus;
 		visibilityVersion = visibility.version();
-	}
-
-	/**
-	 * Adds region to set in sorted position according to implementation.
-	 * Requires but does NOT check that region is not already in the set.
-	 * Will mark region with result {@link OcclusionStatus#VISITED}.
-	 */
-	@SuppressWarnings("unchecked")
-	public void addVisitedIfNotPresent(int entryFaceFlags) {
-		assert !Pipeline.advancedTerrainCulling();
-
-		final int v = visibility.version();
-
-		if (visibilityVersion != v) {
-			visibilityVersion = v;
-			occlusionStatus = OcclusionStatus.VISITED;
-			visibility.add((U) this);
-			this.entryFaceFlags = entryFaceFlags;
-		} else {
-			this.entryFaceFlags |= entryFaceFlags;
-		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -108,8 +81,6 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 			visibility.invalidate();
 		}
 	}
-
-	public abstract void addIfValid(int faceIndex);
 
 	public abstract void addIfValid();
 }

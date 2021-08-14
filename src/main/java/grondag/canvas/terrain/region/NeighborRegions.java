@@ -164,17 +164,17 @@ public class NeighborRegions {
 	}
 
 	public void enqueueUnvistedShadowNeighbors() {
-		getNeighbor(FaceConstants.EAST_INDEX).shadowVisibility.addIfValid(FaceConstants.WEST_FLAG);
-		getNeighbor(FaceConstants.WEST_INDEX).shadowVisibility.addIfValid(FaceConstants.EAST_FLAG);
-		getNeighbor(FaceConstants.NORTH_INDEX).shadowVisibility.addIfValid(FaceConstants.SOUTH_FLAG);
-		getNeighbor(FaceConstants.SOUTH_INDEX).shadowVisibility.addIfValid(FaceConstants.NORTH_FLAG);
+		getNeighbor(FaceConstants.EAST_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceConstants.WEST_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceConstants.NORTH_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceConstants.SOUTH_INDEX).shadowVisibility.addIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).shadowVisibility.addIfValid(FaceConstants.DOWN_FLAG);
+			getNeighbor(FaceConstants.UP_INDEX).shadowVisibility.addIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).shadowVisibility.addIfValid(FaceConstants.UP_FLAG);
+			getNeighbor(FaceConstants.DOWN_INDEX).shadowVisibility.addIfValid();
 		}
 	}
 }

@@ -17,10 +17,13 @@
 package grondag.canvas.terrain.occlusion.camera;
 
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.terrain.occlusion.OcclusionStatus;
 import grondag.canvas.terrain.occlusion.base.AbstractRegionVisibility;
 import grondag.canvas.terrain.region.RenderRegion;
 
 public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisibility, CameraRegionVisibility> {
+	private int entryFaceFlags;
+
 	public CameraRegionVisibility(CameraVisibility visibility, RenderRegion region) {
 		super(visibility, region);
 	}
@@ -33,17 +36,41 @@ public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisib
 		}
 	}
 
-	@Override
 	public void addIfValid(int entryFaceFlags) {
 		if (region.origin.isPotentiallyVisibleFromCamera() && !region.isClosed() && region.isNearOrHasLoadedNeighbors()) {
 			addVisitedIfNotPresent(entryFaceFlags);
 		}
 	}
 
+	public final int entryFaceFlags() {
+		assert !Pipeline.advancedTerrainCulling();
+		return entryFaceFlags;
+	}
+
 	@Override
 	public void addIfValid() {
 		if (region.origin.isPotentiallyVisibleFromCamera() && !region.isClosed() && region.isNearOrHasLoadedNeighbors()) {
 			addVisitedIfNotPresent();
+		}
+	}
+
+	/**
+	 * Adds region to set in sorted position according to implementation.
+	 * Requires but does NOT check that region is not already in the set.
+	 * Will mark region with result {@link OcclusionStatus#VISITED}.
+	 */
+	public void addVisitedIfNotPresent(int entryFaceFlags) {
+		assert !Pipeline.advancedTerrainCulling();
+
+		final int v = visibility.version();
+
+		if (visibilityVersion != v) {
+			visibilityVersion = v;
+			occlusionStatus = OcclusionStatus.VISITED;
+			visibility.add(this);
+			this.entryFaceFlags = entryFaceFlags;
+		} else {
+			this.entryFaceFlags |= entryFaceFlags;
 		}
 	}
 }
