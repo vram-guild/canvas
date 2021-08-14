@@ -36,4 +36,6 @@ public class FaceConstants {
 	public static final int UP_FLAG = 1 << UP_INDEX;
 	public static final int DOWN_FLAG = 1 << DOWN_INDEX;
 	public static final int UNASSIGNED_FLAG = 1 << UNASSIGNED_INDEX;
+
+	public static final int ALL_REAL_FACE_FLAGS = NORTH_FLAG | SOUTH_FLAG | EAST_FLAG | WEST_FLAG | UP_FLAG | DOWN_FLAG;
 }

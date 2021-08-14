@@ -25,6 +25,8 @@ import net.minecraft.util.math.Direction;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.FaceConstants;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
 import grondag.canvas.varia.BlockPosHelper;
 
 /** Caches directly adjacent regions for fast access and provides visitor operations for terrain iteration. */
@@ -100,20 +102,64 @@ public class NeighborRegions {
 		neighbors[closedFaceIndex] = null;
 	}
 
+	/** Used in simple occlusion config. */
+	public void enqueueUnvistedCameraNeighbors(final long mutalOcclusionFaceFlags) {
+		assert !Pipeline.advancedTerrainCulling();
+
+		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
+		final int openFlags = OcclusionResult.openFacesFlag(mutalOcclusionFaceFlags, owner.cameraVisibility.entryFaceFlags());
+
+		if ((openFlags & FaceConstants.EAST_FLAG) != 0) {
+			getNeighbor(FaceConstants.EAST_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.WEST_FLAG, mySquaredDist);
+		}
+
+		if ((openFlags & FaceConstants.WEST_FLAG) != 0) {
+			getNeighbor(FaceConstants.WEST_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.EAST_FLAG, mySquaredDist);
+		}
+
+		if ((openFlags & FaceConstants.NORTH_FLAG) != 0) {
+			getNeighbor(FaceConstants.NORTH_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.SOUTH_FLAG, mySquaredDist);
+		}
+
+		if ((openFlags & FaceConstants.SOUTH_FLAG) != 0) {
+			getNeighbor(FaceConstants.SOUTH_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.NORTH_FLAG, mySquaredDist);
+		}
+
+		if (!isTop && (openFlags & FaceConstants.UP_FLAG) != 0) {
+			getNeighbor(FaceConstants.UP_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.DOWN_FLAG, mySquaredDist);
+		}
+
+		if (!isBottom && (openFlags & FaceConstants.DOWN_FLAG) != 0) {
+			getNeighbor(FaceConstants.DOWN_INDEX).enqueueAsUnvistedCameraNeighbor(FaceConstants.UP_FLAG, mySquaredDist);
+		}
+	}
+
+	/** Used in advanced occlusion config. */
 	public void enqueueUnvistedCameraNeighbors() {
+		assert Pipeline.advancedTerrainCulling();
+
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 
-		getNeighbor(FaceConstants.EAST_INDEX).cameraVisibility.addIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.WEST_INDEX).cameraVisibility.addIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.NORTH_INDEX).cameraVisibility.addIfValid(mySquaredDist);
-		getNeighbor(FaceConstants.SOUTH_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+		var region = getNeighbor(FaceConstants.EAST_INDEX);
+		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+
+		region = getNeighbor(FaceConstants.WEST_INDEX);
+		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+
+		region = getNeighbor(FaceConstants.NORTH_INDEX);
+		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+
+		region = getNeighbor(FaceConstants.SOUTH_INDEX);
+		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceConstants.UP_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+			region = getNeighbor(FaceConstants.UP_INDEX);
+			if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceConstants.DOWN_INDEX).cameraVisibility.addIfValid(mySquaredDist);
+			region = getNeighbor(FaceConstants.DOWN_INDEX);
+			if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 		}
 	}
 

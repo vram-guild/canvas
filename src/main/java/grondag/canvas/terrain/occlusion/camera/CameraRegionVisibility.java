@@ -16,37 +16,61 @@
 
 package grondag.canvas.terrain.occlusion.camera;
 
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.terrain.occlusion.OcclusionStatus;
 import grondag.canvas.terrain.occlusion.base.AbstractRegionVisibility;
 import grondag.canvas.terrain.region.RenderRegion;
 
 public class CameraRegionVisibility extends AbstractRegionVisibility<CameraVisibility, CameraRegionVisibility> {
+	private int entryFaceFlags;
+
 	public CameraRegionVisibility(CameraVisibility visibility, RenderRegion region) {
 		super(visibility, region);
 	}
 
-	/**
-	 * Accepts the squared chunk distance of the region from which this region was reached.
-	 * If this region's distance is less than the input distance, it will not be added.
-	 *
-	 * <p>This prevents the addition of invisible regions that "backtrack" during camera iteration.
-	 * We know such regions must be invisible because camera terrain iteration always proceeds in
-	 * near-to-far order and if the region was visible from a nearer region, then that region
-	 * would have already been added and checked.
-	 *
-	 * <p>If we are going backwards, then this region is not visible from a nearer region,
-	 * which means all nearer regions must fully occlude it, and we are "wrapping around"
-	 * from a more distance region.
-	 */
-	public void addIfValid(int fromSquaredDistance) {
-		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance) {
-			this.addIfValid();
+	public void addIfFrontFacing(int fromSquaredDistance) {
+		assert Pipeline.advancedTerrainCulling();
+
+		if (region.origin.squaredCameraChunkDistance() >= fromSquaredDistance || region.origin.isNear()) {
+			addIfValid();
 		}
+	}
+
+	public void addIfValid(int entryFaceFlags) {
+		if (region.origin.isPotentiallyVisibleFromCamera() && !region.isClosed() && region.isNearOrHasLoadedNeighbors()) {
+			addVisitedIfNotPresent(entryFaceFlags);
+		}
+	}
+
+	public final int entryFaceFlags() {
+		assert !Pipeline.advancedTerrainCulling();
+		return entryFaceFlags;
 	}
 
 	@Override
 	public void addIfValid() {
 		if (region.origin.isPotentiallyVisibleFromCamera() && !region.isClosed() && region.isNearOrHasLoadedNeighbors()) {
 			addVisitedIfNotPresent();
+		}
+	}
+
+	/**
+	 * Adds region to set in sorted position according to implementation.
+	 * Requires but does NOT check that region is not already in the set.
+	 * Will mark region with result {@link OcclusionStatus#VISITED}.
+	 */
+	public void addVisitedIfNotPresent(int entryFaceFlags) {
+		assert !Pipeline.advancedTerrainCulling();
+
+		final int v = visibility.version();
+
+		if (visibilityVersion != v) {
+			visibilityVersion = v;
+			occlusionStatus = OcclusionStatus.VISITED;
+			visibility.add(this);
+			this.entryFaceFlags = entryFaceFlags;
+		} else {
+			this.entryFaceFlags |= entryFaceFlags;
 		}
 	}
 }

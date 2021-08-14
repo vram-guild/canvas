@@ -32,6 +32,7 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
 import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.terrain.region.RegionPosition;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
@@ -145,9 +146,9 @@ public class VertexCollectorList {
 		return intSize * 4;
 	}
 
-	public UploadableRegion toUploadableChunk(boolean sorted, long packedOriginBlockPos, WorldRenderState worldRenderState) {
+	public UploadableRegion toUploadableChunk(boolean sorted, RegionPosition origin, WorldRenderState worldRenderState) {
 		final int bytes = totalBytes(sorted);
-		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : ClusteredDrawableRegion.uploadable(this, sorted ? worldRenderState.translucentClusterRealm : worldRenderState.solidClusterRealm, bytes, packedOriginBlockPos);
+		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : ClusteredDrawableRegion.uploadable(this, sorted ? worldRenderState.translucentClusterRealm : worldRenderState.solidClusterRealm, bytes, origin);
 	}
 
 	/**

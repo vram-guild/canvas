@@ -50,6 +50,7 @@ import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.perf.ChunkRebuildCounters;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.UploadableRegion;
@@ -264,12 +265,12 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		if (protoRegion == SignalInputRegion.EMPTY) {
 			final RegionBuildState chunkData = new RegionBuildState();
-			chunkData.setOcclusionData(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
+			chunkData.setOcclusionResult(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
 			final RegionBuildState oldBuildData = buildState.getAndSet(chunkData);
 
-			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(chunkData.occlusionData, oldBuildData.occlusionData)) {
+			if (oldBuildData == RegionBuildState.UNBUILT || !Arrays.equals(chunkData.occlusionResult.occlusionData(), oldBuildData.occlusionResult.occlusionData())) {
 				// Even if empty the chunk may still be needed for visibility search to progress
 				notifyOcclusionChange();
 			}
@@ -310,7 +311,7 @@ public class RenderRegion implements TerrainExecutorTask {
 					regionData.translucentState = collector.saveState(state);
 
 					if (runningState.get() != SignalInputRegion.INVALID) {
-						final UploadableRegion upload = collectors.toUploadableChunk(true, origin.asLong(), worldRenderState);
+						final UploadableRegion upload = collectors.toUploadableChunk(true, origin, worldRenderState);
 
 						if (upload != UploadableRegion.EMPTY_UPLOADABLE) {
 							renderRegionBuilder.scheduleUpload(() -> {
@@ -348,8 +349,8 @@ public class RenderRegion implements TerrainExecutorTask {
 			buildTerrain(context, newBuildState);
 
 			if (runningState.get() != SignalInputRegion.INVALID) {
-				final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin.asLong(), worldRenderState);
-				final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin.asLong(), worldRenderState);
+				final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin, worldRenderState);
+				final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin, worldRenderState);
 
 				if (solidUpload != UploadableRegion.EMPTY_UPLOADABLE || translucentUpload != UploadableRegion.EMPTY_UPLOADABLE) {
 					renderRegionBuilder.scheduleUpload(() -> {
@@ -376,7 +377,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 	private RegionBuildState captureAndSetBuildState(TerrainRenderContext context, boolean isNear) {
 		final RegionBuildState newBuildState = new RegionBuildState();
-		newBuildState.setOcclusionData(context.region.occlusion.build(isNear));
+		newBuildState.setOcclusionResult(context.region.occlusion.build(isNear));
 		handleBlockEntities(newBuildState, context);
 
 		// don't rebuild occlusion if occlusion did not change
@@ -388,7 +389,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			renderSector = worldRenderState.sectorManager.findSector(origin);
 		}
 
-		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
+		if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionResult.occlusionData(), oldBuildState.occlusionResult.occlusionData())) {
 			notifyOcclusionChange();
 		}
 
@@ -509,12 +510,12 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		if (inputRegion == SignalInputRegion.EMPTY) {
 			final RegionBuildState newBuildState = new RegionBuildState();
-			newBuildState.setOcclusionData(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
+			newBuildState.setOcclusionResult(RegionOcclusionCalculator.EMPTY_OCCLUSION_RESULT);
 
 			// don't rebuild occlusion if occlusion did not change
 			final RegionBuildState oldBuildState = buildState.getAndSet(newBuildState);
 
-			if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionData, oldBuildState.occlusionData)) {
+			if (oldBuildState == RegionBuildState.UNBUILT || !Arrays.equals(newBuildState.occlusionResult.occlusionData(), oldBuildState.occlusionResult.occlusionData())) {
 				// Even if empty the chunk may still be needed for visibility search to progress
 				notifyOcclusionChange();
 			}
@@ -531,8 +532,8 @@ public class RenderRegion implements TerrainExecutorTask {
 			}
 
 			final VertexCollectorList collectors = context.collectors;
-			final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin.asLong(), worldRenderState);
-			final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin.asLong(), worldRenderState);
+			final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin, worldRenderState);
+			final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin, worldRenderState);
 
 			releaseDrawables();
 			solidDrawable = solidUpload.produceDrawable();
@@ -564,5 +565,14 @@ public class RenderRegion implements TerrainExecutorTask {
 
 	public boolean isClosed() {
 		return isClosed;
+	}
+
+	public void enqueueAsUnvistedCameraNeighbor(int entryFaceFlags, int fromSquaredDistance) {
+		assert !Pipeline.advancedTerrainCulling();
+		final var origin = this.origin;
+
+		if ((origin.squaredCameraChunkDistance() >= fromSquaredDistance && (origin.visibleFaceFlags() & entryFaceFlags) != 0) || origin.isNear()) {
+			cameraVisibility.addIfValid(entryFaceFlags);
+		}
 	}
 }

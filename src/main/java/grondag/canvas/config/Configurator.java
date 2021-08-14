@@ -39,6 +39,7 @@ public class Configurator {
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
+	public static boolean advancedTerrainCulling = DEFAULTS.advancedTerrainCulling;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 	public static boolean cullEntityRender = DEFAULTS.cullEntityRender;
 	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
@@ -111,6 +112,7 @@ public class Configurator {
 		preventDepthFighting = config.preventDepthFighting;
 		clampExteriorVertices = config.clampExteriorVertices;
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
+		advancedTerrainCulling = config.advancedTerrainCulling;
 		terrainSetupOffThread = config.terrainSetupOffThread;
 		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
 		cullEntityRender = config.cullEntityRender;
@@ -162,6 +164,7 @@ public class Configurator {
 
 		config.preventDepthFighting = preventDepthFighting;
 		config.clampExteriorVertices = clampExteriorVertices;
+		config.advancedTerrainCulling = advancedTerrainCulling;
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
 		config.terrainSetupOffThread = terrainSetupOffThread;
 		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;

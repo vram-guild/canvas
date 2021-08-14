@@ -16,7 +16,7 @@
 
 package grondag.canvas.terrain.occlusion;
 
-public enum OcclusionResult {
+public enum OcclusionStatus {
 	/** Not visited or classified in current version - visibility unknown. */
 	UNDETERMINED,
 
