@@ -16,7 +16,9 @@
 
 package grondag.canvas.mixin;
 
+import java.util.BitSet;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,7 +33,6 @@ import net.minecraft.util.Identifier;
 
 import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.CanvasSpriteAtlasHandler;
 import grondag.canvas.texture.SpriteIndex;
 
 @Mixin(SpriteAtlasTexture.class)
@@ -40,21 +41,28 @@ public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
 	@Shadow private Map<Identifier, Sprite> sprites;
 	@Shadow private int maxTextureSize;
 
-	private final CanvasSpriteAtlasHandler canvasHandler = new CanvasSpriteAtlasHandler((SpriteAtlasTexture) (Object) this);
+	private final BitSet animationBits = new BitSet();
 
 	@Inject(at = @At("RETURN"), method = "upload")
 	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo info) {
 		int index = 0;
+		int animationIndex = 0;
 		final ObjectArrayList<Sprite> spriteIndex = new ObjectArrayList<>();
 
 		for (final Sprite sprite : sprites.values()) {
 			spriteIndex.add(sprite);
-			((SpriteExt) sprite).canvas_id(index++);
+			final var spriteExt = (SpriteExt) sprite;
+			spriteExt.canvas_id(index++);
+
+			if (sprite.getAnimation() != null) {
+				final int instanceIndex = animationIndex;
+				final BooleanSupplier getter = () -> animationBits.get(instanceIndex);
+				spriteExt.canvas_initializeAnimation(getter, instanceIndex);
+				++animationIndex;
+			}
 		}
 
 		SpriteIndex.getOrCreate(id).reset(input, spriteIndex, (SpriteAtlasTexture) (Object) this);
-
-		canvasHandler.afterUpload(sprites);
 	}
 
 	@Override

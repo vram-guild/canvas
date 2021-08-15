@@ -16,14 +16,17 @@
 
 package grondag.canvas.mixin;
 
+import java.util.function.BooleanSupplier;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
+import grondag.canvas.mixinterface.NativeImageExt;
+import grondag.canvas.mixinterface.SpriteAnimationExt;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.CanvasSpriteHandler;
 
 @Mixin(Sprite.class)
 public class MixinSprite implements SpriteExt {
@@ -31,8 +34,8 @@ public class MixinSprite implements SpriteExt {
 	@Shadow void upload(int i, int j, NativeImage[] nativeImages) { }
 
 	private int canvasId;
-
-	private final CanvasSpriteHandler canvasHandler = new CanvasSpriteHandler((Sprite) (Object) this);
+	private int animationIndex = -1;
+	private BooleanSupplier shouldAnimate = () -> true;
 
 	@Override
 	public int canvas_id() {
@@ -45,11 +48,6 @@ public class MixinSprite implements SpriteExt {
 	}
 
 	@Override
-	public CanvasSpriteHandler canvas_handler() {
-		return canvasHandler;
-	}
-
-	@Override
 	public NativeImage[] canvas_images() {
 		return images;
 	}
@@ -57,5 +55,30 @@ public class MixinSprite implements SpriteExt {
 	@Override
 	public void canvas_upload(int i, int j, NativeImage[] images) {
 		upload(i, j, images);
+	}
+
+	@Override
+	public void canvas_initializeAnimation(BooleanSupplier getter, int animationIndex) {
+		this.shouldAnimate = getter;
+		this.animationIndex = animationIndex;
+
+		final SpriteAnimationExt animation = (SpriteAnimationExt) ((Sprite) (Object) this).getAnimation();
+		assert animation != null;
+
+		if (animation != null) {
+			for (final var img : canvas_images()) {
+				((NativeImageExt) (Object) img).canvas_enablePBO();
+			}
+		}
+	}
+
+	@Override
+	public boolean canvas_shouldAnimate() {
+		return shouldAnimate.getAsBoolean();
+	}
+
+	@Override
+	public int canvas_animationIndex() {
+		return animationIndex;
 	}
 }

@@ -45,7 +45,7 @@ public class MixinSpriteAnimation implements SpriteAnimationExt {
 
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
 	private void beforeTick(CallbackInfo ci) {
-		if (!((SpriteExt) parent).canvas_handler().shouldAnimate()) {
+		if (!((SpriteExt) parent).canvas_shouldAnimate()) {
 			ci.cancel();
 		}
 	}
