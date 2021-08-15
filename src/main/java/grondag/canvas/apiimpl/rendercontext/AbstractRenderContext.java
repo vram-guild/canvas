@@ -16,6 +16,7 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import java.util.BitSet;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -80,6 +81,8 @@ public abstract class AbstractRenderContext implements RenderContext {
 	protected BlendMode defaultBlendMode;
 	protected boolean isFluidModel = false;
 	private QuadTransform activeTransform = NO_TRANSFORM;
+
+	public final BitSet animationBits = new BitSet();
 
 	protected AbstractRenderContext(String name) {
 		this.name = name;
@@ -222,7 +225,17 @@ public abstract class AbstractRenderContext implements RenderContext {
 		if (cullTest(quad)) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
-			quad.material(finder.find());
+			final var mat = finder.find();
+			quad.material(mat);
+
+			if (!mat.discardsTexture && mat.texture.isAtlas()) {
+				final int animationIndex = mat.texture.atlasInfo().animationIndexFromSpriteId(makerQuad.spriteId());
+
+				if (animationIndex >= 0) {
+					animationBits.set(animationIndex);
+				}
+			}
+
 			encodeQuad(quad);
 		}
 	}

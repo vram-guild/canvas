@@ -47,10 +47,10 @@ public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
 	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo info) {
 		int index = 0;
 		int animationIndex = 0;
-		final ObjectArrayList<Sprite> spriteIndex = new ObjectArrayList<>();
+		final ObjectArrayList<Sprite> spriteIndexList = new ObjectArrayList<>();
 
 		for (final Sprite sprite : sprites.values()) {
-			spriteIndex.add(sprite);
+			spriteIndexList.add(sprite);
 			final var spriteExt = (SpriteExt) sprite;
 			spriteExt.canvas_id(index++);
 
@@ -62,11 +62,21 @@ public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
 			}
 		}
 
-		SpriteIndex.getOrCreate(id).reset(input, spriteIndex, (SpriteAtlasTexture) (Object) this);
+		// Safeguard for non-terrain animations added by mods - they will always be animated
+		animationBits.set(0, animationIndex);
+
+		SpriteIndex.getOrCreate(id).reset(input, spriteIndexList, (SpriteAtlasTexture) (Object) this);
 	}
 
 	@Override
 	public int canvas_maxTextureSize() {
 		return maxTextureSize;
+	}
+
+	@Override
+	public void canvas_activateAnimations(BitSet terrain, BitSet dynamic) {
+		animationBits.clear();
+		animationBits.or(terrain);
+		animationBits.or(dynamic);
 	}
 }

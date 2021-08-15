@@ -16,6 +16,10 @@
 
 package grondag.canvas.mixinterface;
 
+import java.util.BitSet;
+
 public interface SpriteAtlasTextureExt {
 	int canvas_maxTextureSize();
+
+	void canvas_activateAnimations(BitSet terrain, BitSet dynamic);
 }
