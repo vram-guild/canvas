@@ -200,8 +200,6 @@ public class WorldRenderState {
 			}
 		}
 
-		System.out.println(terrainAnimationBits.cardinality());
-
 		((SpriteAtlasTextureExt) TerrainRenderStates.SOLID.texture.atlasInfo().atlas()).canvas_activateAnimations(terrainAnimationBits, terrainAnimationBits);
 	}
 
