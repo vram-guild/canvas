@@ -17,9 +17,5 @@
 package grondag.canvas.mixinterface;
 
 public interface NativeImageExt {
-	void canvas_enablePBO();
-
-	void canvas_prepareUpdatePBO();
-
 	long canvas_pointer();
 }

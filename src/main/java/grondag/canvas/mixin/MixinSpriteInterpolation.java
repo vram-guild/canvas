@@ -98,8 +98,6 @@ public class MixinSpriteInterpolation {
 				srcAddr1 += 4;
 				targetAddress += 4;
 			}
-
-			targetImage.canvas_prepareUpdatePBO();
 		}
 
 		parentExt.canvas_upload(0, 0, this.images);

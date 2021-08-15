@@ -328,14 +328,8 @@ public class GFX extends GL46C {
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));
 	}
 
-	private static boolean pbo = false;
-
-	public static void enablePBO(boolean val) {
-		pbo = val;
-	}
-
 	public static void texSubImage2D(int target, int level, int offsetX, int offsetY, int width, int height, int format, int type, long pixels) {
-		glTexSubImage2D(target, level, offsetX, offsetY, width, height, format, type, pbo ? 0L : pixels);
+		glTexSubImage2D(target, level, offsetX, offsetY, width, height, format, type, pixels);
 		assert logError(String.format("glTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s)",
 				GlSymbolLookup.reverseLookup(target), level, offsetX, offsetY, width, height,
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));

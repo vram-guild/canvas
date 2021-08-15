@@ -24,8 +24,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
-import grondag.canvas.mixinterface.NativeImageExt;
-import grondag.canvas.mixinterface.SpriteAnimationExt;
 import grondag.canvas.mixinterface.SpriteExt;
 
 @Mixin(Sprite.class)
@@ -61,15 +59,6 @@ public class MixinSprite implements SpriteExt {
 	public void canvas_initializeAnimation(BooleanSupplier getter, int animationIndex) {
 		this.shouldAnimate = getter;
 		this.animationIndex = animationIndex;
-
-		final SpriteAnimationExt animation = (SpriteAnimationExt) ((Sprite) (Object) this).getAnimation();
-		assert animation != null;
-
-		if (animation != null) {
-			for (final var img : canvas_images()) {
-				((NativeImageExt) (Object) img).canvas_enablePBO();
-			}
-		}
 	}
 
 	@Override
