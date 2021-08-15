@@ -120,4 +120,7 @@ accessible method net/minecraft/client/render/Frustum init (Lnet/minecraft/util/
 
 accessible class net/minecraft/client/texture/Sprite$Interpolation
 accessible class net/minecraft/client/texture/Sprite$Animation
+
 accessible class net/minecraft/client/texture/Sprite$AnimationFrame
+accessible field net/minecraft/client/texture/Sprite$AnimationFrame index I
+accessible field net/minecraft/client/texture/Sprite$AnimationFrame time I

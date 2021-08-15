@@ -28,6 +28,7 @@ import grondag.canvas.texture.CanvasSpriteHandler;
 @Mixin(Sprite.class)
 public class MixinSprite implements SpriteExt {
 	@Shadow protected NativeImage[] images;
+	@Shadow void upload(int i, int j, NativeImage[] nativeImages) { }
 
 	private int canvasId;
 
@@ -53,10 +54,8 @@ public class MixinSprite implements SpriteExt {
 		return images;
 	}
 
-	//@Inject(method = "upload", at = @At("HEAD"), cancellable = true)
-	//void beforeUpload(int i, int j, NativeImage[] nativeImages, CallbackInfo ci) {
-	//	if (canvasHandler.upload(i, j, nativeImages)) {
-	//		ci.cancel();
-	//	}
-	//}
+	@Override
+	public void canvas_upload(int i, int j, NativeImage[] images) {
+		upload(i, j, images);
+	}
 }

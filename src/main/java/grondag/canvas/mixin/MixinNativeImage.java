@@ -41,6 +41,18 @@ public class MixinNativeImage implements NativeImageExt {
 		enablePBO = true;
 	}
 
+	@Override
+	public void canvas_prepareUpdatePBO() {
+		if (pboBufferId == 0) {
+			enablePBO = true;
+			pboBufferId = GlBufferAllocator.claimBuffer((int) sizeBytes);
+		}
+
+		GFX.bindBuffer(GFX.GL_PIXEL_UNPACK_BUFFER, pboBufferId);
+		GFX.unsafeBufferData(GFX.GL_PIXEL_UNPACK_BUFFER, sizeBytes, pointer, GFX.GL_STATIC_READ);
+		GFX.bindBuffer(GFX.GL_PIXEL_UNPACK_BUFFER, 0);
+	}
+
 	@Inject(method = "uploadInternal", at = @At("HEAD"), cancellable = true)
 	private void beforeUploadInternal(int i, int j, int k, int l, int m, int n, int o, boolean bl, boolean bl2, boolean bl3, boolean bl4, CallbackInfo ci) {
 		if (enablePBO) {
@@ -77,5 +89,10 @@ public class MixinNativeImage implements NativeImageExt {
 			GlBufferAllocator.releaseBuffer(pboBufferId, (int) sizeBytes);
 			pboBufferId = 0;
 		}
+	}
+
+	@Override
+	public long canvas_pointer() {
+		return pointer;
 	}
 }

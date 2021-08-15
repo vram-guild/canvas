@@ -28,4 +28,6 @@ public interface SpriteExt {
 	CanvasSpriteHandler canvas_handler();
 
 	NativeImage[] canvas_images();
+
+	void canvas_upload(int i, int j, NativeImage[] images);
 }

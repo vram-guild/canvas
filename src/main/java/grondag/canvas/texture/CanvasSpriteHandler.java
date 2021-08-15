@@ -16,7 +16,6 @@
 
 package grondag.canvas.texture;
 
-import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
 import grondag.canvas.mixinterface.NativeImageExt;
@@ -26,7 +25,6 @@ import grondag.canvas.mixinterface.SpriteExt;
 public class CanvasSpriteHandler {
 	public final Sprite sprite;
 	public final SpriteExt spriteExt;
-	//private UploadHandler uploadHandler = null;
 
 	public CanvasSpriteHandler(Sprite sprite) {
 		this.sprite = sprite;
@@ -36,35 +34,14 @@ public class CanvasSpriteHandler {
 	public void afterLoad() {
 		final SpriteAnimationExt animation = (SpriteAnimationExt) sprite.getAnimation();
 
-		if (animation != null && animation.canvas_interpolation() != null) {
-			for (var img : spriteExt.canvas_images()) {
+		if (animation != null) {
+			for (final var img : spriteExt.canvas_images()) {
 				((NativeImageExt) (Object) img).canvas_enablePBO();
 			}
 		}
 	}
 
-	//public boolean upload(int i, int j, NativeImage[] nativeImages) {
-	//	var uploadHandler = this.uploadHandler;
-	//
-	//	if (uploadHandler == null) {
-	//		uploadHandler = createUploadHandler();
-	//		this.uploadHandler = uploadHandler;
-	//	}
-	//
-	//	return uploadHandler.upload(i, j, nativeImages);
-	//}
-
-	//private UploadHandler createUploadHandler() {
-	//	return DEFAULT_UPLOADER;
-	//}
-
 	public boolean shouldAnimate() {
 		return true;
 	}
-
-	private interface UploadHandler {
-		boolean upload(int i, int j, NativeImage[] nativeImages);
-	}
-
-	//private static final UploadHandler DEFAULT_UPLOADER = (i, j, ni) -> false;
 }

@@ -16,6 +16,8 @@
 
 package grondag.canvas.mixin;
 
+import java.util.List;
+
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,6 +36,11 @@ public class MixinSpriteAnimation implements SpriteAnimationExt {
 	@Shadow(aliases = "field_28469")
 	@Dynamic private Sprite parent;
 
+	@Shadow private int frameCount;
+	@Shadow int frameIndex;
+	@Shadow int frameTicks;
+	@Shadow List<Sprite.AnimationFrame> frames;
+
 	@Nullable private Sprite.Interpolation interpolation;
 
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
@@ -46,5 +53,25 @@ public class MixinSpriteAnimation implements SpriteAnimationExt {
 	@Override
 	public Sprite.Interpolation canvas_interpolation() {
 		return interpolation;
+	}
+
+	@Override
+	public int canvas_frameCount() {
+		return frameCount;
+	}
+
+	@Override
+	public int canvas_frameIndex() {
+		return frameIndex;
+	}
+
+	@Override
+	public int canvas_frameTicks() {
+		return frameTicks;
+	}
+
+	@Override
+	public List<Sprite.AnimationFrame> canvas_frames() {
+		return frames;
 	}
 }

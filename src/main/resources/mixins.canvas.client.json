@@ -44,6 +44,7 @@
 	"MixinSpriteAtlasTexture",
 	"MixinSpriteAtlasTextureData",
 	"MixinSpriteBillboardParticle",
+	"MixinSpriteInterpolation",
 	"MixinRenderLayer",
 	"MixinUtil",
 	"MixinVideoOptionsScreen",
