@@ -16,47 +16,35 @@
 
 package grondag.canvas.mixin;
 
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
+import grondag.canvas.mixinterface.SpriteAnimationExt;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.CanvasSpriteHandler;
 
-@Mixin(Sprite.class)
-public class MixinSprite implements SpriteExt {
-	@Shadow protected NativeImage[] images;
+@Mixin(Sprite.Animation.class)
+public class MixinSpriteAnimation implements SpriteAnimationExt {
+	@Shadow(aliases = "field_28469")
+	@Dynamic private Sprite parent;
 
-	private int canvasId;
+	@Nullable private Sprite.Interpolation interpolation;
 
-	private final CanvasSpriteHandler canvasHandler = new CanvasSpriteHandler((Sprite) (Object) this);
-
-	@Override
-	public int canvas_id() {
-		return canvasId;
+	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
+	private void beforeTick(CallbackInfo ci) {
+		if (!((SpriteExt) parent).canvas_handler().shouldAnimate()) {
+			ci.cancel();
+		}
 	}
 
 	@Override
-	public void canvas_id(int id) {
-		canvasId = id;
+	public Sprite.Interpolation canvas_interpolation() {
+		return interpolation;
 	}
-
-	@Override
-	public CanvasSpriteHandler canvas_handler() {
-		return canvasHandler;
-	}
-
-	@Override
-	public NativeImage[] canvas_images() {
-		return images;
-	}
-
-	//@Inject(method = "upload", at = @At("HEAD"), cancellable = true)
-	//void beforeUpload(int i, int j, NativeImage[] nativeImages, CallbackInfo ci) {
-	//	if (canvasHandler.upload(i, j, nativeImages)) {
-	//		ci.cancel();
-	//	}
-	//}
 }

@@ -253,6 +253,11 @@ public class GFX extends GL46C {
 		assert logError(String.format("glBufferData(%s, %d, %d)", GlSymbolLookup.reverseLookup(target), size, usage));
 	}
 
+	public static void unsafeBufferData(int target, long size, long data, int usage) {
+		nglBufferData(target, size, data, usage);
+		assert logError(String.format("nglBufferData(%s, %d, %d, %d)", GlSymbolLookup.reverseLookup(target), size, data, usage));
+	}
+
 	public static void bindVertexArray(int array) {
 		glBindVertexArray(array);
 		assert logError(String.format("glBindVertexArray(%d)", array));
@@ -323,8 +328,14 @@ public class GFX extends GL46C {
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));
 	}
 
+	private static boolean pbo = false;
+
+	public static void enablePBO(boolean val) {
+		pbo = val;
+	}
+
 	public static void texSubImage2D(int target, int level, int offsetX, int offsetY, int width, int height, int format, int type, long pixels) {
-		glTexSubImage2D(target, level, offsetX, offsetY, width, height, format, type, pixels);
+		glTexSubImage2D(target, level, offsetX, offsetY, width, height, format, type, pbo ? 0L : pixels);
 		assert logError(String.format("glTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s)",
 				GlSymbolLookup.reverseLookup(target), level, offsetX, offsetY, width, height,
 				GlSymbolLookup.reverseLookup(format), GlSymbolLookup.reverseLookup(type)));

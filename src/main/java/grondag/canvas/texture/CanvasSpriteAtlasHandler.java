@@ -19,9 +19,7 @@ package grondag.canvas.texture;
 import java.util.Map;
 
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.Sprite.Info;
 import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.texture.TextureStitcher;
 import net.minecraft.util.Identifier;
 
 import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
@@ -39,12 +37,11 @@ public class CanvasSpriteAtlasHandler {
 	}
 
 	public void afterUpload(Map<Identifier, Sprite> sprites) {
-		final var stitcher = new TextureStitcher(maxTextureSize, maxTextureSize, 0);
+		//final var stitcher = new TextureStitcher(maxTextureSize, maxTextureSize, 0);
 
 		for (final var sprite : sprites.values()) {
 			((SpriteExt) sprite).canvas_handler().afterLoad();
-
-			stitcher.add(new Info(null, maxTextureSize, maxTextureSize, null));
+			//stitcher.add(new Info(null, maxTextureSize, maxTextureSize, null));
 		}
 	}
 }
