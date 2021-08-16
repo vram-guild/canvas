@@ -74,6 +74,10 @@ class ConfigData {
 	boolean useCombinedThreadPool = false;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
 	boolean steadyDebugScreen = true;
+	@Comment("When true, animated sprites not in view are not updated. Improves frame rate.")
+	boolean disableUnseenSpriteAnimation = true;
+	@Comment("When true, terrain facing away from the camera is not rendered.  Usually improves frame rate.")
+	boolean cullBackfacingTerrain = true;
 
 	// DEBUG
 	@Comment("Output runtime per-material shader source. For shader development debugging.")

@@ -65,13 +65,21 @@ abstract class DrawSpecBuilder {
 					continue;
 				}
 
-				var bucket = buckets[i];
+				final var bucket = buckets[i];
 
 				if (bucket.vertexCount() > 0) {
 					triVertexCount.add(bucket.vertexCount() / 4 * 6);
 					baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + bucket.firstVertexIndex());
 				}
 			}
+		}
+	};
+
+	static final DrawSpecBuilder SOLID_NO_CULL = new DrawSpecBuilder() {
+		@Override
+		protected void acceptAlloc(SlabAllocation alloc) {
+			triVertexCount.add(alloc.triVertexCount);
+			baseQuadVertexOffset.add(alloc.baseQuadVertexIndex);
 		}
 	};
 

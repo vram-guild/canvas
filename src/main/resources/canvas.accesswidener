@@ -117,3 +117,10 @@ accessible class net/minecraft/client/render/RenderPhase$Texturing
 accessible class net/minecraft/client/render/RenderPhase$LineWidth
 
 accessible method net/minecraft/client/render/Frustum init (Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/util/math/Matrix4f;)V
+
+accessible class net/minecraft/client/texture/Sprite$Interpolation
+accessible class net/minecraft/client/texture/Sprite$Animation
+
+accessible class net/minecraft/client/texture/Sprite$AnimationFrame
+accessible field net/minecraft/client/texture/Sprite$AnimationFrame index I
+accessible field net/minecraft/client/texture/Sprite$AnimationFrame time I

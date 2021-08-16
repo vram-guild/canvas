@@ -14,24 +14,21 @@
  *  the License.
  */
 
-package grondag.canvas.mixinterface;
+package grondag.canvas.mixin;
 
-import java.util.function.BooleanSupplier;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.client.texture.NativeImage;
 
-public interface SpriteExt {
-	int canvas_id();
+import grondag.canvas.mixinterface.NativeImageExt;
 
-	void canvas_id(int id);
+@Mixin(NativeImage.class)
+public class MixinNativeImage implements NativeImageExt {
+	@Shadow private long pointer;
 
-	NativeImage[] canvas_images();
-
-	void canvas_upload(int i, int j, NativeImage[] images);
-
-	void canvas_initializeAnimation(BooleanSupplier getter, int animationIndex);
-
-	boolean canvas_shouldAnimate();
-
-	int canvas_animationIndex();
+	@Override
+	public long canvas_pointer() {
+		return pointer;
+	}
 }

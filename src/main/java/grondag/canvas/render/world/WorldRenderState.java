@@ -16,6 +16,8 @@
 
 package grondag.canvas.render.world;
 
+import java.util.BitSet;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
@@ -82,6 +84,7 @@ public class WorldRenderState {
 	public final DrawListCullingHelper drawListCullingHlper = new DrawListCullingHelper(this);
 	public final VertexClusterRealm solidClusterRealm = new VertexClusterRealm(false);
 	public final VertexClusterRealm translucentClusterRealm = new VertexClusterRealm(true);
+	public final BitSet terrainAnimationBits = new BitSet();
 
 	public WorldRenderState(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
@@ -175,10 +178,23 @@ public class WorldRenderState {
 		translucentDrawList.close();
 		translucentDrawList = DrawableRegionList.build(cameraVisibleRegions, true, false);
 
+		terrainAnimationBits.clear();
+		final int cameraLimit = cameraVisibleRegions.size();
+
+		for (int i = 0; i < cameraLimit; ++i) {
+			terrainAnimationBits.or(cameraVisibleRegions.get(i).animationBits);
+		}
+
 		if (shadowsEnabled()) {
 			for (int i = 0; i < 4; ++i) {
+				final var shadowList = shadowVisibleRegions[i];
 				shadowDrawLists[i].close();
-				shadowDrawLists[i] = DrawableRegionList.build(shadowVisibleRegions[i], false, true);
+				shadowDrawLists[i] = DrawableRegionList.build(shadowList, false, true);
+				final int shadowLimit = shadowList.size();
+
+				for (int j = 0; j < shadowLimit; ++j) {
+					terrainAnimationBits.or(shadowList.get(j).animationBits);
+				}
 			}
 		}
 	}

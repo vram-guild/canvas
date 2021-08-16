@@ -22,11 +22,13 @@ import static grondag.canvas.config.Configurator.advancedTerrainCulling;
 import static grondag.canvas.config.Configurator.blendFluidColors;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
 import static grondag.canvas.config.Configurator.conciseErrors;
+import static grondag.canvas.config.Configurator.cullBackfacingTerrain;
 import static grondag.canvas.config.Configurator.cullEntityRender;
 import static grondag.canvas.config.Configurator.cullParticles;
 import static grondag.canvas.config.Configurator.debugNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
+import static grondag.canvas.config.Configurator.disableUnseenSpriteAnimation;
 import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
@@ -373,6 +375,26 @@ public class ConfigGui {
 				.setTooltip(parse("config.canvas.help.steady_debug_screen"))
 				.setSaveConsumer(b -> {
 					steadyDebugScreen = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.disable_unseen_sprite_animation"), disableUnseenSpriteAnimation)
+				.setDefaultValue(DEFAULTS.disableUnseenSpriteAnimation)
+				.setTooltip(parse("config.canvas.help.disable_unseen_sprite_animation"))
+				.setSaveConsumer(b -> {
+					reload |= disableUnseenSpriteAnimation != b;
+					disableUnseenSpriteAnimation = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_backfacing_terrain"), cullBackfacingTerrain)
+				.setDefaultValue(DEFAULTS.cullBackfacingTerrain)
+				.setTooltip(parse("config.canvas.help.cull_backfacing_terrain"))
+				.setSaveConsumer(b -> {
+					reload |= cullBackfacingTerrain != b;
+					cullBackfacingTerrain = b;
 				})
 				.build());
 

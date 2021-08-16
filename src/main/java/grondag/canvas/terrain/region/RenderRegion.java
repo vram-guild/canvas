@@ -17,6 +17,7 @@
 package grondag.canvas.terrain.region;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -108,6 +109,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	private boolean needsImportantRebuild;
 	private DrawableRegion translucentDrawable = DrawableRegion.EMPTY_DRAWABLE;
 	private DrawableRegion solidDrawable = DrawableRegion.EMPTY_DRAWABLE;
+	public final BitSet animationBits = new BitSet();
 
 	private boolean isClosed = false;
 
@@ -352,22 +354,22 @@ public class RenderRegion implements TerrainExecutorTask {
 				final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin, worldRenderState);
 				final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin, worldRenderState);
 
-				if (solidUpload != UploadableRegion.EMPTY_UPLOADABLE || translucentUpload != UploadableRegion.EMPTY_UPLOADABLE) {
-					renderRegionBuilder.scheduleUpload(() -> {
-						if (ChunkRebuildCounters.ENABLED) {
-							ChunkRebuildCounters.startUpload();
-						}
+				renderRegionBuilder.scheduleUpload(() -> {
+					if (ChunkRebuildCounters.ENABLED) {
+						ChunkRebuildCounters.startUpload();
+					}
 
-						releaseDrawables();
-						solidDrawable = solidUpload.produceDrawable();
-						translucentDrawable = translucentUpload.produceDrawable();
-						worldRenderState.invalidateDrawLists();
+					releaseDrawables();
+					solidDrawable = solidUpload.produceDrawable();
+					translucentDrawable = translucentUpload.produceDrawable();
+					animationBits.clear();
+					animationBits.or(context.animationBits);
+					worldRenderState.invalidateDrawLists();
 
-						if (ChunkRebuildCounters.ENABLED) {
-							ChunkRebuildCounters.completeUpload();
-						}
-					});
-				}
+					if (ChunkRebuildCounters.ENABLED) {
+						ChunkRebuildCounters.completeUpload();
+					}
+				});
 			}
 
 			collectors.clear();
@@ -538,6 +540,9 @@ public class RenderRegion implements TerrainExecutorTask {
 			releaseDrawables();
 			solidDrawable = solidUpload.produceDrawable();
 			translucentDrawable = translucentUpload.produceDrawable();
+			animationBits.clear();
+			animationBits.or(context.animationBits);
+
 			worldRenderState.invalidateDrawLists();
 
 			if (ChunkRebuildCounters.ENABLED) {

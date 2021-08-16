@@ -253,6 +253,11 @@ public class GFX extends GL46C {
 		assert logError(String.format("glBufferData(%s, %d, %d)", GlSymbolLookup.reverseLookup(target), size, usage));
 	}
 
+	public static void unsafeBufferData(int target, long size, long data, int usage) {
+		nglBufferData(target, size, data, usage);
+		assert logError(String.format("nglBufferData(%s, %d, %d, %d)", GlSymbolLookup.reverseLookup(target), size, data, usage));
+	}
+
 	public static void bindVertexArray(int array) {
 		glBindVertexArray(array);
 		assert logError(String.format("glBindVertexArray(%d)", array));

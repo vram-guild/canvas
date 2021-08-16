@@ -73,6 +73,8 @@ public class Configurator {
 	public static boolean enableNearOccluders = DEFAULTS.enableNearOccluders;
 	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
 	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
+	public static boolean disableUnseenSpriteAnimation = DEFAULTS.disableUnseenSpriteAnimation;
+	public static boolean cullBackfacingTerrain = DEFAULTS.cullBackfacingTerrain;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -146,6 +148,8 @@ public class Configurator {
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
 		enableNearOccluders = config.enableNearOccluders;
+		disableUnseenSpriteAnimation = config.disableUnseenSpriteAnimation;
+		cullBackfacingTerrain = config.cullBackfacingTerrain;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -199,5 +203,7 @@ public class Configurator {
 		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
 		config.enableNearOccluders = enableNearOccluders;
+		config.disableUnseenSpriteAnimation = disableUnseenSpriteAnimation;
+		config.cullBackfacingTerrain = cullBackfacingTerrain;
 	}
 }

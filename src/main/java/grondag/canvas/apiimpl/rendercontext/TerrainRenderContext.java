@@ -88,6 +88,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		addedBlockEntities.clear();
 		removedBlockEntities.clear();
 		region.prepare(protoRegion);
+		animationBits.clear();
 
 		if (Configurator.lightSmoothing) {
 			//            final long start = counter.startRun();
