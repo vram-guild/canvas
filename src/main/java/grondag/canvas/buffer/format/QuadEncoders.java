@@ -16,8 +16,6 @@
 
 package grondag.canvas.buffer.format;
 
-import net.minecraft.client.MinecraftClient;
-
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -69,8 +67,6 @@ public class QuadEncoders {
 
 		quad.overlay(overlay);
 
-		final boolean aoDisabled = !MinecraftClient.isAmbientOcclusionEnabled();
-		final float[] aoData = quad.ao;
 		final RenderMaterialImpl mat = quad.material();
 
 		assert mat.blendMode != BlendMode.DEFAULT;
@@ -101,7 +97,6 @@ public class QuadEncoders {
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFF);
 			final int skyLight = ((packedLight >> 16) & 0xFF);
-			final int ao = aoDisabled ? 255 : (Math.round(aoData[i] * 255));
 			target[k++] = blockLight | (skyLight << 8) | material;
 
 			if (useNormals) {
@@ -113,7 +108,7 @@ public class QuadEncoders {
 				}
 			}
 
-			target[k++] = transformedNormal | (ao << 24);
+			target[k++] = transformedNormal | 0xFF000000;
 		}
 	};
 }
