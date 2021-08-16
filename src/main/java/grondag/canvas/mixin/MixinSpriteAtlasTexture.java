@@ -31,8 +31,13 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.config.Configurator;
+import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.texture.SpriteIndex;
 
 @Mixin(SpriteAtlasTexture.class)
@@ -44,7 +49,7 @@ public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
 	private final BitSet animationBits = new BitSet();
 
 	@Inject(at = @At("RETURN"), method = "upload")
-	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo info) {
+	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo ci) {
 		int index = 0;
 		int animationIndex = 0;
 		final ObjectArrayList<Sprite> spriteIndexList = new ObjectArrayList<>();
@@ -73,10 +78,21 @@ public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
 		return maxTextureSize;
 	}
 
-	@Override
-	public void canvas_activateAnimations(BitSet terrain, BitSet dynamic) {
-		animationBits.clear();
-		animationBits.or(terrain);
-		animationBits.or(dynamic);
+	@SuppressWarnings("resource")
+	@Inject(at = @At("HEAD"), method = "tickAnimatedSprites")
+	private void beforeTick(CallbackInfo ci) {
+		if (Configurator.disableUnseenSpriteAnimation && (SpriteAtlasTexture) (Object) this == TerrainRenderStates.SOLID.texture.atlasInfo().atlas()) {
+			animationBits.clear();
+
+			final var itemBits = ItemRenderContext.get().animationBits;
+			animationBits.or(itemBits);
+			itemBits.clear();
+
+			final var blockBits = BlockRenderContext.get().animationBits;
+			animationBits.or(blockBits);
+			blockBits.clear();
+
+			animationBits.or(CanvasWorldRenderer.instance().worldRenderState.terrainAnimationBits);
+		}
 	}
 }

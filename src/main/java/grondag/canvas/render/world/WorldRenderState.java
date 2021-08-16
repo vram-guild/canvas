@@ -24,8 +24,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.profiler.Profiler;
 
-import grondag.canvas.material.state.TerrainRenderStates;
-import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.terrain.TerrainSectorMap;
@@ -199,8 +197,6 @@ public class WorldRenderState {
 				}
 			}
 		}
-
-		((SpriteAtlasTextureExt) TerrainRenderStates.SOLID.texture.atlasInfo().atlas()).canvas_activateAnimations(terrainAnimationBits, terrainAnimationBits);
 	}
 
 	void clear() {

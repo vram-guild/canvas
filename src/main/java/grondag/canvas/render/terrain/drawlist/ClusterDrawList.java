@@ -20,6 +20,7 @@ import java.util.IdentityHashMap;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
 import grondag.canvas.render.terrain.cluster.VertexCluster;
@@ -52,8 +53,8 @@ public class ClusterDrawList {
 		Slab lastSlab = null;
 		final ObjectArrayList<SlabAllocation> specAllocations = new ObjectArrayList<>();
 
-		for (var region : regions) {
-			var alloc = region.allocation().getAllocation();
+		for (final var region : regions) {
+			final var alloc = region.allocation().getAllocation();
 
 			if (alloc.slab != lastSlab) {
 				// NB: builder checks for empty region list (will be true for first region)
@@ -73,8 +74,8 @@ public class ClusterDrawList {
 		final IdentityHashMap<Slab, ObjectArrayList<SlabAllocation>> map = new IdentityHashMap<>();
 
 		// first group regions by slab
-		for (var region : regions) {
-			var alloc = region.allocation().getAllocation();
+		for (final var region : regions) {
+			final var alloc = region.allocation().getAllocation();
 			var list = map.get(alloc.slab);
 
 			if (list == null) {
@@ -85,8 +86,10 @@ public class ClusterDrawList {
 			list.add(alloc);
 		}
 
-		for (var list: map.values()) {
-			DrawSpecBuilder.SOLID.build(list, drawSpecs, owner.isShadowMap);
+		final var builder = Configurator.cullBackfacingTerrain ? DrawSpecBuilder.SOLID : DrawSpecBuilder.SOLID_NO_CULL;
+
+		for (final var list: map.values()) {
+			builder.build(list, drawSpecs, owner.isShadowMap);
 		}
 	}
 

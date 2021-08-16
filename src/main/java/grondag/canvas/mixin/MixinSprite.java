@@ -24,6 +24,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteExt;
 
 @Mixin(Sprite.class)
@@ -63,7 +64,7 @@ public class MixinSprite implements SpriteExt {
 
 	@Override
 	public boolean canvas_shouldAnimate() {
-		return shouldAnimate.getAsBoolean();
+		return !Configurator.disableUnseenSpriteAnimation || shouldAnimate.getAsBoolean();
 	}
 
 	@Override
