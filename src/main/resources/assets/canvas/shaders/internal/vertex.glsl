@@ -12,15 +12,16 @@
 uniform int[182] _cvu_sectors_int;
 
 in ivec4 in_region;
-in ivec4 in_blockpos;
+in ivec4 in_blockpos_ao;
 in vec4 in_color;
 in vec2 in_uv;
 in vec2 in_lightmap;
 in int in_material;
-in vec3 in_normal;
-in float in_ao;
+in vec4 in_normal_tangent;
 
 vec3 in_vertex;
+float in_ao;
+vec3 in_normal;
 
 void _cv_prepareForVertex() {
 	int packedSector = _cvu_sectors_int[in_region.x >> 1];
@@ -30,7 +31,9 @@ void _cv_prepareForVertex() {
 	vec3 origin = vec3(((packedSector & 0xF) - 5) * 128, ((packedSector >> 4) & 0xF) * 128 - 64, (((packedSector >> 8) & 0xF) - 5) * 128);
 
 	// Add intra-sector block pos and fractional block pos
-	in_vertex = origin + in_region.yzw / 65535.0 + in_blockpos.xyz - 63;
+	in_vertex = origin + in_region.yzw / 65535.0 + in_blockpos_ao.xyz - 63;
+	in_normal = in_normal_tangent.xyz;
+	in_ao = in_blockpos_ao.w * (1.0 / 255.0);
 }
 #endif
 

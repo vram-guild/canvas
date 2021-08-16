@@ -26,12 +26,10 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 import static grondag.canvas.apiimpl.mesh.QuadViewImpl.roundSpriteData;
-import static grondag.canvas.buffer.format.CanvasVertexFormats.AO_1UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_RGBA_4UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_TEX_2US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_1US;
-import static grondag.canvas.buffer.format.CanvasVertexFormats.NORMAL_3B;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexFormatElement;
@@ -50,15 +48,16 @@ public class TerrainFormat {
 	private TerrainFormat() { }
 
 	private static final CanvasVertexFormatElement REGION = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 4, "in_region", false, true);
-	private static final CanvasVertexFormatElement BLOCK_POS = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 4, "in_blockpos", false, true);
+	private static final CanvasVertexFormatElement BLOCK_POS_AO = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 4, "in_blockpos_ao", false, true);
+	public static final CanvasVertexFormatElement NORMAL_TANGENT_4B = new CanvasVertexFormatElement(VertexFormatElement.DataType.BYTE, 4, "in_normal_tangent", true, false);
 
 	// Would be nice to make this smaller but with less precision in position we start
 	// to see Z-fighting on iron bars, fire, etc. Iron bars require a resolution of 1/16000.
 	// Reducing resolution of UV is problematic for multi-block textures.
 	public static final CanvasVertexFormat TERRAIN_MATERIAL = new CanvasVertexFormat(
 			REGION,
-			BLOCK_POS,
-			BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_3B, AO_1UB);
+			BLOCK_POS_AO,
+			BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_TANGENT_4B);
 
 	static final int TERRAIN_QUAD_STRIDE = TERRAIN_MATERIAL.quadStrideInts;
 	static final int TERRAIN_VERTEX_STRIDE = TERRAIN_MATERIAL.vertexStrideInts;
@@ -103,6 +102,7 @@ public class TerrainFormat {
 			final int fromIndex = baseSourceIndex + i * BASE_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * TERRAIN_VERTEX_STRIDE;
 
+			// PERF: Consider fixed precision integer math
 			final float x = Float.intBitsToFloat(source[fromIndex + VERTEX_X]);
 			final float y = Float.intBitsToFloat(source[fromIndex + VERTEX_Y]);
 			final float z = Float.intBitsToFloat(source[fromIndex + VERTEX_Z]);
@@ -119,22 +119,23 @@ public class TerrainFormat {
 			final int yFract = Math.round((yOut - yInt) * 0xFFFF);
 			final int zFract = Math.round((zOut - zInt) * 0xFFFF);
 
-			// because our integer component could be negative, we have to unpack and repack the sector components
+			// because our integer component could be negative, we have to unpack and re-pack the sector components
 			xInt += (sectorRelativeRegionOrigin & 0xFF);
 			yInt += ((sectorRelativeRegionOrigin >> 8) & 0xFF);
 			zInt += ((sectorRelativeRegionOrigin >> 16) & 0xFF);
 
 			target[toIndex] = sectorId | (xFract << 16);
 			target[toIndex + 1] = yFract | (zFract << 16);
-			target[toIndex + 2] = xInt | (yInt << 8) | (zInt << 16);
+
+			final int ao = aoDisabled ? 0xFF000000 : (Math.round(aoData[i] * 255) << 24);
+			target[toIndex + 2] = xInt | (yInt << 8) | (zInt << 16) | ao;
 
 			target[toIndex + 3] = source[fromIndex + VERTEX_COLOR];
 			target[toIndex + 4] = roundSpriteData(source[fromIndex + VERTEX_U]) | (roundSpriteData(source[fromIndex + VERTEX_V]) << 16);
 
 			final int packedLight = source[fromIndex + VERTEX_LIGHTMAP];
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
-			final int ao = aoDisabled ? 255 : (Math.round(aoData[i] * 255));
+			final int blockLight = packedLight & 0xFF;
+			final int skyLight = (packedLight >> 16) & 0xFF;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
 
 			if (useVertexNormals) {
@@ -146,7 +147,7 @@ public class TerrainFormat {
 				}
 			}
 
-			target[toIndex + 6] = transformedNormal | (ao << 24);
+			target[toIndex + 6] = transformedNormal;
 		}
 	};
 }
