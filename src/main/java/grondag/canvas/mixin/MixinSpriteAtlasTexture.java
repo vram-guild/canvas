@@ -40,6 +40,10 @@ import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.texture.SpriteIndex;
 
+// PERF: Try hacking the texture stitcher comparator to stitch animated sprites first.
+// If that works, then animated sprites could be uploaded in one go and would probably
+// not need the overhead of tracking animated sprites.
+
 @Mixin(SpriteAtlasTexture.class)
 public class MixinSpriteAtlasTexture implements SpriteAtlasTextureExt {
 	@Shadow private Identifier id;

@@ -19,6 +19,7 @@ package grondag.canvas.apiimpl.mesh;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.EMPTY;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_COLOR;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
@@ -26,9 +27,9 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_NORMAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_X;
 
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.texture.MissingSprite;
@@ -150,7 +151,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	private void convertVanillaUvPrecision() {
 		// Convert sprite data from float to fixed precision
-		int index = baseIndex + colorOffset(0) + 1;
+		int index = baseIndex + 0 * BASE_VERTEX_STRIDE + FIRST_VERTEX_COLOR + 1;
 
 		for (int i = 0; i < 4; ++i) {
 			data[index] = (int) (Float.intBitsToFloat(data[index]) * UV_PRECISE_UNIT_VALUE);
@@ -194,7 +195,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public MutableQuadViewImpl pos(int vertexIndex, float x, float y, float z) {
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_X;
 		data[index] = Float.floatToRawIntBits(x);
 		data[index + 1] = Float.floatToRawIntBits(y);
 		data[index + 2] = Float.floatToRawIntBits(z);
@@ -210,7 +211,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
 		normalFlags(normalFlags() | (1 << vertexIndex));
-		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z);
+		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z);
 		return this;
 	}
 
@@ -228,7 +229,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 		for (int v = 0; v < 4; v++) {
 			if ((normalFlags & (1 << v)) == 0) {
-				data[baseIndex + v * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = packedFaceNormal;
+				data[baseIndex + v * BASE_VERTEX_STRIDE + FIRST_VERTEX_NORMAL] = packedFaceNormal;
 			}
 		}
 
@@ -237,13 +238,13 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public MutableQuadViewImpl lightmap(int vertexIndex, int lightmap) {
-		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_LIGHTMAP] = lightmap;
+		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_LIGHTMAP] = lightmap;
 		return this;
 	}
 
 	@Override
 	public MutableQuadViewImpl vertexColor(int vertexIndex, int color) {
-		data[baseIndex + colorOffset(vertexIndex)] = color;
+		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_COLOR] = color;
 		return this;
 	}
 
@@ -256,7 +257,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public MutableQuadViewImpl spriteFloat(int vertexIndex, float u, float v) {
-		final int i = baseIndex + colorOffset(vertexIndex) + 1;
+		final int i = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_COLOR + 1;
 		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE + 0.5f);
 		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE + 0.5f);
 		return this;
@@ -266,7 +267,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	 * Must call {@link #spriteId(int, int)} separately.
 	 */
 	public MutableQuadViewImpl spritePrecise(int vertexIndex, int u, int v) {
-		final int i = baseIndex + colorOffset(vertexIndex) + 1;
+		final int i = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_COLOR + 1;
 		data[i] = u;
 		data[i + 1] = v;
 		assert isSpriteNormalized();
@@ -495,7 +496,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		}
 
 		for (int vertexIndex = 0; vertexIndex < 4; ++vertexIndex) {
-			final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+			final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_X;
 			final float x = Float.intBitsToFloat(data[index]);
 			final float y = Float.intBitsToFloat(data[index + 1]);
 			final float z = Float.intBitsToFloat(data[index + 2]);

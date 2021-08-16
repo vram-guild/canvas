@@ -33,14 +33,22 @@ public abstract class MeshEncodingHelper {
 	public static final int HEADER_TAG = 3;
 	public static final int HEADER_SPRITE = 4;
 	public static final int HEADER_STRIDE = 5;
-	public static final int VERTEX_X;
-	public static final int VERTEX_Y;
-	public static final int VERTEX_Z;
-	public static final int VERTEX_COLOR;
-	public static final int VERTEX_U;
-	public static final int VERTEX_V;
-	public static final int VERTEX_LIGHTMAP;
-	public static final int VERTEX_NORMAL;
+	public static final int VERTEX_X = 0;
+	public static final int VERTEX_Y = 1;
+	public static final int VERTEX_Z = 2;
+	public static final int VERTEX_COLOR = 3;
+	public static final int VERTEX_U = 4;
+	public static final int VERTEX_V = 5;
+	public static final int VERTEX_LIGHTMAP = 6;
+	public static final int VERTEX_NORMAL = 7;
+	public static final int FIRST_VERTEX_X;
+	public static final int FIRST_VERTEX_Y;
+	public static final int FIRST_VERTEX_Z;
+	public static final int FIRST_VERTEX_COLOR;
+	public static final int FIRST_VERTEX_U;
+	public static final int FIRST_VERTEX_V;
+	public static final int FIRST_VERTEX_LIGHTMAP;
+	public static final int FIRST_VERTEX_NORMAL;
 	public static final int BASE_VERTEX_STRIDE;
 	public static final int BASE_QUAD_STRIDE_BYTES;
 	public static final int MIN_QUAD_STRIDE;
@@ -79,14 +87,14 @@ public abstract class MeshEncodingHelper {
 	private static final int GEOMETRY_INVERSE_MASK = ~(GEOMETRY_MASK << GEOMETRY_SHIFT);
 
 	static {
-		VERTEX_X = HEADER_STRIDE + 0;
-		VERTEX_Y = HEADER_STRIDE + 1;
-		VERTEX_Z = HEADER_STRIDE + 2;
-		VERTEX_COLOR = HEADER_STRIDE + 3;
-		VERTEX_U = HEADER_STRIDE + 4;
-		VERTEX_V = VERTEX_U + 1;
-		VERTEX_LIGHTMAP = HEADER_STRIDE + 6;
-		VERTEX_NORMAL = HEADER_STRIDE + 7;
+		FIRST_VERTEX_X = HEADER_STRIDE + VERTEX_X;
+		FIRST_VERTEX_Y = HEADER_STRIDE + VERTEX_Y;
+		FIRST_VERTEX_Z = HEADER_STRIDE + VERTEX_Z;
+		FIRST_VERTEX_COLOR = HEADER_STRIDE + VERTEX_COLOR;
+		FIRST_VERTEX_U = HEADER_STRIDE + VERTEX_U;
+		FIRST_VERTEX_V = HEADER_STRIDE + VERTEX_V;
+		FIRST_VERTEX_LIGHTMAP = HEADER_STRIDE + VERTEX_LIGHTMAP;
+		FIRST_VERTEX_NORMAL = HEADER_STRIDE + VERTEX_NORMAL;
 		BASE_VERTEX_STRIDE = 8;
 		BASE_QUAD_STRIDE = BASE_VERTEX_STRIDE * 4;
 		BASE_QUAD_STRIDE_BYTES = BASE_QUAD_STRIDE * 4;
@@ -95,7 +103,7 @@ public abstract class MeshEncodingHelper {
 		Preconditions.checkState(BASE_VERTEX_STRIDE == QuadView.VANILLA_VERTEX_STRIDE, "Canvas vertex stride (%s) mismatched with rendering API (%s)", BASE_VERTEX_STRIDE, QuadView.VANILLA_VERTEX_STRIDE);
 		Preconditions.checkState(BASE_QUAD_STRIDE == QuadView.VANILLA_QUAD_STRIDE, "Canvas quad stride (%s) mismatched with rendering API (%s)", BASE_QUAD_STRIDE, QuadView.VANILLA_QUAD_STRIDE);
 
-		VERTEX_START = VERTEX_X;
+		VERTEX_START = FIRST_VERTEX_X;
 
 		// base quad followed by 0-2 sets of color/uv coordinates
 		TEXTURE_VERTEX_STRIDE = 3;

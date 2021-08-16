@@ -19,11 +19,15 @@
 // Will define VERTEX_SHADER or FRAGMENT_SHADER - useful for checks in common libraries
 // #define VERTEX_SHADER
 
-// present only when pipeline supports the feature and it is enabled
+// Present only when pipeline supports the feature and it is enabled
 #define SHADOW_MAP_PRESENT
 
-// present only when shadow map enabled
+// Present only when shadow map enabled
 #define SHADOW_MAP_SIZE 1024
 
-// present when material shaders are being run to generate a shadow map or depth math
+// Present when material shaders are being run to generate a shadow map or depth math
 //#define DEPTH_PASS
+
+// Present when extended texture maps to support Physically-Based Rendering are available
+// Will not be defined during depth pass.
+//#define PBR_ENABLED
