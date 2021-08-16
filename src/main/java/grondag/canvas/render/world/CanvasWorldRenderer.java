@@ -583,11 +583,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					// THIS IS WHEN LIGHTENING RENDERS IN VANILLA
 					final VertexConsumer blockOutlineConumer = immediate.getBuffer(RenderLayer.getLines());
 
+					// Lines need to be drawn with identity matrix because transforms will be pre-applied at render time
+					eventContext.matrixStack().push();
+					eventContext.matrixStack().loadIdentity();
 					eventContext.prepareBlockOutline(camera.getFocusedEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 
 					if (WorldRenderEvents.BLOCK_OUTLINE.invoker().onBlockOutline(eventContext, eventContext)) {
 						wr.canvas_drawBlockOutline(identityStack, blockOutlineConumer, camera.getFocusedEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 					}
+
+					eventContext.matrixStack().pop();
 				}
 			}
 		}
@@ -849,7 +854,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		String shadowRegionString = "";
 
 		if (worldRenderState.shadowsEnabled()) {
-			int shadowCount = worldRenderState.shadowVisibleRegions[0].getActiveCount()
+			final int shadowCount = worldRenderState.shadowVisibleRegions[0].getActiveCount()
 					+ worldRenderState.shadowVisibleRegions[1].getActiveCount()
 					+ worldRenderState.shadowVisibleRegions[2].getActiveCount()
 					+ worldRenderState.shadowVisibleRegions[3].getActiveCount();
