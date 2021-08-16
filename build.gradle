@@ -138,17 +138,17 @@ publishing {
 
 	repositories {
 		mavenLocal()
-		maven {
-			url "https://grondag-repo.appspot.com"
-			credentials {
-				if (project.hasProperty('maven_user')) {
-					username = project.getProperty('maven_user')
-				}
-				if (project.hasProperty('maven_password')) {
-					password = project.getProperty('maven_password')
-				}
-			}
-		}
+		//maven {
+		//	url "https://grondag-repo.appspot.com"
+		//	credentials {
+		//		if (project.hasProperty('maven_user')) {
+		//			username = project.getProperty('maven_user')
+		//		}
+		//		if (project.hasProperty('maven_password')) {
+		//			password = project.getProperty('maven_password')
+		//		}
+		//	}
+		//}
 		maven {
 			url 'sftp://dblsaiko.net:22/var/maven'
 			credentials {
