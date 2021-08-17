@@ -53,7 +53,7 @@ public class VertexCollectorList {
 	 */
 	public class Consumer extends MutableQuadViewImpl {
 		{
-			data = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
+			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 			material(Canvas.MATERIAL_STANDARD);
 		}
 

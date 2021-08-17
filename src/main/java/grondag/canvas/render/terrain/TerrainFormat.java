@@ -16,7 +16,7 @@
 
 package grondag.canvas.render.terrain;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
@@ -103,7 +103,7 @@ public class TerrainFormat {
 		final int sectorRelativeRegionOrigin = context.sectorRelativeRegionOrigin;
 
 		for (int i = 0; i < 4; i++) {
-			final int fromIndex = baseSourceIndex + i * BASE_VERTEX_STRIDE;
+			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * TERRAIN_VERTEX_STRIDE;
 
 			// We do this here because we need to pack the normal Z sign bit with sector ID

@@ -16,7 +16,7 @@
 
 package grondag.canvas.buffer.format;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U;
@@ -56,7 +56,7 @@ public class QuadEncoders {
 		final int[] source = quad.data();
 
 		for (int i = 0; i < 4; i++) {
-			final int fromIndex = baseSourceIndex + i * BASE_VERTEX_STRIDE;
+			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
 			if (useNormals) {
@@ -113,7 +113,7 @@ public class QuadEncoders {
 		final int[] source = quad.data();
 
 		for (int i = 0; i < 4; i++) {
-			final int fromIndex = baseSourceIndex + i * BASE_VERTEX_STRIDE;
+			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
 			if (useNormals) {
