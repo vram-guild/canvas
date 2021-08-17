@@ -36,7 +36,7 @@ public abstract class NormalHelper {
 		y = MathHelper.clamp(y, -1, 1);
 		z = MathHelper.clamp(z, -1, 1);
 
-		return ((int) (x * 127) & 255) | (((int) (y * 127) & 255) << 8) | (((int) (z * 127) & 255) << 16);
+		return (Math.round(x * 127f) & 255) | ((Math.round(y * 127f) & 255) << 8) | ((Math.round(z * 127f) & 255) << 16);
 	}
 
 	/**

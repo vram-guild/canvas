@@ -77,6 +77,8 @@ public class TerrainFormat {
 
 		int packedNormal = 0;
 		int transformedNormal = 0;
+		// bit 16 is set if normal Z component is negative
+		int normalFlagBits = 0;
 		final boolean useVertexNormals = quad.hasVertexNormals();
 
 		if (useVertexNormals) {
@@ -84,6 +86,7 @@ public class TerrainFormat {
 		} else {
 			packedNormal = quad.packedFaceNormal();
 			transformedNormal = normalMatrix.canvas_transform(packedNormal);
+			normalFlagBits = (transformedNormal >>> 8) & 0x8000;
 		}
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
@@ -101,6 +104,17 @@ public class TerrainFormat {
 		for (int i = 0; i < 4; i++) {
 			final int fromIndex = baseSourceIndex + i * BASE_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * TERRAIN_VERTEX_STRIDE;
+
+			// We do this here because we need to pack the normal Z sign bit with sector ID
+			if (useVertexNormals) {
+				final int p = source[fromIndex + VERTEX_NORMAL];
+
+				if (p != packedNormal) {
+					packedNormal = p;
+					transformedNormal = normalMatrix.canvas_transform(packedNormal);
+					normalFlagBits = (transformedNormal >>> 8) & 0x8000;
+				}
+			}
 
 			// PERF: Consider fixed precision integer math
 			final float x = Float.intBitsToFloat(source[fromIndex + VERTEX_X]);
@@ -124,7 +138,7 @@ public class TerrainFormat {
 			yInt += ((sectorRelativeRegionOrigin >> 8) & 0xFF);
 			zInt += ((sectorRelativeRegionOrigin >> 16) & 0xFF);
 
-			target[toIndex] = sectorId | (xFract << 16);
+			target[toIndex] = sectorId | normalFlagBits | (xFract << 16);
 			target[toIndex + 1] = yFract | (zFract << 16);
 
 			final int ao = aoDisabled ? 0xFF000000 : (Math.round(aoData[i] * 255) << 24);
@@ -137,15 +151,6 @@ public class TerrainFormat {
 			final int blockLight = packedLight & 0xFF;
 			final int skyLight = (packedLight >> 16) & 0xFF;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
-
-			if (useVertexNormals) {
-				final int p = source[fromIndex + VERTEX_NORMAL];
-
-				if (p != packedNormal) {
-					packedNormal = p;
-					transformedNormal = normalMatrix.canvas_transform(packedNormal);
-				}
-			}
 
 			target[toIndex + 6] = transformedNormal;
 		}

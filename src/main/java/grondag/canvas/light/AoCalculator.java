@@ -23,6 +23,7 @@ import static grondag.canvas.light.AoFaceData.OPAQUE;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.fastOffsetRegionIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.offsetInteriorIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
+import static grondag.canvas.varia.CanvasMath.clampNormalized;
 
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
@@ -225,7 +226,7 @@ public abstract class AoCalculator {
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
-			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
+			ao[i] = clampNormalized(faceData.weigtedAo(w) * DIVIDE_BY_255);
 		}
 	}
 
@@ -309,7 +310,7 @@ public abstract class AoCalculator {
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
-			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
+			ao[i] = clampNormalized(faceData.weigtedAo(w) * DIVIDE_BY_255);
 		}
 	}
 
@@ -417,7 +418,7 @@ public abstract class AoCalculator {
 				maxBlock = Math.max(b, maxBlock);
 			}
 
-			aoResult[i] = (ao + maxAo) * (0.5f * DIVIDE_BY_255);
+			aoResult[i] = clampNormalized((ao + maxAo) * (0.5f * DIVIDE_BY_255));
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
 					| ((int) ((block + maxBlock) * 0.5f) & 0xFF)));
 		}
