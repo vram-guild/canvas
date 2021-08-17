@@ -37,7 +37,6 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_START;
 
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3f;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
@@ -431,54 +430,5 @@ public class QuadViewImpl implements QuadView {
 		target[targetIndex] = Float.floatToRawIntBits(xOut);
 		target[targetIndex + 1] = Float.floatToRawIntBits(yOut);
 		target[targetIndex + 2] = Float.floatToRawIntBits(zOut);
-	}
-
-	/**
-	 * The sector-relative origin should be added to the block component and
-	 * is not zero-based to allow for vertices extending outside the sector.
-	 *
-	 * @param vertexIndex
-	 * @param matrix
-	 * @param target
-	 * @param targetIndex
-	 * @param sectorRelativeRegionOrigin 24-bit unsigned XYZ
-	 */
-	public void transformAndAppendRegionVertex(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex, int sectorId, int sectorRelativeRegionOrigin) {
-		// PERF: given the size of the call stack, possibly better to move this to the encoder
-
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_X;
-		final float x = Float.intBitsToFloat(data[index]);
-		final float y = Float.intBitsToFloat(data[index + 1]);
-		final float z = Float.intBitsToFloat(data[index + 2]);
-
-		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
-
-		int xInt = MathHelper.floor(xOut);
-		int yInt = MathHelper.floor(yOut);
-		int zInt = MathHelper.floor(zOut);
-
-		final int xFract = Math.round((xOut - xInt) * 0xFFFF);
-		final int yFract = Math.round((yOut - yInt) * 0xFFFF);
-		final int zFract = Math.round((zOut - zInt) * 0xFFFF);
-
-		// because our integer component could be negative, we have to unpack and repack the sector components
-		xInt += (sectorRelativeRegionOrigin & 0xFF);
-		yInt += ((sectorRelativeRegionOrigin >> 8) & 0xFF);
-		zInt += ((sectorRelativeRegionOrigin >> 16) & 0xFF);
-
-		target[targetIndex] = sectorId | (xFract << 16);
-		target[targetIndex + 1] = yFract | (zFract << 16);
-		target[targetIndex + 2] = xInt | (yInt << 8) | (zInt << 16);
-	}
-
-	public void appendVertex(final int vertexIndex, int[] target, int targetIndex) {
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_X;
-		target[targetIndex] = data[index];
-		target[targetIndex + 1] = data[index + 1];
-		target[targetIndex + 2] = data[index + 2];
 	}
 }

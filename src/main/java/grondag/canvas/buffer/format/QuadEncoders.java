@@ -16,6 +16,16 @@
 
 package grondag.canvas.buffer.format;
 
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_V;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
+import static grondag.canvas.apiimpl.mesh.QuadViewImpl.roundSpriteData;
+
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -26,6 +36,8 @@ public class QuadEncoders {
 	public static final QuadEncoder STANDARD_ENCODER = (quad, buff) -> {
 		final RenderMaterialImpl mat = quad.material();
 
+		// bit 16 is set if normal Z component is negative
+		final int normalFlagBits = 0;
 		int packedNormal = 0;
 		final boolean useNormals = quad.hasVertexNormals();
 
@@ -37,26 +49,32 @@ public class QuadEncoders {
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
-		int k = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
+		final int baseTargetIndex = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
 		final int[] target = buff.data();
+		final int baseSourceIndex = quad.vertexStart();
+		final int[] source = quad.data();
 
 		for (int i = 0; i < 4; i++) {
-			quad.appendVertex(i, target, k);
-			k += 3;
+			final int fromIndex = baseSourceIndex + i * BASE_VERTEX_STRIDE;
+			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
-			target[k++] = quad.vertexColor(i);
-			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
+			target[toIndex] = source[fromIndex + VERTEX_X];
+			target[toIndex + 1] = source[fromIndex + VERTEX_Y];
+			target[toIndex + 2] = source[fromIndex + VERTEX_Z];
 
-			final int packedLight = quad.lightmap(i);
+			target[toIndex + 3] = source[fromIndex + VERTEX_COLOR];
+			target[toIndex + 4] = roundSpriteData(source[fromIndex + VERTEX_U]) | (roundSpriteData(source[fromIndex + VERTEX_V]) << 16);
+
+			final int packedLight = source[fromIndex + VERTEX_LIGHTMAP];
 			final int blockLight = (packedLight & 0xFF);
 			final int skyLight = ((packedLight >> 16) & 0xFF);
-			target[k++] = blockLight | (skyLight << 8) | material;
+			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
 
 			if (useNormals) {
 				packedNormal = quad.packedNormal(i);
 			}
 
-			target[k++] = packedNormal | 0xFF000000;
+			target[toIndex + 6] = packedNormal;
 		}
 	};
 

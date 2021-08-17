@@ -5,6 +5,9 @@
 ******************************************************/
 #ifdef VERTEX_SHADER
 
+float in_ao = 1.0;
+vec3 in_normal;
+
 // Same as default but region is looked up based on a vertex attribute.
 // This avoid a uniform update per draw call.
 #ifdef _CV_VERTEX_TERRAIN
@@ -22,8 +25,6 @@ in int in_material;
 in vec4 in_normal_tangent;
 
 vec3 in_vertex;
-float in_ao;
-vec3 in_normal;
 
 void _cv_prepareForVertex() {
 	// Mask out the bits for vector signs
@@ -50,10 +51,12 @@ in vec4 in_color;
 in vec2 in_uv;
 in vec2 in_lightmap;
 in int in_material;
-in vec3 in_normal;
-in float in_ao;
+in vec4 in_normal_tangent;
 
-void _cv_prepareForVertex() { }
+void _cv_prepareForVertex() {
+	in_normal = in_normal_tangent.xyz;
+}
+
 #endif
 
 #endif
