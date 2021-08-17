@@ -16,8 +16,6 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_COLOR;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_NORMAL;
@@ -26,10 +24,13 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_Y;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_Z;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_TO_FLOAT_CONVERSION;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
@@ -119,6 +120,17 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public boolean hasVertexNormals() {
 		return normalFlags() != 0;
+	}
+
+	public int tangentFlags() {
+		return MeshEncodingHelper.tangentFlags(data[baseIndex + HEADER_BITS]);
+	}
+
+	/**
+	 * True if any vertex tangents has been set.
+	 */
+	public boolean hasVertexTangents() {
+		return tangentFlags() != 0;
 	}
 
 	/**
@@ -323,6 +335,46 @@ public class QuadViewImpl implements QuadView {
 	@Override
 	public float normalZ(int vertexIndex) {
 		return hasNormal(vertexIndex) ? NormalHelper.getPackedNormalComponent(data[baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_NORMAL], 2) : Float.NaN;
+	}
+
+	@Override
+	public boolean hasTangent(int vertexIndex) {
+		return (tangentFlags() & (1 << vertexIndex)) != 0;
+	}
+
+	@Override
+	public Vec3f copyTangent(int vertexIndex, Vec3f target) {
+		if (hasTangent(vertexIndex)) {
+			if (target == null) {
+				target = new Vec3f();
+			}
+
+			final int tangent = data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT];
+			target.set(NormalHelper.getPackedNormalComponent(tangent, 0), NormalHelper.getPackedNormalComponent(tangent, 1), NormalHelper.getPackedNormalComponent(tangent, 2));
+			return target;
+		} else {
+			return null;
+		}
+	}
+
+	public int packedTangent(int vertexIndex) {
+		// WIP should probably not return zero here
+		return hasTangent(vertexIndex) ? data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT] : 0;
+	}
+
+	@Override
+	public float tangentX(int vertexIndex) {
+		return hasTangent(vertexIndex) ? NormalHelper.getPackedNormalComponent(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT], 0) : Float.NaN;
+	}
+
+	@Override
+	public float tangentY(int vertexIndex) {
+		return hasTangent(vertexIndex) ? NormalHelper.getPackedNormalComponent(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT], 1) : Float.NaN;
+	}
+
+	@Override
+	public float tangentZ(int vertexIndex) {
+		return hasTangent(vertexIndex) ? NormalHelper.getPackedNormalComponent(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT], 2) : Float.NaN;
 	}
 
 	@Override

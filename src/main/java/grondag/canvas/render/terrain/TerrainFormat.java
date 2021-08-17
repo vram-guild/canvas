@@ -80,15 +80,7 @@ public class TerrainFormat {
 		int transformedNormal = 0;
 		// bit 16 is set if normal Z component is negative
 		int normalFlagBits = 0;
-		final boolean useVertexNormals = quad.hasVertexNormals();
-
-		if (useVertexNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-			transformedNormal = normalMatrix.canvas_transform(packedNormal);
-			normalFlagBits = (transformedNormal >>> 8) & 0x8000;
-		}
+		quad.populateMissingVectors();
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
@@ -107,14 +99,12 @@ public class TerrainFormat {
 			final int toIndex = baseTargetIndex + i * TERRAIN_VERTEX_STRIDE;
 
 			// We do this here because we need to pack the normal Z sign bit with sector ID
-			if (useVertexNormals) {
-				final int p = source[fromIndex + VERTEX_NORMAL];
+			final int p = source[fromIndex + VERTEX_NORMAL];
 
-				if (p != packedNormal) {
-					packedNormal = p;
-					transformedNormal = normalMatrix.canvas_transform(packedNormal);
-					normalFlagBits = (transformedNormal >>> 8) & 0x8000;
-				}
+			if (p != packedNormal) {
+				packedNormal = p;
+				transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				normalFlagBits = (transformedNormal >>> 8) & 0x8000;
 			}
 
 			// PERF: Consider fixed precision integer math

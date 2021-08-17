@@ -39,14 +39,8 @@ public class QuadEncoders {
 		// bit 1 is set if normal Z component is negative
 		int normalFlagBits = 0;
 		int packedNormal = 0;
-		final boolean useNormals = quad.hasVertexNormals();
 
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-			normalFlagBits = (packedNormal >>> 23) & 1;
-		}
+		quad.populateMissingVectors();
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
@@ -59,10 +53,8 @@ public class QuadEncoders {
 			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
-			if (useNormals) {
-				packedNormal = quad.packedNormal(i);
-				normalFlagBits = (packedNormal >>> 23) & 1;
-			}
+			packedNormal = quad.packedNormal(i);
+			normalFlagBits = (packedNormal >>> 23) & 1;
 
 			target[toIndex] = source[fromIndex + VERTEX_X];
 			target[toIndex + 1] = source[fromIndex + VERTEX_Y];
@@ -95,15 +87,7 @@ public class QuadEncoders {
 		int normalFlagBits = 0;
 		int packedNormal = 0;
 		int transformedNormal = 0;
-		final boolean useNormals = quad.hasVertexNormals();
-
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-			transformedNormal = normalMatrix.canvas_transform(packedNormal);
-			normalFlagBits = (transformedNormal >>> 23) & 1;
-		}
+		quad.populateMissingVectors();
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
@@ -116,14 +100,12 @@ public class QuadEncoders {
 			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
-			if (useNormals) {
-				final int p = quad.packedNormal(i);
+			final int p = quad.packedNormal(i);
 
-				if (p != packedNormal) {
-					packedNormal = p;
-					transformedNormal = normalMatrix.canvas_transform(packedNormal);
-					normalFlagBits = (transformedNormal >>> 23) & 1;
-				}
+			if (p != packedNormal) {
+				packedNormal = p;
+				transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				normalFlagBits = (transformedNormal >>> 23) & 1;
 			}
 
 			final float x = Float.intBitsToFloat(source[fromIndex + VERTEX_X]);

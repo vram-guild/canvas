@@ -32,7 +32,9 @@ public abstract class MeshEncodingHelper {
 	public static final int HEADER_BITS = 2;
 	public static final int HEADER_TAG = 3;
 	public static final int HEADER_SPRITE = 4;
-	public static final int HEADER_STRIDE = 5;
+	public static final int HEADER_FIRST_VERTEX_TANGENT = 5;
+	/** Tangent vectors are stored in header so that vertex data can be efficiently translated to/from vanilla. */
+	public static final int HEADER_STRIDE = HEADER_FIRST_VERTEX_TANGENT + 4;
 	public static final int VERTEX_X = 0;
 	public static final int VERTEX_Y = 1;
 	public static final int VERTEX_Z = 2;
@@ -79,7 +81,12 @@ public abstract class MeshEncodingHelper {
 	private static final int GEOMETRY_MASK = 0b111;
 	private static final int GEOMETRY_INVERSE_MASK = ~(GEOMETRY_MASK << GEOMETRY_SHIFT);
 
+	private static final int TANGENTS_SHIFT = GEOMETRY_SHIFT + Integer.bitCount(GEOMETRY_MASK);
+	private static final int TANGENTS_MASK = 0b1111;
+	private static final int TANGENTS_INVERSE_MASK = ~(TANGENTS_MASK << TANGENTS_SHIFT);
+
 	static {
+		assert TANGENTS_SHIFT + 4 <= 32 : "Mesh header encoding ran out of bits";
 		Preconditions.checkState(MESH_VERTEX_STRIDE == QuadView.VANILLA_VERTEX_STRIDE, "Canvas vertex stride (%s) mismatched with rendering API (%s)", MESH_VERTEX_STRIDE, QuadView.VANILLA_VERTEX_STRIDE);
 		Preconditions.checkState(MESH_QUAD_STRIDE == QuadView.VANILLA_QUAD_STRIDE, "Canvas quad stride (%s) mismatched with rendering API (%s)", MESH_QUAD_STRIDE, QuadView.VANILLA_QUAD_STRIDE);
 	}
@@ -116,6 +123,14 @@ public abstract class MeshEncodingHelper {
 
 	public static int normalFlags(int bits, int normalFlags) {
 		return (bits & NORMALS_INVERSE_MASK) | ((normalFlags & NORMALS_MASK) << NORMALS_SHIFT);
+	}
+
+	public static int tangentFlags(int bits) {
+		return (bits >> TANGENTS_SHIFT) & TANGENTS_MASK;
+	}
+
+	public static int tangentFlags(int bits, int tangentFlags) {
+		return (bits & TANGENTS_INVERSE_MASK) | ((tangentFlags & TANGENTS_MASK) << TANGENTS_SHIFT);
 	}
 
 	public static int stride() {
