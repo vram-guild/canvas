@@ -34,8 +34,9 @@ public final class CanvasVertexFormats {
 	public static final CanvasVertexFormatElement BASE_TEX_2US = new CanvasVertexFormatElement(
 		VertexFormatElement.DataType.USHORT, 2, "in_uv", true, false);
 
-	public static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap", false, true);
+	/** Low bits hold signs for Z coordinate of normal and tangent vectors. */
+	public static final CanvasVertexFormatElement LIGHTMAPS_2UB_WITH_SIGNS = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap_with_signs", false, true);
 
 	public static final CanvasVertexFormatElement MATERIAL_1US = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.USHORT, 1, "in_material", false, true);
@@ -51,7 +52,7 @@ public final class CanvasVertexFormats {
 	 * <p>Two-byte material ID conveys sprite, condition, program IDs
 	 * and vertex state flags.  AO is carried in last octet of normal.
 	 */
-	public static final CanvasVertexFormat STANDARD_MATERIAL_FORMAT = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_TANGENT_4B);
+	public static final CanvasVertexFormat STANDARD_MATERIAL_FORMAT = new CanvasVertexFormat(POSITION_3F, BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB_WITH_SIGNS, MATERIAL_1US, NORMAL_TANGENT_4B);
 
 	public static final int STANDARD_QUAD_STRIDE = STANDARD_MATERIAL_FORMAT.quadStrideInts;
 	public static final int STANDARD_VERTEX_STRIDE = STANDARD_MATERIAL_FORMAT.vertexStrideInts;

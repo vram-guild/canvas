@@ -415,20 +415,4 @@ public class QuadViewImpl implements QuadView {
 
 		buff.vertex(xOut, yOut, zOut);
 	}
-
-	public void transformAndAppendVertex(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex) {
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + FIRST_VERTEX_X;
-		final float x = Float.intBitsToFloat(data[index]);
-		final float y = Float.intBitsToFloat(data[index + 1]);
-		final float z = Float.intBitsToFloat(data[index + 2]);
-
-		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
-
-		target[targetIndex] = Float.floatToRawIntBits(xOut);
-		target[targetIndex + 1] = Float.floatToRawIntBits(yOut);
-		target[targetIndex + 2] = Float.floatToRawIntBits(zOut);
-	}
 }

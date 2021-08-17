@@ -28,8 +28,8 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 import static grondag.canvas.apiimpl.mesh.QuadViewImpl.roundSpriteData;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_RGBA_4UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_TEX_2US;
-import static grondag.canvas.buffer.format.CanvasVertexFormats.LIGHTMAPS_2UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_1US;
+import static grondag.canvas.buffer.format.CanvasVertexFormats.NORMAL_TANGENT_4B;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexFormatElement;
@@ -49,7 +49,8 @@ public class TerrainFormat {
 
 	private static final CanvasVertexFormatElement REGION = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 4, "in_region", false, true);
 	private static final CanvasVertexFormatElement BLOCK_POS_AO = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 4, "in_blockpos_ao", false, true);
-	public static final CanvasVertexFormatElement NORMAL_TANGENT_4B = new CanvasVertexFormatElement(VertexFormatElement.DataType.BYTE, 4, "in_normal_tangent", true, false);
+	private static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
+			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap", false, true);
 
 	// Would be nice to make this smaller but with less precision in position we start
 	// to see Z-fighting on iron bars, fire, etc. Iron bars require a resolution of 1/16000.
@@ -152,7 +153,7 @@ public class TerrainFormat {
 			final int skyLight = (packedLight >> 16) & 0xFF;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
 
-			target[toIndex + 6] = transformedNormal;
+			target[toIndex + 6] = transformedNormal & 0xFFFF;
 		}
 	};
 }

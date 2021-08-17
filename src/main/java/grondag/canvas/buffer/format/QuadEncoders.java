@@ -36,8 +36,8 @@ public class QuadEncoders {
 	public static final QuadEncoder STANDARD_ENCODER = (quad, buff) -> {
 		final RenderMaterialImpl mat = quad.material();
 
-		// bit 16 is set if normal Z component is negative
-		final int normalFlagBits = 0;
+		// bit 1 is set if normal Z component is negative
+		int normalFlagBits = 0;
 		int packedNormal = 0;
 		final boolean useNormals = quad.hasVertexNormals();
 
@@ -45,6 +45,7 @@ public class QuadEncoders {
 			quad.populateMissingNormals();
 		} else {
 			packedNormal = quad.packedFaceNormal();
+			normalFlagBits = (packedNormal >>> 23) & 1;
 		}
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
@@ -58,6 +59,11 @@ public class QuadEncoders {
 			final int fromIndex = baseSourceIndex + i * BASE_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
+			if (useNormals) {
+				packedNormal = quad.packedNormal(i);
+				normalFlagBits = (packedNormal >>> 23) & 1;
+			}
+
 			target[toIndex] = source[fromIndex + VERTEX_X];
 			target[toIndex + 1] = source[fromIndex + VERTEX_Y];
 			target[toIndex + 2] = source[fromIndex + VERTEX_Z];
@@ -66,15 +72,11 @@ public class QuadEncoders {
 			target[toIndex + 4] = roundSpriteData(source[fromIndex + VERTEX_U]) | (roundSpriteData(source[fromIndex + VERTEX_V]) << 16);
 
 			final int packedLight = source[fromIndex + VERTEX_LIGHTMAP];
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
+			final int blockLight = (packedLight & 0xFE) | normalFlagBits;
+			final int skyLight = ((packedLight >> 16) & 0xFE);
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
 
-			if (useNormals) {
-				packedNormal = quad.packedNormal(i);
-			}
-
-			target[toIndex + 6] = packedNormal;
+			target[toIndex + 6] = packedNormal & 0xFFF;
 		}
 	};
 
@@ -89,6 +91,8 @@ public class QuadEncoders {
 
 		assert mat.blendMode != BlendMode.DEFAULT;
 
+		// bit 1 is set if normal Z component is negative
+		int normalFlagBits = 0;
 		int packedNormal = 0;
 		int transformedNormal = 0;
 		final boolean useNormals = quad.hasVertexNormals();
@@ -98,24 +102,19 @@ public class QuadEncoders {
 		} else {
 			packedNormal = quad.packedFaceNormal();
 			transformedNormal = normalMatrix.canvas_transform(packedNormal);
+			normalFlagBits = (transformedNormal >>> 23) & 1;
 		}
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
-		int k = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
+		final int baseTargetIndex = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
 		final int[] target = buff.data();
+		final int baseSourceIndex = quad.vertexStart();
+		final int[] source = quad.data();
 
 		for (int i = 0; i < 4; i++) {
-			quad.transformAndAppendVertex(i, matrix, target, k);
-			k += 3;
-
-			target[k++] = quad.vertexColor(i);
-			target[k++] = quad.spriteBufferU(i) | (quad.spriteBufferV(i) << 16);
-
-			final int packedLight = quad.lightmap(i);
-			final int blockLight = (packedLight & 0xFF);
-			final int skyLight = ((packedLight >> 16) & 0xFF);
-			target[k++] = blockLight | (skyLight << 8) | material;
+			final int fromIndex = baseSourceIndex + i * BASE_VERTEX_STRIDE;
+			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
 			if (useNormals) {
 				final int p = quad.packedNormal(i);
@@ -123,10 +122,31 @@ public class QuadEncoders {
 				if (p != packedNormal) {
 					packedNormal = p;
 					transformedNormal = normalMatrix.canvas_transform(packedNormal);
+					normalFlagBits = (transformedNormal >>> 23) & 1;
 				}
 			}
 
-			target[k++] = transformedNormal | 0xFF000000;
+			final float x = Float.intBitsToFloat(source[fromIndex + VERTEX_X]);
+			final float y = Float.intBitsToFloat(source[fromIndex + VERTEX_Y]);
+			final float z = Float.intBitsToFloat(source[fromIndex + VERTEX_Z]);
+
+			final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
+			final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
+			final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
+
+			target[toIndex] = Float.floatToRawIntBits(xOut);
+			target[toIndex + 1] = Float.floatToRawIntBits(yOut);
+			target[toIndex + 2] = Float.floatToRawIntBits(zOut);
+
+			target[toIndex + 3] = source[fromIndex + VERTEX_COLOR];
+			target[toIndex + 4] = roundSpriteData(source[fromIndex + VERTEX_U]) | (roundSpriteData(source[fromIndex + VERTEX_V]) << 16);
+
+			final int packedLight = quad.lightmap(i);
+			final int blockLight = (packedLight & 0xFE) | normalFlagBits;
+			final int skyLight = ((packedLight >> 16) & 0xFE);
+			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
+
+			target[toIndex + 6] = transformedNormal & 0xFFF;
 		}
 	};
 }

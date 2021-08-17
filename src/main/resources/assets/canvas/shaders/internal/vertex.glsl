@@ -49,12 +49,19 @@ void _cv_prepareForVertex() {
 in vec3 in_vertex;
 in vec4 in_color;
 in vec2 in_uv;
-in ivec2 in_lightmap;
+in ivec2 in_lightmap_with_signs;
 in int in_material;
 in vec4 in_normal_tangent;
 
+ivec2 in_lightmap;
+
 void _cv_prepareForVertex() {
-	in_normal = in_normal_tangent.xyz;
+	// strip low bits that hold normal/tangent signs
+	in_lightmap = in_lightmap_with_signs & 0xFE;
+	
+	float normalSign = 1.0 - ((in_lightmap_with_signs.x & 1) * 2);
+	vec2 normXY2 = in_normal_tangent.xy * in_normal_tangent.xy;
+	in_normal = vec3(in_normal_tangent.xy, normalSign * sqrt(clamp(1.0 - normXY2.x - normXY2.y, 0.0, 1.0)));
 }
 
 #endif
