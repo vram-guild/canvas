@@ -35,7 +35,7 @@ public final class CanvasVertexFormats {
 		VertexFormatElement.DataType.USHORT, 2, "in_uv", true, false);
 
 	public static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap", false, false);
+			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap", false, true);
 
 	public static final CanvasVertexFormatElement MATERIAL_1US = new CanvasVertexFormatElement(
 			VertexFormatElement.DataType.USHORT, 1, "in_material", false, true);

@@ -19,7 +19,7 @@ in ivec4 in_region;
 in ivec4 in_blockpos_ao;
 in vec4 in_color;
 in vec2 in_uv;
-in vec2 in_lightmap;
+in ivec2 in_lightmap;
 in int in_material;
 // only x and y components, must derive Z
 in vec4 in_normal_tangent;
@@ -49,7 +49,7 @@ void _cv_prepareForVertex() {
 in vec3 in_vertex;
 in vec4 in_color;
 in vec2 in_uv;
-in vec2 in_lightmap;
+in ivec2 in_lightmap;
 in int in_material;
 in vec4 in_normal_tangent;
 
