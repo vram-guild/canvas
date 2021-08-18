@@ -244,9 +244,33 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 					data[baseIndex + v * MESH_VERTEX_STRIDE + FIRST_VERTEX_NORMAL] = packedFaceNormal;
 				}
 			}
+
+			normalFlags(0b1111);
 		}
 
-		normalFlags(0b1111);
+		final int tangentFlags = this.tangentFlags();
+
+		if (tangentFlags != 0b1111) {
+			// PERF: can likely optimize this to exploit fact that
+			// vast majority of blocks/items will have X = +/- 1 or Z = +/- 1.
+			final float dv0 = spriteFloatV(1) - spriteFloatV(0);
+			final float dv1 = spriteFloatV(2) - spriteFloatV(1);
+			final float inverseLength = 1.0f / ((spriteFloatU(1) - spriteFloatU(0)) * dv1 - (spriteFloatU(2) - spriteFloatU(1)) * dv0);
+
+			final float tx = inverseLength * (dv1 * (x(1) - x(0)) - dv0 * (x(2) - x(1)));
+			final float ty = inverseLength * (dv1 * (y(1) - y(0)) - dv0 * (y(2) - y(1)));
+			final float tz = inverseLength * (dv1 * (z(1) - z(0)) - dv0 * (z(2) - z(1)));
+
+			final int packedTangent = NormalHelper.packNormal(tx, ty, tz);
+
+			for (int v = 0; v < 4; v++) {
+				if ((tangentFlags & (1 << v)) == 0) {
+					data[baseIndex + v + HEADER_FIRST_VERTEX_TANGENT] = packedTangent;
+				}
+			}
+
+			tangentFlags(0b1111);
+		}
 	}
 
 	@Override

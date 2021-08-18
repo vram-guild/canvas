@@ -16,6 +16,7 @@
 
 package grondag.canvas.render.terrain;
 
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
@@ -66,6 +67,8 @@ public class TerrainFormat {
 	public static final QuadTranscoder TERRAIN_TRANSCODER = (quad, context, buff) -> {
 		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
+		final boolean isNormalMatrixUseful = !normalMatrix.canvas_isIdentity();
+
 		final int overlay = context.overlay();
 
 		quad.overlay(overlay);
@@ -76,10 +79,16 @@ public class TerrainFormat {
 
 		assert mat.blendMode != BlendMode.DEFAULT;
 
-		int packedNormal = 0;
-		int transformedNormal = 0;
 		// bit 16 is set if normal Z component is negative
 		int normalFlagBits = 0;
+		int packedNormal = 0;
+		int transformedNormal = 0;
+
+		// bit 15 is set if tangent Z component is negative
+		int tangentFlagBits = 0;
+		int packedTangent = 0;
+		int transformedTangent = 0;
+
 		quad.populateMissingVectors();
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
@@ -103,8 +112,19 @@ public class TerrainFormat {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				transformedNormal = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
 				normalFlagBits = (transformedNormal >>> 8) & 0x8000;
+				transformedNormal = transformedNormal & 0xFFFF;
+			}
+
+			// We do this here because we need to pack the tangent Z sign bit with sector ID
+			final int t = source[baseSourceIndex + i + HEADER_FIRST_VERTEX_TANGENT];
+
+			if (t != packedTangent) {
+				packedTangent = p;
+				transformedTangent = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedTangent) : packedTangent;
+				tangentFlagBits = (transformedTangent >>> 9) & 0x4000;
+				transformedTangent = transformedTangent << 16;
 			}
 
 			// PERF: Consider fixed precision integer math
@@ -129,7 +149,7 @@ public class TerrainFormat {
 			yInt += ((sectorRelativeRegionOrigin >> 8) & 0xFF);
 			zInt += ((sectorRelativeRegionOrigin >> 16) & 0xFF);
 
-			target[toIndex] = sectorId | normalFlagBits | (xFract << 16);
+			target[toIndex] = sectorId | normalFlagBits | tangentFlagBits | (xFract << 16);
 			target[toIndex + 1] = yFract | (zFract << 16);
 
 			final int ao = aoDisabled ? 0xFF000000 : (Math.round(aoData[i] * 255) << 24);
@@ -143,7 +163,7 @@ public class TerrainFormat {
 			final int skyLight = (packedLight >> 16) & 0xFF;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
 
-			target[toIndex + 6] = transformedNormal & 0xFFFF;
+			target[toIndex + 6] = transformedNormal | transformedTangent;
 		}
 	};
 }

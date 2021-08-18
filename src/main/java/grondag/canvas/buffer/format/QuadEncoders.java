@@ -16,9 +16,11 @@
 
 package grondag.canvas.buffer.format;
 
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_V;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
@@ -36,10 +38,6 @@ public class QuadEncoders {
 	public static final QuadEncoder STANDARD_ENCODER = (quad, buff) -> {
 		final RenderMaterialImpl mat = quad.material();
 
-		// bit 1 is set if normal Z component is negative
-		int normalFlagBits = 0;
-		int packedNormal = 0;
-
 		quad.populateMissingVectors();
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
@@ -53,8 +51,13 @@ public class QuadEncoders {
 			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
-			packedNormal = quad.packedNormal(i);
-			normalFlagBits = (packedNormal >>> 23) & 1;
+			final int packedNormal = source[fromIndex + VERTEX_NORMAL];
+			// bit 1 is set if normal Z component is negative
+			final int normalFlagBits = (packedNormal >>> 23) & 1;
+
+			final int packedTangent = source[baseSourceIndex + i + HEADER_FIRST_VERTEX_TANGENT];
+			// bit 1 is set if normal Z component is negative
+			final int tangentFlagBits = (packedTangent >>> 23) & 1;
 
 			target[toIndex] = source[fromIndex + VERTEX_X];
 			target[toIndex + 1] = source[fromIndex + VERTEX_Y];
@@ -65,10 +68,10 @@ public class QuadEncoders {
 
 			final int packedLight = source[fromIndex + VERTEX_LIGHTMAP];
 			final int blockLight = (packedLight & 0xFE) | normalFlagBits;
-			final int skyLight = ((packedLight >> 16) & 0xFE);
+			final int skyLight = ((packedLight >> 16) & 0xFE) | tangentFlagBits;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
 
-			target[toIndex + 6] = packedNormal & 0xFFF;
+			target[toIndex + 6] = (packedNormal & 0xFFFF) | ((packedTangent & 0xFFFF) << 16);
 		}
 	};
 
@@ -87,6 +90,12 @@ public class QuadEncoders {
 		int normalFlagBits = 0;
 		int packedNormal = 0;
 		int transformedNormal = 0;
+
+		// bit 1 is set if tangent Z component is negative
+		int tangentFlagBits = 0;
+		int packedTangent = 0;
+		int transformedTangent = 0;
+
 		quad.populateMissingVectors();
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
@@ -100,12 +109,20 @@ public class QuadEncoders {
 			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
-			final int p = quad.packedNormal(i);
+			final int p = source[fromIndex + VERTEX_NORMAL];
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				transformedNormal = normalMatrix.canvas_transform(packedNormal) & 0xFFFF;
 				normalFlagBits = (transformedNormal >>> 23) & 1;
+			}
+
+			final int t = source[baseSourceIndex + i + HEADER_FIRST_VERTEX_TANGENT];
+
+			if (t != packedTangent) {
+				packedTangent = t;
+				transformedTangent = (normalMatrix.canvas_transform(packedTangent) & 0xFFFF) << 16;
+				tangentFlagBits = (transformedTangent >>> 23) & 1;
 			}
 
 			final float x = Float.intBitsToFloat(source[fromIndex + VERTEX_X]);
@@ -125,10 +142,10 @@ public class QuadEncoders {
 
 			final int packedLight = quad.lightmap(i);
 			final int blockLight = (packedLight & 0xFE) | normalFlagBits;
-			final int skyLight = ((packedLight >> 16) & 0xFE);
+			final int skyLight = ((packedLight >> 16) & 0xFE) | tangentFlagBits;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
 
-			target[toIndex + 6] = transformedNormal & 0xFFF;
+			target[toIndex + 6] = transformedNormal | transformedTangent;
 		}
 	};
 }
