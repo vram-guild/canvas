@@ -38,8 +38,7 @@ void _cv_prepareForVertex() {
 	in_vertex = origin + in_region.yzw / 65535.0 + in_blockpos_ao.xyz - 63;
 	
 	float normalSign = 1.0 - ((in_region.x >> 14) & 2);
-	vec2 normXY2 = in_normal_tangent.xy * in_normal_tangent.xy;
-	in_normal = vec3(in_normal_tangent.xy, normalSign * sqrt(clamp(1.0 - normXY2.x - normXY2.y, 0.0, 1.0)));
+	in_normal = vec3(in_normal_tangent.xy, normalSign * sqrt(clamp(1.0 - dot(in_normal_tangent.xy, in_normal_tangent.xy), 0.0, 1.0)));
 	
 	in_ao = in_blockpos_ao.w * (1.0 / 255.0);
 }
