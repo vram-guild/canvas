@@ -127,9 +127,11 @@ public final class RenderLayerHelper {
 
 		final MultiPhaseExt multiPhase = (MultiPhaseExt) layer;
 		final String name = multiPhase.canvas_name();
+		final var params = multiPhase.canvas_phases();
 
 		// Excludes glint, end portal, and other specialized render layers that won't play nice with our current setup
-		if (multiPhase.canvas_phases().getTexturing() != RenderPhase.DEFAULT_TEXTURING) {
+		// Excludes render layers with custom shaders
+		if (params.getTexturing() != RenderPhase.DEFAULT_TEXTURING || ((ShaderExt) params.getShader()).canvas_shaderData() == MojangShaderData.MISSING) {
 			EXCLUSIONS.add(layer);
 			return RenderMaterialImpl.MISSING;
 		}
