@@ -36,9 +36,13 @@ float _cv_isGlint() {
 	return frx_bitValue(uint(_cvv_flags), _CV_FLAG_GLINT);
 }
 
+// DEPRECATED
 float _cv_getFlag(int flagId) {
 	return frx_bitValue(_cvv_flags, flagId);
 }
+
+// int
+#define _CV_GET_FLAG(flagId) int((_cvv_flags >> flagId) & 1u)
 
 float _cv_cutoutThreshold() {
 	switch((_cvv_flags >> _CV_CUTOUT_SHIFT) & _CV_CUTOUT_MASK) {

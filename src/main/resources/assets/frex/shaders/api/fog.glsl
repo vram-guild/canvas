@@ -4,35 +4,18 @@
 /******************************************************
   frex:shaders/api/fog.glsl
 ******************************************************/
+#define frx_fogColor _cvu_world[_CV_FOG_COLOR]
+#define frx_fogStart _cvu_world[_CV_RENDER_INFO].x
+#define frx_fogEnd _cvu_world[_CV_RENDER_INFO].y
+#define frx_fogEnabled _CV_GET_FLAG(_CV_FLAG_ENABLE_FOG)
 
-/**
- * True if current material should have fog.
- */
-bool frx_fogEnabled() {
-	return frx_bitValue(uint(_cvv_flags), _CV_FLAG_ENABLE_FOG) == 1.0;
-}
+// PRE-RELEASE SUPPORT - DO NOT USE
+#define frx_fogStart() frx_fogStart
+#define frx_fogEnd() frx_fogEnd
+#define vec4 frx_fogColor() frx_fogColor
+#define frx_fogEnabled() (frx_fogEnabled == 1)
 
-float frx_fogStart() {
-	return _cvu_world[_CV_RENDER_INFO].x;
-}
-
-float frx_fogEnd() {
-	return _cvu_world[_CV_RENDER_INFO].y;
-}
-
-vec4 frx_fogColor() {
-	return _cvu_world[_CV_FOG_COLOR];
-}
-
-
-// vec4
 #define frxFogColor _cvu_world[_CV_FOG_COLOR]
-
-// float
 #define frxFogStart _cvu_world[_CV_RENDER_INFO].x
-
-// float
 #define frxFogEnd _cvu_world[_CV_RENDER_INFO].y
-
-// bool
-#define frxFogEnabled (frx_bitValue(uint(_cvv_flags), _CV_FLAG_ENABLE_FOG) == 1.0)
+#define frxFogEnabled _CV_GET_FLAG(_CV_FLAG_ENABLE_FOG)
