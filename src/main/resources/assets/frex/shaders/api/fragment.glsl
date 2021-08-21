@@ -1,5 +1,3 @@
-#include frex:shaders/api/context.glsl
-
 /******************************************************
   frex:shaders/api/fragment.glsl
 ******************************************************/
