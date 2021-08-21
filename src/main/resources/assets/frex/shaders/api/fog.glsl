@@ -1,9 +1,10 @@
 #include canvas:shaders/internal/world.glsl
 #include canvas:shaders/internal/flags.glsl
 
-/******************************************************
-  frex:shaders/api/fog.glsl
-******************************************************/
+/****************************************************************
+ * frex:shaders/api/fog.glsl - Canvas Implementation
+ ***************************************************************/
+
 #define frx_fogColor _cvu_world[_CV_FOG_COLOR]
 #define frx_fogStart _cvu_world[_CV_RENDER_INFO].x
 #define frx_fogEnd _cvu_world[_CV_RENDER_INFO].y

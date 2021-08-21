@@ -1,11 +1,9 @@
 #include canvas:shaders/internal/flags.glsl
 #include canvas:shaders/internal/program.glsl
 
-/******************************************************
-  frex:shaders/api/material.glsl
-
-  Utilities for querying material properties.
-******************************************************/
+/****************************************************************
+ * frex:shaders/api/material.glsl - Canvas Implementation
+ ***************************************************************/
 
 #define frx_matEmissive _CV_GET_FLAG(_CV_FLAG_EMISSIVE)
 #define frx_matCutout (((_cvv_flags >> _CV_CUTOUT_SHIFT) & _CV_CUTOUT_MASK) == _CV_CUTOUT_NONE ? 0 : 1)

@@ -1,53 +1,70 @@
 #include canvas:shaders/internal/world.glsl
 
-/******************************************************
-  frex:shaders/api/player.glsl
+/****************************************************************
+ * frex:shaders/api/player.glsl - Canvas Implementation
+ ***************************************************************/
 
-  Utilities for querying player information.
-******************************************************/
+#define frx_effectModifier _cvu_world[_CV_LAST_CAMERA_POS].w
+#define frx_heldLight _cvu_world[_CV_HELD_LIGHT_RGBI]
+#define frx_heldLightInnerRadius _cvu_world[_CV_RENDER_INFO].z
+#define frx_heldLightOuterRadius _cvu_world[_CV_RENDER_INFO].w
 
-/*
- * Magnitude of effects that affect vision: night vision, being in fluid, etc.
- * Experimental, likely to change.
- */
-float frx_effectModifier() {
-	return _cvu_world[_CV_LAST_CAMERA_POS].w;
-}
+#define _CV_PLAYER_EFFECT(flagId) int((_cvu_flags[_CV_PLAYER_FLAGS_INDEX] >> flagId) & 1u)
+#define frx_effectSpeed _CV_PLAYER_EFFECT(0)
+#define frx_effectSlowness _CV_PLAYER_EFFECT(1)
+#define frx_effectHast _CV_PLAYER_EFFECT(2)
+#define frx_effectMiningFatigue _CV_PLAYER_EFFECT(3)
+#define frx_effectStrength _CV_PLAYER_EFFECT(4)
+#define frx_effectInstantHealth _CV_PLAYER_EFFECT(5)
+#define frx_effectInstantDamage _CV_PLAYER_EFFECT(6)
+#define frx_effectJumpBoost _CV_PLAYER_EFFECT(7)
+#define frx_effectNausea _CV_PLAYER_EFFECT(8)
+#define frx_effectRegeneration _CV_PLAYER_EFFECT(9)
+#define frx_effectResistance _CV_PLAYER_EFFECT(10)
+#define frx_effectFireResistance _CV_PLAYER_EFFECT(11)
+#define frx_effectWaterBreathing _CV_PLAYER_EFFECT(12)
+#define frx_effectInvisibility _CV_PLAYER_EFFECT(13)
+#define frx_effectBlindness _CV_PLAYER_EFFECT(14)
+#define frx_effectNightVision _CV_PLAYER_EFFECT(15)
+#define frx_effectHunger _CV_PLAYER_EFFECT(16)
+#define frx_effectWeakness _CV_PLAYER_EFFECT(17)
+#define frx_effectPoison _CV_PLAYER_EFFECT(18)
+#define frx_effectWither _CV_PLAYER_EFFECT(19)
+#define frx_effectHealthBoost _CV_PLAYER_EFFECT(20)
+#define frx_effectAbsorption _CV_PLAYER_EFFECT(21)
+#define frx_effectSaturation _CV_PLAYER_EFFECT(22)
+#define frx_effectGlowing _CV_PLAYER_EFFECT(23)
+#define frx_effectLevitation _CV_PLAYER_EFFECT(24)
+#define frx_effectLuck _CV_PLAYER_EFFECT(25)
+#define frx_effectUnluck _CV_PLAYER_EFFECT(26)
+#define frx_effectSlowFalling _CV_PLAYER_EFFECT(27)
+#define frx_effectConduitPower _CV_PLAYER_EFFECT(28)
+#define frx_effectDolphinsGrace _CV_PLAYER_EFFECT(29)
+#define frx_effectBadOmen _CV_PLAYER_EFFECT(30)
+#define frx_effectHeroOfTheVillage _CV_PLAYER_EFFECT(31)
 
-/*
- *  Color and magnitude of light source held by player in either hand.
- *  RGB are the light color, alpha channel holds the 0-1 magnitude.
- *
- *  Magnitude 1 currently represents a source that can reach 15 blocks.
- *  This scale is subject to change.
- *
- *  If the player is not holding a light source, all values are zero.
- */
-vec4 frx_heldLight() {
-	return _cvu_world[_CV_HELD_LIGHT_RGBI];
-}
+#define _CV_PLAYER_FLAG(flagId) int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> flagId) & 1u)
+#define frx_playerEyeInFluid _CV_PLAYER_FLAG(7)
+#define frx_playerEyeInWater _CV_PLAYER_FLAG(8)
+#define frx_playerEyeInLava _CV_PLAYER_FLAG(9)
+#define frx_playerSneaking _CV_PLAYER_FLAG(10)
+#define frx_playerSwimming _CV_PLAYER_FLAG(11)
+#define frx_playerSneakingPose _CV_PLAYER_FLAG(12)
+#define frx_playerSwimmingPose _CV_PLAYER_FLAG(13)
+#define frx_playerCreative _CV_PLAYER_FLAG(14)
+#define frx_playerSpectator _CV_PLAYER_FLAG(15)
+#define frx_playerRiding _CV_PLAYER_FLAG(16)
+#define frx_playerOnFire _CV_PLAYER_FLAG(17)
+#define frx_playerSleeping _CV_PLAYER_FLAG(18)
+#define frx_playerSprinting _CV_PLAYER_FLAG(19)
+#define frx_playerWet _CV_PLAYER_FLAG(20)
 
-/**
- * A value less than 2PI radians should create a spot light effect.
- * This is the angle of full brightness within the light cone.
- * Attenuation is assumed to be the same as for non-spot lights.
- */
-float frx_heldLightInnerRadius() {
-	return _cvu_world[_CV_RENDER_INFO].z;
-}
+#define frx_playerMood _cvu_world[_CV_CAMERA_POS].w
+#define frx_eyePos _cvu_world[_CV_EYE_POSITION].xyz
+#define frx_eyeBrightness _cvu_world[_CV_EYE_BRIGHTNESS].xy
+#define frx_smoothedEyeBrightness _cvu_world[_CV_EYE_BRIGHTNESS].zw
 
-/**
- * The angle of reduced brightness around the inner light cone.
- * If greater than frx_heldLightInnerConeAngle should create a
- * fall-off effect around a spot light.
- * Attenuation is assumed to be the same as for non-spot lights.
- */
-float frx_heldLightOuterRadius() {
-	return _cvu_world[_CV_RENDER_INFO].w;
-}
-
-// Tokens accepted in frx_playerHasEffect
-// Includes all vanilla player effects in 1.16.4
+////// DECLARATIONS BELOW ARE DEPRECATED AND SHOULD NOT BE USED
 #define FRX_EFFECT_SPEED 0
 #define FRX_EFFECT_SLOWNESS 1
 #define FRX_EFFECT_HASTE 2
@@ -81,15 +98,10 @@ float frx_heldLightOuterRadius() {
 #define FRX_EFFECT_BAD_OMEN 30
 #define FRX_EFFECT_HERO_OF_THE_VILLAGE 31
 
-/*
- * Accepts one of the tokens defined above.  Note that different implementations
- * could define different numeric token values - always use the preprocessor token.
- */
 bool frx_playerHasEffect(int effect) {
 	return frx_bitValue(_cvu_flags[_CV_PLAYER_FLAGS_INDEX], effect) == 1;
 }
 
-// Tokens accepted in frx_playerFlag
 #define FRX_PLAYER_EYE_IN_FLUID 7
 #define FRX_PLAYER_EYE_IN_WATER 8
 #define FRX_PLAYER_EYE_IN_LAVA 9
@@ -105,49 +117,6 @@ bool frx_playerHasEffect(int effect) {
 #define FRX_PLAYER_SPRINTING 19
 #define FRX_PLAYER_WET 20
 
-/*
- * Accepts one of the tokens defined above.  Note that different implementations
- * could define different numeric token values - always use the preprocessor token.
- */
 bool frx_playerFlag(int flag) {
 	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1;
-}
-
-/*
- * DEPRECATED - use frx_playerHasEffect()
- */
-bool frx_playerHasNightVision() {
-	return frx_bitValue(_cvu_flags[_CV_PLAYER_FLAGS_INDEX], FRX_EFFECT_NIGHT_VISION) == 1;
-}
-
-/**
- * Value of timer that triggers "spooky" sounds when player is underground. Range 0-1.
- */
-float frx_playerMood() {
-	return _cvu_world[_CV_CAMERA_POS].w;
-}
-
-/**
- * Eye position in world coordinates.
- */
-vec3 frx_eyePos() {
-	return _cvu_world[_CV_EYE_POSITION].xyz;
-}
-
-/**
- * Normalized, linear light level at player/viewer eye position.
- * Zero is no light and 1 is max. No correction for gamma, dimension, etc.
- * Component x is block and y is sky.
- */
-vec2 frx_eyeBrightness() {
-	return _cvu_world[_CV_EYE_BRIGHTNESS].xy;
-}
-
-/**
- * Same as frx_eyeBrightness but with exponential smoothing.
- * Optionally, can smooth only decreases, leaving increases instant.
- * Speed & bidirectionality are controlled in pipeline config.
- */
-vec2 frx_smoothedEyeBrightness() {
-	return _cvu_world[_CV_EYE_BRIGHTNESS].zw;
 }

@@ -17,6 +17,7 @@
 package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -26,6 +27,7 @@ import grondag.canvas.CanvasMod;
 
 public class PreReleaseShaderCompat {
 	private static final ObjectArrayList<Pair<String, String>> COMPAT = new ObjectArrayList<>();
+	private static final ObjectOpenHashSet<Identifier> WARNED = new ObjectOpenHashSet<>();
 
 	static {
 		// material.glsl
@@ -50,9 +52,58 @@ public class PreReleaseShaderCompat {
 		COMPAT.add(Pair.of("frx_fogEnd()", "frx_fogEnd"));
 		COMPAT.add(Pair.of("frx_fogColor()", "frx_fogColor"));
 		COMPAT.add(Pair.of("frx_fogEnabled()", "(frx_fogEnabled == 1)"));
+
+		COMPAT.add(Pair.of("frx_effectModifier()", "frx_effectModifier"));
+		COMPAT.add(Pair.of("frx_heldLight()", "frx_heldLight"));
+		COMPAT.add(Pair.of("frx_heldLightInnerRadius()", "frx_heldLightInnerRadius"));
+		COMPAT.add(Pair.of("frx_heldLightOuterRadius()", "frx_heldLightOuterRadius"));
+		COMPAT.add(Pair.of("frx_playerHasEffect", "frx_playerHasEffect"));
+		COMPAT.add(Pair.of("frx_playerFlag", "frx_playerFlag"));
+		COMPAT.add(Pair.of("frx_playerHasNightVision()", "(frx_effectNightVision == 1)"));
+		COMPAT.add(Pair.of("frx_playerMood()", "frx_playerMood"));
+		COMPAT.add(Pair.of("frx_eyePos()", "frx_eyePos"));
+		COMPAT.add(Pair.of("frx_eyeBrightness()", "frx_eyeBrightness"));
+		COMPAT.add(Pair.of("frx_smoothedEyeBrightness()", "frx_smoothedEyeBrightness"));
+
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
+		//COMPAT.add(Pair.of("", ""));
 	}
 
 	public static String compatify(String source, Identifier logPath) {
+		// Don't update the API implemention files
+		if (logPath.getNamespace().equals("frex") && logPath.getPath().equals("shaders/api/player.glsl")) {
+			return source;
+		}
+
 		boolean found = false;
 
 		for (final var p : COMPAT) {
@@ -62,10 +113,14 @@ public class PreReleaseShaderCompat {
 			}
 		}
 
-		if (found) {
+		if (found && WARNED.add(logPath)) {
 			CanvasMod.LOG.warn("Shader " + logPath.toString() + " references obsolete pre-release API and should be updated.");
 		}
 
 		return source;
+	}
+
+	public static void reload() {
+		WARNED.clear();
 	}
 }
