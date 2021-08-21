@@ -7,97 +7,15 @@
   Utilities for querying material properties.
 ******************************************************/
 
-/*
- * True when material is emissive.
- * For emissive materials, this is on/off, not a range.
- */
-bool frx_matEmissive() {
-	return _cv_getFlag(_CV_FLAG_EMISSIVE) == 1.0;
-}
-
-/** Multiplicative version frx_matEmissive(), true return 1, false returns 0 */
-float frx_matEmissiveFactor() {
-	return _cv_getFlag(_CV_FLAG_EMISSIVE);
-}
-
-/*
- * True when material is cutout. When enabled,
- * fragments will be discarded if alpha < 0.5.
- */
-bool frx_matCutout() {
-	return ((_cvv_flags >> _CV_CUTOUT_SHIFT) & _CV_CUTOUT_MASK) != _CV_CUTOUT_NONE;
-}
-
-/** Multiplicative version frx_matCutout(), true return 1, false returns 0 */
-float frx_matCutoutFactor() {
-	return frx_matCutout() ? 1.0 : 0.0;
-}
-
-/*
- * True when material is has Level of Detail (mip mapping) disabled.
- * Currently the RenderMaterail finder only allows this for cutout materials.
- */
-bool frx_matUnmipped() {
-	return _cv_getFlag(_CV_FLAG_UNMIPPED) == 1.0;
-}
-
-/** Multiplicative version frx_matUnmipped(), true return 1, false returns 0 */
-float frx_matUnmippedFactor() {
-	return _cv_getFlag(_CV_FLAG_UNMIPPED);
-}
-
-/*
- * True when material is marked to disable ambient occlusion shading.
- */
-bool frx_matDisableAo() {
-	return _cv_getFlag(_CV_FLAG_DISABLE_AO) == 1.0;
-}
-
-/**
- * True when material is marked to disable "diffuse" shading.
- * This may have a different or no effect in non-vanilla lighting models.
- */
-bool frx_matDisableDiffuse() {
-	return _cv_getFlag(_CV_FLAG_DISABLE_DIFFUSE) == 1.0;
-}
-
-/**
- * True when should render the red "hurt" overlay.
- * Mostly for use in pipeline shaders - material shaders aren't expected to handle.
- */
-bool frx_matHurt() {
-	return _cv_getFlag(_CV_FLAG_HURT_OVERLAY) == 1.0;
-}
-
-/**
- * True when should render the white "flash" overlay.
- * Mostly for use in pipeline shaders - material shaders aren't expected to handle.
- */
-bool frx_matFlash() {
-	return _cv_getFlag(_CV_FLAG_FLASH_OVERLAY) == 1.0;
-}
-
-/**
- * Returns 1.0 if material has enchantment glint, 0.0 otherwise.
- */
-float frx_matGlint() {
-	return _cv_isGlint();
-}
-
-/**
- * RESERVED FOR FUTURE FEATURE - not yet implemented.
- *
- * Coarse indication of where the surface is located.
- * Zero means the surface is not exposed to the sky and
- * cannot get wet or otherwise be affected from directly above.
- *
- * Values 1.0, 2.0 and 3.0 indicate icy, temperate or hot biome
- * temperatures, respectively.
- *
- * Values > 0 also mean the surface exposed to the sky.
- * Does not mean it is facing up - check normals for that -
- * but does it mean it could get wet/icy/etc.
- */
-float frx_matExposure() {
-	return 0.0;
-}
+#define frx_matEmissive _CV_GET_FLAG(_CV_FLAG_EMISSIVE)
+#define frx_matCutout (((_cvv_flags >> _CV_CUTOUT_SHIFT) & _CV_CUTOUT_MASK) == _CV_CUTOUT_NONE ? 0 : 1)
+#define frx_matUnmipped _CV_GET_FLAG(_CV_FLAG_UNMIPPED)
+#define frx_matDisableAo _CV_GET_FLAG(_CV_FLAG_DISABLE_AO)
+#define frx_matDisableDiffuse _CV_GET_FLAG(_CV_FLAG_DISABLE_DIFFUSE)
+#define frx_matHurt _CV_GET_FLAG(_CV_FLAG_HURT_OVERLAY)
+#define frx_matFlash _CV_GET_FLAG(_CV_FLAG_FLASH_OVERLAY)
+#define frx_matGlint _CV_GET_FLAG(_CV_FLAG_GLINT)
+#define frx_matExposure 0.0
+// TODO
+#define frx_matReflectance 0.04
+#define frx_matRoughness 0.0

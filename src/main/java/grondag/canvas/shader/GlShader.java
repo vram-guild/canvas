@@ -303,17 +303,24 @@ public class GlShader implements Shader {
 	}
 
 	protected static String loadShaderSource(ResourceManager resourceManager, Identifier shaderSourceId) {
+		String result;
+
 		try (Resource resource = resourceManager.getResource(shaderSourceId)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
-				return CharStreams.toString(reader);
+				result = CharStreams.toString(reader);
 			}
 		} catch (final FileNotFoundException e) {
-			final String result = Pipeline.config().configSource(shaderSourceId);
-			return result == null ? ShaderConfig.getShaderConfigSupplier(shaderSourceId).get() : result;
+			result = Pipeline.config().configSource(shaderSourceId);
+
+			if (result == null) {
+				result = ShaderConfig.getShaderConfigSupplier(shaderSourceId).get();
+			}
 		} catch (final IOException e) {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + " due to exception.", e);
 			return "";
 		}
+
+		return result == null || result.isBlank() ? "" : PreReleaseShaderCompat.compatify(result, shaderSourceId);
 	}
 
 	private String processSourceIncludes(ResourceManager resourceManager, String source) {

@@ -40,10 +40,12 @@ public class GlMaterialShader extends GlShader {
 	@Override
 	protected String preprocessSource(ResourceManager resourceManager, String baseSource) {
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-			return preprocessFragmentSource(resourceManager, baseSource);
+			baseSource = preprocessFragmentSource(resourceManager, baseSource);
 		} else {
-			return preprocessVertexSource(resourceManager, baseSource);
+			baseSource = preprocessVertexSource(resourceManager, baseSource);
 		}
+
+		return super.preprocessSource(resourceManager, baseSource);
 	}
 
 	private String preprocessFragmentSource(ResourceManager resourceManager, String baseSource) {
