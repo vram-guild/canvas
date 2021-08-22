@@ -97,10 +97,7 @@
 #define FRX_EFFECT_BAD_OMEN 30 // DEPRECATED - DO NOT USE
 #define FRX_EFFECT_HERO_OF_THE_VILLAGE 31 // DEPRECATED - DO NOT USE
 
- // DEPRECATED - DO NOT USE
-bool frx_playerHasEffect(int effect) {
-	return frx_bitValue(_cvu_flags[_CV_PLAYER_FLAGS_INDEX], effect) == 1;
-}
+#define frx_playerHasEffect(effect) (frx_bitValue(_cvu_flags[_CV_PLAYER_FLAGS_INDEX], effect) == 1)  // DEPRECATED - DO NOT USE
 
 #define FRX_PLAYER_EYE_IN_FLUID 7 // DEPRECATED - DO NOT USE
 #define FRX_PLAYER_EYE_IN_WATER 8 // DEPRECATED - DO NOT USE
@@ -117,7 +114,4 @@ bool frx_playerHasEffect(int effect) {
 #define FRX_PLAYER_SPRINTING 19 // DEPRECATED - DO NOT USE
 #define FRX_PLAYER_WET 20 // DEPRECATED - DO NOT USE
 
-// DEPRECATED - DO NOT USE
-bool frx_playerFlag(int flag) {
-	return frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1;
-}
+#define frx_playerFlag(flag) (frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1) // DEPRECATED - DO NOT USE

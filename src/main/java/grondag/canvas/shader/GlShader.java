@@ -421,6 +421,8 @@ public class GlShader implements Shader {
 		// restore GLSL version
 		source = "#version " + Pipeline.config().glslVersion + "\n" + source;
 
+		// strip commented preprocessor declarations
+		source = source.replaceAll("//#.*[ \t]*[\r\n]", "\n");
 		// strip leading whitepsace before newline, makes next change more reliable
 		source = source.replaceAll("[ \t]*[\r\n]", "\n");
 		// consolidate newlines

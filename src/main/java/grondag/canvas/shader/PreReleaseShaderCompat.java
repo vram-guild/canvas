@@ -159,7 +159,10 @@ public class PreReleaseShaderCompat {
 		// vertex.glsl
 		COMPAT.add(Pair.of("frx_color", "frx_vertexColor"));
 		COMPAT.add(Pair.of("frx_normal", "frx_vertexNormal"));
-		//COMPAT.add(Pair.of("", ""));
+
+		// bitwise.glsl
+		COMPAT.add(Pair.of("frx_bitValue", "frx_bitValue"));
+
 		//COMPAT.add(Pair.of("", ""));
 		//COMPAT.add(Pair.of("", ""));
 		//COMPAT.add(Pair.of("", ""));

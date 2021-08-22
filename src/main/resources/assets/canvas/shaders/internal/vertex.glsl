@@ -1,5 +1,3 @@
-#include frex:shaders/api/context.glsl
-
 /******************************************************
   canvas:shaders/internal/vertex.glsl
 ******************************************************/
