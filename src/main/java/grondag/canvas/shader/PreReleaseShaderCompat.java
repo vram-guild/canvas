@@ -166,7 +166,8 @@ public class PreReleaseShaderCompat {
 
 	public static String compatify(String source, Identifier logPath) {
 		// Don't update the API implemention files
-		if (logPath.getNamespace().equals("frex") && logPath.getPath().equals("shaders/api/player.glsl")) {
+		if (logPath.getNamespace().equals("frex")
+				&& (logPath.getPath().equals("shaders/api/player.glsl") || logPath.getPath().equals("shaders/lib/bitwise.glsl"))) {
 			return source;
 		}
 

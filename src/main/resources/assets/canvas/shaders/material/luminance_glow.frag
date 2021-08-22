@@ -5,7 +5,9 @@
   canvas:shaders/material/luminance_glow.frag
 ******************************************************/
 
-void frx_startFragment(inout frx_FragmentData fragData) {
-	float e = frx_luminance(fragData.spriteColor.rgb);
-	fragData.emissivity = e * e;
+void frx_materialFragment() {
+#ifndef DEPTH_PASS
+	float e = frx_luminance(frx_sampleColor.rgb);
+	frx_fragEmissive = e * e;
+#endif
 }

@@ -13,7 +13,7 @@
 #define frx_moonSize _cvu_world[_CV_WORLD_TIME].w
 #define frx_skyAngleRadians _cvu_world[_CV_SKYLIGHT_VECTOR].w
 #define frx_skyLightVector _cvu_world[_CV_SKYLIGHT_VECTOR].xyz
-#define frx_skyLightColor _cvu_world[_CV_SKYLIGHT_COLOR].xyz;
+#define frx_skyLightColor _cvu_world[_CV_SKYLIGHT_COLOR].xyz
 #define frx_skyLightIlluminance _cvu_world[_CV_SKYLIGHT_COLOR].w
 #define frx_skyLightAtmosphericColor _cvu_world[_CV_ATMOSPEHRIC_COLOR].xyz
 #define frx_skyLightTransitionFactor _cvu_world[_CV_ATMOSPEHRIC_COLOR].w

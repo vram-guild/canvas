@@ -4,6 +4,6 @@
   canvas:shaders/material/default.frag
 ******************************************************/
 
-void frx_startFragment(inout frx_FragmentData fragData) {
+void frx_materialFragment() {
 	// NOOP
 }
