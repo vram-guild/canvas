@@ -31,6 +31,7 @@ import grondag.canvas.CanvasMod;
 public class PreReleaseShaderCompat {
 	private static final ObjectArrayList<Pair<String, String>> COMPAT = new ObjectArrayList<>();
 	private static final ObjectOpenHashSet<Identifier> WARNED = new ObjectOpenHashSet<>();
+	private static final ObjectOpenHashSet<Identifier> EXCLUSIONS = new ObjectOpenHashSet<>();
 
 	static {
 		// material.glsl
@@ -162,14 +163,21 @@ public class PreReleaseShaderCompat {
 
 		// bitwise.glsl
 		COMPAT.add(Pair.of("frx_bitValue", "frx_bitValue"));
+
+		EXCLUSIONS.add(new Identifier("frex:shaders/api/player.glsl"));
+		EXCLUSIONS.add(new Identifier("frex:shaders/api/view.glsl"));
+		EXCLUSIONS.add(new Identifier("frex:shaders/api/world.glsl"));
+		EXCLUSIONS.add(new Identifier("frex:shaders/lib/bitwise.glsl"));
 	}
 
 	public static String compatify(String source, Identifier logPath) {
 		// Don't update the API implemention files
-		if (logPath.getNamespace().equals("frex")
-				&& (logPath.getPath().equals("shaders/api/player.glsl") || logPath.getPath().equals("shaders/lib/bitwise.glsl"))) {
+		if (EXCLUSIONS.contains(logPath)) {
 			return source;
 		}
+
+		// An awful hack - rename frx_normalizeMappedUV so that it isn't targeted by frx_normal replacement
+		source = StringUtils.replace(source, "frx_normalizeMappedUV", "_cv_aDirtyDirtyHack");
 
 		boolean found = false;
 
@@ -183,6 +191,9 @@ public class PreReleaseShaderCompat {
 		if (found && WARNED.add(logPath)) {
 			CanvasMod.LOG.warn("Shader " + logPath.toString() + " references obsolete pre-release API and should be updated.");
 		}
+
+		// Complete our nasty business
+		source = StringUtils.replace(source, "_cv_aDirtyDirtyHack", "frx_normalizeMappedUV");
 
 		return compatifyFragment(source, logPath);
 	}

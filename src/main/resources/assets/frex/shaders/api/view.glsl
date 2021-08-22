@@ -51,4 +51,7 @@
 #define frx_cameraInWater int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> 23) & 1u)
 #define frx_cameraInLava int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> 24) & 1u)
 
-#define frx_viewFlag(flag) (frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1) // DEPRECATED - DO NOT USE
+#define frx_viewFlag(flag) (((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> flag) & 1u) == 1u) // DEPRECATED - DO NOT USE
+
+
+

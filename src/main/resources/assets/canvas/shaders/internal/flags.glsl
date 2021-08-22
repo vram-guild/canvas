@@ -1,6 +1,3 @@
-#include frex:shaders/api/context.glsl
-#include frex:shaders/lib/bitwise.glsl
-
 /******************************************************
   canvas:shaders/internal/flags.glsl
 ******************************************************/
@@ -31,10 +28,6 @@ flat out uint _cvv_flags;
 #else
 flat in uint _cvv_flags;
 #endif
-
-#define _cv_isGlint() frx_bitValue(uint(_cvv_flags), _CV_FLAG_GLINT) // return float
-
-#define _cv_getFlag(flagId) frx_bitValue(_cvv_flags, flagId) // DEPRECATED, returns float
 
 #define _CV_GET_FLAG(flagId) int((_cvv_flags >> flagId) & 1u)  // returns int
 
