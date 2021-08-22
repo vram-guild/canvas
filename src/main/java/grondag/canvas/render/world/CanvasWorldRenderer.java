@@ -777,7 +777,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		BufferSynchronizer.checkPoint();
 		DirectBufferAllocator.update();
 		TransferBuffers.update();
-		PipelineManager.reloadIfNeeded();
+		PipelineManager.reloadIfNeeded(false);
 
 		if (wasFabulous != Pipeline.isFabulous()) {
 			vanillaWorldRenderer.canvas_setupFabulousBuffers();
@@ -818,7 +818,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public void reload() {
-		PipelineManager.reloadIfNeeded();
+		PipelineManager.reloadIfNeeded(true);
 
 		// cause injections to fire but disable all other vanilla logic
 		// by setting world to null temporarily

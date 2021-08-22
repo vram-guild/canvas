@@ -44,6 +44,7 @@ import static grondag.canvas.config.Configurator.logMaterials;
 import static grondag.canvas.config.Configurator.logMissingUniforms;
 import static grondag.canvas.config.Configurator.logRenderLagSpikes;
 import static grondag.canvas.config.Configurator.pipelineId;
+import static grondag.canvas.config.Configurator.preprocessShaderSource;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
 import static grondag.canvas.config.Configurator.profilerDetailLevel;
 import static grondag.canvas.config.Configurator.profilerOverlayScale;
@@ -406,6 +407,16 @@ public class ConfigGui {
 				.setDefaultValue(DEFAULTS.shaderDebug)
 				.setTooltip(parse("config.canvas.help.shader_debug"))
 				.setSaveConsumer(b -> shaderDebug = b)
+				.build());
+
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.preprocess_shader_source"), preprocessShaderSource)
+				.setDefaultValue(DEFAULTS.preprocessShaderSource)
+				.setTooltip(parse("config.canvas.help.preprocess_shader_source"))
+				.setSaveConsumer(b -> {
+					reload |= preprocessShaderSource != b;
+					preprocessShaderSource = b;
+				})
 				.build());
 
 		//		debug.addEntry(ENTRY_BUILDER

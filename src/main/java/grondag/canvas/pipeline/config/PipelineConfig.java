@@ -31,6 +31,7 @@ public class PipelineConfig {
 	public final int brightnessSmoothingFrames;
 	public final int rainSmoothingFrames;
 	public final boolean runVanillaClear;
+	public final int glslVersion;
 
 	public final ConfigContext context;
 	public final ImageConfig[] images;
@@ -58,6 +59,7 @@ public class PipelineConfig {
 		brightnessSmoothingFrames = 20;
 		rainSmoothingFrames = 500;
 		runVanillaClear = true;
+		glslVersion = 330;
 
 		context = new ConfigContext();
 		programs = new ProgramConfig[0];
@@ -82,6 +84,7 @@ public class PipelineConfig {
 		brightnessSmoothingFrames = builder.brightnessSmoothingFrames;
 		rainSmoothingFrames = builder.rainSmoothingFrames;
 		runVanillaClear = builder.runVanillaClear;
+		glslVersion = builder.glslVersion;
 
 		materialProgram = builder.materialProgram;
 		defaultFramebuffer = builder.defaultFramebuffer;

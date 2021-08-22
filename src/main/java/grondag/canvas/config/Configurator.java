@@ -50,6 +50,7 @@ public class Configurator {
 	public static boolean cullParticles = DEFAULTS.cullParticles;
 	public static boolean useCombinedThreadPool = DEFAULTS.useCombinedThreadPool;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
+	public static boolean preprocessShaderSource = DEFAULTS.preprocessShaderSource;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
@@ -102,6 +103,7 @@ public class Configurator {
 		wavyGrass = config.wavyGrass;
 
 		shaderDebug = config.shaderDebug;
+		preprocessShaderSource = config.preprocessShaderSource;
 		//maxLightmapDelayFrames = config.maxLightmapDelayFrames;
 		//moreLightmap = config.moreLightmap;
 
@@ -158,6 +160,7 @@ public class Configurator {
 		config.wavyGrass = wavyGrass;
 
 		config.shaderDebug = shaderDebug;
+		config.preprocessShaderSource = preprocessShaderSource;
 		//config.maxLightmapDelayFrames = maxLightmapDelayFrames;
 
 		// config.hdLightmaps = hdLightmaps;

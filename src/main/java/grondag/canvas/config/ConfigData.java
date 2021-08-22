@@ -82,6 +82,8 @@ class ConfigData {
 	// DEBUG
 	@Comment("Output runtime per-material shader source. For shader development debugging.")
 	boolean shaderDebug = false;
+	@Comment("Pre-process OpenGL source before compilation. Makes source more concise but possibly harder to read.")
+	boolean preprocessShaderSource = true;
 	//@Comment("Shows HD lightmap pixels for debug purposes. Also looks cool.")
 	//boolean lightmapDebug = false;
 	@Comment("Summarizes multiple errors and warnings to single-line entries in the log.")

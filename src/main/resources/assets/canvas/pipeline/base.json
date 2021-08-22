@@ -3,6 +3,7 @@
   runVanillaClear: true,
   brightnessSmoothingFrames: 20,
   rainSmoothingFrames: 500,
+  glslVersion: 330
 
   images: [
     // color attachment for solid draws

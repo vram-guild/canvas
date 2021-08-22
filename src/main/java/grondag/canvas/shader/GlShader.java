@@ -31,6 +31,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
+import org.anarres.cpp.DefaultPreprocessorListener;
+import org.anarres.cpp.Feature;
+import org.anarres.cpp.Preprocessor;
+import org.anarres.cpp.StringLexerSource;
+import org.anarres.cpp.Token;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL20C;
@@ -276,6 +281,9 @@ public class GlShader implements Shader {
 
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
 
+			// prepend GLSL version
+			result = "#version " + Pipeline.config().glslVersion + "\n\n" + result;
+
 			//if (Configurator.hdLightmaps()) {
 			//	result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
 			//
@@ -283,6 +291,10 @@ public class GlShader implements Shader {
 			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
 			//	}
 			//}
+
+			if (Configurator.preprocessShaderSource) {
+				result = glslPreprocessSource(result);
+			}
 
 			source = result;
 		}
@@ -373,5 +385,52 @@ public class GlShader implements Shader {
 	@Override
 	public Identifier getShaderSourceId() {
 		return shaderSourceId;
+	}
+
+	private static String glslPreprocessSource(String source) {
+		// The C preprocessor won't understand the #version token but
+		// we need to intercept __VERSION__ used in conditional compilation.
+		// GLSL won't let use define tokens starting with two underscores so
+		// to intercept __VERSION__ we have to temporarily rename it.
+		// It will be stripped at the end so we will need to prepend #version after
+		source = StringUtils.replace(source, "#version ", "#define _CV_VERSION ");
+		source = StringUtils.replace(source, "__VERSION__", "_CV_VERSION");
+
+		@SuppressWarnings("resource")
+		final Preprocessor pp = new Preprocessor();
+		pp.setListener(new DefaultPreprocessorListener());
+		pp.addInput(new StringLexerSource(source, true));
+		pp.addFeature(Feature.KEEPCOMMENTS);
+
+		final StringBuilder builder = new StringBuilder();
+
+		try {
+			for (;;) {
+				final Token tok = pp.token();
+				if (tok == null) break;
+				if (tok.getType() == Token.EOF) break;
+				builder.append(tok.getText());
+			}
+		} catch (final Exception e) {
+			CanvasMod.LOG.error("GLSL source pre-processing failed", e);
+		}
+
+		builder.append("\n");
+
+		source = builder.toString();
+
+		// restore GLSL version
+		source = "#version " + Pipeline.config().glslVersion + "\n" + source;
+
+		// strip leading whitepsace before newline, makes next change more reliable
+		source = source.replaceAll("[ \t]*[\r\n]", "\n");
+		// consolidate newlines
+		source = source.replaceAll("\n{2,}", "\n\n");
+		// inefficient way to remove multiple orhpaned comment blocks
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+
+		return source;
 	}
 }
