@@ -153,8 +153,9 @@ public class PreReleaseShaderCompat {
 		COMPAT.add(Pair.of("frx_isWorldTheEnd()", "(frx_worldIsEnd == 1)"));
 		COMPAT.add(Pair.of("frx_isRaining()", "(frx_worldIsRaining == 1)"));
 
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
+		// vertex.glsl
+		COMPAT.add(Pair.of("frx_color", "frx_vertexColor"));
+		COMPAT.add(Pair.of("frx_normal", "frx_vertexNormal"));
 		//COMPAT.add(Pair.of("", ""));
 		//COMPAT.add(Pair.of("", ""));
 		//COMPAT.add(Pair.of("", ""));
