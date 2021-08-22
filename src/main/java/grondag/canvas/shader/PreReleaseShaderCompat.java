@@ -162,54 +162,6 @@ public class PreReleaseShaderCompat {
 
 		// bitwise.glsl
 		COMPAT.add(Pair.of("frx_bitValue", "frx_bitValue"));
-
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
-		//COMPAT.add(Pair.of("", ""));
 	}
 
 	public static String compatify(String source, Identifier logPath) {
@@ -308,8 +260,6 @@ public class PreReleaseShaderCompat {
 	}
 
 	private static String replaceFragmentVars(String source, String dataVarName) {
-		source = StringUtils.replace(source, dataVarName + ".spriteColor", "frx_fragColor");
-		source = StringUtils.replace(source, dataVarName + ".vertexColor", "frx_fragColor");
 		source = StringUtils.replace(source, dataVarName + ".emissivity", "frx_fragEmissive");
 		source = StringUtils.replace(source, dataVarName + ".vertexNormal", "frx_vertexNormal");
 		source = StringUtils.replace(source, dataVarName + ".light", "frx_fragLight.xy");

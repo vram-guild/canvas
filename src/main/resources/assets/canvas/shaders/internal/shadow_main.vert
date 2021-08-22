@@ -13,7 +13,7 @@
   canvas:shaders/internal/shadow_main.vert
 ******************************************************/
 
-void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
+void _cv_startVertex(in int cv_programId) {
 #include canvas:startvertex
 }
 
@@ -27,7 +27,7 @@ void main() {
 	_cvv_flags = uint(_cvu_program.z);
 
 	// material shaders go first
-	_cv_startVertex(data, _cv_vertexProgramId());
+	_cv_startVertex(_cv_vertexProgramId());
 
 	frx_texcoord = frx_mapNormalizedUV(frx_texcoord);
 

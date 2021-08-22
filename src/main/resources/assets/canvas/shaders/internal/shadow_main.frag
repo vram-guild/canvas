@@ -12,7 +12,7 @@
   canvas:shaders/internal/shadow_main.frag
 ******************************************************/
 
-void _cv_startFragment(inout frx_FragmentData data) {
+void _cv_startFragment() {
 	int cv_programId = _cv_fragmentProgramId();
 
 #include canvas:startfragment
@@ -24,13 +24,19 @@ void main() {
 		discard;
 	}
 #endif
-	frx_FragmentData fragData = frx_createPipelineFragment();
+	frx_sampleColor = texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0);
 
-	_cv_startFragment(fragData);
+#ifdef _CV_FRAGMENT_COMPAT
+	compatData = frx_FragmentData(!frx_matDisableDiffuse(), !frx_matDisableAo(), frx_sampleColor, frx_vertexColor);
+#endif
+	
+	frx_fragColor = frx_sampleColor * frx_vertexColor;
 
-	if (fragData.spriteColor.a * fragData.vertexColor.a <= _cv_cutoutThreshold()) {
+	_cv_startFragment();
+
+	if (frx_fragColor.a <= _cv_cutoutThreshold()) {
 		discard;
 	}
 
-	frx_writePipelineFragment(fragData);
+	frx_pipelineFragment();
 }

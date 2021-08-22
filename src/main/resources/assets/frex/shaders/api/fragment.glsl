@@ -6,6 +6,9 @@ in vec4 frx_vertex;
 in vec2 frx_texcoord;
 in vec4 frx_vertexColor;
 
+vec4 frx_sampleColor;
+vec4 frx_fragColor;
+
 #ifndef DEPTH_PASS
 in vec3 frx_vertexNormal;
 in vec4 frx_vertexLight;
@@ -14,21 +17,25 @@ in vec4 frx_var1;
 in vec4 frx_var2;
 in vec4 frx_var3;
 in float frx_distance;
-#endif
 
-vec4 frx_sampleColor;
-vec4 frx_fragColor;
 float frx_fragReflectance;
 vec3 frx_fragNormal;
 float frx_fragHeight;
 float frx_fragRoughness;
 float frx_fragEmissive;
 vec4 frx_fragLight;
+#endif
 
+#define _CV_FRAGMENT_COMPAT
+
+#ifdef _CV_FRAGMENT_COMPAT
 // For compatibility - do not use
 struct frx_FragmentData {
 	bool diffuse;
 	bool ao;
+	vec4 spriteColor;
+	vec4 vertexColor;
 };
 
 frx_FragmentData compatData;
+#endif
