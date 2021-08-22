@@ -11,7 +11,7 @@
   canvas:shaders/internal/material_main.frag
 ******************************************************/
 
-void _cv_startFragment(inout frx_FragmentData data) {
+void _cv_startFragment() {
 	int cv_programId = _cv_fragmentProgramId();
 
 #include canvas:startfragment
@@ -23,13 +23,32 @@ void main() {
 		discard;
 	}
 #endif
-	frx_FragmentData fragData = frx_createPipelineFragment();
+	compatData = frx_FragmentData(!frx_matDisableDiffuse(), !frx_matDisableAo());
+	
+	frx_sampleColor = texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0);
+	frx_fragColor = frx_sampleColor * frx_vertexColor;
+	frx_fragReflectance = frx_matReflectance;
+	frx_fragNormal = vec3(0.0, 0.0, 1.0);
+	frx_fragHeight = 0;
+	frx_fragRoughness = frx_matRoughness;
+	frx_fragEmissive = frx_matEmissive;
+	frx_fragLight = vec4(pv_lightcoord, 
+			frx_matDisableDiffuse == 1 ? 1.0 : frx_vertexLight.z, 
+			frx_matDisableAo == 1 ? 1.0 : frx_vertexLight.w);
+	
+	_cv_startFragment();
 
-	_cv_startFragment(fragData);
-
-	if (fragData.spriteColor.a * fragData.vertexColor.a <= _cv_cutoutThreshold()) {
+	if (frx_fragColor.a <= _cv_cutoutThreshold()) {
 		discard;
 	}
 
-	frx_writePipelineFragment(fragData);
+	if (!compatData.diffuse) {
+		frx_fragLight.z = 1.0;
+	}
+	
+	if (!compatData.ao) {
+		frx_fragLight.w = 1.0;
+	}
+	
+	frx_pipelineFragment();
 }

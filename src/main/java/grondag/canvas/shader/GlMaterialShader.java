@@ -59,10 +59,12 @@ public class GlMaterialShader extends GlShader {
 			starts = "\t// NOOP";
 			impl = "";
 		} else if (limit == 1) {
-			impl = loadShaderSource(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(shaders[0]));
+			impl = loadMaterialFragmentShader(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(shaders[0]));
 
 			if (impl.contains("frx_startFragment")) {
-				starts = "\tfrx_startFragment(data);";
+				starts = "\tfrx_startFragment(compatData);";
+			} else if (impl.contains("frx_materialFragment")) {
+				starts = "\tfrx_materialFragment();";
 			} else {
 				starts = "\t// NOOP";
 			}
@@ -79,14 +81,23 @@ public class GlMaterialShader extends GlShader {
 				startsBuilder.append(index);
 				startsBuilder.append(": ");
 
-				String src = loadShaderSource(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
+				String src = loadMaterialFragmentShader(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
 
+				// UGLY: some pre-release compat handling here - should eventually be removed
 				if (src.contains("frx_startFragment")) {
 					startsBuilder.append("frx_startFragment");
 					startsBuilder.append(index);
-					startsBuilder.append("(data); break;\n");
+					startsBuilder.append("(compatData); break;\n");
 
 					src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
+					implBuilder.append(src);
+					implBuilder.append("\n");
+				} else if (src.contains("frx_materialFragment")) {
+					startsBuilder.append("frx_materialFragment");
+					startsBuilder.append(index);
+					startsBuilder.append("(); break;\n");
+
+					src = StringUtils.replace(src, "frx_materialFragment", "frx_materialFragment" + index);
 					implBuilder.append(src);
 					implBuilder.append("\n");
 				} else {
@@ -106,6 +117,7 @@ public class GlMaterialShader extends GlShader {
 			: Pipeline.config().materialProgram.fragmentSource;
 
 		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
+
 		baseSource = StringUtils.replace(baseSource, ShaderStrings.API_TARGET, impl + pipelineSource);
 		baseSource = StringUtils.replace(baseSource, ShaderStrings.FRAGMENT_START, starts);
 		return baseSource;
@@ -178,5 +190,9 @@ public class GlMaterialShader extends GlShader {
 
 	private static String loadMaterialVertexShader(ResourceManager resourceManager, Identifier shaderSourceId) {
 		return PreReleaseShaderCompat.compatifyMaterialVertex(loadShaderSource(resourceManager, shaderSourceId), shaderSourceId);
+	}
+
+	private static String loadMaterialFragmentShader(ResourceManager resourceManager, Identifier shaderSourceId) {
+		return PreReleaseShaderCompat.compatify(loadShaderSource(resourceManager, shaderSourceId), shaderSourceId);
 	}
 }

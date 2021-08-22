@@ -231,7 +231,7 @@ public class PreReleaseShaderCompat {
 			CanvasMod.LOG.warn("Shader " + logPath.toString() + " references obsolete pre-release API and should be updated.");
 		}
 
-		return source;
+		return compatifyFragment(source, logPath);
 	}
 
 	private static final Pattern MATERIAL_VERTEX_PATTERN = Pattern.compile("frx_startVertex\\s*\\(.*frx_VertexData\\s+(.+)\\s*\\)");
@@ -275,6 +275,46 @@ public class PreReleaseShaderCompat {
 		source = StringUtils.replace(source, dataVarName + ".normal", "frx_vertexNormal");
 		source = StringUtils.replace(source, dataVarName + ".light", "frx_vertexLight.xy");
 		source = StringUtils.replace(source, dataVarName + ".aoShade", "frx_vertexLight.w");
+		return source;
+	}
+
+	private static final Pattern FRAGMENT_PATTERN = Pattern.compile("\\s+([a-zA-Z_]+)\\s*\\(.*frx_FragmentData\\s+(.+)\\s*\\)");
+
+	private static String compatifyFragment(String source, Identifier logPath) {
+		final Matcher m = FRAGMENT_PATTERN.matcher(source);
+		boolean warn = false;
+
+		if (m.find()) {
+			source = replaceFragmentVars(source, m.group(2));
+			warn = true;
+		}
+
+		// Create compat redirect for legacy pipeline method if present
+		if (source.contains("frx_writePipelineFragment")) {
+			source = source + "\nvoid frx_pipelineFragment() {frx_writePipelineFragment(compatData);}\n";
+			warn = true;
+		}
+
+		if (source.contains("frx_createPipelineFragment")) {
+			source = stripMethod(source, "frx_FragmentData\s+frx_createPipelineFragment");
+			warn = true;
+		}
+
+		if (warn && WARNED.add(logPath)) {
+			CanvasMod.LOG.warn("Shader " + logPath.toString() + " references obsolete pre-release API and should be updated.");
+		}
+
+		return source;
+	}
+
+	private static String replaceFragmentVars(String source, String dataVarName) {
+		source = StringUtils.replace(source, dataVarName + ".spriteColor", "frx_fragColor");
+		source = StringUtils.replace(source, dataVarName + ".vertexColor", "frx_fragColor");
+		source = StringUtils.replace(source, dataVarName + ".emissivity", "frx_fragEmissive");
+		source = StringUtils.replace(source, dataVarName + ".vertexNormal", "frx_vertexNormal");
+		source = StringUtils.replace(source, dataVarName + ".light", "frx_fragLight.xy");
+		source = StringUtils.replace(source, dataVarName + ".aoShade", "frx_fragLight.w");
+
 		return source;
 	}
 
