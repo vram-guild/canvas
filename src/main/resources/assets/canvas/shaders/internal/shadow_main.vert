@@ -19,24 +19,18 @@ void _cv_startVertex(inout frx_VertexData data, in int cv_programId) {
 
 void main() {
 	_cv_prepareForVertex();
-
-	frx_VertexData data = frx_VertexData(
-		vec4(in_vertex, 1.0),
-		in_uv,
-		in_color,
-		in_normal
-	);
-
+	frx_vertex = vec4(in_vertex, 1.0);
+	frx_texcoord = in_uv;
+	frx_vertexColor = in_color;
+	
 	_cv_setupProgram();
 	_cvv_flags = uint(_cvu_program.z);
 
 	// material shaders go first
 	_cv_startVertex(data, _cv_vertexProgramId());
 
-	frx_texcoord = frx_mapNormalizedUV(data.spriteUV);
-	frx_color = data.color;
-	frx_vertex = data.vertex;
+	frx_texcoord = frx_mapNormalizedUV(frx_texcoord);
 
 	// pipeline shader handles additional writes/out variables
-	frx_writePipelineVertex(data);
+	frx_pipelineVertex();
 }

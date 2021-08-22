@@ -16,6 +16,9 @@
 
 package grondag.canvas.shader;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.StringUtils;
@@ -226,6 +229,84 @@ public class PreReleaseShaderCompat {
 		}
 
 		return source;
+	}
+
+	private static final Pattern MATERIAL_VERTEX_PATTERN = Pattern.compile("frx_startVertex\\s*\\(.*frx_VertexData\\s+(.+)\\s*\\)");
+
+	public static String compatifyMaterialVertex(String source, Identifier logPath) {
+		final Matcher mStart = MATERIAL_VERTEX_PATTERN.matcher(source);
+
+		if (mStart.find()) {
+			source = replaceVertexVars(source, mStart.group(1));
+			source = StringUtils.replace(source, mStart.group(0), "frx_materialVertex()");
+
+			if (WARNED.add(logPath)) {
+				CanvasMod.LOG.warn("Shader " + logPath.toString() + " references obsolete pre-release API and should be updated.");
+			}
+		}
+
+		return stripMethod(source, "void\s+frx_endVertex");
+	}
+
+	private static final Pattern PIPELINE_VERTEX_PATTERN = Pattern.compile("frx_writePipelineVertex\\s*\\(.*frx_VertexData\\s+(.+)\\s*\\)");
+
+	public static String compatifyPipelineVertex(String source, Identifier logPath) {
+		final Matcher m = PIPELINE_VERTEX_PATTERN.matcher(source);
+
+		if (m.find()) {
+			source = replaceVertexVars(source, m.group(1));
+			source = StringUtils.replace(source, m.group(0), "frx_pipelineVertex()");
+
+			if (WARNED.add(logPath)) {
+				CanvasMod.LOG.warn("Shader " + logPath.toString() + " references obsolete pre-release API and should be updated.");
+			}
+		}
+
+		return source;
+	}
+
+	private static String replaceVertexVars(String source, String dataVarName) {
+		source = StringUtils.replace(source, dataVarName + ".vertex", "frx_vertex");
+		source = StringUtils.replace(source, dataVarName + ".spriteUV", "frx_texcoord");
+		source = StringUtils.replace(source, dataVarName + ".color", "frx_vertexColor");
+		source = StringUtils.replace(source, dataVarName + ".normal", "frx_vertexNormal");
+		source = StringUtils.replace(source, dataVarName + ".light", "frx_vertexLight.xy");
+		source = StringUtils.replace(source, dataVarName + ".aoShade", "frx_vertexLight.w");
+		return source;
+	}
+
+	private static String stripMethod(String source, String methodRegex) {
+		final var matcher = Pattern.compile(methodRegex).matcher(source);
+
+		if (!matcher.find()) {
+			return source;
+		}
+
+		final int start = matcher.start();
+		final int startBracket = StringUtils.indexOf(source, "{", start);
+
+		final char[] text = source.toCharArray();
+		final int limit = text.length;
+		int depth = 1;
+		int endBracket = startBracket +1;
+
+		while (endBracket < limit) {
+			final char c = text[endBracket];
+
+			if (c == '{') {
+				++depth;
+			} else if (c == '}') {
+				--depth;
+
+				if (depth == 0) {
+					break;
+				}
+			} else {
+				++endBracket;
+			}
+		}
+
+		return source.substring(0, start) + source.substring(endBracket + 1);
 	}
 
 	public static void reload() {

@@ -33,6 +33,5 @@
 #define frx_worldIsMoonlit int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> 21) & 1u)
 #define frx_conditionTest(conditionIndex) _cv_testConditioni(conditionIndex)
 
-// DEPRECATED - DO NOT USE
-#define frx_testCondition(conditionIndex) (frx_conditionTest(conditionIndex) == 1)
-#define frx_worldFlag(flag) (frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1.0)
+#define frx_testCondition(conditionIndex) (frx_conditionTest(conditionIndex) == 1) // DEPRECATED - DO NOT USE
+#define frx_worldFlag(flag) (frx_bitValue(_cvu_flags[_CV_WORLD_FLAGS_INDEX], flag) == 1.0) // DEPRECATED - DO NOT USE

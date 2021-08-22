@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
 import org.anarres.cpp.DefaultPreprocessorListener;
-import org.anarres.cpp.Feature;
 import org.anarres.cpp.Preprocessor;
 import org.anarres.cpp.StringLexerSource;
 import org.anarres.cpp.Token;
@@ -400,7 +399,7 @@ public class GlShader implements Shader {
 		final Preprocessor pp = new Preprocessor();
 		pp.setListener(new DefaultPreprocessorListener());
 		pp.addInput(new StringLexerSource(source, true));
-		pp.addFeature(Feature.KEEPCOMMENTS);
+		//pp.addFeature(Feature.KEEPCOMMENTS);
 
 		final StringBuilder builder = new StringBuilder();
 
