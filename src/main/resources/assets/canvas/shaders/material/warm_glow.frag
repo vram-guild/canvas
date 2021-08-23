@@ -10,6 +10,7 @@ void frx_materialFragment() {
 	float e = frx_luminance(frx_sampleColor.rgb);
 	bool lit = e >  0.8 || (frx_sampleColor.r - frx_sampleColor.b) > 0.3f;
 	frx_fragEmissive = lit ? e : 0.0;
-	frx_fragLight.zw = lit ? vec2(1.0) : frx_fragLight.zw;
+	frx_fragEnableDiffuse = frx_fragEnableDiffuse && !lit;
+	frx_fragEnableAo = frx_fragEnableAo && !lit;
 #endif
 }

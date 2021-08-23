@@ -8,7 +8,7 @@ out vec4 frx_vertexColor;
 
 #ifndef DEPTH_PASS
 out vec3 frx_vertexNormal;
-out vec4 frx_vertexLight;
+out vec3 frx_vertexLight;
 out vec4 frx_var0;
 out vec4 frx_var1;
 out vec4 frx_var2;

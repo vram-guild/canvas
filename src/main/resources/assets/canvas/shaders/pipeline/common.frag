@@ -1,6 +1,5 @@
 #include canvas:shaders/pipeline/fog.glsl
 #include canvas:shaders/pipeline/diffuse.glsl
-#include canvas:shaders/pipeline/varying.glsl
 #include canvas:shaders/pipeline/glint.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
@@ -98,30 +97,6 @@ vec4 light(frx_FragmentData fragData) {
 	return result;
 }
 
-frx_FragmentData frx_createPipelineFragment() {
-#ifdef VANILLA_LIGHTING
-	return frx_FragmentData (
-		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
-		frx_color,
-		frx_matEmissive() ? 1.0 : 0.0,
-		!frx_matDisableDiffuse(),
-		!frx_matDisableAo(),
-		frx_normal,
-		pv_lightcoord,
-		pv_ao
-	);
-#else
-	return frx_FragmentData (
-		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
-		frx_color,
-		frx_matEmissive() ? 1.0 : 0.0,
-		!frx_matDisableDiffuse(),
-		!frx_matDisableAo(),
-		frx_normal
-	);
-#endif
-}
-
 vec4 p_writeBaseColorAndDepth(in frx_FragmentData fragData) {
 	vec4 a = fragData.spriteColor * fragData.vertexColor;
 
@@ -135,13 +110,11 @@ vec4 p_writeBaseColorAndDepth(in frx_FragmentData fragData) {
 		a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
 
 	#if AO_SHADING_MODE != AO_MODE_NONE
-		if (fragData.ao) {
-			a *= aoFactor(fragData.light, fragData.aoShade);
-		}
+		a *= frx_fragEnableAo ? aoFactor(fragData.light, frx_fragAo * frx_fragLight.z) : 1.0;
 	#endif
 
 	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL
-		if (fragData.diffuse) {
+		if (frx_fragEnableDiffuse) {
 			float df = pv_diffuse + (1.0 - pv_diffuse) * fragData.emissivity;
 
 			a *= vec4(df, df, df, 1.0);

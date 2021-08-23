@@ -27,7 +27,7 @@ void main() {
 	frx_sampleColor = texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0);
 
 #ifdef _CV_FRAGMENT_COMPAT
-	compatData = frx_FragmentData(!frx_matDisableDiffuse(), !frx_matDisableAo(), frx_sampleColor, frx_vertexColor);
+	compatData = frx_FragmentData(frx_sampleColor, frx_vertexColor);
 #endif
 	
 	frx_fragColor = frx_sampleColor * frx_vertexColor;

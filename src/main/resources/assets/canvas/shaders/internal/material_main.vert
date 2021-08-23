@@ -24,9 +24,9 @@ void main() {
 	frx_vertexNormal = in_normal;
 	
 #ifdef VANILLA_LIGHTING
-	frx_vertexLight = vec4(clamp(in_lightmap.rg * 0.00390625, 0.03125, 0.96875), 1.0, in_ao);
+	frx_vertexLight = vec3(clamp(in_lightmap.rg * 0.00390625, 0.03125, 0.96875), in_ao);
 #else
-	frx_vertexLight = vec4(1.0);
+	frx_vertexLight = vec3(1.0);
 #endif
 
 	_cv_setupProgram();

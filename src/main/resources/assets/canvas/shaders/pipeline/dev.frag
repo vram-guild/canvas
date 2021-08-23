@@ -54,19 +54,6 @@ vec4 aoFactor(vec2 lightCoord, float ao) {
 	return vec4(ao, ao, ao, 1.0);
 }
 
-frx_FragmentData frx_createPipelineFragment() {
-	return frx_FragmentData (
-		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
-		frx_color,
-		frx_matEmissive() ? 1.0 : 0.0,
-		!frx_matDisableDiffuse(),
-		!frx_matDisableAo(),
-		frx_normal,
-		pv_lightcoord,
-		pv_ao
-	);
-}
-
 vec3 skyLight = frx_skyLightAtmosphericColor() * frx_skyLightColor() * (frx_skyLightTransitionFactor() * frx_skyLightIlluminance() / 32000.0);
 
 vec3 shadowDist(int cascade) {

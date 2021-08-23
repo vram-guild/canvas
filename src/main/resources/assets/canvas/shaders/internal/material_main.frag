@@ -26,7 +26,7 @@ void main() {
 	frx_sampleColor = texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0);
 
 #ifdef _CV_FRAGMENT_COMPAT
-	compatData = frx_FragmentData(!frx_matDisableDiffuse(), !frx_matDisableAo(), frx_sampleColor, frx_vertexColor);
+	compatData = frx_FragmentData(frx_sampleColor, frx_vertexColor);
 #endif
 	
 	frx_fragColor = frx_sampleColor * frx_vertexColor;
@@ -35,9 +35,10 @@ void main() {
 	frx_fragHeight = 0;
 	frx_fragRoughness = frx_matRoughness;
 	frx_fragEmissive = frx_matEmissive;
-	frx_fragLight = vec4(pv_lightcoord, 
-			frx_matDisableDiffuse == 1 ? 1.0 : frx_vertexLight.z, 
-			frx_matDisableAo == 1 ? 1.0 : frx_vertexLight.w);
+	frx_fragLight = frx_vertexLight;
+	frx_fragAo = 1.0;
+	frx_fragEnableAo = frx_matDisableAo == 0;
+	frx_fragEnableDiffuse = frx_matDisableDiffuse == 0;
 	
 	_cv_startFragment();
 
@@ -45,10 +46,5 @@ void main() {
 		discard;
 	}
 
-#ifdef _CV_FRAGMENT_COMPAT
-	frx_fragLight.z = compatData.diffuse ? frx_fragLight.z : 1.0;
-	frx_fragLight.w = compatData.ao ? frx_fragLight.w : 1.0;
-#endif
-	
 	frx_pipelineFragment();
 }

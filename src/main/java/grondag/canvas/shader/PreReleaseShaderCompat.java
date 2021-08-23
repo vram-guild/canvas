@@ -176,8 +176,9 @@ public class PreReleaseShaderCompat {
 			return source;
 		}
 
-		// An awful hack - rename frx_normalizeMappedUV so that it isn't targeted by frx_normal replacement
-		source = StringUtils.replace(source, "frx_normalizeMappedUV", "_cv_aDirtyDirtyHack");
+		// An awful hack - rename thse so they aren't targeted by frx_normal replacement
+		source = StringUtils.replace(source, "frx_normalizeMappedUV", "_cv_aDirtyHackMappedUV");
+		source = StringUtils.replace(source, "frx_normalModelMatrix()", "_cv_aDirtyHackModelMatrix");
 
 		boolean found = false;
 
@@ -193,7 +194,8 @@ public class PreReleaseShaderCompat {
 		}
 
 		// Complete our nasty business
-		source = StringUtils.replace(source, "_cv_aDirtyDirtyHack", "frx_normalizeMappedUV");
+		source = StringUtils.replace(source, "_cv_aDirtyHackMappedUV", "frx_normalizeMappedUV");
+		source = StringUtils.replace(source, "_cv_aDirtyHackModelMatrix", "frx_normalModelMatrix");
 
 		return compatifyFragment(source, logPath);
 	}
@@ -238,7 +240,7 @@ public class PreReleaseShaderCompat {
 		source = StringUtils.replace(source, dataVarName + ".color", "frx_vertexColor");
 		source = StringUtils.replace(source, dataVarName + ".normal", "frx_vertexNormal");
 		source = StringUtils.replace(source, dataVarName + ".light", "frx_vertexLight.xy");
-		source = StringUtils.replace(source, dataVarName + ".aoShade", "frx_vertexLight.w");
+		source = StringUtils.replace(source, dataVarName + ".aoShade", "frx_vertexLight.z");
 		return source;
 	}
 
@@ -275,7 +277,9 @@ public class PreReleaseShaderCompat {
 		source = StringUtils.replace(source, dataVarName + ".emissivity", "frx_fragEmissive");
 		source = StringUtils.replace(source, dataVarName + ".vertexNormal", "frx_vertexNormal");
 		source = StringUtils.replace(source, dataVarName + ".light", "frx_fragLight.xy");
-		source = StringUtils.replace(source, dataVarName + ".aoShade", "frx_fragLight.w");
+		source = StringUtils.replace(source, dataVarName + ".aoShade", "frx_fragLight.z");
+		source = StringUtils.replace(source, dataVarName + ".ao", "frx_fragEnableAo");
+		source = StringUtils.replace(source, dataVarName + ".diffuse", "frx_fragEnableDiffuse");
 
 		return source;
 	}
