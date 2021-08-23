@@ -5,6 +5,6 @@
   canvas:shaders/pipeline/basic.frag
 ******************************************************/
 
-void frx_writePipelineFragment(in frx_FragmentData fragData) {
-	p_writeBaseColorAndDepth(fragData);
+void frx_pipelineFragment() {
+	p_writeBaseColorAndDepth();
 }

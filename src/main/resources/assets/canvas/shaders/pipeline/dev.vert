@@ -14,24 +14,24 @@ out vec4 _cvViewVertex;
 
 out vec4 shadowPos;
 
-void frx_writePipelineVertex(in frx_VertexData data) {
-	if (frx_isGui()) {
-		gl_Position = frx_guiViewProjectionMatrix() * data.vertex;
+void frx_pipelineVertex() {
+	if (frx_isGui) {
+		gl_Position = frx_guiViewProjectionMatrix * frx_vertex;
 		frx_distance = length(gl_Position.xyz);
 	} else {
-		data.vertex += frx_modelToCamera();
-		vec4 viewCoord = frx_viewMatrix() * data.vertex;
+		frx_vertex += frx_modelToCamera;
+		vec4 viewCoord = frx_viewMatrix * frx_vertex;
 		frx_distance = length(viewCoord.xyz);
-		gl_Position = frx_projectionMatrix() * viewCoord;
+		gl_Position = frx_projectionMatrix * viewCoord;
 #if HANDHELD_LIGHT_RADIUS != 0
 		_cvViewVertex = viewCoord;
 #endif
 
-		shadowPos  = frx_shadowViewMatrix() * data.vertex;
+		shadowPos  = frx_shadowViewMatrix * frx_vertex;
 	}
 
 #if HANDHELD_LIGHT_RADIUS != 0
-	_cvInnerAngle = sin(frx_heldLightInnerRadius());
-	_cvOuterAngle = sin(frx_heldLightOuterRadius());
+	_cvInnerAngle = sin(frx_heldLightInnerRadius);
+	_cvOuterAngle = sin(frx_heldLightOuterRadius);
 #endif
 }
