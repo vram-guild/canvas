@@ -30,15 +30,18 @@ void main() {
 #endif
 	
 	frx_fragColor = frx_sampleColor * frx_vertexColor;
+	frx_fragEmissive = frx_matEmissive;
+	frx_fragLight = frx_vertexLight;
+	frx_fragEnableAo = frx_matDisableAo == 0;
+	frx_fragEnableDiffuse = frx_matDisableDiffuse == 0;
+
+#ifdef PBR_ENABLED
 	frx_fragReflectance = frx_matReflectance;
 	frx_fragNormal = vec3(0.0, 0.0, 1.0);
 	frx_fragHeight = 0;
 	frx_fragRoughness = frx_matRoughness;
-	frx_fragEmissive = frx_matEmissive;
-	frx_fragLight = frx_vertexLight;
 	frx_fragAo = 1.0;
-	frx_fragEnableAo = frx_matDisableAo == 0;
-	frx_fragEnableDiffuse = frx_matDisableDiffuse == 0;
+#endif
 	
 	_cv_startFragment();
 

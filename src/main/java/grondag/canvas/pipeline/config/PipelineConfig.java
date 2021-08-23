@@ -32,6 +32,7 @@ public class PipelineConfig {
 	public final int rainSmoothingFrames;
 	public final boolean runVanillaClear;
 	public final int glslVersion;
+	public final boolean enablePBR;
 
 	public final ConfigContext context;
 	public final ImageConfig[] images;
@@ -60,6 +61,7 @@ public class PipelineConfig {
 		rainSmoothingFrames = 500;
 		runVanillaClear = true;
 		glslVersion = 330;
+		enablePBR = false;
 
 		context = new ConfigContext();
 		programs = new ProgramConfig[0];
@@ -85,6 +87,7 @@ public class PipelineConfig {
 		rainSmoothingFrames = builder.rainSmoothingFrames;
 		runVanillaClear = builder.runVanillaClear;
 		glslVersion = builder.glslVersion;
+		enablePBR = builder.enablePBR;
 
 		materialProgram = builder.materialProgram;
 		defaultFramebuffer = builder.defaultFramebuffer;

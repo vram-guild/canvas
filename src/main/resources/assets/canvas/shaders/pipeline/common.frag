@@ -110,7 +110,7 @@ vec4 p_writeBaseColorAndDepth() {
 		a *= mix(light(), frx_emissiveColor, frx_fragEmissive);
 
 	#if AO_SHADING_MODE != AO_MODE_NONE
-		a *= frx_fragEnableAo ? aoFactor(frx_fragLight.xy, frx_fragAo * frx_fragLight.z) : vec4(1.0);
+		a *= frx_fragEnableAo ? aoFactor(frx_fragLight.xy, frx_fragLight.z) : vec4(1.0);
 	#endif
 
 	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL

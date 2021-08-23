@@ -1,6 +1,7 @@
 {
 	nameKey: "pipeline.canvas_dev.name",
 	descriptionKey: "pipeline.canvas_dev.desc",
+	enablePBR: true,
 
 	materialProgram: {
 		vertexSource: "canvas:shaders/pipeline/dev.vert",

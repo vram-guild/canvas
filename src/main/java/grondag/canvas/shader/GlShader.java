@@ -255,6 +255,10 @@ public class GlShader implements Shader {
 		if (result == null) {
 			result = getCombinedShaderSource();
 
+			if (Pipeline.config().enablePBR) {
+				result = StringUtils.replace(result, "//#define PBR_ENABLED", "#define PBR_ENABLED");
+			}
+
 			if (programType.isTerrain) {
 				result = StringUtils.replace(result, "#define _CV_VERTEX_DEFAULT", "#define _CV_VERTEX_TERRAIN");
 			}

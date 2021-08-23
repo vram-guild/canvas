@@ -61,6 +61,7 @@ public class PipelineConfigBuilder {
 	public int rainSmoothingFrames = 500;
 	public boolean runVanillaClear = true;
 	public int glslVersion = 330;
+	public boolean enablePBR = false;
 
 	public NamedDependency<FramebufferConfig> defaultFramebuffer;
 
@@ -72,6 +73,7 @@ public class PipelineConfigBuilder {
 		brightnessSmoothingFrames = configJson.getInt("brightnessSmoothingFrames", brightnessSmoothingFrames);
 		rainSmoothingFrames = configJson.getInt("rainSmoothingFrames", rainSmoothingFrames);
 		glslVersion = configJson.getInt("glslVersion", glslVersion);
+		enablePBR = configJson.getBoolean("enablePBR", enablePBR);
 
 		if (configJson.containsKey("materialProgram")) {
 			if (materialProgram == null) {
