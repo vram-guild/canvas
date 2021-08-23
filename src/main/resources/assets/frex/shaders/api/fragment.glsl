@@ -18,13 +18,17 @@ in vec4 frx_var2;
 in vec4 frx_var3;
 in float frx_distance;
 
-float frx_fragReflectance;
-vec3 frx_fragNormal;
-float frx_fragHeight;
-float frx_fragRoughness;
-float frx_fragEmissive;
+vec4 _cv_fragNormalHeight;
+#define frx_fragNormal _cv_fragNormalHeight.xyz
+#define frx_fragHeight _cv_fragNormalHeight.w
+
+vec4 _cv_fragVaria;
+#define frx_fragReflectance _cv_fragVaria.x
+#define frx_fragRoughness _cv_fragVaria.y
+#define frx_fragEmissive _cv_fragVaria.z
+#define frx_fragAo _cv_fragVaria.w
+
 vec3 frx_fragLight;
-float frx_fragAo;
 bool frx_fragEnableAo;
 bool frx_fragEnableDiffuse;
 #endif
