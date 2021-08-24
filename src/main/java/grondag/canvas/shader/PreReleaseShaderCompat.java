@@ -32,6 +32,7 @@ public class PreReleaseShaderCompat {
 	private static final ObjectArrayList<Pair<String, String>> COMPAT = new ObjectArrayList<>();
 	private static final ObjectOpenHashSet<Identifier> WARNED = new ObjectOpenHashSet<>();
 	private static final ObjectOpenHashSet<Identifier> EXCLUSIONS = new ObjectOpenHashSet<>();
+	private static boolean needsFragmentShaderStubs = false;
 
 	static {
 		// material.glsl
@@ -258,6 +259,7 @@ public class PreReleaseShaderCompat {
 		// Create compat redirect for legacy pipeline method if present
 		if (source.contains("frx_writePipelineFragment")) {
 			source = source + "\nvoid frx_pipelineFragment() {frx_writePipelineFragment(compatData);}\n";
+			needsFragmentShaderStubs = true;
 			warn = true;
 		}
 
@@ -273,6 +275,8 @@ public class PreReleaseShaderCompat {
 		return source;
 	}
 
+	private static final Pattern MATERIAL_FRAGMENT_PATTERN = Pattern.compile("frx_startFragment\\s*\\(.*frx_FragmentData\\s+(.+)\\s*\\)");
+
 	private static String replaceFragmentVars(String source, String dataVarName) {
 		source = StringUtils.replace(source, dataVarName + ".emissivity", "frx_fragEmissive");
 		source = StringUtils.replace(source, dataVarName + ".vertexNormal", "frx_vertexNormal");
@@ -280,6 +284,17 @@ public class PreReleaseShaderCompat {
 		source = StringUtils.replace(source, dataVarName + ".aoShade", "frx_fragLight.z");
 		source = StringUtils.replace(source, dataVarName + ".ao", "frx_fragEnableAo");
 		source = StringUtils.replace(source, dataVarName + ".diffuse", "frx_fragEnableDiffuse");
+
+		if (source.contains(dataVarName + ".spriteColor") || source.contains(dataVarName + ".vertexColor")) {
+			needsFragmentShaderStubs = true;
+		} else {
+			// replace the legacy method signature because it isn't needed
+			final Matcher mStart = MATERIAL_FRAGMENT_PATTERN.matcher(source);
+
+			if (mStart.find()) {
+				source = StringUtils.replace(source, mStart.group(0), "frx_materialFragment()");
+			}
+		}
 
 		return source;
 	}
@@ -320,5 +335,10 @@ public class PreReleaseShaderCompat {
 
 	public static void reload() {
 		WARNED.clear();
+		needsFragmentShaderStubs = false;
+	}
+
+	public static boolean needsFragmentShaderStubs() {
+		return needsFragmentShaderStubs;
 	}
 }

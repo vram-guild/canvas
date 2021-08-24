@@ -259,6 +259,10 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "//#define PBR_ENABLED", "#define PBR_ENABLED");
 			}
 
+			if (!PreReleaseShaderCompat.needsFragmentShaderStubs()) {
+				result = StringUtils.replace(result, "#define _CV_FRAGMENT_COMPAT", "//#define _CV_FRAGMENT_COMPAT");
+			}
+
 			if (programType.isTerrain) {
 				result = StringUtils.replace(result, "#define _CV_VERTEX_DEFAULT", "#define _CV_VERTEX_TERRAIN");
 			}
