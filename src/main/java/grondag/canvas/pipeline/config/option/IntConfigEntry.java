@@ -16,6 +16,8 @@
 
 package grondag.canvas.pipeline.config.option;
 
+import java.util.Locale;
+
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
@@ -61,7 +63,7 @@ public class IntConfigEntry extends OptionConfigEntry {
 
 	@Override
 	String createSource() {
-		return "#define " + name.toUpperCase() + " " + value + "\n";
+		return "#define " + name.toUpperCase(Locale.ROOT) + " " + value + "\n";
 	}
 
 	@Override
