@@ -17,6 +17,7 @@
 package grondag.canvas.pipeline;
 
 import java.lang.reflect.Field;
+import java.util.Locale;
 
 import blue.endless.jankson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -43,7 +44,7 @@ public class GlSymbolLookup {
 	}
 
 	public static int lookup(String symbol) {
-		symbol = symbol.toUpperCase();
+		symbol = symbol.toUpperCase(Locale.ROOT);
 
 		if (!symbol.startsWith("GL_")) {
 			symbol = "GL_" + symbol;
