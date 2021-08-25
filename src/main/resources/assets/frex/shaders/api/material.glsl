@@ -14,5 +14,3 @@
 #define frx_matFlash _CV_GET_FLAG(_CV_FLAG_FLASH_OVERLAY)
 #define frx_matGlint _CV_GET_FLAG(_CV_FLAG_GLINT)
 #define frx_matExposure 0.0
-#define frx_matReflectance 0.04 // TODO
-#define frx_matRoughness 0.0 // TODO

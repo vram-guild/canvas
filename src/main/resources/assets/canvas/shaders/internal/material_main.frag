@@ -36,10 +36,10 @@ void main() {
 	frx_fragEnableDiffuse = frx_matDisableDiffuse == 0;
 
 #ifdef PBR_ENABLED
-	frx_fragReflectance = frx_matReflectance;
+	frx_fragReflectance = 0.04;
 	frx_fragNormal = vec3(0.0, 0.0, 1.0);
-	frx_fragHeight = 0;
-	frx_fragRoughness = frx_matRoughness;
+	frx_fragHeight = 0.0;
+	frx_fragRoughness = 0.0;
 	frx_fragAo = 1.0;
 #endif
 	
