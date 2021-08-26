@@ -21,6 +21,7 @@ import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
@@ -61,6 +62,8 @@ public class BufferDebug {
 			imageCount += img.lod + 1 * img.depth;
 		}
 
+		++imageCount;
+
 		glIds = new int[imageCount];
 		lods = new int[imageCount];
 		labels = new String[imageCount];
@@ -85,6 +88,13 @@ public class BufferDebug {
 				}
 			}
 		}
+
+		labels[imageCount - 1] = "Block/Item Sprite Atlas";
+		glIds[imageCount - 1] = MinecraftClient.getInstance().getTextureManager().getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).getGlId();
+		lods[imageCount - 1] = 0;
+		layers[imageCount - 1] = 0;
+		isDepth[imageCount - 1] = false;
+		isArray[imageCount - 1] = false;
 
 		if (viewCount != imageCount) {
 			viewCount = imageCount;

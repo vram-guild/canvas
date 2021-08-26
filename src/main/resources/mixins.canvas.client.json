@@ -46,6 +46,7 @@
 	"MixinSpriteBillboardParticle",
 	"MixinSpriteInterpolation",
 	"MixinRenderLayer",
+	"MixinTextureStitcher",
 	"MixinUtil",
 	"MixinVideoOptionsScreen",
 	"MixinWindow",
