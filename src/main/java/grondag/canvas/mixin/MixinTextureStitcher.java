@@ -20,16 +20,21 @@ import java.util.Comparator;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.resource.metadata.AnimationResourceMetadata;
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.TextureStitcher;
+
+import grondag.canvas.mixinterface.AnimationResourceMetadataExt;
+import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(TextureStitcher.class)
 public class MixinTextureStitcher {
 	// Cause animated sprites to be stiched first so we can upload them in one call per LOD
 	private static final Comparator<TextureStitcher.Holder> ANIMATION_COMPARATOR = Comparator.comparing((TextureStitcher.Holder holder) -> {
-		return holder.sprite.animationData == AnimationResourceMetadata.EMPTY ? 1 : -1;
+		return ((AnimationResourceMetadataExt) holder.sprite.animationData).canvas_willAnimate(holder.width, holder.height) ? -1 : 1;
 	}).thenComparing((holder) -> {
 		return -holder.height;
 	}).thenComparing((holder) -> {
@@ -41,5 +46,13 @@ public class MixinTextureStitcher {
 	@ModifyArg(method = "stitch", at = @At(value = "INVOKE", target = "Ljava/util/List;sort(Ljava/util/Comparator;)V"), index = 0)
 	private Comparator<TextureStitcher.Holder> onSort(Comparator<TextureStitcher.Holder> var) {
 		return ANIMATION_COMPARATOR;
+	}
+
+	@Inject(at = @At("HEAD"), method = "add")
+	private void onAdd(Sprite.Info info, CallbackInfo ci) {
+		// WIP: remove
+		if (info.getId().getPath().contains("sea_lantern")) {
+			CombinedSpriteAnimation.boop();
+		}
 	}
 }

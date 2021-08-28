@@ -6,6 +6,7 @@
   "mixins": [
 	"AccessMultiPhaseParameters",
 	"AccessTexture",
+	"MixinAnimationResourceMetadata",
 	"MixinBiomeAccess",
 	"MixinBackgroundRenderer",
 	"MixinBlockModelRenderer",

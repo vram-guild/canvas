@@ -16,8 +16,14 @@
 
 package grondag.canvas.mixinterface;
 
+import java.util.List;
+
+import net.minecraft.client.texture.Sprite;
+
 public interface SpriteAtlasTextureDataExt {
 	int canvas_atlasWidth();
 
 	int canvas_atlasHeight();
+
+	List<Sprite> canvas_sprites();
 }

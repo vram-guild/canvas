@@ -16,10 +16,6 @@
 
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.texture.CombinedSpriteAnimation;
-
-public interface NativeImageExt {
-	long canvas_pointer();
-
-	void canvas_setCombined(CombinedSpriteAnimation combined);
+public interface AnimationResourceMetadataExt {
+	boolean canvas_willAnimate(int spriteWidth, int spriteHeight);
 }

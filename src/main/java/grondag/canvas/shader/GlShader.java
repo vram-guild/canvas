@@ -49,8 +49,6 @@ import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
-import net.fabricmc.loader.api.FabricLoader;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
@@ -82,10 +80,9 @@ public class GlShader implements Shader {
 		clearDebugSource();
 	}
 
+	@SuppressWarnings("resource")
 	private static Path shaderDebugPath() {
-		final File gameDir = FabricLoader.getInstance().getGameDirectory();
-
-		return gameDir.toPath().normalize().resolve("canvas_shader_debug");
+		return MinecraftClient.getInstance().runDirectory.toPath().normalize().resolve("canvas_shader_debug");
 	}
 
 	private static void clearDebugSource() {
