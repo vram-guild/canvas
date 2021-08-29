@@ -28,8 +28,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.texture.Sprite;
 
+import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.SpriteAnimationExt;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(Sprite.Animation.class)
 public class MixinSpriteAnimation implements SpriteAnimationExt {
@@ -73,5 +75,12 @@ public class MixinSpriteAnimation implements SpriteAnimationExt {
 	@Override
 	public List<Sprite.AnimationFrame> canvas_frames() {
 		return frames;
+	}
+
+	@Override
+	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
+		if (interpolation != null) {
+			((CombinedAnimationConsumer) (Object) interpolation).canvas_setCombinedAnimation(combined);
+		}
 	}
 }

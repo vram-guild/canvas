@@ -58,7 +58,6 @@ public final class CombinedSpriteAnimation implements AutoCloseable {
 		y1 = Integer.MIN_VALUE;
 	}
 
-	//public void stageFromUploadInternal(final NativeImage source, final int level, final int xOffset, final int yOffset, int l, int m, final int width, final int height, boolean bl, boolean bl2, boolean bl3, boolean bl4) {
 	public void uploadSubImage(final NativeImage source, final int level, final int toX, final int toY, int fromX, int fromY, final int width, final int height) {
 		final var target = images[level];
 		x0 = Math.min(x0, toX);
@@ -79,7 +78,9 @@ public final class CombinedSpriteAnimation implements AutoCloseable {
 
 	public void uploadCombined() {
 		if (x0 != Integer.MAX_VALUE) {
-			//System.out.println(x0 + ", " + y0 + "   " + x1 + ", " + y1);
+			for (int k = 0; k < size; ++k) {
+				images[k].upload(k, x0 >> k, y0 >> k, x0 >> k, y0 >> k, (x1 - x0) >> k, (y1 - y0) >> k, size > 1, false);
+			}
 		}
 	}
 }

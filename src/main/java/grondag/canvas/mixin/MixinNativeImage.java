@@ -34,7 +34,7 @@ public class MixinNativeImage implements NativeImageExt {
 	private CombinedSpriteAnimation combinedAnimation = null;
 
 	@Override
-	public void canvas_setCombined(CombinedSpriteAnimation combined) {
+	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
 		this.combinedAnimation = combined;
 	}
 
@@ -47,7 +47,7 @@ public class MixinNativeImage implements NativeImageExt {
 	private void onUploadInternal(final int level, int toX, int toY, int fromX, int fromY, int width, int height, boolean bl, boolean bl2, boolean bl3, boolean bl4, CallbackInfo ci) {
 		if (combinedAnimation != null) {
 			combinedAnimation.uploadSubImage((NativeImage) (Object) this, level, toX, toY, fromX, fromY, width, height);
-			//ci.cancel();
+			ci.cancel();
 		}
 	}
 }

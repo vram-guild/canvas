@@ -16,10 +16,6 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.client.texture.NativeImage;
-
 public interface SpriteAtlasTextureExt {
 	int canvas_maxTextureSize();
-
-	void canvas_uploadSubImage(NativeImage source, int level, int toX, int toY, int fromX, int fromY, int width, int height);
 }

@@ -48,7 +48,6 @@ import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.TerrainRenderStates;
-import grondag.canvas.mixinterface.NativeImageExt;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
 import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -107,11 +106,7 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 			combined = new CombinedSpriteAnimation((SpriteAtlasTexture) (Object) this, animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount);
 
 			for (final Sprite sprite : sprites) {
-				if (sprite.getAnimation() != null) {
-					for (final var img : ((SpriteExt) sprite).canvas_images()) {
-						((NativeImageExt) (Object) img).canvas_setCombined(combined);
-					}
-				}
+				((SpriteExt) sprite).canvas_setCombinedAnimation(combined);
 			}
 		}
 	}
@@ -190,13 +185,6 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 			blockBits.clear();
 
 			animationBits.or(CanvasWorldRenderer.instance().worldRenderState.terrainAnimationBits);
-		}
-	}
-
-	@Override
-	public void canvas_uploadSubImage(final NativeImage source, final int level, final int toX, final int toY, final int fromX, final int fromY, final int width, final int height) {
-		if (combined != null) {
-			combined.uploadSubImage(source, level, toX, toY, fromX, fromY, width, height);
 		}
 	}
 

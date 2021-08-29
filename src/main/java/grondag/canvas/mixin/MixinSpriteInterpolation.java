@@ -24,12 +24,14 @@ import org.spongepowered.asm.mixin.Shadow;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
+import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.NativeImageExt;
 import grondag.canvas.mixinterface.SpriteAnimationExt;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(Sprite.Interpolation.class)
-public class MixinSpriteInterpolation {
+public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
 	@Shadow private NativeImage[] images;
 
 	@Shadow(aliases = "field_21757")
@@ -101,5 +103,12 @@ public class MixinSpriteInterpolation {
 		}
 
 		parentExt.canvas_upload(0, 0, this.images);
+	}
+
+	@Override
+	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
+		for (final var img : images) {
+			((CombinedAnimationConsumer) (Object) img).canvas_setCombinedAnimation(combined);
+		}
 	}
 }

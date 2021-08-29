@@ -124,3 +124,7 @@ accessible class net/minecraft/client/texture/Sprite$Animation
 accessible class net/minecraft/client/texture/Sprite$AnimationFrame
 accessible field net/minecraft/client/texture/Sprite$AnimationFrame index I
 accessible field net/minecraft/client/texture/Sprite$AnimationFrame time I
+
+accessible class net/minecraft/client/texture/TextureStitcher$Holder
+
+accessible field net/minecraft/client/texture/Sprite$Info animationData Lnet/minecraft/client/resource/metadata/AnimationResourceMetadata;

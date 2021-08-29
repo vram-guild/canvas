@@ -25,12 +25,15 @@ import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
 import grondag.canvas.config.Configurator;
+import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(Sprite.class)
 public class MixinSprite implements SpriteExt {
 	@Shadow protected NativeImage[] images;
 	@Shadow void upload(int i, int j, NativeImage[] nativeImages) { }
+	@Shadow private Sprite.Animation animation;
 
 	private int canvasId;
 	private int animationIndex = -1;
@@ -70,5 +73,16 @@ public class MixinSprite implements SpriteExt {
 	@Override
 	public int canvas_animationIndex() {
 		return animationIndex;
+	}
+
+	@Override
+	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
+		if (animation != null) {
+			for (final var img : images) {
+				((CombinedAnimationConsumer) (Object) img).canvas_setCombinedAnimation(combined);
+			}
+
+			((CombinedAnimationConsumer) animation).canvas_setCombinedAnimation(combined);
+		}
 	}
 }

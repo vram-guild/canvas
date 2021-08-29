@@ -35,8 +35,8 @@ public class MixinTextureStitcherSlot {
 
 	/**
 	 * The changes we made for animated sprite order means a slot big enough
-	 * to hold the max size texture may not be immiediately filled by it when
-	 * created.  If the slot if later used to try to fit such a texture, the
+	 * to hold the max size texture may not be immediately filled by it when
+	 * created.  If the slot is later used to try to fit such a texture, the
 	 * vanilla logic doesn't include logic to test for the presence of subslots
 	 * and it will consume the entire slot, effectively dissappearing all the
 	 * sprites in subslots.
