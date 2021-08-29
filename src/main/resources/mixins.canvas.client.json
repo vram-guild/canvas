@@ -48,6 +48,7 @@
 	"MixinSpriteInterpolation",
 	"MixinRenderLayer",
 	"MixinTextureStitcher",
+	"MixinTextureStitcherSlot",
 	"MixinUtil",
 	"MixinVideoOptionsScreen",
 	"MixinWindow",

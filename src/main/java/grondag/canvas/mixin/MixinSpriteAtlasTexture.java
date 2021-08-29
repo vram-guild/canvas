@@ -87,11 +87,6 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 		final List<Sprite> sprites = dataExt.canvas_sprites();
 
 		for (final Sprite sprite : sprites) {
-			// WIP: remove
-			if (sprite.getId().getPath().contains("sea_lantern")) {
-				CombinedSpriteAnimation.boop();
-			}
-
 			if (sprite.getAnimation() != null) {
 				final var spriteExt = (SpriteExt) sprite;
 				final int instanceIndex = animationIndex;
@@ -127,11 +122,6 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 		int index = 0;
 
 		for (final Sprite sprite : sprites.values()) {
-			// WIP: remove
-			if (sprite.getId().getPath().contains("sea_lantern")) {
-				CombinedSpriteAnimation.boop();
-			}
-
 			spriteIndexList.add(sprite);
 			final var spriteExt = (SpriteExt) sprite;
 			spriteExt.canvas_id(index++);
@@ -141,9 +131,9 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 			combined.uploadCombined();
 		}
 
-		SpriteIndex.getOrCreate(id).reset(input, spriteIndexList, (SpriteAtlasTexture) (Object) this);
-
 		outputAtlasImage();
+
+		SpriteIndex.getOrCreate(id).reset(input, spriteIndexList, (SpriteAtlasTexture) (Object) this);
 	}
 
 	private void outputAtlasImage() {

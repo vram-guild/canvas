@@ -82,9 +82,4 @@ public final class CombinedSpriteAnimation implements AutoCloseable {
 			//System.out.println(x0 + ", " + y0 + "   " + x1 + ", " + y1);
 		}
 	}
-
-	// WIP: remove
-	public static void boop() {
-		System.out.println("boop");
-	}
 }
