@@ -13,20 +13,19 @@
 
 #define NOISE_SCALE 0.125
 
-void frx_startVertex(inout frx_VertexData data) {
+void frx_materialVertex() {
 	#ifdef ANIMATED_FOLIAGE
-	float rain = frx_rainGradient();
-	float globalWind = 0.2 + rain * 0.2;
+	float globalWind = 0.2 + frx_rainGradient * 0.2;
 
 	// wind gets stronger higher in the world
-	globalWind *= (0.5 + smoothstep(64.0, 255.0, data.vertex.y));
+	globalWind *= (0.5 + smoothstep(64.0, 255.0, frx_vertex.y));
 
-	float t = frx_renderSeconds() * 0.05;
+	float t = frx_renderSeconds * 0.05;
 
-	vec3 pos = (data.vertex.xyz + frx_modelOriginWorldPos()) * NOISE_SCALE;
+	vec3 pos = (frx_vertex.xyz + frx_modelToWorld.xyz) * NOISE_SCALE;
 	float wind = snoise(vec4(pos, t)) * globalWind;
 
-	data.vertex.x += (cos(t) * cos(t * 3) * cos(t * 5) * cos(t * 7) + sin(t * 25)) * wind;
-	data.vertex.z += sin(t * 19) * wind;
+	frx_vertex.x += (cos(t) * cos(t * 3) * cos(t * 5) * cos(t * 7) + sin(t * 25)) * wind;
+	frx_vertex.z += sin(t * 19) * wind;
 	#endif
 }

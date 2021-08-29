@@ -105,7 +105,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 	protected final AbstractRenderContext context;
 
-	private final int[] editorBuffer = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
+	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 
 	private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
 		{

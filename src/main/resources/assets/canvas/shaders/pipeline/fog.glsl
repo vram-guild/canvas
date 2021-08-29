@@ -1,4 +1,3 @@
-#include frex:shaders/api/context.glsl
 #include frex:shaders/api/fog.glsl
 #include canvas:shaders/pipeline/options.glsl
 #include frex:shaders/api/player.glsl
@@ -10,20 +9,20 @@
 
 vec4 p_fogInner(vec4 diffuseColor) {
 #if _CV_FOG_CONFIG == _CV_FOG_CONFIG_NONE
-	if (!frx_playerHasEffect(FRX_EFFECT_BLINDNESS)) {
+	if (!frx_effectBlindness) {
 		return diffuseColor;
 	}
 #endif
 
-	float fogFactor = 1.0 - smoothstep(frxFogStart, frxFogEnd, frx_distance);
+	float fogFactor = 1.0 - smoothstep(frx_fogStart, frx_fogEnd, frx_distance);
 
 #if _CV_FOG_CONFIG == _CV_FOG_CONFIG_SUBTLE
 	fogFactor *= fogFactor;
 #endif
 
-	return vec4(mix(frxFogColor.rgb, diffuseColor.rgb, fogFactor * frxFogColor.a), diffuseColor.a);
+	return vec4(mix(frx_fogColor.rgb, diffuseColor.rgb, fogFactor * frx_fogColor.a), diffuseColor.a);
 }
 
 vec4 p_fog(vec4 diffuseColor) {
-	return frxFogEnabled ? p_fogInner(diffuseColor) : diffuseColor;
+	return frx_fogEnabled == 1 ? p_fogInner(diffuseColor) : diffuseColor;
 }

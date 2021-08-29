@@ -54,20 +54,7 @@ vec4 aoFactor(vec2 lightCoord, float ao) {
 	return vec4(ao, ao, ao, 1.0);
 }
 
-frx_FragmentData frx_createPipelineFragment() {
-	return frx_FragmentData (
-		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
-		frx_color,
-		frx_matEmissive() ? 1.0 : 0.0,
-		!frx_matDisableDiffuse(),
-		!frx_matDisableAo(),
-		frx_normal,
-		pv_lightcoord,
-		pv_ao
-	);
-}
-
-vec3 skyLight = frx_skyLightAtmosphericColor() * frx_skyLightColor() * (frx_skyLightTransitionFactor() * frx_skyLightIlluminance() / 32000.0);
+vec3 skyLight = frx_skyLightAtmosphericColor * frx_skyLightColor * (frx_skyLightTransitionFactor * frx_skyLightIlluminance / 32000.0);
 
 vec3 shadowDist(int cascade) {
 	vec4 c = frx_shadowCenter(cascade);
@@ -104,13 +91,13 @@ const vec4[] cascadeColors = vec4[4](
 
 #endif
 
-void frx_writePipelineFragment(in frx_FragmentData fragData) {
-	vec4 a = fragData.spriteColor * fragData.vertexColor;
+void frx_pipelineFragment() {
+	vec4 a = frx_fragColor;
 
-	if (frx_isGui() && !frx_isHand()) {
-		if (fragData.diffuse) {
-			float df = p_diffuseGui(frx_normal);
-			df = df + (1.0 - df) * fragData.emissivity;
+	if (frx_isGui && !frx_isHand) {
+		if (frx_fragEnableDiffuse) {
+			float df = p_diffuseGui(frx_vertexNormal);
+			df = df + (1.0 - df) * frx_fragEmissive;
 			a *= vec4(df, df, df, 1.0);
 		}
 	} else {
@@ -120,12 +107,12 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		// for testing - not a good way to do it
 
 		// ambient
-		float skyCoord = fragData.diffuse ? 0.03125 + (fragData.light.y - 0.03125) * 0.5 : fragData.light.y;
-		vec4 light = frx_fromGamma(texture(frxs_lightmap, vec2(fragData.light.x, skyCoord)));
-		light = mix(light, frx_emissiveColor(), fragData.emissivity);
+		float skyCoord = frx_fragEnableDiffuse ? 0.03125 + (frx_fragLight.y - 0.03125) * 0.5 : frx_fragLight.y;
+		vec4 light = frx_fromGamma(texture(frxs_lightmap, vec2(frx_fragLight.x, skyCoord)));
+		light = mix(light, frx_emissiveColor, frx_fragEmissive);
 
 	#if HANDHELD_LIGHT_RADIUS != 0
-		vec4 held = frx_heldLight();
+		vec4 held = frx_heldLight;
 
 		if (held.w > 0.0) {
 			float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
@@ -165,7 +152,7 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		//float spread = 3.0; //Penumbra(gradientNoise, shadowTexCoords, float(cascade));
 		//float shadow = sampleVogelShadowPCF(shadowTexCoords, float(cascade), gradientNoise, spread);
 
-		light += shadow * vec4(skyLight * max(0.0, dot(frx_skyLightVector(), frx_normal)), 0.0);
+		light += shadow * vec4(skyLight * max(0.0, dot(frx_skyLightVector, frx_vertexNormal)), 0.0);
 
 	#ifdef SHADOW_DEBUG
 		shadowCoords = abs(fract(shadowCoords * SHADOW_MAP_SIZE));
@@ -176,39 +163,26 @@ void frx_writePipelineFragment(in frx_FragmentData fragData) {
 		}
 	#endif
 
-		if (fragData.ao) {
-			light *= aoFactor(fragData.light, fragData.aoShade);
+		if (frx_fragEnableAo) {
+			light *= aoFactor(frx_fragLight.xy, frx_vertexLight.z);
 		}
 
 		a *= frx_toGamma(light);
 	}
 
-	if (frx_matFlash()) {
+	if (frx_matFlash == 1) {
 		a = a * 0.25 + 0.75;
-	} else if (frx_matHurt()) {
+	} else if (frx_matHurt == 1) {
 		a = vec4(0.25 + a.r * 0.75, a.g * 0.75, a.b * 0.75, a.a);
 	}
 
-	glintify(a, frx_matGlint());
+	glintify(a, frx_matGlint);
 
-	// WIP: remove - various api tests
-	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_smoothedEyeBrightness().y));
-	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(0.0, 0.0, frx_eyePos().y / 255.0, 0.0));
-	//if (frx_playerFlag(FRX_PLAYER_EYE_IN_LAVA)) {
-	//	a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(0.0, 0.0, 1.0, 0.0));
-	//}
-	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_rainGradient()));
-	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_smoothedRainGradient()));
-	//if (frx_renderTarget() == TARGET_ENTITY) {
-	//	a = vec4(0.0, 1.0, 0.0, a.a);
-	//}
-	//a = vec4(frx_vanillaClearColor(), a.a);
-
-	if (frx_isGui()) {
+	if (frx_isGui) {
 		fragColor[TARGET_BASECOLOR] = a;
 	} else {
 		fragColor[TARGET_BASECOLOR] = p_fog(a);
-		fragColor[TARGET_EMISSIVE] = vec4(fragData.emissivity * a.a, 0.0, 0.0, 1.0);
+		fragColor[TARGET_EMISSIVE] = vec4(frx_fragEmissive * a.a, 0.0, 0.0, 1.0);
 	}
 
 	gl_FragDepth = gl_FragCoord.z;

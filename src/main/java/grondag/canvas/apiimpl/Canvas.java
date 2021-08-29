@@ -45,6 +45,7 @@ import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
+import grondag.canvas.shader.PreReleaseShaderCompat;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
@@ -114,6 +115,7 @@ public class Canvas implements Renderer {
 	public void recompile() {
 		PipelineLoader.INSTANCE.reload(MinecraftClient.getInstance().getResourceManager());
 		Pipeline.reload();
+		PreReleaseShaderCompat.reload();
 		GlShader.forceReloadErrors();
 		GlShaderManager.INSTANCE.reload();
 		GlProgramManager.INSTANCE.reload();

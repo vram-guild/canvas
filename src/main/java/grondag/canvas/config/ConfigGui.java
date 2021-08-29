@@ -28,6 +28,7 @@ import static grondag.canvas.config.Configurator.cullParticles;
 import static grondag.canvas.config.Configurator.debugNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
+import static grondag.canvas.config.Configurator.debugSpriteAtlas;
 import static grondag.canvas.config.Configurator.disableUnseenSpriteAnimation;
 import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
@@ -44,6 +45,7 @@ import static grondag.canvas.config.Configurator.logMaterials;
 import static grondag.canvas.config.Configurator.logMissingUniforms;
 import static grondag.canvas.config.Configurator.logRenderLagSpikes;
 import static grondag.canvas.config.Configurator.pipelineId;
+import static grondag.canvas.config.Configurator.preprocessShaderSource;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
 import static grondag.canvas.config.Configurator.profilerDetailLevel;
 import static grondag.canvas.config.Configurator.profilerOverlayScale;
@@ -408,6 +410,16 @@ public class ConfigGui {
 				.setSaveConsumer(b -> shaderDebug = b)
 				.build());
 
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.preprocess_shader_source"), preprocessShaderSource)
+				.setDefaultValue(DEFAULTS.preprocessShaderSource)
+				.setTooltip(parse("config.canvas.help.preprocess_shader_source"))
+				.setSaveConsumer(b -> {
+					reload |= preprocessShaderSource != b;
+					preprocessShaderSource = b;
+				})
+				.build());
+
 		//		debug.addEntry(ENTRY_BUILDER
 		//				.startBooleanToggle(new TranslatableText("config.canvas.value.shader_debug_lightmap"), lightmapDebug)
 		//				.setDefaultValue(DEFAULTS.lightmapDebug)
@@ -541,6 +553,13 @@ public class ConfigGui {
 			.setDefaultValue(DEFAULTS.profilerOverlayScale)
 			.setTooltip(parse("config.canvas.help.profiler_overlay_scale"))
 			.setSaveConsumer(b -> profilerOverlayScale = b)
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.debug_sprite_atlas"), debugSpriteAtlas)
+			.setDefaultValue(DEFAULTS.debugSpriteAtlas)
+			.setTooltip(parse("config.canvas.help.debug_sprite_atlas"))
+			.setSaveConsumer(b -> debugSpriteAtlas = b)
 			.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);

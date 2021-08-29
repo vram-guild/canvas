@@ -16,22 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
-import java.util.function.BooleanSupplier;
+import grondag.canvas.texture.CombinedSpriteAnimation;
 
-import net.minecraft.client.texture.NativeImage;
-
-public interface SpriteExt extends CombinedAnimationConsumer {
-	int canvas_id();
-
-	void canvas_id(int id);
-
-	NativeImage[] canvas_images();
-
-	void canvas_upload(int i, int j, NativeImage[] images);
-
-	void canvas_initializeAnimation(BooleanSupplier getter, int animationIndex);
-
-	boolean canvas_shouldAnimate();
-
-	int canvas_animationIndex();
+public interface CombinedAnimationConsumer {
+	void canvas_setCombinedAnimation(CombinedSpriteAnimation combined);
 }

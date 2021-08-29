@@ -21,7 +21,7 @@ import java.util.List;
 import net.minecraft.client.texture.Sprite.AnimationFrame;
 import net.minecraft.client.texture.Sprite.Interpolation;
 
-public interface SpriteAnimationExt {
+public interface SpriteAnimationExt extends CombinedAnimationConsumer {
 	Interpolation canvas_interpolation();
 
 	int canvas_frameCount();

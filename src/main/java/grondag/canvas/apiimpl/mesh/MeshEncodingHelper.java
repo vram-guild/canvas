@@ -32,34 +32,37 @@ public abstract class MeshEncodingHelper {
 	public static final int HEADER_BITS = 2;
 	public static final int HEADER_TAG = 3;
 	public static final int HEADER_SPRITE = 4;
-	public static final int HEADER_STRIDE = 5;
-	public static final int VERTEX_X;
-	public static final int VERTEX_Y;
-	public static final int VERTEX_Z;
-	public static final int VERTEX_COLOR;
-	public static final int VERTEX_U;
-	public static final int VERTEX_V;
-	public static final int VERTEX_LIGHTMAP;
-	public static final int VERTEX_NORMAL;
-	public static final int BASE_VERTEX_STRIDE;
-	public static final int BASE_QUAD_STRIDE_BYTES;
-	public static final int MIN_QUAD_STRIDE;
-	public static final int VERTEX_START;
-	public static final int BASE_QUAD_STRIDE;
-	// normals are followed by 0-2 sets of color/uv coordinates
-	public static final int TEXTURE_VERTEX_STRIDE;
-	public static final int TEXTURE_QUAD_STRIDE;
-
-	/**
-	 * Is one tex stride less than the actual base, because when used tex index is >= 1.
-	 */
-	public static final int TEXTURE_OFFSET_MINUS;
-	public static final int MAX_QUAD_STRIDE;
+	public static final int HEADER_FIRST_VERTEX_TANGENT = 5;
+	/** Tangent vectors are stored in header so that vertex data can be efficiently translated to/from vanilla. */
+	public static final int HEADER_STRIDE = HEADER_FIRST_VERTEX_TANGENT + 4;
+	public static final int VERTEX_X = 0;
+	public static final int VERTEX_Y = 1;
+	public static final int VERTEX_Z = 2;
+	public static final int VERTEX_COLOR = 3;
+	public static final int VERTEX_U = 4;
+	public static final int VERTEX_V = 5;
+	public static final int VERTEX_LIGHTMAP = 6;
+	public static final int VERTEX_NORMAL = 7;
+	public static final int FIRST_VERTEX_X = HEADER_STRIDE + VERTEX_X;
+	public static final int FIRST_VERTEX_Y = HEADER_STRIDE + VERTEX_Y;
+	public static final int FIRST_VERTEX_Z = HEADER_STRIDE + VERTEX_Z;
+	public static final int FIRST_VERTEX_COLOR = HEADER_STRIDE + VERTEX_COLOR;
+	public static final int FIRST_VERTEX_U = HEADER_STRIDE + VERTEX_U;
+	public static final int FIRST_VERTEX_V = HEADER_STRIDE + VERTEX_V;
+	public static final int FIRST_VERTEX_LIGHTMAP = HEADER_STRIDE + VERTEX_LIGHTMAP;
+	public static final int FIRST_VERTEX_NORMAL = HEADER_STRIDE + VERTEX_NORMAL;
+	public static final int MESH_VERTEX_STRIDE = 8;
+	public static final int VERTEX_START = FIRST_VERTEX_X;
+	public static final int MESH_QUAD_STRIDE = MESH_VERTEX_STRIDE * 4;
+	public static final int MESH_QUAD_STRIDE_BYTES = MESH_QUAD_STRIDE * 4;
+	/** Includes header. */
+	public static final int TOTAL_MESH_QUAD_STRIDE = HEADER_STRIDE + MESH_QUAD_STRIDE;
 
 	/**
 	 * Used for quick clearing of quad buffers.
 	 */
-	public static final int[] EMPTY;
+	public static final int[] EMPTY = new int[TOTAL_MESH_QUAD_STRIDE];
+
 	public static final int DEFAULT_HEADER_BITS;
 	public static final int UV_UNIT_VALUE = 0xFFFF;
 	public static final int UV_EXTRA_PRECISION = 8;
@@ -78,35 +81,14 @@ public abstract class MeshEncodingHelper {
 	private static final int GEOMETRY_MASK = 0b111;
 	private static final int GEOMETRY_INVERSE_MASK = ~(GEOMETRY_MASK << GEOMETRY_SHIFT);
 
+	private static final int TANGENTS_SHIFT = GEOMETRY_SHIFT + Integer.bitCount(GEOMETRY_MASK);
+	private static final int TANGENTS_MASK = 0b1111;
+	private static final int TANGENTS_INVERSE_MASK = ~(TANGENTS_MASK << TANGENTS_SHIFT);
+
 	static {
-		VERTEX_X = HEADER_STRIDE + 0;
-		VERTEX_Y = HEADER_STRIDE + 1;
-		VERTEX_Z = HEADER_STRIDE + 2;
-		VERTEX_COLOR = HEADER_STRIDE + 3;
-		VERTEX_U = HEADER_STRIDE + 4;
-		VERTEX_V = VERTEX_U + 1;
-		VERTEX_LIGHTMAP = HEADER_STRIDE + 6;
-		VERTEX_NORMAL = HEADER_STRIDE + 7;
-		BASE_VERTEX_STRIDE = 8;
-		BASE_QUAD_STRIDE = BASE_VERTEX_STRIDE * 4;
-		BASE_QUAD_STRIDE_BYTES = BASE_QUAD_STRIDE * 4;
-		MIN_QUAD_STRIDE = HEADER_STRIDE + BASE_QUAD_STRIDE;
-
-		Preconditions.checkState(BASE_VERTEX_STRIDE == QuadView.VANILLA_VERTEX_STRIDE, "Canvas vertex stride (%s) mismatched with rendering API (%s)", BASE_VERTEX_STRIDE, QuadView.VANILLA_VERTEX_STRIDE);
-		Preconditions.checkState(BASE_QUAD_STRIDE == QuadView.VANILLA_QUAD_STRIDE, "Canvas quad stride (%s) mismatched with rendering API (%s)", BASE_QUAD_STRIDE, QuadView.VANILLA_QUAD_STRIDE);
-
-		VERTEX_START = VERTEX_X;
-
-		// base quad followed by 0-2 sets of color/uv coordinates
-		TEXTURE_VERTEX_STRIDE = 3;
-		TEXTURE_QUAD_STRIDE = TEXTURE_VERTEX_STRIDE * 4;
-
-		/**
-		 * is one tex stride less than the actual base, because when used tex index is >= 1
-		 */
-		TEXTURE_OFFSET_MINUS = MIN_QUAD_STRIDE - TEXTURE_QUAD_STRIDE;
-		MAX_QUAD_STRIDE = MIN_QUAD_STRIDE + TEXTURE_QUAD_STRIDE;
-		EMPTY = new int[MAX_QUAD_STRIDE];
+		assert TANGENTS_SHIFT + 4 <= 32 : "Mesh header encoding ran out of bits";
+		Preconditions.checkState(MESH_VERTEX_STRIDE == QuadView.VANILLA_VERTEX_STRIDE, "Canvas vertex stride (%s) mismatched with rendering API (%s)", MESH_VERTEX_STRIDE, QuadView.VANILLA_VERTEX_STRIDE);
+		Preconditions.checkState(MESH_QUAD_STRIDE == QuadView.VANILLA_QUAD_STRIDE, "Canvas quad stride (%s) mismatched with rendering API (%s)", MESH_QUAD_STRIDE, QuadView.VANILLA_QUAD_STRIDE);
 	}
 
 	static {
@@ -143,8 +125,16 @@ public abstract class MeshEncodingHelper {
 		return (bits & NORMALS_INVERSE_MASK) | ((normalFlags & NORMALS_MASK) << NORMALS_SHIFT);
 	}
 
+	public static int tangentFlags(int bits) {
+		return (bits >> TANGENTS_SHIFT) & TANGENTS_MASK;
+	}
+
+	public static int tangentFlags(int bits, int tangentFlags) {
+		return (bits & TANGENTS_INVERSE_MASK) | ((tangentFlags & TANGENTS_MASK) << TANGENTS_SHIFT);
+	}
+
 	public static int stride() {
-		return MIN_QUAD_STRIDE;
+		return TOTAL_MESH_QUAD_STRIDE;
 	}
 
 	public static int geometryFlags(int bits) {

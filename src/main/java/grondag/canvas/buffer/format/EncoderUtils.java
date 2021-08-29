@@ -35,17 +35,8 @@ public abstract class EncoderUtils {
 
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
-		final boolean useNormals = quad.hasVertexNormals();
 
-		if (useNormals) {
-			quad.populateMissingNormals();
-		} else {
-			packedNormal = quad.packedFaceNormal();
-			final int transformedNormal = normalMatrix.canvas_transform(packedNormal);
-			nx = NormalHelper.getPackedNormalComponent(transformedNormal, 0);
-			ny = NormalHelper.getPackedNormalComponent(transformedNormal, 1);
-			nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
-		}
+		quad.populateMissingVectors();
 
 		final boolean emissive = quad.material().emissive();
 
@@ -59,16 +50,14 @@ public abstract class EncoderUtils {
 			buff.overlay(overlay);
 			buff.light(emissive ? MeshEncodingHelper.FULL_BRIGHTNESS : quad.lightmap(i));
 
-			if (useNormals) {
-				final int p = quad.packedNormal(i);
+			final int p = quad.packedNormal(i);
 
-				if (p != packedNormal) {
-					packedNormal = p;
-					final int transformedNormal = normalMatrix.canvas_transform(packedNormal);
-					nx = NormalHelper.getPackedNormalComponent(transformedNormal, 0);
-					ny = NormalHelper.getPackedNormalComponent(transformedNormal, 1);
-					nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
-				}
+			if (p != packedNormal) {
+				packedNormal = p;
+				final int transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				nx = NormalHelper.getPackedNormalComponent(transformedNormal, 0);
+				ny = NormalHelper.getPackedNormalComponent(transformedNormal, 1);
+				nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
 			}
 
 			buff.normal(nx, ny, nz);

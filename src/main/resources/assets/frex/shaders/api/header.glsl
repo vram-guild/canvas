@@ -1,4 +1,8 @@
-#version 330
-
 #define VERTEX_SHADER
 #define _CV_VERTEX_DEFAULT
+#define VANILLA_LIGHTING
+#define ANIMATED_FOLIAGE
+#define SHADOW_MAP_PRESENT
+#define SHADOW_MAP_SIZE 1024
+//#define DEPTH_PASS
+//#define PBR_ENABLED

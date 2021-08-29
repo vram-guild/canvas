@@ -59,6 +59,13 @@ public class MixinMatrix3f implements Matrix3fExt {
 	}
 
 	@Override
+	public boolean canvas_isIdentity() {
+		return a00 == 1.0F && a01 == 0.0F && a02 == 0.0F
+				&& a10 == 0.0F && a11 == 1.0F && a12 == 0.0
+				&& a20 == 0.0F && a21 == 0.0F && a22 == 1.0F;
+	}
+
+	@Override
 	public float a00() {
 		return a00;
 	}

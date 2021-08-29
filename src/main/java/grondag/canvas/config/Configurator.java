@@ -50,6 +50,7 @@ public class Configurator {
 	public static boolean cullParticles = DEFAULTS.cullParticles;
 	public static boolean useCombinedThreadPool = DEFAULTS.useCombinedThreadPool;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
+	public static boolean preprocessShaderSource = DEFAULTS.preprocessShaderSource;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
@@ -75,6 +76,7 @@ public class Configurator {
 	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
 	public static boolean disableUnseenSpriteAnimation = DEFAULTS.disableUnseenSpriteAnimation;
 	public static boolean cullBackfacingTerrain = DEFAULTS.cullBackfacingTerrain;
+	public static boolean debugSpriteAtlas = DEFAULTS.debugSpriteAtlas;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -102,6 +104,7 @@ public class Configurator {
 		wavyGrass = config.wavyGrass;
 
 		shaderDebug = config.shaderDebug;
+		preprocessShaderSource = config.preprocessShaderSource;
 		//maxLightmapDelayFrames = config.maxLightmapDelayFrames;
 		//moreLightmap = config.moreLightmap;
 
@@ -150,6 +153,7 @@ public class Configurator {
 		enableNearOccluders = config.enableNearOccluders;
 		disableUnseenSpriteAnimation = config.disableUnseenSpriteAnimation;
 		cullBackfacingTerrain = config.cullBackfacingTerrain;
+		debugSpriteAtlas = config.debugSpriteAtlas;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -158,6 +162,7 @@ public class Configurator {
 		config.wavyGrass = wavyGrass;
 
 		config.shaderDebug = shaderDebug;
+		config.preprocessShaderSource = preprocessShaderSource;
 		//config.maxLightmapDelayFrames = maxLightmapDelayFrames;
 
 		// config.hdLightmaps = hdLightmaps;
@@ -205,5 +210,6 @@ public class Configurator {
 		config.enableNearOccluders = enableNearOccluders;
 		config.disableUnseenSpriteAnimation = disableUnseenSpriteAnimation;
 		config.cullBackfacingTerrain = cullBackfacingTerrain;
+		config.debugSpriteAtlas = debugSpriteAtlas;
 	}
 }

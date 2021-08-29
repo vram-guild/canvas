@@ -6,6 +6,7 @@
   "mixins": [
 	"AccessMultiPhaseParameters",
 	"AccessTexture",
+	"MixinAnimationResourceMetadata",
 	"MixinBiomeAccess",
 	"MixinBackgroundRenderer",
 	"MixinBlockModelRenderer",
@@ -46,6 +47,8 @@
 	"MixinSpriteBillboardParticle",
 	"MixinSpriteInterpolation",
 	"MixinRenderLayer",
+	"MixinTextureStitcher",
+	"MixinTextureStitcherSlot",
 	"MixinUtil",
 	"MixinVideoOptionsScreen",
 	"MixinWindow",

@@ -16,19 +16,21 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.EMPTY;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_COLOR;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_LIGHTMAP;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_NORMAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.FIRST_VERTEX_X;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.texture.MissingSprite;
@@ -60,6 +62,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
 	// vanilla light outputs
+	// PERF use integer byte values for these instead of floats
 	public final float[] ao = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
 	protected RenderMaterialImpl defaultMaterial = Canvas.MATERIAL_STANDARD;
 
@@ -87,7 +90,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public void clear() {
-		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.MAX_QUAD_STRIDE);
+		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
 		isGeometryInvalid = true;
 		packedFaceNormal = -1;
 		nominalFaceId = ModelHelper.NULL_FACE_ID;
@@ -150,19 +153,19 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	private void convertVanillaUvPrecision() {
 		// Convert sprite data from float to fixed precision
-		int index = baseIndex + colorOffset(0) + 1;
+		int index = baseIndex + 0 * MESH_VERTEX_STRIDE + FIRST_VERTEX_COLOR + 1;
 
 		for (int i = 0; i < 4; ++i) {
 			data[index] = (int) (Float.intBitsToFloat(data[index]) * UV_PRECISE_UNIT_VALUE);
 			data[index + 1] = (int) (Float.intBitsToFloat(data[index + 1]) * UV_PRECISE_UNIT_VALUE);
-			index += BASE_VERTEX_STRIDE;
+			index += MESH_VERTEX_STRIDE;
 		}
 	}
 
 	@Deprecated
 	@Override
 	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
-		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
+		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, MESH_QUAD_STRIDE);
 		convertVanillaUvPrecision();
 		normalizeSprite();
 		isSpriteInterpolated = false;
@@ -178,7 +181,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
-		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, BASE_QUAD_STRIDE);
+		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, MESH_QUAD_STRIDE);
 		material(material);
 		convertVanillaUvPrecision();
 		normalizeSprite();
@@ -194,7 +197,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public MutableQuadViewImpl pos(int vertexIndex, float x, float y, float z) {
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_X;
 		data[index] = Float.floatToRawIntBits(x);
 		data[index + 1] = Float.floatToRawIntBits(y);
 		data[index + 2] = Float.floatToRawIntBits(z);
@@ -210,40 +213,75 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
 		normalFlags(normalFlags() | (1 << vertexIndex));
-		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z);
+		data[baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_NORMAL] = NormalHelper.packNormal(x, y, z);
+		return this;
+	}
+
+	public void tangentFlags(int flags) {
+		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.tangentFlags(data[baseIndex + HEADER_BITS], flags);
+	}
+
+	@Override
+	public MutableQuadViewImpl tangent(int vertexIndex, float x, float y, float z) {
+		tangentFlags(tangentFlags() | (1 << vertexIndex));
+		data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT] = NormalHelper.packNormal(x, y, z);
 		return this;
 	}
 
 	/**
-	 * Internal helper method. Copies face normals to vertex normals lacking one.
+	 * Internal helper method. Copies face normals to vertex normals lacking one
+	 * and computes tangent vectors if they were not provided. Returns true
+	 * if the quad has any vertex-specific values.
 	 */
-	public final void populateMissingNormals() {
+	public final void populateMissingVectors() {
 		final int normalFlags = this.normalFlags();
 
-		if (normalFlags == 0b1111) {
-			return;
-		}
+		if (normalFlags != 0b1111) {
+			final int packedFaceNormal = NormalHelper.packNormal(faceNormal());
 
-		final int packedFaceNormal = NormalHelper.packNormal(faceNormal());
-
-		for (int v = 0; v < 4; v++) {
-			if ((normalFlags & (1 << v)) == 0) {
-				data[baseIndex + v * BASE_VERTEX_STRIDE + VERTEX_NORMAL] = packedFaceNormal;
+			for (int v = 0; v < 4; v++) {
+				if ((normalFlags & (1 << v)) == 0) {
+					data[baseIndex + v * MESH_VERTEX_STRIDE + FIRST_VERTEX_NORMAL] = packedFaceNormal;
+				}
 			}
+
+			normalFlags(0b1111);
 		}
 
-		normalFlags(0b1111);
+		final int tangentFlags = this.tangentFlags();
+
+		if (tangentFlags != 0b1111) {
+			// PERF: can likely optimize this to exploit fact that
+			// vast majority of blocks/items will have X = +/- 1 or Z = +/- 1.
+			final float dv0 = spriteFloatV(1) - spriteFloatV(0);
+			final float dv1 = spriteFloatV(2) - spriteFloatV(1);
+			final float inverseLength = 1.0f / ((spriteFloatU(1) - spriteFloatU(0)) * dv1 - (spriteFloatU(2) - spriteFloatU(1)) * dv0);
+
+			final float tx = inverseLength * (dv1 * (x(1) - x(0)) - dv0 * (x(2) - x(1)));
+			final float ty = inverseLength * (dv1 * (y(1) - y(0)) - dv0 * (y(2) - y(1)));
+			final float tz = inverseLength * (dv1 * (z(1) - z(0)) - dv0 * (z(2) - z(1)));
+
+			final int packedTangent = NormalHelper.packNormal(tx, ty, tz);
+
+			for (int v = 0; v < 4; v++) {
+				if ((tangentFlags & (1 << v)) == 0) {
+					data[baseIndex + v + HEADER_FIRST_VERTEX_TANGENT] = packedTangent;
+				}
+			}
+
+			tangentFlags(0b1111);
+		}
 	}
 
 	@Override
 	public MutableQuadViewImpl lightmap(int vertexIndex, int lightmap) {
-		data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_LIGHTMAP] = lightmap;
+		data[baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_LIGHTMAP] = lightmap;
 		return this;
 	}
 
 	@Override
 	public MutableQuadViewImpl vertexColor(int vertexIndex, int color) {
-		data[baseIndex + colorOffset(vertexIndex)] = color;
+		data[baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_COLOR] = color;
 		return this;
 	}
 
@@ -256,7 +294,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	public MutableQuadViewImpl spriteFloat(int vertexIndex, float u, float v) {
-		final int i = baseIndex + colorOffset(vertexIndex) + 1;
+		final int i = baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_COLOR + 1;
 		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE + 0.5f);
 		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE + 0.5f);
 		return this;
@@ -266,7 +304,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	 * Must call {@link #spriteId(int, int)} separately.
 	 */
 	public MutableQuadViewImpl spritePrecise(int vertexIndex, int u, int v) {
-		final int i = baseIndex + colorOffset(vertexIndex) + 1;
+		final int i = baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_COLOR + 1;
 		data[i] = u;
 		data[i + 1] = v;
 		assert isSpriteNormalized();
@@ -482,20 +520,14 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	public void transformAndAppendPackedVertices(final Matrix4fExt matrix, Matrix3fExt normalMatrix, int[] target, int targetIndex) {
 		final int[] data = this.data;
-		final boolean hasNormals = hasVertexNormals();
 
 		int packedNormal = 0;
 		int transformedNormal = 0;
 
-		if (hasNormals) {
-			populateMissingNormals();
-		} else {
-			packedNormal = packedFaceNormal();
-			transformedNormal = NormalHelper.shaderPackedNormal(normalMatrix.canvas_transform(packedNormal));
-		}
+		populateMissingVectors();
 
 		for (int vertexIndex = 0; vertexIndex < 4; ++vertexIndex) {
-			final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+			final int index = baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_X;
 			final float x = Float.intBitsToFloat(data[index]);
 			final float y = Float.intBitsToFloat(data[index + 1]);
 			final float z = Float.intBitsToFloat(data[index + 2]);
@@ -508,13 +540,11 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 			target[targetIndex++] = Float.floatToRawIntBits(yOut);
 			target[targetIndex++] = Float.floatToRawIntBits(zOut);
 
-			if (hasNormals) {
-				final int p = packedNormal(vertexIndex);
+			final int p = packedNormal(vertexIndex);
 
-				if (p != packedNormal) {
-					packedNormal = p;
-					transformedNormal = NormalHelper.shaderPackedNormal(normalMatrix.canvas_transform(packedNormal));
-				}
+			if (p != packedNormal) {
+				packedNormal = p;
+				transformedNormal = NormalHelper.shaderPackedNormal(normalMatrix.canvas_transform(packedNormal));
 			}
 
 			target[targetIndex++] = transformedNormal;

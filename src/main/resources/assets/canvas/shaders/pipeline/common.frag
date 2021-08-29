@@ -1,6 +1,5 @@
 #include canvas:shaders/pipeline/fog.glsl
 #include canvas:shaders/pipeline/diffuse.glsl
-#include canvas:shaders/pipeline/varying.glsl
 #include canvas:shaders/pipeline/glint.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
@@ -53,25 +52,25 @@ vec4 aoFactor(vec2 lightCoord, float ao) {
 }
 #endif
 
-vec4 light(frx_FragmentData fragData) {
+vec4 light() {
 	vec4 result;
 
 #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY
-	if (fragData.diffuse) {
-		vec4 block = texture(frxs_lightmap, vec2(fragData.light.x, 0.03125));
-		vec4 sky = texture(frxs_lightmap, vec2(0.03125, fragData.light.y));
+	if (frx_fragEnableDiffuse) {
+		vec4 block = texture(frxs_lightmap, vec2(frx_fragLight.x, 0.03125));
+		vec4 sky = texture(frxs_lightmap, vec2(0.03125, frx_fragLightt.y));
 		result = max(block, sky * pv_diffuse);
 	} else {
-		result = texture(frxs_lightmap, fragData.light);
+		result = texture(frxs_lightmap, frx_fragLight.xy);
 	}
 #else
-	result = texture(frxs_lightmap, fragData.light);
+	result = texture(frxs_lightmap, frx_fragLight.xy);
 #endif
 
 #if HANDHELD_LIGHT_RADIUS != 0
-	vec4 held = frx_heldLight();
+	vec4 held = frx_heldLight;
 
-	if (held.w > 0.0 && (!frx_isGui() || frx_isHand())) {
+	if (held.w > 0.0 && (!frx_isGui || frx_isHand)) {
 		float d = clamp(frx_distance / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 		d = 1.0 - d * d;
 
@@ -98,77 +97,38 @@ vec4 light(frx_FragmentData fragData) {
 	return result;
 }
 
-frx_FragmentData frx_createPipelineFragment() {
-#ifdef VANILLA_LIGHTING
-	return frx_FragmentData (
-		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
-		frx_color,
-		frx_matEmissive() ? 1.0 : 0.0,
-		!frx_matDisableDiffuse(),
-		!frx_matDisableAo(),
-		frx_normal,
-		pv_lightcoord,
-		pv_ao
-	);
-#else
-	return frx_FragmentData (
-		texture(frxs_baseColor, frx_texcoord, frx_matUnmippedFactor() * -4.0),
-		frx_color,
-		frx_matEmissive() ? 1.0 : 0.0,
-		!frx_matDisableDiffuse(),
-		!frx_matDisableAo(),
-		frx_normal
-	);
-#endif
-}
+vec4 p_writeBaseColorAndDepth() {
+	vec4 a = frx_fragColor;
 
-vec4 p_writeBaseColorAndDepth(in frx_FragmentData fragData) {
-	vec4 a = fragData.spriteColor * fragData.vertexColor;
-
-	if (frx_isGui() && !frx_isHand()) {
-		if (fragData.diffuse) {
-			float df = p_diffuseGui(frx_normal);
-			df = df + (1.0 - df) * fragData.emissivity;
+	if (frx_isGui && !frx_isHand) {
+		if (frx_fragEnableDiffuse) {
+			float df = p_diffuseGui(frx_vertexNormal);
+			df = df + (1.0 - df) * frx_fragEmissive;
 			a *= vec4(df, df, df, 1.0);
 		}
 	} else {
-		a *= mix(light(fragData), frx_emissiveColor(), fragData.emissivity);
+		a *= mix(light(), frx_emissiveColor, frx_fragEmissive);
 
 	#if AO_SHADING_MODE != AO_MODE_NONE
-		if (fragData.ao) {
-			a *= aoFactor(fragData.light, fragData.aoShade);
-		}
+		a *= frx_fragEnableAo ? aoFactor(frx_fragLight.xy, frx_fragLight.z) : vec4(1.0);
 	#endif
 
 	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL
-		if (fragData.diffuse) {
-			float df = pv_diffuse + (1.0 - pv_diffuse) * fragData.emissivity;
+		if (frx_fragEnableDiffuse) {
+			float df = pv_diffuse + (1.0 - pv_diffuse) * frx_fragEmissive;
 
 			a *= vec4(df, df, df, 1.0);
 		}
 	#endif
 	}
 
-	if (frx_matFlash()) {
+	if (frx_matFlash == 1) {
 		a = a * 0.25 + 0.75;
-	} else if (frx_matHurt()) {
+	} else if (frx_matHurt == 1) {
 		a = vec4(0.25 + a.r * 0.75, a.g * 0.75, a.b * 0.75, a.a);
 	}
 
-	glintify(a, frx_matGlint());
-
-	// WIP: remove - various api tests
-	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_smoothedEyeBrightness().y));
-	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(0.0, 0.0, frx_eyePos().y / 255.0, 0.0));
-	//if (frx_playerFlag(FRX_PLAYER_EYE_IN_LAVA)) {
-	//	a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(0.0, 0.0, 1.0, 0.0));
-	//}
-	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_rainGradient()));
-	//a = min(vec4(1.0, 1.0, 1.0, 1.0), a + vec4(frx_smoothedRainGradient()));
-	//if (frx_renderTarget() == TARGET_ENTITY) {
-	//	a = vec4(0.0, 1.0, 0.0, a.a);
-	//}
-	//a = vec4(frx_vanillaClearColor(), a.a);
+	glintify(a, frx_matGlint);
 
 	fragColor[TARGET_BASECOLOR] = p_fog(a);
 	gl_FragDepth = gl_FragCoord.z;

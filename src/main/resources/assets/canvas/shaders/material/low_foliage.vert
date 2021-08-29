@@ -11,16 +11,13 @@
   https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-6-gpu-generated-procedural-wind-animations-trees
 ******************************************************/
 
-void frx_startVertex(inout frx_VertexData data) {
-	#ifdef ANIMATED_FOLIAGE
-	float rain = frx_rainGradient();
-	float globalWind = 0.2 + rain * 0.2;
-	float t = frx_renderSeconds() * 0.05;
-	vec3 modelOrigin = frx_modelOriginWorldPos();
+void frx_materialVertex() {
+#ifdef ANIMATED_FOLIAGE
+	float globalWind = 0.2 + frx_rainGradient * 0.2;
+	float t = frx_renderSeconds * 0.05;
+	float wind = snoise(vec3((frx_vertex.xz + frx_modelToWorld.xz) * 0.0625, t)) * (1.0 - frx_texcoord.y) * globalWind;
 
-	float wind = snoise(vec3((data.vertex.xz + modelOrigin.xz) * 0.0625, t)) * (1.0 - data.spriteUV.y) * globalWind;
-
-	data.vertex.x += (cos(t) * cos(t * 3) * cos(t * 5) * cos(t * 7) + sin(t * 25)) * wind;
-	data.vertex.z += sin(t * 19) * wind;
-	#endif
+	frx_vertex.x += (cos(t) * cos(t * 3) * cos(t * 5) * cos(t * 7) + sin(t * 25)) * wind;
+	frx_vertex.z += sin(t * 19) * wind;
+#endif
 }

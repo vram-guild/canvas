@@ -78,10 +78,18 @@ class ConfigData {
 	boolean disableUnseenSpriteAnimation = true;
 	@Comment("When true, terrain facing away from the camera is not rendered.  Usually improves frame rate.")
 	boolean cullBackfacingTerrain = true;
+	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
+	boolean enableNearOccluders = false;
+	@Comment("Method used to transfer data to GPU. AUTO is recommended but performance can be specific to your system. Other options are DIRECT, HYBRID, and MAPPED")
+	public TransferBuffers.Config transferBufferMode = TransferBuffers.Config.AUTO;
+	@Comment("Uses slower and safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
+	boolean safeNativeMemoryAllocation = false;
 
 	// DEBUG
 	@Comment("Output runtime per-material shader source. For shader development debugging.")
 	boolean shaderDebug = false;
+	@Comment("Pre-process OpenGL source before compilation. Makes source more concise but possibly harder to read.")
+	boolean preprocessShaderSource = true;
 	//@Comment("Shows HD lightmap pixels for debug purposes. Also looks cool.")
 	//boolean lightmapDebug = false;
 	@Comment("Summarizes multiple errors and warnings to single-line entries in the log.")
@@ -92,8 +100,6 @@ class ConfigData {
 	boolean logGlStateChanges = false;
 	@Comment("Enables LWJGL memory allocation tracking.  Will harm performance. Use for debugging memory leaks. Requires restart.")
 	boolean debugNativeMemoryAllocation = false;
-	@Comment("Uses slower and safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
-	boolean safeNativeMemoryAllocation = false;
 	@Comment("Output performance trace data to log. Will have significant performance impact. Requires restart.")
 	boolean enablePerformanceTrace = false;
 	@Comment("Output periodic snapshots of terrain occlusion raster. Will have performance impact.")
@@ -118,8 +124,6 @@ class ConfigData {
 	int profilerDetailLevel = 0;
 	@Comment("Size of the profiler overlay relative to GUI scale.")
 	float profilerOverlayScale = 0.5f;
-	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
-	boolean enableNearOccluders = false;
-	@Comment("Method used to transfer data to GPU. AUTO is recommended but performance can be specific to your system. Other options are DIRECT, HYBRID, and MAPPED")
-	public TransferBuffers.Config transferBufferMode = TransferBuffers.Config.AUTO;
+	@Comment("Export sprite atlas textures to atlas_debug folder within run folder.")
+	boolean debugSpriteAtlas = false;
 }

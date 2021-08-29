@@ -68,12 +68,12 @@ public class PipelineManager {
 		return h;
 	}
 
-	public static void reloadIfNeeded() {
+	public static void reloadIfNeeded(boolean forceRecompile) {
 		if (Pipeline.needsReload()) {
 			init((PrimaryFrameBuffer) MinecraftClient.getInstance().getFramebuffer(), w, h);
 		}
 
-		handleRecompile();
+		handleRecompile(forceRecompile);
 	}
 
 	public static void beforeWorldRender() {
@@ -95,14 +95,12 @@ public class PipelineManager {
 		Pipeline.defaultFbo.bind();
 	}
 
-	public static void handleRecompile() {
-		boolean doIt = false;
-
+	public static void handleRecompile(boolean forceRecompile) {
 		while (CanvasMod.RECOMPILE.wasPressed()) {
-			doIt = true;
+			forceRecompile = true;
 		}
 
-		if (doIt) {
+		if (forceRecompile) {
 			CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
 			Canvas.INSTANCE.recompile();
 		}
@@ -231,7 +229,7 @@ public class PipelineManager {
 		addVertex(0f, 1f, 0.2f, 0f, 0f, v, k + 20);
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k + 25);
 
-		TransferBuffer transfer = TransferBuffers.claim(collector.byteSize());
+		final TransferBuffer transfer = TransferBuffers.claim(collector.byteSize());
 		collector.toBuffer(0, transfer, 0);
 		drawBuffer = new StaticDrawBuffer(CanvasVertexFormats.PROCESS_VERTEX_UV, transfer);
 		drawBuffer.upload();
