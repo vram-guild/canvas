@@ -28,6 +28,7 @@ import static grondag.canvas.config.Configurator.cullParticles;
 import static grondag.canvas.config.Configurator.debugNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
+import static grondag.canvas.config.Configurator.debugSpriteAtlas;
 import static grondag.canvas.config.Configurator.disableUnseenSpriteAnimation;
 import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
@@ -552,6 +553,13 @@ public class ConfigGui {
 			.setDefaultValue(DEFAULTS.profilerOverlayScale)
 			.setTooltip(parse("config.canvas.help.profiler_overlay_scale"))
 			.setSaveConsumer(b -> profilerOverlayScale = b)
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.debug_sprite_atlas"), debugSpriteAtlas)
+			.setDefaultValue(DEFAULTS.debugSpriteAtlas)
+			.setTooltip(parse("config.canvas.help.debug_sprite_atlas"))
+			.setSaveConsumer(b -> debugSpriteAtlas = b)
 			.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);

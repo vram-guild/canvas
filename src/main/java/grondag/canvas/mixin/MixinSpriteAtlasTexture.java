@@ -131,7 +131,9 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 			combined.uploadCombined();
 		}
 
-		outputAtlasImage();
+		if (Configurator.debugSpriteAtlas) {
+			outputAtlasImage();
+		}
 
 		SpriteIndex.getOrCreate(id).reset(input, spriteIndexList, (SpriteAtlasTexture) (Object) this);
 	}

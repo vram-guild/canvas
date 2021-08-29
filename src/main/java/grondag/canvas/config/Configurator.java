@@ -76,6 +76,7 @@ public class Configurator {
 	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
 	public static boolean disableUnseenSpriteAnimation = DEFAULTS.disableUnseenSpriteAnimation;
 	public static boolean cullBackfacingTerrain = DEFAULTS.cullBackfacingTerrain;
+	public static boolean debugSpriteAtlas = DEFAULTS.debugSpriteAtlas;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -152,6 +153,7 @@ public class Configurator {
 		enableNearOccluders = config.enableNearOccluders;
 		disableUnseenSpriteAnimation = config.disableUnseenSpriteAnimation;
 		cullBackfacingTerrain = config.cullBackfacingTerrain;
+		debugSpriteAtlas = config.debugSpriteAtlas;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -208,5 +210,6 @@ public class Configurator {
 		config.enableNearOccluders = enableNearOccluders;
 		config.disableUnseenSpriteAnimation = disableUnseenSpriteAnimation;
 		config.cullBackfacingTerrain = cullBackfacingTerrain;
+		config.debugSpriteAtlas = debugSpriteAtlas;
 	}
 }
