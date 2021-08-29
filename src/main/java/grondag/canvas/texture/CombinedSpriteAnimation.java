@@ -16,12 +16,16 @@
 
 package grondag.canvas.texture;
 
+import org.lwjgl.system.MemoryUtil;
+
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.util.math.MathHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+
+import grondag.canvas.mixinterface.NativeImageExt;
 
 @Environment(EnvType.CLIENT)
 public final class CombinedSpriteAnimation implements AutoCloseable {
@@ -64,15 +68,18 @@ public final class CombinedSpriteAnimation implements AutoCloseable {
 		y0 = Math.min(y0, toY);
 		x1 = Math.max(x1, toX + width);
 		y1 = Math.max(y1, toY + height);
+		final long runLength = width * 4L;
+		final long sourceBasePtr = ((NativeImageExt) (Object) source).canvas_pointer();
+		final long targetBasePtr = ((NativeImageExt) (Object) target).canvas_pointer();
 
 		for (int j = 0; j < height; ++j) {
-			final int destY = j + toY;
 			final int srcY = j + fromY;
+			final long sourceOffset = (fromX + (long) srcY * source.getWidth()) * 4L;
 
-			for (int i = 0; i < width; ++i) {
-				// PERF: use memcopy
-				target.setPixelColor(i + toX, destY, source.getPixelColor(fromX + i, srcY));
-			}
+			final int destY = j + toY;
+			final long targetOffset = (toX + (long) destY * target.getWidth()) * 4L;
+
+			MemoryUtil.memCopy(sourceBasePtr + sourceOffset, targetBasePtr + targetOffset, runLength);
 		}
 	}
 
