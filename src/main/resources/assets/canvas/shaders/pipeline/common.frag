@@ -58,7 +58,7 @@ vec4 light() {
 #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY
 	if (frx_fragEnableDiffuse) {
 		vec4 block = texture(frxs_lightmap, vec2(frx_fragLight.x, 0.03125));
-		vec4 sky = texture(frxs_lightmap, vec2(0.03125, frx_fragLightt.y));
+		vec4 sky = texture(frxs_lightmap, vec2(0.03125, frx_fragLight.y));
 		result = max(block, sky * pv_diffuse);
 	} else {
 		result = texture(frxs_lightmap, frx_fragLight.xy);

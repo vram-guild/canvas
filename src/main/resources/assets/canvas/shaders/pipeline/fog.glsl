@@ -9,7 +9,7 @@
 
 vec4 p_fogInner(vec4 diffuseColor) {
 #if _CV_FOG_CONFIG == _CV_FOG_CONFIG_NONE
-	if (!frx_effectBlindness) {
+	if (frx_effectBlindness != 1) {
 		return diffuseColor;
 	}
 #endif
