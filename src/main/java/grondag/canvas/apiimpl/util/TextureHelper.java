@@ -45,7 +45,7 @@ public class TextureHelper {
 		UVLOCKERS[Direction.NORTH.getId()] = (q, i) -> q.spriteFloat(i, 1 - q.x(i), 1 - q.y(i));
 		UVLOCKERS[Direction.SOUTH.getId()] = (q, i) -> q.spriteFloat(i, q.x(i), 1 - q.y(i));
 		UVLOCKERS[Direction.DOWN.getId()] = (q, i) -> q.spriteFloat(i, q.x(i), 1 - q.z(i));
-		UVLOCKERS[Direction.UP.getId()] = (q, i) -> q.spriteFloat(i, q.x(i), 1 - q.z(i));
+		UVLOCKERS[Direction.UP.getId()] = (q, i) -> q.spriteFloat(i, q.x(i), q.z(i));
 	}
 
 	private TextureHelper() {
