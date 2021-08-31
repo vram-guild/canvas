@@ -285,7 +285,10 @@ public class PreReleaseShaderCompat {
 		source = StringUtils.replace(source, dataVarName + ".ao", "frx_fragEnableAo");
 		source = StringUtils.replace(source, dataVarName + ".diffuse", "frx_fragEnableDiffuse");
 
-		if (source.contains(dataVarName + ".spriteColor") || source.contains(dataVarName + ".vertexColor")) {
+		// Using String.matches doesn't work somehow, but doing it explicitly does.
+		final var usageSearch = Pattern.compile("[(,]\\s*" + dataVarName + "\\s*[,)]", 0);
+
+		if (usageSearch.matcher(source).find() || source.contains(dataVarName + ".spriteColor") || source.contains(dataVarName + ".vertexColor")) {
 			needsFragmentShaderStubs = true;
 		} else {
 			// replace the legacy method signature because it isn't needed
