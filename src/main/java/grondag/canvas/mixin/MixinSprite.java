@@ -77,12 +77,17 @@ public class MixinSprite implements SpriteExt {
 
 	@Override
 	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
-		if (animation != null) {
+		@SuppressWarnings("resource")
+		final Sprite me = (Sprite) (Object) this;
+
+		if (animation != null || (me.getX() < combined.width && me.getY() < combined.height)) {
 			for (final var img : images) {
 				((CombinedAnimationConsumer) (Object) img).canvas_setCombinedAnimation(combined);
 			}
 
-			((CombinedAnimationConsumer) animation).canvas_setCombinedAnimation(combined);
+			if (animation != null) {
+				((CombinedAnimationConsumer) animation).canvas_setCombinedAnimation(combined);
+			}
 		}
 	}
 }

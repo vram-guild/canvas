@@ -30,17 +30,17 @@ import grondag.canvas.mixinterface.NativeImageExt;
 @Environment(EnvType.CLIENT)
 public final class CombinedSpriteAnimation implements AutoCloseable {
 	private final NativeImage[] images;
-	private final int w, h, size;
+	public final int width, height, size;
 	private int x0, y0, x1, y1;
 
 	public CombinedSpriteAnimation(SpriteAtlasTexture owner, int x0, int y0, int x1, int y1, int lodCount) {
-		w = MathHelper.smallestEncompassingPowerOfTwo(x1- x0);
-		h = MathHelper.smallestEncompassingPowerOfTwo(y1- y0);
+		width = MathHelper.smallestEncompassingPowerOfTwo(x1- x0);
+		height = MathHelper.smallestEncompassingPowerOfTwo(y1- y0);
 		size = lodCount + 1;
 		images = new NativeImage[size];
 
 		for (int i = 0; i < size; ++i) {
-			images[i] = new NativeImage(w >> i, h >> i, false);
+			images[i] = new NativeImage(width >> i, height >> i, false);
 		}
 
 		reset();
