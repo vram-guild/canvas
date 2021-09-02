@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.GlDebugInfo;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -51,6 +52,7 @@ import grondag.canvas.render.terrain.cluster.SlabAllocator;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.AutoImmediate;
+import grondag.canvas.varia.CanvasGlHelper;
 
 @Mixin(DebugHud.class)
 public class MixinDebugHud extends DrawableHelper {
@@ -78,6 +80,11 @@ public class MixinDebugHud extends DrawableHelper {
 		} else {
 			rebuildLists = true;
 		}
+	}
+
+	@Redirect(method = "getRightText", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlDebugInfo;getVersion()Ljava/lang/String;"))
+	private String onGetGlDebugVersion() {
+		return GlDebugInfo.getVersion() + " (OGL " + CanvasGlHelper.maxGlVersion() + " available)";
 	}
 
 	@Redirect(method = "renderLeftText", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I"))
@@ -183,7 +190,7 @@ public class MixinDebugHud extends DrawableHelper {
 
 	@Redirect(method = "getRightText", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Lists;newArrayList([Ljava/lang/Object;)Ljava/util/ArrayList;", remap = false))
 	private ArrayList<String> onGetRightText(Object[] elements) {
-		ArrayList<String> result = Lists.newArrayList((String[]) elements);
+		final ArrayList<String> result = Lists.newArrayList((String[]) elements);
 		result.add("");
 		result.add("Canvas Renderer " + CanvasMod.versionString);
 		result.add(DirectBufferAllocator.debugString());

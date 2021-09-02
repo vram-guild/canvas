@@ -29,8 +29,14 @@ import grondag.canvas.config.Configurator;
 public class CanvasGlHelper {
 	private static boolean supportsPersistentMapped = false;
 
+	private static String maxGlVersion = "3.2";
+
 	public static boolean supportsPersistentMapped() {
 		return supportsPersistentMapped;
+	}
+
+	public static String maxGlVersion() {
+		return maxGlVersion;
 	}
 
 	public static void init() {
@@ -40,6 +46,7 @@ public class CanvasGlHelper {
 
 		final GLCapabilities caps = GL.getCapabilities();
 		supportsPersistentMapped = caps.glBufferStorage != 0;
+		maxGlVersion = maxGlVersion(caps);
 
 		if (Configurator.logMachineInfo) {
 			logMachineInfo(caps);
@@ -54,9 +61,32 @@ public class CanvasGlHelper {
 		log.info(String.format(" Java: %s %dbit   Canvas: %s", System.getProperty("java.version"), client.is64Bit() ? 64 : 32, CanvasMod.versionString));
 		log.info(String.format(" CPU: %s", GLX._getCpuInfo()));
 		log.info(String.format(" LWJGL: %s", GLX._getLWJGLVersion()));
-		log.info(String.format(" OpenGL: %s", GLX.getOpenGLVersionString()));
+		log.info(String.format(" OpenGL (Reported): %s", GLX.getOpenGLVersionString()));
+		log.info(String.format(" OpenGL (Available): %s", maxGlVersion));
 		log.info(String.format(" glBufferStorage: %s", caps.glBufferStorage == 0 ? "N" : "Y"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
+	}
+
+	private static String maxGlVersion(GLCapabilities caps) {
+		if (caps.OpenGL46) {
+			return "4.6";
+		} else if (caps.OpenGL45) {
+			return "4.5";
+		} else if (caps.OpenGL44) {
+			return "4.4";
+		} else if (caps.OpenGL43) {
+			return "4.3";
+		} else if (caps.OpenGL42) {
+			return "4.2";
+		} else if (caps.OpenGL41) {
+			return "4.1";
+		} else if (caps.OpenGL40) {
+			return "4.0";
+		} else if (caps.OpenGL33) {
+			return "3.3";
+		} else {
+			return "3.2";
+		}
 	}
 }
