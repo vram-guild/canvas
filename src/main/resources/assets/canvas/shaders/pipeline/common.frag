@@ -128,7 +128,7 @@ vec4 p_writeBaseColorAndDepth() {
 		a = vec4(0.25 + a.r * 0.75, a.g * 0.75, a.b * 0.75, a.a);
 	}
 
-	glintify(a, frx_matGlint);
+	glintify(a, float(frx_matGlint));
 
 	fragColor[TARGET_BASECOLOR] = p_fog(a);
 	gl_FragDepth = gl_FragCoord.z;
