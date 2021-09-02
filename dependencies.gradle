@@ -31,8 +31,7 @@ dependencies {
 		exclude(module: "fabric-dimensions-v1")
 	}
 
-	modCompileOnly "org.anarres:jcpp:1.4.14"
-	modRuntime "org.anarres:jcpp:1.4.14"
+	modImplementation "org.anarres:jcpp:1.4.14"
 	
 	modImplementation("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false; changing = true; }
 
