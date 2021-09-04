@@ -32,6 +32,8 @@ class ConfigData {
 	public boolean enableLifeCycleDebug = false;
 	@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight performance impact to chunk loading.")
 	boolean blendFluidColors = true;
+	@Comment("Turns off darkened screen corners present in vanilla.")
+	boolean disableVignette = false;
 	//@Comment("Truly smooth lighting. Some impact to memory use, chunk loading and frame rate.")
 	//boolean hdLightmaps = false;
 	//@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")

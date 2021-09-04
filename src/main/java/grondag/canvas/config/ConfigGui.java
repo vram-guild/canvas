@@ -30,6 +30,7 @@ import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
 import static grondag.canvas.config.Configurator.debugSpriteAtlas;
 import static grondag.canvas.config.Configurator.disableUnseenSpriteAnimation;
+import static grondag.canvas.config.Configurator.disableVignette;
 import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
@@ -38,7 +39,6 @@ import static grondag.canvas.config.Configurator.enableNearOccluders;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
-import static grondag.canvas.config.Configurator.lightSmoothing;
 import static grondag.canvas.config.Configurator.logGlStateChanges;
 import static grondag.canvas.config.Configurator.logMachineInfo;
 import static grondag.canvas.config.Configurator.logMaterials;
@@ -156,18 +156,15 @@ public class ConfigGui {
 				})
 				.build());
 
-		// LIGHTING
-		final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
-
-		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.light_smoothing"), lightSmoothing)
-				.setDefaultValue(DEFAULTS.lightSmoothing)
-				.setTooltip(parse("config.canvas.help.light_smoothing"))
-				.setSaveConsumer(b -> {
-					reload |= lightSmoothing != b;
-					lightSmoothing = b;
-				})
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.disable_vignette"), disableVignette)
+				.setDefaultValue(DEFAULTS.disableVignette)
+				.setTooltip(parse("config.canvas.help.disable_vignette"))
+				.setSaveConsumer(b -> disableVignette = b)
 				.build());
+
+		// LIGHTING
+		//final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
 
 		//		lighting.addEntry(ENTRY_BUILDER
 		//				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
@@ -203,7 +200,7 @@ public class ConfigGui {
 		//				.setSaveConsumer(b -> maxLightmapDelayFrames = b)
 		//				.build());
 
-		lighting.addEntry(ENTRY_BUILDER
+		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_flat_lighting"), semiFlatLighting)
 				.setDefaultValue(DEFAULTS.semiFlatLighting)
 				.setTooltip(parse("config.canvas.help.semi_flat_lighting"))

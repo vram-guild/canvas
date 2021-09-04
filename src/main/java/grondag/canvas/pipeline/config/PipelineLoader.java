@@ -53,7 +53,7 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 		MAP.clear();
 
 		final Iterator<?> it = manager.findResources("pipelines", (stringx) -> {
-			return stringx.endsWith(".json");
+			return stringx.endsWith(".json") || stringx.endsWith(".json5");
 		}).iterator();
 
 		while (it.hasNext()) {

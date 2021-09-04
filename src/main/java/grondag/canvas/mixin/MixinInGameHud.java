@@ -19,11 +19,13 @@ package grondag.canvas.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.util.math.MatrixStack;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.BufferDebug;
 
@@ -33,5 +35,10 @@ public class MixinInGameHud {
 	private void afterRender(MatrixStack matrices, float tickDelta, CallbackInfo ci) {
 		BufferDebug.renderOverlay(matrices, ((InGameHud) (Object) this).getTextRenderer());
 		Timekeeper.renderOverlay(matrices, ((InGameHud) (Object) this).getTextRenderer());
+	}
+
+	@Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;isFancyGraphicsOrBetter()Z"))
+	private boolean controlVignette() {
+		return !Configurator.disableVignette;
 	}
 }

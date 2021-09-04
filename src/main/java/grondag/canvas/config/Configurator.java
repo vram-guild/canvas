@@ -31,11 +31,13 @@ public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
+	public static boolean disableVignette = DEFAULTS.disableVignette;
 	// public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
+
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
@@ -102,6 +104,7 @@ public class Configurator {
 
 		blendFluidColors = config.blendFluidColors;
 		wavyGrass = config.wavyGrass;
+		disableVignette = config.disableVignette;
 
 		shaderDebug = config.shaderDebug;
 		preprocessShaderSource = config.preprocessShaderSource;
@@ -160,6 +163,7 @@ public class Configurator {
 		config.pipelineId = pipelineId;
 		config.blendFluidColors = blendFluidColors;
 		config.wavyGrass = wavyGrass;
+		config.disableVignette = disableVignette;
 
 		config.shaderDebug = shaderDebug;
 		config.preprocessShaderSource = preprocessShaderSource;

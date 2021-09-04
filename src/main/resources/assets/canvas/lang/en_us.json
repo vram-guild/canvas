@@ -178,5 +178,7 @@
   "config.canvas.value.debug_sprite_atlas": "Export Sprite Atlas",
   "config.canvas.help.debug_sprite_atlas": "Export sprite atlas textures to atlas_debug folder within run folder.;Changes take effect on next resource reload.",
   "info.canvas.flawless_toggle": "Flawless Frames Active: %b",
-  "key.canvas.flawless_toggle": "Toggle Flawless Frames"
+  "key.canvas.flawless_toggle": "Toggle Flawless Frames",
+  "config.canvas.value.disable_vignette": "Disable Vignette",
+  "config.canvas.help.disable_vignette": "Turns off darkened screen corners present in vanilla."
 }
