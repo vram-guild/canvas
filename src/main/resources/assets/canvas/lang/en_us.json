@@ -176,5 +176,7 @@
   "config.canvas.value.preprocess_shader_source": "Preprocess Shader Source",
   "config.canvas.help.preprocess_shader_source": "Pre-process OpenGL source before compilation.;Makes source more concise but possibly harder to read.",
   "config.canvas.value.debug_sprite_atlas": "Export Sprite Atlas",
-  "config.canvas.help.debug_sprite_atlas": "Export sprite atlas textures to atlas_debug folder within run folder.;Changes take effect on next resource reload."
+  "config.canvas.help.debug_sprite_atlas": "Export sprite atlas textures to atlas_debug folder within run folder.;Changes take effect on next resource reload.",
+  "info.canvas.flawless_toggle": "Flawless Frames Active: %b",
+  "key.canvas.flawless_toggle": "Toggle Flawless Frames"
 }

@@ -32,6 +32,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.terrain.region.RegionPosition;
+import grondag.frex.api.config.FlawlessFrames;
 
 @Environment(EnvType.CLIENT)
 public class TerrainFrustum extends CanvasFrustum {
@@ -173,7 +174,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		final double z = cameraPos.z;
 
 		// Ignore near occluders if they aren't occluding!
-		nearOccludersPresent &= Configurator.enableNearOccluders;
+		nearOccludersPresent &= (Configurator.enableNearOccluders && !FlawlessFrames.isActive());
 
 		final long cameraBlockPos = camera.getBlockPos().asLong();
 		boolean movedEnoughToInvalidateOcclusion = false;

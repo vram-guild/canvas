@@ -18,6 +18,8 @@ package grondag.canvas.terrain.occlusion;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.util.math.BlockPos;
@@ -45,6 +47,7 @@ import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutorTask;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
+import grondag.frex.api.config.FlawlessFrames;
 
 public class TerrainIterator implements TerrainExecutorTask {
 	public static final int IDLE = 0;
@@ -209,7 +212,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		updateRegions.clear();
 
-		if (Pipeline.advancedTerrainCulling()) {
+		if (Pipeline.advancedTerrainCulling() || FlawlessFrames.isActive()) {
 			iterateTerrain();
 		} else {
 			iterateTerrainSimply();
@@ -276,6 +279,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 	private void iterateTerrain() {
 		final boolean chunkCullingEnabled = this.chunkCullingEnabled;
+		final boolean flawless = FlawlessFrames.isActive();
 
 		while (!cancelled) {
 			final CameraRegionVisibility state = cameraVisibility.next();
@@ -290,20 +294,32 @@ public class TerrainIterator implements TerrainExecutorTask {
 			assert !region.isClosed();
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
-			final RegionBuildState buildState = region.getBuildState();
+			RegionBuildState buildState = region.getBuildState();
 
 			// If never built then don't do anything with it
 			if (buildState == RegionBuildState.UNBUILT) {
-				updateRegions.add(region);
-				continue;
+				if (flawless) {
+					assert RenderSystem.isOnRenderThread();
+					region.rebuildOnMainThread();
+					buildState = region.getBuildState();
+				} else {
+					updateRegions.add(region);
+					continue;
+				}
 			}
 
 			// If get to here has been built - if needs rebuilt we can use existing data this frame
 			if (region.needsRebuild()) {
-				updateRegions.add(region);
+				if (flawless) {
+					assert RenderSystem.isOnRenderThread();
+					region.rebuildOnMainThread();
+					buildState = region.getBuildState();
+				} else {
+					updateRegions.add(region);
+				}
 			}
 
-			OcclusionStatus priorResult = state.getOcclusionStatus();
+			final OcclusionStatus priorResult = state.getOcclusionStatus();
 
 			// Undetermined should not be in iteration because they have been visited.
 			assert priorResult != OcclusionStatus.UNDETERMINED;
@@ -393,7 +409,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				updateRegions.add(region);
 			}
 
-			OcclusionStatus priorResult = state.getOcclusionStatus();
+			final OcclusionStatus priorResult = state.getOcclusionStatus();
 
 			// Undetermined should not be in iteration because they have been visited.
 			assert priorResult != OcclusionStatus.UNDETERMINED;
@@ -457,6 +473,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 	}
 
 	private void iterateShadows() {
+		final boolean flawless = FlawlessFrames.isActive();
+
 		while (!cancelled) {
 			final ShadowRegionVisibility state = shadowVisibility.next();
 
@@ -470,20 +488,32 @@ public class TerrainIterator implements TerrainExecutorTask {
 			assert !region.isClosed();
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
-			final RegionBuildState buildState = region.getBuildState();
+			RegionBuildState buildState = region.getBuildState();
 
 			// If never built then don't do anything with it
 			if (buildState == RegionBuildState.UNBUILT) {
-				updateRegions.add(region);
-				continue;
+				if (flawless) {
+					assert RenderSystem.isOnRenderThread();
+					region.rebuildOnMainThread();
+					buildState = region.getBuildState();
+				} else {
+					updateRegions.add(region);
+					continue;
+				}
 			}
 
 			// If get to here has been built - if needs rebuilt we can use existing data this frame
 			if (region.needsRebuild()) {
-				updateRegions.add(region);
+				if (flawless) {
+					assert RenderSystem.isOnRenderThread();
+					region.rebuildOnMainThread();
+					buildState = region.getBuildState();
+				} else {
+					updateRegions.add(region);
+				}
 			}
 
-			OcclusionStatus priorResult = state.getOcclusionStatus();
+			final OcclusionStatus priorResult = state.getOcclusionStatus();
 
 			// Undetermined should not be in iteration because they have been visited.
 			assert priorResult != OcclusionStatus.UNDETERMINED;

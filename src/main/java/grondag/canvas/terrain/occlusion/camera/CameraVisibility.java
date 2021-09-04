@@ -26,6 +26,7 @@ import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.occlusion.shadow.ShadowOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.terrain.region.RenderRegion;
+import grondag.frex.api.config.FlawlessFrames;
 
 public class CameraVisibility extends AbstractVisbility<CameraVisibility, CameraRegionVisibility, CameraPotentiallyVisibleRegionSet, CameraOccluder> {
 	private final ShadowOccluder targetOccluder;
@@ -64,7 +65,7 @@ public class CameraVisibility extends AbstractVisbility<CameraVisibility, Camera
 		occluder.copyFrustum(frustum);
 
 		// Player can elect not to occlude near regions to prevent transient gaps
-		occluder.drawNearOccluders(Configurator.enableNearOccluders);
+		occluder.drawNearOccluders(Configurator.enableNearOccluders && !FlawlessFrames.isActive());
 
 		super.updateView(frustum, cameraRegionOrigin);
 	}

@@ -82,6 +82,7 @@ import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.config.FlawlessFramesController;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
@@ -105,6 +106,7 @@ import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.GFX;
+import grondag.frex.api.config.FlawlessFrames;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
@@ -185,7 +187,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		mc.getProfiler().swap("update");
 
-		if (Configurator.terrainSetupOffThread) {
+		if (Configurator.terrainSetupOffThread && !FlawlessFrames.isActive()) {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
@@ -778,6 +780,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		DirectBufferAllocator.update();
 		TransferBuffers.update();
 		PipelineManager.reloadIfNeeded(false);
+		FlawlessFramesController.handleToggle();
 
 		if (wasFabulous != Pipeline.isFabulous()) {
 			vanillaWorldRenderer.canvas_setupFabulousBuffers();
