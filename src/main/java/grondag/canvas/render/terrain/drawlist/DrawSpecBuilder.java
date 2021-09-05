@@ -68,8 +68,22 @@ abstract class DrawSpecBuilder {
 				final var bucket = buckets[i];
 
 				if (bucket.vertexCount() > 0) {
-					triVertexCount.add(bucket.vertexCount() / 4 * 6);
-					baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + bucket.firstVertexIndex());
+					if (bucket.vertexCount() <= 65536) {
+						triVertexCount.add(bucket.vertexCount() / 4 * 6);
+						baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + bucket.firstVertexIndex());
+					} else {
+						// split buckets that go beyond what short element indexing can do
+						int vertexCountRemaining = bucket.vertexCount();
+						int firstVertexIndex = bucket.firstVertexIndex();
+
+						while (vertexCountRemaining > 0) {
+							final int sliceVertexCount = Math.min(vertexCountRemaining, 65536);
+							triVertexCount.add(sliceVertexCount / 4 * 6);
+							baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + firstVertexIndex);
+							firstVertexIndex += sliceVertexCount;
+							vertexCountRemaining -= sliceVertexCount;
+						}
+					}
 				}
 			}
 		}
