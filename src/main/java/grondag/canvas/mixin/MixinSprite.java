@@ -24,6 +24,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -81,6 +82,10 @@ public class MixinSprite implements SpriteExt {
 		final Sprite me = (Sprite) (Object) this;
 
 		if (animation != null || (me.getX() < combined.width && me.getY() < combined.height)) {
+			if (Configurator.traceTextureLoad) {
+				CanvasMod.LOG.info("Enabling combined animation upload for sprite " + ((Sprite) (Object) this).getId().toString());
+			}
+
 			for (final var img : images) {
 				((CombinedAnimationConsumer) (Object) img).canvas_setCombinedAnimation(combined);
 			}

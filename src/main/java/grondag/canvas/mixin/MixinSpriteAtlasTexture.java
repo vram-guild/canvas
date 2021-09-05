@@ -78,6 +78,10 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 
 	@Inject(at = @At("HEAD"), method = "upload")
 	private void beforeUpload(SpriteAtlasTexture.Data input, CallbackInfo ci) {
+		if (Configurator.traceTextureLoad) {
+			CanvasMod.LOG.info("Start of pre-upload handling for atlas " + id.toString());
+		}
+
 		final var dataExt = (SpriteAtlasTextureDataExt) input;
 		width = dataExt.canvas_atlasWidth();
 		height = dataExt.canvas_atlasHeight();
@@ -103,6 +107,11 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 		animationBits.set(0, animationIndex);
 
 		if (Configurator.groupAnimatedSprites && animationMinX != Integer.MAX_VALUE) {
+			if (Configurator.traceTextureLoad) {
+				CanvasMod.LOG.info("Enabling combined animation for atlas " + id.toString());
+				CanvasMod.LOG.info(String.format("Combined dimensions are (%d, %d) to (%d, %d) with LOD count %d", animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount));
+			}
+
 			combined = new CombinedSpriteAnimation((SpriteAtlasTexture) (Object) this, animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount);
 
 			for (final Sprite sprite : sprites) {
@@ -113,6 +122,10 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 
 	@Inject(at = @At("RETURN"), method = "upload")
 	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo ci) {
+		if (Configurator.traceTextureLoad) {
+			CanvasMod.LOG.info("Start of post-upload handling for atlas " + id.toString());
+		}
+
 		final ObjectArrayList<Sprite> spriteIndexList = new ObjectArrayList<>();
 		int index = 0;
 
@@ -123,6 +136,10 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 		}
 
 		if (combined != null) {
+			if (Configurator.traceTextureLoad) {
+				CanvasMod.LOG.info("Beginning initial combined upload for atlas " + id.toString());
+			}
+
 			combined.uploadCombined();
 		}
 
@@ -135,11 +152,19 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 
 	private void outputAtlasImage() {
 		RenderSystem.recordRenderCall(() -> {
+			if (Configurator.traceTextureLoad) {
+				CanvasMod.LOG.info("Capturing atlas image for " + id.toString());
+			}
+
 			final NativeImage nativeImage = new NativeImage(width, height, false);
 			RenderSystem.bindTexture(this.getGlId());
 			nativeImage.loadFromTextureImage(0, true);
 
 			Util.getIoWorkerExecutor().execute(() -> {
+				if (Configurator.traceTextureLoad) {
+					CanvasMod.LOG.info("Exporting atlas image for " + id.toString());
+				}
+
 				try {
 					@SuppressWarnings("resource")
 					final Path path = MinecraftClient.getInstance().runDirectory.toPath().normalize().resolve("atlas_debug");
