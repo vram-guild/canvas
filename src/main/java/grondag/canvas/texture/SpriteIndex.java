@@ -18,6 +18,7 @@ package grondag.canvas.texture;
 
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -33,6 +34,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
+import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
 import grondag.canvas.mixinterface.SpriteExt;
 
 @Environment(EnvType.CLIENT)
@@ -46,6 +48,7 @@ public class SpriteIndex {
 	private ObjectArrayList<Sprite> spriteIndex = null;
 	private final IntArrayList spriteAnimationIndex = new IntArrayList();
 	private SpriteAtlasTexture atlas;
+	private IntConsumer canvas_frameAnimationConsumer;
 	private ResourceCache<SpriteFinder> spriteFinder;
 	private int atlasWidth;
 	private int atlasHeight;
@@ -66,6 +69,8 @@ public class SpriteIndex {
 		}
 
 		atlas = atlasIn;
+		canvas_frameAnimationConsumer = ((SpriteAtlasTextureExt) atlasIn).canvas_frameAnimationConsumer();
+
 		spriteIndex = spriteIndexIn;
 		atlasWidth = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasWidth();
 		atlasHeight = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasHeight();
@@ -111,5 +116,13 @@ public class SpriteIndex {
 
 	public SpriteFinder spriteFinder() {
 		return spriteFinder.getOrLoad();
+	}
+
+	public void trackPerFrameAnimation(int spriteId) {
+		final int animationIndex = animationIndexFromSpriteId(spriteId);
+
+		if (animationIndex >= 0) {
+			canvas_frameAnimationConsumer.accept(animationIndex);
+		}
 	}
 }

@@ -16,6 +16,10 @@
 
 package grondag.canvas.mixinterface;
 
+import it.unimi.dsi.fastutil.ints.IntConsumer;
+
 public interface SpriteAtlasTextureExt {
 	int canvas_maxTextureSize();
+
+	IntConsumer canvas_frameAnimationConsumer();
 }

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -63,6 +64,7 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 	private int width, height;
 
 	private final BitSet animationBits = new BitSet();
+	private final BitSet perFrameBits = new BitSet();
 
 	private int animationMinX = Integer.MAX_VALUE;
 	private int animationMinY = Integer.MAX_VALUE;
@@ -191,6 +193,11 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 		return maxTextureSize;
 	}
 
+	@Override
+	public IntConsumer canvas_frameAnimationConsumer() {
+		return i -> perFrameBits.set(i);
+	}
+
 	@SuppressWarnings("resource")
 	@Inject(at = @At("HEAD"), method = "tickAnimatedSprites")
 	private void beforeTick(CallbackInfo ci) {
@@ -200,6 +207,8 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 
 		if (Configurator.disableUnseenSpriteAnimation && (SpriteAtlasTexture) (Object) this == TerrainRenderStates.SOLID.texture.atlasInfo().atlas()) {
 			animationBits.clear();
+			animationBits.or(perFrameBits);
+			perFrameBits.clear();
 
 			final var itemBits = ItemRenderContext.get().animationBits;
 			animationBits.or(itemBits);

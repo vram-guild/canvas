@@ -27,6 +27,7 @@ import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.UploadableRegion;
@@ -64,6 +65,10 @@ public class VertexCollectorList {
 			if (mat.condition.compute()) {
 				complete();
 				QuadEncoders.STANDARD_ENCODER.encode(this, get(mat));
+
+				if (Configurator.disableUnseenSpriteAnimation) {
+					mat.trackPerFrameAnimation(this.spriteId());
+				}
 			}
 
 			clear();

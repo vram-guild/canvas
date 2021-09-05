@@ -77,7 +77,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	public static void resourceReload() {
-		for (RenderMaterialImpl e:MAP.values()) {
+		for (final RenderMaterialImpl e:MAP.values()) {
 			e.dongle = null;
 		}
 	}
@@ -168,5 +168,11 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	@Override
 	public String vertexShader() {
 		return vertexShader;
+	}
+
+	public void trackPerFrameAnimation(int spriteId) {
+		if (!this.discardsTexture && texture.isAtlas()) {
+			texture.atlasInfo().trackPerFrameAnimation(spriteId);
+		}
 	}
 }
