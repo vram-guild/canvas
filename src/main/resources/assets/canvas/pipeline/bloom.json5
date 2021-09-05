@@ -37,7 +37,7 @@
   ],
 
   include: [
-		"canvas:pipeline/copy.json"
+		"canvas:pipeline/copy.json5"
 	],
 
   programs: [

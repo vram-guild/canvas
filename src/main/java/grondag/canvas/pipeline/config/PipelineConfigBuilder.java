@@ -187,7 +187,24 @@ public class PipelineConfigBuilder {
 		included.add(id);
 
 		while (!queue.isEmpty()) {
-			final Identifier target = queue.dequeue();
+			Identifier target = queue.dequeue();
+
+			// Allow flexibility on JSON vs JSON5 extensions
+			if (!rm.containsResource(target)) {
+				if (target.getPath().endsWith("json5")) {
+					final var candidate = new Identifier(target.getNamespace(), target.getPath().substring(0, target.getPath().length() - 1));
+
+					if (rm.containsResource(candidate)) {
+						target = candidate;
+					}
+				} else if (target.getPath().endsWith("json")) {
+					final var candidate = new Identifier(target.getNamespace(), target.getPath() + "5");
+
+					if (rm.containsResource(candidate)) {
+						target = candidate;
+					}
+				}
+			}
 
 			try (Resource res = rm.getResource(target)) {
 				final JsonObject configJson = ConfigManager.JANKSON.load(res.getInputStream());

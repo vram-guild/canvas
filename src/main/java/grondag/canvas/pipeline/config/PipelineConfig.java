@@ -121,5 +121,5 @@ public class PipelineConfig {
 		return new PipelineConfig();
 	}
 
-	public static final Identifier DEFAULT_ID = new Identifier("canvas:pipelines/canvas_standard.json");
+	public static final Identifier DEFAULT_ID = new Identifier("canvas:pipelines/canvas_standard.json5");
 }

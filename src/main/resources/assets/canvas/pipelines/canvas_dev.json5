@@ -28,12 +28,12 @@
 	},
 
 	include: [
-		"canvas:pipeline/base.json",
-		"canvas:pipeline/basic_light_config.json",
-		"canvas:pipeline/fog_config.json",
-		"canvas:pipeline/handheld_light_config.json",
-		"canvas:pipeline/skyshadow.json",
-		"canvas:pipeline/bloom.json",
-		"canvas:pipeline/fabulous.json"
+		"canvas:pipeline/base.json5",
+		"canvas:pipeline/basic_light_config.json5",
+		"canvas:pipeline/fog_config.json5",
+		"canvas:pipeline/handheld_light_config.json5",
+		"canvas:pipeline/skyshadow.json5",
+		"canvas:pipeline/bloom.json5",
+		"canvas:pipeline/fabulous.json5"
 	]
 }
