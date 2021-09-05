@@ -77,8 +77,10 @@ public class Configurator {
 	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
 	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
 	public static boolean disableUnseenSpriteAnimation = DEFAULTS.disableUnseenSpriteAnimation;
+	public static boolean groupAnimatedSprites = DEFAULTS.groupAnimatedSprites;
 	public static boolean cullBackfacingTerrain = DEFAULTS.cullBackfacingTerrain;
 	public static boolean debugSpriteAtlas = DEFAULTS.debugSpriteAtlas;
+	public static boolean traceTextureLoad = DEFAULTS.traceTextureLoad;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -155,8 +157,10 @@ public class Configurator {
 		profilerOverlayScale = config.profilerOverlayScale;
 		enableNearOccluders = config.enableNearOccluders;
 		disableUnseenSpriteAnimation = config.disableUnseenSpriteAnimation;
+		groupAnimatedSprites = config.groupAnimatedSprites;
 		cullBackfacingTerrain = config.cullBackfacingTerrain;
 		debugSpriteAtlas = config.debugSpriteAtlas;
+		traceTextureLoad = config.traceTextureLoad;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -213,7 +217,9 @@ public class Configurator {
 		config.profilerOverlayScale = profilerOverlayScale;
 		config.enableNearOccluders = enableNearOccluders;
 		config.disableUnseenSpriteAnimation = disableUnseenSpriteAnimation;
+		config.groupAnimatedSprites = groupAnimatedSprites;
 		config.cullBackfacingTerrain = cullBackfacingTerrain;
 		config.debugSpriteAtlas = debugSpriteAtlas;
+		config.traceTextureLoad = traceTextureLoad;
 	}
 }

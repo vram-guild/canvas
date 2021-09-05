@@ -39,6 +39,7 @@ import static grondag.canvas.config.Configurator.enableNearOccluders;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
+import static grondag.canvas.config.Configurator.groupAnimatedSprites;
 import static grondag.canvas.config.Configurator.logGlStateChanges;
 import static grondag.canvas.config.Configurator.logMachineInfo;
 import static grondag.canvas.config.Configurator.logMaterials;
@@ -60,6 +61,7 @@ import static grondag.canvas.config.Configurator.staticFrustumPadding;
 import static grondag.canvas.config.Configurator.steadyDebugScreen;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
+import static grondag.canvas.config.Configurator.traceTextureLoad;
 import static grondag.canvas.config.Configurator.transferBufferMode;
 import static grondag.canvas.config.Configurator.useCombinedThreadPool;
 import static grondag.canvas.config.Configurator.wavyGrass;
@@ -388,6 +390,13 @@ public class ConfigGui {
 				.build());
 
 		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.group_animated_sprites"), groupAnimatedSprites)
+				.setDefaultValue(DEFAULTS.groupAnimatedSprites)
+				.setTooltip(parse("config.canvas.help.group_animated_sprites"))
+				.setSaveConsumer(b -> groupAnimatedSprites = b)
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_backfacing_terrain"), cullBackfacingTerrain)
 				.setDefaultValue(DEFAULTS.cullBackfacingTerrain)
 				.setTooltip(parse("config.canvas.help.cull_backfacing_terrain"))
@@ -558,6 +567,13 @@ public class ConfigGui {
 			.setTooltip(parse("config.canvas.help.debug_sprite_atlas"))
 			.setSaveConsumer(b -> debugSpriteAtlas = b)
 			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.trace_texture_load"), traceTextureLoad)
+				.setDefaultValue(DEFAULTS.traceTextureLoad)
+				.setTooltip(parse("config.canvas.help.trace_texture_load"))
+				.setSaveConsumer(b -> traceTextureLoad = b)
+				.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 

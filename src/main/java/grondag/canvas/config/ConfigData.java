@@ -78,6 +78,8 @@ class ConfigData {
 	boolean steadyDebugScreen = true;
 	@Comment("When true, animated sprites not in view are not updated. Improves frame rate.")
 	boolean disableUnseenSpriteAnimation = true;
+	@Comment("When true, sprite atlas texture stitching is changed to group animated sprites. Improves frame rate. Changes take effect on next resource reload.")
+	boolean groupAnimatedSprites = true;
 	@Comment("When true, terrain facing away from the camera is not rendered.  Usually improves frame rate.")
 	boolean cullBackfacingTerrain = true;
 	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
@@ -128,4 +130,6 @@ class ConfigData {
 	float profilerOverlayScale = 0.5f;
 	@Comment("Export sprite atlas textures to atlas_debug folder within run folder.")
 	boolean debugSpriteAtlas = false;
+	@Comment("Log significant events of texture/sprite atlas loading. For debugging use. Will spam the log.")
+	boolean traceTextureLoad = false;
 }

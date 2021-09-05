@@ -32,6 +32,7 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.TextureStitcher;
 import net.minecraft.util.math.MathHelper;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.AnimationResourceMetadataExt;
 
 @Mixin(TextureStitcher.class)
@@ -64,7 +65,7 @@ public class MixinTextureStitcher {
 
 	@ModifyArg(method = "stitch", at = @At(value = "INVOKE", target = "Ljava/util/List;sort(Ljava/util/Comparator;)V"), index = 0)
 	private Comparator<TextureStitcher.Holder> onSort(Comparator<TextureStitcher.Holder> var) {
-		return ANIMATION_COMPARATOR;
+		return Configurator.groupAnimatedSprites ? ANIMATION_COMPARATOR : var;
 	}
 
 	/**
@@ -83,7 +84,7 @@ public class MixinTextureStitcher {
 	 */
 	@Inject(at = @At("HEAD"), method = "growAndFit", cancellable = true)
 	private void onGrowAndFit(TextureStitcher.Holder holder, CallbackInfoReturnable<Boolean> ci) {
-		final boolean animated = ((AnimationResourceMetadataExt) holder.sprite.animationData).canvas_willAnimate(holder.width, holder.height);
+		final boolean animated = Configurator.groupAnimatedSprites && ((AnimationResourceMetadataExt) holder.sprite.animationData).canvas_willAnimate(holder.width, holder.height);
 
 		if (animated) {
 			final int slotWidth = animated ? maxHolderWidth : holder.width;

@@ -26,6 +26,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.client.texture.TextureStitcher;
 
+import grondag.canvas.config.Configurator;
+
 @Mixin(TextureStitcher.Slot.class)
 public class MixinTextureStitcherSlot {
 	@Shadow private int width;
@@ -43,7 +45,7 @@ public class MixinTextureStitcherSlot {
 	 */
 	@Inject(at = @At("HEAD"), method = "fit", cancellable = true)
 	private void onFit(TextureStitcher.Holder holder, CallbackInfoReturnable<Boolean> ci) {
-		if (this.texture == null && this.subSlots != null && holder.width == width && holder.height == height) {
+		if (Configurator.groupAnimatedSprites && this.texture == null && this.subSlots != null && holder.width == width && holder.height == height) {
 			ci.setReturnValue(false);
 		}
 	}

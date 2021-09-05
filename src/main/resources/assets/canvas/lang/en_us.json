@@ -180,5 +180,9 @@
   "info.canvas.flawless_toggle": "Flawless Frames Active: %b",
   "key.canvas.flawless_toggle": "Toggle Flawless Frames",
   "config.canvas.value.disable_vignette": "Disable Vignette",
-  "config.canvas.help.disable_vignette": "Turns off darkened screen corners present in vanilla."
+  "config.canvas.help.disable_vignette": "Turns off darkened screen corners present in vanilla.",
+  "config.canvas.value.group_animated_sprites": "Group Animated Sprites",
+  "config.canvas.help.group_animated_sprites": "When true, sprite atlas texture stitching is changed to group;animated sprites. Improves frame rate.;Changes take effect on next resource reload",
+  "config.canvas.value.trace_texture_load": "Trace Texture Loading",
+  "config.canvas.help.trace_texture_load": "Log significant events of texture/sprite atlas loading.;For debugging use. Will spam the log."
 }

@@ -102,7 +102,7 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 		// Safeguard for non-terrain animations added by mods - they will always be animated
 		animationBits.set(0, animationIndex);
 
-		if (animationMinX != Integer.MAX_VALUE) {
+		if (Configurator.groupAnimatedSprites && animationMinX != Integer.MAX_VALUE) {
 			combined = new CombinedSpriteAnimation((SpriteAtlasTexture) (Object) this, animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount);
 
 			for (final Sprite sprite : sprites) {
