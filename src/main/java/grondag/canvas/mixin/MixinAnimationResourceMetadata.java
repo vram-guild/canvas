@@ -19,6 +19,7 @@ package grondag.canvas.mixin;
 import java.util.List;
 
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,6 +30,7 @@ import net.minecraft.client.resource.metadata.AnimationFrameResourceMetadata;
 import net.minecraft.client.resource.metadata.AnimationResourceMetadata;
 
 import grondag.canvas.mixinterface.AnimationResourceMetadataExt;
+import grondag.canvas.mixinterface.SimulatedFrame;
 
 @Mixin(AnimationResourceMetadata.class)
 public class MixinAnimationResourceMetadata implements AnimationResourceMetadataExt {
@@ -38,7 +40,7 @@ public class MixinAnimationResourceMetadata implements AnimationResourceMetadata
 	@Shadow private int defaultFrameTime;
 	@Shadow private boolean interpolate;
 
-	private int pngWidth, pngHeight, frameCount;
+	private int pngWidth, pngHeight;
 
 	@Inject(method = "ensureImageSize", at = @At("HEAD"))
 	private void beforeTick(int pngWidth, int pngHeight, CallbackInfoReturnable<Pair<Integer, Integer>> ci) {
@@ -49,19 +51,31 @@ public class MixinAnimationResourceMetadata implements AnimationResourceMetadata
 	@Override
 	public boolean canvas_willAnimate(int spriteWidth, int spriteHeight) {
 		// forecasts the outcome of Sprite.createAnimation()
-		final AnimationResourceMetadata animationResourceMetadata = (AnimationResourceMetadata) (Object) this;
-		frameCount = 0;
 
-		animationResourceMetadata.forEachFrame((ix, jx) -> {
-			++frameCount;
+		final AnimationResourceMetadata animationResourceMetadata = (AnimationResourceMetadata) (Object) this;
+		final int widthFrames = pngWidth / animationResourceMetadata.getWidth(spriteWidth);
+		final int heightFrames = pngHeight / animationResourceMetadata.getHeight(spriteHeight);
+		final int expectedFrames = widthFrames * heightFrames;
+		final var frames = new ObjectArrayList<SimulatedFrame>();
+
+		animationResourceMetadata.forEachFrame((index, time) -> {
+			frames.add(new SimulatedFrame(index, time));
 		});
 
-		if (frameCount == 0) {
-			final int widthFrames = pngWidth / animationResourceMetadata.getWidth(spriteWidth);
-			final int hieghtFrames = pngHeight / animationResourceMetadata.getHeight(spriteHeight);
-			return widthFrames * hieghtFrames > 1;
+		if (frames.isEmpty()) {
+			for (int p = 0; p < expectedFrames; ++p) {
+				frames.add(new SimulatedFrame(p, animationResourceMetadata.getDefaultFrameTime()));
+			}
 		} else {
-			return frameCount > 1;
+			for (final var iterator = frames.iterator(); iterator.hasNext(); ) {
+				final var animationFrame = iterator.next();
+
+				if (animationFrame.time() <= 0 || animationFrame.index() < 0 || animationFrame.index() >= expectedFrames) {
+					iterator.remove();
+				}
+			}
 		}
+
+		return frames.size() > 1;
 	}
 }
