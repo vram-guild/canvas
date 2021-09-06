@@ -456,7 +456,13 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_V0];
 	}
 
-	/** Rounds precise fixed-precision sprite value to an unsigned short value. */
+	/**
+	 * Rounds precise fixed-precision sprite value to an unsigned short value.
+	 *
+	 * <p>NB: This logic is inlined into quad encoders. Those are complicated enough
+	 * that JIT may not reliably inline them at runtime.  If this logic is updated
+	 * it must be updated there also.
+	 */
 	public static int roundSpriteData(int rawVal) {
 		return (rawVal + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}

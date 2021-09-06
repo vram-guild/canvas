@@ -18,14 +18,16 @@ package grondag.canvas.buffer.format;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_V;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
-import static grondag.canvas.apiimpl.mesh.QuadViewImpl.roundSpriteData;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -105,9 +107,11 @@ public class QuadEncoders {
 			target[toIndex + 2] = Float.floatToRawIntBits(zOut);
 
 			target[toIndex + 3] = source[fromIndex + VERTEX_COLOR];
-			target[toIndex + 4] = roundSpriteData(source[fromIndex + VERTEX_U]) | (roundSpriteData(source[fromIndex + VERTEX_V]) << 16);
 
-			final int packedLight = quad.lightmap(i);
+			target[toIndex + 4] = (source[fromIndex + VERTEX_U] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION
+				| ((source[fromIndex + VERTEX_V] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION << 16);
+
+			final int packedLight = source[fromIndex + VERTEX_LIGHTMAP];
 			final int blockLight = (packedLight & 0xFE) | normalFlagBits;
 			final int skyLight = ((packedLight >> 16) & 0xFE) | tangentFlagBits;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
