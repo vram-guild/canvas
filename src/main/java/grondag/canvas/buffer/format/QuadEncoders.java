@@ -27,15 +27,15 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 import static grondag.canvas.apiimpl.mesh.QuadViewImpl.roundSpriteData;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
+import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
+import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 public class QuadEncoders {
-	public static final QuadEncoder STANDARD_ENCODER_INNER = (quad, context, buff) -> {
+	private static void encodeQuad(MutableQuadViewImpl quad, EncodingContext context, VertexCollector buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final boolean isContextPresent = context != AbsentEncodingContext.INSTANCE;
@@ -45,8 +45,6 @@ public class QuadEncoders {
 		}
 
 		final RenderMaterialImpl mat = quad.material();
-
-		assert mat.blendMode != BlendMode.DEFAULT;
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used
@@ -79,7 +77,7 @@ public class QuadEncoders {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				transformedNormal = isContextPresent ? normalMatrix.canvas_transform(packedNormal) & 0xFFFF : packedNormal;
+				transformedNormal = (isContextPresent ? normalMatrix.canvas_transform(packedNormal) : packedNormal) & 0xFFFF;
 				normalFlagBits = (transformedNormal >>> 23) & 1;
 			}
 
@@ -87,7 +85,7 @@ public class QuadEncoders {
 
 			if (t != packedTangent) {
 				packedTangent = t;
-				transformedTangent = isContextPresent ? (normalMatrix.canvas_transform(packedTangent) & 0xFFFF) << 16 : packedTangent;
+				transformedTangent = ((isContextPresent ? normalMatrix.canvas_transform(packedTangent) : packedTangent) & 0xFFFF) << 16;
 				tangentFlagBits = (transformedTangent >>> 23) & 1;
 			}
 
@@ -113,9 +111,9 @@ public class QuadEncoders {
 
 			target[toIndex + 6] = transformedNormal | transformedTangent;
 		}
-	};
+	}
 
-	public static final QuadEncoder STANDARD_ENCODER = STANDARD_ENCODER_INNER;
+	public static final QuadEncoder STANDARD_ENCODER = QuadEncoders::encodeQuad;
 
 	//WIP: remove
 	//private static final MicroTimer TIMER = new MicroTimer("quad encoding", 2000000);
@@ -123,10 +121,10 @@ public class QuadEncoders {
 	//public static final QuadEncoder STANDARD_ENCODER = (quad, context, buff) -> {
 	//	if (RenderSystem.isOnRenderThread()) {
 	//		TIMER.start();
-	//		STANDARD_ENCODER_INNER.encode(quad, context, buff);
+	//		encodeQuad(quad, context, buff);
 	//		TIMER.stop();
 	//	} else {
-	//		STANDARD_ENCODER_INNER.encode(quad, context, buff);
+	//		encodeQuad(quad, context, buff);
 	//	}
 	//};
 }
