@@ -17,7 +17,6 @@
 package grondag.canvas.apiimpl.util;
 
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vec3i;
 
@@ -30,14 +29,6 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
  */
 public abstract class NormalHelper {
 	private NormalHelper() { }
-
-	public static int packNormalOld(float x, float y, float z) {
-		x = MathHelper.clamp(x, -1, 1);
-		y = MathHelper.clamp(y, -1, 1);
-		z = MathHelper.clamp(z, -1, 1);
-
-		return (Math.round(x * 127f) & 255) | ((Math.round(y * 127f) & 255) << 8) | ((Math.round(z * 127f) & 255) << 16);
-	}
 
 	// Translates normalized value from 0 to 2 and adds half a unit step for fast rounding via (int)
 	private static final float HALF_UNIT_PLUS_ONE = 1f + 1f / 254f;
@@ -53,23 +44,28 @@ public abstract class NormalHelper {
 				| (k < 0 ? 0x810000 : k > 0xFE0000 ? 0x7F0000 : ((k - 0x7F0000) & 0xFF0000));
 	}
 
-	/**
-	 * Version of {@link #packNormal(float, float, float)} that accepts a vector type.
-	 */
-	public static int packNormal(Vec3f normal) {
-		return packNormal(normal.getX(), normal.getY(), normal.getZ());
-	}
-
 	// Avoid division
 	private static final float DIVIDE_BY_127 = 1f / 127f;
 
-	/**
-	 * Retrieves values packed by {@link #packNormal(float, float, float, float)}.
-	 *
-	 * <p>Components are x, y, z - zero based.
-	 */
-	public static float getPackedNormalComponent(int packedNormal, int component) {
-		return ((byte) ((packedNormal >>> (8 * component)) & 0xFF)) * DIVIDE_BY_127;
+	public static float packedNormalX(int packedNormal) {
+		return ((byte) (packedNormal & 0xFF)) * DIVIDE_BY_127;
+	}
+
+	public static float packedNormalY(int packedNormal) {
+		return ((byte) ((packedNormal >>> 8) & 0xFF)) * DIVIDE_BY_127;
+	}
+
+	public static float packedNormalZ(int packedNormal) {
+		return ((byte) ((packedNormal >>> 8) & 0xFF)) * DIVIDE_BY_127;
+	}
+
+	public static Vec3f unpackNormalTo(int packedFaceNormal, Vec3f target) {
+		target.set(
+				packedNormalX(packedFaceNormal),
+				packedNormalY(packedFaceNormal),
+				packedNormalZ(packedFaceNormal));
+
+		return target;
 	}
 
 	/**
@@ -80,13 +76,12 @@ public abstract class NormalHelper {
 	 * <p>Will work with triangles also. Assumes counter-clockwise winding order, which is the norm.
 	 * Expects convex quads with all points co-planar.
 	 */
-	public static void computeFaceNormal(Vec3f saveTo, QuadView q) {
+	public static int computePackedFaceNormal(QuadView q) {
 		final Direction nominalFace = q.nominalFace();
 
 		if (GeometryHelper.isQuadParallelToFace(nominalFace, q)) {
 			final Vec3i vec = nominalFace.getVector();
-			saveTo.set(vec.getX(), vec.getY(), vec.getZ());
-			return;
+			return packNormal(vec.getX(), vec.getY(), vec.getZ());
 		}
 
 		final float x0 = q.x(0);
@@ -121,6 +116,6 @@ public abstract class NormalHelper {
 			normZ /= l;
 		}
 
-		saveTo.set(normX, normY, normZ);
+		return packNormal(normX, normY, normZ);
 	}
 }

@@ -27,12 +27,15 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 import static grondag.canvas.apiimpl.mesh.QuadViewImpl.roundSpriteData;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.perf.MicroTimer;
 
 public class QuadEncoders {
 	private static void encodeQuad(MutableQuadViewImpl quad, EncodingContext context, VertexCollector buff) {
@@ -113,18 +116,18 @@ public class QuadEncoders {
 		}
 	}
 
-	public static final QuadEncoder STANDARD_ENCODER = QuadEncoders::encodeQuad;
+	//public static final QuadEncoder STANDARD_ENCODER = QuadEncoders::encodeQuad;
 
 	//WIP: remove
-	//private static final MicroTimer TIMER = new MicroTimer("quad encoding", 2000000);
-	//
-	//public static final QuadEncoder STANDARD_ENCODER = (quad, context, buff) -> {
-	//	if (RenderSystem.isOnRenderThread()) {
-	//		TIMER.start();
-	//		encodeQuad(quad, context, buff);
-	//		TIMER.stop();
-	//	} else {
-	//		encodeQuad(quad, context, buff);
-	//	}
-	//};
+	private static final MicroTimer TIMER = new MicroTimer("quad encoding", 2000000);
+
+	public static final QuadEncoder STANDARD_ENCODER = (quad, context, buff) -> {
+		if (RenderSystem.isOnRenderThread()) {
+			TIMER.start();
+			encodeQuad(quad, context, buff);
+			TIMER.stop();
+		} else {
+			encodeQuad(quad, context, buff);
+		}
+	};
 }

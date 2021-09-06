@@ -87,6 +87,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	 */
 	public final void complete() {
 		computeGeometry();
+		packedFaceTanget();
 		normalizeSpritesIfNeeded();
 		vertexIndex = 0;
 	}
@@ -94,12 +95,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	public void clear() {
 		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
 		isGeometryInvalid = true;
-		packedFaceNormal = -1;
+		isTangentInvalid = true;
 		nominalFaceId = ModelHelper.NULL_FACE_ID;
-		normalFlags(0);
-		// tag(0); seems redundant - handled by array copy
-		colorIndex(-1);
-		cullFace(null);
 		material(defaultMaterial);
 		isSpriteInterpolated = false;
 		vertexIndex = 0;
@@ -171,9 +168,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		convertVanillaUvPrecision();
 		normalizeSprite();
 		isSpriteInterpolated = false;
-
 		isGeometryInvalid = true;
-		packedFaceNormal = -1;
+		isTangentInvalid = true;
 		return this;
 	}
 
@@ -193,7 +189,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		data[baseIndex + HEADER_COLOR_INDEX] = quad.getColorIndex();
 		data[baseIndex + HEADER_TAG] = 0;
 		isGeometryInvalid = true;
-		packedFaceNormal = -1;
+		isTangentInvalid = true;
 		return this;
 	}
 
@@ -204,7 +200,6 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		data[index + 1] = Float.floatToRawIntBits(y);
 		data[index + 2] = Float.floatToRawIntBits(z);
 		isGeometryInvalid = true;
-		packedFaceNormal = -1;
 		return this;
 	}
 
@@ -254,6 +249,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		final int i = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0;
 		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE + 0.5f);
 		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE + 0.5f);
+		isTangentInvalid = true;
 		return this;
 	}
 
@@ -264,6 +260,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		final int i = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0;
 		data[i] = u;
 		data[i + 1] = v;
+		isTangentInvalid = true;
 		assert isSpriteNormalized();
 		return this;
 	}

@@ -27,6 +27,8 @@ import net.minecraft.util.math.Vec3f;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 
+import grondag.canvas.apiimpl.mesh.QuadViewImpl;
+
 /**
  * Static routines of general utility for renderer implementations.
  * Renderers are not required to use these helpers, but they were
@@ -196,15 +198,12 @@ public abstract class GeometryHelper {
 	 *
 	 * <p>Derived from the quad face normal and expects convex quads with all points co-planar.
 	 */
-	public static int lightFaceId(QuadView quad) {
-		return closestFaceFromNormal(quad.faceNormal());
-	}
+	public static int lightFaceId(QuadViewImpl quad) {
+		final int packedNormal = quad.packedFaceNormal();
+		final float x = NormalHelper.packedNormalX(packedNormal);
+		final float y = NormalHelper.packedNormalY(packedNormal);
+		final float z = NormalHelper.packedNormalZ(packedNormal);
 
-	public static int closestFaceFromNormal(Vec3f normal) {
-		return closestFaceFromNormal(normal.getX(), normal.getY(), normal.getZ());
-	}
-
-	public static int closestFaceFromNormal(float x, float y, float z) {
 		switch (GeometryHelper.longestAxis(x, y, z)) {
 			case X:
 				return x > 0 ? DirectionIds.EAST : DirectionIds.WEST;

@@ -32,7 +32,9 @@ public abstract class MeshEncodingHelper {
 	public static final int HEADER_BITS = 2;
 	public static final int HEADER_TAG = 3;
 	public static final int HEADER_SPRITE = 4;
-	public static final int HEADER_FIRST_VERTEX_TANGENT = 5;
+	public static final int HEADER_FACE_NORMAL = 5;
+	public static final int HEADER_FACE_TANGENT = 6;
+	public static final int HEADER_FIRST_VERTEX_TANGENT = 7;
 	/** Tangent vectors are stored in header so that vertex data can be efficiently translated to/from vanilla. */
 	public static final int HEADER_STRIDE = HEADER_FIRST_VERTEX_TANGENT + 4;
 	public static final int VERTEX_X = 0;
@@ -67,6 +69,11 @@ public abstract class MeshEncodingHelper {
 	 * Used for quick clearing of quad buffers.
 	 */
 	public static final int[] EMPTY = new int[TOTAL_MESH_QUAD_STRIDE];
+
+	static {
+		EMPTY[HEADER_COLOR_INDEX] = -1;
+		EMPTY[HEADER_BITS] = MeshEncodingHelper.cullFace(0, ModelHelper.NULL_FACE_ID);
+	}
 
 	public static final int DEFAULT_HEADER_BITS;
 	public static final int UV_UNIT_VALUE = 0xFFFF;

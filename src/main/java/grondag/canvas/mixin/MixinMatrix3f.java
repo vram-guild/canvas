@@ -47,9 +47,9 @@ public class MixinMatrix3f implements Matrix3fExt {
 
 	@Override
 	public int canvas_transform(int packedNormal) {
-		final float x = NormalHelper.getPackedNormalComponent(packedNormal, 0);
-		final float y = NormalHelper.getPackedNormalComponent(packedNormal, 1);
-		final float z = NormalHelper.getPackedNormalComponent(packedNormal, 2);
+		final float x = NormalHelper.packedNormalX(packedNormal);
+		final float y = NormalHelper.packedNormalY(packedNormal);
+		final float z = NormalHelper.packedNormalZ(packedNormal);
 
 		final float nx = a00 * x + a01 * y + a02 * z;
 		final float ny = a10 * x + a11 * y + a12 * z;

@@ -57,9 +57,9 @@ public abstract class EncoderUtils {
 			if (p != packedNormal) {
 				packedNormal = p;
 				final int transformedNormal = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
-				nx = NormalHelper.getPackedNormalComponent(transformedNormal, 0);
-				ny = NormalHelper.getPackedNormalComponent(transformedNormal, 1);
-				nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);
+				nx = NormalHelper.packedNormalX(transformedNormal);
+				ny = NormalHelper.packedNormalY(transformedNormal);
+				nz = NormalHelper.packedNormalZ(transformedNormal);
 			}
 
 			buff.normal(nx, ny, nz);
