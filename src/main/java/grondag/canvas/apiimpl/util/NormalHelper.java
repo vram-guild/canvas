@@ -31,12 +31,26 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 public abstract class NormalHelper {
 	private NormalHelper() { }
 
-	public static int packNormal(float x, float y, float z) {
+	public static int packNormalOld(float x, float y, float z) {
 		x = MathHelper.clamp(x, -1, 1);
 		y = MathHelper.clamp(y, -1, 1);
 		z = MathHelper.clamp(z, -1, 1);
 
 		return (Math.round(x * 127f) & 255) | ((Math.round(y * 127f) & 255) << 8) | ((Math.round(z * 127f) & 255) << 16);
+	}
+
+	// Translates normalized value from 0 to 2 and adds half a unit step for fast rounding via (int)
+	private static final float HALF_UNIT_PLUS_ONE = 1f + 1f / 254f;
+
+	public static int packNormal(float x, float y, float z) {
+		final int i = (int) ((x + HALF_UNIT_PLUS_ONE) * 0x7F);
+		final int j = (int) ((y + HALF_UNIT_PLUS_ONE) * 0x7F00);
+		final int k = (int) ((z + HALF_UNIT_PLUS_ONE) * 0x7F0000);
+
+		// NB: 0x81 is -127 as byte
+		return (i < 0 ? 0x81 : i > 0xFE ? 0x7F : ((i - 0x7F) & 0xFF))
+				| (j < 0 ? 0x8100 : j > 0xFE00 ? 0x7F00 : ((j - 0x7F00) & 0xFF00))
+				| (k < 0 ? 0x810000 : k > 0xFE0000 ? 0x7F0000 : ((k - 0x7F0000) & 0xFF0000));
 	}
 
 	/**
@@ -46,23 +60,16 @@ public abstract class NormalHelper {
 		return packNormal(normal.getX(), normal.getY(), normal.getZ());
 	}
 
+	// Avoid division
+	private static final float DIVIDE_BY_127 = 1f / 127f;
+
 	/**
 	 * Retrieves values packed by {@link #packNormal(float, float, float, float)}.
 	 *
 	 * <p>Components are x, y, z - zero based.
 	 */
 	public static float getPackedNormalComponent(int packedNormal, int component) {
-		return ((byte) ((packedNormal >>> (8 * component)) & 0xFF)) / 127f;
-	}
-
-	/**
-	 * This format is easier to convert to a float vector in GLSL when received as a 32-bit int.
-	 */
-	public static int shaderPackedNormal(int packedNormal) {
-		final int x = ((byte) (packedNormal & 0xFF)) + 127;
-		final int y = ((byte) ((packedNormal >>> 8) & 0xFF)) + 127;
-		final int z = ((byte) ((packedNormal >>> 16) & 0xFF)) + 127;
-		return x | (y << 8) | (z << 16);
+		return ((byte) ((packedNormal >>> (8 * component)) & 0xFF)) * DIVIDE_BY_127;
 	}
 
 	/**

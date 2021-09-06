@@ -517,37 +517,4 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 		return this.normal(tx, ty, tz);
 	}
-
-	public void transformAndAppendPackedVertices(final Matrix4fExt matrix, Matrix3fExt normalMatrix, int[] target, int targetIndex) {
-		final int[] data = this.data;
-
-		int packedNormal = 0;
-		int transformedNormal = 0;
-
-		populateMissingVectors();
-
-		for (int vertexIndex = 0; vertexIndex < 4; ++vertexIndex) {
-			final int index = baseIndex + vertexIndex * MESH_VERTEX_STRIDE + FIRST_VERTEX_X;
-			final float x = Float.intBitsToFloat(data[index]);
-			final float y = Float.intBitsToFloat(data[index + 1]);
-			final float z = Float.intBitsToFloat(data[index + 2]);
-
-			final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-			final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-			final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
-
-			target[targetIndex++] = Float.floatToRawIntBits(xOut);
-			target[targetIndex++] = Float.floatToRawIntBits(yOut);
-			target[targetIndex++] = Float.floatToRawIntBits(zOut);
-
-			final int p = packedNormal(vertexIndex);
-
-			if (p != packedNormal) {
-				packedNormal = p;
-				transformedNormal = NormalHelper.shaderPackedNormal(normalMatrix.canvas_transform(packedNormal));
-			}
-
-			target[targetIndex++] = transformedNormal;
-		}
-	}
 }
