@@ -261,7 +261,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 					.cutout(isBlockItem ? MaterialFinder.CUTOUT_NONE : MaterialFinder.CUTOUT_TENTH)
 					.unmipped(false)
 					.target(drawTranslucencyDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
-					.sorted(true);
+					.sorted(!drawTranslucencyDirectToMainTarget);
 				break;
 			case SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
