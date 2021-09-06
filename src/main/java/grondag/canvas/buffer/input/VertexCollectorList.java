@@ -26,6 +26,7 @@ import net.minecraft.client.render.VertexConsumer;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -64,7 +65,7 @@ public class VertexCollectorList {
 
 			if (mat.condition.compute()) {
 				complete();
-				QuadEncoders.STANDARD_ENCODER.encode(this, get(mat));
+				QuadEncoders.STANDARD_ENCODER.encode(this, AbsentEncodingContext.INSTANCE, get(mat));
 
 				if (Configurator.disableUnseenSpriteAnimation) {
 					mat.trackPerFrameAnimation(this.spriteId());

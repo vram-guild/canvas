@@ -14,13 +14,22 @@
  *  the License.
  */
 
-package grondag.canvas.buffer.format;
+package grondag.canvas.apiimpl.rendercontext;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
-import grondag.canvas.buffer.input.VertexCollector;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 
-@FunctionalInterface
-public interface QuadTranscoder {
-	void encode(MutableQuadViewImpl quad, AbstractRenderContext context, VertexCollector collector);
+import grondag.canvas.mixinterface.Matrix3fExt;
+
+public final class AbsentEncodingContext extends AbstractEncodingContext {
+	private AbsentEncodingContext() {
+		matrix = new Matrix4f();
+		matrix.loadIdentity();
+
+		final Matrix3f n = new Matrix3f();
+		n.loadIdentity();
+		normalMatrix = (Matrix3fExt) (Object) n;
+	}
+
+	public static final AbsentEncodingContext INSTANCE = new AbsentEncodingContext();
 }

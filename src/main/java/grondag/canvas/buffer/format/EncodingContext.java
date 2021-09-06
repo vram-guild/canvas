@@ -16,10 +16,16 @@
 
 package grondag.canvas.buffer.format;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
-import grondag.canvas.buffer.input.VertexCollector;
+import grondag.canvas.mixinterface.Matrix3fExt;
 
-@FunctionalInterface
-public interface QuadEncoder {
-	void encode(MutableQuadViewImpl quad, EncodingContext context, VertexCollector collector);
+public interface EncodingContext {
+	Object matrix();
+
+	Matrix3fExt normalMatrix();
+
+	int overlay();
+
+	int sectorId();
+
+	int sectorRelativeRegionOrigin();
 }

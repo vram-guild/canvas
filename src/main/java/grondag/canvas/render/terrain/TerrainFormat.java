@@ -40,7 +40,7 @@ import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormatElement;
-import grondag.canvas.buffer.format.QuadTranscoder;
+import grondag.canvas.buffer.format.QuadEncoder;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -64,8 +64,8 @@ public class TerrainFormat {
 	static final int TERRAIN_QUAD_STRIDE = TERRAIN_MATERIAL.quadStrideInts;
 	static final int TERRAIN_VERTEX_STRIDE = TERRAIN_MATERIAL.vertexStrideInts;
 
-	public static final QuadTranscoder TERRAIN_TRANSCODER = (quad, context, buff) -> {
-		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
+	public static final QuadEncoder TERRAIN_ENCODER = (quad, context, buff) -> {
+		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final boolean isNormalMatrixUseful = !normalMatrix.canvas_isIdentity();
 
@@ -79,17 +79,20 @@ public class TerrainFormat {
 
 		assert mat.blendMode != BlendMode.DEFAULT;
 
+		final int quadNormalFlags = quad.normalFlags();
+		// don't retrieve if won't be used
+		final int faceNormal = quadNormalFlags == 0b1111 ? 0 : quad.packedFaceNormal();
 		// bit 16 is set if normal Z component is negative
 		int normalFlagBits = 0;
 		int packedNormal = 0;
 		int transformedNormal = 0;
 
+		final int quadTangetFlags = quad.tangentFlags();
+		final int faceTangent = quadTangetFlags == 0b1111 ? 0 : quad.packedFaceTanget();
 		// bit 15 is set if tangent Z component is negative
 		int tangentFlagBits = 0;
 		int packedTangent = 0;
 		int transformedTangent = 0;
-
-		quad.populateMissingVectors();
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
@@ -99,16 +102,17 @@ public class TerrainFormat {
 		final int[] source = quad.data();
 
 		// This and pos vertex encoding are the only differences from standard format
-		final int sectorId = context.sectorId;
+		final int sectorId = context.sectorId();
 		assert sectorId >= 0;
-		final int sectorRelativeRegionOrigin = context.sectorRelativeRegionOrigin;
+		final int sectorRelativeRegionOrigin = context.sectorRelativeRegionOrigin();
 
 		for (int i = 0; i < 4; i++) {
+			final int vertexMask = 1 << i;
 			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
 			final int toIndex = baseTargetIndex + i * TERRAIN_VERTEX_STRIDE;
 
 			// We do this here because we need to pack the normal Z sign bit with sector ID
-			final int p = source[fromIndex + VERTEX_NORMAL];
+			final int p = ((quadNormalFlags & vertexMask) == 0) ? faceNormal : source[fromIndex + VERTEX_NORMAL];
 
 			if (p != packedNormal) {
 				packedNormal = p;
@@ -118,7 +122,7 @@ public class TerrainFormat {
 			}
 
 			// We do this here because we need to pack the tangent Z sign bit with sector ID
-			final int t = source[baseSourceIndex + i + HEADER_FIRST_VERTEX_TANGENT];
+			final int t = ((quadTangetFlags & vertexMask) == 0) ? faceTangent : source[baseSourceIndex + i + HEADER_FIRST_VERTEX_TANGENT];
 
 			if (t != packedTangent) {
 				packedTangent = p;

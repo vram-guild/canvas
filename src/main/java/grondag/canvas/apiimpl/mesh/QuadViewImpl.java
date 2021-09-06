@@ -247,6 +247,20 @@ public class QuadViewImpl implements QuadView {
 		return result;
 	}
 
+	public int packedFaceTanget() {
+		// PERF: can likely optimize this to exploit fact that
+		// vast majority of blocks/items will have X = +/- 1 or Z = +/- 1.
+		final float dv0 = spriteFloatV(1) - spriteFloatV(0);
+		final float dv1 = spriteFloatV(2) - spriteFloatV(1);
+		final float inverseLength = 1.0f / ((spriteFloatU(1) - spriteFloatU(0)) * dv1 - (spriteFloatU(2) - spriteFloatU(1)) * dv0);
+
+		final float tx = inverseLength * (dv1 * (x(1) - x(0)) - dv0 * (x(2) - x(1)));
+		final float ty = inverseLength * (dv1 * (y(1) - y(0)) - dv0 * (y(2) - y(1)));
+		final float tz = inverseLength * (dv1 * (z(1) - z(0)) - dv0 * (z(2) - z(1)));
+
+		return NormalHelper.packNormal(tx, ty, tz);
+	}
+
 	@Override
 	public void copyTo(MutableQuadView targetIn) {
 		final grondag.frex.api.mesh.MutableQuadView target = (grondag.frex.api.mesh.MutableQuadView) targetIn;

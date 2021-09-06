@@ -28,15 +28,17 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 public abstract class EncoderUtils {
-	public static void bufferQuad(MutableQuadViewImpl quad, AbstractRenderContext context, VertexConsumer buff) {
-		final Matrix4fExt matrix = (Matrix4fExt) (Object) context.matrix();
+	public static void bufferQuad(MutableQuadViewImpl quad, EncodingContext context, VertexConsumer buff) {
+		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
+		final boolean isNormalMatrixUseful = !normalMatrix.canvas_isIdentity();
 
+		final int quadNormalFlags = quad.normalFlags();
+		// don't retrieve if won't be used
+		final int faceNormal = quadNormalFlags == 0b1111 ? 0 : quad.packedFaceNormal();
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
-
-		quad.populateMissingVectors();
 
 		final boolean emissive = quad.material().emissive();
 
@@ -50,11 +52,11 @@ public abstract class EncoderUtils {
 			buff.overlay(overlay);
 			buff.light(emissive ? MeshEncodingHelper.FULL_BRIGHTNESS : quad.lightmap(i));
 
-			final int p = quad.packedNormal(i);
+			final int p = ((quadNormalFlags & 1 << i) == 0) ? faceNormal : quad.packedNormal(i);
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				final int transformedNormal = normalMatrix.canvas_transform(packedNormal);
+				final int transformedNormal = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
 				nx = NormalHelper.getPackedNormalComponent(transformedNormal, 0);
 				ny = NormalHelper.getPackedNormalComponent(transformedNormal, 1);
 				nz = NormalHelper.getPackedNormalComponent(transformedNormal, 2);

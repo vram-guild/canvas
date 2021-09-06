@@ -184,7 +184,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
+			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get(quad.material()));
 		}
 	}
 }

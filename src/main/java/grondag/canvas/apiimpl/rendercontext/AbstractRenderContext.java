@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
@@ -40,20 +39,15 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
 
 // UGLY: consolidate and simplify this class hierarchy
-public abstract class AbstractRenderContext implements RenderContext {
+public abstract class AbstractRenderContext extends AbstractEncodingContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
-
-	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
-	public int sectorId;
-	public int sectorRelativeRegionOrigin;
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;
@@ -74,9 +68,7 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 		return true;
 	};
-	protected Matrix4f matrix;
-	protected Matrix3fExt normalMatrix;
-	protected int overlay;
+
 	protected MaterialMap materialMap = defaultMap;
 	protected BlendMode defaultBlendMode;
 	protected boolean isFluidModel = false;
@@ -195,18 +187,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 	}
 
 	public abstract int flatBrightness(MutableQuadViewImpl quad);
-
-	public final int overlay() {
-		return overlay;
-	}
-
-	public final Matrix4f matrix() {
-		return matrix;
-	}
-
-	public final Matrix3fExt normalMatrix() {
-		return normalMatrix;
-	}
 
 	public final void renderQuad() {
 		final MutableQuadViewImpl quad = makerQuad;
