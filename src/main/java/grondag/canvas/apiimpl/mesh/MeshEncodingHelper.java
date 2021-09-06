@@ -43,16 +43,21 @@ public abstract class MeshEncodingHelper {
 	public static final int VERTEX_V = 5;
 	public static final int VERTEX_LIGHTMAP = 6;
 	public static final int VERTEX_NORMAL = 7;
-	public static final int FIRST_VERTEX_X = HEADER_STRIDE + VERTEX_X;
-	public static final int FIRST_VERTEX_Y = HEADER_STRIDE + VERTEX_Y;
-	public static final int FIRST_VERTEX_Z = HEADER_STRIDE + VERTEX_Z;
-	public static final int FIRST_VERTEX_COLOR = HEADER_STRIDE + VERTEX_COLOR;
-	public static final int FIRST_VERTEX_U = HEADER_STRIDE + VERTEX_U;
-	public static final int FIRST_VERTEX_V = HEADER_STRIDE + VERTEX_V;
-	public static final int FIRST_VERTEX_LIGHTMAP = HEADER_STRIDE + VERTEX_LIGHTMAP;
-	public static final int FIRST_VERTEX_NORMAL = HEADER_STRIDE + VERTEX_NORMAL;
+
+	public static final int VERTEX_X0 = HEADER_STRIDE + VERTEX_X;
+	public static final int VERTEX_Y0 = HEADER_STRIDE + VERTEX_Y;
+	public static final int VERTEX_Z0 = HEADER_STRIDE + VERTEX_Z;
+	public static final int VERTEX_COLOR0 = HEADER_STRIDE + VERTEX_COLOR;
+	public static final int VERTEX_U0 = HEADER_STRIDE + VERTEX_U;
+	public static final int VERTEX_V0 = HEADER_STRIDE + VERTEX_V;
+	public static final int VERTEX_LIGHTMAP0 = HEADER_STRIDE + VERTEX_LIGHTMAP;
+	public static final int VERTEX_NORMAL0 = HEADER_STRIDE + VERTEX_NORMAL;
+
+	// Must be power of two for shift constant to work
 	public static final int MESH_VERTEX_STRIDE = 8;
-	public static final int VERTEX_START = FIRST_VERTEX_X;
+	public static final int MESH_VERTEX_STRIDE_SHIFT = 3;
+
+	public static final int VERTEX_START = VERTEX_X0;
 	public static final int MESH_QUAD_STRIDE = MESH_VERTEX_STRIDE * 4;
 	public static final int MESH_QUAD_STRIDE_BYTES = MESH_QUAD_STRIDE * 4;
 	/** Includes header. */
