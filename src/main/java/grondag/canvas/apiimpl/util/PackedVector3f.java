@@ -56,7 +56,7 @@ public abstract class PackedVector3f {
 	}
 
 	public static float packedZ(int packedVector) {
-		return ((byte) ((packedVector >>> 8) & 0xFF)) * DIVIDE_BY_127;
+		return ((byte) ((packedVector >>> 16) & 0xFF)) * DIVIDE_BY_127;
 	}
 
 	public static Vec3f unpackTo(int packedVector, Vec3f target) {
@@ -111,9 +111,10 @@ public abstract class PackedVector3f {
 		final float l = (float) Math.sqrt(normX * normX + normY * normY + normZ * normZ);
 
 		if (l != 0) {
-			normX /= l;
-			normY /= l;
-			normZ /= l;
+			final float inv = 1f / l;
+			normX *= inv;
+			normY *= inv;
+			normZ *= inv;
 		}
 
 		return pack(normX, normY, normZ);
