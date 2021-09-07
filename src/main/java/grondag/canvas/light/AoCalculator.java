@@ -35,7 +35,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
@@ -358,9 +358,9 @@ public abstract class AoCalculator {
 
 			if (vNormal != normal) {
 				normal = vNormal;
-				nx = NormalHelper.packedNormalX(normal);
-				ny = NormalHelper.packedNormalY(normal);
-				nz = NormalHelper.packedNormalZ(normal);
+				nx = PackedVector3f.packedX(normal);
+				ny = PackedVector3f.packedY(normal);
+				nz = PackedVector3f.packedZ(normal);
 			}
 
 			float ao = 0, sky = 0, block = 0;

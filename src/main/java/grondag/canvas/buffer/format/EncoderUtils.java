@@ -23,7 +23,7 @@ import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
@@ -57,9 +57,9 @@ public abstract class EncoderUtils {
 			if (p != packedNormal) {
 				packedNormal = p;
 				final int transformedNormal = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
-				nx = NormalHelper.packedNormalX(transformedNormal);
-				ny = NormalHelper.packedNormalY(transformedNormal);
-				nz = NormalHelper.packedNormalZ(transformedNormal);
+				nx = PackedVector3f.packedX(transformedNormal);
+				ny = PackedVector3f.packedY(transformedNormal);
+				nz = PackedVector3f.packedZ(transformedNormal);
 			}
 
 			buff.normal(nx, ny, nz);

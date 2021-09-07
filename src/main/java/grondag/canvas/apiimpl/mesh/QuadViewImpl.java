@@ -48,7 +48,7 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.frex.api.mesh.QuadView;
@@ -160,7 +160,7 @@ public class QuadViewImpl implements QuadView {
 	protected void computeGeometry() {
 		if (isGeometryInvalid) {
 			isGeometryInvalid = false;
-			data[baseIndex + HEADER_FACE_NORMAL] = NormalHelper.computePackedFaceNormal(this);
+			data[baseIndex + HEADER_FACE_NORMAL] = PackedVector3f.computePackedFaceNormal(this);
 
 			final int flagsIndex = baseIndex + HEADER_BITS;
 
@@ -235,7 +235,7 @@ public class QuadViewImpl implements QuadView {
 	@Deprecated
 	@Override
 	public final Vec3f faceNormal() {
-		return NormalHelper.unpackNormalTo(packedFaceNormal(), FACE_NORMAL_THREADLOCAL.get());
+		return PackedVector3f.unpackTo(packedFaceNormal(), FACE_NORMAL_THREADLOCAL.get());
 	}
 
 	public int packedFaceNormal() {
@@ -258,7 +258,7 @@ public class QuadViewImpl implements QuadView {
 		final float ty = inverseLength * (dv1 * (y1 - y(0)) - dv0 * (y(2) - y1));
 		final float tz = inverseLength * (dv1 * (z1 - z(0)) - dv0 * (z(2) - z1));
 
-		return NormalHelper.packNormal(tx, ty, tz);
+		return PackedVector3f.pack(tx, ty, tz);
 	}
 
 	public int packedFaceTanget() {
@@ -341,7 +341,7 @@ public class QuadViewImpl implements QuadView {
 				target = new Vec3f();
 			}
 
-			return NormalHelper.unpackNormalTo(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0], target);
+			return PackedVector3f.unpackTo(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0], target);
 		} else {
 			return null;
 		}
@@ -353,17 +353,17 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public float normalX(int vertexIndex) {
-		return hasNormal(vertexIndex) ? NormalHelper.packedNormalX(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
+		return hasNormal(vertexIndex) ? PackedVector3f.packedX(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
 	}
 
 	@Override
 	public float normalY(int vertexIndex) {
-		return hasNormal(vertexIndex) ? NormalHelper.packedNormalY(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
+		return hasNormal(vertexIndex) ? PackedVector3f.packedY(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
 	}
 
 	@Override
 	public float normalZ(int vertexIndex) {
-		return hasNormal(vertexIndex) ? NormalHelper.packedNormalZ(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
+		return hasNormal(vertexIndex) ? PackedVector3f.packedZ(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
 	}
 
 	@Override
@@ -378,7 +378,7 @@ public class QuadViewImpl implements QuadView {
 				target = new Vec3f();
 			}
 
-			return NormalHelper.unpackNormalTo(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT], target);
+			return PackedVector3f.unpackTo(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT], target);
 		} else {
 			return null;
 		}
@@ -391,17 +391,17 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public float tangentX(int vertexIndex) {
-		return hasTangent(vertexIndex) ? NormalHelper.packedNormalX(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
+		return hasTangent(vertexIndex) ? PackedVector3f.packedX(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
 	}
 
 	@Override
 	public float tangentY(int vertexIndex) {
-		return hasTangent(vertexIndex) ? NormalHelper.packedNormalY(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
+		return hasTangent(vertexIndex) ? PackedVector3f.packedY(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
 	}
 
 	@Override
 	public float tangentZ(int vertexIndex) {
-		return hasTangent(vertexIndex) ? NormalHelper.packedNormalZ(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
+		return hasTangent(vertexIndex) ? PackedVector3f.packedZ(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
 	}
 
 	@Override

@@ -16,6 +16,7 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
 
@@ -25,6 +26,7 @@ public final class AbsentEncodingContext extends AbstractEncodingContext {
 	private AbsentEncodingContext() {
 		matrix = new Matrix4f();
 		matrix.loadIdentity();
+		overlay = OverlayTexture.DEFAULT_UV;
 
 		final Matrix3f n = new Matrix3f();
 		n.loadIdentity();

@@ -200,9 +200,9 @@ public abstract class GeometryHelper {
 	 */
 	public static int lightFaceId(QuadViewImpl quad) {
 		final int packedNormal = quad.packedFaceNormal();
-		final float x = NormalHelper.packedNormalX(packedNormal);
-		final float y = NormalHelper.packedNormalY(packedNormal);
-		final float z = NormalHelper.packedNormalZ(packedNormal);
+		final float x = PackedVector3f.packedX(packedNormal);
+		final float y = PackedVector3f.packedY(packedNormal);
+		final float z = PackedVector3f.packedZ(packedNormal);
 
 		switch (GeometryHelper.longestAxis(x, y, z)) {
 			case X:

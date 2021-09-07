@@ -45,9 +45,8 @@ import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.apiimpl.util.TextureHelper;
-import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -210,7 +209,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
 		normalFlags(normalFlags() | (1 << vertexIndex));
-		data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0] = NormalHelper.packNormal(x, y, z);
+		data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0] = PackedVector3f.pack(x, y, z);
 		return this;
 	}
 
@@ -221,7 +220,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	@Override
 	public MutableQuadViewImpl tangent(int vertexIndex, float x, float y, float z) {
 		tangentFlags(tangentFlags() | (1 << vertexIndex));
-		data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT] = NormalHelper.packNormal(x, y, z);
+		data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT] = PackedVector3f.pack(x, y, z);
 		return this;
 	}
 
@@ -415,15 +414,11 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	protected void setOverlay (int u, int v) {
-		final boolean hurtOverlay = v == 3;
-		final boolean flashOverlay = (v == 10 && u > 7);
+		final var mat = material();
+		final var oMat = mat.withOverlay(u, v);
 
-		if (hurtOverlay || flashOverlay) {
-			final MaterialFinderImpl materialFinder = new MaterialFinderImpl();
-			materialFinder.copyFrom(material());
-			materialFinder.hurtOverlay(hurtOverlay);
-			materialFinder.flashOverlay(flashOverlay);
-			material(materialFinder.find());
+		if (oMat != mat) {
+			material(oMat);
 		}
 	}
 

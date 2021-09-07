@@ -31,6 +31,8 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.minecraft.client.render.OverlayTexture;
+
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.input.VertexCollector;
@@ -44,9 +46,10 @@ public class QuadEncoders {
 		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final boolean isContextPresent = context != AbsentEncodingContext.INSTANCE;
+		final int overlay = context.overlay();
 
-		if (isContextPresent) {
-			quad.overlay(context.overlay());
+		if (overlay != OverlayTexture.DEFAULT_UV) {
+			quad.overlay(overlay);
 		}
 
 		final RenderMaterialImpl mat = quad.material();

@@ -27,13 +27,13 @@ import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
  * Renderers are not required to use these helpers, but they were
  * designed to be usable without the default renderer.
  */
-public abstract class NormalHelper {
-	private NormalHelper() { }
+public abstract class PackedVector3f {
+	private PackedVector3f() { }
 
 	// Translates normalized value from 0 to 2 and adds half a unit step for fast rounding via (int)
 	private static final float HALF_UNIT_PLUS_ONE = 1f + 1f / 254f;
 
-	public static int packNormal(float x, float y, float z) {
+	public static int pack(float x, float y, float z) {
 		final int i = (int) ((x + HALF_UNIT_PLUS_ONE) * 0x7F);
 		final int j = (int) ((y + HALF_UNIT_PLUS_ONE) * 0x7F00);
 		final int k = (int) ((z + HALF_UNIT_PLUS_ONE) * 0x7F0000);
@@ -47,23 +47,23 @@ public abstract class NormalHelper {
 	// Avoid division
 	private static final float DIVIDE_BY_127 = 1f / 127f;
 
-	public static float packedNormalX(int packedNormal) {
-		return ((byte) (packedNormal & 0xFF)) * DIVIDE_BY_127;
+	public static float packedX(int packedVector) {
+		return ((byte) (packedVector & 0xFF)) * DIVIDE_BY_127;
 	}
 
-	public static float packedNormalY(int packedNormal) {
-		return ((byte) ((packedNormal >>> 8) & 0xFF)) * DIVIDE_BY_127;
+	public static float packedY(int packedVector) {
+		return ((byte) ((packedVector >>> 8) & 0xFF)) * DIVIDE_BY_127;
 	}
 
-	public static float packedNormalZ(int packedNormal) {
-		return ((byte) ((packedNormal >>> 8) & 0xFF)) * DIVIDE_BY_127;
+	public static float packedZ(int packedVector) {
+		return ((byte) ((packedVector >>> 8) & 0xFF)) * DIVIDE_BY_127;
 	}
 
-	public static Vec3f unpackNormalTo(int packedFaceNormal, Vec3f target) {
+	public static Vec3f unpackTo(int packedVector, Vec3f target) {
 		target.set(
-				packedNormalX(packedFaceNormal),
-				packedNormalY(packedFaceNormal),
-				packedNormalZ(packedFaceNormal));
+				packedX(packedVector),
+				packedY(packedVector),
+				packedZ(packedVector));
 
 		return target;
 	}
@@ -81,7 +81,7 @@ public abstract class NormalHelper {
 
 		if (GeometryHelper.isQuadParallelToFace(nominalFace, q)) {
 			final Vec3i vec = nominalFace.getVector();
-			return packNormal(vec.getX(), vec.getY(), vec.getZ());
+			return pack(vec.getX(), vec.getY(), vec.getZ());
 		}
 
 		final float x0 = q.x(0);
@@ -116,6 +116,6 @@ public abstract class NormalHelper {
 			normZ /= l;
 		}
 
-		return packNormal(normX, normY, normZ);
+		return pack(normX, normY, normZ);
 	}
 }

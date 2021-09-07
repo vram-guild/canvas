@@ -175,4 +175,19 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 			texture.atlasInfo().trackPerFrameAnimation(spriteId);
 		}
 	}
+
+	public RenderMaterialImpl withOverlay(int u, int v) {
+		final boolean hurtOverlay = v == 3;
+		final boolean flashOverlay = (v == 10 && u > 7);
+
+		if (hurtOverlay || flashOverlay) {
+			final var materialFinder = MaterialFinderImpl.threadLocal();
+			materialFinder.copyFrom(this);
+			materialFinder.hurtOverlay(hurtOverlay);
+			materialFinder.flashOverlay(flashOverlay);
+			return materialFinder.find();
+		} else {
+			return this;
+		}
+	}
 }
