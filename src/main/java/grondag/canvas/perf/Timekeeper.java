@@ -29,6 +29,8 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.GFX;
 
 public abstract class Timekeeper {
+	private static int maxTextWidth = -1;
+
 	public enum ProfilerGroup {
 		GameRendererSetup("GameRenderer_Setup", 2),
 		BeforeWorld("Before World", 1),
@@ -78,6 +80,7 @@ public abstract class Timekeeper {
 		private boolean gpuEnabled = false;
 
 		private void reload(boolean enableGpu) {
+			maxTextWidth = -1;
 			frameSinceReload = -1;
 			gpuEnabled = enableGpu;
 		}
@@ -302,20 +305,35 @@ public abstract class Timekeeper {
 		}
 	}
 
-	public static void renderOverlay(MatrixStack matrices, TextRenderer fontRenderer) {
+	public static void renderOverlay(MatrixStack ms, TextRenderer fr) {
 		if (!(instance instanceof Active) || !Configurator.displayRenderProfiler) return;
 
 		final Active active = (Active) instance;
 		final float overlayScale = Configurator.profilerOverlayScale;
 
-		matrices.push();
-		matrices.scale(overlayScale, overlayScale, overlayScale);
+		ms.push();
+		ms.scale(overlayScale, overlayScale, overlayScale);
 
 		if (active.gpuEnabled) {
 			active.populateResult();
 		}
 
-		int i = 0;
+		if (maxTextWidth == -1) {
+			final int bracketsWidth = fr.getWidth("<>");
+
+			for (final Group group:active.groups) {
+				maxTextWidth = Math.max(fr.getWidth(group.enumVal.token) + bracketsWidth, maxTextWidth);
+
+				if (group.enumVal.level <= Configurator.profilerDetailLevel) {
+					for (final String step : group.steps) {
+						maxTextWidth = Math.max(fr.getWidth(step), maxTextWidth);
+					}
+				}
+			}
+		}
+
+		int[] i = new int[]{0};
+		String lastToken = null;
 
 		for (final Group group:active.groups) {
 			if (group.enumVal.level > Configurator.profilerDetailLevel) {
@@ -327,44 +345,66 @@ public abstract class Timekeeper {
 					groupGpu += active.getGpuTime(step);
 				}
 
-				renderTime(String.format("<%s>", group.enumVal.token), groupCpu, groupGpu, i++, matrices, fontRenderer);
+				renderTime(String.format("<%s>", group.enumVal.token), 0, groupCpu, groupGpu, i, ms, fr);
 			} else {
 				for (final String step:group.steps) {
 					final long cpu = active.getCpuTime(step);
 					final long gpu = active.getGpuTime(step);
 
-					renderTime(String.format("[%s] %s", group.enumVal.token, step), cpu, gpu, i++, matrices, fontRenderer);
+					if (!group.enumVal.token.equals(lastToken)) {
+						final String s = String.format("<%s>", group.enumVal.token);
+						renderBack(i, 0, fr.getWidth(s), 0xFF000000, ms);
+						renderLine(s, i, 0, 0xFFFFFFFF, ms, fr);
+						lastToken = group.enumVal.token;
+					}
+
+					renderTime(String.format("%s", step), 24, cpu, gpu, i, ms, fr);
 				}
 			}
 		}
 
-		matrices.pop();
+		ms.pop();
 	}
 
-	private static void renderTime(String label, long cpu, long gpu, int i, MatrixStack ms, TextRenderer fontRenderer) {
+	private static void renderTime(String label, int xo, long cpu, long gpu, int[] i, MatrixStack ms, TextRenderer fr) {
 		final int forecolor;
 		final int backcolor;
 
 		if (cpu <= threshold) {
-			forecolor = 0xFFFFFF;
+			forecolor = 0xFFFFFFFF;
 			backcolor = 0x99000000;
 		} else {
-			forecolor = 0xFFFF00;
+			forecolor = 0xFFFFFF00;
 			backcolor = 0x99990000;
 		}
 
+		final String l = String.format("%s", label);
 		final String s;
 
 		if (gpu == 0L) {
-			s = String.format("%s: cpu %f ms", label, cpu/1000000f);
+			s = String.format("C %.3f ms", cpu/1000000f);
 		} else {
-			s = String.format("%s: cpu %f ms, gpu %f ms", label, cpu/1000000f, gpu/1000000f);
+			s = String.format("C %.3f ms, G %.3f ms", cpu/1000000f, gpu/1000000f);
 		}
 
-		final int k = fontRenderer.getWidth(s);
-		final int m = 100 + 12 * i;
+		renderBack(i, xo, fr.getWidth(s) + maxTextWidth + 12, backcolor, ms);
+		renderText(label, i, xo, forecolor, ms, fr);
+		renderLine(s, i, xo + maxTextWidth + 12, forecolor, ms, fr);
+	}
 
-		DrawableHelper.fill(ms, 20, m - 1, 22 + k + 1, m + 9, backcolor);
-		fontRenderer.draw(ms, s, 21, m, forecolor);
+	private static void renderLine(String s, int[] i, int xo, int fcolor, MatrixStack ms, TextRenderer fr) {
+		renderText(s, i, xo, fcolor, ms, fr);
+		i[0]++;
+	}
+
+	private static void renderText(String s, int[] i, int xo, int fcolor, MatrixStack ms, TextRenderer fr) {
+		final int k = fr.getWidth(s);
+		final int m = 6 + 12 * i[0];
+		fr.draw(ms, s, 6 + xo, m, fcolor);
+	}
+
+	private static void renderBack(int[] i, int xo, int w, int bcolor, MatrixStack ms) {
+		final int m = 6 + 12 * i[0];
+		DrawableHelper.fill(ms, 5 + xo, m - 1, 6 + xo + w, m + 9, bcolor);
 	}
 }
