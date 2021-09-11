@@ -76,14 +76,16 @@ public abstract class Timekeeper {
 		private static final int GPU_SETUP_FRAME = 1;
 		private static final int NUM_SETUP_FRAMES = 2;
 
-		private long startCpu;
-		private String cpuStep;
 		private Object2LongOpenHashMap<String> cpuElapsed;
 		private Object2LongOpenHashMap<String> gpuElapsed;
 		private Group[] groups;
 		private int[] gpuQueryId;
-		private int frameSinceReload;
 		private boolean gpuEnabled = false;
+
+		private long startCpu;
+		private String cpuStep;
+		private int frameSinceReload;
+		private boolean gpuQuerying;
 
 		private void reload(boolean enableGpu) {
 			maxTextWidth = -1;
@@ -146,14 +148,18 @@ public abstract class Timekeeper {
 			}
 
 			if (frameSinceReload >= GPU_SETUP_FRAME && gpuEnabled) {
-				// Count end time of previous process
-				GFX.glEndQuery(GFX.GL_TIME_ELAPSED);
-				assert GFX.logError("Ending GPU Time Query");
+				if (gpuQuerying) {
+					// End querying previous step
+					gpuQuerying = false;
+					GFX.glEndQuery(GFX.GL_TIME_ELAPSED);
+					assert GFX.logError("Ending GPU Time Query");
+				}
 
 				final int idIndex = getIdIndex(group, token);
 
 				if (idIndex > -1) {
-					// Count start time of current process
+					// Begin querying current step
+					gpuQuerying = true;
 					GFX.glBeginQuery(GFX.GL_TIME_ELAPSED, gpuQueryId[idIndex]);
 					assert GFX.logError("Beginning GPU Time Query");
 				}
