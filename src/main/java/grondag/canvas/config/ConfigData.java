@@ -19,6 +19,7 @@ package grondag.canvas.config;
 import blue.endless.jankson.Comment;
 
 import grondag.canvas.buffer.render.TransferBuffers;
+import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
 
 class ConfigData {
@@ -124,8 +125,8 @@ class ConfigData {
 	int renderLagSpikeFps = 30;
 	@Comment("Enable and display render profiler data.")
 	boolean displayRenderProfiler = false;
-	@Comment("Also profile each render steps in GPU time.")
-	boolean profileGpuTime = false;
+	@Comment("Type of profiler data to display.")
+	Timekeeper.Mode profilerDisplayMode = Timekeeper.Mode.CPU;
 	@Comment("Profiler level of detail. 0=Collapse all, 1=Expand program passes, 2=Expand all")
 	int profilerDetailLevel = 0;
 	@Comment("Size of the profiler overlay relative to GUI scale.")

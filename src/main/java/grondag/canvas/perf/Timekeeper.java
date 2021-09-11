@@ -31,6 +31,12 @@ import grondag.canvas.varia.GFX;
 public abstract class Timekeeper {
 	private static int maxTextWidth = -1;
 
+	public enum Mode {
+		CPU,
+		GPU,
+		CPU_GPU
+	}
+
 	public enum ProfilerGroup {
 		GameRendererSetup("GameRenderer_Setup", 2),
 		BeforeWorld("Before World", 1),
@@ -301,7 +307,7 @@ public abstract class Timekeeper {
 
 			final Active active = (Active) instance;
 
-			active.reload(Configurator.profileGpuTime);
+			active.reload(Configurator.profilerDisplayMode != Mode.CPU);
 		}
 	}
 
@@ -353,7 +359,7 @@ public abstract class Timekeeper {
 
 					if (!group.enumVal.token.equals(lastToken)) {
 						final String s = String.format("<%s>", group.enumVal.token);
-						renderBack(i, 0, fr.getWidth(s), 0xFF000000, ms);
+						renderBack(i, 0, fr.getWidth(s), 0x99000000, ms);
 						renderLine(s, i, 0, 0xFFFFFFFF, ms, fr);
 						lastToken = group.enumVal.token;
 					}
@@ -379,13 +385,11 @@ public abstract class Timekeeper {
 		}
 
 		final String l = String.format("%s", label);
-		final String s;
-
-		if (gpu == 0L) {
-			s = String.format("C %.3f ms", cpu/1000000f);
-		} else {
-			s = String.format("C %.3f ms, G %.3f ms", cpu/1000000f, gpu/1000000f);
-		}
+		final String s = switch (Configurator.profilerDisplayMode) {
+			case CPU -> String.format("C %.3f ms", cpu / 1000000f);
+			case GPU -> String.format("G %.3f ms", gpu / 1000000f);
+			case CPU_GPU -> String.format("C %.3f ms, G %.3f ms", cpu / 1000000f, gpu / 1000000f);
+		};
 
 		renderBack(i, xo, fr.getWidth(s) + maxTextWidth + 12, backcolor, ms);
 		renderText(label, i, xo, forecolor, ms, fr);

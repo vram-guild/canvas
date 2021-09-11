@@ -48,7 +48,7 @@ import static grondag.canvas.config.Configurator.logRenderLagSpikes;
 import static grondag.canvas.config.Configurator.pipelineId;
 import static grondag.canvas.config.Configurator.preprocessShaderSource;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
-import static grondag.canvas.config.Configurator.profileGpuTime;
+import static grondag.canvas.config.Configurator.profilerDisplayMode;
 import static grondag.canvas.config.Configurator.profilerDetailLevel;
 import static grondag.canvas.config.Configurator.profilerOverlayScale;
 import static grondag.canvas.config.Configurator.reduceResolutionOnMac;
@@ -549,11 +549,13 @@ public class ConfigGui {
 			.build());
 
 		debug.addEntry(ENTRY_BUILDER
-			.startBooleanToggle(new TranslatableText("config.canvas.value.profile_gpu_time"), profileGpuTime)
-			.setDefaultValue(DEFAULTS.profileGpuTime)
-			.setTooltip(parse("config.canvas.help.profile_gpu_time"))
+			.startEnumSelector(new TranslatableText("config.canvas.value.profiler_display_mode"),
+			Timekeeper.Mode.class,
+			profilerDisplayMode)
+			.setDefaultValue(DEFAULTS.profilerDisplayMode)
+			.setTooltip(parse("config.canvas.help.profiler_display_mode"))
 			.setSaveConsumer(b -> {
-				profileGpuTime = b;
+				profilerDisplayMode = b;
 				Timekeeper.configOrPipelineReload();
 			})
 			.build());
