@@ -48,6 +48,7 @@ import static grondag.canvas.config.Configurator.logRenderLagSpikes;
 import static grondag.canvas.config.Configurator.pipelineId;
 import static grondag.canvas.config.Configurator.preprocessShaderSource;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
+import static grondag.canvas.config.Configurator.profilerDisplayMode;
 import static grondag.canvas.config.Configurator.profilerDetailLevel;
 import static grondag.canvas.config.Configurator.profilerOverlayScale;
 import static grondag.canvas.config.Configurator.reduceResolutionOnMac;
@@ -543,6 +544,18 @@ public class ConfigGui {
 			.setTooltip(parse("config.canvas.help.display_render_profiler"))
 			.setSaveConsumer(b -> {
 				displayRenderProfiler = b;
+				Timekeeper.configOrPipelineReload();
+			})
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+			.startEnumSelector(new TranslatableText("config.canvas.value.profiler_display_mode"),
+			Timekeeper.Mode.class,
+			profilerDisplayMode)
+			.setDefaultValue(DEFAULTS.profilerDisplayMode)
+			.setTooltip(parse("config.canvas.help.profiler_display_mode"))
+			.setSaveConsumer(b -> {
+				profilerDisplayMode = b;
 				Timekeeper.configOrPipelineReload();
 			})
 			.build());
