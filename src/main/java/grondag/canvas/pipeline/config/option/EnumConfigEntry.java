@@ -29,8 +29,9 @@ import net.minecraft.text.TranslatableText;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
-public class EnumConfigEntry extends OptionConfigEntry {
+public class EnumConfigEntry extends OptionConfigEntry<EnumConfigEntry> {
 	public final String defaultVal;
 	private String value;
 	private final String[] choices;
@@ -101,5 +102,10 @@ public class EnumConfigEntry extends OptionConfigEntry {
 		}
 
 		return valid;
+	}
+
+	@Override
+	public NamedDependencyMap<EnumConfigEntry> nameMap() {
+		return context.enumConfigEntries;
 	}
 }

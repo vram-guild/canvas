@@ -184,5 +184,7 @@
   "config.canvas.value.group_animated_sprites": "Group Animated Sprites",
   "config.canvas.help.group_animated_sprites": "When true, sprite atlas texture stitching is changed to group;animated sprites. Improves frame rate.;Changes take effect on next resource reload",
   "config.canvas.value.trace_texture_load": "Trace Texture Loading",
-  "config.canvas.help.trace_texture_load": "Log significant events of texture/sprite atlas loading.;For debugging use. Will spam the log."
+  "config.canvas.help.trace_texture_load": "Log significant events of texture/sprite atlas loading.;For debugging use. Will spam the log.",
+  "config.canvas.value.bloom_toggle": "Enable Bloom",
+  "config.canvas.help.bloom_toggle": "Renders glow effect around light sources.;Modest impact on performance."
 }

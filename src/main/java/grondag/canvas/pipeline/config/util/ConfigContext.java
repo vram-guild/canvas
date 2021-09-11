@@ -25,6 +25,10 @@ import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.pipeline.config.PipelineParam;
 import grondag.canvas.pipeline.config.ProgramConfig;
+import grondag.canvas.pipeline.config.option.BooleanConfigEntry;
+import grondag.canvas.pipeline.config.option.EnumConfigEntry;
+import grondag.canvas.pipeline.config.option.FloatConfigEntry;
+import grondag.canvas.pipeline.config.option.IntConfigEntry;
 
 public class ConfigContext {
 	public final NamedDependencyMap<FramebufferConfig> frameBuffers = new NamedDependencyMap<>();
@@ -40,4 +44,9 @@ public class ConfigContext {
 	public final NamedDependencyMap<ProgramConfig> programs = new NamedDependencyMap<>(s -> s.equals(PassConfig.CLEAR_NAME));
 
 	public final ObjectOpenHashSet<Identifier> optionIds = new ObjectOpenHashSet<>();
+
+	public final NamedDependencyMap<BooleanConfigEntry> booleanConfigEntries = new NamedDependencyMap<>();
+	public final NamedDependencyMap<EnumConfigEntry> enumConfigEntries = new NamedDependencyMap<>();
+	public final NamedDependencyMap<FloatConfigEntry> floatConfigEntries = new NamedDependencyMap<>();
+	public final NamedDependencyMap<IntConfigEntry> intConfigEntries = new NamedDependencyMap<>();
 }

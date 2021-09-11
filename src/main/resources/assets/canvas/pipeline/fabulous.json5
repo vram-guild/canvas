@@ -286,6 +286,9 @@
   ],
 
   framebuffers: [
+    // Some of the fabulous framebuffers are duplicated without the emissive
+    // color attachment to provide compatiblity for mods that draw directly
+    // to the vanilla framebuffers. The base color attachments are the same.
 		{
 			name: "fab_entity",
 			depthAttachment: {image: "entity_depth"},
@@ -310,6 +313,8 @@
 			// depth not cleared because always copied from solid
 			depthAttachment: {image: "entity_depth"},
 			colorAttachments: [
+        // note the clear color doesn't cause automatic clearing - it determines
+        // what attachments get cleared (and to what color) when a clear pass is run.
 				{image: "entity_main", clearColor: 0x00000000},
 				// emissive not cleared here because shared - only cleared once on solid depth
 				{image: "emissive"}

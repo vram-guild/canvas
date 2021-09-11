@@ -1,5 +1,10 @@
 {
   smoothBrightnessBidirectionaly: false,
+  // If true, the renderer will call the GL.clear() method on the default framebuffer using the
+  // vanilla clear color when vanilla would normally do it,
+  // If you are implementing a custom sky color or if this interferes with the pipeline in
+  // some other way you can turn it off.  There's a small risk of incompatibility with mods
+  // that try to hook into that GL call.
   runVanillaClear: true,
   brightnessSmoothingFrames: 20,
   rainSmoothingFrames: 500,

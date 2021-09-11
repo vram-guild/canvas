@@ -27,8 +27,9 @@ import net.minecraft.text.TranslatableText;
 
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
-public class BooleanConfigEntry extends OptionConfigEntry {
+public class BooleanConfigEntry extends OptionConfigEntry<BooleanConfigEntry> {
 	public final boolean defaultVal;
 	private boolean value;
 
@@ -66,5 +67,10 @@ public class BooleanConfigEntry extends OptionConfigEntry {
 
 	public boolean value() {
 		return value;
+	}
+
+	@Override
+	public NamedDependencyMap<BooleanConfigEntry> nameMap() {
+		return context.booleanConfigEntries;
 	}
 }

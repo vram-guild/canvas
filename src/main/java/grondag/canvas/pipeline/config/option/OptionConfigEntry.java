@@ -22,18 +22,16 @@ import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
-import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
+import grondag.canvas.pipeline.config.util.NamedConfig;
 
-public abstract class OptionConfigEntry extends AbstractConfig {
+public abstract class OptionConfigEntry<T extends OptionConfigEntry<T>> extends NamedConfig<T> {
 	public final String nameKey;
 	public final String descriptionKey;
-	public final String name;
 
 	protected OptionConfigEntry(ConfigContext ctx, String name, JsonObject config) {
-		super(ctx);
-		this.name = name;
+		super(ctx, name);
 		nameKey = JanksonHelper.asString(config.get("nameKey"));
 		descriptionKey = JanksonHelper.asString(config.get("descriptionKey"));
 	}
@@ -63,15 +61,13 @@ public abstract class OptionConfigEntry extends AbstractConfig {
 	 * @param element  will be reliably present and is element matching key - only called if exists
 	 * @return
 	 */
-	static OptionConfigEntry of(ConfigContext ctx, String key, JsonObject obj) {
+	static OptionConfigEntry<?> of(ConfigContext ctx, String key, JsonObject obj) {
 		if (obj.containsKey("choices")) {
 			return new EnumConfigEntry(ctx, key, obj);
 		} else {
 			final JsonElement defaultVal = obj.get("default");
 
-			if (defaultVal instanceof JsonPrimitive) {
-				final JsonPrimitive val = (JsonPrimitive) defaultVal;
-
+			if (defaultVal instanceof final JsonPrimitive val) {
 				if (val.getValue().getClass() == Double.class || val.getValue().getClass() == Float.class) {
 					return new FloatConfigEntry(ctx, key, obj);
 				} else if (val.getValue().getClass() == Integer.class || val.getValue().getClass() == Long.class) {

@@ -27,8 +27,9 @@ import net.minecraft.text.TranslatableText;
 
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
-public class FloatConfigEntry extends OptionConfigEntry {
+public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 	public final float defaultVal;
 	public final float min;
 	public final float max;
@@ -77,5 +78,10 @@ public class FloatConfigEntry extends OptionConfigEntry {
 		valid &= assertAndWarn(!Float.isNaN(max), "Invalid pipeline config option - missing max value");
 
 		return valid;
+	}
+
+	@Override
+	public NamedDependencyMap<FloatConfigEntry> nameMap() {
+		return context.floatConfigEntries;
 	}
 }

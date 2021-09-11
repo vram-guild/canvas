@@ -20,6 +20,7 @@ import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.config.option.BooleanConfigEntry;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedConfig;
@@ -30,6 +31,8 @@ public class PassConfig extends NamedConfig<PassConfig> {
 	public final NamedDependency<FramebufferConfig> framebuffer;
 	public final NamedDependency<ImageConfig>[] samplerImages;
 	public final NamedDependency<ProgramConfig> program;
+	public final NamedDependency<BooleanConfigEntry> toggleConfig;
+
 	// for computing size
 	public final int lod;
 
@@ -59,6 +62,7 @@ public class PassConfig extends NamedConfig<PassConfig> {
 		super(ctx, JanksonHelper.asStringOrDefault(config.get("name"), JanksonHelper.asString(config.get("framebuffer"))));
 		framebuffer = ctx.frameBuffers.dependOn(config, "framebuffer");
 		program = ctx.programs.dependOn(config, "program");
+		toggleConfig = ctx.booleanConfigEntries.dependOn(config, "toggleConfig");
 
 		lod = config.getInt("lod", 0);
 
