@@ -33,8 +33,6 @@ import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
-import grondag.canvas.buffer.format.CleanVAO;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.material.state.MaterialFinderImpl;
@@ -47,6 +45,7 @@ import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
+import grondag.canvas.shader.PreReleaseShaderCompat;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
@@ -109,7 +108,6 @@ public class Canvas implements Renderer {
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();
-		CanvasMod.LOG.info("Active terrain render config: " + Configurator.terrainRenderConfig.name);
 
 		recompile();
 	}
@@ -117,6 +115,7 @@ public class Canvas implements Renderer {
 	public void recompile() {
 		PipelineLoader.INSTANCE.reload(MinecraftClient.getInstance().getResourceManager());
 		Pipeline.reload();
+		PreReleaseShaderCompat.reload();
 		GlShader.forceReloadErrors();
 		GlShaderManager.INSTANCE.reload();
 		GlProgramManager.INSTANCE.reload();
@@ -126,7 +125,6 @@ public class Canvas implements Renderer {
 		MaterialTextureState.reload();
 		ShaderDataManager.reload();
 		Timekeeper.configOrPipelineReload();
-		CleanVAO.reset();
 	}
 
 	@Override

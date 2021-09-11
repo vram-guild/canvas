@@ -23,6 +23,7 @@ import blue.endless.jankson.JsonObject;
 import com.google.common.base.Predicates;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
+@SuppressWarnings("serial")
 public class NamedDependencyMap<T extends NamedConfig<T>> extends Object2ObjectOpenHashMap<String, T> {
 	public final Predicate<String> builtInTest;
 

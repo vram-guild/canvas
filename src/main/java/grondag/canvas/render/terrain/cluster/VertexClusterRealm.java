@@ -18,17 +18,12 @@ package grondag.canvas.render.terrain.cluster;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.util.math.BlockPos;
 
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
 
 public class VertexClusterRealm {
-	public static final VertexClusterRealm SOLID = new VertexClusterRealm();
-	public static final VertexClusterRealm TRANSLUCENT = new VertexClusterRealm();
-
-	// WIP: allow for non-cubic clusters
 	/**
 	 * Number of bits we right-shift "chunk" coordinates to get cluster coordinates.
 	 * Determines the size of clusters.
@@ -42,27 +37,28 @@ public class VertexClusterRealm {
 
 	static long clusterPos(long packedOriginBlockPos) {
 		final int x = BlockPos.unpackLongX(packedOriginBlockPos);
-		final int y = BlockPos.unpackLongY(packedOriginBlockPos);
 		final int z = BlockPos.unpackLongZ(packedOriginBlockPos);
-		return BlockPos.asLong(x >> BLOCKPOS_TO_CLUSTER_SHIFT, y >> BLOCKPOS_TO_CLUSTER_SHIFT, z >> BLOCKPOS_TO_CLUSTER_SHIFT);
+		return BlockPos.asLong(x >> BLOCKPOS_TO_CLUSTER_SHIFT, 0, z >> BLOCKPOS_TO_CLUSTER_SHIFT);
 	}
 
 	private final Long2ObjectOpenHashMap<VertexCluster> clusters = new Long2ObjectOpenHashMap<>();
-	private final ReferenceOpenHashSet<VertexCluster> clusterUpdates = new ReferenceOpenHashSet<>();
 
 	private boolean isClosed = false;
 
-	private VertexClusterRealm() { }
+	public final boolean isTranslucent;
+
+	public VertexClusterRealm(boolean isTranslucent) {
+		this.isTranslucent = isTranslucent;
+	}
 
 	public void clear() {
 		assert RenderSystem.isOnRenderThread();
 
-		for (VertexCluster clump : clusters.values()) {
-			clump.close();
+		for (VertexCluster cluster : clusters.values()) {
+			cluster.close();
 		}
 
 		clusters.clear();
-		clusterUpdates.clear();
 	}
 
 	public void close() {
@@ -76,9 +72,7 @@ public class VertexClusterRealm {
 
 	RegionAllocation allocate(ClusteredDrawableStorage storage) {
 		assert RenderSystem.isOnRenderThread();
-
-		VertexCluster cluster = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterRealm.this, p));
-		clusterUpdates.add(cluster);
+		final VertexCluster cluster = clusters.computeIfAbsent(storage.clusterPos, p -> new VertexCluster(VertexClusterRealm.this, p));
 		return cluster.allocate(storage);
 	}
 
@@ -88,35 +82,18 @@ public class VertexClusterRealm {
 		assert deadCluster != null : "Clump gone missing.";
 	}
 
-	public void update() {
-		assert RenderSystem.isOnRenderThread();
-
-		// WIP: regions now allocate immediate and compaction isn't every frame
-		// Do we still need to have an update set and run this every frame?
-		if (!clusterUpdates.isEmpty()) {
-			for (VertexCluster clump : clusterUpdates) {
-				clump.update();
-			}
-
-			clusterUpdates.clear();
-		}
-
-		// WIP: need a way to set the deadline appropriately based on steady frame rate and time already elapsed.
-		// Method must ensure we don't have starvation - task queue can't grow indefinitely.
-		ClusterTaskManager.run(System.nanoTime() + 2000000);
-	}
-
 	//private int lastFrame = 0;
 
+	// WIP: make this faster
 	public String debugSummary() {
 		if (clusters.isEmpty()) {
 			return "Empty";
 		}
 
-		int total = 0;
+		long activeByes = 0;
 
 		for (var cluster : clusters.values()) {
-			total += cluster.activeBytes();
+			activeByes += cluster.activeBytes();
 		}
 
 		//if (++lastFrame >= 200) {
@@ -132,6 +109,6 @@ public class VertexClusterRealm {
 		//	}
 		//}
 
-		return String.format("clusters:%d %dMb", clusters.size(), total / 0x100000);
+		return String.format("clusters: %d %dMb", clusters.size(), activeByes / 0x100000);
 	}
 }

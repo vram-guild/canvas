@@ -18,7 +18,7 @@ package grondag.canvas.terrain.util;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,7 +43,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 		}
 	});
 
-	private final ArrayBlockingQueue<Runnable> serverQueue = new ArrayBlockingQueue<>(4096);
+	private final LinkedBlockingQueue<Runnable> serverQueue = new LinkedBlockingQueue<>();
 
 	private final int poolSize = threadCount();
 	private final Semaphore mixedSignal = new Semaphore(poolSize - 2);
@@ -59,46 +59,47 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 	private String report0 = "", report1 = "";
 
 	SharedTerrainExecutor() {
+		assert poolSize >= 4;
+
 		final ImmutableList.Builder<Worker> builder = ImmutableList.builder();
 
-		if (poolSize == 1) {
-			// running on a potato I guess
-			final RenderWorker w = new RenderFirstWorker();
+		final RenderWorker renderWorker = new RenderWorker();
+		builder.add(renderWorker);
+		final Thread rederThread = new Thread(renderWorker, "Canvas Render Thread");
+		rederThread.setDaemon(true);
+		rederThread.start();
+
+		final ServerWorker serverWorker = new ServerWorker();
+		builder.add(serverWorker);
+		final Thread serverThread = new Thread(serverWorker, "Canvas Server Thread");
+		serverThread.setDaemon(true);
+		serverThread.start();
+
+		final int limit = poolSize - 2;
+
+		for (int i = 0; i < limit; i++) {
+			final RenderWorker w = ((i & 1) == 0) ? new RenderFirstWorker() : new ServerFirstWorker();
 			builder.add(w);
-			final Thread thread = new Thread(w, "Canvas Mixed Thread");
+
+			final Thread thread = new Thread(w, "Canvas Mixed Thread - " + i);
 			thread.setDaemon(true);
 			thread.start();
-		} else {
-			final RenderWorker renderWorker = new RenderWorker();
-			builder.add(renderWorker);
-			final Thread rederThread = new Thread(renderWorker, "Canvas Render Thread");
-			rederThread.setDaemon(true);
-			rederThread.start();
-
-			final ServerWorker serverWorker = new ServerWorker();
-			builder.add(serverWorker);
-			final Thread serverThread = new Thread(serverWorker, "Canvas Server Thread");
-			serverThread.setDaemon(true);
-			serverThread.start();
-
-			final int limit = poolSize - 2;
-
-			for (int i = 0; i < limit; i++) {
-				final RenderWorker w = ((i & 1) == 0) ? new RenderFirstWorker() : new ServerFirstWorker();
-				builder.add(w);
-
-				final Thread thread = new Thread(w, "Canvas Mixed Thread - " + i);
-				thread.setDaemon(true);
-				thread.start();
-			}
 		}
 
 		workers = builder.build();
 	}
 
+	/**
+	 * Always returns >= 4, because vanilla enqueue forkjoin managed blocks
+	 * which park the current thread when they run, waiting for other tasks to complete,
+	 * essentially capturing the pool thread as a control thread.
+	 *
+	 * <p>If there are no other threads to complete tasks the thread is never unparked
+	 * and the game freezes.  While most new systems have at least four cores/threads, a significant
+	 * base still has only two.
+	 */
 	private static int threadCount() {
-		final int threadCount = Runtime.getRuntime().availableProcessors() - 1;
-		return threadCount > 1 ? threadCount - 1 : 1;
+		return Math.max(4, Runtime.getRuntime().availableProcessors() - 1);
 	}
 
 	@Override

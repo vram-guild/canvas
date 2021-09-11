@@ -77,7 +77,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	public static void resourceReload() {
-		for (RenderMaterialImpl e:MAP.values()) {
+		for (final RenderMaterialImpl e:MAP.values()) {
 			e.dongle = null;
 		}
 	}
@@ -168,5 +168,26 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	@Override
 	public String vertexShader() {
 		return vertexShader;
+	}
+
+	public void trackPerFrameAnimation(int spriteId) {
+		if (!this.discardsTexture && texture.isAtlas()) {
+			texture.atlasInfo().trackPerFrameAnimation(spriteId);
+		}
+	}
+
+	public RenderMaterialImpl withOverlay(int u, int v) {
+		final boolean hurtOverlay = v == 3;
+		final boolean flashOverlay = (v == 10 && u > 7);
+
+		if (hurtOverlay || flashOverlay) {
+			final var materialFinder = MaterialFinderImpl.threadLocal();
+			materialFinder.copyFrom(this);
+			materialFinder.hurtOverlay(hurtOverlay);
+			materialFinder.flashOverlay(flashOverlay);
+			return materialFinder.find();
+		} else {
+			return this;
+		}
 	}
 }

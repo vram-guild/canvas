@@ -6,8 +6,7 @@
 
 uniform int frxu_cascade;
 
-void frx_writePipelineVertex(in frx_VertexData data) {
+void frx_pipelineVertex() {
 	// move to camera origin
-	vec4 pos = data.vertex + frx_modelToCamera();
-	gl_Position = frx_shadowViewProjectionMatrix(frxu_cascade) * pos;
+	gl_Position = frx_shadowViewProjectionMatrix(frxu_cascade) * (frx_vertex + frx_modelToCamera);
 }

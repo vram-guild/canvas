@@ -1,0 +1,39 @@
+{
+	nameKey: "pipeline.canvas_dev.name",
+	descriptionKey: "pipeline.canvas_dev.desc",
+	enablePBR: true,
+
+	materialProgram: {
+		vertexSource: "canvas:shaders/pipeline/dev.vert",
+		fragmentSource: "canvas:shaders/pipeline/dev.frag",
+		// glsl names for samplers additive to the FREX pre-defined samplers
+		samplers: ["cvu_glint"],
+		// image names for samplers additive to the FREX pre-defined samplers
+		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"]
+	},
+
+	sky: {
+		// Used when dimension/celestial object does not specify
+		defaultZenithAngle: 15
+	},
+
+	drawTargets: {
+		solidTerrain: "solid",
+		translucentTerrain: "translucent",
+		translucentEntity: "entity",
+		weather: "weather",
+		clouds: "clouds",
+		// TODO: segregate solid particles
+		translucentParticles: "particles"
+	},
+
+	include: [
+		"canvas:pipeline/base.json5",
+		"canvas:pipeline/basic_light_config.json5",
+		"canvas:pipeline/fog_config.json5",
+		"canvas:pipeline/handheld_light_config.json5",
+		"canvas:pipeline/skyshadow.json5",
+		"canvas:pipeline/bloom.json5",
+		"canvas:pipeline/fabulous.json5"
+	]
+}

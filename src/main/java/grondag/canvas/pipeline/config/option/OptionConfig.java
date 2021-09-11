@@ -45,7 +45,12 @@ public class OptionConfig extends AbstractConfig {
 		categoryKey = JanksonHelper.asString(config.get("categoryKey"));
 		isDuplicate = includeToken != null && !ctx.optionIds.add(includeToken);
 
-		final JsonObject opts = config.getObject("options");
+		JsonObject opts = config.getObject("elements");
+
+		// Compatibility with older keyword
+		if (opts == null || opts.isEmpty()) {
+			opts = config.getObject("options");
+		}
 
 		if (opts != null && !opts.isEmpty()) {
 			opts.forEach((key, element) -> {

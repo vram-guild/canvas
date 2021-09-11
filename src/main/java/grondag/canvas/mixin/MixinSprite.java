@@ -16,15 +16,29 @@
 
 package grondag.canvas.mixin;
 
-import org.spongepowered.asm.mixin.Mixin;
+import java.util.function.BooleanSupplier;
 
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+
+import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.Sprite;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.config.Configurator;
+import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(Sprite.class)
 public class MixinSprite implements SpriteExt {
+	@Shadow protected NativeImage[] images;
+	@Shadow void upload(int i, int j, NativeImage[] nativeImages) { }
+	@Shadow private Sprite.Animation animation;
+
 	private int canvasId;
+	private int animationIndex = -1;
+	private BooleanSupplier shouldAnimate = () -> true;
 
 	@Override
 	public int canvas_id() {
@@ -34,5 +48,51 @@ public class MixinSprite implements SpriteExt {
 	@Override
 	public void canvas_id(int id) {
 		canvasId = id;
+	}
+
+	@Override
+	public NativeImage[] canvas_images() {
+		return images;
+	}
+
+	@Override
+	public void canvas_upload(int i, int j, NativeImage[] images) {
+		upload(i, j, images);
+	}
+
+	@Override
+	public void canvas_initializeAnimation(BooleanSupplier getter, int animationIndex) {
+		this.shouldAnimate = getter;
+		this.animationIndex = animationIndex;
+	}
+
+	@Override
+	public boolean canvas_shouldAnimate() {
+		return !Configurator.disableUnseenSpriteAnimation || shouldAnimate.getAsBoolean();
+	}
+
+	@Override
+	public int canvas_animationIndex() {
+		return animationIndex;
+	}
+
+	@Override
+	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
+		@SuppressWarnings("resource")
+		final Sprite me = (Sprite) (Object) this;
+
+		if (animation != null || (me.getX() < combined.width && me.getY() < combined.height)) {
+			if (Configurator.traceTextureLoad) {
+				CanvasMod.LOG.info("Enabling combined animation upload for sprite " + ((Sprite) (Object) this).getId().toString());
+			}
+
+			for (final var img : images) {
+				((CombinedAnimationConsumer) (Object) img).canvas_setCombinedAnimation(combined);
+			}
+
+			if (animation != null) {
+				((CombinedAnimationConsumer) animation).canvas_setCombinedAnimation(combined);
+			}
+		}
 	}
 }

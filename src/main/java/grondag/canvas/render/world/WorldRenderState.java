@@ -16,23 +16,20 @@
 
 package grondag.canvas.render.world;
 
-import java.util.function.BiFunction;
+import java.util.BitSet;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.profiler.Profiler;
 
-import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
-import grondag.canvas.render.terrain.RegionRenderSectorMap;
-import grondag.canvas.render.terrain.base.DrawableRegion;
+import grondag.canvas.render.terrain.TerrainSectorMap;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
-import grondag.canvas.render.terrain.base.DrawableRegionListBuilder;
+import grondag.canvas.render.terrain.cluster.VertexClusterRealm;
+import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.SortableVisibleRegionList;
@@ -57,7 +54,7 @@ public class WorldRenderState {
 
 	public final TerrainIterator terrainIterator = new TerrainIterator(this);
 	public final RenderRegionStorage renderRegionStorage = new RenderRegionStorage(this);
-	public final RegionRenderSectorMap sectorManager = new RegionRenderSectorMap();
+	public final TerrainSectorMap sectorManager = new TerrainSectorMap();
 
 	/**
 	 * Updated every frame and used by external callers looking for the vanilla world renderer frustum.
@@ -83,6 +80,11 @@ public class WorldRenderState {
 	private int chunkRenderDistance;
 	private int squaredChunkRenderDistance;
 	private int squaredChunkRetentionDistance;
+
+	public final DrawListCullingHelper drawListCullingHlper = new DrawListCullingHelper(this);
+	public final VertexClusterRealm solidClusterRealm = new VertexClusterRealm(false);
+	public final VertexClusterRealm translucentClusterRealm = new VertexClusterRealm(true);
+	public final BitSet terrainAnimationBits = new BitSet();
 
 	public WorldRenderState(CanvasWorldRenderer cwr) {
 		this.cwr = cwr;
@@ -115,6 +117,8 @@ public class WorldRenderState {
 		terrainIterator.reset();
 		renderRegionStorage.clear();
 		hasSkylight = world != null && world.getDimension().hasSkyLight();
+		solidClusterRealm.clear();
+		translucentClusterRealm.clear();
 	}
 
 	public ClientWorld getWorld() {
@@ -169,23 +173,30 @@ public class WorldRenderState {
 
 		areDrawListsValid = true;
 
-		final BiFunction<ObjectArrayList<DrawableRegion>, RenderState, DrawableRegionList> drawListFunc = Configurator.terrainRenderConfig.drawListFunc;
-
-		Configurator.terrainRenderConfig.beforeDrawListBuild();
-
 		solidDrawList.close();
-		solidDrawList = DrawableRegionListBuilder.build(cameraVisibleRegions, drawListFunc, false);
+		solidDrawList = DrawableRegionList.build(cameraVisibleRegions, false, false);
 		translucentDrawList.close();
-		translucentDrawList = DrawableRegionListBuilder.build(cameraVisibleRegions, drawListFunc, true);
+		translucentDrawList = DrawableRegionList.build(cameraVisibleRegions, true, false);
+
+		terrainAnimationBits.clear();
+		final int cameraLimit = cameraVisibleRegions.size();
+
+		for (int i = 0; i < cameraLimit; ++i) {
+			terrainAnimationBits.or(cameraVisibleRegions.get(i).animationBits);
+		}
 
 		if (shadowsEnabled()) {
 			for (int i = 0; i < 4; ++i) {
+				final var shadowList = shadowVisibleRegions[i];
 				shadowDrawLists[i].close();
-				shadowDrawLists[i] = DrawableRegionListBuilder.build(shadowVisibleRegions[i], drawListFunc, false);
+				shadowDrawLists[i] = DrawableRegionList.build(shadowList, false, true);
+				final int shadowLimit = shadowList.size();
+
+				for (int j = 0; j < shadowLimit; ++j) {
+					terrainAnimationBits.or(shadowList.get(j).animationBits);
+				}
 			}
 		}
-
-		Configurator.terrainRenderConfig.afterDrawListBuild();
 	}
 
 	void clear() {
@@ -202,7 +213,8 @@ public class WorldRenderState {
 		terrainFrustum.reload();
 		clearDrawSpecs();
 		sectorManager.clear();
-		Configurator.terrainRenderConfig.reload(this);
+		solidClusterRealm.clear();
+		translucentClusterRealm.clear();
 	}
 
 	void clearDrawSpecs() {
@@ -222,7 +234,7 @@ public class WorldRenderState {
 		final Profiler prof = MinecraftClient.getInstance().getProfiler();
 		prof.push("render_solid");
 		MatrixState.set(MatrixState.REGION);
-		solidDrawList.draw();
+		solidDrawList.draw(this);
 		MatrixState.set(MatrixState.CAMERA);
 		prof.pop();
 	}
@@ -231,7 +243,7 @@ public class WorldRenderState {
 		final Profiler prof = MinecraftClient.getInstance().getProfiler();
 		prof.push("render_translucent");
 		MatrixState.set(MatrixState.REGION);
-		translucentDrawList.draw();
+		translucentDrawList.draw(this);
 		MatrixState.set(MatrixState.CAMERA);
 		prof.pop();
 	}
@@ -240,7 +252,7 @@ public class WorldRenderState {
 		final Profiler prof = MinecraftClient.getInstance().getProfiler();
 		prof.push("render_shadow");
 		MatrixState.set(MatrixState.REGION);
-		shadowDrawLists[cascadeIndex].draw();
+		shadowDrawLists[cascadeIndex].draw(this);
 		MatrixState.set(MatrixState.CAMERA);
 		prof.pop();
 	}

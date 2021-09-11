@@ -16,6 +16,7 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
+import java.util.BitSet;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -25,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Matrix4f;
 
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
@@ -39,20 +39,15 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.frex.api.material.MaterialFinder;
 import grondag.frex.api.material.MaterialMap;
 
 // UGLY: consolidate and simplify this class hierarchy
-public abstract class AbstractRenderContext implements RenderContext {
+public abstract class AbstractRenderContext extends AbstractEncodingContext implements RenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
-
-	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
-	public int sectorId;
-	public int sectorRelativeRegionOrigin;
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;
@@ -73,13 +68,13 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 		return true;
 	};
-	protected Matrix4f matrix;
-	protected Matrix3fExt normalMatrix;
-	protected int overlay;
+
 	protected MaterialMap materialMap = defaultMap;
 	protected BlendMode defaultBlendMode;
 	protected boolean isFluidModel = false;
 	private QuadTransform activeTransform = NO_TRANSFORM;
+
+	public final BitSet animationBits = new BitSet();
 
 	protected AbstractRenderContext(String name) {
 		this.name = name;
@@ -193,18 +188,6 @@ public abstract class AbstractRenderContext implements RenderContext {
 
 	public abstract int flatBrightness(MutableQuadViewImpl quad);
 
-	public final int overlay() {
-		return overlay;
-	}
-
-	public final Matrix4f matrix() {
-		return matrix;
-	}
-
-	public final Matrix3fExt normalMatrix() {
-		return normalMatrix;
-	}
-
 	public final void renderQuad() {
 		final MutableQuadViewImpl quad = makerQuad;
 
@@ -222,7 +205,17 @@ public abstract class AbstractRenderContext implements RenderContext {
 		if (cullTest(quad)) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
-			quad.material(finder.find());
+			final var mat = finder.find();
+			quad.material(mat);
+
+			if (!mat.discardsTexture && mat.texture.isAtlas()) {
+				final int animationIndex = mat.texture.atlasInfo().animationIndexFromSpriteId(makerQuad.spriteId());
+
+				if (animationIndex >= 0) {
+					animationBits.set(animationIndex);
+				}
+			}
+
 			encodeQuad(quad);
 		}
 	}
@@ -276,10 +269,5 @@ public abstract class AbstractRenderContext implements RenderContext {
 			default:
 				assert false : "Unhandled blend mode";
 		}
-	}
-
-	public int packedRelativeBlockPos() {
-		assert false : "packedRelativeBlockPos unsupported outside of terrain rendering";
-		return 0;
 	}
 }

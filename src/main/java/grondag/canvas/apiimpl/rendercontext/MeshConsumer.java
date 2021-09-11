@@ -65,7 +65,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 	 */
 	private class Maker extends MutableQuadViewImpl implements QuadEmitter {
 		{
-			data = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
+			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 			material(Canvas.MATERIAL_STANDARD);
 		}
 

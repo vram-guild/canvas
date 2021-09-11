@@ -21,5 +21,5 @@ import grondag.canvas.buffer.input.VertexCollector;
 
 @FunctionalInterface
 public interface QuadEncoder {
-	void encode(MutableQuadViewImpl quad, VertexCollector collector);
+	void encode(MutableQuadViewImpl quad, EncodingContext context, VertexCollector collector);
 }

@@ -25,7 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
-import grondag.canvas.render.terrain.cluster.drawlist.ClusterDrawList;
+import grondag.canvas.render.terrain.drawlist.ClusterDrawList;
+import grondag.canvas.render.terrain.drawlist.SlabIndex;
+import grondag.canvas.render.terrain.drawlist.TerrainVAO;
 
 public class VertexCluster implements ClusterTask {
 	private final ReferenceOpenHashSet<ClusterDrawList> holdingLists = new ReferenceOpenHashSet<>();
@@ -39,58 +41,21 @@ public class VertexCluster implements ClusterTask {
 	private ObjectArrayList<Slab> slabs = new ObjectArrayList<>();
 	private @Nullable Slab hungrySlab = null;
 	private boolean isScheduled = false;
+	private boolean itMe = false;
 
-	public VertexCluster(VertexClusterRealm owner, long clumpPos) {
+	public VertexCluster(VertexClusterRealm owner, long clusterPos) {
 		realm = owner;
-		clusterPos = clumpPos;
+		this.clusterPos = clusterPos;
 	}
 
 	int activeBytes() {
 		return activeBytes;
 	}
 
-	// Kept for testing, expensive even for dev...
-	//private boolean validateAllocation() {
-	//	final var slabMap = new Object2IntOpenHashMap<Slab>();
-	//	int regionTotalBytes = 0, slabAllocationBytes = 0;
-	//
-	//	for (var allocRegion : allocatedRegions.values()) {
-	//		int regionBytes = 0;
-	//		regionTotalBytes += allocRegion.region.byteCount;
-	//		assert !allocRegion.region.isClosed();
-	//
-	//		for (var slabAllocation : allocRegion.allocations()) {
-	//			final int bytes = slabAllocation.quadVertexCount * SlabAllocator.BYTES_PER_SLAB_VERTEX;
-	//			regionBytes += bytes;
-	//			slabAllocationBytes += bytes;
-	//
-	//			if (!slabMap.containsKey(slabAllocation.slab)) {
-	//				slabMap.put(slabAllocation.slab, 0);
-	//			}
-	//
-	//			slabMap.addTo(slabAllocation.slab, bytes);
-	//		}
-	//
-	//		assert regionBytes == allocRegion.region.byteCount;
-	//	}
-	//
-	//	assert regionTotalBytes == activeBytes;
-	//	assert slabAllocationBytes == activeBytes;
-	//	assert slabMap.size() == slabs.size();
-	//	int slabActiveBytes = 0;
-	//
-	//	for (var slab : slabs) {
-	//		slabActiveBytes += slab.usedBytes();
-	//		assert slab.usedBytes() == slabMap.getInt(slab);
-	//	}
-	//
-	//	assert slabActiveBytes == activeBytes;
-	//	return true;
-	//}
-
-	private Slab getHungrySlab(int vertexCount) {
-		if (hungrySlab == null || hungrySlab.isFull()) {
-			hungrySlab = SlabAllocator.claim(vertexCount * SlabAllocator.BYTES_PER_SLAB_VERTEX);
+	private Slab getHungrySlab(int slabBytes) {
+		if (hungrySlab == null || hungrySlab.availableBytes() < slabBytes) {
+			// We want to use the new slab for compaction so request one big enough to hold everything we have
+			hungrySlab = SlabAllocator.claim(activeBytes + slabBytes);
 			slabs.add(hungrySlab);
 		}
 
@@ -106,11 +71,14 @@ public class VertexCluster implements ClusterTask {
 			activeBytes = 0;
 
 			if (!allocatedRegions.isEmpty()) {
+				itMe = true;
+
 				for (RegionAllocation alloc : allocatedRegions.values()) {
 					alloc.closeRegion();
 				}
 
 				allocatedRegions.clear();
+				itMe = false;
 			}
 
 			for (var slab : slabs) {
@@ -134,7 +102,9 @@ public class VertexCluster implements ClusterTask {
 			return null;
 		}
 
-		return new RegionAllocation(region);
+		final var result = new RegionAllocation(region);
+		scheduleIfNeeded();
+		return result;
 	}
 
 	/** For assertion checks only. */
@@ -143,23 +113,15 @@ public class VertexCluster implements ClusterTask {
 		return allocatedRegions.containsKey(storage);
 	}
 
-	public void update() {
-		//assert validateAllocation();
-
-		if (canCompact()) {
-			scheduleUpdate();
+	private void scheduleIfNeeded() {
+		if (!isClosed && slabs.size() > 1 && !isScheduled) {
+			isScheduled = true;
+			ClusterTaskManager.schedule(this);
 		}
 	}
 
 	public int slabCount() {
 		return slabs.size();
-	}
-
-	private void scheduleUpdate() {
-		if (!isScheduled) {
-			isScheduled = true;
-			ClusterTaskManager.schedule(this);
-		}
 	}
 
 	@Override
@@ -172,77 +134,42 @@ public class VertexCluster implements ClusterTask {
 		return true;
 	}
 
-	/**
-	 * True if we can reduce the number of small slabs
-	 * or remove at least one small slab of vacated capacity.
-	 */
-	private boolean canCompact() {
-		if (isClosed || slabs.size() < 2) {
-			return false;
-		}
-
-		int slabCapacity = 0, slabActiveBytes = 0, smallCount = 0;
-
-		for (var slab : slabs) {
-			slabCapacity += slab.capacityBytes();
-			slabActiveBytes += slab.usedBytes();
-
-			if (slab.allocator.isSmall) {
-				++smallCount;
-			}
-		}
-
-		assert activeBytes == slabActiveBytes : "Cluster and slabs do not agree on allocated capacity";
-
-		return (slabCapacity - activeBytes) >= SlabAllocator.SMALL_SLAB_BYTES
-				|| smallCount >= 3 && activeBytes >= SlabAllocator.LARGE_SLAB_BYTE_THRESHOLD;
-	}
-
 	private void compact() {
-		if (canCompact()) {
-			tryCompact();
+		if (slabs.size() < 2) {
+			// nothing to do
+			return;
 		}
-	}
 
-	private void tryCompact() {
-		final ObjectArrayList<Slab> newSlabs = new ObjectArrayList<>();
-		int remainingBytes = activeBytes;
-		Slab targetSlab = SlabAllocator.claim(remainingBytes);
-		newSlabs.add(targetSlab);
+		// NB: hungry slab can't be null here because we have at least two slabs. But
+		// it may not be big enough. Ensure hungry slab can hold everything, including own contents
+		assert hungrySlab.usedBytes() >= 0;
+		assert hungrySlab.usedBytes() <= hungrySlab.capacityBytes();
 
-		for (var region : allocatedRegions.values()) {
-			for (var allocation : region.prepareForReallocation()) {
-				int transferStart = 0;
+		if (hungrySlab.availableBytes() < activeBytes - hungrySlab.usedBytes()) {
+			hungrySlab = SlabAllocator.claim(activeBytes);
+			slabs.add(hungrySlab);
+		}
 
-				while (transferStart < allocation.quadVertexCount) {
-					if (targetSlab.isFull()) {
-						targetSlab = SlabAllocator.claim(remainingBytes);
-						newSlabs.add(targetSlab);
-					}
+		final Slab hungrySlab = this.hungrySlab;
 
-					final var alloc = targetSlab.transferFromSlabAllocation(region.factory, allocation, transferStart);
-					final int transferredVertexCount = alloc.quadVertexCount;
-					transferStart += transferredVertexCount;
-					remainingBytes -= transferredVertexCount * SlabAllocator.BYTES_PER_SLAB_VERTEX;
-				}
+		for (final var region : allocatedRegions.values()) {
+			final var oldAllocation = region.getAllocation();
+
+			if (oldAllocation.slab != hungrySlab) {
+				var newAllocation = hungrySlab.transferFromSlabAllocation(region.factory, oldAllocation);
+				region.setAllocation(newAllocation);
+				oldAllocation.release();
 			}
 		}
 
-		assert remainingBytes == 0;
-
-		for (var oldSlab : slabs) {
-			oldSlab.releaseTransferred();
-		}
+		assert slabs.size() == 1;
+		assert slabs.get(0) == hungrySlab;
 
 		if (!holdingLists.isEmpty()) {
 			for (var list : holdingLists) {
 				list.invalidate();
 			}
 		}
-
-		hungrySlab = targetSlab;
-		slabs.clear();
-		slabs = newSlabs;
 	}
 
 	void addListListener(ClusterDrawList listener) {
@@ -259,26 +186,17 @@ public class VertexCluster implements ClusterTask {
 
 	public class RegionAllocation {
 		public final ClusteredDrawableStorage region;
-		private ObjectArrayList<SlabAllocation> slabAllocations = new ObjectArrayList<>();
+		private SlabAllocation slabAllocation;
 
 		private final SlabAllocationFactory factory = (s, b, q) -> {
-			final var result = new SlabAllocation(s, b, q);
-			slabAllocations.add(result);
-			return result;
+			return new SlabAllocation(s, b, q);
 		};
 
 		private RegionAllocation(ClusteredDrawableStorage region) {
 			this.region = region;
-
-			int remainingVertexCount = region.quadVertexCount;
 			final var transferBuffer = region.getAndClearTransferBuffer();
-
-			while (remainingVertexCount > 0) {
-				SlabAllocation alloc = getHungrySlab(remainingVertexCount).allocateAndLoad(factory, transferBuffer, region.quadVertexCount - remainingVertexCount);
-				remainingVertexCount -= alloc.quadVertexCount;
-			}
-
-			assert remainingVertexCount == 0;
+			slabAllocation = getHungrySlab(region.byteCount).allocateAndLoad(factory, transferBuffer);
+			assert slabAllocation.quadVertexCount == region.quadVertexCount;
 			transferBuffer.release();
 			allocatedRegions.put(region, this);
 			activeBytes += region.byteCount;
@@ -286,17 +204,17 @@ public class VertexCluster implements ClusterTask {
 
 		private void closeRegion() {
 			region.close();
-			assert slabAllocations.isEmpty() : "Region close did not release slab allocations";
+			assert slabAllocation == null : "Region close did not release slab allocations";
 		}
 
 		public void onRegionClosed() {
-			for (var alloc : slabAllocations) {
-				alloc.close();
+			if (slabAllocation != null) {
+				slabAllocation.release();
+				slabAllocation = null;
 			}
 
-			slabAllocations.clear();
-
-			if (allocatedRegions.remove(region) == null) {
+			// Don't remove from map when closing - avoids CME
+			if (!itMe && allocatedRegions.remove(region) == null) {
 				assert false : "Closure notification from region not in cluster.";
 			} else {
 				activeBytes -= region.byteCount;
@@ -309,18 +227,12 @@ public class VertexCluster implements ClusterTask {
 			}
 		}
 
-		/**
-		 * Returns prior allocations and clears current.
-		 */
-		private ObjectArrayList<SlabAllocation> prepareForReallocation() {
-			assert !slabAllocations.isEmpty();
-			final var result = slabAllocations;
-			slabAllocations = new ObjectArrayList<>();
-			return result;
+		public SlabAllocation getAllocation() {
+			return slabAllocation;
 		}
 
-		public ObjectArrayList<SlabAllocation> allocations() {
-			return slabAllocations;
+		public void setAllocation(SlabAllocation allocation) {
+			slabAllocation = allocation;
 		}
 
 		public VertexCluster cluster() {
@@ -331,31 +243,42 @@ public class VertexCluster implements ClusterTask {
 			public final Slab slab;
 			public final int baseQuadVertexIndex;
 			public final int quadVertexCount;
+			public final int triVertexCount;
+			private final TerrainVAO vao;
+			private boolean isSlabAllocationClosed = false;
 
 			private SlabAllocation(Slab slab, int baseQuadVertexIndex, int quadVertexCount) {
+				triVertexCount = quadVertexCount * 6 / 4;
 				this.slab = slab;
 				this.baseQuadVertexIndex = baseQuadVertexIndex;
 				this.quadVertexCount = quadVertexCount;
+
+				vao = new TerrainVAO(() -> slab.glBufferId(), () -> SlabIndex.get().glBufferId(), baseQuadVertexIndex);
 			}
 
-			public int triVertexCount() {
-				return quadVertexCount / 4 * 6;
+			public ClusteredDrawableStorage region() {
+				return region;
 			}
 
-			private void close() {
-				slab.removeAllocation(this);
+			public void bind() {
+				vao.bind();
+			}
 
-				if (slab.isEmpty()) {
-					if (slabs.remove(slab)) {
-						// If the slab is the hungry slab we need to clear it
-						// so that we don't try to add to after release.
-						if (slab == hungrySlab) {
-							hungrySlab = null;
+			public void release() {
+				assert !isSlabAllocationClosed;
+
+				if (!isSlabAllocationClosed) {
+					isSlabAllocationClosed = true;
+					vao.shutdown();
+					slab.removeAllocation(this);
+					scheduleIfNeeded();
+
+					if (slab.isEmpty() && slab != hungrySlab) {
+						if (slabs.remove(slab)) {
+							slab.release();
+						} else {
+							assert false : "Slab not found on empty";
 						}
-
-						slab.release();
-					} else {
-						assert false : "Slab not found on empty";
 					}
 				}
 			}

@@ -4,6 +4,6 @@
   canvas:shaders/material/default.vert
 ******************************************************/
 
-void frx_startVertex(inout frx_VertexData data) {
+void frx_materialVertex() {
 	// NOOP
 }

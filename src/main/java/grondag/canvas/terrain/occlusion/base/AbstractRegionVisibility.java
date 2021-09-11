@@ -16,54 +16,52 @@
 
 package grondag.canvas.terrain.occlusion.base;
 
-import grondag.canvas.terrain.occlusion.OcclusionResult;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.terrain.occlusion.OcclusionStatus;
 import grondag.canvas.terrain.region.RenderRegion;
 
 public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U, ?, ?>, U extends AbstractRegionVisibility<T, U>> {
 	public final RenderRegion region;
-	private final T visibility;
-	private int visibilityVersion;
-	private OcclusionResult result = OcclusionResult.UNDETERMINED;
+	protected final T visibility;
+	protected int visibilityVersion;
+	protected OcclusionStatus occlusionStatus = OcclusionStatus.UNDETERMINED;
 
 	public AbstractRegionVisibility(T visbility, RenderRegion region) {
 		this.visibility = visbility;
 		this.region = region;
 	}
 
-	public OcclusionResult getResult() {
-		return visibilityVersion == visibility.version() ? result : OcclusionResult.UNDETERMINED;
+	public OcclusionStatus getOcclusionStatus() {
+		return visibilityVersion == visibility.version() ? occlusionStatus : OcclusionStatus.UNDETERMINED;
 	}
 
 	/**
 	 * Should not be used to mark visited or undetermined.
 	 */
-	public void setResult(OcclusionResult result) {
-		assert result != OcclusionResult.VISITED;
-		assert result != OcclusionResult.UNDETERMINED;
+	public void setOcclusionStatus(OcclusionStatus occlusionStatus) {
+		assert occlusionStatus != OcclusionStatus.VISITED;
+		assert occlusionStatus != OcclusionStatus.UNDETERMINED;
 
-		this.result = result;
+		this.occlusionStatus = occlusionStatus;
 		visibilityVersion = visibility.version();
 	}
 
-	/**
-	 * Adds region to set in sorted position according to implementation.
-	 * Requires but does NOT check that region is not already in the set.
-	 * Will mark region with result {@link OcclusionResult#VISITED}.
-	 */
 	@SuppressWarnings("unchecked")
 	public void addVisitedIfNotPresent() {
+		assert Pipeline.advancedTerrainCulling();
+
 		final int v = visibility.version();
 
 		if (visibilityVersion != v) {
 			visibilityVersion = v;
-			result = OcclusionResult.VISITED;
+			occlusionStatus = OcclusionStatus.VISITED;
 			visibility.add((U) this);
 		}
 	}
 
 	/** Used for entity culling so needs to error on the side of caution. */
 	public boolean isPotentiallyVisible() {
-		return visibility.version() != visibilityVersion || result != OcclusionResult.REGION_NOT_VISIBLE;
+		return visibility.version() != visibilityVersion || occlusionStatus != OcclusionStatus.REGION_NOT_VISIBLE;
 	}
 
 	/**
@@ -79,7 +77,7 @@ public abstract class AbstractRegionVisibility<T extends AbstractVisbility<T, U,
 	 * them try to call for the same region.
 	 */
 	public void notifyOfOcclusionChange() {
-		if (getResult() != OcclusionResult.UNDETERMINED) {
+		if (getOcclusionStatus() != OcclusionStatus.UNDETERMINED) {
 			visibility.invalidate();
 		}
 	}

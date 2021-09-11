@@ -25,21 +25,23 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.pipeline.config.PipelineConfig;
-import grondag.canvas.render.terrain.TerrainRenderConfig;
 
 @Environment(EnvType.CLIENT)
 public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;
 	public static boolean wavyGrass = DEFAULTS.wavyGrass;
+	public static boolean disableVignette = DEFAULTS.disableVignette;
 	// public static boolean lightmapNoise = DEFAULTS.lightmapNoise;
 	public static boolean lightSmoothing = DEFAULTS.lightSmoothing;
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
+
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
 	public static boolean fixLuminousBlockShading = DEFAULTS.fixLuminousBlockShading;
+	public static boolean advancedTerrainCulling = DEFAULTS.advancedTerrainCulling;
 	public static boolean terrainSetupOffThread = DEFAULTS.terrainSetupOffThread;
 	public static boolean cullEntityRender = DEFAULTS.cullEntityRender;
 	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
@@ -50,6 +52,7 @@ public class Configurator {
 	public static boolean cullParticles = DEFAULTS.cullParticles;
 	public static boolean useCombinedThreadPool = DEFAULTS.useCombinedThreadPool;
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
+	public static boolean preprocessShaderSource = DEFAULTS.preprocessShaderSource;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
@@ -72,16 +75,20 @@ public class Configurator {
 	public static int profilerDetailLevel = DEFAULTS.profilerDetailLevel;
 	public static float profilerOverlayScale = DEFAULTS.profilerOverlayScale;
 	public static boolean enableNearOccluders = DEFAULTS.enableNearOccluders;
-	public static TerrainRenderConfigOption terrainRenderConfigOption = DEFAULTS.terrainRenderConfig;
-	public static TerrainRenderConfig terrainRenderConfig = terrainRenderConfigOption.config;
 	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
 	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
+	public static boolean disableUnseenSpriteAnimation = DEFAULTS.disableUnseenSpriteAnimation;
+	public static boolean groupAnimatedSprites = DEFAULTS.groupAnimatedSprites;
+	public static boolean cullBackfacingTerrain = DEFAULTS.cullBackfacingTerrain;
+	public static boolean debugSpriteAtlas = DEFAULTS.debugSpriteAtlas;
+	public static boolean traceTextureLoad = DEFAULTS.traceTextureLoad;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
 	static boolean reload = false;
+
 	// static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean hdLightmaps() {
 		return false;
@@ -100,8 +107,10 @@ public class Configurator {
 
 		blendFluidColors = config.blendFluidColors;
 		wavyGrass = config.wavyGrass;
+		disableVignette = config.disableVignette;
 
 		shaderDebug = config.shaderDebug;
+		preprocessShaderSource = config.preprocessShaderSource;
 		//maxLightmapDelayFrames = config.maxLightmapDelayFrames;
 		//moreLightmap = config.moreLightmap;
 
@@ -114,6 +123,7 @@ public class Configurator {
 		preventDepthFighting = config.preventDepthFighting;
 		clampExteriorVertices = config.clampExteriorVertices;
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
+		advancedTerrainCulling = config.advancedTerrainCulling;
 		terrainSetupOffThread = config.terrainSetupOffThread;
 		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
 		cullEntityRender = config.cullEntityRender;
@@ -148,16 +158,21 @@ public class Configurator {
 		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
 		enableNearOccluders = config.enableNearOccluders;
-		terrainRenderConfigOption = config.terrainRenderConfig;
-		terrainRenderConfig = terrainRenderConfigOption.config;
+		disableUnseenSpriteAnimation = config.disableUnseenSpriteAnimation;
+		groupAnimatedSprites = config.groupAnimatedSprites;
+		cullBackfacingTerrain = config.cullBackfacingTerrain;
+		debugSpriteAtlas = config.debugSpriteAtlas;
+		traceTextureLoad = config.traceTextureLoad;
 	}
 
 	static void writeToConfig(ConfigData config) {
 		config.pipelineId = pipelineId;
 		config.blendFluidColors = blendFluidColors;
 		config.wavyGrass = wavyGrass;
+		config.disableVignette = disableVignette;
 
 		config.shaderDebug = shaderDebug;
+		config.preprocessShaderSource = preprocessShaderSource;
 		//config.maxLightmapDelayFrames = maxLightmapDelayFrames;
 
 		// config.hdLightmaps = hdLightmaps;
@@ -168,6 +183,7 @@ public class Configurator {
 
 		config.preventDepthFighting = preventDepthFighting;
 		config.clampExteriorVertices = clampExteriorVertices;
+		config.advancedTerrainCulling = advancedTerrainCulling;
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
 		config.terrainSetupOffThread = terrainSetupOffThread;
 		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
@@ -203,6 +219,10 @@ public class Configurator {
 		config.profilerDetailLevel = profilerDetailLevel;
 		config.profilerOverlayScale = profilerOverlayScale;
 		config.enableNearOccluders = enableNearOccluders;
-		config.terrainRenderConfig = terrainRenderConfigOption;
+		config.disableUnseenSpriteAnimation = disableUnseenSpriteAnimation;
+		config.groupAnimatedSprites = groupAnimatedSprites;
+		config.cullBackfacingTerrain = cullBackfacingTerrain;
+		config.debugSpriteAtlas = debugSpriteAtlas;
+		config.traceTextureLoad = traceTextureLoad;
 	}
 }

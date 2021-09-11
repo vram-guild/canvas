@@ -25,6 +25,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.util.Util;
 
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import grondag.frex.api.config.FlawlessFrames;
 
 /**
  * Tracks what regions require rebuilding and rebuilds them on demand.
@@ -53,8 +54,10 @@ public class RegionRebuildManager {
 			return;
 		}
 
-		for (RenderRegion region : externalBuildRequests) {
-			if (region.needsRebuild() && !region.isClosed()) {
+		final boolean flawless = FlawlessFrames.isActive();
+
+		for (final RenderRegion region : externalBuildRequests) {
+			if (flawless || region.needsRebuild() && !region.isClosed()) {
 				if (region.needsImportantRebuild() || region.origin.isNear()) {
 					regionsToRebuild.remove(region);
 					region.rebuildOnMainThread();
@@ -141,13 +144,14 @@ public class RegionRebuildManager {
 
 		if (!regionsToRebuild.isEmpty()) {
 			final Iterator<RenderRegion> iterator = regionsToRebuild.iterator();
+			final boolean flawless = FlawlessFrames.isActive();
 
 			while (iterator.hasNext()) {
 				final RenderRegion region = iterator.next();
 
 				if (region.isClosed()) {
 					iterator.remove();
-				} else if (region.needsImportantRebuild()) {
+				} else if (flawless || region.needsImportantRebuild()) {
 					region.rebuildOnMainThread();
 					iterator.remove();
 				} else if (region.renderChunk.areCornersLoaded()) {
@@ -167,7 +171,7 @@ public class RegionRebuildManager {
 				//					break;
 				//				}
 
-				if (Util.getMeasuringTimeNano() >= endNanos) {
+				if (!flawless && Util.getMeasuringTimeNano() >= endNanos) {
 					break;
 				}
 			}

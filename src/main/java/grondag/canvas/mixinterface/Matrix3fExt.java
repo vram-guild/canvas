@@ -92,4 +92,6 @@ public interface Matrix3fExt {
 		floatBuffer.put(1 * 3 + 2, a21());
 		floatBuffer.put(2 * 3 + 2, a22());
 	}
+
+	boolean canvas_isIdentity();
 }

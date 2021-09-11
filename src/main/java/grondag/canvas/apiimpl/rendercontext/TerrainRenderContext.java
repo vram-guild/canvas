@@ -41,6 +41,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.mixinterface.Matrix3fExt;
+import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
@@ -76,13 +77,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	private int cullCompletionFlags;
 	private int cullResultFlags;
 
-	private int packedRelativeBlockPos;
-
-	@Override
-	public int packedRelativeBlockPos() {
-		return packedRelativeBlockPos;
-	}
-
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new InputRegion(this);
@@ -94,6 +88,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		addedBlockEntities.clear();
 		removedBlockEntities.clear();
 		region.prepare(protoRegion);
+		animationBits.clear();
 
 		if (Configurator.lightSmoothing) {
 			//            final long start = counter.startRun();
@@ -123,11 +118,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		try {
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
-
-			if (!Configurator.terrainRenderConfig.shouldApplyBlockPosTranslation) {
-				packedRelativeBlockPos = (blockPos.getX() & 0xF) | ((blockPos.getY() & 0xF) << 4) | ((blockPos.getZ() & 0xF) << 8);
-			}
-
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;
 			model.emitBlockQuads(region, blockState, blockPos, randomSupplier, this);
@@ -195,6 +185,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		Configurator.terrainRenderConfig.transcoder.encode(quad, this, collectors.get(quad.material()));
+		TerrainFormat.TERRAIN_ENCODER.encode(quad, this, collectors.get(quad.material()));
 	}
 }

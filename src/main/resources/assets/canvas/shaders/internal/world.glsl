@@ -121,6 +121,6 @@ uniform mat4[25] _cvu_matrix;
 
 uniform mat4 _cvu_guiViewProjMatrix;
 
-bool _cv_testCondition(int conditionIndex) {
-	return frx_bitValue(_cvu_flags[_CV_CONDITION_FLAGS_START + (conditionIndex >> 5)], conditionIndex & 31) == 1.0;
-}
+#define _cv_bitValue(bits, bitIndex) int((bits >> bitIndex) & 1u)
+#define _cv_testConditioni(conditionIndex) _cv_bitValue(_cvu_flags[_CV_CONDITION_FLAGS_START + (conditionIndex >> 5)], (conditionIndex & 31))
+#define _cv_testCondition(conditionIndex) (_cv_testConditioni(conditionIndex) == 1)

@@ -31,6 +31,8 @@ public class PipelineConfig {
 	public final int brightnessSmoothingFrames;
 	public final int rainSmoothingFrames;
 	public final boolean runVanillaClear;
+	public final int glslVersion;
+	public final boolean enablePBR;
 
 	public final ConfigContext context;
 	public final ImageConfig[] images;
@@ -58,6 +60,8 @@ public class PipelineConfig {
 		brightnessSmoothingFrames = 20;
 		rainSmoothingFrames = 500;
 		runVanillaClear = true;
+		glslVersion = 330;
+		enablePBR = false;
 
 		context = new ConfigContext();
 		programs = new ProgramConfig[0];
@@ -82,6 +86,8 @@ public class PipelineConfig {
 		brightnessSmoothingFrames = builder.brightnessSmoothingFrames;
 		rainSmoothingFrames = builder.rainSmoothingFrames;
 		runVanillaClear = builder.runVanillaClear;
+		glslVersion = builder.glslVersion;
+		enablePBR = builder.enablePBR;
 
 		materialProgram = builder.materialProgram;
 		defaultFramebuffer = builder.defaultFramebuffer;
@@ -115,5 +121,5 @@ public class PipelineConfig {
 		return new PipelineConfig();
 	}
 
-	public static final Identifier DEFAULT_ID = new Identifier("canvas:pipelines/canvas_standard.json");
+	public static final Identifier DEFAULT_ID = new Identifier("canvas:pipelines/canvas_standard.json5");
 }

@@ -172,8 +172,12 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		matrices.push();
 		final boolean detachedPerspective = renderMode == ModelTransformation.Mode.GUI || renderMode == ModelTransformation.Mode.GROUND || renderMode == ModelTransformation.Mode.FIXED;
 
-		if (stack.getItem() == Items.TRIDENT && detachedPerspective) {
-			model = models.getModelManager().getModel(new ModelIdentifier("minecraft:trident#inventory"));
+		if (detachedPerspective) {
+			if (stack.isOf(Items.TRIDENT)) {
+				model = models.getModelManager().getModel(new ModelIdentifier("minecraft:trident#inventory"));
+			} else if (stack.isOf(Items.SPYGLASS)) {
+				model = models.getModelManager().getModel(new ModelIdentifier("minecraft:spyglass#inventory"));
+			}
 		}
 
 		// PERF: optimize matrix stack operations
@@ -257,7 +261,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 					.cutout(isBlockItem ? MaterialFinder.CUTOUT_NONE : MaterialFinder.CUTOUT_TENTH)
 					.unmipped(false)
 					.target(drawTranslucencyDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
-					.sorted(true);
+					.sorted(!drawTranslucencyDirectToMainTarget);
 				break;
 			case SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
@@ -299,7 +303,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_TRANSCODER.encode(quad, this, collectors.get(quad.material()));
+			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get(quad.material()));
 		}
 	}
 

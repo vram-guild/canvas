@@ -30,12 +30,15 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 
 import grondag.bitraster.PackedBox;
+import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.pipeline.Pipeline;
 
 public abstract class RegionOcclusionCalculator {
 	public static final int OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX = 0;
 	public static final int OCCLUSION_RESULT_FIRST_BOX_INDEX = 1;
-	public static final int[] EMPTY_OCCLUSION_RESULT = {PackedBox.EMPTY_BOX};
+	public static final int[] EMPTY_OCCLUSION_DATA = {PackedBox.EMPTY_BOX};
+	public static final OcclusionResult EMPTY_OCCLUSION_RESULT = new OcclusionResult(EMPTY_OCCLUSION_DATA, -1L);
 
 	private static final int RENDERABLE_OFFSET = TOTAL_CACHE_WORDS;
 	private static final int EXTERIOR_VISIBLE_OFFSET = RENDERABLE_OFFSET + TOTAL_CACHE_WORDS;
@@ -65,6 +68,12 @@ public abstract class RegionOcclusionCalculator {
 	private int maxRenderableX;
 	private int maxRenderableY;
 	private int maxRenderableZ;
+
+	/**
+	 * Accumulates exterior faces visited during fill to track which exterior
+	 * faces are connected. Used for occlusion.
+	 */
+	private int visitedFacesMask;
 
 	public void prepare() {
 		System.arraycopy(EMPTY_BITS, 0, bits, 0, WORD_COUNT);
@@ -262,7 +271,15 @@ public abstract class RegionOcclusionCalculator {
 			bits[wordIndex + EXTERIOR_VISIBLE_OFFSET] |= mask;
 
 			// return opacity result
-			return (bits[wordIndex] & mask) == 0;
+			if ((bits[wordIndex] & mask) == 0) {
+				if (!Pipeline.advancedTerrainCulling()) {
+					trackVistedFaces(index);
+				}
+
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			// already visited
 			return false;
@@ -537,83 +554,83 @@ public abstract class RegionOcclusionCalculator {
 		}
 	}
 
-	private int[] computeOcclusion(boolean isNear) {
+	private OcclusionResult computeOcclusion(boolean isNear) {
 		// Determine which blocks are visible by visiting exterior blocks
 		// that aren't occluded by neighboring regions and doing a fill from there.
+		long mutualFaceMask = 0;
 
-		for (int i = 0; i < COVERING_INDEX_COUNT; ++i) {
-			if (!isClosed(COVERING_INDEXES[i])) {
-				visitSurfaceIfPossible(COVERED_INDEXES[i]);
+		if (Pipeline.advancedTerrainCulling()) {
+			for (int i = 0; i < COVERING_INDEX_COUNT; ++i) {
+				if (!isClosed(COVERING_INDEXES[i])) {
+					visitSurfaceIfPossible(COVERED_INDEXES[i]);
+				}
 			}
-		}
-
-		//		for (int i = 0; i < 16; i++) {
-		//			for (int j = 0; j < 16; j++) {
-		//				if (!isClosed(regionIndex(-1, i, j))) {
-		//					visitSurfaceIfPossible(0, i, j);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(16, i, j))) {
-		//					visitSurfaceIfPossible(15, i, j);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(i, j, -1))) {
-		//					visitSurfaceIfPossible(i, j, 0);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(i, j, 16))) {
-		//					visitSurfaceIfPossible(i, j, 15);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(i, -1, j))) {
-		//					visitSurfaceIfPossible(i, 0, j);
-		//				}
-		//
-		//				if (!isClosed(regionIndex(i, 16, j))) {
-		//					visitSurfaceIfPossible(i, 15, j);
-		//				}
-		//			}
-		//		}
-
-		// don't hide inside position if we may be inside the chunk!
-		if (!isNear) {
-			hideInteriorClosedPositions();
-		}
-
-		computeRenderableBounds();
-
-		final BoxFinder boxFinder = this.boxFinder;
-		final IntArrayList boxes = boxFinder.boxes;
-
-		boxFinder.findBoxes(bits, 0);
-
-		final int boxCount = boxes.size();
-
-		final int[] result = new int[boxCount + 1];
-
-		int n = RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX;
-
-		if (boxCount > 0) {
-			for (int i = 0; i < boxCount; i++) {
-				result[n++] = boxes.getInt(i);
-			}
-		}
-
-		if (minRenderableX == Integer.MAX_VALUE) {
-			result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.EMPTY_BOX;
 		} else {
-			if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
-				result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.FULL_BOX;
-			} else {
-				result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
-						maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_EXTREME);
+			for (int i = 0; i < COVERING_INDEX_COUNT; ++i) {
+				// face indices are six groups of 256, one for each face.
+				// We want to reset visibility search on each new face and
+				// exploit this fact to know when we progress to the next face
+				if ((i & 0xFF) == 0) {
+					if (visitedFacesMask != 0) {
+						mutualFaceMask |= OcclusionResult.buildMutualFaceMask(visitedFacesMask);
+						visitedFacesMask = 0;
+					}
+				}
+
+				if (!isClosed(COVERING_INDEXES[i])) {
+					visitSurfaceIfPossible(COVERED_INDEXES[i]);
+				}
+			}
+
+			if (visitedFacesMask != 0) {
+				mutualFaceMask |= OcclusionResult.buildMutualFaceMask(visitedFacesMask);
+				visitedFacesMask = 0;
 			}
 		}
 
-		return result;
+		if (Pipeline.advancedTerrainCulling()) {
+			// don't hide inside position if we may be inside the chunk!
+			if (!isNear) {
+				hideInteriorClosedPositions();
+			}
+
+			computeRenderableBounds();
+
+			final BoxFinder boxFinder = this.boxFinder;
+			final IntArrayList boxes = boxFinder.boxes;
+
+			boxFinder.findBoxes(bits, 0);
+
+			final int boxCount = boxes.size();
+
+			final int[] result = new int[boxCount + 1];
+
+			int n = RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX;
+
+			if (boxCount > 0) {
+				for (int i = 0; i < boxCount; i++) {
+					result[n++] = boxes.getInt(i);
+				}
+			}
+
+			if (minRenderableX == Integer.MAX_VALUE) {
+				result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.EMPTY_BOX;
+			} else {
+				if ((minRenderableX | minRenderableY | minRenderableZ) == 0 && (maxRenderableX & maxRenderableY & maxRenderableZ) == 15) {
+					result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.FULL_BOX;
+				} else {
+					result[OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX] = PackedBox.pack(minRenderableX, minRenderableY, minRenderableZ,
+							maxRenderableX + 1, maxRenderableY + 1, maxRenderableZ + 1, PackedBox.RANGE_EXTREME);
+				}
+			}
+
+			return new OcclusionResult(result, 0L);
+		} else {
+			return new OcclusionResult(null, mutualFaceMask);
+		}
 	}
 
-	public int[] build(boolean isNear) {
+	public OcclusionResult build(boolean isNear) {
 		if (openCount == 0) {
 			// If there are no open interior positions then only surface blocks can be visible,
 			// and only if they not covered by positions in adjacent sections.
@@ -629,23 +646,22 @@ public abstract class RegionOcclusionCalculator {
 
 			// entire region acts as an occluder
 			result[OCCLUSION_RESULT_FIRST_BOX_INDEX] = PackedBox.FULL_BOX;
-			return result;
+			return new OcclusionResult(result, 0L);
 		} else {
 			return computeOcclusion(isNear);
 		}
 	}
 
 	private void fill(int xyz4) {
-		final int faceBits = 0;
-		visit(xyz4, faceBits);
+		visit(xyz4);
 
 		while (!queue.isEmpty()) {
 			final int nextXyz4 = queue.dequeueInt();
-			visit(nextXyz4, faceBits);
+			visit(nextXyz4);
 		}
 	}
 
-	private void visit(int xyz4, int faceBits) {
+	private void visit(int xyz4) {
 		final int x = xyz4 & 0xF;
 
 		if (x == 0) {
@@ -677,6 +693,36 @@ public abstract class RegionOcclusionCalculator {
 		} else {
 			enqueIfUnvisited(xyz4 - 0x100);
 			enqueIfUnvisited(xyz4 + 0x100);
+		}
+	}
+
+	private void trackVistedFaces(int xyz4) {
+		final int x = xyz4 & 0xF;
+
+		if (x == 0) {
+			visitedFacesMask |= FaceConstants.WEST_FLAG;
+			return;
+		} else if (x == 15) {
+			visitedFacesMask |= FaceConstants.EAST_FLAG;
+			return;
+		}
+
+		final int y = xyz4 & 0xF0;
+
+		if (y == 0) {
+			visitedFacesMask |= FaceConstants.DOWN_FLAG;
+			return;
+		} else if (y == 0xF0) {
+			visitedFacesMask |= FaceConstants.UP_FLAG;
+			return;
+		}
+
+		final int z = xyz4 & 0xF00;
+
+		if (z == 0) {
+			visitedFacesMask |= FaceConstants.NORTH_FLAG;
+		} else if (z == 0xF00) {
+			visitedFacesMask |= FaceConstants.SOUTH_FLAG;
 		}
 	}
 

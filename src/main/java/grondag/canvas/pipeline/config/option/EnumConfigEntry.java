@@ -16,6 +16,8 @@
 
 package grondag.canvas.pipeline.config.option;
 
+import java.util.Locale;
+
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
@@ -27,8 +29,9 @@ import net.minecraft.text.TranslatableText;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
-public class EnumConfigEntry extends OptionConfigEntry {
+public class EnumConfigEntry extends OptionConfigEntry<EnumConfigEntry> {
 	public final String defaultVal;
 	private String value;
 	private final String[] choices;
@@ -41,8 +44,8 @@ public class EnumConfigEntry extends OptionConfigEntry {
 		choices = JanksonHelper.asStringArray(config.get("choices"));
 		defaultVal = JanksonHelper.asStringOrDefault(config.get("default"), choices.length > 0 ? choices[0] : "");
 		value = defaultVal;
-		define = JanksonHelper.asStringOrDefault(config.get("define"), name).toUpperCase();
-		prefix = JanksonHelper.asStringOrDefault(config.get("prefix"), "").toUpperCase();
+		define = JanksonHelper.asStringOrDefault(config.get("define"), name).toUpperCase(Locale.ROOT);
+		prefix = JanksonHelper.asStringOrDefault(config.get("prefix"), "").toUpperCase(Locale.ROOT);
 		enumerate = config.getBoolean("enum", false);
 	}
 
@@ -50,7 +53,7 @@ public class EnumConfigEntry extends OptionConfigEntry {
 	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
 		return builder.startSelector(new TranslatableText(nameKey), choices, value)
 				.setTooltip(ConfigManager.parse(descriptionKey))
-				.setNameProvider(o -> new LiteralText(o.toUpperCase()))
+				.setNameProvider(o -> new LiteralText(o.toUpperCase(Locale.ROOT)))
 				.setSaveConsumer(v -> value = v)
 				.build();
 	}
@@ -61,13 +64,13 @@ public class EnumConfigEntry extends OptionConfigEntry {
 
 		if (enumerate) {
 			for (int i = 0; i < choices.length; ++i) {
-				builder.append("#define " + prefix + choices[i].toUpperCase() + " " + i + "\n");
+				builder.append("#define " + prefix + choices[i].toUpperCase(Locale.ROOT) + " " + i + "\n");
 			}
 
 			builder.append("\n");
-			builder.append("#define " + define.toUpperCase() + " " + prefix + value.toUpperCase() + "\n");
+			builder.append("#define " + define.toUpperCase(Locale.ROOT) + " " + prefix + value.toUpperCase(Locale.ROOT) + "\n");
 		} else {
-			builder.append("#define " + prefix + value.toUpperCase() + "\n");
+			builder.append("#define " + prefix + value.toUpperCase(Locale.ROOT) + "\n");
 		}
 
 		return builder.toString();
@@ -99,5 +102,10 @@ public class EnumConfigEntry extends OptionConfigEntry {
 		}
 
 		return valid;
+	}
+
+	@Override
+	public NamedDependencyMap<EnumConfigEntry> nameMap() {
+		return context.enumConfigEntries;
 	}
 }

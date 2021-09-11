@@ -18,30 +18,35 @@ package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 import static grondag.canvas.config.ConfigManager.parse;
+import static grondag.canvas.config.Configurator.advancedTerrainCulling;
 import static grondag.canvas.config.Configurator.blendFluidColors;
 import static grondag.canvas.config.Configurator.clampExteriorVertices;
 import static grondag.canvas.config.Configurator.conciseErrors;
+import static grondag.canvas.config.Configurator.cullBackfacingTerrain;
 import static grondag.canvas.config.Configurator.cullEntityRender;
 import static grondag.canvas.config.Configurator.cullParticles;
 import static grondag.canvas.config.Configurator.debugNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.debugOcclusionBoxes;
 import static grondag.canvas.config.Configurator.debugOcclusionRaster;
+import static grondag.canvas.config.Configurator.debugSpriteAtlas;
+import static grondag.canvas.config.Configurator.disableUnseenSpriteAnimation;
+import static grondag.canvas.config.Configurator.disableVignette;
 import static grondag.canvas.config.Configurator.displayRenderProfiler;
 import static grondag.canvas.config.Configurator.dynamicFrustumPadding;
 import static grondag.canvas.config.Configurator.enableBufferDebug;
 import static grondag.canvas.config.Configurator.enableLifeCycleDebug;
 import static grondag.canvas.config.Configurator.enableNearOccluders;
-import static grondag.canvas.config.Configurator.steadyDebugScreen;
 import static grondag.canvas.config.Configurator.fixLuminousBlockShading;
 import static grondag.canvas.config.Configurator.forceJmxModelLoading;
 import static grondag.canvas.config.Configurator.greedyRenderThread;
-import static grondag.canvas.config.Configurator.lightSmoothing;
+import static grondag.canvas.config.Configurator.groupAnimatedSprites;
 import static grondag.canvas.config.Configurator.logGlStateChanges;
 import static grondag.canvas.config.Configurator.logMachineInfo;
 import static grondag.canvas.config.Configurator.logMaterials;
 import static grondag.canvas.config.Configurator.logMissingUniforms;
 import static grondag.canvas.config.Configurator.logRenderLagSpikes;
 import static grondag.canvas.config.Configurator.pipelineId;
+import static grondag.canvas.config.Configurator.preprocessShaderSource;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
 import static grondag.canvas.config.Configurator.profileGpuTime;
 import static grondag.canvas.config.Configurator.profilerDetailLevel;
@@ -54,8 +59,10 @@ import static grondag.canvas.config.Configurator.safeNativeMemoryAllocation;
 import static grondag.canvas.config.Configurator.semiFlatLighting;
 import static grondag.canvas.config.Configurator.shaderDebug;
 import static grondag.canvas.config.Configurator.staticFrustumPadding;
+import static grondag.canvas.config.Configurator.steadyDebugScreen;
 import static grondag.canvas.config.Configurator.terrainSetupOffThread;
 import static grondag.canvas.config.Configurator.traceOcclusionEdgeCases;
+import static grondag.canvas.config.Configurator.traceTextureLoad;
 import static grondag.canvas.config.Configurator.transferBufferMode;
 import static grondag.canvas.config.Configurator.useCombinedThreadPool;
 import static grondag.canvas.config.Configurator.wavyGrass;
@@ -152,18 +159,15 @@ public class ConfigGui {
 				})
 				.build());
 
-		// LIGHTING
-		final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
-
-		lighting.addEntry(ENTRY_BUILDER
-				.startBooleanToggle(new TranslatableText("config.canvas.value.light_smoothing"), lightSmoothing)
-				.setDefaultValue(DEFAULTS.lightSmoothing)
-				.setTooltip(parse("config.canvas.help.light_smoothing"))
-				.setSaveConsumer(b -> {
-					reload |= lightSmoothing != b;
-					lightSmoothing = b;
-				})
+		features.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.disable_vignette"), disableVignette)
+				.setDefaultValue(DEFAULTS.disableVignette)
+				.setTooltip(parse("config.canvas.help.disable_vignette"))
+				.setSaveConsumer(b -> disableVignette = b)
 				.build());
+
+		// LIGHTING
+		//final ConfigCategory lighting = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.lighting"));
 
 		//		lighting.addEntry(ENTRY_BUILDER
 		//				.startBooleanToggle(new TranslatableText("config.canvas.value.hd_lightmaps"), hdLightmaps)
@@ -199,7 +203,7 @@ public class ConfigGui {
 		//				.setSaveConsumer(b -> maxLightmapDelayFrames = b)
 		//				.build());
 
-		lighting.addEntry(ENTRY_BUILDER
+		features.addEntry(ENTRY_BUILDER
 				.startBooleanToggle(new TranslatableText("config.canvas.value.semi_flat_lighting"), semiFlatLighting)
 				.setDefaultValue(DEFAULTS.semiFlatLighting)
 				.setTooltip(parse("config.canvas.help.semi_flat_lighting"))
@@ -243,6 +247,16 @@ public class ConfigGui {
 				.setSaveConsumer(b -> {
 					reload |= fixLuminousBlockShading != b;
 					fixLuminousBlockShading = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.advanced_terrain_culling"), advancedTerrainCulling)
+				.setDefaultValue(DEFAULTS.advancedTerrainCulling)
+				.setTooltip(parse("config.canvas.help.advanced_terrain_culling"))
+				.setSaveConsumer(b -> {
+					reload |= advancedTerrainCulling != b;
+					advancedTerrainCulling = b;
 				})
 				.build());
 
@@ -366,6 +380,33 @@ public class ConfigGui {
 				})
 				.build());
 
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.disable_unseen_sprite_animation"), disableUnseenSpriteAnimation)
+				.setDefaultValue(DEFAULTS.disableUnseenSpriteAnimation)
+				.setTooltip(parse("config.canvas.help.disable_unseen_sprite_animation"))
+				.setSaveConsumer(b -> {
+					reload |= disableUnseenSpriteAnimation != b;
+					disableUnseenSpriteAnimation = b;
+				})
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.group_animated_sprites"), groupAnimatedSprites)
+				.setDefaultValue(DEFAULTS.groupAnimatedSprites)
+				.setTooltip(parse("config.canvas.help.group_animated_sprites"))
+				.setSaveConsumer(b -> groupAnimatedSprites = b)
+				.build());
+
+		tweaks.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.cull_backfacing_terrain"), cullBackfacingTerrain)
+				.setDefaultValue(DEFAULTS.cullBackfacingTerrain)
+				.setTooltip(parse("config.canvas.help.cull_backfacing_terrain"))
+				.setSaveConsumer(b -> {
+					reload |= cullBackfacingTerrain != b;
+					cullBackfacingTerrain = b;
+				})
+				.build());
+
 		// DEBUG
 		final ConfigCategory debug = builder.getOrCreateCategory(new TranslatableText("config.canvas.category.debug"));
 
@@ -374,6 +415,16 @@ public class ConfigGui {
 				.setDefaultValue(DEFAULTS.shaderDebug)
 				.setTooltip(parse("config.canvas.help.shader_debug"))
 				.setSaveConsumer(b -> shaderDebug = b)
+				.build());
+
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.preprocess_shader_source"), preprocessShaderSource)
+				.setDefaultValue(DEFAULTS.preprocessShaderSource)
+				.setTooltip(parse("config.canvas.help.preprocess_shader_source"))
+				.setSaveConsumer(b -> {
+					reload |= preprocessShaderSource != b;
+					preprocessShaderSource = b;
+				})
 				.build());
 
 		//		debug.addEntry(ENTRY_BUILDER
@@ -521,19 +572,19 @@ public class ConfigGui {
 			.setSaveConsumer(b -> profilerOverlayScale = b)
 			.build());
 
-		// WIP: need to ensure old config is fully unloaded on switch
-		//		debug.addEntry(ENTRY_BUILDER.startEnumSelector(
-		//				new TranslatableText("config.canvas.value.terrain_vertex_config"),
-		//				TerrainVertexConfig.class, terrainVertexConfig)
-		//				.setDefaultValue(DEFAULTS.terrainVertexConfig)
-		//				.setSaveConsumer(b -> {
-		//
-		//					reload |= terrainVertexConfig != b;
-		//					terrainVertexConfig = b;
-		//				})
-		//				.setEnumNameProvider(a -> new LiteralText(a.toString()))
-		//				.setTooltip(parse("config.canvas.help.terrain_vertex_config"))
-		//				.build());
+		debug.addEntry(ENTRY_BUILDER
+			.startBooleanToggle(new TranslatableText("config.canvas.value.debug_sprite_atlas"), debugSpriteAtlas)
+			.setDefaultValue(DEFAULTS.debugSpriteAtlas)
+			.setTooltip(parse("config.canvas.help.debug_sprite_atlas"))
+			.setSaveConsumer(b -> debugSpriteAtlas = b)
+			.build());
+
+		debug.addEntry(ENTRY_BUILDER
+				.startBooleanToggle(new TranslatableText("config.canvas.value.trace_texture_load"), traceTextureLoad)
+				.setDefaultValue(DEFAULTS.traceTextureLoad)
+				.setTooltip(parse("config.canvas.help.trace_texture_load"))
+				.setSaveConsumer(b -> traceTextureLoad = b)
+				.build());
 
 		builder.setAlwaysShowTabs(false).setDoesConfirmSave(false);
 

@@ -31,6 +31,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
+import org.anarres.cpp.DefaultPreprocessorListener;
+import org.anarres.cpp.Preprocessor;
+import org.anarres.cpp.StringLexerSource;
+import org.anarres.cpp.Token;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL20C;
@@ -44,8 +48,6 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
-
-import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -78,10 +80,9 @@ public class GlShader implements Shader {
 		clearDebugSource();
 	}
 
+	@SuppressWarnings("resource")
 	private static Path shaderDebugPath() {
-		final File gameDir = FabricLoader.getInstance().getGameDirectory();
-
-		return gameDir.toPath().normalize().resolve("canvas_shader_debug");
+		return MinecraftClient.getInstance().runDirectory.toPath().normalize().resolve("canvas_shader_debug");
 	}
 
 	private static void clearDebugSource() {
@@ -251,8 +252,16 @@ public class GlShader implements Shader {
 		if (result == null) {
 			result = getCombinedShaderSource();
 
+			if (Pipeline.config().enablePBR) {
+				result = StringUtils.replace(result, "//#define PBR_ENABLED", "#define PBR_ENABLED");
+			}
+
+			if (!PreReleaseShaderCompat.needsFragmentShaderStubs()) {
+				result = StringUtils.replace(result, "#define _CV_FRAGMENT_COMPAT", "//#define _CV_FRAGMENT_COMPAT");
+			}
+
 			if (programType.isTerrain) {
-				result = StringUtils.replace(result, "#define _CV_VERTEX_DEFAULT", "#define _CV_VERTEX_" + Configurator.terrainRenderConfig.shaderConfigTag);
+				result = StringUtils.replace(result, "#define _CV_VERTEX_DEFAULT", "#define _CV_VERTEX_TERRAIN");
 			}
 
 			if (programType.hasVertexProgramControl) {
@@ -276,6 +285,9 @@ public class GlShader implements Shader {
 
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
 
+			// prepend GLSL version
+			result = "#version " + Pipeline.config().glslVersion + "\n\n" + result;
+
 			//if (Configurator.hdLightmaps()) {
 			//	result = StringUtils.replace(result, "#define VANILLA_LIGHTING", "//#define VANILLA_LIGHTING");
 			//
@@ -283,6 +295,10 @@ public class GlShader implements Shader {
 			//		result = StringUtils.replace(result, "//#define ENABLE_LIGHT_NOISE", "#define ENABLE_LIGHT_NOISE");
 			//	}
 			//}
+
+			if (Configurator.preprocessShaderSource) {
+				result = glslPreprocessSource(result);
+			}
 
 			source = result;
 		}
@@ -303,17 +319,24 @@ public class GlShader implements Shader {
 	}
 
 	protected static String loadShaderSource(ResourceManager resourceManager, Identifier shaderSourceId) {
+		String result;
+
 		try (Resource resource = resourceManager.getResource(shaderSourceId)) {
 			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
-				return CharStreams.toString(reader);
+				result = CharStreams.toString(reader);
 			}
 		} catch (final FileNotFoundException e) {
-			final String result = Pipeline.config().configSource(shaderSourceId);
-			return result == null ? ShaderConfig.getShaderConfigSupplier(shaderSourceId).get() : result;
+			result = Pipeline.config().configSource(shaderSourceId);
+
+			if (result == null) {
+				result = ShaderConfig.getShaderConfigSupplier(shaderSourceId).get();
+			}
 		} catch (final IOException e) {
 			CanvasMod.LOG.warn("Unable to load shader resource " + shaderSourceId.toString() + " due to exception.", e);
 			return "";
 		}
+
+		return result == null || result.isBlank() ? "" : PreReleaseShaderCompat.compatify(result, shaderSourceId);
 	}
 
 	private String processSourceIncludes(ResourceManager resourceManager, String source) {
@@ -366,5 +389,54 @@ public class GlShader implements Shader {
 	@Override
 	public Identifier getShaderSourceId() {
 		return shaderSourceId;
+	}
+
+	private static String glslPreprocessSource(String source) {
+		// The C preprocessor won't understand the #version token but
+		// we need to intercept __VERSION__ used in conditional compilation.
+		// GLSL won't let use define tokens starting with two underscores so
+		// to intercept __VERSION__ we have to temporarily rename it.
+		// It will be stripped at the end so we will need to prepend #version after
+		source = StringUtils.replace(source, "#version ", "#define _CV_VERSION ");
+		source = StringUtils.replace(source, "__VERSION__", "_CV_VERSION");
+
+		@SuppressWarnings("resource")
+		final Preprocessor pp = new Preprocessor();
+		pp.setListener(new DefaultPreprocessorListener());
+		pp.addInput(new StringLexerSource(source, true));
+		//pp.addFeature(Feature.KEEPCOMMENTS);
+
+		final StringBuilder builder = new StringBuilder();
+
+		try {
+			for (;;) {
+				final Token tok = pp.token();
+				if (tok == null) break;
+				if (tok.getType() == Token.EOF) break;
+				builder.append(tok.getText());
+			}
+		} catch (final Exception e) {
+			CanvasMod.LOG.error("GLSL source pre-processing failed", e);
+		}
+
+		builder.append("\n");
+
+		source = builder.toString();
+
+		// restore GLSL version
+		source = "#version " + Pipeline.config().glslVersion + "\n" + source;
+
+		// strip commented preprocessor declarations
+		source = source.replaceAll("//#.*[ \t]*[\r\n]", "\n");
+		// strip leading whitepsace before newline, makes next change more reliable
+		source = source.replaceAll("[ \t]*[\r\n]", "\n");
+		// consolidate newlines
+		source = source.replaceAll("\n{2,}", "\n\n");
+		// inefficient way to remove multiple orhpaned comment blocks
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+		source = source.replaceAll("\\/\\*[^*]*\\*+(?:[^/*][^*]*\\*+)*\\/[\\s]+\\/\\*", "/*");
+
+		return source;
 	}
 }

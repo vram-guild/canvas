@@ -32,6 +32,8 @@ class ConfigData {
 	public boolean enableLifeCycleDebug = false;
 	@Comment("Fluid biome colors are blended at block corners to avoid patchy appearance. Slight performance impact to chunk loading.")
 	boolean blendFluidColors = true;
+	@Comment("Turns off darkened screen corners present in vanilla.")
+	boolean disableVignette = false;
 	//@Comment("Truly smooth lighting. Some impact to memory use, chunk loading and frame rate.")
 	//boolean hdLightmaps = false;
 	//@Comment("Slight variation in light values - may prevent banding. Slight performance impact and not usually necessary.")
@@ -52,6 +54,8 @@ class ConfigData {
 	boolean clampExteriorVertices = true;
 	@Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
 	boolean fixLuminousBlockShading = true;
+	@Comment("Uses more CPU to avoid drawing terrain that isn't visible. Improves FPS. Best for machines with 6+ fast CPU cores. Ignored if shadowmap enabled.")
+	boolean advancedTerrainCulling = true;
 	@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
 	boolean terrainSetupOffThread = true;
 	@Comment("Use more efficient entity culling. Improves framerate in most scenes.")
@@ -72,10 +76,24 @@ class ConfigData {
 	boolean useCombinedThreadPool = false;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
 	boolean steadyDebugScreen = true;
+	@Comment("When true, animated sprites not in view are not updated. Improves frame rate.")
+	boolean disableUnseenSpriteAnimation = true;
+	@Comment("When true, sprite atlas texture stitching is changed to group animated sprites. Improves frame rate. Changes take effect on next resource reload.")
+	boolean groupAnimatedSprites = true;
+	@Comment("When true, terrain facing away from the camera is not rendered.  Usually improves frame rate.")
+	boolean cullBackfacingTerrain = true;
+	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
+	boolean enableNearOccluders = false;
+	@Comment("Method used to transfer data to GPU. AUTO is recommended but performance can be specific to your system. Other options are DIRECT, HYBRID, and MAPPED")
+	public TransferBuffers.Config transferBufferMode = TransferBuffers.Config.AUTO;
+	@Comment("Uses slower and safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
+	boolean safeNativeMemoryAllocation = false;
 
 	// DEBUG
 	@Comment("Output runtime per-material shader source. For shader development debugging.")
 	boolean shaderDebug = false;
+	@Comment("Pre-process OpenGL source before compilation. Makes source more concise but possibly harder to read.")
+	boolean preprocessShaderSource = true;
 	//@Comment("Shows HD lightmap pixels for debug purposes. Also looks cool.")
 	//boolean lightmapDebug = false;
 	@Comment("Summarizes multiple errors and warnings to single-line entries in the log.")
@@ -86,8 +104,6 @@ class ConfigData {
 	boolean logGlStateChanges = false;
 	@Comment("Enables LWJGL memory allocation tracking.  Will harm performance. Use for debugging memory leaks. Requires restart.")
 	boolean debugNativeMemoryAllocation = false;
-	@Comment("Uses slower and safer memory allocation method for GL buffers.  Use only if having problems. Requires restart.")
-	boolean safeNativeMemoryAllocation = false;
 	@Comment("Output performance trace data to log. Will have significant performance impact. Requires restart.")
 	boolean enablePerformanceTrace = false;
 	@Comment("Output periodic snapshots of terrain occlusion raster. Will have performance impact.")
@@ -114,10 +130,8 @@ class ConfigData {
 	int profilerDetailLevel = 0;
 	@Comment("Size of the profiler overlay relative to GUI scale.")
 	float profilerOverlayScale = 0.5f;
-	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
-	boolean enableNearOccluders = false;
-	//WIP: docs
-	TerrainRenderConfigOption terrainRenderConfig = TerrainRenderConfigOption.DEFAULT;
-	@Comment("Method used to transfer data to GPU. AUTO is recommended but performance can be specific to your system. Other options are DIRECT, HYBRID, and MAPPED")
-	public TransferBuffers.Config transferBufferMode = TransferBuffers.Config.AUTO;
+	@Comment("Export sprite atlas textures to atlas_debug folder within run folder.")
+	boolean debugSpriteAtlas = false;
+	@Comment("Log significant events of texture/sprite atlas loading. For debugging use. Will spam the log.")
+	boolean traceTextureLoad = false;
 }

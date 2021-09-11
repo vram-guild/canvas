@@ -40,6 +40,7 @@ import grondag.canvas.mixin.AccessMultiPhaseParameters;
 import grondag.canvas.mixin.AccessTexture;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.canvas.mixinterface.ShaderExt;
 import grondag.frex.api.material.MaterialFinder;
 
@@ -83,7 +84,6 @@ public final class RenderLayerHelper {
 		final TextureBase texBase = params.getTexture();
 
 		final MojangShaderData sd = ((ShaderExt) params.getShader()).canvas_shaderData();
-		finder.sorted(layer.canvas_isTranslucent());
 
 		if (texBase != null && texBase instanceof AccessTexture) {
 			final AccessTexture tex = (AccessTexture) params.getTexture();
@@ -102,6 +102,7 @@ public final class RenderLayerHelper {
 		finder.fog(sd.fog);
 		finder.disableDiffuse(!sd.diffuse);
 		finder.cutout(sd.cutout);
+		finder.sorted(((RenderLayerExt) layer).canvas_isTranslucent());
 
 		// vanilla sets these as part of draw process but we don't want special casing
 		if (layer == RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {
@@ -127,9 +128,11 @@ public final class RenderLayerHelper {
 
 		final MultiPhaseExt multiPhase = (MultiPhaseExt) layer;
 		final String name = multiPhase.canvas_name();
+		final var params = multiPhase.canvas_phases();
 
 		// Excludes glint, end portal, and other specialized render layers that won't play nice with our current setup
-		if (multiPhase.canvas_phases().getTexturing() != RenderPhase.DEFAULT_TEXTURING) {
+		// Excludes render layers with custom shaders
+		if (params.getTexturing() != RenderPhase.DEFAULT_TEXTURING || ((ShaderExt) params.getShader()).canvas_shaderData() == MojangShaderData.MISSING) {
 			EXCLUSIONS.add(layer);
 			return RenderMaterialImpl.MISSING;
 		}

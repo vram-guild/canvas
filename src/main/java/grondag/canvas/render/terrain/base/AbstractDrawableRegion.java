@@ -25,20 +25,13 @@ import grondag.canvas.buffer.render.UploadableVertexStorage;
 public abstract class AbstractDrawableRegion<T extends UploadableVertexStorage> implements DrawableRegion, UploadableRegion {
 	// first reference is for the region
 	private final AtomicInteger retainCount = new AtomicInteger(1);
-	private final long packedOriginBlockPos;
 	protected T storage;
 	private final int quadVertexCount;
 	private boolean isClosed = false;
 
-	protected AbstractDrawableRegion(long packedOriginBlockPos, int quadVertexCount, T storage) {
-		this.packedOriginBlockPos = packedOriginBlockPos;
+	protected AbstractDrawableRegion(int quadVertexCount, T storage) {
 		this.quadVertexCount = quadVertexCount;
 		this.storage = storage;
-	}
-
-	@Override
-	public long packedOriginBlockPos() {
-		return packedOriginBlockPos;
 	}
 
 	@Override

@@ -1,38 +1,11 @@
 #include canvas:shaders/internal/world.glsl
 #include canvas:shaders/internal/flags.glsl
 
-/******************************************************
-  frex:shaders/api/fog.glsl
-******************************************************/
+/****************************************************************
+ * frex:shaders/api/fog.glsl - Canvas Implementation
+ ***************************************************************/
 
-/**
- * True if current material should have fog.
- */
-bool frx_fogEnabled() {
-	return frx_bitValue(uint(_cvv_flags), _CV_FLAG_ENABLE_FOG) == 1.0;
-}
-
-float frx_fogStart() {
-	return _cvu_world[_CV_RENDER_INFO].x;
-}
-
-float frx_fogEnd() {
-	return _cvu_world[_CV_RENDER_INFO].y;
-}
-
-vec4 frx_fogColor() {
-	return _cvu_world[_CV_FOG_COLOR];
-}
-
-
-// vec4
-#define frxFogColor _cvu_world[_CV_FOG_COLOR]
-
-// float
-#define frxFogStart _cvu_world[_CV_RENDER_INFO].x
-
-// float
-#define frxFogEnd _cvu_world[_CV_RENDER_INFO].y
-
-// bool
-#define frxFogEnabled (frx_bitValue(uint(_cvv_flags), _CV_FLAG_ENABLE_FOG) == 1.0)
+#define frx_fogColor _cvu_world[_CV_FOG_COLOR]
+#define frx_fogStart _cvu_world[_CV_RENDER_INFO].x
+#define frx_fogEnd _cvu_world[_CV_RENDER_INFO].y
+#define frx_fogEnabled _CV_GET_FLAG(_CV_FLAG_ENABLE_FOG)

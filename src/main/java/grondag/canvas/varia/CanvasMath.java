@@ -89,4 +89,8 @@ public class CanvasMath {
 	public static float dist(float x0, float y0, float z0, float x1, float y1, float z1) {
 		return (float) Math.sqrt(squareDist(x0, y0, z0, x1, y1, z1));
 	}
+
+	public static float clampNormalized(float val) {
+		return val < 0f ? 0f : (val > 1f ? 1f : val);
+	}
 }

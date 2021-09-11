@@ -7,6 +7,7 @@
   canvas:shaders/material/lava.frag
 ******************************************************/
 
+#ifndef DEPTH_PASS
 // Color temperature computations are based on following sources, with much appreciation:
 //
 // Tanner Helland: How to Convert Temperature (K) to RGB: Algorithm and Sample Code
@@ -37,11 +38,14 @@ float bbrBlue(float kelvin)
     float x = (kelvin / 100.0) - 10.0;
     return (a + b * x + c * log(x)) / 255.0;
 }
+#endif
 
-void frx_startFragment(inout frx_FragmentData fragData) {
-	float t = frx_renderSeconds();
+void frx_materialFragment() {
+#ifndef DEPTH_PASS
+	float t = frx_renderSeconds;
 	vec2 uv = frx_var0.xy * 4.00 + t * frx_var0.zw;
 	float n = cellular2x2x2(vec3(uv.xy, t * 0.2)).x;
 	float v = 700 + n * 2000;
-	fragData.spriteColor = vec4(1.0, bbrGreen(v), bbrBlue(v), 1.0);
+	frx_fragColor = vec4(1.0, bbrGreen(v), bbrBlue(v), 1.0);
+#endif
 }

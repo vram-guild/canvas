@@ -168,7 +168,25 @@
   "config.canvas.value.transfer_buffer_mode": "Transfer Buffer Mode",
   "config.canvas.help.transfer_buffer_mode": "Method used to transfer data to GPU. AUTO is recommended;but performance can be specific to your system.",
   "config.canvas.value.steady_debug_screen": "Steady Debug Screen",
-  "config.canvas.help.steady_debug_screen": "When enabled, F3 debug screen output is refreshed 20X per second;instead of every frame. Improves accuracy and;reduces variability of FPS measurement."
-  
-  
+  "config.canvas.help.steady_debug_screen": "When enabled, F3 debug screen output is refreshed 20X per second;instead of every frame. Improves accuracy and;reduces variability of FPS measurement.",
+  "config.canvas.value.advanced_terrain_culling": "Advanced Terrain Culling",
+  "config.canvas.help.advanced_terrain_culling": "Uses more CPU to avoid drawing terrain that isn't visible.;Improves FPS. Best for machines with 6+ fast CPU cores.;Ignored if shadowmap enabled.", 
+  "config.canvas.value.disable_unseen_sprite_animation": "Disable Unseen Sprite Animation",
+  "config.canvas.help.disable_unseen_sprite_animation": "When true, animated sprites not in view are not updated.;Improves frame rate.",
+  "config.canvas.value.cull_backfacing_terrain": "Cull Backfacing Terrain",
+  "config.canvas.help.cull_backfacing_terrain": "When true, terrain facing away from the camera is not rendered.;Usually improves frame rate.",
+  "config.canvas.value.preprocess_shader_source": "Preprocess Shader Source",
+  "config.canvas.help.preprocess_shader_source": "Pre-process OpenGL source before compilation.;Makes source more concise but possibly harder to read.",
+  "config.canvas.value.debug_sprite_atlas": "Export Sprite Atlas",
+  "config.canvas.help.debug_sprite_atlas": "Export sprite atlas textures to atlas_debug folder within run folder.;Changes take effect on next resource reload.",
+  "info.canvas.flawless_toggle": "Flawless Frames Active: %b",
+  "key.canvas.flawless_toggle": "Toggle Flawless Frames",
+  "config.canvas.value.disable_vignette": "Disable Vignette",
+  "config.canvas.help.disable_vignette": "Turns off darkened screen corners present in vanilla.",
+  "config.canvas.value.group_animated_sprites": "Group Animated Sprites",
+  "config.canvas.help.group_animated_sprites": "When true, sprite atlas texture stitching is changed to group;animated sprites. Improves frame rate.;Changes take effect on next resource reload",
+  "config.canvas.value.trace_texture_load": "Trace Texture Loading",
+  "config.canvas.help.trace_texture_load": "Log significant events of texture/sprite atlas loading.;For debugging use. Will spam the log.",
+  "config.canvas.value.bloom_toggle": "Enable Bloom",
+  "config.canvas.help.bloom_toggle": "Renders glow effect around light sources.;Modest impact on performance."
 }

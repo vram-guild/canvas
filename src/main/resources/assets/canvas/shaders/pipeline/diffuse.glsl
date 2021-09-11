@@ -1,4 +1,3 @@
-#include frex:shaders/api/context.glsl
 #include frex:shaders/api/world.glsl
 #include frex:shaders/api/view.glsl
 #include canvas:basic_light_config
@@ -25,7 +24,7 @@ const vec3 LIGHT2_DARK = vec3 (-0.104196384, -0.947239857,  0.303116754);
  */
 float p_diffuseBaked(vec3 normal) {
 	// in nether underside is lit like top
-	vec3 secondaryVec = frx_isSkyDarkened() ? LIGHT2_DARK : LIGHT2;
+	vec3 secondaryVec = frx_worldIsSkyDarkened == 1 ? LIGHT2_DARK : LIGHT2;
 
 	float l1 = max(0.0, dot(LIGHT1, normal));
 	float l2 = max(0.0, dot(secondaryVec, normal));
@@ -35,9 +34,9 @@ float p_diffuseBaked(vec3 normal) {
 
 // for testing - not a good way to do it
 float p_diffuseSky(vec3 normal) {
-	float f = dot(frx_skyLightVector(), normal);
+	float f = dot(frx_skyLightVector, normal);
 	f = f > 0.0 ? 0.4 * f : 0.2 * f;
-	return 0.6 + frx_skyLightTransitionFactor() * f;
+	return 0.6 + frx_skyLightTransitionFactor * f;
 }
 
 /**
@@ -52,6 +51,5 @@ float p_diffuseGui(vec3 normal) {
 }
 
 float p_diffuse (vec3 normal) {
-	return frx_isGui() ? p_diffuseGui(normal) : p_diffuseBaked(normal);
-	//return frx_isGui() ? p_diffuseGui(normal) : p_diffuseSky(normal);
+	return frx_isGui ? p_diffuseGui(normal) : p_diffuseBaked(normal);
 }

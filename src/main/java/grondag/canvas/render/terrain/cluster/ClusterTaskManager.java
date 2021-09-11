@@ -18,7 +18,9 @@ package grondag.canvas.render.terrain.cluster;
 
 import java.util.ArrayDeque;
 
-class ClusterTaskManager {
+import grondag.frex.api.config.FlawlessFrames;
+
+public class ClusterTaskManager {
 	@FunctionalInterface interface ClusterTask {
 		/** Task should return false if unable to complete and needs more time next frame. */
 		boolean run(long deadlineNanos);
@@ -28,9 +30,13 @@ class ClusterTaskManager {
 
 	private ClusterTaskManager() { }
 
-	static void run(long deadlineNanos) {
+	public static void run(long deadlineNanos) {
+		if (FlawlessFrames.isActive()) {
+			deadlineNanos = Long.MAX_VALUE;
+		}
+
 		do {
-			var task = TASKS.poll();
+			final var task = TASKS.poll();
 
 			if (task == null) {
 				break;

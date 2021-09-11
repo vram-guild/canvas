@@ -23,10 +23,10 @@ import static grondag.canvas.light.AoFaceData.OPAQUE;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.fastOffsetRegionIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.offsetInteriorIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
+import static grondag.canvas.varia.CanvasMath.clampNormalized;
 
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3f;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -35,6 +35,7 @@ import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
+import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
@@ -70,10 +71,6 @@ public abstract class AoCalculator {
 	 * Holds per-corner weights - used locally to avoid new allocation.
 	 */
 	private final float[] w = new float[4];
-	/**
-	 * Used exclusively in irregular face to avoid new heap allocations each call.
-	 */
-	private final Vec3f vertexNormal = new Vec3f();
 	private long blendCacheCompletionLowFlags;
 	private long blendCacheCompletionHighFlags;
 	private int regionRelativeCacheIndex;
@@ -225,7 +222,7 @@ public abstract class AoCalculator {
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
-			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
+			ao[i] = clampNormalized(faceData.weigtedAo(w) * DIVIDE_BY_255);
 		}
 	}
 
@@ -309,7 +306,7 @@ public abstract class AoCalculator {
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
-			ao[i] = faceData.weigtedAo(w) * DIVIDE_BY_255;
+			ao[i] = clampNormalized(faceData.weigtedAo(w) * DIVIDE_BY_255);
 		}
 	}
 
@@ -348,8 +345,8 @@ public abstract class AoCalculator {
 	}
 
 	private void irregularFace(MutableQuadViewImpl quad) {
-		final Vec3f faceNorm = quad.faceNormal();
-		Vec3f normal;
+		int normal = 0;
+		float nx = 0, ny = 0, nz = 0;
 		final float[] w = this.w;
 		final float[] aoResult = quad.ao;
 
@@ -357,19 +354,25 @@ public abstract class AoCalculator {
 		//quad.hdLight = null;
 
 		for (int i = 0; i < 4; i++) {
-			normal = quad.hasNormal(i) ? quad.copyNormal(i, vertexNormal) : faceNorm;
+			final int vNormal = quad.packedNormal(i);
+
+			if (vNormal != normal) {
+				normal = vNormal;
+				nx = PackedVector3f.packedX(normal);
+				ny = PackedVector3f.packedY(normal);
+				nz = PackedVector3f.packedZ(normal);
+			}
+
 			float ao = 0, sky = 0, block = 0;
 			int maxSky = 0, maxBlock = 0;
 			float maxAo = 0;
 
-			final float x = normal.getX();
-
-			if (!MathHelper.approximatelyEquals(0f, x)) {
-				final int face = x > 0 ? EAST : WEST;
+			if (!MathHelper.approximatelyEquals(0f, nx)) {
+				final int face = nx > 0 ? EAST : WEST;
 				// PERF: really need to cache these
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
 				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = x * x;
+				final float n = nx * nx;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
 				final int b = fd.weightedBlockLight(w);
@@ -381,13 +384,11 @@ public abstract class AoCalculator {
 				maxBlock = b;
 			}
 
-			final float y = normal.getY();
-
-			if (!MathHelper.approximatelyEquals(0f, y)) {
-				final int face = y > 0 ? UP : DOWN;
+			if (!MathHelper.approximatelyEquals(0f, ny)) {
+				final int face = ny > 0 ? UP : DOWN;
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
 				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = y * y;
+				final float n = ny * ny;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
 				final int b = fd.weightedBlockLight(w);
@@ -399,13 +400,11 @@ public abstract class AoCalculator {
 				maxBlock = Math.max(b, maxBlock);
 			}
 
-			final float z = normal.getZ();
-
-			if (!MathHelper.approximatelyEquals(0f, z)) {
-				final int face = z > 0 ? SOUTH : NORTH;
+			if (!MathHelper.approximatelyEquals(0f, nz)) {
+				final int face = nz > 0 ? SOUTH : NORTH;
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
 				AoFace.get(face).weightFunc.apply(quad, i, w);
-				final float n = z * z;
+				final float n = nz * nz;
 				final float a = fd.weigtedAo(w);
 				final int s = fd.weigtedSkyLight(w);
 				final int b = fd.weightedBlockLight(w);
@@ -417,7 +416,7 @@ public abstract class AoCalculator {
 				maxBlock = Math.max(b, maxBlock);
 			}
 
-			aoResult[i] = (ao + maxAo) * (0.5f * DIVIDE_BY_255);
+			aoResult[i] = clampNormalized((ao + maxAo) * (0.5f * DIVIDE_BY_255));
 			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
 					| ((int) ((block + maxBlock) * 0.5f) & 0xFF)));
 		}

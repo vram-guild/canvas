@@ -57,10 +57,6 @@ public class CameraOccluder extends AbstractOccluder {
 		return occlusionFrustum.lastCameraPos();
 	}
 
-	public boolean isRegionVisible(RegionPosition regionPosition) {
-		return occlusionFrustum.isRegionVisible(regionPosition);
-	}
-
 	@Override
 	public void prepareRegion(RegionPosition origin) {
 		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), origin.occlusionRange(), origin.squaredCameraChunkDistance());
@@ -80,8 +76,8 @@ public class CameraOccluder extends AbstractOccluder {
 	}
 
 	@Override
-	public boolean isBoxVisible(int packedBox) {
-		return isBoxVisibleFromPerspective(packedBox);
+	public boolean isBoxVisible(int packedBox, int fuzz) {
+		return isBoxVisibleFromPerspective(packedBox, fuzz);
 	}
 
 	@Override

@@ -16,12 +16,21 @@
 
 package grondag.canvas.render.terrain.base;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import grondag.canvas.material.state.RenderState;
+import grondag.canvas.material.state.TerrainRenderStates;
+import grondag.canvas.render.terrain.drawlist.RealmDrawList;
+import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.terrain.occlusion.VisibleRegionList;
+import grondag.canvas.terrain.region.RenderRegion;
+
 public interface DrawableRegionList {
 	void close();
 
 	boolean isClosed();
 
-	void draw();
+	void draw(WorldRenderState worldRenderState);
 
 	DrawableRegionList EMPTY = new DrawableRegionList() {
 		@Override
@@ -35,8 +44,39 @@ public interface DrawableRegionList {
 		}
 
 		@Override
-		public void draw() {
+		public void draw(WorldRenderState worldRenderState) {
 			// NOOP
 		}
 	};
+
+	static DrawableRegionList build(
+			final VisibleRegionList visibleRegions,
+			boolean isTranslucent,
+			boolean isShadowMap
+	) {
+		final ObjectArrayList<DrawableRegion> drawables = new ObjectArrayList<>();
+
+		final int count = visibleRegions.size();
+		final int startIndex = isTranslucent ? count - 1 : 0;
+		final int endIndex = isTranslucent ? -1 : count;
+		final int step = isTranslucent ? -1 : 1;
+
+		for (int regionLoopIndex = startIndex; regionLoopIndex != endIndex; regionLoopIndex += step) {
+			RenderRegion region = visibleRegions.get(regionLoopIndex);
+			final DrawableRegion drawable = isTranslucent ? region.translucentDrawable() : region.solidDrawable();
+
+			if (drawable != null && drawable != DrawableRegion.EMPTY_DRAWABLE) {
+				drawables.add(drawable);
+				drawable.retainFromDrawList();
+			}
+		}
+
+		final var renderState = isTranslucent ? TerrainRenderStates.TRANSLUCENT : TerrainRenderStates.SOLID;
+		return drawables.isEmpty() ? DrawableRegionList.EMPTY : RealmDrawList.build(drawables, renderState, isShadowMap);
+	}
+
+	@FunctionalInterface
+	interface DrawableRegionListFunc {
+		DrawableRegionList apply(ObjectArrayList<DrawableRegion> regions, RenderState renderState, boolean isShadowMap);
+	}
 }

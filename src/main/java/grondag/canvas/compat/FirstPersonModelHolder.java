@@ -18,51 +18,70 @@ package grondag.canvas.compat;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-
-import org.spongepowered.asm.mixin.transformer.meta.MixinMerged;
-
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.util.math.MatrixStack;
 
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
 public class FirstPersonModelHolder {
-	private static final Redirect DEFAULT = (worldRenderer, camera, matrices) -> camera.isThirdPerson();
-	public static Redirect handler = DEFAULT;
+	private static final CameraHandler DEFAULT_CAMERA = () -> false;
+	private static final RenderHandler DEFAULT_RENDER = (b) -> { };
+
+	public static CameraHandler cameraHandler = DEFAULT_CAMERA;
+	public static RenderHandler renderHandler = DEFAULT_RENDER;
+
+	private static MethodHandle boundApplyThirdPersonHandle;
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("firstperson")) {
-			try {
-				for (final Method method : WorldRenderer.class.getDeclaredMethods()) {
-					final MixinMerged annotation = method.getAnnotation(MixinMerged.class);
+			final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-					if (annotation != null
-							&& "de.tr7zw.firstperson.mixins.WorldRendererMixin".equals(annotation.mixin())
-							&& method.getName().startsWith("redirect$")) {
-						method.setAccessible(true);
-						final MethodHandle handle = MethodHandles.lookup().unreflect(method);
-						handler = (worldRenderer, camera, matrices) -> {
-							try {
-								return (boolean) handle.invokeExact(worldRenderer, camera, matrices);
-							} catch (final Throwable throwable) {
-								CanvasMod.LOG.warn("Unable to deffer to FirstPersonModel due to exception: ", throwable);
-								CanvasMod.LOG.warn("Subsequent errors will be suppressed");
-								return (handler = DEFAULT).isThirdPerson(worldRenderer, camera, matrices);
-							}
-						};
+			try {
+				final Class<?> fpmCore = Class.forName("dev.tr7zw.firstperson.FirstPersonModelCore");
+				final Class<?> clazz = Class.forName("dev.tr7zw.firstperson.fabric.FabricWrapper");
+				final Method applyThirdPerson = clazz.getDeclaredMethod("applyThirdPerson", boolean.class);
+				final MethodHandle applyThirdPersonHandle = lookup.unreflect(applyThirdPerson);
+				final Field isRenderingPlayer = fpmCore.getField("isRenderingPlayer");
+
+				cameraHandler = () -> {
+					try {
+						if (boundApplyThirdPersonHandle == null) {
+							final Object wrapperObject = fpmCore.getField("wrapper").get(null);
+
+							boundApplyThirdPersonHandle = applyThirdPersonHandle.bindTo(wrapperObject);
+						}
+
+						return (boolean) boundApplyThirdPersonHandle.invokeExact(false);
+					} catch (final Throwable e) {
+						CanvasMod.LOG.warn("Unable to deffer to FirstPersonModel due to exception: ", e);
+						CanvasMod.LOG.warn("Subsequent errors will be suppressed");
+						return (cameraHandler = DEFAULT_CAMERA).renderFirstPersonPlayer();
 					}
-				}
+				};
+
+				renderHandler = (b) -> {
+					try {
+						isRenderingPlayer.setBoolean(null, b);
+					} catch (final Throwable e) {
+						CanvasMod.LOG.warn("Unable to deffer to FirstPersonModel due to exception: ", e);
+						CanvasMod.LOG.warn("Subsequent errors will be suppressed");
+
+						renderHandler = DEFAULT_RENDER;
+					}
+				};
 			} catch (final Throwable throwable) {
 				CanvasMod.LOG.warn("Unable to initialize compatibility for FirstPersonModel due to exception: ", throwable);
 			}
 		}
 	}
 
-	public interface Redirect {
-		boolean isThirdPerson(WorldRenderer worldRenderer, Camera camera, MatrixStack matrices);
+	public interface CameraHandler {
+		boolean renderFirstPersonPlayer();
+	}
+
+	public interface RenderHandler {
+		void setIsRenderingPlayer(boolean b);
 	}
 }

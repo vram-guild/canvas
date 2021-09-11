@@ -24,6 +24,10 @@ package grondag.canvas.buffer.input;
 public interface VertexCollector {
 	int allocate(int size);
 
+	default int allocate(int size, int bucketIndex) {
+		return allocate(size);
+	}
+
 	/**
 	 * Must be called AFTER #allocate() and before any other allocations happen.
 	 */

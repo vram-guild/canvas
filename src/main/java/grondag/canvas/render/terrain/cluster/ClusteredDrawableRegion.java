@@ -19,20 +19,24 @@ package grondag.canvas.render.terrain.cluster;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.input.VertexBucket;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
+import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.render.terrain.base.AbstractDrawableRegion;
 import grondag.canvas.render.terrain.base.DrawableRegion;
 import grondag.canvas.render.terrain.base.UploadableRegion;
+import grondag.canvas.terrain.region.RegionPosition;
 
 public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDrawableStorage> {
-	private ClusteredDrawableRegion(long packedOriginBlockPos, int quadVertexCount, ClusteredDrawableStorage storage) {
-		super(packedOriginBlockPos, quadVertexCount, storage);
+	private ClusteredDrawableRegion(int quadVertexCount, ClusteredDrawableStorage storage) {
+		super(quadVertexCount, storage);
 	}
 
-	public static UploadableRegion uploadable(VertexCollectorList collectorList, boolean translucent, int byteCount, long packedOriginBlockPos) {
-		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TRANSLUCENT : SOLID);
+	public static UploadableRegion uploadable(VertexCollectorList collectorList, VertexClusterRealm realm, int byteCount, RegionPosition origin) {
+		final boolean translucent = realm.isTranslucent;
+		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TerrainRenderStates.TRANSLUCENT_PREDICATE : TerrainRenderStates.SOLID_PREDICATE);
 
 		if (drawList.isEmpty()) {
 			return UploadableRegion.EMPTY_UPLOADABLE;
@@ -48,12 +52,14 @@ public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDra
 		assert collector.renderState.sorted == translucent;
 
 		final TransferBuffer transferBuffer = TransferBuffers.claim(byteCount);
+		final VertexBucket[] buckets = translucent ? null : collector.sortVertexBuckets();
 		collector.toBuffer(0, transferBuffer, 0);
 		ClusteredDrawableStorage storage = new ClusteredDrawableStorage(
-				translucent ? VertexClusterRealm.TRANSLUCENT : VertexClusterRealm.SOLID,
-				transferBuffer, byteCount, packedOriginBlockPos, collector.quadCount() * 4);
+				realm,
+				transferBuffer, byteCount, origin, collector.quadCount() * 4,
+				buckets);
 
-		return new ClusteredDrawableRegion(packedOriginBlockPos, collector.quadCount() * 4, storage);
+		return new ClusteredDrawableRegion(collector.quadCount() * 4, storage);
 	}
 
 	@Override

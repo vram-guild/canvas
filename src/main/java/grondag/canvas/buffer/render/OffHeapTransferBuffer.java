@@ -16,6 +16,7 @@
 
 package grondag.canvas.buffer.render;
 
+import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -43,6 +44,11 @@ class OffHeapTransferBuffer implements TransferBuffer, AllocatableBuffer {
 	@Override
 	public ShortBuffer shortBuffer() {
 		return data.buffer().asShortBuffer();
+	}
+
+	@Override
+	public ByteBuffer byteBuffer() {
+		return data.buffer();
 	}
 
 	@Override

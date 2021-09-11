@@ -16,6 +16,8 @@
 
 package grondag.canvas.pipeline.config.option;
 
+import java.util.Locale;
+
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
@@ -25,8 +27,9 @@ import net.minecraft.text.TranslatableText;
 
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
-public class FloatConfigEntry extends OptionConfigEntry {
+public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 	public final float defaultVal;
 	public final float min;
 	public final float max;
@@ -53,7 +56,7 @@ public class FloatConfigEntry extends OptionConfigEntry {
 
 	@Override
 	String createSource() {
-		return "#define " + name.toUpperCase() + " " + value + "\n";
+		return "#define " + name.toUpperCase(Locale.ROOT) + " " + value + "\n";
 	}
 
 	@Override
@@ -75,5 +78,10 @@ public class FloatConfigEntry extends OptionConfigEntry {
 		valid &= assertAndWarn(!Float.isNaN(max), "Invalid pipeline config option - missing max value");
 
 		return valid;
+	}
+
+	@Override
+	public NamedDependencyMap<FloatConfigEntry> nameMap() {
+		return context.floatConfigEntries;
 	}
 }

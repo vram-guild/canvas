@@ -16,6 +16,8 @@
 
 package grondag.canvas.pipeline.config.option;
 
+import java.util.Locale;
+
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
@@ -25,8 +27,9 @@ import net.minecraft.text.TranslatableText;
 
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
+import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
-public class BooleanConfigEntry extends OptionConfigEntry {
+public class BooleanConfigEntry extends OptionConfigEntry<BooleanConfigEntry> {
 	public final boolean defaultVal;
 	private boolean value;
 
@@ -47,7 +50,7 @@ public class BooleanConfigEntry extends OptionConfigEntry {
 
 	@Override
 	String createSource() {
-		final String result = "#define " + name.toUpperCase() + "\n";
+		final String result = "#define " + name.toUpperCase(Locale.ROOT) + "\n";
 
 		return value ? result : "// " + result;
 	}
@@ -64,5 +67,10 @@ public class BooleanConfigEntry extends OptionConfigEntry {
 
 	public boolean value() {
 		return value;
+	}
+
+	@Override
+	public NamedDependencyMap<BooleanConfigEntry> nameMap() {
+		return context.booleanConfigEntries;
 	}
 }

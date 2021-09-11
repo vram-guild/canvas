@@ -80,8 +80,8 @@ public abstract class AbstractOccluder extends BoxOccluder {
 	 * by {@link #isBoxVisible(int)} with full box. Use when known this
 	 * will be the only test. Otherwise more efficient to call {@link #prepareRegion(RegionPosition)} 1X.
 	 */
-	public final boolean isEmptyRegionVisible(BlockPos origin) {
-		return super.isEmptyRegionVisible(origin.getX(), origin.getY(), origin.getZ());
+	public final boolean isEmptyRegionVisible(BlockPos origin, int fuzz) {
+		return super.isEmptyRegionVisible(origin.getX(), origin.getY(), origin.getZ(), fuzz);
 	}
 
 	/**

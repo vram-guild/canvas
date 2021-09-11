@@ -16,35 +16,39 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.BASE_VERTEX_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FACE_NORMAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FACE_TANGENT;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_QUAD_STRIDE;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE_SHIFT;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_TO_FLOAT_CONVERSION;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR0;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP0;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_START;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U0;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_V0;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X0;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y0;
+import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z0;
 
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3f;
 
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.frex.api.mesh.QuadView;
@@ -54,10 +58,10 @@ import grondag.frex.api.mesh.QuadView;
  * of maintaining and encoding the quad state.
  */
 public class QuadViewImpl implements QuadView {
-	protected final Vec3f faceNormal = new Vec3f();
+	protected static ThreadLocal<Vec3f> FACE_NORMAL_THREADLOCAL = ThreadLocal.withInitial(Vec3f::new);
 	protected int nominalFaceId = ModelHelper.NULL_FACE_ID;
 	protected boolean isGeometryInvalid = true;
-	protected int packedFaceNormal = -1;
+	protected boolean isTangentInvalid = true;
 
 	/**
 	 * Flag true when sprite is assumed to be interpolated and need normalization.
@@ -98,10 +102,8 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public final void load() {
 		isGeometryInvalid = false;
+		isTangentInvalid = false;
 		nominalFaceId = lightFaceId();
-		// face normal isn't encoded
-		NormalHelper.computeFaceNormal(faceNormal, this);
-		packedFaceNormal = -1;
 	}
 
 	/**
@@ -120,6 +122,17 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public boolean hasVertexNormals() {
 		return normalFlags() != 0;
+	}
+
+	public int tangentFlags() {
+		return MeshEncodingHelper.tangentFlags(data[baseIndex + HEADER_BITS]);
+	}
+
+	/**
+	 * True if any vertex tangents has been set.
+	 */
+	public boolean hasVertexTangents() {
+		return tangentFlags() != 0;
 	}
 
 	/**
@@ -147,24 +160,22 @@ public class QuadViewImpl implements QuadView {
 	protected void computeGeometry() {
 		if (isGeometryInvalid) {
 			isGeometryInvalid = false;
+			data[baseIndex + HEADER_FACE_NORMAL] = PackedVector3f.computePackedFaceNormal(this);
 
-			NormalHelper.computeFaceNormal(faceNormal, this);
-			packedFaceNormal = -1;
-
-			final int headerIndex = baseIndex + HEADER_BITS;
+			final int flagsIndex = baseIndex + HEADER_BITS;
 
 			// depends on face normal
 			// NB: important to save back to array because used by geometry helper
-			data[headerIndex] = MeshEncodingHelper.lightFace(data[headerIndex], GeometryHelper.lightFaceId(this));
+			data[flagsIndex] = MeshEncodingHelper.lightFace(data[flagsIndex], GeometryHelper.lightFaceId(this));
 
 			// depends on light face
-			data[baseIndex + HEADER_BITS] = MeshEncodingHelper.geometryFlags(data[headerIndex], GeometryHelper.computeShapeFlags(this));
+			data[flagsIndex] = MeshEncodingHelper.geometryFlags(data[flagsIndex], GeometryHelper.computeShapeFlags(this));
 		}
 	}
 
 	@Override
 	public final void toVanilla(int[] target, int targetIndex) {
-		System.arraycopy(data, baseIndex + VERTEX_START, target, targetIndex, BASE_QUAD_STRIDE);
+		System.arraycopy(data, baseIndex + VERTEX_START, target, targetIndex, MESH_QUAD_STRIDE);
 
 		// Convert sprite data from fixed precision to float
 		int index = targetIndex + 4;
@@ -218,30 +229,62 @@ public class QuadViewImpl implements QuadView {
 		return ModelHelper.faceFromIndex(nominalFaceId);
 	}
 
+	/**
+	 * DO NOT USE INTERNALLY - SLOWER THAN PACKED VALUES.
+	 */
+	@Deprecated
 	@Override
 	public final Vec3f faceNormal() {
-		computeGeometry();
-		return faceNormal;
+		return PackedVector3f.unpackTo(packedFaceNormal(), FACE_NORMAL_THREADLOCAL.get());
 	}
 
 	public int packedFaceNormal() {
 		computeGeometry();
-		int result = packedFaceNormal;
+		return data[baseIndex + HEADER_FACE_NORMAL];
+	}
 
-		if (result == -1) {
-			result = NormalHelper.packNormal(faceNormal);
-			packedFaceNormal = result;
+	private int computePackedFaceTangent() {
+		final float v1 = spriteFloatV(1);
+		final float dv0 = v1 - spriteFloatV(0);
+		final float dv1 = spriteFloatV(2) - v1;
+		final float u1 = spriteFloatU(1);
+		final float inverseLength = 1.0f / ((u1 - spriteFloatU(0)) * dv1 - (spriteFloatU(2) - u1) * dv0);
+
+		final float x1 = x(1);
+		final float y1 = y(1);
+		final float z1 = z(1);
+
+		final float tx = inverseLength * (dv1 * (x1 - x(0)) - dv0 * (x(2) - x1));
+		final float ty = inverseLength * (dv1 * (y1 - y(0)) - dv0 * (y(2) - y1));
+		final float tz = inverseLength * (dv1 * (z1 - z(0)) - dv0 * (z(2) - z1));
+
+		return PackedVector3f.pack(tx, ty, tz);
+	}
+
+	public int packedFaceTanget() {
+		if (isGeometryInvalid) {
+			isTangentInvalid = true;
+			computeGeometry();
 		}
 
-		return result;
+		if (isTangentInvalid) {
+			isTangentInvalid = false;
+			final int result = computePackedFaceTangent();
+			data[baseIndex + HEADER_FACE_TANGENT] = result;
+			return result;
+		} else {
+			return data[baseIndex + HEADER_FACE_TANGENT];
+		}
 	}
 
 	@Override
 	public void copyTo(MutableQuadView targetIn) {
 		final grondag.frex.api.mesh.MutableQuadView target = (grondag.frex.api.mesh.MutableQuadView) targetIn;
 
-		// forces geometry compute
-		final int packedNormal = packedFaceNormal();
+		// force geometry compute
+		computeGeometry();
+		// force tangent compute
+		this.packedFaceTanget();
 
 		final MutableQuadViewImpl quad = (MutableQuadViewImpl) target;
 
@@ -250,10 +293,9 @@ public class QuadViewImpl implements QuadView {
 		// copy everything except the material
 		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, len - 1);
 		quad.isSpriteInterpolated = isSpriteInterpolated;
-		quad.faceNormal.set(faceNormal.getX(), faceNormal.getY(), faceNormal.getZ());
-		quad.packedFaceNormal = packedNormal;
 		quad.nominalFaceId = nominalFaceId;
 		quad.isGeometryInvalid = false;
+		quad.isTangentInvalid = false;
 	}
 
 	@Override
@@ -262,38 +304,34 @@ public class QuadViewImpl implements QuadView {
 			target = new Vec3f();
 		}
 
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_X0;
 		target.set(Float.intBitsToFloat(data[index]), Float.intBitsToFloat(data[index + 1]), Float.intBitsToFloat(data[index + 2]));
 		return target;
 	}
 
 	@Override
 	public float posByIndex(int vertexIndex, int coordinateIndex) {
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X + coordinateIndex]);
+		return Float.intBitsToFloat(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_X0 + coordinateIndex]);
 	}
 
 	@Override
 	public float x(int vertexIndex) {
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X]);
+		return Float.intBitsToFloat(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_X0]);
 	}
 
 	@Override
 	public float y(int vertexIndex) {
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_Y]);
+		return Float.intBitsToFloat(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_Y0]);
 	}
 
 	@Override
 	public float z(int vertexIndex) {
-		return Float.intBitsToFloat(data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_Z]);
+		return Float.intBitsToFloat(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_Z0]);
 	}
 
 	@Override
 	public boolean hasNormal(int vertexIndex) {
 		return (normalFlags() & (1 << vertexIndex)) != 0;
-	}
-
-	protected final int normalIndex(int vertexIndex) {
-		return baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_NORMAL;
 	}
 
 	@Override
@@ -303,45 +341,77 @@ public class QuadViewImpl implements QuadView {
 				target = new Vec3f();
 			}
 
-			final int normal = data[normalIndex(vertexIndex)];
-			target.set(NormalHelper.getPackedNormalComponent(normal, 0), NormalHelper.getPackedNormalComponent(normal, 1), NormalHelper.getPackedNormalComponent(normal, 2));
-			return target;
+			return PackedVector3f.unpackTo(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0], target);
 		} else {
 			return null;
 		}
 	}
 
 	public int packedNormal(int vertexIndex) {
-		return hasNormal(vertexIndex) ? data[normalIndex(vertexIndex)] : packedFaceNormal();
+		return hasNormal(vertexIndex) ? data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0] : packedFaceNormal();
 	}
 
 	@Override
 	public float normalX(int vertexIndex) {
-		return hasNormal(vertexIndex) ? NormalHelper.getPackedNormalComponent(data[normalIndex(vertexIndex)], 0) : Float.NaN;
+		return hasNormal(vertexIndex) ? PackedVector3f.packedX(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
 	}
 
 	@Override
 	public float normalY(int vertexIndex) {
-		return hasNormal(vertexIndex) ? NormalHelper.getPackedNormalComponent(data[normalIndex(vertexIndex)], 1) : Float.NaN;
+		return hasNormal(vertexIndex) ? PackedVector3f.packedY(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
 	}
 
 	@Override
 	public float normalZ(int vertexIndex) {
-		return hasNormal(vertexIndex) ? NormalHelper.getPackedNormalComponent(data[normalIndex(vertexIndex)], 2) : Float.NaN;
+		return hasNormal(vertexIndex) ? PackedVector3f.packedZ(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
+	}
+
+	@Override
+	public boolean hasTangent(int vertexIndex) {
+		return (tangentFlags() & (1 << vertexIndex)) != 0;
+	}
+
+	@Override
+	public Vec3f copyTangent(int vertexIndex, Vec3f target) {
+		if (hasTangent(vertexIndex)) {
+			if (target == null) {
+				target = new Vec3f();
+			}
+
+			return PackedVector3f.unpackTo(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT], target);
+		} else {
+			return null;
+		}
+	}
+
+	public int packedTangent(int vertexIndex) {
+		// WIP should probably not return zero here
+		return hasTangent(vertexIndex) ? data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT] : 0;
+	}
+
+	@Override
+	public float tangentX(int vertexIndex) {
+		return hasTangent(vertexIndex) ? PackedVector3f.packedX(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
+	}
+
+	@Override
+	public float tangentY(int vertexIndex) {
+		return hasTangent(vertexIndex) ? PackedVector3f.packedY(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
+	}
+
+	@Override
+	public float tangentZ(int vertexIndex) {
+		return hasTangent(vertexIndex) ? PackedVector3f.packedZ(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
 	}
 
 	@Override
 	public int lightmap(int vertexIndex) {
-		return data[baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_LIGHTMAP];
-	}
-
-	protected int colorOffset(int vertexIndex) {
-		return vertexIndex * BASE_VERTEX_STRIDE + VERTEX_COLOR;
+		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_LIGHTMAP0];
 	}
 
 	@Override
 	public int vertexColor(int vertexIndex) {
-		return data[baseIndex + colorOffset(vertexIndex)];
+		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_COLOR0];
 	}
 
 	protected final boolean isSpriteNormalized() {
@@ -349,11 +419,11 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	protected final float spriteFloatU(int vertexIndex) {
-		return data[baseIndex + colorOffset(vertexIndex) + 1] * UV_PRECISE_TO_FLOAT_CONVERSION;
+		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
 
 	protected final float spriteFloatV(int vertexIndex) {
-		return data[baseIndex + colorOffset(vertexIndex) + 2] * UV_PRECISE_TO_FLOAT_CONVERSION;
+		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_V0] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
 
 	@Override
@@ -375,7 +445,7 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public int spritePreciseU(int vertexIndex) {
 		assert isSpriteNormalized();
-		return data[baseIndex + colorOffset(vertexIndex) + 1];
+		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0];
 	}
 
 	/**
@@ -383,7 +453,18 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public int spritePreciseV(int vertexIndex) {
 		assert isSpriteNormalized();
-		return data[baseIndex + colorOffset(vertexIndex) + 2];
+		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_V0];
+	}
+
+	/**
+	 * Rounds precise fixed-precision sprite value to an unsigned short value.
+	 *
+	 * <p>NB: This logic is inlined into quad encoders. Those are complicated enough
+	 * that JIT may not reliably inline them at runtime.  If this logic is updated
+	 * it must be updated there also.
+	 */
+	public static int roundSpriteData(int rawVal) {
+		return (rawVal + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
 	}
 
 	/**
@@ -391,7 +472,7 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public int spriteBufferU(int vertexIndex) {
 		assert isSpriteNormalized();
-		return (data[baseIndex + colorOffset(vertexIndex) + 1] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
+		return roundSpriteData(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0]);
 	}
 
 	/**
@@ -399,7 +480,7 @@ public class QuadViewImpl implements QuadView {
 	 */
 	public int spriteBufferV(int vertexIndex) {
 		assert isSpriteNormalized();
-		return (data[baseIndex + colorOffset(vertexIndex) + 2] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION;
+		return roundSpriteData(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_V0]);
 	}
 
 	public int spriteId() {
@@ -408,7 +489,7 @@ public class QuadViewImpl implements QuadView {
 
 	public void transformAndAppendVertex(final int vertexIndex, final Matrix4fExt matrix, final VertexConsumer buff) {
 		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
+		final int index = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_X0;
 		final float x = Float.intBitsToFloat(data[index]);
 		final float y = Float.intBitsToFloat(data[index + 1]);
 		final float z = Float.intBitsToFloat(data[index + 2]);
@@ -418,102 +499,5 @@ public class QuadViewImpl implements QuadView {
 		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
 
 		buff.vertex(xOut, yOut, zOut);
-	}
-
-	public void transformAndAppendVertex(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex) {
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		final float x = Float.intBitsToFloat(data[index]);
-		final float y = Float.intBitsToFloat(data[index + 1]);
-		final float z = Float.intBitsToFloat(data[index + 2]);
-
-		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
-
-		target[targetIndex] = Float.floatToRawIntBits(xOut);
-		target[targetIndex + 1] = Float.floatToRawIntBits(yOut);
-		target[targetIndex + 2] = Float.floatToRawIntBits(zOut);
-	}
-
-	public void transformAndAppendRegionVertex(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex, int regionId) {
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		final float x = Float.intBitsToFloat(data[index]);
-		final float y = Float.intBitsToFloat(data[index + 1]);
-		final float z = Float.intBitsToFloat(data[index + 2]);
-
-		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
-
-		// typical range is 0 to 15 but some bad models might go outside that range
-		// we handle block pos range from -119 to 135 by adding 119 to the integer portion
-		// the shader must subtract 119 to get the actual value
-
-		int xInt = MathHelper.floor(xOut);
-		int yInt = MathHelper.floor(yOut);
-		int zInt = MathHelper.floor(zOut);
-
-		int xFract = Math.round((xOut - xInt) * 0xFFFF);
-		int yFract = Math.round((yOut - yInt) * 0xFFFF);
-		int zFract = Math.round((zOut - zInt) * 0xFFFF);
-
-		xInt += 119;
-		yInt += 119;
-		zInt += 119;
-
-		target[targetIndex] = regionId | (xFract << 16);
-		target[targetIndex + 1] = yFract | (zFract << 16);
-		target[targetIndex + 2] = xInt | (yInt << 8) | (zInt << 16);
-	}
-
-	/**
-	 * The sector-relative origin should be added to the block component and
-	 * is not zero-based to allow for vertices extending outside the sector.
-	 *
-	 * @param vertexIndex
-	 * @param matrix
-	 * @param target
-	 * @param targetIndex
-	 * @param sectorRelativeRegionOrigin 24-bit unsigned XYZ
-	 */
-	public void transformAndAppendRegionVertexNew(final int vertexIndex, final Matrix4fExt matrix, int[] target, int targetIndex, int sectorId, int sectorRelativeRegionOrigin) {
-		// WIP: given the size of the call stack, probably better to move this to the encoder
-
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		final float x = Float.intBitsToFloat(data[index]);
-		final float y = Float.intBitsToFloat(data[index + 1]);
-		final float z = Float.intBitsToFloat(data[index + 2]);
-
-		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
-
-		int xInt = MathHelper.floor(xOut);
-		int yInt = MathHelper.floor(yOut);
-		int zInt = MathHelper.floor(zOut);
-
-		int xFract = Math.round((xOut - xInt) * 0xFFFF);
-		int yFract = Math.round((yOut - yInt) * 0xFFFF);
-		int zFract = Math.round((zOut - zInt) * 0xFFFF);
-
-		// because our integer component could be negative, we have to unpack and repack the sector components
-		xInt += (sectorRelativeRegionOrigin & 0xFF);
-		yInt += ((sectorRelativeRegionOrigin >> 8) & 0xFF);
-		zInt += ((sectorRelativeRegionOrigin >> 16) & 0xFF);
-
-		target[targetIndex] = sectorId | (xFract << 16);
-		target[targetIndex + 1] = yFract | (zFract << 16);
-		target[targetIndex + 2] = xInt | (yInt << 8) | (zInt << 16);
-	}
-
-	public void appendVertex(final int vertexIndex, int[] target, int targetIndex) {
-		final int[] data = this.data;
-		final int index = baseIndex + vertexIndex * BASE_VERTEX_STRIDE + VERTEX_X;
-		target[targetIndex] = data[index];
-		target[targetIndex + 1] = data[index + 1];
-		target[targetIndex + 2] = data[index + 2];
 	}
 }

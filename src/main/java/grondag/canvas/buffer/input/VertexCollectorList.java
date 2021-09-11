@@ -26,11 +26,15 @@ import net.minecraft.client.render.VertexConsumer;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.UploadableRegion;
+import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
+import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.terrain.region.RegionPosition;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
@@ -51,7 +55,7 @@ public class VertexCollectorList {
 	 */
 	public class Consumer extends MutableQuadViewImpl {
 		{
-			data = new int[MeshEncodingHelper.MAX_QUAD_STRIDE];
+			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 			material(Canvas.MATERIAL_STANDARD);
 		}
 
@@ -61,7 +65,11 @@ public class VertexCollectorList {
 
 			if (mat.condition.compute()) {
 				complete();
-				QuadEncoders.STANDARD_ENCODER.encode(this, get(mat));
+				QuadEncoders.STANDARD_ENCODER.encode(this, AbsentEncodingContext.INSTANCE, get(mat));
+
+				if (Configurator.disableUnseenSpriteAnimation) {
+					mat.trackPerFrameAnimation(this.spriteId());
+				}
 			}
 
 			clear();
@@ -144,9 +152,9 @@ public class VertexCollectorList {
 		return intSize * 4;
 	}
 
-	public UploadableRegion toUploadableChunk(boolean sorted, long packedOriginBlockPos) {
+	public UploadableRegion toUploadableChunk(boolean sorted, RegionPosition origin, WorldRenderState worldRenderState) {
 		final int bytes = totalBytes(sorted);
-		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : Configurator.terrainRenderConfig.createUploadableRegion(this, sorted, bytes, packedOriginBlockPos);
+		return bytes == 0 ? UploadableRegion.EMPTY_UPLOADABLE : ClusteredDrawableRegion.uploadable(this, sorted ? worldRenderState.translucentClusterRealm : worldRenderState.solidClusterRealm, bytes, origin);
 	}
 
 	/**

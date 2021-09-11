@@ -16,12 +16,14 @@
 
 package grondag.canvas.mixin;
 
+import static java.lang.Math.fma;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.util.math.Matrix3f;
 
-import grondag.canvas.apiimpl.util.NormalHelper;
+import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 @Mixin(Matrix3f.class)
@@ -47,15 +49,22 @@ public class MixinMatrix3f implements Matrix3fExt {
 
 	@Override
 	public int canvas_transform(int packedNormal) {
-		final float x = NormalHelper.getPackedNormalComponent(packedNormal, 0);
-		final float y = NormalHelper.getPackedNormalComponent(packedNormal, 1);
-		final float z = NormalHelper.getPackedNormalComponent(packedNormal, 2);
+		final float x = PackedVector3f.packedX(packedNormal);
+		final float y = PackedVector3f.packedY(packedNormal);
+		final float z = PackedVector3f.packedZ(packedNormal);
 
-		final float nx = a00 * x + a01 * y + a02 * z;
-		final float ny = a10 * x + a11 * y + a12 * z;
-		final float nz = a20 * x + a21 * y + a22 * z;
+		final float nx = fma(a00, x, fma(a01, y, a02 * z));
+		final float ny = fma(a10, x, fma(a11, y, a12 * z));
+		final float nz = fma(a20, x, fma(a21, y, a22 * z));
 
-		return NormalHelper.packNormal(nx, ny, nz);
+		return PackedVector3f.pack(nx, ny, nz);
+	}
+
+	@Override
+	public boolean canvas_isIdentity() {
+		return a00 == 1.0F && a01 == 0.0F && a02 == 0.0F
+				&& a10 == 0.0F && a11 == 1.0F && a12 == 0.0
+				&& a20 == 0.0F && a21 == 0.0F && a22 == 1.0F;
 	}
 
 	@Override

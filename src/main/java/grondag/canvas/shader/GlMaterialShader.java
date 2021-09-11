@@ -40,10 +40,12 @@ public class GlMaterialShader extends GlShader {
 	@Override
 	protected String preprocessSource(ResourceManager resourceManager, String baseSource) {
 		if (shaderType == GL21.GL_FRAGMENT_SHADER) {
-			return preprocessFragmentSource(resourceManager, baseSource);
+			baseSource = preprocessFragmentSource(resourceManager, baseSource);
 		} else {
-			return preprocessVertexSource(resourceManager, baseSource);
+			baseSource = preprocessVertexSource(resourceManager, baseSource);
 		}
+
+		return super.preprocessSource(resourceManager, baseSource);
 	}
 
 	private String preprocessFragmentSource(ResourceManager resourceManager, String baseSource) {
@@ -57,10 +59,12 @@ public class GlMaterialShader extends GlShader {
 			starts = "\t// NOOP";
 			impl = "";
 		} else if (limit == 1) {
-			impl = loadShaderSource(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(shaders[0]));
+			impl = loadMaterialFragmentShader(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(shaders[0]));
 
 			if (impl.contains("frx_startFragment")) {
-				starts = "\tfrx_startFragment(data);";
+				starts = "\tfrx_startFragment(compatData);";
+			} else if (impl.contains("frx_materialFragment")) {
+				starts = "\tfrx_materialFragment();";
 			} else {
 				starts = "\t// NOOP";
 			}
@@ -77,14 +81,23 @@ public class GlMaterialShader extends GlShader {
 				startsBuilder.append(index);
 				startsBuilder.append(": ");
 
-				String src = loadShaderSource(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
+				String src = loadMaterialFragmentShader(resourceManager, MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(index));
 
+				// UGLY: some pre-release compat handling here - should eventually be removed
 				if (src.contains("frx_startFragment")) {
 					startsBuilder.append("frx_startFragment");
 					startsBuilder.append(index);
-					startsBuilder.append("(data); break;\n");
+					startsBuilder.append("(compatData); break;\n");
 
 					src = StringUtils.replace(src, "frx_startFragment", "frx_startFragment" + index);
+					implBuilder.append(src);
+					implBuilder.append("\n");
+				} else if (src.contains("frx_materialFragment")) {
+					startsBuilder.append("frx_materialFragment");
+					startsBuilder.append(index);
+					startsBuilder.append("(); break;\n");
+
+					src = StringUtils.replace(src, "frx_materialFragment", "frx_materialFragment" + index);
 					implBuilder.append(src);
 					implBuilder.append("\n");
 				} else {
@@ -104,6 +117,7 @@ public class GlMaterialShader extends GlShader {
 			: Pipeline.config().materialProgram.fragmentSource;
 
 		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
+
 		baseSource = StringUtils.replace(baseSource, ShaderStrings.API_TARGET, impl + pipelineSource);
 		baseSource = StringUtils.replace(baseSource, ShaderStrings.FRAGMENT_START, starts);
 		return baseSource;
@@ -120,12 +134,12 @@ public class GlMaterialShader extends GlShader {
 			starts = "\t// NOOP";
 			impl = "\t// NOOP";
 		} else if (limit == 1) {
-			impl = loadShaderSource(resourceManager, MaterialShaderManager.VERTEX_INDEXER.fromHandle(shaders[0]));
+			impl = loadMaterialVertexShader(resourceManager, MaterialShaderManager.VERTEX_INDEXER.fromHandle(shaders[0]));
 
 			// prevent abandoned endVertex calls from conflicting
 			impl = StringUtils.replace(impl, "frx_endVertex", "frx_endVertex_UNUSED");
 
-			starts = impl.contains("frx_startVertex") ? "\tfrx_startVertex(data);" : "\t// NOOP";
+			starts = impl.contains("frx_materialVertex") ? "\tfrx_materialVertex();" : "\t// NOOP";
 		} else {
 			final StringBuilder startsBuilder = new StringBuilder();
 			final StringBuilder implBuilder = new StringBuilder();
@@ -139,16 +153,16 @@ public class GlMaterialShader extends GlShader {
 				startsBuilder.append(index);
 				startsBuilder.append(": ");
 
-				String src = loadShaderSource(resourceManager, MaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
+				String src = loadMaterialVertexShader(resourceManager, MaterialShaderManager.VERTEX_INDEXER.fromHandle(index));
 
 				// prevent abandoned endVertex calls from conflicting
 				src = StringUtils.replace(src, "frx_endVertex", "frx_endVertex" + i + "_UNUSED");
 
-				if (src.contains("frx_startVertex")) {
-					startsBuilder.append("frx_startVertex");
+				if (src.contains("frx_materialVertex")) {
+					startsBuilder.append("frx_materialVertex");
 					startsBuilder.append(index);
-					startsBuilder.append("(data); break;\n");
-					src = StringUtils.replace(src, "frx_startVertex", "frx_startVertex" + index);
+					startsBuilder.append("(); break;\n");
+					src = StringUtils.replace(src, "frx_materialVertex", "frx_materialVertex" + index);
 				} else {
 					startsBuilder.append("break;\n");
 				}
@@ -168,9 +182,17 @@ public class GlMaterialShader extends GlShader {
 				? Pipeline.config().skyShadow.vertexSource
 				: Pipeline.config().materialProgram.vertexSource;
 
-		final String pipelineSource = loadShaderSource(resourceManager, sourceId);
+		final String pipelineSource = PreReleaseShaderCompat.compatifyPipelineVertex(loadShaderSource(resourceManager, sourceId), sourceId);
 		baseSource = StringUtils.replace(baseSource, ShaderStrings.API_TARGET, impl + pipelineSource);
 		baseSource = StringUtils.replace(baseSource, ShaderStrings.VERTEX_START, starts);
 		return baseSource;
+	}
+
+	private static String loadMaterialVertexShader(ResourceManager resourceManager, Identifier shaderSourceId) {
+		return PreReleaseShaderCompat.compatifyMaterialVertex(loadShaderSource(resourceManager, shaderSourceId), shaderSourceId);
+	}
+
+	private static String loadMaterialFragmentShader(ResourceManager resourceManager, Identifier shaderSourceId) {
+		return PreReleaseShaderCompat.compatify(loadShaderSource(resourceManager, shaderSourceId), shaderSourceId);
 	}
 }

@@ -82,6 +82,7 @@ import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.config.FlawlessFramesController;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
@@ -92,6 +93,7 @@ import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
+import grondag.canvas.render.terrain.cluster.ClusterTaskManager;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.MatrixData;
@@ -104,6 +106,7 @@ import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.GFX;
+import grondag.frex.api.config.FlawlessFrames;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
@@ -113,6 +116,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(worldRenderState);
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+	/** Contains the player model output for First Person Model, separate to draw in material pass only. */
+	private final CanvasImmediate materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
 	private final CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(entityCullingFrustum);
@@ -182,7 +187,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		mc.getProfiler().swap("update");
 
-		if (Configurator.terrainSetupOffThread) {
+		if (Configurator.terrainSetupOffThread && !FlawlessFrames.isActive()) {
 			int state = terrainIterator.state();
 
 			if (state == TerrainIterator.COMPLETE) {
@@ -314,7 +319,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		worldRenderState.regionBuilder().upload();
 		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);
 
-		Configurator.terrainRenderConfig.prepareForDraw(worldRenderState);
+		// WIP: need a way to set the deadline appropriately based on steady frame rate and time already elapsed.
+		// Method must ensure we don't have starvation - task queue can't grow indefinitely.
+		ClusterTaskManager.run(System.nanoTime() + 2000000);
 		worldRenderState.rebuidDrawListsIfNeeded();
 
 		// Note these don't have an effect when canvas pipeline is active - lighting happens in the shader
@@ -368,24 +375,25 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
-			boolean isFirstPersonPlayer = false;
 
 			if (!entityRenderDispatcher.shouldRender(entity, entityCullingFrustum, frameCameraX, frameCameraY, frameCameraZ) && !entity.hasPassengerDeep(mc.player)) {
 				continue;
 			}
 
-			if ((entity == camera.getFocusedEntity() && !FirstPersonModelHolder.handler.isThirdPerson(this, camera, viewMatrixStack) && (!(camera.getFocusedEntity() instanceof LivingEntity)
-					|| !((LivingEntity) camera.getFocusedEntity()).isSleeping()))
-					|| (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity)
-			) {
-				if (!worldRenderState.shadowsEnabled()) {
-					continue;
-				}
+			if (entity instanceof ClientPlayerEntity && camera.getFocusedEntity() != entity) {
+				continue;
+			}
 
-				isFirstPersonPlayer = true;
+			final boolean isFirstPersonPlayer = entity == camera.getFocusedEntity() && !camera.isThirdPerson()
+					&& (!(camera.getFocusedEntity() instanceof LivingEntity) || !((LivingEntity) camera.getFocusedEntity()).isSleeping());
+			final boolean renderFirstPersonPlayer = isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.renderFirstPersonPlayer();
+
+			if (isFirstPersonPlayer && !renderFirstPersonPlayer && !worldRenderState.shadowsEnabled()) {
+				continue;
 			}
 
 			++entityCount;
+
 			contextState.setCurrentEntity(entity);
 
 			if (entity.age == 0) {
@@ -397,8 +405,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			VertexConsumerProvider renderProvider;
 
 			if (isFirstPersonPlayer) {
-				// only render as shadow
-				renderProvider = shadowExtrasImmediate;
+				if (renderFirstPersonPlayer) {
+					// TODO: utilize castShadow in entityFunc instead of using separate buffer
+					renderProvider = materialExtrasImmediate;
+				} else {
+					// only render as shadow
+					renderProvider = shadowExtrasImmediate;
+				}
 			} else if (canDrawEntityOutlines && mc.hasOutline(entity)) {
 				didRenderOutlines = true;
 				final OutlineVertexConsumerProvider outlineVertexConsumerProvider = bufferBuilders.getOutlineVertexConsumers();
@@ -414,8 +427,17 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 			entityBlockContext.setPosAndWorldFromEntity(entity);
 
+			FirstPersonModelHolder.renderHandler.setIsRenderingPlayer(renderFirstPersonPlayer);
+
 			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, renderProvider);
+
+			FirstPersonModelHolder.renderHandler.setIsRenderingPlayer(false);
+
+			if (renderFirstPersonPlayer && worldRenderState.shadowsEnabled()) {
+				// render unmodified player model as shadow
+				wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, shadowExtrasImmediate);
+			}
 		}
 
 		contextState.setCurrentEntity(null);
@@ -433,25 +455,32 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			while (itBER.hasNext()) {
 				final BlockEntity blockEntity = itBER.next();
 				final BlockPos blockPos = blockEntity.getPos();
+				final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
+				int stage = -1;
+
+				if (sortedSet != null && !sortedSet.isEmpty()) {
+					stage = sortedSet.last().getStage();
+				}
+
+				if (stage >= 0 && noCullingBlockEntities.contains(blockEntity)) {
+					// no need to render global BERs twice if no block breaking overlay
+					continue;
+				}
+
 				VertexConsumerProvider outputConsumer = immediate;
 				contextState.setCurrentBlockEntity(blockEntity);
 
 				identityStack.push();
 				identityStack.translate(blockPos.getX() - frameCameraX, blockPos.getY() - frameCameraY, blockPos.getZ() - frameCameraZ);
-				final SortedSet<BlockBreakingInfo> sortedSet = wr.canvas_blockBreakingProgressions().get(blockPos.asLong());
 
-				if (sortedSet != null && !sortedSet.isEmpty()) {
-					final int stage = sortedSet.last().getStage();
+				if (stage >= 0) {
+					final MatrixStack.Entry xform = identityStack.peek();
+					final VertexConsumer overlayConsumer = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
 
-					if (stage >= 0) {
-						final MatrixStack.Entry xform = identityStack.peek();
-						final VertexConsumer overlayConsumer = new OverlayVertexConsumer(bufferBuilders.getEffectVertexConsumers().getBuffer(ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.get(stage)), xform.getModel(), xform.getNormal());
-
-						outputConsumer = (renderLayer) -> {
-							final VertexConsumer baseConsumer = immediate.getBuffer(renderLayer);
-							return renderLayer.hasCrumbling() ? VertexConsumers.union(overlayConsumer, baseConsumer) : baseConsumer;
-						};
-					}
+					outputConsumer = (renderLayer) -> {
+						final VertexConsumer baseConsumer = immediate.getBuffer(renderLayer);
+						return renderLayer.hasCrumbling() ? VertexConsumers.union(overlayConsumer, baseConsumer) : baseConsumer;
+					};
 				}
 
 				++blockEntityCount;
@@ -480,6 +509,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderState.disable();
 
 		try (DrawableStream entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
+			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(MaterialTarget.MAIN);
 			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
@@ -492,6 +522,9 @@ public class CanvasWorldRenderer extends WorldRenderer {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "entity_draw_solid");
 			entityBuffer.draw(false);
 			entityBuffer.close();
+
+			materialExtrasBuffer.draw(false);
+			materialExtrasBuffer.close();
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
@@ -552,11 +585,16 @@ public class CanvasWorldRenderer extends WorldRenderer {
 					// THIS IS WHEN LIGHTENING RENDERS IN VANILLA
 					final VertexConsumer blockOutlineConumer = immediate.getBuffer(RenderLayer.getLines());
 
+					// Lines need to be drawn with identity matrix because transforms will be pre-applied at render time
+					eventContext.matrixStack().push();
+					eventContext.matrixStack().loadIdentity();
 					eventContext.prepareBlockOutline(camera.getFocusedEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 
 					if (WorldRenderEvents.BLOCK_OUTLINE.invoker().onBlockOutline(eventContext, eventContext)) {
 						wr.canvas_drawBlockOutline(identityStack, blockOutlineConumer, camera.getFocusedEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 					}
+
+					eventContext.matrixStack().pop();
 				}
 			}
 		}
@@ -741,7 +779,8 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		BufferSynchronizer.checkPoint();
 		DirectBufferAllocator.update();
 		TransferBuffers.update();
-		PipelineManager.reloadIfNeeded();
+		PipelineManager.reloadIfNeeded(false);
+		FlawlessFramesController.handleToggle();
 
 		if (wasFabulous != Pipeline.isFabulous()) {
 			vanillaWorldRenderer.canvas_setupFabulousBuffers();
@@ -782,7 +821,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	@Override
 	public void reload() {
-		PipelineManager.reloadIfNeeded();
+		PipelineManager.reloadIfNeeded(true);
 
 		// cause injections to fire but disable all other vanilla logic
 		// by setting world to null temporarily
@@ -818,7 +857,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		String shadowRegionString = "";
 
 		if (worldRenderState.shadowsEnabled()) {
-			int shadowCount = worldRenderState.shadowVisibleRegions[0].getActiveCount()
+			final int shadowCount = worldRenderState.shadowVisibleRegions[0].getActiveCount()
 					+ worldRenderState.shadowVisibleRegions[1].getActiveCount()
 					+ worldRenderState.shadowVisibleRegions[2].getActiveCount()
 					+ worldRenderState.shadowVisibleRegions[3].getActiveCount();

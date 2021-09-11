@@ -31,6 +31,8 @@ dependencies {
 		exclude(module: "fabric-dimensions-v1")
 	}
 
+	modImplementation "org.anarres:jcpp:1.4.14"
+	
 	modImplementation("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false; changing = true; }
 
 	modImplementation("grondag:fermion-${project.mc_tag}:${project.fermion_version}.+") {
@@ -75,6 +77,7 @@ dependencies {
 		include "me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}"
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
 		include "grondag:bitraster:${bitraster_version}"
+		include "org.anarres:jcpp:1.4.14"
 	}
 
 	//modImplementation("io.github.ladysnake:Satin:${satin_version}") {

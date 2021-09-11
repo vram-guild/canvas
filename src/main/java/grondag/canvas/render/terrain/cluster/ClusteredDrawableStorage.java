@@ -18,9 +18,11 @@ package grondag.canvas.render.terrain.cluster;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import grondag.canvas.buffer.input.VertexBucket;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.UploadableVertexStorage;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
+import grondag.canvas.terrain.region.RegionPosition;
 
 public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	public final VertexClusterRealm realm;
@@ -28,18 +30,22 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	public final int quadVertexCount;
 	public final int triVertexCount;
 	public final long clusterPos;
+	public final RegionPosition regionOrigin;
+	public final VertexBucket[] cullBuckets;
 
 	private TransferBuffer transferBuffer;
 	private boolean isClosed = false;
 	private RegionAllocation allocation = null;
 
-	public ClusteredDrawableStorage(VertexClusterRealm owner, TransferBuffer transferBuffer, int byteCount, long packedOriginBlockPos, int quadVertexCount) {
+	public ClusteredDrawableStorage(VertexClusterRealm owner, TransferBuffer transferBuffer, int byteCount, RegionPosition regionOrigin, int quadVertexCount, VertexBucket[] buckets) {
 		realm = owner;
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 		this.quadVertexCount = quadVertexCount;
+		cullBuckets = buckets;
+		this.regionOrigin = regionOrigin;
 		triVertexCount = quadVertexCount / 4 * 6;
-		clusterPos = VertexClusterRealm.clusterPos(packedOriginBlockPos);
+		clusterPos = VertexClusterRealm.clusterPos(regionOrigin.asLong());
 	}
 
 	TransferBuffer getAndClearTransferBuffer() {
@@ -83,5 +89,17 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	public void upload() {
 		assert allocation == null;
 		allocation = realm.allocate(this);
+	}
+
+	/** Flag 6 (unassigned) will always be set. */
+	public int visibleFaceFlags() {
+		assert cullBuckets != null : "bucket flags requested when buckets not present";
+		return regionOrigin.visibleFaceFlags();
+	}
+
+	/** Flag 6 (unassigned) will always be set. */
+	public int shadowVisibleFaceFlags() {
+		assert cullBuckets != null : "bucket flags requested when buckets not present";
+		return regionOrigin.shadowVisibleFaceFlags();
 	}
 }

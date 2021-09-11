@@ -24,12 +24,14 @@ import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.util.DrawableStream;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
+import grondag.canvas.render.terrain.TerrainFormat;
 
 public class ArrayVertexCollector implements VertexCollector {
 	private final int quadStrideInts;
@@ -44,12 +46,13 @@ public class ArrayVertexCollector implements VertexCollector {
 	private int integerSize = 0;
 
 	public final RenderState renderState;
+	private final VertexBucket.Sorter bucketSorter;
 
 	public ArrayVertexCollector(RenderState renderState, boolean isTerrain) {
 		this.renderState = renderState;
 		this.isTerrain = isTerrain;
-		// VF quads use vertex stride because of indexing
-		quadStrideInts = isTerrain ? Configurator.terrainRenderConfig.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts;
+		bucketSorter = isTerrain && !renderState.sorted ? new VertexBucket.Sorter() : null;
+		quadStrideInts = isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
@@ -105,6 +108,17 @@ public class ArrayVertexCollector implements VertexCollector {
 		return result;
 	}
 
+	@Override
+	public int allocate(int size, int bucketIndex) {
+		assert isTerrain;
+
+		if (bucketSorter != null) {
+			bucketSorter.add(bucketIndex, integerSize);
+		}
+
+		return allocate(size);
+	}
+
 	public void toBuffer(IntBuffer intBuffer, int startingIndex) {
 		intBuffer.put(vertexData, startingIndex, integerSize);
 	}
@@ -115,11 +129,29 @@ public class ArrayVertexCollector implements VertexCollector {
 
 	public void clear() {
 		integerSize = 0;
+
+		if (bucketSorter != null) {
+			bucketSorter.clear();
+		}
 	}
 
-	public boolean sortQuads(float x, float y, float z) {
+	public VertexBucket[] sortVertexBuckets() {
+		return bucketSorter == null ? null : bucketSorter.sort(vertexData, integerSize);
+	}
+
+	public boolean sortTerrainQuads(Vec3d sortPos, RegionRenderSector sector) {
+		assert isTerrain;
+
+		return sortQuads(
+			(float) (sortPos.x - sector.paddedBlockOriginX),
+			(float) (sortPos.y - sector.paddedBlockOriginY),
+			(float) (sortPos.z - sector.paddedBlockOriginZ)
+		);
+	}
+
+	private boolean sortQuads(float x, float y, float z) {
 		final int quadCount = quadCount();
-		final QuadDistanceFunc distanceFunc = isTerrain ? Configurator.terrainRenderConfig.selectQuadDistanceFunction(this) : quadDistanceStandard;
+		final QuadDistanceFunc distanceFunc = isTerrain ? quadDistanceTerrain : quadDistanceStandard;
 
 		if (perQuadDistance.length < quadCount) {
 			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
@@ -140,7 +172,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		return didSwap;
 	}
 
-	public interface QuadDistanceFunc {
+	private interface QuadDistanceFunc {
 		float compute(float x, float y, float z, int quadIndex);
 	}
 
@@ -169,7 +201,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		}
 	};
 
-	public final QuadDistanceFunc quadDistanceStandard = this::getDistanceSq;
+	private final QuadDistanceFunc quadDistanceStandard = this::getDistanceSq;
 
 	private float getDistanceSq(float x, float y, float z, int quadIndex) {
 		final int integerStride = quadStrideInts / 4;
@@ -194,6 +226,45 @@ public class ArrayVertexCollector implements VertexCollector {
 		final float x3 = Float.intBitsToFloat(vertexData[i]);
 		final float y3 = Float.intBitsToFloat(vertexData[i + 1]);
 		final float z3 = Float.intBitsToFloat(vertexData[i + 2]);
+
+		// compute average distance by component
+		final float dx = (x0 + x1 + x2 + x3) * 0.25f - x;
+		final float dy = (y0 + y1 + y2 + y3) * 0.25f - y;
+		final float dz = (z0 + z1 + z2 + z3) * 0.25f - z;
+
+		return dx * dx + dy * dy + dz * dz;
+	}
+
+	private final QuadDistanceFunc quadDistanceTerrain = this::getDistanceSqTerrain;
+	private static final float POS_CONVERSION = 1f / 0xFFFF;
+
+	private float getDistanceSqTerrain(float x, float y, float z, int quadIndex) {
+		final int integerStride = quadStrideInts / 4;
+
+		// unpack vertex coordinates
+		int i = quadIndex * quadStrideInts;
+		final int pos0 = vertexData[i + 2];
+		final float x0 = (pos0 & 0xFF) + (vertexData[i] >>> 16) * POS_CONVERSION;
+		final float y0 = ((pos0 >> 8) & 0xFF) + (vertexData[i + 1] & 0xFFFF) * POS_CONVERSION;
+		final float z0 = ((pos0 >> 16) & 0xFF) + (vertexData[i + 1] >>> 16) * POS_CONVERSION;
+
+		i += integerStride;
+		final int pos1 = vertexData[i + 2];
+		final float x1 = (pos1 & 0xFF) + (vertexData[i] >>> 16) * POS_CONVERSION;
+		final float y1 = ((pos1 >> 8) & 0xFF) + (vertexData[i + 1] & 0xFFFF) * POS_CONVERSION;
+		final float z1 = ((pos1 >> 16) & 0xFF) + (vertexData[i + 1] >>> 16) * POS_CONVERSION;
+
+		i += integerStride;
+		final int pos2 = vertexData[i + 2];
+		final float x2 = (pos2 & 0xFF) + (vertexData[i] >>> 16) * POS_CONVERSION;
+		final float y2 = ((pos2 >> 8) & 0xFF) + (vertexData[i + 1] & 0xFFFF) * POS_CONVERSION;
+		final float z2 = ((pos2 >> 16) & 0xFF) + (vertexData[i + 1] >>> 16) * POS_CONVERSION;
+
+		i += integerStride;
+		final int pos3 = vertexData[i + 2];
+		final float x3 = (pos3 & 0xFF) + (vertexData[i] >>> 16) * POS_CONVERSION;
+		final float y3 = ((pos3 >> 8) & 0xFF) + (vertexData[i + 1] & 0xFFFF) * POS_CONVERSION;
+		final float z3 = ((pos3 >> 16) & 0xFF) + (vertexData[i + 1] >>> 16) * POS_CONVERSION;
 
 		// compute average distance by component
 		final float dx = (x0 + x1 + x2 + x3) * 0.25f - x;
