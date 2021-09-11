@@ -312,7 +312,19 @@ public abstract class Timekeeper {
 	}
 
 	public static void renderOverlay(MatrixStack ms, TextRenderer fr) {
+		boolean toggled = false;
+
+		while (CanvasMod.PROFILER_TOGGLE.wasPressed()) {
+			toggled = !toggled;
+		}
+
+		if (toggled) {
+			Configurator.displayRenderProfiler = !Configurator.displayRenderProfiler;
+			configOrPipelineReload();
+		}
+
 		if (!(instance instanceof Active) || !Configurator.displayRenderProfiler) return;
+		if (((Active) instance).frameSinceReload < Active.CONTAINER_SETUP_FRAME) return;
 
 		final Active active = (Active) instance;
 		final float overlayScale = Configurator.profilerOverlayScale;

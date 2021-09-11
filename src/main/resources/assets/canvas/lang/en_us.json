@@ -128,6 +128,7 @@
   "config.canvas.help.render_lag_spike_fps": "Target frames per second when Log Render Lag Spikes is enabled.;If elapsed time exceeds an entire frame, a spike is logged.",
   "config.canvas.value.display_render_profiler": "Display Render Profiler",
   "config.canvas.help.display_render_profiler": "Enable and display render profiler data.",
+  "key.canvas.profiler_toggle": "Toggle Render Profiler",
   "config.canvas.value.profiler_display_mode": "Profiler Display Mode",
   "config.canvas.help.profiler_display_mode": "Type of profiler data to display.",
   "config.canvas.value.profiler_detail_level": "Profiler Detail Level",

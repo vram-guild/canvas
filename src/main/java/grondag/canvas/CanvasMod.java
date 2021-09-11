@@ -61,6 +61,7 @@ public class CanvasMod implements ClientModInitializer {
 	public static KeyBinding DEBUG_NEXT = new KeyBinding("key.canvas.debug_next", Character.valueOf(']'), "key.canvas.category");
 	public static KeyBinding RECOMPILE = new KeyBinding("key.canvas.recompile", Character.valueOf('='), "key.canvas.category");
 	public static KeyBinding FLAWLESS_TOGGLE = new KeyBinding("key.canvas.flawless_toggle", -1, "key.canvas.category");
+	public static KeyBinding PROFILER_TOGGLE = new KeyBinding("key.canvas.profiler_toggle", -1, "key.canvas.category");
 	public static String versionString = "unknown";
 
 	@Override
@@ -89,6 +90,7 @@ public class CanvasMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(DEBUG_NEXT);
 		KeyBindingHelper.registerKeyBinding(RECOMPILE);
 		KeyBindingHelper.registerKeyBinding(FLAWLESS_TOGGLE);
+		KeyBindingHelper.registerKeyBinding(PROFILER_TOGGLE);
 
 		Compat.init();
 
