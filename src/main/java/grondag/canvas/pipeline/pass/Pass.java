@@ -35,10 +35,8 @@ public abstract class Pass {
 		return this.config.name;
 	}
 
-	public final void runIfEnabled(int width, int height) {
-		if (!config.toggleConfig.isValid() || config.toggleConfig.value().value()) {
-			run(width, height);
-		}
+	public final boolean isEnabled() {
+		return !config.toggleConfig.isValid() || config.toggleConfig.value().value();
 	}
 
 	public abstract void run(int width, int height);
