@@ -44,7 +44,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
  * combining quad lists, but the vanilla logic only handles one model per block. To route all of
  * them through vanilla logic would require additional hooks.
  *
- * <p>Works by copying the quad data to an "editor" quad held in the instance,
+ * <p>Works by copying the quad data to an "editor" quad held in the instance(),
  * where all transformations are applied before buffering. Transformations should be
  * the same as they would be in a vanilla render - the editor is serving mainly
  * as a way to access vertex data without magical numbers. It also allows a consistent interface
@@ -71,25 +71,25 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		AO_SHADED_INDEX_START = AO_FLAT_INDEX_START + BLEND_MODE_COUNT;
 		MATERIALS = new RenderMaterialImpl[AO_SHADED_INDEX_START + BLEND_MODE_COUNT];
 
-		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).disableDiffuse(true).disableAo(true).find();
-		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).disableAo(true).find();
-		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).disableDiffuse(true).find();
-		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).find();
+		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_SOLID).disableDiffuse(true).disableAo(true).find();
+		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_SOLID).disableAo(true).find();
+		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_SOLID).disableDiffuse(true).find();
+		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_SOLID).find();
 
-		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableDiffuse(true).disableAo(true).find();
-		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableAo(true).find();
-		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableDiffuse(true).find();
-		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).find();
+		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableDiffuse(true).disableAo(true).find();
+		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableAo(true).find();
+		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableDiffuse(true).find();
+		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT).find();
 
-		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableDiffuse(true).disableAo(true).find();
-		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableAo(true).find();
-		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableDiffuse(true).find();
-		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).find();
+		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableDiffuse(true).disableAo(true).find();
+		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableAo(true).find();
+		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableDiffuse(true).find();
+		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).find();
 
-		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableDiffuse(true).disableAo(true).find();
-		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableAo(true).find();
-		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableDiffuse(true).find();
-		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).find();
+		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableDiffuse(true).disableAo(true).find();
+		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableAo(true).find();
+		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableDiffuse(true).find();
+		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).find();
 	}
 
 	protected RenderMaterialImpl flatMaterial() {

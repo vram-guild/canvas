@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 
 import io.vram.frex.api.mesh.Mesh;
 
-import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.StandardMaterials;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
@@ -65,7 +65,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 	private class Maker extends QuadEditorImpl {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
-			material(Canvas.MATERIAL_STANDARD);
+			material(StandardMaterials.MATERIAL_STANDARD);
 		}
 
 		// only used via RenderContext.getEmitter()

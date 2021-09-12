@@ -48,8 +48,8 @@ import static grondag.canvas.config.Configurator.logRenderLagSpikes;
 import static grondag.canvas.config.Configurator.pipelineId;
 import static grondag.canvas.config.Configurator.preprocessShaderSource;
 import static grondag.canvas.config.Configurator.preventDepthFighting;
-import static grondag.canvas.config.Configurator.profilerDisplayMode;
 import static grondag.canvas.config.Configurator.profilerDetailLevel;
+import static grondag.canvas.config.Configurator.profilerDisplayMode;
 import static grondag.canvas.config.Configurator.profilerOverlayScale;
 import static grondag.canvas.config.Configurator.reduceResolutionOnMac;
 import static grondag.canvas.config.Configurator.reload;
@@ -128,7 +128,7 @@ public class ConfigGui {
 				.setTooltipSupplier(o -> Optional.of(parse(o.descriptionKey)))
 				.setSaveConsumer(b -> {
 					if (!b.id.toString().equals(pipelineId)) {
-						Canvas.INSTANCE.recompile();
+						Canvas.instance().recompile();
 						reload = true;
 						pipelineId = b.id.toString();
 					}

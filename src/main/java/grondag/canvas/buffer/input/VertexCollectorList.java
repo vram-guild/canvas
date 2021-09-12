@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.StandardMaterials;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
@@ -55,7 +55,7 @@ public class VertexCollectorList {
 	public class Consumer extends QuadEditorImpl {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
-			material(Canvas.MATERIAL_STANDARD);
+			material(StandardMaterials.MATERIAL_STANDARD);
 		}
 
 		@Override

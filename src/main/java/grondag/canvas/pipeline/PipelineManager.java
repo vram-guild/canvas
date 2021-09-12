@@ -104,7 +104,7 @@ public class PipelineManager {
 
 		if (forceRecompile) {
 			CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
-			Canvas.INSTANCE.recompile();
+			Canvas.instance().recompile();
 		}
 	}
 

@@ -16,11 +16,13 @@
 
 package grondag.canvas;
 
+import io.vram.frex.api.renderer.RendererInitializer;
 import org.apache.logging.log4j.LogManager;
 import org.lwjgl.system.Configuration;
 import org.lwjgl.system.Platform;
 import org.lwjgl.system.jemalloc.JEmalloc;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 
 public class CanvasPreLaunch implements PreLaunchEntrypoint {
@@ -37,6 +39,8 @@ public class CanvasPreLaunch implements PreLaunchEntrypoint {
 			}
 		}
 
+		RendererInitializer.register("grondag.canvas.apiimpl.Canvas", "instance", Thread.currentThread().getContextClassLoader(), false);
+
 		assert enableRenderDocInDev();
 	}
 
@@ -44,7 +48,7 @@ public class CanvasPreLaunch implements PreLaunchEntrypoint {
 	private static boolean enableRenderDocInDev() {
 		try {
 			System.loadLibrary("renderdoc");
-		} catch (Throwable e) {
+		} catch (final Throwable e) {
 			// eat it
 		}
 
@@ -52,10 +56,12 @@ public class CanvasPreLaunch implements PreLaunchEntrypoint {
 	}
 
 	private static boolean isJEmallocPotentiallyBuggy() {
+		// @formatter:off
 		// done this way to make eclipse shut up in dev
 		int major = JEmalloc.JEMALLOC_VERSION_MAJOR;
 		int minor = JEmalloc.JEMALLOC_VERSION_MINOR;
 		int patch = JEmalloc.JEMALLOC_VERSION_BUGFIX;
+		// @formatter:on
 
 		if (major == 5) {
 			if (minor < 2) {

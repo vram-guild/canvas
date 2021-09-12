@@ -19,10 +19,10 @@ package grondag.canvas.apiimpl;
 import java.util.function.BooleanSupplier;
 
 import io.vram.frex.api.material.MaterialCondition;
-import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.MeshBuilder;
 import io.vram.frex.api.renderer.Renderer;
+import io.vram.frex.api.renderer.RendererConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
@@ -52,19 +52,20 @@ import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 
 public class Canvas implements Renderer {
-	public static final Canvas INSTANCE = new Canvas();
+	private static Canvas instance = new Canvas();
 
-	public static final RenderMaterialImpl MATERIAL_STANDARD = INSTANCE.materialFinder().preset(MaterialConstants.PRESET_DEFAULT).find();
+	public static Canvas instance() {
+		return instance;
+	}
 
-	static {
-		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
+	public static void initialize() {
+		RendererConsumer.accept(instance);
 	}
 
 	private final Object2ObjectOpenHashMap<Identifier, RenderMaterialImpl> materialMap = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<Identifier, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
-	private Canvas() {
-	}
+	private Canvas() { }
 
 	@Override
 	public MeshBuilder meshBuilder() {

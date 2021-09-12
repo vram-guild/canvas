@@ -18,7 +18,7 @@ package grondag.canvas;
 
 import io.vram.frex.api.config.FrexFeature;
 import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.compat.fabric.FabricRenderer;
+import io.vram.frex.api.model.FluidModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
@@ -31,7 +31,6 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
-import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -43,7 +42,6 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.texture.ResourceCacheManager;
-import grondag.frex.api.fluid.FluidQuadSupplier;
 
 //FEAT: weather rendering
 //FEAT: sky rendering
@@ -72,12 +70,10 @@ public class CanvasMod implements ClientModInitializer {
 		ConfigManager.init();
 		FrexFeature.registerFeatures(FrexFeature.UPDATE_MATERIAL_REGISTRATION);
 		// WIP: move to compat layer?
-		FluidQuadSupplier.setReloadHandler(FluidHandler.HANDLER);
+		FluidModel.setReloadHandler(FluidHandler.HANDLER);
 
 		// WIP: move to compat layer
-		RendererAccess.INSTANCE.registerRenderer(FabricRenderer.of(Canvas.INSTANCE));
-		// WIP: move to compat layer
-		InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
+		InvalidateRenderStateCallback.EVENT.register(Canvas.instance()::reload);
 
 		if (Configurator.debugNativeMemoryAllocation) {
 			LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");

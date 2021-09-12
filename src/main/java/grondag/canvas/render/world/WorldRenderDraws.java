@@ -121,9 +121,6 @@ public class WorldRenderDraws {
 		bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR);
 		final int regionRange = region.origin.occlusionRange();
 
-		// WIP: remove
-		System.out.println(limit);
-
 		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
 
 		for (int i = RegionOcclusionCalculator.OCCLUSION_RESULT_FIRST_BOX_INDEX; i < limit; ++i) {

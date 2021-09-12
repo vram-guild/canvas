@@ -19,16 +19,18 @@ package grondag.canvas.apiimpl;
 import java.util.IdentityHashMap;
 
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.RenderMaterial;
 
 import net.minecraft.client.render.RenderLayer;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 public class StandardMaterials {
-	public static final RenderMaterialImpl BLOCK_TRANSLUCENT = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).find();
-	public static final RenderMaterialImpl BLOCK_SOLID = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).find();
-	public static final RenderMaterialImpl BLOCK_CUTOUT = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).find();
-	public static final RenderMaterialImpl BLOCK_CUTOUT_MIPPED = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).find();
+	public static final RenderMaterialImpl BLOCK_TRANSLUCENT = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).find();
+	public static final RenderMaterialImpl BLOCK_SOLID = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_SOLID).find();
+	public static final RenderMaterialImpl BLOCK_CUTOUT = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT).find();
+	public static final RenderMaterialImpl BLOCK_CUTOUT_MIPPED = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).find();
+	public static final RenderMaterialImpl MATERIAL_STANDARD = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_DEFAULT).find();
 
 	private static final IdentityHashMap<RenderLayer, RenderMaterialImpl> LAYER_MAP = new IdentityHashMap<>();
 
@@ -37,6 +39,7 @@ public class StandardMaterials {
 		LAYER_MAP.put(RenderLayer.getCutout(), BLOCK_CUTOUT);
 		LAYER_MAP.put(RenderLayer.getCutoutMipped(), BLOCK_CUTOUT_MIPPED);
 		LAYER_MAP.put(RenderLayer.getTranslucent(), BLOCK_TRANSLUCENT);
+		Canvas.instance().registerMaterial(RenderMaterial.MATERIAL_STANDARD, StandardMaterials.MATERIAL_STANDARD);
 	}
 
 	public static RenderMaterialImpl get(RenderLayer layer) {

@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.vram.frex.api.model.BlockModel;
+import io.vram.frex.api.model.FluidModel;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -65,7 +66,6 @@ import grondag.canvas.terrain.region.input.SignalInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.terrain.util.TerrainExecutorTask;
-import grondag.frex.api.fluid.FluidQuadSupplier;
 
 @Environment(EnvType.CLIENT)
 public class RenderRegion implements TerrainExecutorTask {
@@ -439,7 +439,7 @@ public class RenderRegion implements TerrainExecutorTask {
 					normalMatrix.loadIdentity();
 
 					if (hasFluid) {
-						context.renderFluid(blockState, searchPos, false, FluidQuadSupplier.get(fluidState.getFluid()), matrixStack);
+						context.renderFluid(blockState, searchPos, false, FluidModel.get(fluidState.getFluid()), matrixStack);
 					}
 
 					if (hasBlock) {
