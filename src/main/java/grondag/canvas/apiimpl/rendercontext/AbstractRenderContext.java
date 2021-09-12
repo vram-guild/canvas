@@ -17,9 +17,14 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.BitSet;
-import java.util.Random;
-import java.util.function.Consumer;
 
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.mesh.Mesh;
+import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.model.ModelRenderContext;
+import io.vram.frex.api.model.QuadTransform;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,23 +32,16 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.texture.Sprite;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.material.MaterialMap;
 
 // UGLY: consolidate and simplify this class hierarchy
-public abstract class AbstractRenderContext extends AbstractEncodingContext implements RenderContext {
+public abstract class AbstractRenderContext extends AbstractEncodingContext implements ModelRenderContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
@@ -54,7 +52,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 
 	protected final String name;
 	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
-	protected final MutableQuadViewImpl makerQuad = meshConsumer.editorQuad;
+	protected final QuadEditorImpl makerQuad = meshConsumer.editorQuad;
 	protected final FallbackConsumer fallbackConsumer = new FallbackConsumer(this);
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private final QuadTransform stackTransform = (q) -> {
@@ -70,7 +68,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	};
 
 	protected MaterialMap materialMap = defaultMap;
-	protected BlendMode defaultBlendMode;
+	protected int defaultBlendMode;
 	protected boolean isFluidModel = false;
 	private QuadTransform activeTransform = NO_TRANSFORM;
 
@@ -90,7 +88,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		}
 	}
 
-	protected final boolean transform(MutableQuadViewImpl q) {
+	protected final boolean transform(QuadEditorImpl q) {
 		return activeTransform.transform(q);
 	}
 
@@ -98,7 +96,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		return activeTransform != NO_TRANSFORM;
 	}
 
-	void mapMaterials(MutableQuadViewImpl quad) {
+	void mapMaterials(QuadEditorImpl quad) {
 		if (materialMap == defaultMap) {
 			return;
 		}
@@ -138,17 +136,18 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	}
 
 	@Override
-	public final Consumer<Mesh> meshConsumer() {
-		return meshConsumer;
+	public final void accept(Mesh mesh) {
+		meshConsumer.accept(mesh);
 	}
 
 	@Override
-	public final Consumer<BakedModel> fallbackConsumer() {
-		return fallbackConsumer;
+	public final void accept(BakedModel model, BlockState blockState) {
+		// WIP: Add blockstate to fallback consumer
+		fallbackConsumer.accept(model);
 	}
 
 	@Override
-	public final QuadEmitter getEmitter() {
+	public final QuadEditor quadEmitter() {
 		return meshConsumer.getEmitter();
 	}
 
@@ -157,11 +156,9 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		return true;
 	}
 
-	protected final boolean cullTest(MutableQuadViewImpl quad) {
+	protected final boolean cullTest(QuadEditorImpl quad) {
 		return cullTest(quad.cullFaceId());
 	}
-
-	protected abstract Random random();
 
 	public abstract boolean defaultAo();
 
@@ -174,11 +171,11 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	 */
 	public abstract int brightness();
 
-	public abstract void computeAo(MutableQuadViewImpl quad);
+	public abstract void computeAo(QuadEditorImpl quad);
 
-	public abstract void computeFlat(MutableQuadViewImpl quad);
+	public abstract void computeFlat(QuadEditorImpl quad);
 
-	protected void computeFlatSimple(MutableQuadViewImpl quad) {
+	protected void computeFlatSimple(QuadEditorImpl quad) {
 		final int brightness = flatBrightness(quad);
 		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
 		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
@@ -186,10 +183,10 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
 	}
 
-	public abstract int flatBrightness(MutableQuadViewImpl quad);
+	public abstract int flatBrightness(QuadEditorImpl quad);
 
 	public final void renderQuad() {
-		final MutableQuadViewImpl quad = makerQuad;
+		final QuadEditorImpl quad = makerQuad;
 
 		mapMaterials(quad);
 
@@ -220,23 +217,23 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		}
 	}
 
-	protected abstract void encodeQuad(MutableQuadViewImpl quad);
+	protected abstract void encodeQuad(QuadEditorImpl quad);
 
 	protected void adjustMaterial() {
 		final MaterialFinderImpl finder = this.finder;
 
-		BlendMode bm = finder.blendMode();
+		int bm = finder.preset();
 
-		if (bm == BlendMode.DEFAULT) {
+		if (bm == MaterialConstants.PRESET_DEFAULT) {
 			bm = defaultBlendMode;
-			finder.blendMode(null);
+			finder.preset(MaterialConstants.PRESET_NONE);
 		}
 
 		// fully specific renderable material
-		if (bm == null) return;
+		if (bm == MaterialConstants.PRESET_NONE) return;
 
 		switch (bm) {
-			case CUTOUT: {
+			case MaterialConstants.PRESET_CUTOUT: {
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(true)
@@ -244,7 +241,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 					.sorted(false);
 				break;
 			}
-			case CUTOUT_MIPPED:
+			case MaterialConstants.PRESET_CUTOUT_MIPPED:
 				finder
 					.transparency(MaterialFinder.TRANSPARENCY_NONE)
 					.cutout(MaterialFinder.CUTOUT_HALF)
@@ -252,14 +249,14 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;
-			case TRANSLUCENT:
+			case MaterialConstants.PRESET_TRANSLUCENT:
 				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
 					.cutout(MaterialFinder.CUTOUT_NONE)
 					.unmipped(false)
 					.target(MaterialFinder.TARGET_TRANSLUCENT)
 					.sorted(true);
 				break;
-			case SOLID:
+			case MaterialConstants.PRESET_SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 					.cutout(MaterialFinder.CUTOUT_NONE)
 					.unmipped(false)

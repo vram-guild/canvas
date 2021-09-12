@@ -20,6 +20,7 @@ import java.util.Iterator;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.vram.frex.api.material.MaterialMap;
 
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleManager;
@@ -44,7 +45,6 @@ import grondag.canvas.mixinterface.ParticleManagerExt;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.material.MaterialMap;
 import grondag.frex.api.material.RenderMaterial;
 
 public class CanvasParticleRenderer {

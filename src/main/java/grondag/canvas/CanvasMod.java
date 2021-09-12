@@ -16,6 +16,9 @@
 
 package grondag.canvas;
 
+import io.vram.frex.api.config.FrexFeature;
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.compat.fabric.FabricRenderer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
@@ -29,7 +32,6 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -41,7 +43,6 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.texture.ResourceCacheManager;
-import grondag.frex.api.RendererFeature;
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
 //FEAT: weather rendering
@@ -69,9 +70,13 @@ public class CanvasMod implements ClientModInitializer {
 		versionString = FabricLoader.getInstance().getModContainer(CanvasMod.MODID).get().getMetadata().getVersion().getFriendlyString();
 
 		ConfigManager.init();
-		RendererAccess.INSTANCE.registerRenderer(Canvas.INSTANCE);
-		RendererFeature.registerFeatures(RendererFeature.UPDATE_MATERIAL_REGISTRATION);
+		FrexFeature.registerFeatures(FrexFeature.UPDATE_MATERIAL_REGISTRATION);
+		// WIP: move to compat layer?
 		FluidQuadSupplier.setReloadHandler(FluidHandler.HANDLER);
+
+		// WIP: move to compat layer
+		RendererAccess.INSTANCE.registerRenderer(FabricRenderer.of(Canvas.INSTANCE));
+		// WIP: move to compat layer
 		InvalidateRenderStateCallback.EVENT.register(Canvas.INSTANCE::reload);
 
 		if (Configurator.debugNativeMemoryAllocation) {
@@ -79,12 +84,13 @@ public class CanvasMod implements ClientModInitializer {
 			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
 		}
 
-		((RenderLayerExt) RenderLayer.getTranslucent()).canvas_blendMode(BlendMode.TRANSLUCENT);
-		((RenderLayerExt) RenderLayer.getTripwire()).canvas_blendMode(BlendMode.TRANSLUCENT);
-		((RenderLayerExt) RenderLayer.getSolid()).canvas_blendMode(BlendMode.SOLID);
-		((RenderLayerExt) RenderLayer.getCutout()).canvas_blendMode(BlendMode.CUTOUT);
-		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_blendMode(BlendMode.CUTOUT_MIPPED);
+		((RenderLayerExt) RenderLayer.getTranslucent()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
+		((RenderLayerExt) RenderLayer.getTripwire()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
+		((RenderLayerExt) RenderLayer.getSolid()).canvas_preset(MaterialConstants.PRESET_SOLID);
+		((RenderLayerExt) RenderLayer.getCutout()).canvas_preset(MaterialConstants.PRESET_CUTOUT);
+		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_preset(MaterialConstants.PRESET_CUTOUT_MIPPED);
 
+		// WIP: move to compat layer
 		KeyBindingHelper.registerKeyBinding(DEBUG_TOGGLE);
 		KeyBindingHelper.registerKeyBinding(DEBUG_PREV);
 		KeyBindingHelper.registerKeyBinding(DEBUG_NEXT);

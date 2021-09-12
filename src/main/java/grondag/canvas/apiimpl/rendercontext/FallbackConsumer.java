@@ -19,21 +19,21 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.List;
 import java.util.function.Consumer;
 
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
+import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.model.ModelHelper;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.Direction;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.mesh.QuadEmitter;
 
 /**
  * Consumer for vanilla baked models. Generally intended to give visual results matching a vanilla render,
@@ -64,56 +64,61 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 	protected static final RenderMaterialImpl[] MATERIALS;
 
 	static {
-		final BlendMode[] modes = BlendMode.values();
-
-		BLEND_MODE_COUNT = modes.length;
+		BLEND_MODE_COUNT = 6;
 		FLAT_INDEX_START = 0;
 		SHADED_INDEX_START = FLAT_INDEX_START + BLEND_MODE_COUNT;
 		AO_FLAT_INDEX_START = SHADED_INDEX_START + BLEND_MODE_COUNT;
 		AO_SHADED_INDEX_START = AO_FLAT_INDEX_START + BLEND_MODE_COUNT;
 		MATERIALS = new RenderMaterialImpl[AO_SHADED_INDEX_START + BLEND_MODE_COUNT];
 
-		for (int i = 0; i < BLEND_MODE_COUNT; ++i) {
-			final BlendMode b = modes[i];
+		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).disableDiffuse(true).disableAo(true).find();
+		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).disableAo(true).find();
+		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).disableDiffuse(true).find();
+		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_SOLID] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).find();
 
-			if (b == BlendMode.DEFAULT) {
-				continue;
-			}
+		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableDiffuse(true).disableAo(true).find();
+		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableAo(true).find();
+		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).disableDiffuse(true).find();
+		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).find();
 
-			MATERIALS[FLAT_INDEX_START + i] = Canvas.INSTANCE.materialFinder().blendMode(b).disableDiffuse(true).disableAo(true).find();
-			MATERIALS[SHADED_INDEX_START + i] = Canvas.INSTANCE.materialFinder().blendMode(b).disableAo(true).find();
-			MATERIALS[AO_FLAT_INDEX_START + i] = Canvas.INSTANCE.materialFinder().blendMode(b).disableDiffuse(true).find();
-			MATERIALS[AO_SHADED_INDEX_START + i] = Canvas.INSTANCE.materialFinder().blendMode(b).find();
-		}
+		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableDiffuse(true).disableAo(true).find();
+		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableAo(true).find();
+		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).disableDiffuse(true).find();
+		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_CUTOUT_MIPPED] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).find();
+
+		MATERIALS[FLAT_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableDiffuse(true).disableAo(true).find();
+		MATERIALS[SHADED_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableAo(true).find();
+		MATERIALS[AO_FLAT_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).disableDiffuse(true).find();
+		MATERIALS[AO_SHADED_INDEX_START + MaterialConstants.PRESET_TRANSLUCENT] = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).find();
 	}
 
 	protected RenderMaterialImpl flatMaterial() {
-		return MATERIALS[FLAT_INDEX_START + context.defaultBlendMode.ordinal()];
+		return MATERIALS[FLAT_INDEX_START + context.defaultBlendMode];
 	}
 
 	protected RenderMaterialImpl shadedMaterial() {
-		return MATERIALS[SHADED_INDEX_START + context.defaultBlendMode.ordinal()];
+		return MATERIALS[SHADED_INDEX_START + context.defaultBlendMode];
 	}
 
 	protected RenderMaterialImpl aoFlatMaterial() {
-		return MATERIALS[AO_FLAT_INDEX_START + context.defaultBlendMode.ordinal()];
+		return MATERIALS[AO_FLAT_INDEX_START + context.defaultBlendMode];
 	}
 
 	protected RenderMaterialImpl aoShadedMaterial() {
-		return MATERIALS[AO_SHADED_INDEX_START + context.defaultBlendMode.ordinal()];
+		return MATERIALS[AO_SHADED_INDEX_START + context.defaultBlendMode];
 	}
 
 	protected final AbstractRenderContext context;
 
 	private final int[] editorBuffer = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 
-	private final MutableQuadViewImpl editorQuad = new MutableQuadViewImpl() {
+	private final QuadEditorImpl editorQuad = new QuadEditorImpl() {
 		{
 			data = editorBuffer;
 		}
 
 		@Override
-		public QuadEmitter emit() {
+		public QuadEditor emit() {
 			// should not be called
 			throw new UnsupportedOperationException("Fallback consumer does not support .emit()");
 		}
@@ -169,7 +174,7 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 	}
 
 	private void renderQuad(BakedQuad quad, int cullFaceId, RenderMaterialImpl mat) {
-		final MutableQuadViewImpl editorQuad = this.editorQuad;
+		final QuadEditorImpl editorQuad = this.editorQuad;
 		editorQuad.fromVanilla(quad, mat, cullFaceId);
 		context.mapMaterials(editorQuad);
 

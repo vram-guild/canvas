@@ -31,7 +31,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 
 import net.minecraft.client.render.OverlayTexture;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -39,7 +39,7 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 public class QuadEncoders {
-	private static void encodeQuad(MutableQuadViewImpl quad, EncodingContext context, VertexCollector buff) {
+	private static void encodeQuad(QuadEditorImpl quad, EncodingContext context, VertexCollector buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
 		final boolean isContextPresent = context != AbsentEncodingContext.INSTANCE;

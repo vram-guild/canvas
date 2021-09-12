@@ -27,6 +27,12 @@ public interface CelestialObjectFunction {
 		final float angle = input.world().getSkyAngle(input.tickDelta());
 		output.hourAngle = angle * 360.0F;
 
+		// FIX: This results in an abrupt transition around 740 time when the function returns null
+		// Needs to be smoothed.
+
+		// TODO: The color in the overworld is ugly.  Need to provide a way to override it
+		// in celestial object JSON loading.
+
 		final float[] fs = input.world().getSkyProperties().getFogColorOverride(angle, input.tickDelta());
 
 		if (fs == null) {

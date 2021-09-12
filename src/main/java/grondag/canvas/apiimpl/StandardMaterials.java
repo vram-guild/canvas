@@ -18,17 +18,17 @@ package grondag.canvas.apiimpl;
 
 import java.util.IdentityHashMap;
 
-import net.minecraft.client.render.RenderLayer;
+import io.vram.frex.api.material.MaterialConstants;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.minecraft.client.render.RenderLayer;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 public class StandardMaterials {
-	public static final RenderMaterialImpl BLOCK_TRANSLUCENT = Canvas.INSTANCE.materialFinder().blendMode(BlendMode.TRANSLUCENT).find();
-	public static final RenderMaterialImpl BLOCK_SOLID = Canvas.INSTANCE.materialFinder().blendMode(BlendMode.SOLID).find();
-	public static final RenderMaterialImpl BLOCK_CUTOUT = Canvas.INSTANCE.materialFinder().blendMode(BlendMode.CUTOUT).find();
-	public static final RenderMaterialImpl BLOCK_CUTOUT_MIPPED = Canvas.INSTANCE.materialFinder().blendMode(BlendMode.CUTOUT_MIPPED).find();
+	public static final RenderMaterialImpl BLOCK_TRANSLUCENT = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_TRANSLUCENT).find();
+	public static final RenderMaterialImpl BLOCK_SOLID = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_SOLID).find();
+	public static final RenderMaterialImpl BLOCK_CUTOUT = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT).find();
+	public static final RenderMaterialImpl BLOCK_CUTOUT_MIPPED = Canvas.INSTANCE.materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).find();
 
 	private static final IdentityHashMap<RenderLayer, RenderMaterialImpl> LAYER_MAP = new IdentityHashMap<>();
 

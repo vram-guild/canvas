@@ -25,14 +25,12 @@ import static grondag.canvas.terrain.util.RenderRegionStateIndexer.offsetInterio
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
 import static grondag.canvas.varia.CanvasMath.clampNormalized;
 
+import io.vram.frex.api.model.ModelHelper;
+
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
@@ -44,7 +42,6 @@ import grondag.canvas.light.AoFace.WeightFunction;
  * Adaptation of inner, non-static class in BlockModelRenderer that serves same
  * purpose.
  */
-@Environment(EnvType.CLIENT)
 public abstract class AoCalculator {
 	public static final float DIVIDE_BY_255 = 1f / 255f;
 
@@ -135,7 +132,7 @@ public abstract class AoCalculator {
 		blendCacheCompletionHighFlags = 0;
 	}
 
-	public void computeFlatHd(MutableQuadViewImpl quad, int flatBrightness) {
+	public void computeFlatHd(QuadEditorImpl quad, int flatBrightness) {
 		if (Configurator.hdLightmaps()) {
 			flatFaceSmoothHd(quad, flatBrightness);
 		} else {
@@ -143,7 +140,7 @@ public abstract class AoCalculator {
 		}
 	}
 
-	public void compute(MutableQuadViewImpl quad) {
+	public void compute(QuadEditorImpl quad) {
 		if (quad.hasVertexNormals()) {
 			// these can only be lit this way
 			irregularFace(quad);
@@ -189,7 +186,7 @@ public abstract class AoCalculator {
 
 	// PERF: quite bad - essentially pay whole cost of AO on flat lighting
 	// needs specialized routines or segregate brightness/AO computation
-	public void computeFlat(MutableQuadViewImpl quad) {
+	public void computeFlat(QuadEditorImpl quad) {
 		final int flags = quad.geometryFlags();
 
 		//quad.hdLight = null;
@@ -211,7 +208,7 @@ public abstract class AoCalculator {
 		}
 	}
 
-	private void blockFace(MutableQuadViewImpl quad, boolean isOnLightFace) {
+	private void blockFace(QuadEditorImpl quad, boolean isOnLightFace) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc;
 		final AoFace face = AoFace.get(lightFace);
@@ -226,7 +223,7 @@ public abstract class AoCalculator {
 		}
 	}
 
-	private void blockFaceFlat(MutableQuadViewImpl quad, boolean isOnLightFace) {
+	private void blockFaceFlat(QuadEditorImpl quad, boolean isOnLightFace) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceCalc faceData = gatherFace(lightFace, isOnLightFace).calc;
 		final AoFace face = AoFace.get(lightFace);
@@ -239,7 +236,7 @@ public abstract class AoCalculator {
 		}
 	}
 
-	private void vanillaPartialFaceSmooth(MutableQuadViewImpl quad, boolean isOnLightFace) {
+	private void vanillaPartialFaceSmooth(QuadEditorImpl quad, boolean isOnLightFace) {
 		final int lightFace = quad.lightFaceId();
 		//final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
 		final AoFace face = AoFace.get(lightFace);
@@ -254,7 +251,7 @@ public abstract class AoCalculator {
 		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
-	private void flatFaceSmoothHd(MutableQuadViewImpl quad, int flatBrightness) {
+	private void flatFaceSmoothHd(QuadEditorImpl quad, int flatBrightness) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceData faceData = localData;
 		faceData.setFlat(flatBrightness);
@@ -295,7 +292,7 @@ public abstract class AoCalculator {
 		}
 	}
 
-	private void blendedFace(MutableQuadViewImpl quad) {
+	private void blendedFace(QuadEditorImpl quad) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceCalc faceData = blendedInsetData(quad, 0, lightFace);
 		final AoFace face = AoFace.get(lightFace);
@@ -310,7 +307,7 @@ public abstract class AoCalculator {
 		}
 	}
 
-	private void blendedFaceFlat(MutableQuadViewImpl quad) {
+	private void blendedFaceFlat(QuadEditorImpl quad) {
 		final int lightFace = quad.lightFaceId();
 		final AoFaceCalc faceData = blendedInsetData(quad, 0, lightFace);
 		final AoFace face = AoFace.get(lightFace);
@@ -323,7 +320,7 @@ public abstract class AoCalculator {
 		}
 	}
 
-	private void blendedPartialFaceSmooth(MutableQuadViewImpl quad) {
+	private void blendedPartialFaceSmooth(QuadEditorImpl quad) {
 		final int lightFace = quad.lightFaceId();
 		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, 0);
 		final float w0 = 1 - w1;
@@ -344,7 +341,7 @@ public abstract class AoCalculator {
 		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
-	private void irregularFace(MutableQuadViewImpl quad) {
+	private void irregularFace(QuadEditorImpl quad) {
 		int normal = 0;
 		float nx = 0, ny = 0, nz = 0;
 		final float[] w = this.w;
@@ -422,7 +419,7 @@ public abstract class AoCalculator {
 		}
 	}
 
-	private void irregularFaceFlat(MutableQuadViewImpl quad) {
+	private void irregularFaceFlat(QuadEditorImpl quad) {
 		// use center light - interpolation too expensive given how often this happen for foliage, etc.
 		final int brightness = brightness(regionRelativeCacheIndex);
 		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));

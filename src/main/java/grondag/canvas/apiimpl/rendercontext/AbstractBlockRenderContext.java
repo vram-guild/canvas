@@ -23,6 +23,8 @@ import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.Block;
@@ -31,20 +33,19 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.mixinterface.RenderLayerExt;
-import grondag.frex.api.material.MaterialMap;
 
-public abstract class AbstractBlockRenderContext<T extends BlockRenderView> extends AbstractRenderContext implements RenderContext {
+public abstract class AbstractBlockRenderContext<T extends BlockRenderView> extends AbstractRenderContext {
 	/**
 	 * For use by chunk builder - avoids another threadlocal.
 	 */
@@ -108,8 +109,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 
 		// FEAT: support additional blend modes on terrain blocks?
 		defaultBlendMode = isFluidModel
-			? ((RenderLayerExt) RenderLayers.getFluidLayer(blockState.getFluidState())).canvas_blendMode()
-			: ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_blendMode();
+			? ((RenderLayerExt) RenderLayers.getFluidLayer(blockState.getFluidState())).canvas_preset()
+			: ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_preset();
 	}
 
 	@Override
@@ -150,7 +151,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	}
 
 	@Override
-	public final int flatBrightness(MutableQuadViewImpl quad) {
+	public final int flatBrightness(QuadEditorImpl quad) {
 		/**
 		 * Handles geometry-based check for using self brightness or neighbor brightness.
 		 * That logic only applies in flat lighting.
@@ -176,7 +177,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	protected abstract int fastBrightness(BlockState blockState, BlockPos pos);
 
 	@Override
-	protected void encodeQuad(MutableQuadViewImpl quad) {
+	protected void encodeQuad(QuadEditorImpl quad) {
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
@@ -186,5 +187,17 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		} else {
 			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get(quad.material()));
 		}
+	}
+
+	@Override
+	public FrexVertexConsumerProvider vertexConsumers() {
+		// WIP implement
+		return null;
+	}
+
+	@Override
+	public MatrixStack matrixStack() {
+		// WIP implement
+		return null;
 	}
 }

@@ -18,12 +18,12 @@ package grondag.canvas.apiimpl.util;
 
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
 
+import io.vram.frex.api.mesh.QuadEditor;
+
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.SpriteExt;
 
 /**
@@ -55,14 +55,14 @@ public class TextureHelper {
 	 * Bakes textures in the provided vertex data, handling UV locking,
 	 * rotation, interpolation, etc. Textures must not be already baked.
 	 */
-	public static void bakeSprite(MutableQuadViewImpl quad, Sprite sprite, int bakeFlags) {
+	public static void bakeSprite(QuadEditorImpl quad, Sprite sprite, int bakeFlags) {
 		quad.setSpriteNormalized(true);
 		quad.spriteId(((SpriteExt) sprite).canvas_id());
 
-		if (quad.nominalFace() != null && (MutableQuadView.BAKE_LOCK_UV & bakeFlags) != 0) {
+		if (quad.nominalFace() != null && (QuadEditor.BAKE_LOCK_UV & bakeFlags) != 0) {
 			// Assigns normalized UV coordinates based on vertex positions
 			applyModifier(quad, UVLOCKERS[quad.nominalFace().getId()]);
-		} else if ((MutableQuadView.BAKE_NORMALIZED & bakeFlags) == 0) {
+		} else if ((QuadEditor.BAKE_NORMALIZED & bakeFlags) == 0) {
 			// Scales from 0-16 to 0-1
 			applyModifier(quad, (q, i) -> q.spritePrecise(i, q.spritePreciseU(i) >> 4, q.spritePreciseV(i) >> 4));
 		}
@@ -75,18 +75,18 @@ public class TextureHelper {
 			applyModifier(quad, ROTATIONS[rotation]);
 		}
 
-		if ((MutableQuadView.BAKE_FLIP_U & bakeFlags) != 0) {
+		if ((QuadEditor.BAKE_FLIP_U & bakeFlags) != 0) {
 			// Inverts U coordinates.  Assumes normalized (0-1) values.
 			applyModifier(quad, (q, i) -> q.spritePrecise(i, UV_PRECISE_UNIT_VALUE - q.spritePreciseU(i), q.spritePreciseV(i)));
 		}
 
-		if ((MutableQuadView.BAKE_FLIP_V & bakeFlags) != 0) {
+		if ((QuadEditor.BAKE_FLIP_V & bakeFlags) != 0) {
 			// Inverts V coordinates.  Assumes normalized (0-1) values.
 			applyModifier(quad, (q, i) -> q.spritePrecise(i, q.spritePreciseU(i), UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i)));
 		}
 	}
 
-	private static void applyModifier(MutableQuadViewImpl quad, VertexModifier modifier) {
+	private static void applyModifier(QuadEditorImpl quad, VertexModifier modifier) {
 		for (int i = 0; i < 4; i++) {
 			modifier.apply(quad, i);
 		}
@@ -94,6 +94,6 @@ public class TextureHelper {
 
 	@FunctionalInterface
 	private interface VertexModifier {
-		void apply(MutableQuadViewImpl quad, int vertexIndex);
+		void apply(QuadEditorImpl quad, int vertexIndex);
 	}
 }

@@ -16,11 +16,11 @@
 
 package grondag.canvas.apiimpl.util;
 
+import io.vram.frex.api.mesh.QuadView;
+
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.math.Vec3i;
-
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 
 /**
  * Static routines of general utility for renderer implementations.

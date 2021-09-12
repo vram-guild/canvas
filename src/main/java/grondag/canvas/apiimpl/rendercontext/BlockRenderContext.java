@@ -18,6 +18,8 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
+import io.vram.frex.api.model.BlockModel;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
@@ -27,9 +29,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
@@ -68,7 +68,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 		this.overlay = overlay;
 		region = blockView;
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
-		((FabricBakedModel) model).emitBlockQuads(blockView, state, pos, randomSupplier, this);
+		((BlockModel) model).renderAsBlock(blockView, state, pos, this);
 		defaultConsumer = null;
 	}
 
@@ -89,12 +89,12 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 	}
 
 	@Override
-	public void computeAo(MutableQuadViewImpl quad) {
+	public void computeAo(QuadEditorImpl quad) {
 		// NOOP
 	}
 
 	@Override
-	public void computeFlat(MutableQuadViewImpl quad) {
+	public void computeFlat(QuadEditorImpl quad) {
 		computeFlatSimple(quad);
 	}
 }

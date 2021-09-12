@@ -26,7 +26,6 @@ import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
@@ -81,7 +80,7 @@ public class WorldRenderDraws {
 		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
 	}
 
-	static void renderCullBoxes(RenderRegionStorage renderRegionStorage, MatrixStack matrixStack, Immediate immediate, double cameraX, double cameraY, double cameraZ, float tickDelta) {
+	static void renderCullBoxes(RenderRegionStorage renderRegionStorage, double cameraX, double cameraY, double cameraZ, float tickDelta) {
 		@SuppressWarnings("resource") final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
 
 		final HitResult hit = entity.raycast(12 * 16, tickDelta, true);
@@ -103,12 +102,13 @@ public class WorldRenderDraws {
 			return;
 		}
 
-		GFX.enableBlend();
-		GFX.defaultBlendFunc();
-
 		final Tessellator tessellator = Tessellator.getInstance();
 		final BufferBuilder bufferBuilder = tessellator.getBuffer();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
+		RenderSystem.disableTexture();
+		RenderSystem.disableBlend();
+		RenderSystem.disableCull();
 
 		final int cb = boxes[0];
 		final int limit = boxes.length;
@@ -120,6 +120,9 @@ public class WorldRenderDraws {
 		RenderSystem.lineWidth(6.0F);
 		bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR);
 		final int regionRange = region.origin.occlusionRange();
+
+		// WIP: remove
+		System.out.println(limit);
 
 		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
 
@@ -155,7 +158,9 @@ public class WorldRenderDraws {
 		tessellator.draw();
 
 		GFX.enableDepthTest();
-		GFX.disableBlend();
+		RenderSystem.enableBlend();
+		RenderSystem.enableTexture();
+		RenderSystem.enableCull();
 	}
 
 	static int rangeColor(int range) {

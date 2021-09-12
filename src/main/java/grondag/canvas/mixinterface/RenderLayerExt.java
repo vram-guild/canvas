@@ -16,12 +16,10 @@
 
 package grondag.canvas.mixinterface;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
 public interface RenderLayerExt {
 	boolean canvas_isTranslucent();
 
-	void canvas_blendMode(BlendMode blendMode);
+	void canvas_preset(int preset);
 
-	BlendMode canvas_blendMode();
+	int canvas_preset();
 }

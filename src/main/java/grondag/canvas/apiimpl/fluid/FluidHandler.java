@@ -19,6 +19,10 @@ package grondag.canvas.apiimpl.fluid;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.renderer.Renderer;
+
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.model.ModelLoader;
@@ -28,9 +32,6 @@ import net.minecraft.fluid.Fluids;
 
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
-import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 
 import grondag.frex.api.fluid.FluidQuadSupplier;
 
@@ -48,11 +49,11 @@ public class FluidHandler {
 		}
 	};
 
-	static final RenderMaterial WATER_MATERIAL = RendererAccess.INSTANCE.getRenderer().materialFinder()
-			.blendMode(0, BlendMode.TRANSLUCENT).disableAo(0, true).disableColorIndex(0, true).find();
+	static final RenderMaterial WATER_MATERIAL = Renderer.get().materialFinder()
+			.preset(MaterialConstants.PRESET_TRANSLUCENT).disableAo(true).disableColorIndex(true).find();
 
-	static final RenderMaterial LAVA_MATERIAL = RendererAccess.INSTANCE.getRenderer().materialFinder()
-			.blendMode(0, BlendMode.SOLID).disableAo(0, true).disableColorIndex(0, true).emissive(0, true).find();
+	static final RenderMaterial LAVA_MATERIAL = Renderer.get().materialFinder()
+			.preset(MaterialConstants.PRESET_SOLID).disableAo(true).disableColorIndex(true).emissive(true).find();
 
 	static final Sprite[] lavaSprites() {
 		final Sprite[] result = new Sprite[2];

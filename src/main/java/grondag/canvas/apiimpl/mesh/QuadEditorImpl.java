@@ -34,15 +34,17 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X0;
 
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.mesh.FrexVertexConsumer;
+import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.model.ModelHelper;
+
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.texture.MissingSprite;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Matrix4f;
-
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.util.PackedVector3f;
@@ -51,14 +53,12 @@ import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.frex.api.mesh.FrexVertexConsumer;
-import grondag.frex.api.mesh.QuadEmitter;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
-public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEmitter, FrexVertexConsumer {
+public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor, FrexVertexConsumer {
 	// PERF: pack into one array for LOR?
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
@@ -76,7 +76,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public MutableQuadViewImpl defaultMaterial(RenderMaterial defaultMaterial) {
+	public QuadEditorImpl defaultMaterial(RenderMaterial defaultMaterial) {
 		this.defaultMaterial = (RenderMaterialImpl) defaultMaterial;
 		return this;
 	}
@@ -102,7 +102,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public final MutableQuadViewImpl material(RenderMaterial material) {
+	public final QuadEditorImpl material(RenderMaterial material) {
 		if (material == null) {
 			material = defaultMaterial;
 		}
@@ -114,7 +114,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		return this;
 	}
 
-	public final MutableQuadViewImpl cullFace(int faceId) {
+	public final QuadEditorImpl cullFace(int faceId) {
 		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS], faceId);
 		nominalFaceId = faceId;
 		return this;
@@ -122,29 +122,29 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	@Deprecated
-	public final MutableQuadViewImpl cullFace(Direction face) {
+	public final QuadEditorImpl cullFace(Direction face) {
 		return cullFace(ModelHelper.toFaceIndex(face));
 	}
 
-	public final MutableQuadViewImpl nominalFace(int faceId) {
+	public final QuadEditorImpl nominalFace(int faceId) {
 		nominalFaceId = faceId;
 		return this;
 	}
 
 	@Override
 	@Deprecated
-	public final MutableQuadViewImpl nominalFace(Direction face) {
+	public final QuadEditorImpl nominalFace(Direction face) {
 		return nominalFace(ModelHelper.toFaceIndex(face));
 	}
 
 	@Override
-	public final MutableQuadViewImpl colorIndex(int colorIndex) {
+	public final QuadEditorImpl colorIndex(int colorIndex) {
 		data[baseIndex + HEADER_COLOR_INDEX] = colorIndex;
 		return this;
 	}
 
 	@Override
-	public final MutableQuadViewImpl tag(int tag) {
+	public final QuadEditorImpl tag(int tag) {
 		data[baseIndex + HEADER_TAG] = tag;
 		return this;
 	}
@@ -160,9 +160,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		}
 	}
 
-	@Deprecated
 	@Override
-	public final MutableQuadViewImpl fromVanilla(int[] quadData, int startIndex, boolean isItem) {
+	public QuadEditor fromVanilla(int[] quadData, int startIndex) {
 		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, MESH_QUAD_STRIDE);
 		convertVanillaUvPrecision();
 		normalizeSprite();
@@ -173,11 +172,11 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, Direction cullFace) {
+	public final QuadEditorImpl fromVanilla(BakedQuad quad, RenderMaterial material, Direction cullFace) {
 		return fromVanilla(quad, material, ModelHelper.toFaceIndex(cullFace));
 	}
 
-	public final MutableQuadViewImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
+	public final QuadEditorImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
 		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, MESH_QUAD_STRIDE);
 		material(material);
 		convertVanillaUvPrecision();
@@ -193,7 +192,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public MutableQuadViewImpl pos(int vertexIndex, float x, float y, float z) {
+	public QuadEditorImpl pos(int vertexIndex, float x, float y, float z) {
 		final int index = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_X0;
 		data[index] = Float.floatToRawIntBits(x);
 		data[index + 1] = Float.floatToRawIntBits(y);
@@ -207,7 +206,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public MutableQuadViewImpl normal(int vertexIndex, float x, float y, float z) {
+	public QuadEditorImpl normal(int vertexIndex, float x, float y, float z) {
 		normalFlags(normalFlags() | (1 << vertexIndex));
 		data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0] = PackedVector3f.pack(x, y, z);
 		return this;
@@ -218,20 +217,20 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public MutableQuadViewImpl tangent(int vertexIndex, float x, float y, float z) {
+	public QuadEditorImpl tangent(int vertexIndex, float x, float y, float z) {
 		tangentFlags(tangentFlags() | (1 << vertexIndex));
 		data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT] = PackedVector3f.pack(x, y, z);
 		return this;
 	}
 
 	@Override
-	public MutableQuadViewImpl lightmap(int vertexIndex, int lightmap) {
+	public QuadEditorImpl lightmap(int vertexIndex, int lightmap) {
 		data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_LIGHTMAP0] = lightmap;
 		return this;
 	}
 
 	@Override
-	public MutableQuadViewImpl vertexColor(int vertexIndex, int color) {
+	public QuadEditorImpl vertexColor(int vertexIndex, int color) {
 		data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_COLOR0] = color;
 		return this;
 	}
@@ -244,7 +243,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		}
 	}
 
-	public MutableQuadViewImpl spriteFloat(int vertexIndex, float u, float v) {
+	public QuadEditorImpl spriteFloat(int vertexIndex, float u, float v) {
 		final int i = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0;
 		data[i] = (int) (u * UV_PRECISE_UNIT_VALUE + 0.5f);
 		data[i + 1] = (int) (v * UV_PRECISE_UNIT_VALUE + 0.5f);
@@ -255,7 +254,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	/**
 	 * Must call {@link #spriteId(int, int)} separately.
 	 */
-	public MutableQuadViewImpl spritePrecise(int vertexIndex, int u, int v) {
+	public QuadEditorImpl spritePrecise(int vertexIndex, int u, int v) {
 		final int i = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0;
 		data[i] = u;
 		data[i + 1] = v;
@@ -313,7 +312,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public MutableQuadViewImpl sprite(int vertexIndex, float u, float v) {
+	public QuadEditorImpl sprite(int vertexIndex, float u, float v) {
 		spriteFloat(vertexIndex, u, v);
 
 		// true for whole quad so only need for one vertex
@@ -327,12 +326,12 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 	}
 
 	@Override
-	public MutableQuadViewImpl spriteBake(Sprite sprite, int bakeFlags) {
+	public QuadEditorImpl spriteBake(Sprite sprite, int bakeFlags) {
 		TextureHelper.bakeSprite(this, sprite, bakeFlags);
 		return this;
 	}
 
-	public MutableQuadViewImpl spriteId(int spriteId) {
+	public QuadEditorImpl spriteId(int spriteId) {
 		data[baseIndex + HEADER_SPRITE] = spriteId;
 		return this;
 	}

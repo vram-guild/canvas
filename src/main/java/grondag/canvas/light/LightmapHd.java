@@ -24,7 +24,7 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.math.MathHelper;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 
 class LightmapHd {
 	// MAYBE: use Fermion cache
@@ -115,7 +115,7 @@ class LightmapHd {
 		return light[v * LightmapSizer.paddedSize + u];
 	}
 
-	public int coord(MutableQuadViewImpl q, int i) {
+	public int coord(QuadEditorImpl q, int i) {
 		final int u, v;
 
 		u = Math.round((uMinImg + 0.5f + q.u[i] * LightmapSizer.centerToCenterPixelDistance) * LightmapSizer.textureToBuffer);

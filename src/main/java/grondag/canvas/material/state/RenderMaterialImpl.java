@@ -19,6 +19,7 @@ package grondag.canvas.material.state;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Strings;
+import io.vram.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -29,7 +30,6 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.texture.MaterialIndexer;
 import grondag.canvas.texture.ResourceCache;
-import grondag.frex.api.material.RenderMaterial;
 
 public final class RenderMaterialImpl extends AbstractRenderState implements RenderMaterial {
 	public static final int MAX_MATERIAL_COUNT = RenderState.MAX_COUNT * 4;
@@ -122,7 +122,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		sb.append("flashoverlay: ").append(flashOverlay).append("\n");
 
 		sb.append("shaderFlags: ").append(Integer.toBinaryString(shaderFlags)).append("\n");
-		sb.append("blendMode: ").append(blendMode == null ? "null" : blendMode.name()).append("\n");
+		sb.append("preset: ").append(preset).append("\n");
 		sb.append("drawPriority: ").append(renderState.drawPriority).append("\n");
 		return sb.toString();
 	}

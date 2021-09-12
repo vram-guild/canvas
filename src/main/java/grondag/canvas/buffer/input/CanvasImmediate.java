@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import com.google.common.base.Predicates;
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.mesh.FrexVertexConsumer;
+import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -36,8 +39,6 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.frex.api.material.FrexVertexConsumerProvider;
-import grondag.frex.api.material.RenderMaterial;
 
 public class CanvasImmediate extends Immediate implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList(false);
@@ -66,7 +67,7 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 	}
 
 	@Override
-	public VertexConsumer getConsumer(RenderMaterial material) {
+	public FrexVertexConsumer getConsumer(RenderMaterial material) {
 		final RenderMaterialImpl mat = contextState.mapMaterial((RenderMaterialImpl) material);
 		return collectors.consumer.prepare(mat);
 	}

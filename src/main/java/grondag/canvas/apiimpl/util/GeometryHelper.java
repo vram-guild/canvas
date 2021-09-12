@@ -18,14 +18,14 @@ package grondag.canvas.apiimpl.util;
 
 import static net.minecraft.util.math.MathHelper.approximatelyEquals;
 
+import io.vram.frex.api.mesh.QuadView;
+
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.CubeFace.DirectionIds;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.Direction.AxisDirection;
 import net.minecraft.util.math.Vec3f;
-
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
 
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 

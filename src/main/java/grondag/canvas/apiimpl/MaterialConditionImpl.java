@@ -18,9 +18,10 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
+import io.vram.frex.api.material.MaterialCondition;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.shader.data.IntData;
-import grondag.frex.api.material.MaterialCondition;
 
 public class MaterialConditionImpl implements MaterialCondition {
 	public final BooleanSupplier supplier;

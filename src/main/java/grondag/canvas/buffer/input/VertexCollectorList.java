@@ -19,13 +19,12 @@ package grondag.canvas.buffer.input;
 import java.util.Comparator;
 import java.util.function.Predicate;
 
+import io.vram.frex.api.mesh.FrexVertexConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.client.render.VertexConsumer;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
@@ -53,7 +52,7 @@ public class VertexCollectorList {
 	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
 	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
 	 */
-	public class Consumer extends MutableQuadViewImpl {
+	public class Consumer extends QuadEditorImpl {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 			material(Canvas.MATERIAL_STANDARD);
@@ -76,7 +75,7 @@ public class VertexCollectorList {
 			return this;
 		}
 
-		public VertexConsumer prepare(RenderMaterialImpl mat) {
+		public FrexVertexConsumer prepare(RenderMaterialImpl mat) {
 			defaultMaterial(mat);
 			clear();
 			return this;

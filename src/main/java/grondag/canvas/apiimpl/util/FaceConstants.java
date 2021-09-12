@@ -16,9 +16,9 @@
 
 package grondag.canvas.apiimpl.util;
 
-import net.minecraft.util.math.Direction;
+import io.vram.frex.api.model.ModelHelper;
 
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import net.minecraft.util.math.Direction;
 
 public class FaceConstants {
 	public static final int NORTH_INDEX = ModelHelper.toFaceIndex(Direction.NORTH);

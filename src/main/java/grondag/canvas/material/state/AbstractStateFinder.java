@@ -16,19 +16,17 @@
 
 package grondag.canvas.material.state;
 
+import io.vram.frex.api.material.MaterialCondition;
+import io.vram.frex.api.material.RenderMaterial;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.util.Identifier;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialTextureState;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.data.ShaderStrings;
-import grondag.frex.api.material.MaterialCondition;
-import grondag.frex.api.material.RenderMaterial;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> extends AbstractRenderStateView {
@@ -188,8 +186,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T blendMode(BlendMode blendMode) {
-		bits = BLENDMODE.setValue(blendMode, bits);
+	public T preset(int preset) {
+		bits = PRESET.setValue(preset, bits);
 		return (T) this;
 	}
 

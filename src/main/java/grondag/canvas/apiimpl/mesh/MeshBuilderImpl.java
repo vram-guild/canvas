@@ -16,9 +16,9 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import io.vram.frex.api.mesh.Mesh;
+import io.vram.frex.api.mesh.MeshBuilder;
+import io.vram.frex.api.mesh.QuadEditor;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and baking.
@@ -53,7 +53,7 @@ public class MeshBuilderImpl implements MeshBuilder {
 	}
 
 	@Override
-	public QuadEmitter getEmitter() {
+	public QuadEditor getEmitter() {
 		ensureCapacity(MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
 		maker.begin(data, index);
 		return maker;
@@ -65,7 +65,7 @@ public class MeshBuilderImpl implements MeshBuilder {
 	 * at render time so we want to capture all geometry now and
 	 * apply non-location-dependent lighting.
 	 */
-	private class Maker extends MutableQuadViewImpl implements QuadEmitter {
+	private class Maker extends QuadEditorImpl {
 		@Override
 		public Maker emit() {
 			complete();

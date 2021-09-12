@@ -20,7 +20,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumer;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
@@ -28,7 +28,7 @@ import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 public abstract class EncoderUtils {
-	public static void bufferQuad(MutableQuadViewImpl quad, EncodingContext context, VertexConsumer buff) {
+	public static void bufferQuad(QuadEditorImpl quad, EncodingContext context, VertexConsumer buff) {
 		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
 		final int overlay = context.overlay();
 		final Matrix3fExt normalMatrix = context.normalMatrix();
@@ -45,10 +45,10 @@ public abstract class EncoderUtils {
 		for (int i = 0; i < 4; i++) {
 			quad.transformAndAppendVertex(i, matrix, buff);
 
-			final int color = quad.spriteColor(i, 0);
+			final int color = quad.vertexColor(i);
 			buff.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 
-			buff.texture(quad.spriteU(i, 0), quad.spriteV(i, 0));
+			buff.texture(quad.spriteU(i), quad.spriteV(i));
 			buff.overlay(overlay);
 			buff.light(emissive ? MeshEncodingHelper.FULL_BRIGHTNESS : quad.lightmap(i));
 
@@ -70,7 +70,7 @@ public abstract class EncoderUtils {
 	/**
 	 * handles block color and red-blue swizzle, common to all renders.
 	 */
-	public static void colorizeQuad(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	public static void colorizeQuad(QuadEditorImpl quad, AbstractRenderContext context) {
 		final int colorIndex = quad.colorIndex();
 
 		// PERF: don't swap red blue on white quad (most of em)
@@ -88,7 +88,7 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void applyBlockLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	public static void applyBlockLighting(QuadEditorImpl quad, AbstractRenderContext context) {
 		if (!quad.material().disableAo() && MinecraftClient.isAmbientOcclusionEnabled()) {
 			context.computeAo(quad);
 		} else {
@@ -96,7 +96,7 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void applyItemLighting(MutableQuadViewImpl quad, AbstractRenderContext context) {
+	public static void applyItemLighting(QuadEditorImpl quad, AbstractRenderContext context) {
 		final int lightmap = context.brightness();
 		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), lightmap));
 		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), lightmap));

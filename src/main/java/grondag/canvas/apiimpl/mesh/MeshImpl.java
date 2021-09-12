@@ -18,8 +18,8 @@ package grondag.canvas.apiimpl.mesh;
 
 import java.util.function.Consumer;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
+import io.vram.frex.api.mesh.Mesh;
+import io.vram.frex.api.mesh.QuadView;
 
 /**
  * Implementation of {@link Mesh}.

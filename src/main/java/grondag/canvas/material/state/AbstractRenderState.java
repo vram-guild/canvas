@@ -18,8 +18,6 @@ package grondag.canvas.material.state;
 
 import net.minecraft.util.Identifier;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -74,7 +72,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	 */
 	public final MaterialConditionImpl condition;
 
-	public final BlendMode blendMode;
+	public final int preset;
 	public final boolean emissive;
 	public final boolean disableDiffuse;
 	public final boolean disableAo;
@@ -126,7 +124,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
 		terrainShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
 		terrainDepthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
-		blendMode = blendMode();
+		preset = preset();
 		emissive = emissive();
 		disableDiffuse = disableDiffuse();
 		disableAo = disableAo();

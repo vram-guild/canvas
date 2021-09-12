@@ -19,6 +19,7 @@ package grondag.canvas.apiimpl.rendercontext;
 import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
+import io.vram.frex.api.model.BlockModel;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import net.minecraft.block.Block;
@@ -31,11 +32,10 @@ import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
@@ -98,18 +98,18 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		return this;
 	}
 
-	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
+	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, MatrixStack matrixStack) {
 		isFluidModel = true;
 		renderInner(blockState, blockPos, defaultAo, model, matrixStack);
 	}
 
-	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
+	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, MatrixStack matrixStack) {
 		isFluidModel = false;
 		renderInner(blockState, blockPos, defaultAo, model, matrixStack);
 	}
 
 	// PERF: don't pass in matrixStack each time, just change model matrix directly
-	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final FabricBakedModel model, MatrixStack matrixStack) {
+	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, MatrixStack matrixStack) {
 		matrix = matrixStack.peek().getModel();
 
 		// PERF: can probably grab this at prepare
@@ -120,7 +120,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;
-			model.emitBlockQuads(region, blockState, blockPos, randomSupplier, this);
+			model.renderAsBlock(region, blockState, blockPos, this);
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Canvas Renderer");
 			final CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
@@ -135,12 +135,12 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	}
 
 	@Override
-	public void computeAo(MutableQuadViewImpl quad) {
+	public void computeAo(QuadEditorImpl quad) {
 		aoCalc.compute(quad);
 	}
 
 	@Override
-	public void computeFlat(MutableQuadViewImpl quad) {
+	public void computeFlat(QuadEditorImpl quad) {
 		if (Configurator.semiFlatLighting) {
 			aoCalc.computeFlat(quad);
 		} else if (Configurator.hdLightmaps()) {
@@ -181,7 +181,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	}
 
 	@Override
-	protected void encodeQuad(MutableQuadViewImpl quad) {
+	protected void encodeQuad(QuadEditorImpl quad) {
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);

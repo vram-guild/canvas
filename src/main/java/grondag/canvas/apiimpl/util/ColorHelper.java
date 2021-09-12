@@ -20,7 +20,7 @@ import java.nio.ByteOrder;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 
 /**
  * Static routines of general utility for renderer implementations. Renderers
@@ -86,11 +86,11 @@ public abstract class ColorHelper {
 
 	@FunctionalInterface
 	private interface VertexLighter {
-		void shade(MutableQuadViewImpl quad, int vertexIndex, float shade);
+		void shade(QuadEditorImpl quad, int vertexIndex, float shade);
 	}
 
 	@FunctionalInterface
 	private interface Colorizer {
-		void shade(MutableQuadViewImpl quad, int vertexIndex, int color);
+		void shade(QuadEditorImpl quad, int vertexIndex, int color);
 	}
 }

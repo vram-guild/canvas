@@ -29,6 +29,7 @@ import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
 import grondag.canvas.config.Configurator;
 import grondag.frex.api.fluid.AbstractFluidModel;
 
+// WIP: decouple from Fabric
 public class FluidHandlerModel extends AbstractFluidModel {
 	protected final FluidRenderHandler handler;
 	protected final Sprite overlaySprite = ModelLoader.WATER_OVERLAY.getSprite();

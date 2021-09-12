@@ -16,10 +16,10 @@
 
 package grondag.canvas.buffer.format;
 
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollector;
 
 @FunctionalInterface
 public interface QuadEncoder {
-	void encode(MutableQuadViewImpl quad, EncodingContext context, VertexCollector collector);
+	void encode(QuadEditorImpl quad, EncodingContext context, VertexCollector collector);
 }

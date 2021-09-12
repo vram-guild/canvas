@@ -18,13 +18,12 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Consumer;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.Mesh;
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import io.vram.frex.api.mesh.Mesh;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.MeshImpl;
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 
 /**
  * Consumer for pre-baked meshes.  Works by copying the mesh data to a
@@ -44,7 +43,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 		final int[] data = m.data();
 		final int limit = data.length;
 		int index = 0;
-		final MutableQuadViewImpl quad = editorQuad;
+		final QuadEditorImpl quad = editorQuad;
 
 		while (index < limit) {
 			final int stride = MeshEncodingHelper.stride();
@@ -54,7 +53,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 		}
 	}
 
-	public QuadEmitter getEmitter() {
+	public QuadEditorImpl getEmitter() {
 		editorQuad.clear();
 		return editorQuad;
 	}
@@ -63,7 +62,7 @@ public class MeshConsumer implements Consumer<Mesh> {
 	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
 	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
 	 */
-	private class Maker extends MutableQuadViewImpl implements QuadEmitter {
+	private class Maker extends QuadEditorImpl {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 			material(Canvas.MATERIAL_STANDARD);

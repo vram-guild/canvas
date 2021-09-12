@@ -18,6 +18,10 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.model.BlockModel;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.render.RenderLayers;
@@ -32,14 +36,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
-import grondag.frex.api.material.MaterialMap;
 
 /**
  * Context used when blocks are rendered as part of an entity.
@@ -105,7 +105,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		this.overlay = overlay;
 		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42);
-		((FabricBakedModel) model).emitBlockQuads(region, state, pos, randomSupplier, this);
+		((BlockModel) model).renderAsBlock(region, state, pos, this);
 		defaultConsumer = null;
 	}
 
@@ -128,9 +128,9 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 		fullCubeCache = 0;
 		seed = 42;
 		defaultAo = false;
-		defaultBlendMode = BlendMode.SOLID;
+		defaultBlendMode = MaterialConstants.PRESET_SOLID;
 
-		((FabricBakedModel) model).emitBlockQuads(region, null, pos, randomSupplier, this);
+		((BlockModel) model).renderAsBlock(region, null, pos, this);
 		defaultConsumer = null;
 	}
 
@@ -151,12 +151,12 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	}
 
 	@Override
-	public void computeAo(MutableQuadViewImpl quad) {
+	public void computeAo(QuadEditorImpl quad) {
 		// NOOP
 	}
 
 	@Override
-	public void computeFlat(MutableQuadViewImpl quad) {
+	public void computeFlat(QuadEditorImpl quad) {
 		computeFlatSimple(quad);
 	}
 }

@@ -16,9 +16,9 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.client.texture.SpriteAtlasTexture;
+import io.vram.frex.api.material.MaterialConstants;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialDecal;
@@ -31,7 +31,6 @@ import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.data.ShaderStrings;
 import grondag.fermion.bits.BitPacker64;
-import grondag.frex.api.material.MaterialFinder;
 
 abstract class AbstractRenderStateView {
 	protected long bits;
@@ -67,8 +66,8 @@ abstract class AbstractRenderStateView {
 
 		final long masked = bits & AbstractRenderState.COLLECTOR_AND_STATE_MASK;
 
-		return (masked == TRANSLUCENT_TERRAIN_COLLECTOR_KEY && target() == MaterialFinder.TARGET_TRANSLUCENT)
-			|| (masked == TRANSLUCENT_ENTITY_COLLECTOR_KEY && target() == MaterialFinder.TARGET_ENTITIES);
+		return (masked == TRANSLUCENT_TERRAIN_COLLECTOR_KEY && target() == MaterialConstants.TARGET_TRANSLUCENT)
+			|| (masked == TRANSLUCENT_ENTITY_COLLECTOR_KEY && target() == MaterialConstants.TARGET_ENTITIES);
 	}
 
 	public int conditionIndex() {
@@ -139,8 +138,8 @@ abstract class AbstractRenderStateView {
 		return !DISABLE_SHADOWS.getValue(bits);
 	}
 
-	public BlendMode blendMode() {
-		return BLENDMODE.getValue(bits);
+	public int preset() {
+		return PRESET.getValue(bits);
 	}
 
 	public boolean disableColorIndex() {
@@ -202,7 +201,7 @@ abstract class AbstractRenderStateView {
 
 	// here and below only used in material - holds vertex state - does not affect buffering or gl State
 	static final BitPacker64<Void>.BooleanElement DISABLE_COLOR_INDEX = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.NullableEnumElement<BlendMode> BLENDMODE = PACKER.createNullableEnumElement(BlendMode.class);
+	static final BitPacker64<Void>.IntElement PRESET = PACKER.createIntElement(6);
 	static final BitPacker64<Void>.BooleanElement DISCARDS_TEXTURE = PACKER.createBooleanElement();
 
 	static final int FLAG_SHIFT = PACKER.bitLength();
@@ -231,41 +230,41 @@ abstract class AbstractRenderStateView {
 		long defaultBits = 0; //PRIMITIVE.setValue(GL11.GL_QUADS, 0);
 
 		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE, ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
-		defaultBits = BLENDMODE.setValue(BlendMode.DEFAULT, defaultBits);
+		defaultBits = PRESET.setValue(MaterialConstants.PRESET_DEFAULT, defaultBits);
 		defaultBits = CULL.setValue(true, defaultBits);
-		defaultBits = DEPTH_TEST.setValue(MaterialFinder.DEPTH_TEST_LEQUAL, defaultBits);
+		defaultBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, defaultBits);
 		defaultBits = ENABLE_GLINT.setValue(false, defaultBits);
 		defaultBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, defaultBits);
-		defaultBits = TARGET.setValue(MaterialFinder.TARGET_MAIN, defaultBits);
-		defaultBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, defaultBits);
+		defaultBits = TARGET.setValue(MaterialConstants.TARGET_MAIN, defaultBits);
+		defaultBits = WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);
 		defaultBits = FOG.setValue(true, defaultBits);
 		defaultBits = DISABLE_SHADOWS.setValue(false, defaultBits);
-		defaultBits = CUTOUT.setValue(MaterialFinder.CUTOUT_NONE, defaultBits);
+		defaultBits = CUTOUT.setValue(MaterialConstants.CUTOUT_NONE, defaultBits);
 
 		DEFAULT_BITS = defaultBits;
 
-		long translucentBits = BLENDMODE.setValue(null, 0);
+		long translucentBits = PRESET.setValue(MaterialConstants.PRESET_NONE, 0);
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
 		translucentBits = BLUR.setValue(false, translucentBits);
-		translucentBits = TRANSPARENCY.setValue(MaterialFinder.TRANSPARENCY_TRANSLUCENT, translucentBits);
-		translucentBits = DEPTH_TEST.setValue(MaterialFinder.DEPTH_TEST_LEQUAL, translucentBits);
+		translucentBits = TRANSPARENCY.setValue(MaterialConstants.TRANSPARENCY_TRANSLUCENT, translucentBits);
+		translucentBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, translucentBits);
 		translucentBits = CULL.setValue(true, translucentBits);
-		translucentBits = WRITE_MASK.setValue(MaterialFinder.WRITE_MASK_COLOR_DEPTH, translucentBits);
+		translucentBits = WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, translucentBits);
 		translucentBits = ENABLE_GLINT.setValue(false, translucentBits);
 		translucentBits = DECAL.setValue(MaterialDecal.NONE.index, translucentBits);
-		translucentBits = TARGET.setValue(MaterialFinder.TARGET_TRANSLUCENT, translucentBits);
+		translucentBits = TARGET.setValue(MaterialConstants.TARGET_TRANSLUCENT, translucentBits);
 		translucentBits = LINES.setValue(false, translucentBits);
 		translucentBits = FOG.setValue(true, translucentBits);
 		translucentBits = DISABLE_SHADOWS.setValue(false, translucentBits);
 		translucentBits = SORTED.setValue(true, translucentBits);
-		translucentBits = CUTOUT.setValue(MaterialFinder.CUTOUT_NONE, translucentBits);
+		translucentBits = CUTOUT.setValue(MaterialConstants.CUTOUT_NONE, translucentBits);
 		//translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
 
 		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & COLLECTOR_AND_STATE_MASK;
 
 		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
-		translucentBits = TARGET.setValue(MaterialFinder.TARGET_ENTITIES, translucentBits);
+		translucentBits = TARGET.setValue(MaterialConstants.TARGET_ENTITIES, translucentBits);
 
 		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
 		TRANSLUCENT_ENTITY_COLLECTOR_KEY = translucentBits & COLLECTOR_AND_STATE_MASK;

@@ -18,15 +18,16 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
+import io.vram.frex.api.material.MaterialCondition;
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.mesh.MeshBuilder;
+import io.vram.frex.api.renderer.Renderer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
-
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
-import net.fabricmc.fabric.api.renderer.v1.mesh.MeshBuilder;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
@@ -49,13 +50,11 @@ import grondag.canvas.shader.PreReleaseShaderCompat;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
-import grondag.frex.api.Renderer;
-import grondag.frex.api.material.MaterialCondition;
 
 public class Canvas implements Renderer {
 	public static final Canvas INSTANCE = new Canvas();
 
-	public static final RenderMaterialImpl MATERIAL_STANDARD = INSTANCE.materialFinder().blendMode(BlendMode.DEFAULT).find();
+	public static final RenderMaterialImpl MATERIAL_STANDARD = INSTANCE.materialFinder().preset(MaterialConstants.PRESET_DEFAULT).find();
 
 	static {
 		INSTANCE.registerMaterial(RenderMaterial.MATERIAL_STANDARD, MATERIAL_STANDARD);
@@ -125,11 +124,6 @@ public class Canvas implements Renderer {
 		MaterialTextureState.reload();
 		ShaderDataManager.reload();
 		Timekeeper.configOrPipelineReload();
-	}
-
-	@Override
-	public int maxSpriteDepth() {
-		return 1;
 	}
 
 	@Override

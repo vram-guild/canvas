@@ -40,18 +40,19 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z0;
 
+import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.mesh.QuadView;
+
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3f;
 
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.frex.api.mesh.QuadView;
 
 /**
  * Base class for all quads / quad makers. Handles the ugly bits
@@ -278,15 +279,13 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public void copyTo(MutableQuadView targetIn) {
-		final grondag.frex.api.mesh.MutableQuadView target = (grondag.frex.api.mesh.MutableQuadView) targetIn;
-
+	public void copyTo(QuadEditor target) {
 		// force geometry compute
 		computeGeometry();
 		// force tangent compute
 		this.packedFaceTanget();
 
-		final MutableQuadViewImpl quad = (MutableQuadViewImpl) target;
+		final QuadEditorImpl quad = (QuadEditorImpl) target;
 
 		final int len = Math.min(stride(), quad.stride());
 

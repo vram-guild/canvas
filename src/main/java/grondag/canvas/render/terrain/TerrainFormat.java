@@ -33,11 +33,11 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_TEX_2US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_1US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.NORMAL_TANGENT_4B;
 
+import io.vram.frex.api.material.MaterialConstants;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.util.math.MathHelper;
-
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormatElement;
@@ -78,7 +78,7 @@ public class TerrainFormat {
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl mat = quad.material();
 
-		assert mat.blendMode != BlendMode.DEFAULT;
+		assert mat.preset != MaterialConstants.PRESET_DEFAULT;
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used

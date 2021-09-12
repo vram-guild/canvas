@@ -23,6 +23,11 @@ import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
+import io.vram.frex.api.model.ItemModel;
+
 import net.minecraft.block.AbstractBannerBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -43,11 +48,7 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 
-import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-
-import grondag.canvas.apiimpl.mesh.MutableQuadViewImpl;
+import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
@@ -62,9 +63,8 @@ import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.mixinterface.ShaderExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.material.MaterialMap;
 
-public class ItemRenderContext extends AbstractRenderContext implements RenderContext {
+public class ItemRenderContext extends AbstractRenderContext {
 	/**
 	 * Value vanilla uses for item rendering.  The only sensible choice, of course.
 	 */
@@ -108,7 +108,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	protected Random random() {
+	public Random random() {
 		return randomSupplier.get();
 	}
 
@@ -133,7 +133,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 	}
 
 	@Override
-	public int flatBrightness(MutableQuadViewImpl quad) {
+	public int flatBrightness(QuadEditorImpl quad) {
 		return 0;
 	}
 
@@ -201,7 +201,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		} else {
 			drawTranslucencyDirectToMainTarget = isGui || renderMode.isFirstPerson() || !isBlockItem;
 			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawTranslucencyDirectToMainTarget);
-			defaultBlendMode = inferDefaultItemBlendMode(defaultRenderLayer);
+			defaultBlendMode = inferDefaultItemPreset(defaultRenderLayer);
 
 			if (((vertexConsumers instanceof CanvasImmediate))) {
 				collectors = ((CanvasImmediate) vertexConsumers).collectors;
@@ -210,7 +210,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				defaultConsumer = vertexConsumers.getBuffer(defaultRenderLayer);
 			}
 
-			((FabricBakedModel) model).emitItemQuads(itemStack, randomSupplier, this);
+			((ItemModel) model).renderAsItem(itemStack, renderMode, this);
 		}
 
 		matrices.pop();
@@ -222,32 +222,32 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 
 		finder.enableGlint(hasGlint);
 
-		BlendMode bm = finder.blendMode();
+		int preset = finder.preset();
 
 		// fully specific renderable material
-		if (bm == null) return;
+		if (preset == MaterialConstants.PRESET_NONE) return;
 
-		if (finder.blendMode() == BlendMode.DEFAULT) {
-			bm = defaultBlendMode;
-			finder.blendMode(null);
+		if (preset == MaterialConstants.PRESET_DEFAULT) {
+			preset = defaultBlendMode;
+			finder.preset(MaterialConstants.PRESET_NONE);
 		}
 
-		switch (bm) {
-			case CUTOUT:
+		switch (preset) {
+			case MaterialConstants.PRESET_CUTOUT:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(true)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;
-			case CUTOUT_MIPPED:
+			case MaterialConstants.PRESET_CUTOUT_MIPPED:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 					.cutout(MaterialFinder.CUTOUT_HALF)
 					.unmipped(false)
 					.target(MaterialFinder.TARGET_MAIN)
 					.sorted(false);
 				break;
-			case TRANSLUCENT:
+			case MaterialConstants.PRESET_TRANSLUCENT:
 				// Note on glint rendering
 				// Glint renders use EQUALS depth test.
 				// This makes it important that
@@ -263,7 +263,7 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 					.target(drawTranslucencyDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
 					.sorted(!drawTranslucencyDirectToMainTarget);
 				break;
-			case SOLID:
+			case MaterialConstants.PRESET_SOLID:
 				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
 					.cutout(MaterialFinder.CUTOUT_NONE)
 					.unmipped(false)
@@ -274,29 +274,25 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 				assert false : "Unhandled blend mode";
 		}
 
-		if (isGui) {
-			finder.gui(true);
-
-			if (isFrontLit) {
-				finder.disableDiffuse(true);
-			}
+		if (isGui && isFrontLit) {
+			finder.disableDiffuse(true);
 		}
 
 		finder.disableAo(true);
 	}
 
 	@Override
-	public void computeAo(MutableQuadViewImpl quad) {
+	public void computeAo(QuadEditorImpl quad) {
 		// NOOP
 	}
 
 	@Override
-	public void computeFlat(MutableQuadViewImpl quad) {
+	public void computeFlat(QuadEditorImpl quad) {
 		computeFlatSimple(quad);
 	}
 
 	@Override
-	protected void encodeQuad(MutableQuadViewImpl quad) {
+	protected void encodeQuad(QuadEditorImpl quad) {
 		colorizeQuad(quad, this);
 		applyItemLighting(quad, this);
 
@@ -307,16 +303,28 @@ public class ItemRenderContext extends AbstractRenderContext implements RenderCo
 		}
 	}
 
-	static BlendMode inferDefaultItemBlendMode(RenderLayer layer) {
+	static int inferDefaultItemPreset(RenderLayer layer) {
 		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
 
 		if (params.getTransparency() == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
-			return BlendMode.TRANSLUCENT;
+			return MaterialConstants.PRESET_TRANSLUCENT;
 		} else if (((ShaderExt) params.getShader()).canvas_shaderData().cutout != MaterialFinder.CUTOUT_NONE) {
 			final AccessTexture tex = (AccessTexture) params.getTexture();
-			return tex.getMipmap() ? BlendMode.CUTOUT_MIPPED : BlendMode.CUTOUT;
+			return tex.getMipmap() ? MaterialConstants.PRESET_CUTOUT_MIPPED : MaterialConstants.PRESET_CUTOUT;
 		} else {
-			return BlendMode.SOLID;
+			return MaterialConstants.PRESET_SOLID;
 		}
+	}
+
+	@Override
+	public FrexVertexConsumerProvider vertexConsumers() {
+		// WIP implement
+		return null;
+	}
+
+	@Override
+	public MatrixStack matrixStack() {
+		// WIP implement
+		return null;
 	}
 }

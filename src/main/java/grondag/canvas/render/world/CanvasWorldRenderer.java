@@ -602,8 +602,15 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		RenderState.disable();
 
 		// NB: view matrix is already applied to GL state before renderWorld is called
+
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "before_debug_event");
+
+		if (Configurator.debugOcclusionBoxes) {
+			WorldRenderDraws.renderCullBoxes(worldRenderState.renderRegionStorage, frameCameraX, frameCameraY, frameCameraZ, tickDelta);
+		}
+
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().beforeDebugRender(eventContext);
+
 		// We still pass in the transformed stack because that is what debug renderer normally gets
 		mc.debugRenderer.render(viewMatrixStack, immediate, frameCameraX, frameCameraY, frameCameraZ);
 
@@ -682,16 +689,11 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
 		WorldRenderEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(eventContext);
 
-		// Move these up if otherwise.
-		renderSystemModelViewStack.pop();
-		RenderSystem.applyModelViewMatrix();
-
 		// FEAT: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
-		if (Configurator.debugOcclusionBoxes) {
-			WorldRenderDraws.renderCullBoxes(worldRenderState.renderRegionStorage, viewMatrixStack, immediate, frameCameraX, frameCameraY, frameCameraZ, tickDelta);
-		}
+		renderSystemModelViewStack.pop();
+		RenderSystem.applyModelViewMatrix();
 
 		RenderState.disable();
 		GlProgram.deactivate();
