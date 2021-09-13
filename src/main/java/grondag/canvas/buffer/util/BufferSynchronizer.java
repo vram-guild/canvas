@@ -50,6 +50,7 @@ public class BufferSynchronizer {
 		}
 	}
 
+	@SuppressWarnings("serial")
 	private static class SyncBufferList extends ObjectArrayList<SynchronizedBuffer> {
 		private long fence = 0;
 
@@ -80,7 +81,7 @@ public class BufferSynchronizer {
 		private void release() {
 			assert fence != 0;
 
-			for (var buffer : this) {
+			for (final var buffer : this) {
 				buffer.onBufferSync();
 			}
 

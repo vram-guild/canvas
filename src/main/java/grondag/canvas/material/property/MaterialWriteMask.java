@@ -16,15 +16,16 @@
 
 package grondag.canvas.material.property;
 
+import io.vram.frex.api.material.MaterialConstants;
+
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.WriteMaskState;
 
 import grondag.canvas.varia.GFX;
-import grondag.frex.api.material.MaterialFinder;
 
 public class MaterialWriteMask {
 	public static final MaterialWriteMask COLOR = new MaterialWriteMask(
-		MaterialFinder.WRITE_MASK_COLOR,
+		MaterialConstants.WRITE_MASK_COLOR,
 		"color",
 		0,
 		() -> {
@@ -34,7 +35,7 @@ public class MaterialWriteMask {
 	);
 
 	public static final MaterialWriteMask DEPTH = new MaterialWriteMask(
-		MaterialFinder.WRITE_MASK_DEPTH,
+		MaterialConstants.WRITE_MASK_DEPTH,
 		"depth",
 		2,
 		() -> {
@@ -44,7 +45,7 @@ public class MaterialWriteMask {
 	);
 
 	public static final MaterialWriteMask COLOR_DEPTH = new MaterialWriteMask(
-		MaterialFinder.WRITE_MASK_COLOR_DEPTH,
+		MaterialConstants.WRITE_MASK_COLOR_DEPTH,
 		"color_depth",
 		1,
 		() -> {
@@ -57,9 +58,9 @@ public class MaterialWriteMask {
 	private static final MaterialWriteMask[] VALUES = new MaterialWriteMask[WRITE_MASK_COUNT];
 
 	static {
-		VALUES[MaterialFinder.WRITE_MASK_COLOR] = COLOR;
-		VALUES[MaterialFinder.WRITE_MASK_DEPTH] = DEPTH;
-		VALUES[MaterialFinder.WRITE_MASK_COLOR_DEPTH] = COLOR_DEPTH;
+		VALUES[MaterialConstants.WRITE_MASK_COLOR] = COLOR;
+		VALUES[MaterialConstants.WRITE_MASK_DEPTH] = DEPTH;
+		VALUES[MaterialConstants.WRITE_MASK_COLOR_DEPTH] = COLOR_DEPTH;
 	}
 
 	public static MaterialWriteMask fromIndex(int index) {
@@ -89,11 +90,11 @@ public class MaterialWriteMask {
 
 	public static int fromPhase(WriteMaskState phase) {
 		if (phase == RenderPhase.COLOR_MASK) {
-			return MaterialFinder.WRITE_MASK_COLOR;
+			return MaterialConstants.WRITE_MASK_COLOR;
 		} else if (phase == RenderPhase.DEPTH_MASK) {
-			return MaterialFinder.WRITE_MASK_DEPTH;
+			return MaterialConstants.WRITE_MASK_DEPTH;
 		} else {
-			return MaterialFinder.WRITE_MASK_COLOR_DEPTH;
+			return MaterialConstants.WRITE_MASK_COLOR_DEPTH;
 		}
 	}
 

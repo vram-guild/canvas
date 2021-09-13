@@ -35,26 +35,8 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.data.ShaderUniforms;
+import grondag.canvas.shader.data.UniformRefreshFrequency;
 import grondag.canvas.varia.GFX;
-import grondag.frex.api.material.Uniform;
-import grondag.frex.api.material.Uniform.Uniform1f;
-import grondag.frex.api.material.Uniform.Uniform1i;
-import grondag.frex.api.material.Uniform.Uniform1ui;
-import grondag.frex.api.material.Uniform.Uniform2f;
-import grondag.frex.api.material.Uniform.Uniform2i;
-import grondag.frex.api.material.Uniform.Uniform2ui;
-import grondag.frex.api.material.Uniform.Uniform3f;
-import grondag.frex.api.material.Uniform.Uniform3i;
-import grondag.frex.api.material.Uniform.Uniform3ui;
-import grondag.frex.api.material.Uniform.Uniform4f;
-import grondag.frex.api.material.Uniform.Uniform4i;
-import grondag.frex.api.material.Uniform.Uniform4ui;
-import grondag.frex.api.material.Uniform.UniformArray4f;
-import grondag.frex.api.material.Uniform.UniformArrayf;
-import grondag.frex.api.material.Uniform.UniformArrayi;
-import grondag.frex.api.material.Uniform.UniformArrayui;
-import grondag.frex.api.material.Uniform.UniformMatrix3f;
-import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlProgram {
 	static {
@@ -68,10 +50,10 @@ public class GlProgram {
 	private final Shader fragmentShader;
 	public final CanvasVertexFormat vertexFormat;
 	public final ProgramType programType;
-	private final ObjectArrayList<UniformImpl<?>> uniforms = new ObjectArrayList<>();
-	private final ObjectArrayList<UniformImpl<?>> activeUniforms = new ObjectArrayList<>();
-	private final ObjectArrayList<UniformImpl<?>> renderTickUpdates = new ObjectArrayList<>();
-	private final ObjectArrayList<UniformImpl<?>> gameTickUpdates = new ObjectArrayList<>();
+	private final ObjectArrayList<Uniform<?>> uniforms = new ObjectArrayList<>();
+	private final ObjectArrayList<Uniform<?>> activeUniforms = new ObjectArrayList<>();
+	private final ObjectArrayList<Uniform<?>> renderTickUpdates = new ObjectArrayList<>();
+	private final ObjectArrayList<Uniform<?>> gameTickUpdates = new ObjectArrayList<>();
 
 	protected boolean hasDirty = false;
 	private int progID = -1;
@@ -102,74 +84,74 @@ public class GlProgram {
 	}
 
 	public Uniform1f uniform1f(String name, UniformRefreshFrequency frequency, Consumer<Uniform1f> initializer) {
-		return new Uniform1fImpl(name, initializer, frequency);
+		return new Uniform1f(name, initializer, frequency);
 	}
 
 	public Uniform2f uniform2f(String name, UniformRefreshFrequency frequency, Consumer<Uniform2f> initializer) {
-		return new Uniform2fImpl(name, initializer, frequency);
+		return new Uniform2f(name, initializer, frequency);
 	}
 
 	public Uniform3f uniform3f(String name, UniformRefreshFrequency frequency, Consumer<Uniform3f> initializer) {
-		return new Uniform3fImpl(name, initializer, frequency);
+		return new Uniform3f(name, initializer, frequency);
 	}
 
 	public Uniform4f uniform4f(String name, UniformRefreshFrequency frequency, Consumer<Uniform4f> initializer) {
-		return new Uniform4fImpl(name, initializer, frequency);
+		return new Uniform4f(name, initializer, frequency);
 	}
 
 	public UniformArrayf uniformArrayf(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayf> initializer, int size) {
-		return new UniformArrayfImpl(name, initializer, frequency, size);
+		return new UniformArrayf(name, initializer, frequency, size);
 	}
 
 	public UniformArray4f uniformArray4f(String name, UniformRefreshFrequency frequency, Consumer<UniformArray4f> initializer, int size) {
-		return new UniformArray4fImpl(name, initializer, frequency, size);
+		return new UniformArray4f(name, initializer, frequency, size);
 	}
 
 	public Uniform1i uniformSampler(String type, String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-		return new UniformSamplerImpl(type, name, initializer, frequency);
+		return new UniformSampler(type, name, initializer, frequency);
 	}
 
 	public Uniform1i uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-		return new Uniform1iImpl(name, initializer, frequency);
+		return new Uniform1i(name, initializer, frequency);
 	}
 
 	public Uniform2i uniform2i(String name, UniformRefreshFrequency frequency, Consumer<Uniform2i> initializer) {
-		return new Uniform2iImpl(name, initializer, frequency);
+		return new Uniform2i(name, initializer, frequency);
 	}
 
 	public Uniform3i uniform3i(String name, UniformRefreshFrequency frequency, Consumer<Uniform3i> initializer) {
-		return new Uniform3iImpl(name, initializer, frequency);
+		return new Uniform3i(name, initializer, frequency);
 	}
 
 	public Uniform4i uniform4i(String name, UniformRefreshFrequency frequency, Consumer<Uniform4i> initializer) {
-		return new Uniform4iImpl(name, initializer, frequency);
+		return new Uniform4i(name, initializer, frequency);
 	}
 
 	public UniformArrayi uniformArrayi(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayi> initializer, int size) {
-		return new UniformArrayiImpl(name, initializer, frequency, size);
+		return new UniformArrayi(name, initializer, frequency, size);
 	}
 
 	public Uniform1ui uniform1ui(String name, UniformRefreshFrequency frequency, Consumer<Uniform1ui> initializer) {
-		return new Uniform1uiImpl(name, initializer, frequency);
+		return new Uniform1ui(name, initializer, frequency);
 	}
 
 	public Uniform2ui uniform2ui(String name, UniformRefreshFrequency frequency, Consumer<Uniform2ui> initializer) {
-		return new Uniform2uiImpl(name, initializer, frequency);
+		return new Uniform2ui(name, initializer, frequency);
 	}
 
 	public Uniform3ui uniform3ui(String name, UniformRefreshFrequency frequency, Consumer<Uniform3ui> initializer) {
-		return new Uniform3uiImpl(name, initializer, frequency);
+		return new Uniform3ui(name, initializer, frequency);
 	}
 
 	public Uniform4ui uniform4ui(String name, UniformRefreshFrequency frequency, Consumer<Uniform4ui> initializer) {
-		return new Uniform4uiImpl(name, initializer, frequency);
+		return new Uniform4ui(name, initializer, frequency);
 	}
 
 	public UniformArrayui uniformArrayui(String name, UniformRefreshFrequency frequency, Consumer<UniformArrayui> initializer, int size) {
-		return new UniformArrayuiImpl(name, initializer, frequency, size);
+		return new UniformArrayui(name, initializer, frequency, size);
 	}
 
-	protected void removeUniform(UniformImpl<?> uniform) {
+	protected void removeUniform(Uniform<?> uniform) {
 		assert uniforms.contains(uniform);
 		uniform.unload();
 		uniforms.remove(uniform);
@@ -215,20 +197,20 @@ public class GlProgram {
 		}
 	}
 
-	public UniformMatrix4fArrayImpl uniformMatrix4fArray(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fArrayImpl> initializer) {
-		return new UniformMatrix4fArrayImpl(name, frequency, initializer);
+	public UniformMatrix4fArray uniformMatrix4fArray(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fArray> initializer) {
+		return new UniformMatrix4fArray(name, frequency, initializer);
 	}
 
-	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix3f> initializer) {
-		return new UniformMatrix3fImpl(name, initializer, frequency);
+	public UniformMatrix3f uniformMatrix3f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix3f> initializer) {
+		return new UniformMatrix3f(name, initializer, frequency);
 	}
 
-	public UniformMatrix4fImpl uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fImpl> initializer) {
-		return new UniformMatrix4fImpl(name, frequency, initializer);
+	public UniformMatrix4f uniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
+		return new UniformMatrix4f(name, frequency, initializer);
 	}
 
-	public UniformMatrix3fImpl uniformMatrix3f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix3f> initializer) {
-		return new UniformMatrix3fImpl(name, initializer, frequency);
+	public UniformMatrix3f uniformMatrix3f(String name, UniformRefreshFrequency frequency, FloatBuffer floatBuffer, Consumer<UniformMatrix3f> initializer) {
+		return new UniformMatrix3f(name, initializer, frequency);
 	}
 
 	private void findActiveUniforms() {
@@ -239,7 +221,7 @@ public class GlProgram {
 		final int limit = uniforms.size();
 
 		for (int i = 0; i < limit; ++i) {
-			final UniformImpl<?> u = uniforms.get(i);
+			final Uniform<?> u = uniforms.get(i);
 
 			if (containsUniformSpec(u)) {
 				activeUniforms.add(u);
@@ -290,7 +272,7 @@ public class GlProgram {
 	}
 
 	public final void unload() {
-		for (final UniformImpl<?> u : uniforms) {
+		for (final Uniform<?> u : uniforms) {
 			u.unload();
 		}
 
@@ -343,7 +325,7 @@ public class GlProgram {
 		}
 	}
 
-	public boolean containsUniformSpec(UniformImpl<?> uniform) {
+	public boolean containsUniformSpec(Uniform<?> uniform) {
 		return containsUniformSpec(uniform.searchString(), uniform.name);
 	}
 
@@ -352,7 +334,7 @@ public class GlProgram {
 				|| fragmentShader.containsUniformSpec(type, name);
 	}
 
-	public abstract class UniformImpl<T extends Uniform> {
+	public abstract class Uniform<T extends Uniform<T>> {
 		protected static final int FLAG_NEEDS_UPLOAD = 1;
 		protected static final int FLAG_NEEDS_INITIALIZATION = 2;
 		protected final Consumer<T> initializer;
@@ -361,7 +343,7 @@ public class GlProgram {
 		protected int flags = 0;
 		protected int unifID = -1;
 
-		protected UniformImpl(String name, Consumer<T> initializer, UniformRefreshFrequency frequency) {
+		protected Uniform(String name, Consumer<T> initializer, UniformRefreshFrequency frequency) {
 			this.name = name;
 			this.initializer = initializer;
 			this.frequency = frequency;
@@ -427,7 +409,7 @@ public class GlProgram {
 		public abstract String searchString();
 	}
 
-	protected abstract class UniformFloat<T extends Uniform> extends UniformImpl<T> {
+	protected abstract class UniformFloat<T extends Uniform<T>> extends Uniform<T> {
 		protected FloatBuffer uniformFloatBuffer;
 
 		protected UniformFloat(String name, Consumer<T> initializer, UniformRefreshFrequency frequency, int size) {
@@ -436,12 +418,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform1fImpl extends UniformFloat<Uniform1f> implements Uniform1f {
-		protected Uniform1fImpl(String name, Consumer<Uniform1f> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform1f extends UniformFloat<Uniform1f> {
+		protected Uniform1f(String name, Consumer<Uniform1f> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 1);
 		}
 
-		@Override
 		public final void set(float value) {
 			if (unifID == -1) {
 				return;
@@ -464,12 +445,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform2fImpl extends UniformFloat<Uniform2f> implements Uniform2f {
-		protected Uniform2fImpl(String name, Consumer<Uniform2f> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform2f extends UniformFloat<Uniform2f> {
+		protected Uniform2f(String name, Consumer<Uniform2f> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 2);
 		}
 
-		@Override
 		public final void set(float v0, float v1) {
 			if (unifID == -1) {
 				return;
@@ -497,12 +477,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform3fImpl extends UniformFloat<Uniform3f> implements Uniform3f {
-		protected Uniform3fImpl(String name, Consumer<Uniform3f> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform3f extends UniformFloat<Uniform3f> {
+		protected Uniform3f(String name, Consumer<Uniform3f> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 3);
 		}
 
-		@Override
 		public final void set(float v0, float v1, float v2) {
 			if (unifID == -1) {
 				return;
@@ -535,12 +514,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform4fImpl extends UniformFloat<Uniform4f> implements Uniform4f {
-		protected Uniform4fImpl(String name, Consumer<Uniform4f> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform4f extends UniformFloat<Uniform4f> {
+		protected Uniform4f(String name, Consumer<Uniform4f> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 4);
 		}
 
-		@Override
 		public final void set(float v0, float v1, float v2, float v3) {
 			if (unifID == -1) {
 				return;
@@ -578,20 +556,18 @@ public class GlProgram {
 		}
 	}
 
-	public class UniformArrayfImpl extends UniformFloat<UniformArrayf> implements UniformArrayf {
+	public class UniformArrayf extends UniformFloat<UniformArrayf> {
 		@Nullable protected FloatBuffer externalFloatBuffer;
 
-		protected UniformArrayfImpl(String name, Consumer<UniformArrayf> initializer, UniformRefreshFrequency frequency, int size) {
+		protected UniformArrayf(String name, Consumer<UniformArrayf> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size);
 		}
 
-		@Override
 		public void setExternal(FloatBuffer externalFloatBuffer) {
 			this.externalFloatBuffer = externalFloatBuffer;
 			setDirty();
 		}
 
-		@Override
 		public final void set(float[] data) {
 			if (unifID == -1) {
 				return;
@@ -623,12 +599,11 @@ public class GlProgram {
 		}
 	}
 
-	public class UniformArray4fImpl extends UniformFloat<UniformArray4f> implements UniformArray4f {
-		protected UniformArray4fImpl(String name, Consumer<UniformArray4f> initializer, UniformRefreshFrequency frequency, int size) {
+	public class UniformArray4f extends UniformFloat<UniformArray4f> {
+		protected UniformArray4f(String name, Consumer<UniformArray4f> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size * 4);
 		}
 
-		@Override
 		public void setExternal(FloatBuffer externalFloatBuffer) {
 			if (unifID == -1) {
 				return;
@@ -651,13 +626,12 @@ public class GlProgram {
 			return "vec4\\s*\\[\\s*[0-9]+\\s*]";
 		}
 
-		@Override
 		public void set(float[] v) {
 			uniformFloatBuffer.put(v, 0, v.length);
 		}
 	}
 
-	protected abstract class UniformInt<T extends Uniform> extends UniformImpl<T> {
+	protected abstract class UniformInt<T extends Uniform<T>> extends Uniform<T> {
 		protected final IntBuffer uniformIntBuffer;
 
 		protected UniformInt(String name, Consumer<T> initializer, UniformRefreshFrequency frequency, int size) {
@@ -666,12 +640,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform1iImpl extends UniformInt<Uniform1i> implements Uniform1i {
-		protected Uniform1iImpl(String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform1i extends UniformInt<Uniform1i> {
+		protected Uniform1i(String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 1);
 		}
 
-		@Override
 		public final void set(int value) {
 			if (unifID == -1) {
 				return;
@@ -694,10 +667,10 @@ public class GlProgram {
 		}
 	}
 
-	public class UniformSamplerImpl extends Uniform1iImpl {
+	public class UniformSampler extends Uniform1i {
 		private final String type;
 
-		public UniformSamplerImpl(String type, String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
+		public UniformSampler(String type, String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency);
 			this.type = type;
 		}
@@ -708,12 +681,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform2iImpl extends UniformInt<Uniform2i> implements Uniform2i {
-		protected Uniform2iImpl(String name, Consumer<Uniform2i> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform2i extends UniformInt<Uniform2i> {
+		protected Uniform2i(String name, Consumer<Uniform2i> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 2);
 		}
 
-		@Override
 		public final void set(int v0, int v1) {
 			if (unifID == -1) {
 				return;
@@ -741,12 +713,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform3iImpl extends UniformInt<Uniform3i> implements Uniform3i {
-		protected Uniform3iImpl(String name, Consumer<Uniform3i> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform3i extends UniformInt<Uniform3i> {
+		protected Uniform3i(String name, Consumer<Uniform3i> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 3);
 		}
 
-		@Override
 		public final void set(int v0, int v1, int v2) {
 			if (unifID == -1) {
 				return;
@@ -779,12 +750,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform4iImpl extends UniformInt<Uniform4i> implements Uniform4i {
-		protected Uniform4iImpl(String name, Consumer<Uniform4i> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform4i extends UniformInt<Uniform4i> {
+		protected Uniform4i(String name, Consumer<Uniform4i> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 4);
 		}
 
-		@Override
 		public final void set(int v0, int v1, int v2, int v3) {
 			if (unifID == -1) {
 				return;
@@ -822,12 +792,11 @@ public class GlProgram {
 		}
 	}
 
-	public class UniformArrayiImpl extends UniformInt<UniformArrayi> implements UniformArrayi {
-		protected UniformArrayiImpl(String name, Consumer<UniformArrayi> initializer, UniformRefreshFrequency frequency, int size) {
+	public class UniformArrayi extends UniformInt<UniformArrayi> {
+		protected UniformArrayi(String name, Consumer<UniformArrayi> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size);
 		}
 
-		@Override
 		public final void set(int[] data) {
 			if (unifID == -1) {
 				return;
@@ -854,12 +823,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform1uiImpl extends UniformInt<Uniform1ui> implements Uniform1ui {
-		protected Uniform1uiImpl(String name, Consumer<Uniform1ui> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform1ui extends UniformInt<Uniform1ui> {
+		protected Uniform1ui(String name, Consumer<Uniform1ui> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 1);
 		}
 
-		@Override
 		public final void set(int value) {
 			if (unifID == -1) {
 				return;
@@ -882,12 +850,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform2uiImpl extends UniformInt<Uniform2ui> implements Uniform2ui {
-		protected Uniform2uiImpl(String name, Consumer<Uniform2ui> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform2ui extends UniformInt<Uniform2ui> {
+		protected Uniform2ui(String name, Consumer<Uniform2ui> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 2);
 		}
 
-		@Override
 		public final void set(int v0, int v1) {
 			if (unifID == -1) {
 				return;
@@ -915,12 +882,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform3uiImpl extends UniformInt<Uniform3ui> implements Uniform3ui {
-		protected Uniform3uiImpl(String name, Consumer<Uniform3ui> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform3ui extends UniformInt<Uniform3ui> {
+		protected Uniform3ui(String name, Consumer<Uniform3ui> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 3);
 		}
 
-		@Override
 		public final void set(int v0, int v1, int v2) {
 			if (unifID == -1) {
 				return;
@@ -953,12 +919,11 @@ public class GlProgram {
 		}
 	}
 
-	public class Uniform4uiImpl extends UniformInt<Uniform4ui> implements Uniform4ui {
-		protected Uniform4uiImpl(String name, Consumer<Uniform4ui> initializer, UniformRefreshFrequency frequency) {
+	public class Uniform4ui extends UniformInt<Uniform4ui> {
+		protected Uniform4ui(String name, Consumer<Uniform4ui> initializer, UniformRefreshFrequency frequency) {
 			super(name, initializer, frequency, 4);
 		}
 
-		@Override
 		public final void set(int v0, int v1, int v2, int v3) {
 			if (unifID == -1) {
 				return;
@@ -996,14 +961,13 @@ public class GlProgram {
 		}
 	}
 
-	public class UniformArrayuiImpl extends UniformInt<UniformArrayui> implements UniformArrayui {
+	public class UniformArrayui extends UniformInt<UniformArrayui> {
 		private @Nullable IntBuffer externalBuffer;
 
-		protected UniformArrayuiImpl(String name, Consumer<UniformArrayui> initializer, UniformRefreshFrequency frequency, int size) {
+		protected UniformArrayui(String name, Consumer<UniformArrayui> initializer, UniformRefreshFrequency frequency, int size) {
 			super(name, initializer, frequency, size);
 		}
 
-		@Override
 		public final void set(int[] data) {
 			if (unifID == -1) {
 				return;
@@ -1031,7 +995,6 @@ public class GlProgram {
 			return "uint\\s*\\[\\s*[0-9]+\\s*]";
 		}
 
-		@Override
 		public void setExternal(IntBuffer buff) {
 			if (unifID == -1) {
 				return;
@@ -1042,13 +1005,13 @@ public class GlProgram {
 		}
 	}
 
-	public class UniformMatrix4fArrayImpl extends UniformImpl<UniformMatrix4fArrayImpl> implements Uniform {
+	public class UniformMatrix4fArray extends Uniform<UniformMatrix4fArray> {
 		protected FloatBuffer uniformFloatBuffer;
 
 		/**
 		 * Requires a shared direct buffer.
 		 */
-		protected UniformMatrix4fArrayImpl(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fArrayImpl> initializer) {
+		protected UniformMatrix4fArray(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fArray> initializer) {
 			super(name, initializer, frequency);
 		}
 
@@ -1074,10 +1037,10 @@ public class GlProgram {
 		}
 	}
 
-	public class UniformMatrix4fImpl extends UniformImpl<UniformMatrix4fImpl> implements Uniform {
+	public class UniformMatrix4f extends Uniform<UniformMatrix4f> {
 		protected FloatBuffer uniformFloatBuffer = BufferUtils.createFloatBuffer(16);
 
-		protected UniformMatrix4fImpl(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4fImpl> initializer) {
+		protected UniformMatrix4f(String name, UniformRefreshFrequency frequency, Consumer<UniformMatrix4f> initializer) {
 			super(name, initializer, frequency);
 		}
 
@@ -1104,25 +1067,24 @@ public class GlProgram {
 		}
 	}
 
-	public class UniformMatrix3fImpl extends UniformImpl<UniformMatrix3f> implements UniformMatrix3f {
+	public class UniformMatrix3f extends Uniform<UniformMatrix3f> {
 		protected final FloatBuffer uniformFloatBuffer;
 		protected final long bufferAddress;
 		protected final Matrix3f lastValue = new Matrix3f();
 
-		protected UniformMatrix3fImpl(String name, Consumer<UniformMatrix3f> initializer, UniformRefreshFrequency frequency) {
+		protected UniformMatrix3f(String name, Consumer<UniformMatrix3f> initializer, UniformRefreshFrequency frequency) {
 			this(name, initializer, frequency, BufferUtils.createFloatBuffer(9));
 		}
 
 		/**
 		 * Use when have a shared direct buffer.
 		 */
-		protected UniformMatrix3fImpl(String name, Consumer<UniformMatrix3f> initializer, UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
+		protected UniformMatrix3f(String name, Consumer<UniformMatrix3f> initializer, UniformRefreshFrequency frequency, FloatBuffer uniformFloatBuffer) {
 			super(name, initializer, frequency);
 			this.uniformFloatBuffer = uniformFloatBuffer;
 			bufferAddress = MemoryUtil.memAddress(this.uniformFloatBuffer);
 		}
 
-		@Override
 		public final void set(Matrix3f matrix) {
 			if (unifID == -1) {
 				return;

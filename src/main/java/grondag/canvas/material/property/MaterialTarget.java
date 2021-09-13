@@ -18,18 +18,19 @@ package grondag.canvas.material.property;
 
 import java.util.function.Predicate;
 
+import io.vram.frex.api.material.MaterialConstants;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Target;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.frex.api.material.MaterialFinder;
 
 @SuppressWarnings("resource")
 public class MaterialTarget implements Predicate<RenderState> {
 	public static final MaterialTarget MAIN = new MaterialTarget(
-		MaterialFinder.TARGET_MAIN,
+		MaterialConstants.TARGET_MAIN,
 		"main",
 		() -> {
 			Pipeline.solidTerrainFbo.bind();
@@ -40,7 +41,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 	);
 
 	public static final MaterialTarget OUTLINE = new MaterialTarget(
-		MaterialFinder.TARGET_OUTLINE,
+		MaterialConstants.TARGET_OUTLINE,
 		"outline",
 		() -> {
 			MinecraftClient.getInstance().worldRenderer.getEntityOutlinesFramebuffer().beginWrite(false);
@@ -51,7 +52,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 	);
 
 	public static final MaterialTarget TRANSLUCENT = new MaterialTarget(
-		MaterialFinder.TARGET_TRANSLUCENT,
+		MaterialConstants.TARGET_TRANSLUCENT,
 		"translucent",
 		() -> {
 			Pipeline.translucentTerrainFbo.bind();
@@ -62,7 +63,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 	);
 
 	public static final MaterialTarget PARTICLES = new MaterialTarget(
-		MaterialFinder.TARGET_PARTICLES,
+		MaterialConstants.TARGET_PARTICLES,
 		"particles",
 		() -> {
 			Pipeline.translucentParticlesFbo.bind();
@@ -73,7 +74,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 	);
 
 	public static final MaterialTarget WEATHER = new MaterialTarget(
-		MaterialFinder.TARGET_WEATHER,
+		MaterialConstants.TARGET_WEATHER,
 		"weather",
 		() -> {
 			Pipeline.weatherFbo.bind();
@@ -84,7 +85,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 	);
 
 	public static final MaterialTarget CLOUDS = new MaterialTarget(
-		MaterialFinder.TARGET_CLOUDS,
+		MaterialConstants.TARGET_CLOUDS,
 		"clouds",
 		() -> {
 			Pipeline.cloudsFbo.bind();
@@ -95,7 +96,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 	);
 
 	public static final MaterialTarget ENTITIES = new MaterialTarget(
-		MaterialFinder.TARGET_ENTITIES,
+		MaterialConstants.TARGET_ENTITIES,
 		"entities",
 		() -> {
 			Pipeline.translucentEntityFbo.bind();
@@ -109,13 +110,13 @@ public class MaterialTarget implements Predicate<RenderState> {
 	private static final MaterialTarget[] VALUES = new MaterialTarget[TARGET_COUNT];
 
 	static {
-		VALUES[MaterialFinder.TARGET_MAIN] = MAIN;
-		VALUES[MaterialFinder.TARGET_OUTLINE] = OUTLINE;
-		VALUES[MaterialFinder.TARGET_TRANSLUCENT] = TRANSLUCENT;
-		VALUES[MaterialFinder.TARGET_PARTICLES] = PARTICLES;
-		VALUES[MaterialFinder.TARGET_WEATHER] = WEATHER;
-		VALUES[MaterialFinder.TARGET_CLOUDS] = CLOUDS;
-		VALUES[MaterialFinder.TARGET_ENTITIES] = ENTITIES;
+		VALUES[MaterialConstants.TARGET_MAIN] = MAIN;
+		VALUES[MaterialConstants.TARGET_OUTLINE] = OUTLINE;
+		VALUES[MaterialConstants.TARGET_TRANSLUCENT] = TRANSLUCENT;
+		VALUES[MaterialConstants.TARGET_PARTICLES] = PARTICLES;
+		VALUES[MaterialConstants.TARGET_WEATHER] = WEATHER;
+		VALUES[MaterialConstants.TARGET_CLOUDS] = CLOUDS;
+		VALUES[MaterialConstants.TARGET_ENTITIES] = ENTITIES;
 	}
 
 	public static MaterialTarget fromIndex(int index) {
@@ -154,20 +155,20 @@ public class MaterialTarget implements Predicate<RenderState> {
 
 	public static int fromPhase(Target phase) {
 		if (phase == RenderPhase.TRANSLUCENT_TARGET) {
-			return MaterialFinder.TARGET_TRANSLUCENT;
+			return MaterialConstants.TARGET_TRANSLUCENT;
 		} else if (phase == RenderPhase.OUTLINE_TARGET) {
-			return MaterialFinder.TARGET_OUTLINE;
+			return MaterialConstants.TARGET_OUTLINE;
 		} else if (phase == RenderPhase.PARTICLES_TARGET) {
-			return MaterialFinder.TARGET_PARTICLES;
+			return MaterialConstants.TARGET_PARTICLES;
 		} else if (phase == RenderPhase.WEATHER_TARGET) {
-			return MaterialFinder.TARGET_WEATHER;
+			return MaterialConstants.TARGET_WEATHER;
 		} else if (phase == RenderPhase.CLOUDS_TARGET) {
-			return MaterialFinder.TARGET_CLOUDS;
+			return MaterialConstants.TARGET_CLOUDS;
 		} else if (phase == RenderPhase.ITEM_TARGET) {
-			return MaterialFinder.TARGET_ENTITIES;
+			return MaterialConstants.TARGET_ENTITIES;
 		} else {
 			assert phase == RenderPhase.MAIN_TARGET : "Unsupported render target";
-			return MaterialFinder.TARGET_MAIN;
+			return MaterialConstants.TARGET_MAIN;
 		}
 	}
 

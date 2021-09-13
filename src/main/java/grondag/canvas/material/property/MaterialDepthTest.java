@@ -16,15 +16,16 @@
 
 package grondag.canvas.material.property;
 
+import io.vram.frex.api.material.MaterialConstants;
+
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.DepthTest;
 
 import grondag.canvas.varia.GFX;
-import grondag.frex.api.material.MaterialFinder;
 
 public class MaterialDepthTest {
 	public static final MaterialDepthTest DISABLE = new MaterialDepthTest(
-		MaterialFinder.DEPTH_TEST_DISABLE,
+		MaterialConstants.DEPTH_TEST_DISABLE,
 		"disable",
 		() -> {
 			GFX.disableDepthTest();
@@ -32,7 +33,7 @@ public class MaterialDepthTest {
 		});
 
 	public static final MaterialDepthTest ALWAYS = new MaterialDepthTest(
-		MaterialFinder.DEPTH_TEST_ALWAYS,
+		MaterialConstants.DEPTH_TEST_ALWAYS,
 		"disable",
 		() -> {
 			GFX.enableDepthTest();
@@ -40,7 +41,7 @@ public class MaterialDepthTest {
 		});
 
 	public static final MaterialDepthTest EQUAL = new MaterialDepthTest(
-		MaterialFinder.DEPTH_TEST_EQUAL,
+		MaterialConstants.DEPTH_TEST_EQUAL,
 		"disable",
 		() -> {
 			GFX.enableDepthTest();
@@ -48,7 +49,7 @@ public class MaterialDepthTest {
 		});
 
 	public static final MaterialDepthTest LEQUAL = new MaterialDepthTest(
-		MaterialFinder.DEPTH_TEST_LEQUAL,
+		MaterialConstants.DEPTH_TEST_LEQUAL,
 		"disable",
 		() -> {
 			GFX.enableDepthTest();
@@ -59,10 +60,10 @@ public class MaterialDepthTest {
 	private static final MaterialDepthTest[] VALUES = new MaterialDepthTest[DEPTH_TEST_COUNT];
 
 	static {
-		VALUES[MaterialFinder.DEPTH_TEST_DISABLE] = DISABLE;
-		VALUES[MaterialFinder.DEPTH_TEST_ALWAYS] = ALWAYS;
-		VALUES[MaterialFinder.DEPTH_TEST_EQUAL] = EQUAL;
-		VALUES[MaterialFinder.DEPTH_TEST_LEQUAL] = LEQUAL;
+		VALUES[MaterialConstants.DEPTH_TEST_DISABLE] = DISABLE;
+		VALUES[MaterialConstants.DEPTH_TEST_ALWAYS] = ALWAYS;
+		VALUES[MaterialConstants.DEPTH_TEST_EQUAL] = EQUAL;
+		VALUES[MaterialConstants.DEPTH_TEST_LEQUAL] = LEQUAL;
 	}
 
 	public static MaterialDepthTest fromIndex(int index) {
@@ -88,13 +89,13 @@ public class MaterialDepthTest {
 
 	public static int fromPhase(DepthTest phase) {
 		if (phase == RenderPhase.ALWAYS_DEPTH_TEST) {
-			return MaterialFinder.DEPTH_TEST_ALWAYS;
+			return MaterialConstants.DEPTH_TEST_ALWAYS;
 		} else if (phase == RenderPhase.EQUAL_DEPTH_TEST) {
-			return MaterialFinder.DEPTH_TEST_EQUAL;
+			return MaterialConstants.DEPTH_TEST_EQUAL;
 		} else if (phase == RenderPhase.LEQUAL_DEPTH_TEST) {
-			return MaterialFinder.DEPTH_TEST_LEQUAL;
+			return MaterialConstants.DEPTH_TEST_LEQUAL;
 		} else {
-			return MaterialFinder.DEPTH_TEST_DISABLE;
+			return MaterialConstants.DEPTH_TEST_DISABLE;
 		}
 	}
 

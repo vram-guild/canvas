@@ -210,7 +210,6 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	@Deprecated
 	public final Direction lightFace() {
 		return ModelHelper.faceFromIndex(lightFaceId());
 	}
@@ -220,7 +219,6 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	@Deprecated
 	public final Direction cullFace() {
 		return ModelHelper.faceFromIndex(cullFaceId());
 	}

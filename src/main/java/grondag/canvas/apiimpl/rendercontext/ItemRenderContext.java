@@ -62,7 +62,6 @@ import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.mixinterface.ShaderExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
-import grondag.frex.api.material.MaterialFinder;
 
 public class ItemRenderContext extends AbstractRenderContext {
 	/**
@@ -234,17 +233,17 @@ public class ItemRenderContext extends AbstractRenderContext {
 
 		switch (preset) {
 			case MaterialConstants.PRESET_CUTOUT:
-				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(MaterialFinder.CUTOUT_HALF)
+				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_HALF)
 					.unmipped(true)
-					.target(MaterialFinder.TARGET_MAIN)
+					.target(MaterialConstants.TARGET_MAIN)
 					.sorted(false);
 				break;
 			case MaterialConstants.PRESET_CUTOUT_MIPPED:
-				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(MaterialFinder.CUTOUT_HALF)
+				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_HALF)
 					.unmipped(false)
-					.target(MaterialFinder.TARGET_MAIN)
+					.target(MaterialConstants.TARGET_MAIN)
 					.sorted(false);
 				break;
 			case MaterialConstants.PRESET_TRANSLUCENT:
@@ -257,17 +256,17 @@ public class ItemRenderContext extends AbstractRenderContext {
 				// 2 has to be finessed because blend mode = TRANSLUCENT doesn't make it clear cutout is needed.
 				// The code below is an ugly hack - need a better way
 
-				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
-					.cutout(isBlockItem ? MaterialFinder.CUTOUT_NONE : MaterialFinder.CUTOUT_TENTH)
+				finder.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
+					.cutout(isBlockItem ? MaterialConstants.CUTOUT_NONE : MaterialConstants.CUTOUT_TENTH)
 					.unmipped(false)
-					.target(drawTranslucencyDirectToMainTarget ? MaterialFinder.TARGET_MAIN : MaterialFinder.TARGET_ENTITIES)
+					.target(drawTranslucencyDirectToMainTarget ? MaterialConstants.TARGET_MAIN : MaterialConstants.TARGET_ENTITIES)
 					.sorted(!drawTranslucencyDirectToMainTarget);
 				break;
 			case MaterialConstants.PRESET_SOLID:
-				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(MaterialFinder.CUTOUT_NONE)
+				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_NONE)
 					.unmipped(false)
-					.target(MaterialFinder.TARGET_MAIN)
+					.target(MaterialConstants.TARGET_MAIN)
 					.sorted(false);
 				break;
 			default:
@@ -308,7 +307,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 
 		if (params.getTransparency() == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
 			return MaterialConstants.PRESET_TRANSLUCENT;
-		} else if (((ShaderExt) params.getShader()).canvas_shaderData().cutout != MaterialFinder.CUTOUT_NONE) {
+		} else if (((ShaderExt) params.getShader()).canvas_shaderData().cutout != MaterialConstants.CUTOUT_NONE) {
 			final AccessTexture tex = (AccessTexture) params.getTexture();
 			return tex.getMipmap() ? MaterialConstants.PRESET_CUTOUT_MIPPED : MaterialConstants.PRESET_CUTOUT;
 		} else {

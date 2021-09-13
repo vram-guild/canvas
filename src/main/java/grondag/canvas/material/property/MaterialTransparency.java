@@ -16,15 +16,16 @@
 
 package grondag.canvas.material.property;
 
+import io.vram.frex.api.material.MaterialConstants;
+
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Transparency;
 
 import grondag.canvas.varia.GFX;
-import grondag.frex.api.material.MaterialFinder;
 
 public class MaterialTransparency {
 	public static final MaterialTransparency NONE = new MaterialTransparency(
-		MaterialFinder.TRANSPARENCY_NONE,
+		MaterialConstants.TRANSPARENCY_NONE,
 		"none",
 		6,
 		() -> {
@@ -32,7 +33,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency ADDITIVE = new MaterialTransparency(
-		MaterialFinder.TRANSPARENCY_ADDITIVE,
+		MaterialConstants.TRANSPARENCY_ADDITIVE,
 		"additive",
 		2,
 		() -> {
@@ -41,7 +42,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency LIGHTNING = new MaterialTransparency(
-		MaterialFinder.TRANSPARENCY_LIGHTNING,
+		MaterialConstants.TRANSPARENCY_LIGHTNING,
 		"lightning",
 		5,
 		() -> {
@@ -50,7 +51,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency GLINT = new MaterialTransparency(
-		MaterialFinder.TRANSPARENCY_GLINT,
+		MaterialConstants.TRANSPARENCY_GLINT,
 		"glint",
 		1,
 		() -> {
@@ -59,7 +60,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency CRUMBLING = new MaterialTransparency(
-		MaterialFinder.TRANSPARENCY_CRUMBLING,
+		MaterialConstants.TRANSPARENCY_CRUMBLING,
 		"crumbling",
 		0,
 		() -> {
@@ -68,7 +69,7 @@ public class MaterialTransparency {
 		});
 
 	public static final MaterialTransparency TRANSLUCENT = new MaterialTransparency(
-		MaterialFinder.TRANSPARENCY_TRANSLUCENT,
+		MaterialConstants.TRANSPARENCY_TRANSLUCENT,
 		"translucent",
 		4,
 		() -> {
@@ -78,7 +79,7 @@ public class MaterialTransparency {
 
 	/** Used for terrain particles. */
 	public static final MaterialTransparency DEFAULT = new MaterialTransparency(
-		MaterialFinder.TRANSPARENCY_DEFAULT,
+		MaterialConstants.TRANSPARENCY_DEFAULT,
 		"default",
 		3,
 		() -> {
@@ -90,13 +91,13 @@ public class MaterialTransparency {
 	private static final MaterialTransparency[] VALUES = new MaterialTransparency[TRANSPARENCY_COUNT];
 
 	static {
-		VALUES[MaterialFinder.TRANSPARENCY_NONE] = NONE;
-		VALUES[MaterialFinder.TRANSPARENCY_ADDITIVE] = ADDITIVE;
-		VALUES[MaterialFinder.TRANSPARENCY_LIGHTNING] = LIGHTNING;
-		VALUES[MaterialFinder.TRANSPARENCY_GLINT] = GLINT;
-		VALUES[MaterialFinder.TRANSPARENCY_CRUMBLING] = CRUMBLING;
-		VALUES[MaterialFinder.TRANSPARENCY_TRANSLUCENT] = TRANSLUCENT;
-		VALUES[MaterialFinder.TRANSPARENCY_DEFAULT] = DEFAULT;
+		VALUES[MaterialConstants.TRANSPARENCY_NONE] = NONE;
+		VALUES[MaterialConstants.TRANSPARENCY_ADDITIVE] = ADDITIVE;
+		VALUES[MaterialConstants.TRANSPARENCY_LIGHTNING] = LIGHTNING;
+		VALUES[MaterialConstants.TRANSPARENCY_GLINT] = GLINT;
+		VALUES[MaterialConstants.TRANSPARENCY_CRUMBLING] = CRUMBLING;
+		VALUES[MaterialConstants.TRANSPARENCY_TRANSLUCENT] = TRANSLUCENT;
+		VALUES[MaterialConstants.TRANSPARENCY_DEFAULT] = DEFAULT;
 	}
 
 	public static MaterialTransparency fromIndex(int index) {
@@ -126,17 +127,17 @@ public class MaterialTransparency {
 
 	public static int fromPhase(Transparency phase) {
 		if (phase == RenderPhase.ADDITIVE_TRANSPARENCY) {
-			return MaterialFinder.TRANSPARENCY_ADDITIVE;
+			return MaterialConstants.TRANSPARENCY_ADDITIVE;
 		} else if (phase == RenderPhase.LIGHTNING_TRANSPARENCY) {
-			return MaterialFinder.TRANSPARENCY_LIGHTNING;
+			return MaterialConstants.TRANSPARENCY_LIGHTNING;
 		} else if (phase == RenderPhase.GLINT_TRANSPARENCY) {
-			return MaterialFinder.TRANSPARENCY_GLINT;
+			return MaterialConstants.TRANSPARENCY_GLINT;
 		} else if (phase == RenderPhase.CRUMBLING_TRANSPARENCY) {
-			return MaterialFinder.TRANSPARENCY_CRUMBLING;
+			return MaterialConstants.TRANSPARENCY_CRUMBLING;
 		} else if (phase == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
-			return MaterialFinder.TRANSPARENCY_TRANSLUCENT;
+			return MaterialConstants.TRANSPARENCY_TRANSLUCENT;
 		} else {
-			return MaterialFinder.TRANSPARENCY_NONE;
+			return MaterialConstants.TRANSPARENCY_NONE;
 		}
 	}
 

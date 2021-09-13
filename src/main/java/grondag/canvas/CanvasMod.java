@@ -32,6 +32,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.apiimpl.Canvas;
@@ -69,11 +70,6 @@ public class CanvasMod implements ClientModInitializer {
 
 		ConfigManager.init();
 		FrexFeature.registerFeatures(FrexFeature.UPDATE_MATERIAL_REGISTRATION);
-		// WIP: move to compat layer?
-		FluidModel.setReloadHandler(FluidHandler.HANDLER);
-
-		// WIP: move to compat layer
-		InvalidateRenderStateCallback.EVENT.register(Canvas.instance()::reload);
 
 		if (Configurator.debugNativeMemoryAllocation) {
 			LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
@@ -86,7 +82,17 @@ public class CanvasMod implements ClientModInitializer {
 		((RenderLayerExt) RenderLayer.getCutout()).canvas_preset(MaterialConstants.PRESET_CUTOUT);
 		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_preset(MaterialConstants.PRESET_CUTOUT_MIPPED);
 
-		// WIP: move to compat layer
+		platformSpecificInit();
+
+		Compat.init();
+	}
+
+	// Things that need to be moved to proxy or architectury, etc.
+	private static void platformSpecificInit() {
+		FluidModel.setReloadHandler(FluidHandler.HANDLER);
+
+		InvalidateRenderStateCallback.EVENT.register(Canvas.instance()::reload);
+
 		KeyBindingHelper.registerKeyBinding(DEBUG_TOGGLE);
 		KeyBindingHelper.registerKeyBinding(DEBUG_PREV);
 		KeyBindingHelper.registerKeyBinding(DEBUG_NEXT);
@@ -94,11 +100,9 @@ public class CanvasMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(FLAWLESS_TOGGLE);
 		KeyBindingHelper.registerKeyBinding(PROFILER_TOGGLE);
 
-		Compat.init();
-
 		FabricLoader.getInstance().getModContainer(MODID).ifPresent(modContainer -> {
-			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:default"), "resourcepacks/canvas_default", modContainer, true);
-			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:extras"), "resourcepacks/canvas_extras", modContainer, false);
+			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:canvas_default"), modContainer, ResourcePackActivationType.DEFAULT_ENABLED);
+			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:canvas_extras"), modContainer, ResourcePackActivationType.NORMAL);
 			//ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:development"), "resourcepacks/canvas_wip", modContainer, false);
 		});
 

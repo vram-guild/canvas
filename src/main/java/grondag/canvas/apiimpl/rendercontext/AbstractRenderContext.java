@@ -38,7 +38,6 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.frex.api.material.MaterialFinder;
 
 // UGLY: consolidate and simplify this class hierarchy
 public abstract class AbstractRenderContext extends AbstractEncodingContext implements ModelRenderContext {
@@ -234,33 +233,33 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 
 		switch (bm) {
 			case MaterialConstants.PRESET_CUTOUT: {
-				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(MaterialFinder.CUTOUT_HALF)
+				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_HALF)
 					.unmipped(true)
-					.target(MaterialFinder.TARGET_MAIN)
+					.target(MaterialConstants.TARGET_MAIN)
 					.sorted(false);
 				break;
 			}
 			case MaterialConstants.PRESET_CUTOUT_MIPPED:
 				finder
-					.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(MaterialFinder.CUTOUT_HALF)
+					.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_HALF)
 					.unmipped(false)
-					.target(MaterialFinder.TARGET_MAIN)
+					.target(MaterialConstants.TARGET_MAIN)
 					.sorted(false);
 				break;
 			case MaterialConstants.PRESET_TRANSLUCENT:
-				finder.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
-					.cutout(MaterialFinder.CUTOUT_NONE)
+				finder.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
+					.cutout(MaterialConstants.CUTOUT_NONE)
 					.unmipped(false)
-					.target(MaterialFinder.TARGET_TRANSLUCENT)
+					.target(MaterialConstants.TARGET_TRANSLUCENT)
 					.sorted(true);
 				break;
 			case MaterialConstants.PRESET_SOLID:
-				finder.transparency(MaterialFinder.TRANSPARENCY_NONE)
-					.cutout(MaterialFinder.CUTOUT_NONE)
+				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_NONE)
 					.unmipped(false)
-					.target(MaterialFinder.TARGET_MAIN)
+					.target(MaterialConstants.TARGET_MAIN)
 					.sorted(false);
 				break;
 			default:

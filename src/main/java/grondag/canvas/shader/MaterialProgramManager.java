@@ -23,8 +23,8 @@ import grondag.canvas.render.terrain.TerrainSectorMap;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.shader.data.ShaderUniforms;
+import grondag.canvas.shader.data.UniformRefreshFrequency;
 import grondag.canvas.varia.GFX;
-import grondag.frex.api.material.UniformRefreshFrequency;
 
 public enum MaterialProgramManager {
 	INSTANCE;

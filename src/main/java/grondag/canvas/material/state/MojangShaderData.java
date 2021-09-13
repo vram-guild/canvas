@@ -16,11 +16,11 @@
 
 package grondag.canvas.material.state;
 
-import static grondag.frex.api.material.MaterialFinder.CUTOUT_ALPHA;
-import static grondag.frex.api.material.MaterialFinder.CUTOUT_HALF;
-import static grondag.frex.api.material.MaterialFinder.CUTOUT_NONE;
-import static grondag.frex.api.material.MaterialFinder.CUTOUT_TENTH;
-import static grondag.frex.api.material.MaterialFinder.CUTOUT_ZERO;
+import static io.vram.frex.api.material.MaterialConstants.CUTOUT_ALPHA;
+import static io.vram.frex.api.material.MaterialConstants.CUTOUT_HALF;
+import static io.vram.frex.api.material.MaterialConstants.CUTOUT_NONE;
+import static io.vram.frex.api.material.MaterialConstants.CUTOUT_TENTH;
+import static io.vram.frex.api.material.MaterialConstants.CUTOUT_ZERO;
 
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;

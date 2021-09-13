@@ -20,6 +20,7 @@ import java.util.Iterator;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 
 import net.minecraft.client.particle.Particle;
@@ -44,8 +45,6 @@ import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.varia.GFX;
-import grondag.frex.api.material.MaterialFinder;
-import grondag.frex.api.material.RenderMaterial;
 
 public class CanvasParticleRenderer {
 	private Tessellator tessellator;
@@ -98,7 +97,7 @@ public class CanvasParticleRenderer {
 				try {
 					if (baseMat != null) {
 						// FEAT: enhanced material maps for particles - shaders for animation in particular
-						final RenderMaterial mat = (RenderMaterial) MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
+						final var mat = MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
 						collectors.consumer.defaultMaterial(mat == null || !mat.emissive() ? baseMat : emissiveMat);
 					}
 
@@ -165,22 +164,22 @@ public class CanvasParticleRenderer {
 	private static MaterialFinderImpl baseFinder() {
 		return MaterialFinderImpl.threadLocal()
 				.primitive(GFX.GL_QUADS)
-				.depthTest(MaterialFinder.DEPTH_TEST_LEQUAL)
+				.depthTest(MaterialConstants.DEPTH_TEST_LEQUAL)
 				.cull(false)
-				.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH)
-				.decal(MaterialFinder.DECAL_NONE)
-				.target(MaterialFinder.TARGET_PARTICLES)
+				.writeMask(MaterialConstants.WRITE_MASK_COLOR_DEPTH)
+				.decal(MaterialConstants.DECAL_NONE)
+				.target(MaterialConstants.TARGET_PARTICLES)
 				.lines(false)
 				.enableGlint(false)
 				.disableAo(true)
 				.disableDiffuse(true)
-				.cutout(MaterialFinder.CUTOUT_TENTH)
+				.cutout(MaterialConstants.CUTOUT_TENTH)
 				.fog(true);
 	}
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()
 			.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
-			.transparency(MaterialFinder.TRANSPARENCY_DEFAULT)
+			.transparency(MaterialConstants.TRANSPARENCY_DEFAULT)
 			.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TERRAIN_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TERRAIN)
@@ -189,7 +188,7 @@ public class CanvasParticleRenderer {
 
 	// MC has two but they are functionally identical
 	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT = baseFinder()
-			.transparency(MaterialFinder.TRANSPARENCY_NONE)
+			.transparency(MaterialConstants.TRANSPARENCY_NONE)
 			.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 			.find();
 
@@ -198,8 +197,8 @@ public class CanvasParticleRenderer {
 			.find();
 
 	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = baseFinder()
-			.cutout(MaterialFinder.CUTOUT_ZERO)
-			.transparency(MaterialFinder.TRANSPARENCY_TRANSLUCENT)
+			.cutout(MaterialConstants.CUTOUT_ZERO)
+			.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
 			.texture(SpriteAtlasTexture.PARTICLE_ATLAS_TEXTURE)
 			.find();
 

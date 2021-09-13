@@ -16,6 +16,7 @@
 
 package grondag.canvas.material.state;
 
+import io.vram.frex.api.material.MaterialConstants;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -42,7 +43,6 @@ import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 import grondag.canvas.mixinterface.RenderLayerExt;
 import grondag.canvas.mixinterface.ShaderExt;
-import grondag.frex.api.material.MaterialFinder;
 
 // segregates render layer references from mod init
 public final class RenderLayerHelper {
@@ -108,7 +108,7 @@ public final class RenderLayerHelper {
 		if (layer == RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {
 			finder.cull(true);
 			finder.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
-			finder.writeMask(MaterialFinder.WRITE_MASK_COLOR_DEPTH);
+			finder.writeMask(MaterialConstants.WRITE_MASK_COLOR_DEPTH);
 			finder.disableAo(false);
 		} else {
 			finder.disableAo(true);

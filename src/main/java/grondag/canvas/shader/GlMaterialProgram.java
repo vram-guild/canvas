@@ -31,20 +31,20 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
+import grondag.canvas.shader.data.UniformRefreshFrequency;
 import grondag.canvas.texture.SpriteIndex;
 import grondag.canvas.texture.TextureData;
 import grondag.fermion.bits.BitPacker32;
-import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class GlMaterialProgram extends GlProgram {
 	// UGLY: special casing, public
-	public final Uniform1iImpl cascade;
+	public final Uniform1i cascade;
 
-	private final UniformArray4fImpl modelOrigin;
-	private final UniformArrayiImpl contextInfo;
-	private final Uniform1iImpl modelOriginType;
-	private final UniformMatrix4fImpl guiViewProjMatrix;
-	private final ObjectArrayList<UniformSamplerImpl> configuredSamplers;
+	private final UniformArray4f modelOrigin;
+	private final UniformArrayi contextInfo;
+	private final Uniform1i modelOriginType;
+	private final UniformMatrix4f guiViewProjMatrix;
+	private final ObjectArrayList<UniformSampler> configuredSamplers;
 
 	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
 	private static final BitPacker32<Void> CONTEXT_FLAGS = new BitPacker32<>(null, null);
@@ -52,10 +52,10 @@ public class GlMaterialProgram extends GlProgram {
 
 	GlMaterialProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
 		super(vertexShader, fragmentShader, format, programType);
-		modelOrigin = (UniformArray4fImpl) uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.setExternal(null), 2);
-		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
-		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
-		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		modelOrigin = (UniformArray4f) uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.setExternal(null), 2);
+		contextInfo = (UniformArrayi) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
+		modelOriginType = (Uniform1i) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
+		cascade = (Uniform1i) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		configuredSamplers = new ObjectArrayList<>();
 		guiViewProjMatrix = uniformMatrix4f("_cvu_guiViewProjMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 	}
@@ -175,7 +175,7 @@ public class GlMaterialProgram extends GlProgram {
 			final int texId = i;
 			final String samplerName = Pipeline.config().materialProgram.samplerNames[i];
 			final String samplerType = SamplerTypeHelper.getSamplerType(this, samplerName);
-			configuredSamplers.add((UniformSamplerImpl) uniformSampler(samplerType, samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.PROGRAM_SAMPLERS - GL21.GL_TEXTURE0 + texId)));
+			configuredSamplers.add((UniformSampler) uniformSampler(samplerType, samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.PROGRAM_SAMPLERS - GL21.GL_TEXTURE0 + texId)));
 		}
 	}
 }

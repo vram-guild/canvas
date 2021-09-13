@@ -22,7 +22,6 @@ import org.lwjgl.opengl.GL21;
 
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.texture.TextureData;
-import grondag.frex.api.material.UniformRefreshFrequency;
 
 public class ShaderUniforms {
 	public static final Consumer<GlProgram> MATERIAL_UNIFORM_SETUP = program -> {

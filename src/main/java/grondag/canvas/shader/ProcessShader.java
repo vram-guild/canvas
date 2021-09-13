@@ -20,20 +20,20 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Matrix4f;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.shader.GlProgram.Uniform1iImpl;
-import grondag.canvas.shader.GlProgram.Uniform2iImpl;
-import grondag.canvas.shader.GlProgram.UniformMatrix4fImpl;
-import grondag.frex.api.material.UniformRefreshFrequency;
+import grondag.canvas.shader.GlProgram.Uniform1i;
+import grondag.canvas.shader.GlProgram.Uniform2i;
+import grondag.canvas.shader.GlProgram.UniformMatrix4f;
+import grondag.canvas.shader.data.UniformRefreshFrequency;
 
 public class ProcessShader {
 	private final Identifier fragmentId;
 	private final Identifier vertexId;
 	private final String[] samplers;
 	private GlProgram program;
-	private Uniform2iImpl size;
-	private Uniform1iImpl lod;
-	private Uniform1iImpl layer;
-	private UniformMatrix4fImpl projMatrix;
+	private Uniform2i size;
+	private Uniform1i lod;
+	private Uniform1i layer;
+	private UniformMatrix4f projMatrix;
 
 	public ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
 		this.fragmentId = fragmentId;
@@ -66,9 +66,9 @@ public class ProcessShader {
 			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ProgramType.PROCESS);
 			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, ProgramType.PROCESS);
 			program = new GlProgram(vs, fs, CanvasVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
-			size = (Uniform2iImpl) program.uniform2i("frxu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
-			lod = (Uniform1iImpl) program.uniform1i("frxu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-			layer = (Uniform1iImpl) program.uniform1i("frxu_layer", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			size = (Uniform2i) program.uniform2i("frxu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
+			lod = (Uniform1i) program.uniform1i("frxu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			layer = (Uniform1i) program.uniform1i("frxu_layer", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 			projMatrix = program.uniformMatrix4f("frxu_frameProjectionMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 			int tex = 0;
 

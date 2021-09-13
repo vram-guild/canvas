@@ -18,13 +18,13 @@ package grondag.canvas.material.property;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.vram.frex.api.material.MaterialConstants;
 
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.RenderPhase.Layering;
 import net.minecraft.client.util.math.MatrixStack;
 
 import grondag.canvas.varia.GFX;
-import grondag.frex.api.material.MaterialFinder;
 
 public final class MaterialDecal {
 	public static final int DECAL_COUNT = 3;
@@ -35,14 +35,14 @@ public final class MaterialDecal {
 	}
 
 	public static final MaterialDecal NONE = new MaterialDecal(
-		MaterialFinder.DECAL_NONE,
+		MaterialConstants.DECAL_NONE,
 		"none",
 		0,
 		Runnables.doNothing(),
 		Runnables.doNothing());
 
 	public static final MaterialDecal POLYGON_OFFSET = new MaterialDecal(
-		MaterialFinder.DECAL_POLYGON_OFFSET,
+		MaterialConstants.DECAL_POLYGON_OFFSET,
 		"polygon_offset",
 		1,
 		() -> {
@@ -55,7 +55,7 @@ public final class MaterialDecal {
 		});
 
 	public static final MaterialDecal VIEW_OFFSET = new MaterialDecal(
-		MaterialFinder.DECAL_VIEW_OFFSET,
+		MaterialConstants.DECAL_VIEW_OFFSET,
 		"view_offset",
 		2,
 		() -> {
@@ -70,9 +70,9 @@ public final class MaterialDecal {
 		});
 
 	static {
-		VALUES[MaterialFinder.DECAL_NONE] = NONE;
-		VALUES[MaterialFinder.DECAL_POLYGON_OFFSET] = POLYGON_OFFSET;
-		VALUES[MaterialFinder.DECAL_VIEW_OFFSET] = VIEW_OFFSET;
+		VALUES[MaterialConstants.DECAL_NONE] = NONE;
+		VALUES[MaterialConstants.DECAL_POLYGON_OFFSET] = POLYGON_OFFSET;
+		VALUES[MaterialConstants.DECAL_VIEW_OFFSET] = VIEW_OFFSET;
 	}
 
 	public final int index;
@@ -112,11 +112,11 @@ public final class MaterialDecal {
 
 	public static int fromPhase(Layering phase) {
 		if (phase == RenderPhase.VIEW_OFFSET_Z_LAYERING) {
-			return MaterialFinder.DECAL_VIEW_OFFSET;
+			return MaterialConstants.DECAL_VIEW_OFFSET;
 		} else if (phase == RenderPhase.POLYGON_OFFSET_LAYERING) {
-			return MaterialFinder.DECAL_POLYGON_OFFSET;
+			return MaterialConstants.DECAL_POLYGON_OFFSET;
 		} else {
-			return MaterialFinder.DECAL_NONE;
+			return MaterialConstants.DECAL_NONE;
 		}
 	}
 }
