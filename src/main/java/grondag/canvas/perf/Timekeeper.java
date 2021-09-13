@@ -177,7 +177,7 @@ public abstract class Timekeeper {
 			}
 
 			int ready = 0;
-			int[] temp = new int[1];
+			final int[] temp = new int[1];
 
 			final int numQueries = gpuQueryId.length;
 
@@ -191,11 +191,11 @@ public abstract class Timekeeper {
 				}
 			}
 
-			long[] elapsed = new long[1];
+			final long[] elapsed = new long[1];
 			int i = 0;
 
 			for (int j = 0; j < groups.length; j++) {
-				for (String token:groups[j].steps) {
+				for (final String token:groups[j].steps) {
 					GFX.glGetQueryObjecti64v(gpuQueryId[i], GFX.GL_QUERY_RESULT, elapsed);
 					gpuElapsed.put(token, elapsed[0]);
 					i++;
@@ -356,7 +356,7 @@ public abstract class Timekeeper {
 			}
 		}
 
-		int[] i = new int[]{0};
+		final int[] i = new int[]{0};
 		String lastToken = null;
 
 		for (final Group group:active.groups) {
@@ -402,7 +402,7 @@ public abstract class Timekeeper {
 			backcolor = 0x99990000;
 		}
 
-		final String l = String.format("%s", label);
+		//final String l = String.format("%s", label);
 		final String s = switch (Configurator.profilerDisplayMode) {
 			case CPU -> String.format("C %.3f ms", cpu / 1000000f);
 			case GPU -> String.format("G %.3f ms", gpu / 1000000f);
@@ -420,7 +420,7 @@ public abstract class Timekeeper {
 	}
 
 	private static void renderText(String s, int[] i, int xo, int fcolor, MatrixStack ms, TextRenderer fr) {
-		final int k = fr.getWidth(s);
+		//final int k = fr.getWidth(s);
 		final int m = 6 + 12 * i[0];
 		fr.draw(ms, s, 6 + xo, m, fcolor);
 	}

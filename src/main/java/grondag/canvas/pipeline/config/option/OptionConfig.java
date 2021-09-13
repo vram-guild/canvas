@@ -34,7 +34,7 @@ import grondag.canvas.pipeline.config.util.JanksonHelper;
 public class OptionConfig extends AbstractConfig {
 	public Identifier includeToken;
 	public String categoryKey;
-	public List<OptionConfigEntry> entries = new ObjectArrayList<>();
+	public List<OptionConfigEntry<?>> entries = new ObjectArrayList<>();
 
 	private final boolean isDuplicate;
 
@@ -68,7 +68,7 @@ public class OptionConfig extends AbstractConfig {
 			input = new JsonObject();
 		}
 
-		for (final OptionConfigEntry e : entries) {
+		for (final var e : entries) {
 			e.readConfig(input);
 		}
 	}
@@ -76,7 +76,7 @@ public class OptionConfig extends AbstractConfig {
 	public void writeConfig(JsonObject config) {
 		final JsonObject output = new JsonObject();
 
-		for (final OptionConfigEntry e : entries) {
+		for (final var e : entries) {
 			e.writeConfig(output);
 		}
 
@@ -92,7 +92,7 @@ public class OptionConfig extends AbstractConfig {
 		valid &= assertAndWarn(!entries.isEmpty(), "Invalid pipeline config option - no entries");
 		valid &= assertAndWarn(!isDuplicate, "Invalid pipeline config option - duplicate includeToken " + includeToken);
 
-		for (final OptionConfigEntry e : entries) {
+		for (final var e : entries) {
 			valid &= e.validate();
 		}
 
@@ -102,7 +102,7 @@ public class OptionConfig extends AbstractConfig {
 	public void addGuiEntries(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
 		final ConfigCategory category = builder.getOrCreateCategory(new TranslatableText(categoryKey));
 
-		for (final OptionConfigEntry entry : entries) {
+		for (final var entry : entries) {
 			category.addEntry(entry.buildEntry(entryBuilder));
 		}
 	}
@@ -113,7 +113,7 @@ public class OptionConfig extends AbstractConfig {
 		builder.append("  Generated from " + includeToken.toString() + "\n");
 		builder.append("******************************************************/\n");
 
-		for (final OptionConfigEntry entry : entries) {
+		for (final var entry : entries) {
 			builder.append(entry.createSource());
 		}
 
