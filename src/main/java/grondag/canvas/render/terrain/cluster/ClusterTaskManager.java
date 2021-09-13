@@ -18,7 +18,7 @@ package grondag.canvas.render.terrain.cluster;
 
 import java.util.ArrayDeque;
 
-import grondag.frex.api.config.FlawlessFrames;
+import io.vram.frex.api.config.FlawlessFrames;
 
 public class ClusterTaskManager {
 	@FunctionalInterface interface ClusterTask {

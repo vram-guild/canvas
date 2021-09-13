@@ -16,6 +16,8 @@
 
 package grondag.canvas.terrain.occlusion.camera;
 
+import io.vram.frex.api.config.FlawlessFrames;
+
 import net.minecraft.util.math.Vec3d;
 
 import grondag.canvas.config.Configurator;
@@ -26,7 +28,6 @@ import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.occlusion.shadow.ShadowOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.terrain.region.RenderRegion;
-import grondag.frex.api.config.FlawlessFrames;
 
 public class CameraVisibility extends AbstractVisbility<CameraVisibility, CameraRegionVisibility, CameraPotentiallyVisibleRegionSet, CameraOccluder> {
 	private final ShadowOccluder targetOccluder;

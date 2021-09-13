@@ -16,6 +16,8 @@
 
 package grondag.canvas.render.frustum;
 
+import io.vram.frex.api.config.FlawlessFrames;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
@@ -32,7 +34,6 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.terrain.region.RegionPosition;
-import grondag.frex.api.config.FlawlessFrames;
 
 @Environment(EnvType.CLIENT)
 public class TerrainFrustum extends CanvasFrustum {

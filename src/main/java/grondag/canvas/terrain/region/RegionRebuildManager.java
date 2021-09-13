@@ -20,12 +20,12 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+import io.vram.frex.api.config.FlawlessFrames;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import net.minecraft.util.Util;
 
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
-import grondag.frex.api.config.FlawlessFrames;
 
 /**
  * Tracks what regions require rebuilding and rebuilds them on demand.

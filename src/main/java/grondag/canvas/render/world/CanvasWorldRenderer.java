@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.vram.frex.api.config.FlawlessFrames;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -106,7 +107,6 @@ import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.GFX;
-import grondag.frex.api.config.FlawlessFrames;
 
 public class CanvasWorldRenderer extends WorldRenderer {
 	private static CanvasWorldRenderer instance;
