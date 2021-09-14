@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.model.FluidAppearance;
 import io.vram.frex.api.model.FluidModel;
 import io.vram.frex.api.renderer.Renderer;
 
@@ -31,9 +32,6 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
 
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
-
 public class FluidHandler {
 	public static final BiFunction<Fluid, Function<Fluid, FluidModel>, FluidModel> HANDLER = (fluid, supplier) -> {
 		if (fluid == Fluids.FLOWING_LAVA || fluid == Fluids.LAVA) {
@@ -43,7 +41,7 @@ public class FluidHandler {
 		} else if (supplier != null) {
 			return supplier.apply(fluid);
 		} else {
-			final FluidRenderHandler handler = FluidRenderHandlerRegistry.INSTANCE.get(fluid);
+			final FluidAppearance handler = FluidAppearance.get(fluid);
 			return handler == null ? new WaterFluidModel() : new FluidHandlerModel(fluid, handler);
 		}
 	};

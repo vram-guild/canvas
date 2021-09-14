@@ -16,6 +16,8 @@
 
 package grondag.canvas.apiimpl.fluid;
 
+import io.vram.frex.api.model.FluidAppearance;
+
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.fluid.Fluid;
@@ -24,17 +26,14 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockRenderView;
 
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
-
 import grondag.canvas.config.Configurator;
 import grondag.frex.api.fluid.AbstractFluidModel;
 
-// WIP: decouple from Fabric
 public class FluidHandlerModel extends AbstractFluidModel {
-	protected final FluidRenderHandler handler;
+	protected final FluidAppearance handler;
 	protected final Sprite overlaySprite = ModelLoader.WATER_OVERLAY.getSprite();
 
-	public FluidHandlerModel(Fluid fluid, FluidRenderHandler handler) {
+	public FluidHandlerModel(Fluid fluid, FluidAppearance handler) {
 		super(fluid == Fluids.FLOWING_LAVA || fluid == Fluids.LAVA ? FluidHandler.LAVA_MATERIAL : FluidHandler.WATER_MATERIAL, Configurator.blendFluidColors);
 		this.handler = handler;
 	}
