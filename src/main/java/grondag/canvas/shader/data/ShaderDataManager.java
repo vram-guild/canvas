@@ -124,6 +124,7 @@ import static grondag.canvas.shader.data.IntData.UINT_DATA;
 import static grondag.canvas.shader.data.IntData.WORLD_DATA_INDEX;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.vram.frex.api.light.HeldItemLightListener;
 import io.vram.frex.api.light.ItemLight;
 
 import net.minecraft.client.MinecraftClient;
@@ -153,7 +154,6 @@ import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.varia.CelestialObjectFunction;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectInput;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
-import grondag.frex.api.event.HeldItemLightListener;
 
 public class ShaderDataManager {
 	private static int worldFlags;
