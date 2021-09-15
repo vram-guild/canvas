@@ -21,29 +21,25 @@ import java.util.function.Function;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.model.FluidAppearance;
 import io.vram.frex.api.model.FluidModel;
 import io.vram.frex.api.renderer.Renderer;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.ModelLoader;
-import net.minecraft.client.texture.Sprite;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
 
 public class FluidHandler {
 	public static final BiFunction<Fluid, Function<Fluid, FluidModel>, FluidModel> HANDLER = (fluid, supplier) -> {
-		if (fluid == Fluids.FLOWING_LAVA || fluid == Fluids.LAVA) {
-			return new LavaFluidModel();
-		} else if (fluid == Fluids.FLOWING_WATER || fluid == Fluids.WATER) {
-			return new WaterFluidModel();
-		} else if (supplier != null) {
-			return supplier.apply(fluid);
-		} else {
-			final FluidAppearance handler = FluidAppearance.get(fluid);
-			return handler == null ? new WaterFluidModel() : new FluidHandlerModel(fluid, handler);
-		}
+		return null;
+		//		if (fluid == Fluids.FLOWING_LAVA || fluid == Fluids.LAVA || fluid == Fluids.FLOWING_WATER || fluid == Fluids.WATER) {
+		//			new BasicFluidModel(fluid, FluidAppearance.STILL_WATER_APPEARANCE);
+		//			return new LavaFluidModel();
+		//		} else if (fluid == Fluids.FLOWING_WATER || fluid == Fluids.WATER) {
+		//			return new WaterFluidModel();
+		//		} else if (supplier != null) {
+		//			return supplier.apply(fluid);
+		//		} else {
+		//			final FluidAppearance handler = FluidAppearance.get(fluid);
+		//			return handler == null ? new BasicFluidModel(fluid, FluidAppearance.STILL_WATER_APPEARANCE) : new BasicFluidModel(fluid, handler);
+		//		}
 	};
 
 	static final RenderMaterial WATER_MATERIAL = Renderer.get().materialFinder()
@@ -51,18 +47,4 @@ public class FluidHandler {
 
 	static final RenderMaterial LAVA_MATERIAL = Renderer.get().materialFinder()
 			.preset(MaterialConstants.PRESET_SOLID).disableAo(true).disableColorIndex(true).emissive(true).find();
-
-	static final Sprite[] lavaSprites() {
-		final Sprite[] result = new Sprite[2];
-		result[0] = MinecraftClient.getInstance().getBakedModelManager().getBlockModels().getModel(Blocks.LAVA.getDefaultState()).getParticleSprite();
-		result[1] = ModelLoader.LAVA_FLOW.getSprite();
-		return result;
-	}
-
-	static final Sprite[] waterSprites() {
-		final Sprite[] result = new Sprite[2];
-		result[0] = MinecraftClient.getInstance().getBakedModelManager().getBlockModels().getModel(Blocks.WATER.getDefaultState()).getParticleSprite();
-		result[1] = ModelLoader.WATER_FLOW.getSprite();
-		return result;
-	}
 }
