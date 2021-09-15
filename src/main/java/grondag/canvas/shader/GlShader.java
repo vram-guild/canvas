@@ -192,11 +192,14 @@ public class GlShader implements Shader {
 				String extension = name.substring(dotI + 1);
 				name = name.substring(0, dotI);
 
-				if (extension.equals("vert")) name = "VERT_" + name;
-				else if (extension.equals("frag")) name = "FRAG_" + name;
+				if (extension.equals("vert")) name = "SHA_VERT " + name;
+				else if (extension.equals("frag")) name = "SHA_FRAG " + name;
+				else name = "SHA " + name;
+			} else {
+				name = "SHA " + name;
 			}
 
-			GFX.objectLabel(GFX.GL_SHADER, glId, "SHA_" + name);
+			GFX.objectLabel(GFX.GL_SHADER, glId, name);
 		}
 	}
 

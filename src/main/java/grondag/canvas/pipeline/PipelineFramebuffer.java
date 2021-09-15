@@ -76,7 +76,7 @@ public class PipelineFramebuffer {
 		fboGlId = GFX.genFramebuffer();
 
 		GFX.bindFramebuffer(GFX.GL_FRAMEBUFFER, fboGlId);
-		GFX.objectLabel(GFX.GL_FRAMEBUFFER, fboGlId, "FBO_" + config.name);
+		GFX.objectLabel(GFX.GL_FRAMEBUFFER, fboGlId, "FBO " + config.name);
 
 		if (config.colorAttachments.length == 0) {
 			GFX.glDrawBuffer(GFX.GL_NONE);

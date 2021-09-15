@@ -48,7 +48,7 @@ public class Image {
 			glId = TextureUtil.generateTextureId();
 
 			CanvasTextureState.bindTexture(config.target, glId);
-			GFX.objectLabel(GL11.GL_TEXTURE, glId, "IMG_" + config.name); // Yes, it needs to be GL_TEXTURE and not GL_TEXTURE_2D or the one its binding to
+			GFX.objectLabel(GL11.GL_TEXTURE, glId, "IMG " + config.name); // Yes, it needs to be GL_TEXTURE and not GL_TEXTURE_2D or the one its binding to
 
 			final int[] params = config.texParamPairs;
 			final int limit = params.length;

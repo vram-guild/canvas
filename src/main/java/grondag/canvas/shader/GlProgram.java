@@ -176,7 +176,7 @@ public class GlProgram {
 			activateInner();
 
 			// Label needs to be set after binding the program
-			if (created) GFX.objectLabel(GFX.GL_PROGRAM, programId(), "PRO_" + name);
+			if (created) GFX.objectLabel(GFX.GL_PROGRAM, programId(), "PRO " + name);
 		}
 	}
 
