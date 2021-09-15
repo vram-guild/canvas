@@ -51,7 +51,7 @@ public class GlMaterialProgram extends GlProgram {
 	private static final BitPacker32<Void>.BooleanElement CONTEXT_FLAG_HAND = CONTEXT_FLAGS.createBooleanElement();
 
 	GlMaterialProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
-		super(vertexShader, fragmentShader, format, programType);
+		super(programType.isTerrain ? "material_terrain" : "material", vertexShader, fragmentShader, format, programType);
 		modelOrigin = (UniformArray4fImpl) uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.setExternal(null), 2);
 		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
 		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));

@@ -20,9 +20,11 @@ import java.nio.ByteBuffer;
 
 import com.mojang.blaze3d.platform.TextureUtil;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
+import org.lwjgl.opengl.GL11;
 
 public class Image {
 	public final ImageConfig config;
@@ -46,6 +48,7 @@ public class Image {
 			glId = TextureUtil.generateTextureId();
 
 			CanvasTextureState.bindTexture(config.target, glId);
+			GFX.objectLabel(GL11.GL_TEXTURE, glId, "IMG_" + config.name); // Yes, it needs to be GL_TEXTURE and not GL_TEXTURE_2D or the one its binding to
 
 			final int[] params = config.texParamPairs;
 			final int limit = params.length;

@@ -195,7 +195,7 @@ public class Pipeline {
 				continue;
 			}
 
-			SHADERS.put(program.name, new ProcessShader(program.vertexSource, program.fragmentSource, program.samplerNames));
+			SHADERS.put(program.name, new ProcessShader(program.name, program.vertexSource, program.fragmentSource, program.samplerNames));
 		}
 
 		for (final FramebufferConfig buffer : config.framebuffers) {

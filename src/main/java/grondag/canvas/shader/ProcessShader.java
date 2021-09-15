@@ -16,16 +16,16 @@
 
 package grondag.canvas.shader;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
-
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.GlProgram.Uniform1iImpl;
 import grondag.canvas.shader.GlProgram.Uniform2iImpl;
 import grondag.canvas.shader.GlProgram.UniformMatrix4fImpl;
 import grondag.frex.api.material.UniformRefreshFrequency;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix4f;
 
 public class ProcessShader {
+	private final String name;
 	private final Identifier fragmentId;
 	private final Identifier vertexId;
 	private final String[] samplers;
@@ -35,7 +35,8 @@ public class ProcessShader {
 	private Uniform1iImpl layer;
 	private UniformMatrix4fImpl projMatrix;
 
-	public ProcessShader(Identifier vertexId, Identifier fragmentId, String... samplers) {
+	public ProcessShader(String name, Identifier vertexId, Identifier fragmentId, String... samplers) {
+		this.name = name;
 		this.fragmentId = fragmentId;
 		this.vertexId = vertexId;
 		this.samplers = samplers;
@@ -65,7 +66,7 @@ public class ProcessShader {
 		if (program == null) {
 			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ProgramType.PROCESS);
 			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, ProgramType.PROCESS);
-			program = new GlProgram(vs, fs, CanvasVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
+			program = new GlProgram(name, vs, fs, CanvasVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
 			size = (Uniform2iImpl) program.uniform2i("frxu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
 			lod = (Uniform1iImpl) program.uniform1i("frxu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 			layer = (Uniform1iImpl) program.uniform1i("frxu_layer", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));

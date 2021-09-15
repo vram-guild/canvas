@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
+import grondag.canvas.varia.CanvasGlHelper;
 import org.anarres.cpp.DefaultPreprocessorListener;
 import org.anarres.cpp.Preprocessor;
 import org.anarres.cpp.StringLexerSource;
@@ -179,6 +180,23 @@ public class GlShader implements Shader {
 			outputDebugSource(source, error);
 		} else if (Configurator.shaderDebug) {
 			outputDebugSource(source, null);
+		}
+
+		// Explicitly checking CanvasGlHelper.supportsKhrDebug() to not generate the name if KHR_debug is not supported
+		if (!isErrored && CanvasGlHelper.supportsKhrDebug()) {
+			int slashI = shaderSourceId.getPath().lastIndexOf('/');
+			String name = slashI != -1 ? shaderSourceId.getPath().substring(slashI + 1) : shaderSourceId.getPath();
+
+			int dotI = name.lastIndexOf('.');
+			if (dotI != -1) {
+				String extension = name.substring(dotI + 1);
+				name = name.substring(0, dotI);
+
+				if (extension.equals("vert")) name = "VERT_" + name;
+				else if (extension.equals("frag")) name = "FRAG_" + name;
+			}
+
+			GFX.objectLabel(GFX.GL_SHADER, glId, "SHA_" + name);
 		}
 	}
 

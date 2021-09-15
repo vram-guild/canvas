@@ -17,22 +17,25 @@
 package grondag.canvas.varia;
 
 import com.mojang.blaze3d.platform.GLX;
+import grondag.canvas.CanvasMod;
+import grondag.canvas.config.Configurator;
+import net.minecraft.client.MinecraftClient;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 
-import net.minecraft.client.MinecraftClient;
-
-import grondag.canvas.CanvasMod;
-import grondag.canvas.config.Configurator;
-
 public class CanvasGlHelper {
 	private static boolean supportsPersistentMapped = false;
+	private static boolean supportsKhrDebug = false;
 
 	private static String maxGlVersion = "3.2";
 
 	public static boolean supportsPersistentMapped() {
 		return supportsPersistentMapped;
+	}
+
+	public static boolean supportsKhrDebug() {
+		return supportsKhrDebug;
 	}
 
 	public static String maxGlVersion() {
@@ -46,6 +49,7 @@ public class CanvasGlHelper {
 
 		final GLCapabilities caps = GL.getCapabilities();
 		supportsPersistentMapped = caps.glBufferStorage != 0;
+		supportsKhrDebug = caps.GL_KHR_debug;
 		maxGlVersion = maxGlVersion(caps);
 
 		if (Configurator.logMachineInfo) {
@@ -64,6 +68,7 @@ public class CanvasGlHelper {
 		log.info(String.format(" OpenGL (Reported): %s", GLX.getOpenGLVersionString()));
 		log.info(String.format(" OpenGL (Available): %s", maxGlVersion));
 		log.info(String.format(" glBufferStorage: %s", caps.glBufferStorage == 0 ? "N" : "Y"));
+		log.info(String.format(" KHR_debug: %s", supportsKhrDebug() ? "Y" : "N"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
 	}
