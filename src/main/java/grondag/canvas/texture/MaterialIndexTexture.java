@@ -48,7 +48,7 @@ public class MaterialIndexTexture {
 	}
 
 	public void reset() {
-		if (Configurator.enableLifeCycleDebug) {
+		if (Configurator.traceTextureLoad) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialInfoTexture init");
 		}
 
