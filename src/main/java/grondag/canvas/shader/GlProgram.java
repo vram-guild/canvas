@@ -16,19 +16,6 @@
 
 package grondag.canvas.shader;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.function.Consumer;
-
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.Nullable;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.system.MemoryUtil;
-
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.config.Configurator;
@@ -37,24 +24,19 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.data.ShaderUniforms;
 import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.Uniform;
-import grondag.frex.api.material.Uniform.Uniform1f;
-import grondag.frex.api.material.Uniform.Uniform1i;
-import grondag.frex.api.material.Uniform.Uniform1ui;
-import grondag.frex.api.material.Uniform.Uniform2f;
-import grondag.frex.api.material.Uniform.Uniform2i;
-import grondag.frex.api.material.Uniform.Uniform2ui;
-import grondag.frex.api.material.Uniform.Uniform3f;
-import grondag.frex.api.material.Uniform.Uniform3i;
-import grondag.frex.api.material.Uniform.Uniform3ui;
-import grondag.frex.api.material.Uniform.Uniform4f;
-import grondag.frex.api.material.Uniform.Uniform4i;
-import grondag.frex.api.material.Uniform.Uniform4ui;
-import grondag.frex.api.material.Uniform.UniformArray4f;
-import grondag.frex.api.material.Uniform.UniformArrayf;
-import grondag.frex.api.material.Uniform.UniformArrayi;
-import grondag.frex.api.material.Uniform.UniformArrayui;
-import grondag.frex.api.material.Uniform.UniformMatrix3f;
+import grondag.frex.api.material.Uniform.*;
 import grondag.frex.api.material.UniformRefreshFrequency;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.client.resource.language.I18n;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
+
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.function.Consumer;
 
 public class GlProgram {
 	static {
@@ -64,6 +46,7 @@ public class GlProgram {
 	}
 
 	private static GlProgram activeProgram;
+	private final String name;
 	private final Shader vertexShader;
 	private final Shader fragmentShader;
 	public final CanvasVertexFormat vertexFormat;
@@ -78,7 +61,8 @@ public class GlProgram {
 	private boolean isErrored = false;
 	private boolean needsLoad = true;
 
-	GlProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
+	GlProgram(String name, Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
+		this.name = name;
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
@@ -176,6 +160,8 @@ public class GlProgram {
 	}
 
 	public final void activate() {
+		boolean created = needsLoad;
+
 		if (needsLoad) {
 			load();
 			needsLoad = false;
@@ -188,6 +174,9 @@ public class GlProgram {
 		if (activeProgram != this) {
 			activeProgram = this;
 			activateInner();
+
+			// Label needs to be set after binding the program
+			if (created) GFX.objectLabel(GFX.GL_PROGRAM, programId(), "PRO " + name);
 		}
 	}
 
