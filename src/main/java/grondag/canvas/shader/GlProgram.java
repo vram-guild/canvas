@@ -16,6 +16,19 @@
 
 package grondag.canvas.shader;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.function.Consumer;
+
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryUtil;
+
+import net.minecraft.client.resource.language.I18n;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.config.Configurator;
@@ -24,19 +37,24 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.data.ShaderUniforms;
 import grondag.canvas.varia.GFX;
 import grondag.frex.api.material.Uniform;
-import grondag.frex.api.material.Uniform.*;
+import grondag.frex.api.material.Uniform.Uniform1f;
+import grondag.frex.api.material.Uniform.Uniform1i;
+import grondag.frex.api.material.Uniform.Uniform1ui;
+import grondag.frex.api.material.Uniform.Uniform2f;
+import grondag.frex.api.material.Uniform.Uniform2i;
+import grondag.frex.api.material.Uniform.Uniform2ui;
+import grondag.frex.api.material.Uniform.Uniform3f;
+import grondag.frex.api.material.Uniform.Uniform3i;
+import grondag.frex.api.material.Uniform.Uniform3ui;
+import grondag.frex.api.material.Uniform.Uniform4f;
+import grondag.frex.api.material.Uniform.Uniform4i;
+import grondag.frex.api.material.Uniform.Uniform4ui;
+import grondag.frex.api.material.Uniform.UniformArray4f;
+import grondag.frex.api.material.Uniform.UniformArrayf;
+import grondag.frex.api.material.Uniform.UniformArrayi;
+import grondag.frex.api.material.Uniform.UniformArrayui;
+import grondag.frex.api.material.Uniform.UniformMatrix3f;
 import grondag.frex.api.material.UniformRefreshFrequency;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
-import org.jetbrains.annotations.Nullable;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.system.MemoryUtil;
-
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.function.Consumer;
 
 public class GlProgram {
 	static {
@@ -160,7 +178,7 @@ public class GlProgram {
 	}
 
 	public final void activate() {
-		boolean created = needsLoad;
+		final boolean created = needsLoad;
 
 		if (needsLoad) {
 			load();

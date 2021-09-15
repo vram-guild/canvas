@@ -17,12 +17,14 @@
 package grondag.canvas.varia;
 
 import com.mojang.blaze3d.platform.GLX;
-import grondag.canvas.CanvasMod;
-import grondag.canvas.config.Configurator;
-import net.minecraft.client.MinecraftClient;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
+
+import net.minecraft.client.MinecraftClient;
+
+import grondag.canvas.CanvasMod;
+import grondag.canvas.config.Configurator;
 
 public class CanvasGlHelper {
 	private static boolean supportsPersistentMapped = false;

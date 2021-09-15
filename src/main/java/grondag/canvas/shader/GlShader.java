@@ -31,7 +31,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.io.CharStreams;
-import grondag.canvas.varia.CanvasGlHelper;
 import org.anarres.cpp.DefaultPreprocessorListener;
 import org.anarres.cpp.Preprocessor;
 import org.anarres.cpp.StringLexerSource;
@@ -53,6 +52,7 @@ import net.minecraft.util.Identifier;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GFX;
 import grondag.frex.api.config.ShaderConfig;
 
@@ -184,17 +184,22 @@ public class GlShader implements Shader {
 
 		// Explicitly checking CanvasGlHelper.supportsKhrDebug() to not generate the name if KHR_debug is not supported
 		if (!isErrored && CanvasGlHelper.supportsKhrDebug()) {
-			int slashI = shaderSourceId.getPath().lastIndexOf('/');
+			final int slashI = shaderSourceId.getPath().lastIndexOf('/');
 			String name = slashI != -1 ? shaderSourceId.getPath().substring(slashI + 1) : shaderSourceId.getPath();
 
-			int dotI = name.lastIndexOf('.');
+			final int dotI = name.lastIndexOf('.');
+
 			if (dotI != -1) {
-				String extension = name.substring(dotI + 1);
+				final String extension = name.substring(dotI + 1);
 				name = name.substring(0, dotI);
 
-				if (extension.equals("vert")) name = "SHA_VERT " + name;
-				else if (extension.equals("frag")) name = "SHA_FRAG " + name;
-				else name = "SHA " + name;
+				if (extension.equals("vert")) {
+					name = "SHA_VERT " + name;
+				} else if (extension.equals("frag")) {
+					name = "SHA_FRAG " + name;
+				} else {
+					name = "SHA " + name;
+				}
 			} else {
 				name = "SHA " + name;
 			}

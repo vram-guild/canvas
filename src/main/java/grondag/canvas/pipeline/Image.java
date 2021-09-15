@@ -19,12 +19,11 @@ package grondag.canvas.pipeline;
 import java.nio.ByteBuffer;
 
 import com.mojang.blaze3d.platform.TextureUtil;
+import org.lwjgl.opengl.GL11;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
-import org.lwjgl.opengl.GL11;
 
 public class Image {
 	public final ImageConfig config;

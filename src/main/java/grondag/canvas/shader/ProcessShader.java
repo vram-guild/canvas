@@ -16,13 +16,14 @@
 
 package grondag.canvas.shader;
 
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Matrix4f;
+
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.GlProgram.Uniform1iImpl;
 import grondag.canvas.shader.GlProgram.Uniform2iImpl;
 import grondag.canvas.shader.GlProgram.UniformMatrix4fImpl;
 import grondag.frex.api.material.UniformRefreshFrequency;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
 
 public class ProcessShader {
 	private final String name;
