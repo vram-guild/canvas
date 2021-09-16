@@ -31,13 +31,12 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.terrain.region.RegionPosition;
 import grondag.frex.api.config.FlawlessFrames;
 
 @Environment(EnvType.CLIENT)
 public class TerrainFrustum extends CanvasFrustum {
 	// These are for maintaining a project matrix used by occluder.
-	// Updated every frame but not used directly by occlude because of concurrency
+	// Updated every frame but not used directly by occluder because of concurrency
 	// Occluder uses a copy, below.
 	private final MatrixStack projectionStack = new MatrixStack();
 	private final MinecraftClient client = MinecraftClient.getInstance();
@@ -284,33 +283,5 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		// PERF: WHY 4X ON FAR CLIPPING PLANE MOJANG?
 		occlusionProjMat.multiply(Matrix4f.viewboxMatrix(fov + padding, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
-	}
-
-	public final RegionVisibilityTest visibilityTest = p -> {
-		final float cx = p.cameraRelativeCenterX();
-		final float cy = p.cameraRelativeCenterY();
-		final float cz = p.cameraRelativeCenterZ();
-
-		if (cx * leftX + cy * leftY + cz * leftZ + leftRegionExtent > 0) {
-			return false;
-		}
-
-		if (cx * rightX + cy * rightY + cz * rightZ + rightRegionExtent > 0) {
-			return false;
-		}
-
-		if (cx * nearX + cy * nearY + cz * nearZ + nearRegionExtent > 0) {
-			return false;
-		}
-
-		if (cx * topX + cy * topY + cz * topZ + topRegionExtent > 0) {
-			return false;
-		}
-
-		return !(cx * bottomX + cy * bottomY + cz * bottomZ + bottomRegionExtent > 0);
-	};
-
-	public interface RegionVisibilityTest {
-		boolean isVisible(RegionPosition pos);
 	}
 }

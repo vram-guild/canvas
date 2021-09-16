@@ -21,7 +21,7 @@ import net.minecraft.util.math.Vec3d;
 
 import grondag.bitraster.PackedBox;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.render.frustum.TerrainFrustum.RegionVisibilityTest;
+import grondag.canvas.render.frustum.CanvasFrustum.RegionVisibilityTest;
 import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.TerrainIterator;

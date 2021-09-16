@@ -25,6 +25,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.terrain.TerrainSectorMap;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
@@ -64,7 +65,9 @@ public class WorldRenderState {
 	 * <p>A snapshot of this is used for terrain culling - usually off thread. The snapshot lives inside TerrainOccluder.
 	 */
 	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
+	public final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(this);
 
+	private final SortableVisibleRegionList cameraPotentiallyVisibleRegions = new SortableVisibleRegionList();
 	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
 	public final VisibleRegionList[] shadowVisibleRegions = new VisibleRegionList[ShadowMatrixData.CASCADE_COUNT];
 
@@ -113,6 +116,7 @@ public class WorldRenderState {
 		// DitherTexture.instance().initializeIfNeeded();
 		world = clientWorld;
 		cameraVisibleRegions.clear();
+		cameraPotentiallyVisibleRegions.clear();
 		clearDrawSpecs();
 		terrainIterator.reset();
 		renderRegionStorage.clear();
@@ -154,7 +158,7 @@ public class WorldRenderState {
 	void copyVisibleRegionsFromIterator() {
 		final TerrainIterator terrainIterator = this.terrainIterator;
 
-		cameraVisibleRegions.copyFrom(terrainIterator.visibleRegions);
+		cameraPotentiallyVisibleRegions.copyFrom(terrainIterator.visibleRegions);
 
 		if (shadowsEnabled()) {
 			shadowVisibleRegions[0].copyFrom(terrainIterator.shadowVisibleRegions[0]);
@@ -166,12 +170,29 @@ public class WorldRenderState {
 		invalidateDrawLists();
 	}
 
+	// TODO: tight shadow test
+	private void filterVisibleRegions() {
+		cameraVisibleRegions.clear();
+
+		final var visTest = entityCullingFrustum.visibilityTest;
+		final int limit = cameraPotentiallyVisibleRegions.size();
+
+		for (int i = 0; i < limit; ++i) {
+			final var r = cameraPotentiallyVisibleRegions.get(i);
+
+			if (visTest.isVisible(r.origin)) {
+				cameraVisibleRegions.add(r);
+			}
+		}
+	}
+
 	void rebuidDrawListsIfNeeded() {
 		if (areDrawListsValid) {
 			return;
 		}
 
 		areDrawListsValid = true;
+		filterVisibleRegions();
 
 		solidDrawList.close();
 		solidDrawList = DrawableRegionList.build(cameraVisibleRegions, false, false);

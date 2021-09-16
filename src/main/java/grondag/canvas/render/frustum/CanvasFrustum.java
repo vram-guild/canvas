@@ -25,6 +25,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.terrain.region.RegionPosition;
 
 /**
  * Plane equation derivations based on:
@@ -231,5 +232,33 @@ public abstract class CanvasFrustum extends Frustum {
 		nearYe = ye;
 		nearZe = ze;
 		nearRegionExtent = w - 8 * (xe + ye + ze) - MIN_GAP;
+	}
+
+	public final RegionVisibilityTest visibilityTest = p -> {
+		final float cx = p.cameraRelativeCenterX();
+		final float cy = p.cameraRelativeCenterY();
+		final float cz = p.cameraRelativeCenterZ();
+
+		if (cx * leftX + cy * leftY + cz * leftZ + leftRegionExtent > 0) {
+			return false;
+		}
+
+		if (cx * rightX + cy * rightY + cz * rightZ + rightRegionExtent > 0) {
+			return false;
+		}
+
+		if (cx * nearX + cy * nearY + cz * nearZ + nearRegionExtent > 0) {
+			return false;
+		}
+
+		if (cx * topX + cy * topY + cz * topZ + topRegionExtent > 0) {
+			return false;
+		}
+
+		return !(cx * bottomX + cy * bottomY + cz * bottomZ + bottomRegionExtent > 0);
+	};
+
+	public interface RegionVisibilityTest {
+		boolean isVisible(RegionPosition pos);
 	}
 }

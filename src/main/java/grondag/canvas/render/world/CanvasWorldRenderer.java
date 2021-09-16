@@ -92,7 +92,6 @@ import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
-import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
@@ -113,14 +112,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 	public final WorldRenderState worldRenderState = new WorldRenderState(this);
 
-	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(worldRenderState);
 	private final RenderContextState contextState = new RenderContextState();
 	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output for First Person Model, separate to draw in material pass only. */
 	private final CanvasImmediate materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
 	private final CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
-	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(entityCullingFrustum);
+	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(worldRenderState.entityCullingFrustum);
 	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
 
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
@@ -294,6 +292,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
 		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPos()));
+		// FIX: this is not the correct frustum to use in most cases - is padded
 		eventContext.setFrustum(worldRenderState.terrainFrustum);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "after_setup_event");
@@ -371,12 +370,13 @@ public class CanvasWorldRenderer extends WorldRenderer {
 		renderSystemModelViewStack.method_34425(viewMatrixStack.peek().getModel());
 		RenderSystem.applyModelViewMatrix();
 
-		entityCullingFrustum.enableRegionCulling = Configurator.cullEntityRender;
+		final var entityFrustum = worldRenderState.entityCullingFrustum;
+		entityFrustum.enableRegionCulling = Configurator.cullEntityRender;
 
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 
-			if (!entityRenderDispatcher.shouldRender(entity, entityCullingFrustum, frameCameraX, frameCameraY, frameCameraZ) && !entity.hasPassengerDeep(mc.player)) {
+			if (!entityRenderDispatcher.shouldRender(entity, entityFrustum, frameCameraX, frameCameraY, frameCameraZ) && !entity.hasPassengerDeep(mc.player)) {
 				continue;
 			}
 
@@ -802,7 +802,7 @@ public class CanvasWorldRenderer extends WorldRenderer {
 
 		final Matrix4f viewMatrix = viewMatrixStack.peek().getModel();
 		worldRenderState.terrainFrustum.prepare(viewMatrix, tickDelta, camera, worldRenderState.terrainIterator.cameraVisibility.hasNearOccluders());
-		entityCullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
+		worldRenderState.entityCullingFrustum.prepare(viewMatrix, tickDelta, camera, projectionMatrix);
 		ShaderDataManager.update(viewMatrixStack.peek(), projectionMatrix, camera);
 		MatrixState.set(MatrixState.CAMERA);
 
