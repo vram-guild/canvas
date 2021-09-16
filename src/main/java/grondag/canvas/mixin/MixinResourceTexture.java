@@ -1,10 +1,5 @@
 package grondag.canvas.mixin;
 
-import grondag.canvas.varia.GFX;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.ResourceTexture;
-import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,6 +7,13 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import net.minecraft.client.texture.AbstractTexture;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.util.Identifier;
+
+import grondag.canvas.varia.GFX;
 
 @Mixin(ResourceTexture.class)
 public abstract class MixinResourceTexture extends AbstractTexture {

@@ -86,7 +86,7 @@ public class PassConfig extends NamedConfig<PassConfig> {
 		valid &= program.validate("Pass %s invalid because program %s not found or invalid.", name, program.name);
 
 		for (final NamedDependency<ImageConfig> img : samplerImages) {
-			valid &= program.validate("Pass %s invalid because samplerImage %s not found or invalid.", name, img.name);
+			valid &= img.validate("Pass %s invalid because samplerImage %s not found or invalid.", name, img.name);
 		}
 
 		if (program.value().samplerNames.length != samplerImages.length) {
