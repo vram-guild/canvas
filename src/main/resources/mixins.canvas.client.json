@@ -53,7 +53,8 @@
 	"MixinVideoOptionsScreen",
 	"MixinWindow",
 	"MixinWorldChunk",
-	"MixinWorldRenderer"
+	"MixinWorldRenderer",
+	"MixinResourceTexture"
   ],
   "injectors": {
 	"defaultRequire": 1

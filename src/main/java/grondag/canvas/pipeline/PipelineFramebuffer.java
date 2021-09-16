@@ -131,7 +131,7 @@ public class PipelineFramebuffer {
 			// Try for combined depth/color clear if have single color
 			int mask = GFX.GL_COLOR_BUFFER_BIT;
 
-			if (config.depthAttachment.clear) {
+			if (config.depthAttachment != null && config.depthAttachment.clear) {
 				mask |= GFX.GL_DEPTH_BUFFER_BIT;
 				GFX.clearDepth(config.depthAttachment.clearDepth);
 			}
@@ -140,7 +140,7 @@ public class PipelineFramebuffer {
 			GFX.clear(mask, MinecraftClient.IS_SYSTEM_MAC);
 		} else {
 			// Clears happen separately in other cases
-			if (config.depthAttachment.clear) {
+			if (config.depthAttachment != null && config.depthAttachment.clear) {
 				GFX.clearDepth(config.depthAttachment.clearDepth);
 				GFX.clear(GFX.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
 			}
