@@ -24,7 +24,7 @@ import net.minecraft.util.math.Matrix4f;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 
-public class RegionCullingFrustum extends FastFrustum {
+public class CullingFrustum extends FastFrustum {
 	private final WorldRenderState worldRenderState;
 
 	public boolean enableRegionCulling = false;
@@ -35,7 +35,7 @@ public class RegionCullingFrustum extends FastFrustum {
 	/** Inclusive world height lower limit. */
 	private int worldBottomY;
 
-	public RegionCullingFrustum(WorldRenderState worldRenderState) {
+	public CullingFrustum(WorldRenderState worldRenderState) {
 		this.worldRenderState = worldRenderState;
 	}
 

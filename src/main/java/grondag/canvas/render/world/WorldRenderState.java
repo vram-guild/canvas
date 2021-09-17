@@ -25,7 +25,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.profiler.Profiler;
 
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.render.frustum.RegionCullingFrustum;
+import grondag.canvas.render.frustum.CullingFrustum;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.terrain.TerrainSectorMap;
 import grondag.canvas.render.terrain.base.DrawableRegionList;
@@ -65,7 +65,7 @@ public class WorldRenderState {
 	 * <p>A snapshot of this is used for terrain culling - usually off thread. The snapshot lives inside TerrainOccluder.
 	 */
 	public final TerrainFrustum terrainFrustum = new TerrainFrustum();
-	public final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(this);
+	public final CullingFrustum entityCullingFrustum = new CullingFrustum(this);
 
 	private final SortableVisibleRegionList cameraPotentiallyVisibleRegions = new SortableVisibleRegionList();
 	public final SortableVisibleRegionList cameraVisibleRegions = new SortableVisibleRegionList();
