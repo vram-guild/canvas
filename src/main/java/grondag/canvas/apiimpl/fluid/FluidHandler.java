@@ -21,30 +21,33 @@ import java.util.function.Function;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.model.FluidAppearance;
 import io.vram.frex.api.model.FluidModel;
 import io.vram.frex.api.renderer.Renderer;
 
 import net.minecraft.fluid.Fluid;
+import net.minecraft.fluid.Fluids;
+
+import grondag.frex.api.fluid.SimpleFluidModel;
 
 public class FluidHandler {
-	public static final BiFunction<Fluid, Function<Fluid, FluidModel>, FluidModel> HANDLER = (fluid, supplier) -> {
-		return null;
-		//		if (fluid == Fluids.FLOWING_LAVA || fluid == Fluids.LAVA || fluid == Fluids.FLOWING_WATER || fluid == Fluids.WATER) {
-		//			new BasicFluidModel(fluid, FluidAppearance.STILL_WATER_APPEARANCE);
-		//			return new LavaFluidModel();
-		//		} else if (fluid == Fluids.FLOWING_WATER || fluid == Fluids.WATER) {
-		//			return new WaterFluidModel();
-		//		} else if (supplier != null) {
-		//			return supplier.apply(fluid);
-		//		} else {
-		//			final FluidAppearance handler = FluidAppearance.get(fluid);
-		//			return handler == null ? new BasicFluidModel(fluid, FluidAppearance.STILL_WATER_APPEARANCE) : new BasicFluidModel(fluid, handler);
-		//		}
-	};
-
+	// WIP: let material be registered with the appearance
 	static final RenderMaterial WATER_MATERIAL = Renderer.get().materialFinder()
 			.preset(MaterialConstants.PRESET_TRANSLUCENT).disableAo(true).disableColorIndex(true).find();
 
 	static final RenderMaterial LAVA_MATERIAL = Renderer.get().materialFinder()
 			.preset(MaterialConstants.PRESET_SOLID).disableAo(true).disableColorIndex(true).emissive(true).find();
+
+	public static final BiFunction<Fluid, Function<Fluid, FluidModel>, FluidModel> HANDLER = (fluid, supplier) -> {
+		if (fluid == Fluids.FLOWING_LAVA || fluid == Fluids.LAVA) {
+			return new SimpleFluidModel(LAVA_MATERIAL, false, FluidAppearance.LAVA_APPEARANCE);
+		} else if (fluid == Fluids.FLOWING_WATER || fluid == Fluids.WATER) {
+			return new SimpleFluidModel(WATER_MATERIAL, false, FluidAppearance.WATER_APPEARANCE);
+		} else if (supplier != null) {
+			return supplier.apply(fluid);
+		} else {
+			final var app = FluidAppearance.get(fluid);
+			return app == null ? new SimpleFluidModel(WATER_MATERIAL, false, FluidAppearance.WATER_APPEARANCE) : new SimpleFluidModel(WATER_MATERIAL, false, app);
+		}
+	};
 }
