@@ -236,12 +236,8 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		return this;
 	}
 
-	public final void setSpriteNormalized(boolean isNormalized) {
-		if (isNormalized) {
-			isSpriteInterpolated = false;
-		} else if (material().texture.isAtlas()) {
-			isSpriteInterpolated = true;
-		}
+	public final void setSpriteNormalized() {
+		isSpriteInterpolated = false;
 	}
 
 	public MutableQuadViewImpl spriteFloat(int vertexIndex, float u, float v) {
@@ -260,7 +256,7 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 		data[i] = u;
 		data[i + 1] = v;
 		isTangentInvalid = true;
-		assert isSpriteNormalized();
+		assert !isSpriteInterpolated;
 		return this;
 	}
 
@@ -314,15 +310,26 @@ public abstract class MutableQuadViewImpl extends QuadViewImpl implements QuadEm
 
 	@Override
 	public MutableQuadViewImpl sprite(int vertexIndex, float u, float v) {
-		spriteFloat(vertexIndex, u, v);
+		// This legacy method accepts interpolated coordinates
+		// and so any usage forces us to de-normalize if we are not already.
+		// Otherwise any subsequent reads or transformations could be inconsistent.
 
-		// true for whole quad so only need for one vertex
-		if (vertexIndex == 0) {
-			setSpriteNormalized(false);
-		} else {
-			assert !isSpriteNormalized() || !material().texture.isAtlas();
+		if (!isSpriteInterpolated) {
+			final var mat = material();
+
+			if (mat.texture.isAtlas()) {
+				final var atlasInfo = material().texture.atlasInfo();
+				final var spriteId = spriteId();
+
+				for (int i = 0; i < 4; ++i) {
+					spriteFloat(i, atlasInfo.mapU(spriteId, spriteFloatU(i)), atlasInfo.mapV(spriteId, spriteFloatV(i)));
+				}
+
+				isSpriteInterpolated = true;
+			}
 		}
 
+		spriteFloat(vertexIndex, u, v);
 		return this;
 	}
 
