@@ -25,12 +25,16 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.Identifier;
 
+import grondag.canvas.CanvasMod;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 public abstract class MaterialIndexProvider {
 	public abstract MaterialIndexer getIndexer(RenderMaterialImpl mat);
 
 	public abstract void enable();
+
+	protected abstract void clear();
 
 	private static class SimpleIndexProvider extends MaterialIndexProvider {
 		int nextIndex = 0;
@@ -55,6 +59,12 @@ public abstract class MaterialIndexProvider {
 		@Override
 		public void enable() {
 			tex.enable();
+		}
+
+		@Override
+		protected void clear() {
+			map.clear();
+			tex.reset();
 		}
 	}
 
@@ -109,6 +119,13 @@ public abstract class MaterialIndexProvider {
 		public void enable() {
 			tex.enable();
 		}
+
+		@Override
+		protected void clear() {
+			materialMap.clear();
+			tex.reset();
+			nextIndex = 0;
+		}
 	}
 
 	private static final Object2ObjectOpenHashMap<Identifier, AtlasIndexProvider> ATLAS_PROVIDERS = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
@@ -118,7 +135,13 @@ public abstract class MaterialIndexProvider {
 	}
 
 	public static void reload() {
-		ATLAS_PROVIDERS.clear();
+		if (Configurator.traceTextureLoad) {
+			CanvasMod.LOG.info("MaterialIndexProvider reloading");
+		}
+
+		for (final var p : ATLAS_PROVIDERS.values()) {
+			p.clear();
+		}
 	}
 
 	public static final MaterialIndexProvider GENERIC = new SimpleIndexProvider();

@@ -64,8 +64,8 @@ public class SpriteIndex {
 	}
 
 	public void reset(Data dataIn, ObjectArrayList<Sprite> spriteIndexIn, SpriteAtlasTexture atlasIn) {
-		if (Configurator.enableLifeCycleDebug) {
-			CanvasMod.LOG.info("Lifecycle Event: SpriteInfoTexture init");
+		if (Configurator.enableLifeCycleDebug || Configurator.traceTextureLoad) {
+			CanvasMod.LOG.info("Lifecycle Event: SpriteIndex reset");
 		}
 
 		atlas = atlasIn;

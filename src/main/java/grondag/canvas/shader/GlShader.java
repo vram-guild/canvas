@@ -53,6 +53,7 @@ import net.minecraft.util.Identifier;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GFX;
 
 public class GlShader implements Shader {
@@ -179,6 +180,31 @@ public class GlShader implements Shader {
 			outputDebugSource(source, error);
 		} else if (Configurator.shaderDebug) {
 			outputDebugSource(source, null);
+		}
+
+		// Explicitly checking CanvasGlHelper.supportsKhrDebug() to not generate the name if KHR_debug is not supported
+		if (!isErrored && CanvasGlHelper.supportsKhrDebug()) {
+			final int slashI = shaderSourceId.getPath().lastIndexOf('/');
+			String name = slashI != -1 ? shaderSourceId.getPath().substring(slashI + 1) : shaderSourceId.getPath();
+
+			final int dotI = name.lastIndexOf('.');
+
+			if (dotI != -1) {
+				final String extension = name.substring(dotI + 1);
+				name = name.substring(0, dotI);
+
+				if (extension.equals("vert")) {
+					name = "SHA_VERT " + name;
+				} else if (extension.equals("frag")) {
+					name = "SHA_FRAG " + name;
+				} else {
+					name = "SHA " + name;
+				}
+			} else {
+				name = "SHA " + name;
+			}
+
+			GFX.objectLabel(GFX.GL_SHADER, glId, name);
 		}
 	}
 

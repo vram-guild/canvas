@@ -153,6 +153,13 @@ public class GFX extends GL46C {
 		assert logError(String.format("glEnable(%s)", GlSymbolLookup.reverseLookup(target)));
 	}
 
+	public static void objectLabel(int target, int id, CharSequence label) {
+		if (CanvasGlHelper.supportsKhrDebug()) {
+			glObjectLabel(target, id, label);
+			assert logError("objectLabel");
+		}
+	}
+
 	public static void bindBuffer(int target, int buffer) {
 		glBindBuffer(target, buffer);
 		assert logError(String.format("glBindBuffer(%s, %d)", GlSymbolLookup.reverseLookup(target), buffer));

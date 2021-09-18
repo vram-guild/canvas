@@ -115,17 +115,19 @@ Add these maven repos to your build if not already present
 repositories {
     // where grondag's mods live
     maven {
-    	name = "dblsaiko"
-    	url = "https://maven.dblsaiko.net/"
+	name = "dblsaiko"
+	url = "https://maven.dblsaiko.net/"
     }
     maven {
-      name = "Cotton"
-      url = "http://server.bbkr.space:8081/artifactory/libs-release/"
+	name = "Cotton"
+	url = "https://server.bbkr.space/artifactory/libs-release/"
     }
+    // cloth config
+    maven { url "https://maven.shedaniel.me/" }
     // REI, odds and ends
     maven {
-      name = "CurseForge"
-      url = "https://minecraft.curseforge.com/api/maven"
+	name = "CurseForge"
+	url = "https://minecraft.curseforge.com/api/maven"
     }
 }
 ```
@@ -134,7 +136,7 @@ And add Canvas to your dependencies
 
 ```gradle
 dependencies {
-	modCompile "grondag:canvas-mc116:1.0.+"
+	modCompileOnly "grondag:canvas-mc116:1.0.+"
 }
 
 

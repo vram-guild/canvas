@@ -49,6 +49,7 @@ import net.minecraft.util.math.Vec3f;
 
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
+import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -216,6 +217,13 @@ public class QuadViewImpl implements QuadView {
 
 	public final int cullFaceId() {
 		return MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS]);
+	}
+
+	/**
+	 * Based on geometry instead of metadata.  More reliable for terrain backface culling.
+	 */
+	public final int effectiveCullFaceId() {
+		return (geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) == 0 ? FaceConstants.UNASSIGNED_INDEX : lightFaceId();
 	}
 
 	@Override
@@ -411,10 +419,6 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_COLOR0];
 	}
 
-	protected final boolean isSpriteNormalized() {
-		return !isSpriteInterpolated;
-	}
-
 	protected final float spriteFloatU(int vertexIndex) {
 		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0] * UV_PRECISE_TO_FLOAT_CONVERSION;
 	}
@@ -425,14 +429,14 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public float spriteU(int vertexIndex) {
-		return isSpriteNormalized() && material().texture.isAtlas()
+		return !isSpriteInterpolated && material().texture.isAtlas()
 			? material().texture.atlasInfo().mapU(spriteId(), spriteFloatU(vertexIndex))
 			: spriteFloatU(vertexIndex);
 	}
 
 	@Override
 	public float spriteV(int vertexIndex) {
-		return isSpriteNormalized() && material().texture.isAtlas()
+		return !isSpriteInterpolated && material().texture.isAtlas()
 			? material().texture.atlasInfo().mapV(spriteId(), spriteFloatV(vertexIndex))
 			: spriteFloatV(vertexIndex);
 	}
@@ -441,7 +445,7 @@ public class QuadViewImpl implements QuadView {
 	 * Fixed precision value suitable for transformations.
 	 */
 	public int spritePreciseU(int vertexIndex) {
-		assert isSpriteNormalized();
+		assert !isSpriteInterpolated;
 		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0];
 	}
 
@@ -449,7 +453,7 @@ public class QuadViewImpl implements QuadView {
 	 * Fixed precision value suitable for transformations.
 	 */
 	public int spritePreciseV(int vertexIndex) {
-		assert isSpriteNormalized();
+		assert !isSpriteInterpolated;
 		return data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_V0];
 	}
 
@@ -468,7 +472,7 @@ public class QuadViewImpl implements QuadView {
 	 * Rounded, unsigned short value suitable for vertex buffer.
 	 */
 	public int spriteBufferU(int vertexIndex) {
-		assert isSpriteNormalized();
+		assert !isSpriteInterpolated;
 		return roundSpriteData(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_U0]);
 	}
 
@@ -476,7 +480,7 @@ public class QuadViewImpl implements QuadView {
 	 * Rounded, unsigned short value suitable for vertex buffer.
 	 */
 	public int spriteBufferV(int vertexIndex) {
-		assert isSpriteNormalized();
+		assert !isSpriteInterpolated;
 		return roundSpriteData(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_V0]);
 	}
 

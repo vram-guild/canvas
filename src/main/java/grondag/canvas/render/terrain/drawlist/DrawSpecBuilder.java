@@ -23,85 +23,99 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 
 abstract class DrawSpecBuilder {
-	protected abstract void acceptAlloc(SlabAllocation alloc);
-	protected boolean isShadowMap = false;
+	private static boolean isShadowMap = false;
+	private static final IntArrayList triVertexCount = new IntArrayList();
+	private static final IntArrayList baseQuadVertexOffset = new IntArrayList();
+	private static int quadCount;
 
-	final void build(ObjectArrayList<SlabAllocation> inputs, ObjectArrayList<DrawSpec> output, boolean isShadowMap) {
+	/** NOT THREAD-SAFE. */
+	public static int build(ObjectArrayList<SlabAllocation> inputs, ObjectArrayList<DrawSpec> output, boolean isShadowMap, boolean cullBackFace) {
 		assert RenderSystem.isOnRenderThread();
 
 		if (inputs.isEmpty()) {
-			return;
+			return 0;
 		}
 
-		this.isShadowMap = isShadowMap;
+		DrawSpecBuilder.isShadowMap = isShadowMap;
+		quadCount = 0;
 
 		final var slab = inputs.get(0).slab;
 		final int limit = inputs.size();
 		triVertexCount.clear();
 		baseQuadVertexOffset.clear();
 
-		for (int i = 0; i < limit; ++i) {
-			final var alloc = inputs.get(i);
-			assert alloc.slab == slab;
-			acceptAlloc(alloc);
+		if (cullBackFace) {
+			for (int i = 0; i < limit; ++i) {
+				assert inputs.get(i).slab == slab;
+				acceptAllocBucketed(inputs.get(i));
+			}
+		} else {
+			for (int i = 0; i < limit; ++i) {
+				assert inputs.get(i).slab == slab;
+				acceptAlloc(inputs.get(i));
+			}
 		}
 
 		output.add(new DrawSpec(slab, triVertexCount.size(), triVertexCount.elements(), baseQuadVertexOffset.elements()));
 		inputs.clear();
+		return quadCount;
 	}
 
-	static final IntArrayList triVertexCount = new IntArrayList();
-	static final IntArrayList baseQuadVertexOffset = new IntArrayList();
+	private static void acceptAlloc(SlabAllocation alloc) {
+		quadCount += alloc.quadVertexCount;
 
-	static final DrawSpecBuilder SOLID = new DrawSpecBuilder() {
-		@Override
-		protected void acceptAlloc(SlabAllocation alloc) {
-			final var region = alloc.region();
-			final int bucketFlags = isShadowMap ? region.shadowVisibleFaceFlags() : region.visibleFaceFlags();
-			final var buckets = alloc.region().cullBuckets;
+		if (alloc.quadVertexCount <= 65536) {
+			triVertexCount.add(alloc.triVertexCount);
+			baseQuadVertexOffset.add(alloc.baseQuadVertexIndex);
+		} else {
+			// split buckets that go beyond what short element indexing can do
+			int vertexCountRemaining = alloc.quadVertexCount;
+			int firstVertexIndex = alloc.baseQuadVertexIndex;
 
-			for (int i = 0; i < 7; ++i) {
-				if (((1 << i) & bucketFlags) == 0) {
-					continue;
-				}
+			while (vertexCountRemaining > 0) {
+				final int sliceVertexCount = Math.min(vertexCountRemaining, 65536);
+				triVertexCount.add(sliceVertexCount / 4 * 6);
+				baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + firstVertexIndex);
+				firstVertexIndex += sliceVertexCount;
+				vertexCountRemaining -= sliceVertexCount;
+			}
+		}
+	}
 
-				final var bucket = buckets[i];
+	private static void acceptAllocBucketed(SlabAllocation alloc) {
+		final var region = alloc.region();
+		final int bucketFlags = isShadowMap ? region.shadowVisibleFaceFlags() : region.visibleFaceFlags();
+		final var buckets = alloc.region().cullBuckets;
 
-				if (bucket.vertexCount() > 0) {
-					if (bucket.vertexCount() <= 65536) {
-						triVertexCount.add(bucket.vertexCount() / 4 * 6);
-						baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + bucket.firstVertexIndex());
-					} else {
-						// split buckets that go beyond what short element indexing can do
-						int vertexCountRemaining = bucket.vertexCount();
-						int firstVertexIndex = bucket.firstVertexIndex();
+		for (int i = 0; i < 7; ++i) {
+			if (((1 << i) & bucketFlags) == 0) {
+				continue;
+			}
 
-						while (vertexCountRemaining > 0) {
-							final int sliceVertexCount = Math.min(vertexCountRemaining, 65536);
-							triVertexCount.add(sliceVertexCount / 4 * 6);
-							baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + firstVertexIndex);
-							firstVertexIndex += sliceVertexCount;
-							vertexCountRemaining -= sliceVertexCount;
-						}
+			final var bucket = buckets[i];
+			final var bucketVertexCount = bucket.vertexCount();
+
+			if (bucketVertexCount > 0) {
+				final var bucketQuadCount = bucketVertexCount >> 2;
+				quadCount += bucketQuadCount;
+
+				if (bucketVertexCount <= 65536) {
+					triVertexCount.add(bucketQuadCount * 6);
+					baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + bucket.firstVertexIndex());
+				} else {
+					// split buckets that go beyond what short element indexing can do
+					int vertexCountRemaining = bucketVertexCount;
+					int firstVertexIndex = bucket.firstVertexIndex();
+
+					while (vertexCountRemaining > 0) {
+						final int sliceVertexCount = Math.min(vertexCountRemaining, 65536);
+						triVertexCount.add(sliceVertexCount / 4 * 6);
+						baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + firstVertexIndex);
+						firstVertexIndex += sliceVertexCount;
+						vertexCountRemaining -= sliceVertexCount;
 					}
 				}
 			}
 		}
-	};
-
-	static final DrawSpecBuilder SOLID_NO_CULL = new DrawSpecBuilder() {
-		@Override
-		protected void acceptAlloc(SlabAllocation alloc) {
-			triVertexCount.add(alloc.triVertexCount);
-			baseQuadVertexOffset.add(alloc.baseQuadVertexIndex);
-		}
-	};
-
-	static final DrawSpecBuilder TRANSLUCENT = new DrawSpecBuilder() {
-		@Override
-		protected void acceptAlloc(SlabAllocation alloc) {
-			triVertexCount.add(alloc.triVertexCount);
-			baseQuadVertexOffset.add(alloc.baseQuadVertexIndex);
-		}
-	};
+	}
 }

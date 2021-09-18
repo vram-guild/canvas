@@ -46,6 +46,7 @@ public class GlProgram {
 	}
 
 	private static GlProgram activeProgram;
+	private final String name;
 	private final Shader vertexShader;
 	private final Shader fragmentShader;
 	public final CanvasVertexFormat vertexFormat;
@@ -60,7 +61,8 @@ public class GlProgram {
 	private boolean isErrored = false;
 	private boolean needsLoad = true;
 
-	GlProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
+	GlProgram(String name, Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
+		this.name = name;
 		this.vertexShader = vertexShader;
 		this.fragmentShader = fragmentShader;
 		this.programType = programType;
@@ -158,6 +160,8 @@ public class GlProgram {
 	}
 
 	public final void activate() {
+		final boolean created = needsLoad;
+
 		if (needsLoad) {
 			load();
 			needsLoad = false;
@@ -170,6 +174,9 @@ public class GlProgram {
 		if (activeProgram != this) {
 			activeProgram = this;
 			activateInner();
+
+			// Label needs to be set after binding the program
+			if (created) GFX.objectLabel(GFX.GL_PROGRAM, programId(), "PRO " + name);
 		}
 	}
 

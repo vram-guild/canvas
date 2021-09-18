@@ -97,7 +97,7 @@ public class TerrainFormat {
 
 		final int material = mat.dongle().index(quad.spriteId()) << 16;
 
-		final int baseTargetIndex = buff.allocate(TERRAIN_QUAD_STRIDE, quad.cullFaceId());
+		final int baseTargetIndex = buff.allocate(TERRAIN_QUAD_STRIDE, quad.effectiveCullFaceId());
 		final int[] target = buff.data();
 		final int baseSourceIndex = quad.vertexStart();
 		final int[] source = quad.data();

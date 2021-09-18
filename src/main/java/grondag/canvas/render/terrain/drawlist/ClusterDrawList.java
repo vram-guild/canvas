@@ -32,10 +32,15 @@ public class ClusterDrawList {
 	final VertexCluster cluster;
 	final RealmDrawList owner;
 	private final ObjectArrayList<DrawSpec> drawSpecs = new ObjectArrayList<>();
+	private int quadCount;
 
 	ClusterDrawList(VertexCluster cluster, RealmDrawList owner) {
 		this.cluster = cluster;
 		this.owner = owner;
+	}
+
+	public int quadCount() {
+		return quadCount;
 	}
 
 	void build() {
@@ -52,6 +57,7 @@ public class ClusterDrawList {
 	private void buildTranslucent() {
 		Slab lastSlab = null;
 		final ObjectArrayList<SlabAllocation> specAllocations = new ObjectArrayList<>();
+		int quadCount = 0;
 
 		for (final var region : regions) {
 			final var alloc = region.allocation().getAllocation();
@@ -59,14 +65,16 @@ public class ClusterDrawList {
 			if (alloc.slab != lastSlab) {
 				// NB: builder checks for empty region list (will be true for first region)
 				// and also clears the list when done.
-				DrawSpecBuilder.TRANSLUCENT.build(specAllocations, drawSpecs, false);
+				quadCount += DrawSpecBuilder.build(specAllocations, drawSpecs, false, false);
 				lastSlab = alloc.slab;
 			}
 
 			specAllocations.add(alloc);
 		}
 
-		DrawSpecBuilder.TRANSLUCENT.build(specAllocations, drawSpecs, false);
+		quadCount += DrawSpecBuilder.build(specAllocations, drawSpecs, false, false);
+
+		this.quadCount = quadCount;
 	}
 
 	/** Minimizes binds/calls. */
@@ -86,11 +94,13 @@ public class ClusterDrawList {
 			list.add(alloc);
 		}
 
-		final var builder = Configurator.cullBackfacingTerrain ? DrawSpecBuilder.SOLID : DrawSpecBuilder.SOLID_NO_CULL;
+		int quadCount = 0;
 
 		for (final var list: map.values()) {
-			builder.build(list, drawSpecs, owner.isShadowMap);
+			quadCount += DrawSpecBuilder.build(list, drawSpecs, owner.isShadowMap, Configurator.cullBackfacingTerrain);
 		}
+
+		this.quadCount = quadCount;
 	}
 
 	public void draw() {
