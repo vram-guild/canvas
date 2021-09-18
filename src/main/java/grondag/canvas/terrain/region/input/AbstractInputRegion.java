@@ -26,7 +26,7 @@ import net.minecraft.world.chunk.WorldChunk;
 /**
  * Tries to prevent InputRegion from being unreadably big. Fails.
  */
-abstract class AbstractInputRegion {
+public abstract class AbstractInputRegion {
 	// larger than needed to speed up indexing
 	protected final WorldChunk[] chunks = new WorldChunk[16];
 	protected int originX;
