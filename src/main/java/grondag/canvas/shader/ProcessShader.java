@@ -68,9 +68,9 @@ public class ProcessShader {
 			final Shader vs = GlShaderManager.INSTANCE.getOrCreateVertexShader(vertexId, ProgramType.PROCESS);
 			final Shader fs = GlShaderManager.INSTANCE.getOrCreateFragmentShader(fragmentId, ProgramType.PROCESS);
 			program = new GlProgram(name, vs, fs, CanvasVertexFormats.PROCESS_VERTEX_UV, ProgramType.PROCESS);
-			size = (Uniform2iImpl) program.uniform2i("frxu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
-			lod = (Uniform1iImpl) program.uniform1i("frxu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
-			layer = (Uniform1iImpl) program.uniform1i("frxu_layer", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			size = program.uniform2i("frxu_size", UniformRefreshFrequency.ON_LOAD, u -> u.set(1, 1));
+			lod = program.uniform1i("frxu_lod", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+			layer = program.uniform1i("frxu_layer", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 			projMatrix = program.uniformMatrix4f("frxu_frameProjectionMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 			int tex = 0;
 

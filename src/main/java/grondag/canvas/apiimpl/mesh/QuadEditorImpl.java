@@ -308,7 +308,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public MutableQuadViewImpl sprite(int vertexIndex, float u, float v) {
+	public QuadEditorImpl sprite(int vertexIndex, float u, float v) {
 		// This legacy method accepts interpolated coordinates
 		// and so any usage forces us to de-normalize if we are not already.
 		// Otherwise any subsequent reads or transformations could be inconsistent.

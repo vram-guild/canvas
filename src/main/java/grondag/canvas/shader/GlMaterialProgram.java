@@ -52,10 +52,10 @@ public class GlMaterialProgram extends GlProgram {
 
 	GlMaterialProgram(Shader vertexShader, Shader fragmentShader, CanvasVertexFormat format, ProgramType programType) {
 		super(programType.isTerrain ? "material_terrain" : "material", vertexShader, fragmentShader, format, programType);
-		modelOrigin = (UniformArray4fImpl) uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.setExternal(null), 2);
-		contextInfo = (UniformArrayiImpl) uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
-		modelOriginType = (Uniform1iImpl) uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
-		cascade = (Uniform1iImpl) uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
+		modelOrigin = uniformArray4f("_cvu_model_origin", UniformRefreshFrequency.ON_LOAD, u -> u.setExternal(null), 2);
+		contextInfo = uniformArrayi("_cvu_context", UniformRefreshFrequency.ON_LOAD, u -> { }, 4);
+		modelOriginType = uniform1i("_cvu_model_origin_type", UniformRefreshFrequency.ON_LOAD, u -> u.set(MatrixState.get().ordinal()));
+		cascade = uniform1i("frxu_cascade", UniformRefreshFrequency.ON_LOAD, u -> u.set(0));
 		configuredSamplers = new ObjectArrayList<>();
 		guiViewProjMatrix = uniformMatrix4f("_cvu_guiViewProjMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 	}

@@ -55,7 +55,7 @@ public class TextureHelper {
 	 * Bakes textures in the provided vertex data, handling UV locking,
 	 * rotation, interpolation, etc. Textures must not be already baked.
 	 */
-	public static void bakeSprite(MutableQuadViewImpl quad, Sprite sprite, int bakeFlags) {
+	public static void bakeSprite(QuadEditorImpl quad, Sprite sprite, int bakeFlags) {
 		quad.setSpriteNormalized();
 		quad.spriteId(((SpriteExt) sprite).canvas_id());
 
