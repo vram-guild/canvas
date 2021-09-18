@@ -203,6 +203,7 @@ public class MixinDebugHud extends DrawableHelper {
 		final var worldRenderState = CanvasWorldRenderer.instance().worldRenderState;
 		result.add("Solid " + worldRenderState.solidClusterRealm.debugSummary());
 		result.add("Translucent " + worldRenderState.translucentClusterRealm.debugSummary());
+		result.add(worldRenderState.drawlistDebugSummary());
 		result.add(SlabAllocator.debugSummary());
 
 		return result;

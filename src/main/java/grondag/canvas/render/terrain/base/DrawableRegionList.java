@@ -32,6 +32,8 @@ public interface DrawableRegionList {
 
 	void draw(WorldRenderState worldRenderState);
 
+	int quadCount();
+
 	DrawableRegionList EMPTY = new DrawableRegionList() {
 		@Override
 		public void close() {
@@ -46,6 +48,11 @@ public interface DrawableRegionList {
 		@Override
 		public void draw(WorldRenderState worldRenderState) {
 			// NOOP
+		}
+
+		@Override
+		public int quadCount() {
+			return 0;
 		}
 	};
 
@@ -62,7 +69,7 @@ public interface DrawableRegionList {
 		final int step = isTranslucent ? -1 : 1;
 
 		for (int regionLoopIndex = startIndex; regionLoopIndex != endIndex; regionLoopIndex += step) {
-			RenderRegion region = visibleRegions.get(regionLoopIndex);
+			final RenderRegion region = visibleRegions.get(regionLoopIndex);
 			final DrawableRegion drawable = isTranslucent ? region.translucentDrawable() : region.solidDrawable();
 
 			if (drawable != null && drawable != DrawableRegion.EMPTY_DRAWABLE) {

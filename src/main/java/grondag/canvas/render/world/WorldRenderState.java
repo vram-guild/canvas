@@ -75,6 +75,7 @@ public class WorldRenderState {
 	private RenderRegionBuilder regionBuilder;
 	private ClientWorld world;
 	private boolean hasSkylight;
+	private String drawlistDebugSummary = "";
 
 	// these are measured in chunks, not blocks
 	private int chunkRenderDistance;
@@ -186,17 +187,29 @@ public class WorldRenderState {
 		}
 
 		if (shadowsEnabled()) {
+			int shadowQuadCount = 0;
+
 			for (int i = 0; i < 4; ++i) {
 				final var shadowList = shadowVisibleRegions[i];
 				shadowDrawLists[i].close();
 				shadowDrawLists[i] = DrawableRegionList.build(shadowList, false, true);
+				shadowQuadCount += shadowDrawLists[i].quadCount();
+
 				final int shadowLimit = shadowList.size();
 
 				for (int j = 0; j < shadowLimit; ++j) {
 					terrainAnimationBits.or(shadowList.get(j).animationBits);
 				}
 			}
+
+			drawlistDebugSummary = String.format("Visible quads: %,ds  %,dt  %,dsh", solidDrawList.quadCount(), translucentDrawList.quadCount(), shadowQuadCount);
+		} else {
+			drawlistDebugSummary = String.format("Visible quads: %,ds  %,dt", solidDrawList.quadCount(), translucentDrawList.quadCount());
 		}
+	}
+
+	public String drawlistDebugSummary() {
+		return drawlistDebugSummary;
 	}
 
 	void clear() {

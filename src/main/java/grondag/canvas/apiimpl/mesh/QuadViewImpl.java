@@ -47,6 +47,7 @@ import net.minecraft.util.math.Vec3f;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
+import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -216,6 +217,13 @@ public class QuadViewImpl implements QuadView {
 
 	public final int cullFaceId() {
 		return MeshEncodingHelper.cullFace(data[baseIndex + HEADER_BITS]);
+	}
+
+	/**
+	 * Based on geometry instead of metadata.  More reliable for terrain backface culling.
+	 */
+	public final int effectiveCullFaceId() {
+		return (geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) == 0 ? FaceConstants.UNASSIGNED_INDEX : lightFaceId();
 	}
 
 	@Override
