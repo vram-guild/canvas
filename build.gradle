@@ -18,9 +18,9 @@ def ENV = System.getenv()
 
 def version_tag = project.mod_name.replaceAll('-', '_') + '_version'
 
-minecraft {
-	refmapName = project.mod_name + "-refmap.json"
-	accessWidener = file("src/main/resources/${project.mod_name}.accesswidener")
+loom {
+	mixin.defaultRefmapName = project.mod_name + "-refmap.json"
+	accessWidenerPath = file("src/main/resources/${project.mod_name}.accesswidener")
 }
 
 def artifact_name = project.mod_name + "-" + project.mc_tag
