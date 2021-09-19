@@ -16,12 +16,7 @@
 
 package grondag.canvas.pipeline;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.GraphicsMode;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
-
+import com.mojang.math.Matrix4f;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
@@ -39,6 +34,10 @@ import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.varia.GFX;
+import net.minecraft.client.GraphicsStatus;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.ResourceLocation;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class PipelineManager {
@@ -70,7 +69,7 @@ public class PipelineManager {
 
 	public static void reloadIfNeeded(boolean forceRecompile) {
 		if (Pipeline.needsReload()) {
-			init((PrimaryFrameBuffer) MinecraftClient.getInstance().getFramebuffer(), w, h);
+			init((PrimaryFrameBuffer) Minecraft.getInstance().getMainRenderTarget(), w, h);
 		}
 
 		handleRecompile(forceRecompile);
@@ -98,12 +97,12 @@ public class PipelineManager {
 	}
 
 	public static void handleRecompile(boolean forceRecompile) {
-		while (CanvasMod.RECOMPILE.wasPressed()) {
+		while (CanvasMod.RECOMPILE.consumeClick()) {
 			forceRecompile = true;
 		}
 
 		if (forceRecompile) {
-			CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
+			CanvasMod.LOG.info(I18n.get("info.canvas.reloading"));
 			Canvas.instance().recompile();
 		}
 	}
@@ -175,7 +174,7 @@ public class PipelineManager {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
-		final Matrix4f orthoMatrix = Matrix4f.projectionMatrix(w, -h, 1000.0F, 3000.0F);
+		final Matrix4f orthoMatrix = Matrix4f.orthographic(w, -h, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);
@@ -211,17 +210,17 @@ public class PipelineManager {
 
 		Pipeline.activate(primary, w, h);
 
-		final MinecraftClient mc = MinecraftClient.getInstance();
+		final Minecraft mc = Minecraft.getInstance();
 
-		if (mc.worldRenderer != null) {
-			((WorldRendererExt) mc.worldRenderer).canvas_setupFabulousBuffers();
+		if (mc.levelRenderer != null) {
+			((WorldRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
 		}
 
-		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsMode.FABULOUS : GraphicsMode.FANCY;
+		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY;
 
-		debugShader = new ProcessShader("debug", new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
-		debugDepthShader = new ProcessShader("debug_depth", new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
-		debugDepthArrayShader = new ProcessShader("debug_depth_array", new Identifier("canvas:shaders/pipeline/post/simple_full_frame.vert"), new Identifier("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
+		debugShader = new ProcessShader("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
+		debugDepthShader = new ProcessShader("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
+		debugDepthArrayShader = new ProcessShader("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 

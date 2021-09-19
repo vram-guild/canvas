@@ -18,78 +18,76 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.particle.BillboardParticle;
-import net.minecraft.client.particle.SpriteBillboardParticle;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Quaternion;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
-
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Quaternion;
+import com.mojang.math.Vector3f;
 import grondag.canvas.varia.CanvasMath;
+import net.minecraft.client.Camera;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
-@Mixin(SpriteBillboardParticle.class)
-public abstract class MixinSpriteBillboardParticle extends BillboardParticle {
-	@Shadow protected Sprite sprite;
+@Mixin(TextureSheetParticle.class)
+public abstract class MixinSpriteBillboardParticle extends SingleQuadParticle {
+	@Shadow protected TextureAtlasSprite sprite;
 
-	protected MixinSpriteBillboardParticle(ClientWorld clientWorld, double d, double e, double f) {
+	protected MixinSpriteBillboardParticle(ClientLevel clientWorld, double d, double e, double f) {
 		super(clientWorld, d, e, f);
 	}
 
 	private static final Quaternion quat = new Quaternion(0, 0, 0, 0);
 	private static final Quaternion auxQuat = new Quaternion(0, 0, 0, 0);
-	private static final Vec3f vec = new Vec3f();
+	private static final Vector3f vec = new Vector3f();
 
 	// slightly faster math and less allocation
 	@Override
-	public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
-		final Vec3d vec3d = camera.getPos();
-		final float cx = (float) (MathHelper.lerp(tickDelta, prevPosX, x) - vec3d.getX());
-		final float cy = (float) (MathHelper.lerp(tickDelta, prevPosY, y) - vec3d.getY());
-		final float cz = (float) (MathHelper.lerp(tickDelta, prevPosZ, z) - vec3d.getZ());
+	public void render(VertexConsumer vertexConsumer, Camera camera, float tickDelta) {
+		final Vec3 vec3d = camera.getPosition();
+		final float cx = (float) (Mth.lerp(tickDelta, xo, x) - vec3d.x());
+		final float cy = (float) (Mth.lerp(tickDelta, yo, y) - vec3d.y());
+		final float cz = (float) (Mth.lerp(tickDelta, zo, z) - vec3d.z());
 
 		final Quaternion rotation;
 
-		if (angle == 0.0F) {
-			rotation = camera.getRotation();
+		if (roll == 0.0F) {
+			rotation = camera.rotation();
 		} else {
-			final Quaternion cr = camera.getRotation();
+			final Quaternion cr = camera.rotation();
 			rotation = quat;
-			rotation.set(cr.getX(), cr.getY(), cr.getZ(), cr.getW());
-			final float adjustedAngle = MathHelper.lerp(tickDelta, prevAngle, angle);
+			rotation.set(cr.i(), cr.j(), cr.k(), cr.r());
+			final float adjustedAngle = Mth.lerp(tickDelta, oRoll, roll);
 			final Quaternion radialRotation = auxQuat;
-			CanvasMath.setRadialRotation(radialRotation, Vec3f.POSITIVE_Z, adjustedAngle);
-			rotation.hamiltonProduct(radialRotation);
+			CanvasMath.setRadialRotation(radialRotation, Vector3f.ZP, adjustedAngle);
+			rotation.mul(radialRotation);
 		}
 
-		final Vec3f pos = vec;
-		final float scale = getSize(tickDelta);
-		final int light = getBrightness(tickDelta);
+		final Vector3f pos = vec;
+		final float scale = getQuadSize(tickDelta);
+		final int light = getLightColor(tickDelta);
 
-		final float l = getMinU();
-		final float m = getMaxU();
-		final float n = getMinV();
-		final float o = getMaxV();
+		final float l = getU0();
+		final float m = getU1();
+		final float n = getV0();
+		final float o = getV1();
 
 		vec.set(-1.0F, -1.0F, 0.0F);
 		CanvasMath.applyBillboardRotation(pos, rotation);
-		vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(m, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
+		vertexConsumer.vertex(cx + pos.x() * scale, cy + pos.y() * scale, cz + pos.z() * scale).uv(m, o).color(rCol, gCol, bCol, alpha).uv2(light).endVertex();
 
 		vec.set(-1.0F, 1.0F, 0.0F);
 		CanvasMath.applyBillboardRotation(pos, rotation);
-		vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(m, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
+		vertexConsumer.vertex(cx + pos.x() * scale, cy + pos.y() * scale, cz + pos.z() * scale).uv(m, n).color(rCol, gCol, bCol, alpha).uv2(light).endVertex();
 
 		vec.set(1.0F, 1.0F, 0.0F);
 		CanvasMath.applyBillboardRotation(pos, rotation);
-		vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(l, n).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
+		vertexConsumer.vertex(cx + pos.x() * scale, cy + pos.y() * scale, cz + pos.z() * scale).uv(l, n).color(rCol, gCol, bCol, alpha).uv2(light).endVertex();
 
 		vec.set(1.0F, -1.0F, 0.0F);
 		CanvasMath.applyBillboardRotation(pos, rotation);
-		vertexConsumer.vertex(cx + pos.getX() * scale, cy + pos.getY() * scale, cz + pos.getZ() * scale).texture(l, o).color(colorRed, colorGreen, colorBlue, colorAlpha).light(light).next();
+		vertexConsumer.vertex(cx + pos.x() * scale, cy + pos.y() * scale, cz + pos.z() * scale).uv(l, o).color(rCol, gCol, bCol, alpha).uv2(light).endVertex();
 		//		}
 	}
 }

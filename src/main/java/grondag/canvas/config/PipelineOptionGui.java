@@ -17,24 +17,22 @@
 package grondag.canvas.config;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
-
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 
 public class PipelineOptionGui {
-	public static Screen display(Identifier id) {
+	public static Screen display(ResourceLocation id) {
 		final PipelineConfig config = PipelineConfigBuilder.build(id);
 		final OptionConfig[] configs = config.options;
 		ConfigManager.initPipelineOptions(configs);
 
 		final ConfigBuilder builder = ConfigBuilder.create()
 				.setParentScreen(ConfigGui.current())
-				.setTitle(new TranslatableText("config.canvas.value.pipeline_config"))
+				.setTitle(new TranslatableComponent("config.canvas.value.pipeline_config"))
 				.setAlwaysShowTabs(false)
 				.setShouldListSmoothScroll(true)
 				.setShouldListSmoothScroll(true)
@@ -45,7 +43,7 @@ public class PipelineOptionGui {
 		builder.setGlobalizedExpanded(false);
 
 		if (configs.length == 0) {
-			builder.setFallbackCategory(builder.getOrCreateCategory(new TranslatableText("config.canvas.category.empty")));
+			builder.setFallbackCategory(builder.getOrCreateCategory(new TranslatableComponent("config.canvas.category.empty")));
 		} else {
 			for (final OptionConfig cfg : configs) {
 				cfg.addGuiEntries(builder, ConfigGui.ENTRY_BUILDER);

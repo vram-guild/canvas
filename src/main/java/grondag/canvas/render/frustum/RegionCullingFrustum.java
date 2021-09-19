@@ -16,13 +16,12 @@
 
 package grondag.canvas.render.frustum;
 
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
-
+import com.mojang.math.Matrix4f;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.region.RenderRegionStorage;
+import net.minecraft.client.Camera;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.util.Mth;
 
 public class RegionCullingFrustum extends FastFrustum {
 	private final WorldRenderState worldRenderState;
@@ -43,26 +42,26 @@ public class RegionCullingFrustum extends FastFrustum {
 	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, Matrix4f projectionMatrix) {
 		super.prepare(modelMatrix, tickDelta, camera, projectionMatrix);
 
-		final ClientWorld world = worldRenderState.getWorld();
-		worldBottomY = world.getBottomY();
-		worldTopY = world.getTopY();
+		final ClientLevel world = worldRenderState.getWorld();
+		worldBottomY = world.getMinBuildHeight();
+		worldTopY = world.getMaxBuildHeight();
 	}
 
 	@Override
-	public boolean isVisible(double x0, double y0, double z0, double x1, double y1, double z1) {
-		if (super.isVisible(x0, y0, z0, x1, y1, z1)) {
+	public boolean cubeInFrustum(double x0, double y0, double z0, double x1, double y1, double z1) {
+		if (super.cubeInFrustum(x0, y0, z0, x1, y1, z1)) {
 			if (enableRegionCulling) {
 				// Always assume entities outside world vertical range are visible
 				if (y1 >= worldTopY || y0 < worldBottomY) {
 					return true;
 				}
 
-				final int rx0 = MathHelper.floor(x0) & 0xFFFFFFF0;
-				final int ry0 = MathHelper.floor(y0) & 0xFFFFFFF0;
-				final int rz0 = MathHelper.floor(z0) & 0xFFFFFFF0;
-				final int rx1 = MathHelper.floor(x1) & 0xFFFFFFF0;
-				final int ry1 = MathHelper.floor(y1) & 0xFFFFFFF0;
-				final int rz1 = MathHelper.floor(z1) & 0xFFFFFFF0;
+				final int rx0 = Mth.floor(x0) & 0xFFFFFFF0;
+				final int ry0 = Mth.floor(y0) & 0xFFFFFFF0;
+				final int rz0 = Mth.floor(z0) & 0xFFFFFFF0;
+				final int rx1 = Mth.floor(x1) & 0xFFFFFFF0;
+				final int ry1 = Mth.floor(y1) & 0xFFFFFFF0;
+				final int rz1 = Mth.floor(z1) & 0xFFFFFFF0;
 
 				int flags = rx0 == rz1 ? 0 : 1;
 				if (ry0 != ry1) flags |= 2;

@@ -19,13 +19,11 @@ package grondag.canvas.terrain.occlusion.base;
 import static grondag.bitraster.Constants.PIXEL_HEIGHT;
 import static grondag.bitraster.Constants.PIXEL_WIDTH;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import java.io.File;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.util.Util;
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import grondag.bitraster.AbstractRasterizer;
 import grondag.bitraster.BoxOccluder;
 import grondag.canvas.CanvasMod;
@@ -55,17 +53,17 @@ public abstract class AbstractOccluder extends BoxOccluder {
 
 			for (int x = 0; x < PIXEL_WIDTH; x++) {
 				for (int y = 0; y < PIXEL_HEIGHT; y++) {
-					nativeImage.setPixelColor(x, y, raster.isPixelClear(x, y) ? -1 : 0xFF000000);
+					nativeImage.setPixelRGBA(x, y, raster.isPixelClear(x, y) ? -1 : 0xFF000000);
 				}
 			}
 
-			nativeImage.mirrorVertically();
+			nativeImage.flipY();
 
-			@SuppressWarnings("resource") final File file = new File(MinecraftClient.getInstance().runDirectory, rasterName);
+			@SuppressWarnings("resource") final File file = new File(Minecraft.getInstance().gameDirectory, rasterName);
 
-			Util.getIoWorkerExecutor().execute(() -> {
+			Util.ioPool().execute(() -> {
 				try {
-					nativeImage.writeFile(file);
+					nativeImage.writeToFile(file);
 				} catch (final Exception e) {
 					CanvasMod.LOG.warn("Couldn't save occluder image", e);
 				} finally {

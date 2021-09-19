@@ -20,9 +20,7 @@ import java.nio.FloatBuffer;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.util.math.Matrix4f;
-
+import com.mojang.math.Matrix4f;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 @Mixin(Matrix4f.class)

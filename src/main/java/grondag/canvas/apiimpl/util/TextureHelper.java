@@ -19,10 +19,8 @@ package grondag.canvas.apiimpl.util;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
 
 import io.vram.frex.api.mesh.QuadEditor;
-
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Direction;
-
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.SpriteExt;
 
@@ -40,12 +38,12 @@ public class TextureHelper {
 	private static final VertexModifier[] UVLOCKERS = new VertexModifier[6];
 
 	static {
-		UVLOCKERS[Direction.EAST.getId()] = (q, i) -> q.spriteFloat(i, 1 - q.z(i), 1 - q.y(i));
-		UVLOCKERS[Direction.WEST.getId()] = (q, i) -> q.spriteFloat(i, q.z(i), 1 - q.y(i));
-		UVLOCKERS[Direction.NORTH.getId()] = (q, i) -> q.spriteFloat(i, 1 - q.x(i), 1 - q.y(i));
-		UVLOCKERS[Direction.SOUTH.getId()] = (q, i) -> q.spriteFloat(i, q.x(i), 1 - q.y(i));
-		UVLOCKERS[Direction.DOWN.getId()] = (q, i) -> q.spriteFloat(i, q.x(i), 1 - q.z(i));
-		UVLOCKERS[Direction.UP.getId()] = (q, i) -> q.spriteFloat(i, q.x(i), q.z(i));
+		UVLOCKERS[Direction.EAST.get3DDataValue()] = (q, i) -> q.spriteFloat(i, 1 - q.z(i), 1 - q.y(i));
+		UVLOCKERS[Direction.WEST.get3DDataValue()] = (q, i) -> q.spriteFloat(i, q.z(i), 1 - q.y(i));
+		UVLOCKERS[Direction.NORTH.get3DDataValue()] = (q, i) -> q.spriteFloat(i, 1 - q.x(i), 1 - q.y(i));
+		UVLOCKERS[Direction.SOUTH.get3DDataValue()] = (q, i) -> q.spriteFloat(i, q.x(i), 1 - q.y(i));
+		UVLOCKERS[Direction.DOWN.get3DDataValue()] = (q, i) -> q.spriteFloat(i, q.x(i), 1 - q.z(i));
+		UVLOCKERS[Direction.UP.get3DDataValue()] = (q, i) -> q.spriteFloat(i, q.x(i), q.z(i));
 	}
 
 	private TextureHelper() {
@@ -55,13 +53,13 @@ public class TextureHelper {
 	 * Bakes textures in the provided vertex data, handling UV locking,
 	 * rotation, interpolation, etc. Textures must not be already baked.
 	 */
-	public static void bakeSprite(QuadEditorImpl quad, Sprite sprite, int bakeFlags) {
+	public static void bakeSprite(QuadEditorImpl quad, TextureAtlasSprite sprite, int bakeFlags) {
 		quad.setSpriteNormalized();
 		quad.spriteId(((SpriteExt) sprite).canvas_id());
 
 		if (quad.nominalFace() != null && (QuadEditor.BAKE_LOCK_UV & bakeFlags) != 0) {
 			// Assigns normalized UV coordinates based on vertex positions
-			applyModifier(quad, UVLOCKERS[quad.nominalFace().getId()]);
+			applyModifier(quad, UVLOCKERS[quad.nominalFace().get3DDataValue()]);
 		} else if ((QuadEditor.BAKE_NORMALIZED & bakeFlags) == 0) {
 			// Scales from 0-16 to 0-1
 			applyModifier(quad, (q, i) -> q.spritePrecise(i, q.spritePreciseU(i) >> 4, q.spritePreciseV(i) >> 4));

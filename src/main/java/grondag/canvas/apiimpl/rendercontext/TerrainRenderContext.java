@@ -19,22 +19,19 @@ package grondag.canvas.apiimpl.rendercontext;
 import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import io.vram.frex.api.model.BlockModel;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.crash.CrashException;
-import net.minecraft.util.crash.CrashReport;
-import net.minecraft.util.crash.CrashReportSection;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-
+import net.minecraft.CrashReport;
+import net.minecraft.CrashReportCategory;
+import net.minecraft.ReportedException;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
@@ -98,22 +95,22 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		return this;
 	}
 
-	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, MatrixStack matrixStack) {
+	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, PoseStack matrixStack) {
 		isFluidModel = true;
 		renderInner(blockState, blockPos, defaultAo, model, matrixStack);
 	}
 
-	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, MatrixStack matrixStack) {
+	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, PoseStack matrixStack) {
 		isFluidModel = false;
 		renderInner(blockState, blockPos, defaultAo, model, matrixStack);
 	}
 
 	// PERF: don't pass in matrixStack each time, just change model matrix directly
-	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, MatrixStack matrixStack) {
-		matrix = matrixStack.peek().getModel();
+	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, PoseStack matrixStack) {
+		matrix = matrixStack.last().pose();
 
 		// PERF: can probably grab this at prepare
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
+		normalMatrix = (Matrix3fExt) (Object) matrixStack.last().normal();
 
 		try {
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
@@ -122,10 +119,10 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			cullResultFlags = 0;
 			model.renderAsBlock(region, blockState, blockPos, this);
 		} catch (final Throwable var9) {
-			final CrashReport crashReport_1 = CrashReport.create(var9, "Tesselating block in world - Canvas Renderer");
-			final CrashReportSection crashReportElement_1 = crashReport_1.addElement("Block being tesselated");
-			CrashReportSection.addBlockInfo(crashReportElement_1, region, blockPos, blockState);
-			throw new CrashException(crashReport_1);
+			final CrashReport crashReport_1 = CrashReport.forThrowable(var9, "Tesselating block in world - Canvas Renderer");
+			final CrashReportCategory crashReportElement_1 = crashReport_1.addCategory("Block being tesselated");
+			CrashReportCategory.populateBlockDetails(crashReportElement_1, region, blockPos, blockState);
+			throw new ReportedException(crashReport_1);
 		}
 	}
 
@@ -169,7 +166,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			cullCompletionFlags |= mask;
 			final Direction face = ModelHelper.faceFromIndex(faceIndex);
 
-			if (Block.shouldDrawSide(blockState, region, blockPos, face, internalSearchPos.set(blockPos, face))) {
+			if (Block.shouldRenderFace(blockState, region, blockPos, face, internalSearchPos.setWithOffset(blockPos, face))) {
 				cullResultFlags |= mask;
 				return true;
 			} else {

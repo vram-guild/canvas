@@ -17,9 +17,7 @@
 package grondag.canvas.terrain.occlusion.camera;
 
 import io.vram.frex.api.config.FlawlessFrames;
-
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.world.phys.Vec3;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
@@ -53,7 +51,7 @@ public class CameraVisibility extends AbstractVisbility<CameraVisibility, Camera
 		return occluder.frustumPositionVersion();
 	}
 
-	public Vec3d frustumCameraPos() {
+	public Vec3 frustumCameraPos() {
 		return occluder.frustumCameraPos();
 	}
 

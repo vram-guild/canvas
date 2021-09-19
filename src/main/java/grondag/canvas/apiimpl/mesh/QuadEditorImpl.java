@@ -34,17 +34,17 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X0;
 
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.model.ModelHelper;
 
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.texture.MissingSprite;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
 
 import grondag.canvas.apiimpl.StandardMaterials;
 import grondag.canvas.apiimpl.util.PackedVector3f;
@@ -177,14 +177,14 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	public final QuadEditorImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
-		System.arraycopy(quad.getVertexData(), 0, data, baseIndex + HEADER_STRIDE, MESH_QUAD_STRIDE);
+		System.arraycopy(quad.getVertices(), 0, data, baseIndex + HEADER_STRIDE, MESH_QUAD_STRIDE);
 		material(material);
 		convertVanillaUvPrecision();
 		normalizeSprite();
 		isSpriteInterpolated = false;
 		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.cullFace(0, cullFaceId);
-		nominalFaceId = ModelHelper.toFaceIndex(quad.getFace());
-		data[baseIndex + HEADER_COLOR_INDEX] = quad.getColorIndex();
+		nominalFaceId = ModelHelper.toFaceIndex(quad.getDirection());
+		data[baseIndex + HEADER_COLOR_INDEX] = quad.getTintIndex();
 		data[baseIndex + HEADER_TAG] = 0;
 		isGeometryInvalid = true;
 		isTangentInvalid = true;
@@ -268,12 +268,12 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 
 	private void normalizeSprite() {
 		if (material().texture.isAtlas()) {
-			final Sprite sprite = findSprite();
+			final TextureAtlasSprite sprite = findSprite();
 			final int spriteId = ((SpriteExt) sprite).canvas_id();
-			final float u0 = sprite.getMinU();
-			final float v0 = sprite.getMinV();
-			final float uSpanInv = 1f / (sprite.getMaxU() - u0);
-			final float vSpanInv = 1f / (sprite.getMaxV() - v0);
+			final float u0 = sprite.getU0();
+			final float v0 = sprite.getV0();
+			final float uSpanInv = 1f / (sprite.getU1() - u0);
+			final float vSpanInv = 1f / (sprite.getV1() - v0);
 
 			spriteFloat(0, (spriteFloatU(0) - u0) * uSpanInv, (spriteFloatV(0) - v0) * vSpanInv);
 			spriteFloat(1, (spriteFloatU(1) - u0) * uSpanInv, (spriteFloatV(1) - v0) * vSpanInv);
@@ -288,7 +288,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	/**
 	 * Same as logic in SpriteFinder but can assume sprites are mapped - avoids checks.
 	 */
-	private Sprite findSprite() {
+	private TextureAtlasSprite findSprite() {
 		float u = 0;
 		float v = 0;
 
@@ -297,11 +297,11 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 			v += spriteFloatV(i);
 		}
 
-		final Sprite result = material().texture.atlasInfo().spriteFinder().find(u * 0.25f, v * 0.25f);
+		final TextureAtlasSprite result = material().texture.atlasInfo().spriteFinder().find(u * 0.25f, v * 0.25f);
 
 		// Handle bug in SpriteFinder that can return sprite for the wrong atlas
-		if (result instanceof MissingSprite) {
-			return material().texture.atlasInfo().atlas().getSprite(MissingSprite.getMissingSpriteId());
+		if (result instanceof MissingTextureAtlasSprite) {
+			return material().texture.atlasInfo().atlas().getSprite(MissingTextureAtlasSprite.getLocation());
 		} else {
 			return result;
 		}
@@ -333,7 +333,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public QuadEditorImpl spriteBake(Sprite sprite, int bakeFlags) {
+	public QuadEditorImpl spriteBake(TextureAtlasSprite sprite, int bakeFlags) {
 		TextureHelper.bakeSprite(this, sprite, bakeFlags);
 		return this;
 	}
@@ -344,7 +344,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public void next() {
+	public void endVertex() {
 		// NB: We don't worry about triangles here because we only
 		// use this for API calls (which accept quads) or to transcode
 		// render layers that have quads as the primitive type.
@@ -359,7 +359,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public void fixedColor(int i, int j, int k, int l) {
+	public void defaultColor(int i, int j, int k, int l) {
 		// Mojang currently only uses this for outline rendering and
 		// also it would be needlessly complicated to implement here.
 		// We only render quads so should never see it.
@@ -367,7 +367,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public void unfixColor() {
+	public void unsetDefaultColor() {
 		// Mojang currently only uses this for outline rendering and
 		// also it would be needlessly complicated to implement here.
 		// We only render quads so should never see it.
@@ -378,11 +378,11 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
 		vertex(x, y, z);
 		color(MeshEncodingHelper.packColor(red, green, blue, alpha));
-		texture(u, v);
+		uv(u, v);
 		setOverlay(overlay);
-		light(light);
+		uv2(light);
 		normal(normalX, normalY, normalZ);
-		next();
+		endVertex();
 	}
 
 	@Override
@@ -398,19 +398,19 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public FrexVertexConsumer texture(float u, float v) {
+	public FrexVertexConsumer uv(float u, float v) {
 		sprite(vertexIndex, u, v);
 		return this;
 	}
 
 	@Override
-	public FrexVertexConsumer overlay(int u, int v) {
+	public FrexVertexConsumer overlayCoords(int u, int v) {
 		setOverlay(u, v);
 		return this;
 	}
 
 	@Override
-	public FrexVertexConsumer overlay(int uv) {
+	public FrexVertexConsumer overlayCoords(int uv) {
 		setOverlay(uv);
 		return this;
 	}
@@ -429,13 +429,13 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public FrexVertexConsumer light(int block, int sky) {
+	public FrexVertexConsumer uv2(int block, int sky) {
 		this.lightmap(vertexIndex, (block & 0xFF) | ((sky & 0xFF) << 8));
 		return this;
 	}
 
 	@Override
-	public FrexVertexConsumer light(int lightmap) {
+	public FrexVertexConsumer uv2(int lightmap) {
 		this.lightmap(vertexIndex, lightmap);
 		return this;
 	}

@@ -18,11 +18,9 @@ package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 
-import net.minecraft.util.math.MathHelper;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-
+import net.minecraft.util.Mth;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
@@ -131,8 +129,8 @@ public class Configurator {
 		greedyRenderThread = config.greedyRenderThread;
 		forceJmxModelLoading = config.forceJmxModelLoading;
 		reduceResolutionOnMac = config.reduceResolutionOnMac;
-		dynamicFrustumPadding = MathHelper.clamp(config.dynamicFrustumPadding, 0, 20);
-		staticFrustumPadding = MathHelper.clamp(config.staticFrustumPadding, 0, 30);
+		dynamicFrustumPadding = Mth.clamp(config.dynamicFrustumPadding, 0, 20);
+		staticFrustumPadding = Mth.clamp(config.staticFrustumPadding, 0, 30);
 		cullParticles = config.cullParticles;
 		useCombinedThreadPool = config.useCombinedThreadPool;
 		transferBufferMode = config.transferBufferMode;
@@ -153,10 +151,10 @@ public class Configurator {
 		logMissingUniforms = config.logMissingUniforms;
 		logMaterials = config.logMaterials;
 		logRenderLagSpikes = config.logRenderLagSpikes;
-		renderLagSpikeFps = MathHelper.clamp(config.renderLagSpikeFps, 30, 120);
+		renderLagSpikeFps = Mth.clamp(config.renderLagSpikeFps, 30, 120);
 		displayRenderProfiler = config.displayRenderProfiler;
 		profilerDisplayMode = config.profilerDisplayMode;
-		profilerDetailLevel = MathHelper.clamp(config.profilerDetailLevel, 0, 2);
+		profilerDetailLevel = Mth.clamp(config.profilerDetailLevel, 0, 2);
 		profilerOverlayScale = config.profilerOverlayScale;
 		enableNearOccluders = config.enableNearOccluders;
 		disableUnseenSpriteAnimation = config.disableUnseenSpriteAnimation;

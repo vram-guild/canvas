@@ -18,16 +18,14 @@ package grondag.canvas.shader;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL21;
-
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.data.ShaderStrings;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 // PERF: emit switch statements on non-Mac
 public class GlMaterialShader extends GlShader {
-	GlMaterialShader(Identifier shaderSource, int shaderType, ProgramType programType) {
+	GlMaterialShader(ResourceLocation shaderSource, int shaderType, ProgramType programType) {
 		super(shaderSource, shaderType, programType);
 	}
 
@@ -112,7 +110,7 @@ public class GlMaterialShader extends GlShader {
 			starts = startsBuilder.toString();
 		}
 
-		final Identifier sourceId = programType.isDepth && Pipeline.config().skyShadow != null
+		final ResourceLocation sourceId = programType.isDepth && Pipeline.config().skyShadow != null
 			? Pipeline.config().skyShadow.fragmentSource
 			: Pipeline.config().materialProgram.fragmentSource;
 
@@ -178,7 +176,7 @@ public class GlMaterialShader extends GlShader {
 			starts = startsBuilder.toString();
 		}
 
-		final Identifier sourceId = programType.isDepth && Pipeline.config().skyShadow != null
+		final ResourceLocation sourceId = programType.isDepth && Pipeline.config().skyShadow != null
 				? Pipeline.config().skyShadow.vertexSource
 				: Pipeline.config().materialProgram.vertexSource;
 
@@ -188,11 +186,11 @@ public class GlMaterialShader extends GlShader {
 		return baseSource;
 	}
 
-	private static String loadMaterialVertexShader(ResourceManager resourceManager, Identifier shaderSourceId) {
+	private static String loadMaterialVertexShader(ResourceManager resourceManager, ResourceLocation shaderSourceId) {
 		return PreReleaseShaderCompat.compatifyMaterialVertex(loadShaderSource(resourceManager, shaderSourceId), shaderSourceId);
 	}
 
-	private static String loadMaterialFragmentShader(ResourceManager resourceManager, Identifier shaderSourceId) {
+	private static String loadMaterialFragmentShader(ResourceManager resourceManager, ResourceLocation shaderSourceId) {
 		return PreReleaseShaderCompat.compatify(loadShaderSource(resourceManager, shaderSourceId), shaderSourceId);
 	}
 }

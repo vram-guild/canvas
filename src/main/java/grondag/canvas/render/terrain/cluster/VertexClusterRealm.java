@@ -18,9 +18,7 @@ package grondag.canvas.render.terrain.cluster;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-
-import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.core.BlockPos;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
 
 public class VertexClusterRealm {
@@ -36,8 +34,8 @@ public class VertexClusterRealm {
 	private static final int BLOCKPOS_TO_CLUSTER_SHIFT = 4 + CLUSTER_SHIFT;
 
 	static long clusterPos(long packedOriginBlockPos) {
-		final int x = BlockPos.unpackLongX(packedOriginBlockPos);
-		final int z = BlockPos.unpackLongZ(packedOriginBlockPos);
+		final int x = BlockPos.getX(packedOriginBlockPos);
+		final int z = BlockPos.getZ(packedOriginBlockPos);
 		return BlockPos.asLong(x >> BLOCKPOS_TO_CLUSTER_SHIFT, 0, z >> BLOCKPOS_TO_CLUSTER_SHIFT);
 	}
 

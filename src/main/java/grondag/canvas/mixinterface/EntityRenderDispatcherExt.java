@@ -16,12 +16,12 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.source.BiomeAccess.Storage;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager.NoiseBiomeSource;
 
 public interface EntityRenderDispatcherExt {
-	Biome getBiome(int x, int y, int z, Storage storage);
+	Biome getBiome(int x, int y, int z, NoiseBiomeSource storage);
 
-	RenderLayer canvas_shadowLayer();
+	RenderType canvas_shadowLayer();
 }

@@ -17,10 +17,8 @@
 package grondag.canvas.pipeline.config;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
@@ -53,7 +51,7 @@ public class PipelineConfig {
 
 	public final MaterialProgramConfig materialProgram;
 
-	private final Object2ObjectOpenHashMap<Identifier, OptionConfig> optionMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<ResourceLocation, OptionConfig> optionMap = new Object2ObjectOpenHashMap<>();
 
 	private PipelineConfig() {
 		smoothBrightnessBidirectionaly = false;
@@ -112,7 +110,7 @@ public class PipelineConfig {
 		ConfigManager.initPipelineOptions(options);
 	}
 
-	public String configSource(Identifier id) {
+	public String configSource(ResourceLocation id) {
 		final OptionConfig opt = optionMap.get(id);
 		return opt == null ? null : opt.createSource();
 	}
@@ -121,5 +119,5 @@ public class PipelineConfig {
 		return new PipelineConfig();
 	}
 
-	public static final Identifier DEFAULT_ID = new Identifier("canvas:pipelines/canvas_standard.json5");
+	public static final ResourceLocation DEFAULT_ID = new ResourceLocation("canvas:pipelines/canvas_standard.json5");
 }

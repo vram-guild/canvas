@@ -16,10 +16,11 @@
 
 package grondag.canvas.render.frustum;
 
-import net.minecraft.client.render.Camera;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vector4f;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector4f;
+
+import net.minecraft.client.Camera;
+import net.minecraft.world.phys.Vec3;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -53,61 +54,61 @@ public class FastFrustum extends CanvasFrustum {
 		corner.set(-1f, -1f, -1f, 1f);
 		corner.transform(invProjMatrix);
 
-		float nx0 = corner.getX() / corner.getW();
-		float ny0 = corner.getY() / corner.getW();
-		float nz0 = corner.getZ() / corner.getW();
+		float nx0 = corner.x() / corner.w();
+		float ny0 = corner.y() / corner.w();
+		float nz0 = corner.z() / corner.w();
 
 		corner.set(nx0, ny0, nz0, 1f);
 		corner.transform(invViewMatrix);
 
-		nx0 = corner.getX();
-		ny0 = corner.getY();
-		nz0 = corner.getZ();
+		nx0 = corner.x();
+		ny0 = corner.y();
+		nz0 = corner.z();
 
 		// near top right
 		corner.set(1f, 1f, -1f, 1f);
 		corner.transform(invProjMatrix);
 
-		float nx1 = corner.getX() / corner.getW();
-		float ny1 = corner.getY() / corner.getW();
-		float nz1 = corner.getZ() / corner.getW();
+		float nx1 = corner.x() / corner.w();
+		float ny1 = corner.y() / corner.w();
+		float nz1 = corner.z() / corner.w();
 
 		corner.set(nx1, ny1, nz1, 1f);
 		corner.transform(invViewMatrix);
 
-		nx1 = corner.getX();
-		ny1 = corner.getY();
-		nz1 = corner.getZ();
+		nx1 = corner.x();
+		ny1 = corner.y();
+		nz1 = corner.z();
 
 		// far lower left
 		corner.set(-1f, -1f, 1f, 1f);
 		corner.transform(invProjMatrix);
 
-		float fx0 = corner.getX() / corner.getW();
-		float fy0 = corner.getY() / corner.getW();
-		float fz0 = corner.getZ() / corner.getW();
+		float fx0 = corner.x() / corner.w();
+		float fy0 = corner.y() / corner.w();
+		float fz0 = corner.z() / corner.w();
 
 		corner.set(fx0, fy0, fz0, 1f);
 		corner.transform(invViewMatrix);
 
-		fx0 = corner.getX();
-		fy0 = corner.getY();
-		fz0 = corner.getZ();
+		fx0 = corner.x();
+		fy0 = corner.y();
+		fz0 = corner.z();
 
 		// far top right
 		corner.set(1f, 1f, 1f, 1f);
 		corner.transform(invProjMatrix);
 
-		float fx1 = corner.getX() / corner.getW();
-		float fy1 = corner.getY() / corner.getW();
-		float fz1 = corner.getZ() / corner.getW();
+		float fx1 = corner.x() / corner.w();
+		float fy1 = corner.y() / corner.w();
+		float fz1 = corner.z() / corner.w();
 
 		corner.set(fx1, fy1, fz1, 1f);
 		corner.transform(invViewMatrix);
 
-		fx1 = corner.getX();
-		fy1 = corner.getY();
-		fz1 = corner.getZ();
+		fx1 = corner.x();
+		fy1 = corner.y();
+		fz1 = corner.z();
 
 		final float a = CanvasMath.dist(fx0, fy0, fz0, fx1, fy1, fz1);
 		final float b = CanvasMath.dist(nx0, ny0, nz0, nx1, ny1, nz1);
@@ -142,7 +143,7 @@ public class FastFrustum extends CanvasFrustum {
 	}
 
 	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, Matrix4f projectionMatrix) {
-		final Vec3d vec = camera.getPos();
+		final Vec3 vec = camera.getPosition();
 		lastCameraX = vec.x;
 		lastCameraY = vec.y;
 		lastCameraZ = vec.z;

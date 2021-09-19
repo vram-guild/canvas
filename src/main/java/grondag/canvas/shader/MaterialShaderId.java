@@ -17,20 +17,18 @@
 package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.ResourceLocation;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 public class MaterialShaderId {
 	public final int index;
-	public final Identifier vertexId;
+	public final ResourceLocation vertexId;
 	public final int vertexIndex;
-	public final Identifier fragmentId;
+	public final ResourceLocation fragmentId;
 	public final int fragmentIndex;
-	public final Identifier depthVertexId;
+	public final ResourceLocation depthVertexId;
 	public final int depthVertexIndex;
-	public final Identifier depthFragmentId;
+	public final ResourceLocation depthFragmentId;
 	public final int depthFragmentIndex;
 
 	private MaterialShaderId(int index, int vertexIndex, int fragmentIndex, int depthVertexIndex, int depthFragmentIndex) {
@@ -48,7 +46,7 @@ public class MaterialShaderId {
 	private static final Long2ObjectOpenHashMap<MaterialShaderId> MAP = new Long2ObjectOpenHashMap<>();
 	private static final SimpleUnorderedArrayList<MaterialShaderId> LIST = new SimpleUnorderedArrayList<>();
 
-	public static synchronized MaterialShaderId find(Identifier vertexShaderId, Identifier fragmentShaderId, Identifier depthVertexShaderId, Identifier depthFragmentShaderId) {
+	public static synchronized MaterialShaderId find(ResourceLocation vertexShaderId, ResourceLocation fragmentShaderId, ResourceLocation depthVertexShaderId, ResourceLocation depthFragmentShaderId) {
 		return find(
 			MaterialShaderManager.VERTEX_INDEXER.toHandle(vertexShaderId),
 			MaterialShaderManager.FRAGMENT_INDEXER.toHandle(fragmentShaderId),

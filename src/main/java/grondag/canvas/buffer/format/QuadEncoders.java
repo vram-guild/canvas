@@ -29,7 +29,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 
-import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
@@ -45,8 +45,8 @@ public class QuadEncoders {
 		final boolean isContextPresent = context != AbsentEncodingContext.INSTANCE;
 		final int overlay = context.overlay();
 
-		if (overlay != OverlayTexture.DEFAULT_UV) {
-			quad.overlay(overlay);
+		if (overlay != OverlayTexture.NO_OVERLAY) {
+			quad.overlayCoords(overlay);
 		}
 
 		final RenderMaterialImpl mat = quad.material();

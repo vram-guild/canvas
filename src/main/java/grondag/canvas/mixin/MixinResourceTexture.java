@@ -23,22 +23,20 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.ResourceTexture;
-import net.minecraft.util.Identifier;
-
+import com.mojang.blaze3d.platform.NativeImage;
 import grondag.canvas.varia.GFX;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.SimpleTexture;
+import net.minecraft.resources.ResourceLocation;
 
-@Mixin(ResourceTexture.class)
+@Mixin(SimpleTexture.class)
 public abstract class MixinResourceTexture extends AbstractTexture {
 	@Shadow
 	@Final
-	protected Identifier location;
+	protected ResourceLocation location;
 
 	@Inject(method = "upload", at = @At("TAIL"))
 	private void onUpload(NativeImage nativeImage, boolean bl, boolean bl2, CallbackInfo ci) {
-		GFX.objectLabel(GL11.GL_TEXTURE, getGlId(), "IMG " + location.toString());
+		GFX.objectLabel(GL11.GL_TEXTURE, getId(), "IMG " + location.toString());
 	}
 }

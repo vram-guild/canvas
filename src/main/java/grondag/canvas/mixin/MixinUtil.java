@@ -17,14 +17,11 @@
 package grondag.canvas.mixin;
 
 import java.util.concurrent.Executor;
-
+import net.minecraft.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.util.Util;
-
 import grondag.canvas.config.Configurator;
 import grondag.canvas.terrain.util.TerrainExecutor;
 

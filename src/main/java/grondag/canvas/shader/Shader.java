@@ -16,7 +16,7 @@
 
 package grondag.canvas.shader;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public interface Shader {
 	/**
@@ -42,5 +42,5 @@ public interface Shader {
 	/**
 	 * @return The shader source location, typically for debugging
 	 */
-	Identifier getShaderSourceId();
+	ResourceLocation getShaderSourceId();
 }

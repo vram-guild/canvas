@@ -21,10 +21,10 @@ import java.util.Optional;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-import net.minecraft.client.render.RenderPhase.Texture;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.RenderStateShard.TextureStateShard;
+import net.minecraft.resources.ResourceLocation;
 
-@Mixin(Texture.class)
+@Mixin(TextureStateShard.class)
 public interface AccessTexture {
 	@Accessor
 	boolean getBlur();
@@ -33,5 +33,5 @@ public interface AccessTexture {
 	boolean getMipmap();
 
 	@Accessor
-	Optional<Identifier> getId();
+	Optional<ResourceLocation> getId();
 }

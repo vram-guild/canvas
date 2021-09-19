@@ -21,10 +21,8 @@ import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.CanvasMod;
+import net.minecraft.resources.ResourceLocation;
 
 public class JanksonHelper {
 	public static @Nullable String asString(JsonElement json) {
@@ -39,13 +37,13 @@ public class JanksonHelper {
 		return null;
 	}
 
-	public static @Nullable Identifier asIdentifier(JsonElement json) {
+	public static @Nullable ResourceLocation asIdentifier(JsonElement json) {
 		if (json instanceof JsonPrimitive) {
 			final JsonPrimitive p = (JsonPrimitive) json;
 
 			if (p.getValue() instanceof String) {
 				final String id = (String) p.getValue();
-				return id == null || id.isEmpty() ? null : Identifier.tryParse((String) p.getValue());
+				return id == null || id.isEmpty() ? null : ResourceLocation.tryParse((String) p.getValue());
 			}
 		}
 

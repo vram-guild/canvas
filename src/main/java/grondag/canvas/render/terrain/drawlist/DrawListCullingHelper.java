@@ -16,11 +16,10 @@
 
 package grondag.canvas.render.terrain.drawlist;
 
-import net.minecraft.util.math.BlockPos;
-
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
+import net.minecraft.core.BlockPos;
 
 public class DrawListCullingHelper {
 	final WorldRenderState worldRenderState;
@@ -39,9 +38,9 @@ public class DrawListCullingHelper {
 
 	public void update() {
 		final long packedCameraRegionOrign = worldRenderState.terrainIterator.cameraRegionOrigin();
-		final int x = BlockPos.unpackLongX(packedCameraRegionOrign) >> 4;
-		final int y = BlockPos.unpackLongY(packedCameraRegionOrign) >> 4;
-		final int z = BlockPos.unpackLongZ(packedCameraRegionOrign) >> 4;
+		final int x = BlockPos.getX(packedCameraRegionOrign) >> 4;
+		final int y = BlockPos.getY(packedCameraRegionOrign) >> 4;
+		final int z = BlockPos.getZ(packedCameraRegionOrign) >> 4;
 		upMaxY = y + 1;
 		downMinY = y - 1;
 		eastMaxX = x + 1;
@@ -50,16 +49,16 @@ public class DrawListCullingHelper {
 		northMinZ = z - 1;
 
 		shadowFlags = FaceConstants.UNASSIGNED_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.getX() > 0 ? FaceConstants.EAST_FLAG : FaceConstants.WEST_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.getY() > 0 ? FaceConstants.UP_FLAG : FaceConstants.DOWN_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.getZ() > 0 ? FaceConstants.SOUTH_FLAG : FaceConstants.NORTH_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.x() > 0 ? FaceConstants.EAST_FLAG : FaceConstants.WEST_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.y() > 0 ? FaceConstants.UP_FLAG : FaceConstants.DOWN_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.z() > 0 ? FaceConstants.SOUTH_FLAG : FaceConstants.NORTH_FLAG;
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
 	public int computeVisibleFaceFlags(long packedOriginBlockPos) {
-		final int x = BlockPos.unpackLongX(packedOriginBlockPos) >> 4;
-		final int y = BlockPos.unpackLongY(packedOriginBlockPos) >> 4;
-		final int z = BlockPos.unpackLongZ(packedOriginBlockPos) >> 4;
+		final int x = BlockPos.getX(packedOriginBlockPos) >> 4;
+		final int y = BlockPos.getY(packedOriginBlockPos) >> 4;
+		final int z = BlockPos.getZ(packedOriginBlockPos) >> 4;
 
 		int result = FaceConstants.UNASSIGNED_FLAG;
 

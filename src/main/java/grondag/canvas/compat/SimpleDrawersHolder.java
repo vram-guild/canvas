@@ -19,14 +19,11 @@ package grondag.canvas.compat;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.item.ItemStack;
-
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.loader.api.FabricLoader;
-
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.item.ItemStack;
 import grondag.canvas.CanvasMod;
 
 class SimpleDrawersHolder {
@@ -41,7 +38,7 @@ class SimpleDrawersHolder {
 				final Class<?> clazz = Class.forName("me.benfah.simpledrawers.callback.RedirectModelCallback");
 				final Object instance = ((Event<?>) clazz.getDeclaredField("EVENT").get(null)).invoker();
 
-				final Method onRender = clazz.getDeclaredMethod("onRender", ItemStack.class, ModelTransformation.Mode.class, boolean.class, BakedModel.class);
+				final Method onRender = clazz.getDeclaredMethod("onRender", ItemStack.class, ItemTransforms.TransformType.class, boolean.class, BakedModel.class);
 				final MethodHandle onRenderHandler = lookup.unreflect(onRender);
 				final MethodHandle boundOnRenderHandler = onRenderHandler.bindTo(instance);
 
@@ -67,6 +64,6 @@ class SimpleDrawersHolder {
 	}
 
 	interface ItemModelHandler {
-		BakedModel onRender(ItemStack stack, ModelTransformation.Mode renderMode, boolean leftHanded, BakedModel model);
+		BakedModel onRender(ItemStack stack, ItemTransforms.TransformType renderMode, boolean leftHanded, BakedModel model);
 	}
 }

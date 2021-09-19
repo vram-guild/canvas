@@ -18,11 +18,11 @@ package grondag.canvas.mixin;
 
 import java.util.function.BooleanSupplier;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -30,11 +30,11 @@ import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.CombinedSpriteAnimation;
 
-@Mixin(Sprite.class)
+@Mixin(TextureAtlasSprite.class)
 public class MixinSprite implements SpriteExt {
 	@Shadow protected NativeImage[] images;
 	@Shadow void upload(int i, int j, NativeImage[] nativeImages) { }
-	@Shadow private Sprite.Animation animation;
+	@Shadow private TextureAtlasSprite.AnimatedTexture animation;
 
 	private int canvasId;
 	private int animationIndex = -1;
@@ -79,11 +79,11 @@ public class MixinSprite implements SpriteExt {
 	@Override
 	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
 		@SuppressWarnings("resource")
-		final Sprite me = (Sprite) (Object) this;
+		final TextureAtlasSprite me = (TextureAtlasSprite) (Object) this;
 
 		if (animation != null || (me.getX() < combined.width && me.getY() < combined.height)) {
 			if (Configurator.traceTextureLoad) {
-				CanvasMod.LOG.info("Enabling combined animation upload for sprite " + ((Sprite) (Object) this).getId().toString());
+				CanvasMod.LOG.info("Enabling combined animation upload for sprite " + ((TextureAtlasSprite) (Object) this).getName().toString());
 			}
 
 			for (final var img : images) {

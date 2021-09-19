@@ -16,7 +16,7 @@
 
 package grondag.canvas.terrain.occlusion.shadow;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
@@ -48,7 +48,7 @@ public class ShadowVisibility extends AbstractVisbility<ShadowVisibility, Shadow
 	@Override
 	public void updateView(TerrainFrustum frustum, long cameraRegionOrigin) {
 		if (lastCameraRegionOrigin != cameraRegionOrigin) {
-			pvrs.setCameraChunkOriginAndClear(BlockPos.unpackLongX(cameraRegionOrigin), BlockPos.unpackLongZ(cameraRegionOrigin));
+			pvrs.setCameraChunkOriginAndClear(BlockPos.getX(cameraRegionOrigin), BlockPos.getZ(cameraRegionOrigin));
 		}
 
 		pvrs.setLightVectorAndRestart(ShaderDataManager.skyLightVector);

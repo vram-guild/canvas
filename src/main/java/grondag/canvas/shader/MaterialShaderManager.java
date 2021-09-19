@@ -18,9 +18,7 @@ package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.data.ShaderStrings;
@@ -88,8 +86,8 @@ public enum MaterialShaderManager {
 	/** Tracks which fragment depth sub-shaders are in use by materials. */
 	private static final IntOpenHashSet DEPTH_FRAGMENT_INDEXES = new IntOpenHashSet();
 
-	public static final IndexedInterner<Identifier> VERTEX_INDEXER = new IndexedInterner<>(Identifier.class);
-	public static final IndexedInterner<Identifier> FRAGMENT_INDEXER = new IndexedInterner<>(Identifier.class);
+	public static final IndexedInterner<ResourceLocation> VERTEX_INDEXER = new IndexedInterner<>(ResourceLocation.class);
+	public static final IndexedInterner<ResourceLocation> FRAGMENT_INDEXER = new IndexedInterner<>(ResourceLocation.class);
 	private static final Long2ObjectOpenHashMap<MaterialShaderImpl> KEYMAP = new Long2ObjectOpenHashMap<>();
 
 	private static long key(int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {

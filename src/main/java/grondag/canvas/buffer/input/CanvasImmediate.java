@@ -20,18 +20,18 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import com.google.common.base.Predicates;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider.Immediate;
-import net.minecraft.client.render.model.ModelLoader;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
+import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.resources.model.ModelBakery;
 
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.property.MaterialTarget;
@@ -40,17 +40,17 @@ import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 
-public class CanvasImmediate extends Immediate implements FrexVertexConsumerProvider {
+public class CanvasImmediate extends BufferSource implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList(false);
 	public final RenderContextState contextState;
 
-	public CanvasImmediate(BufferBuilder fallbackBuffer, Map<RenderLayer, BufferBuilder> layerBuffers, RenderContextState contextState) {
+	public CanvasImmediate(BufferBuilder fallbackBuffer, Map<RenderType, BufferBuilder> layerBuffers, RenderContextState contextState) {
 		super(fallbackBuffer, layerBuffers);
 		this.contextState = contextState;
 	}
 
 	@Override
-	public VertexConsumer getBuffer(RenderLayer renderLayer) {
+	public VertexConsumer getBuffer(RenderType renderLayer) {
 		RenderMaterialImpl mat = ((MultiPhaseExt) renderLayer).canvas_materialState();
 
 		if (mat == RenderMaterialImpl.MISSING) {
@@ -87,20 +87,20 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 	}
 
 	@Override
-	public void draw() {
+	public void endBatch() {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectors.sortedDrawList(Predicates.alwaysTrue());
 
 		if (!drawList.isEmpty()) {
 			ArrayVertexCollector.draw(drawList);
 		}
 
-		super.draw();
+		super.endBatch();
 	}
 
 	@Override
-	public void draw(RenderLayer layer) {
+	public void endBatch(RenderType layer) {
 		if (RenderLayerHelper.isExcluded(layer)) {
-			super.draw(layer);
+			super.endBatch(layer);
 		} else {
 			final ArrayVertexCollector collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
 
@@ -110,24 +110,24 @@ public class CanvasImmediate extends Immediate implements FrexVertexConsumerProv
 		}
 	}
 
-	public static SortedMap<RenderLayer, BufferBuilder> entityBuilders() {
+	public static SortedMap<RenderType, BufferBuilder> entityBuilders() {
 		return Util.make(new Object2ObjectLinkedOpenHashMap<>(), (object2ObjectLinkedOpenHashMap) -> {
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getTranslucentNoCrumbling());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorGlint());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getArmorEntityGlint());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getGlint());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getDirectGlint());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getGlintTranslucent());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getEntityGlint());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getDirectEntityGlint());
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderLayer.getWaterMask());
-			ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.translucentNoCrumbling());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.armorGlint());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.armorEntityGlint());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.glint());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.glintDirect());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.glintTranslucent());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.entityGlint());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.entityGlintDirect());
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.waterMask());
+			ModelBakery.DESTROY_TYPES.forEach((renderLayer) -> {
 				assignBufferBuilder(object2ObjectLinkedOpenHashMap, renderLayer);
 			});
 		});
 	}
 
-	private static void assignBufferBuilder(Object2ObjectLinkedOpenHashMap<RenderLayer, BufferBuilder> builderStorage, RenderLayer layer) {
-		builderStorage.put(layer, new BufferBuilder(layer.getExpectedBufferSize()));
+	private static void assignBufferBuilder(Object2ObjectLinkedOpenHashMap<RenderType, BufferBuilder> builderStorage, RenderType layer) {
+		builderStorage.put(layer, new BufferBuilder(layer.bufferSize()));
 	}
 }

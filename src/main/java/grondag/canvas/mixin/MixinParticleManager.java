@@ -27,27 +27,26 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleManager;
-import net.minecraft.client.particle.ParticleTextureSheet;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.particle.ParticleEffect;
-
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.particles.ParticleOptions;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleManagerExt;
 
-@Mixin(ParticleManager.class)
+@Mixin(ParticleEngine.class)
 public class MixinParticleManager implements ParticleManagerExt {
-	@Shadow private static List<ParticleTextureSheet> PARTICLE_TEXTURE_SHEETS;
-	@Shadow private Map<ParticleTextureSheet, Queue<Particle>> particles;
+	@Shadow private static List<ParticleRenderType> PARTICLE_TEXTURE_SHEETS;
+	@Shadow private Map<ParticleRenderType, Queue<Particle>> particles;
 	@Shadow private TextureManager textureManager;
 
 	@Override
-	public List<ParticleTextureSheet> canvas_textureSheets() {
+	public List<ParticleRenderType> canvas_textureSheets() {
 		return PARTICLE_TEXTURE_SHEETS;
 	}
 
 	@Override
-	public Map<ParticleTextureSheet, Queue<Particle>> canvas_particles() {
+	public Map<ParticleRenderType, Queue<Particle>> canvas_particles() {
 		return particles;
 	}
 
@@ -58,7 +57,7 @@ public class MixinParticleManager implements ParticleManagerExt {
 
 	// let particles know their type
 	@Inject(at = @At("RETURN"), method = "createParticle")
-	private <T extends ParticleEffect> void afterCreateParticle(T parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ, CallbackInfoReturnable<Particle> ci) {
+	private <T extends ParticleOptions> void afterCreateParticle(T parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ, CallbackInfoReturnable<Particle> ci) {
 		final Particle particle = ci.getReturnValue();
 
 		if (particle != null) {

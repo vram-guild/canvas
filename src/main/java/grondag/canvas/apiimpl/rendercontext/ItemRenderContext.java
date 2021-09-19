@@ -20,6 +20,8 @@ import static grondag.canvas.buffer.format.EncoderUtils.applyItemLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -27,27 +29,23 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import io.vram.frex.api.model.ItemModel;
-
-import net.minecraft.block.AbstractBannerBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColors;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.item.BuiltinModelItemRenderer;
-import net.minecraft.client.render.item.ItemModels;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.client.render.model.json.ModelTransformation.Mode;
-import net.minecraft.client.util.ModelIdentifier;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.ItemModelShaper;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.AbstractBannerBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.buffer.input.CanvasImmediate;
@@ -72,7 +70,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
 
 	private static final Supplier<ThreadLocal<ItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
-		final ItemRenderContext result = new ItemRenderContext(((MinecraftClientExt) MinecraftClient.getInstance()).canvas_itemColors());
+		final ItemRenderContext result = new ItemRenderContext(((MinecraftClientExt) Minecraft.getInstance()).canvas_itemColors());
 		LOADED.add(result);
 		return result;
 	});
@@ -85,7 +83,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 		result.setSeed(ITEM_RANDOM_SEED);
 		return random;
 	};
-	private RenderLayer defaultRenderLayer;
+	private RenderType defaultRenderLayer;
 	private VertexConsumer defaultConsumer;
 
 	private int lightmap;
@@ -157,7 +155,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 
 	private boolean hasGlint;
 
-	public void renderItem(ItemModels models, ItemStack stack, Mode renderMode, boolean leftHanded, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay, BakedModel model) {
+	public void renderItem(ItemModelShaper models, ItemStack stack, TransformType renderMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
 
 		lightmap = light;
@@ -165,41 +163,41 @@ public class ItemRenderContext extends AbstractRenderContext {
 		itemStack = stack;
 		isBlockItem = stack.getItem() instanceof BlockItem;
 		materialMap = MaterialMap.get(itemStack);
-		isGui = renderMode == ModelTransformation.Mode.GUI;
-		isFrontLit = isGui && !model.isSideLit();
-		hasGlint = stack.hasGlint();
-		matrices.push();
-		final boolean detachedPerspective = renderMode == ModelTransformation.Mode.GUI || renderMode == ModelTransformation.Mode.GROUND || renderMode == ModelTransformation.Mode.FIXED;
+		isGui = renderMode == ItemTransforms.TransformType.GUI;
+		isFrontLit = isGui && !model.usesBlockLight();
+		hasGlint = stack.hasFoil();
+		matrices.pushPose();
+		final boolean detachedPerspective = renderMode == ItemTransforms.TransformType.GUI || renderMode == ItemTransforms.TransformType.GROUND || renderMode == ItemTransforms.TransformType.FIXED;
 
 		if (detachedPerspective) {
-			if (stack.isOf(Items.TRIDENT)) {
-				model = models.getModelManager().getModel(new ModelIdentifier("minecraft:trident#inventory"));
-			} else if (stack.isOf(Items.SPYGLASS)) {
-				model = models.getModelManager().getModel(new ModelIdentifier("minecraft:spyglass#inventory"));
+			if (stack.is(Items.TRIDENT)) {
+				model = models.getModelManager().getModel(new ModelResourceLocation("minecraft:trident#inventory"));
+			} else if (stack.is(Items.SPYGLASS)) {
+				model = models.getModelManager().getModel(new ModelResourceLocation("minecraft:spyglass#inventory"));
 			}
 		}
 
 		// PERF: optimize matrix stack operations
-		model.getTransformation().getTransformation(renderMode).apply(leftHanded, matrices);
+		model.getTransforms().getTransform(renderMode).apply(leftHanded, matrices);
 		matrices.translate(-0.5D, -0.5D, -0.5D);
 
-		matrix = matrices.peek().getModel();
-		normalMatrix = (Matrix3fExt) (Object) matrices.peek().getNormal();
+		matrix = matrices.last().pose();
+		normalMatrix = (Matrix3fExt) (Object) matrices.last().normal();
 
-		if (model.isBuiltin() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
-			final BuiltinModelItemRenderer builtInRenderer = ((ItemRendererExt) MinecraftClient.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();
+		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
+			final BlockEntityWithoutLevelRenderer builtInRenderer = ((ItemRendererExt) Minecraft.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();
 
 			if (isGui && vertexConsumers instanceof CanvasImmediate) {
 				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
 				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
-				builtInRenderer.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+				builtInRenderer.renderByItem(stack, renderMode, matrices, vertexConsumers, light, overlay);
 				context.guiMode(GuiMode.NORMAL);
 			} else {
-				builtInRenderer.render(stack, renderMode, matrices, vertexConsumers, light, overlay);
+				builtInRenderer.renderByItem(stack, renderMode, matrices, vertexConsumers, light, overlay);
 			}
 		} else {
-			drawTranslucencyDirectToMainTarget = isGui || renderMode.isFirstPerson() || !isBlockItem;
-			defaultRenderLayer = RenderLayers.getItemLayer(stack, drawTranslucencyDirectToMainTarget);
+			drawTranslucencyDirectToMainTarget = isGui || renderMode.firstPerson() || !isBlockItem;
+			defaultRenderLayer = ItemBlockRenderTypes.getRenderType(stack, drawTranslucencyDirectToMainTarget);
 			defaultBlendMode = inferDefaultItemPreset(defaultRenderLayer);
 
 			if (((vertexConsumers instanceof CanvasImmediate))) {
@@ -212,7 +210,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 			((ItemModel) model).renderAsItem(itemStack, renderMode, this);
 		}
 
-		matrices.pop();
+		matrices.popPose();
 	}
 
 	@Override
@@ -302,10 +300,10 @@ public class ItemRenderContext extends AbstractRenderContext {
 		}
 	}
 
-	static int inferDefaultItemPreset(RenderLayer layer) {
+	static int inferDefaultItemPreset(RenderType layer) {
 		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
 
-		if (params.getTransparency() == RenderPhase.TRANSLUCENT_TRANSPARENCY) {
+		if (params.getTransparency() == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {
 			return MaterialConstants.PRESET_TRANSLUCENT;
 		} else if (((ShaderExt) params.getShader()).canvas_shaderData().cutout != MaterialConstants.CUTOUT_NONE) {
 			final AccessTexture tex = (AccessTexture) params.getTexture();
@@ -322,7 +320,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 	}
 
 	@Override
-	public MatrixStack matrixStack() {
+	public PoseStack matrixStack() {
 		// WIP implement
 		return null;
 	}

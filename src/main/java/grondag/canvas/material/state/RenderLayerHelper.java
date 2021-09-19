@@ -16,19 +16,19 @@
 
 package grondag.canvas.material.state;
 
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import io.vram.frex.api.material.MaterialConstants;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.RenderPhase.TextureBase;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.VertexFormat.DrawMode;
-import net.minecraft.client.render.model.ModelLoader;
-import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderStateShard.EmptyTextureStateShard;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.resources.model.ModelBakery;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -48,40 +48,40 @@ import grondag.canvas.mixinterface.ShaderExt;
 public final class RenderLayerHelper {
 	private RenderLayerHelper() { }
 
-	private static final ReferenceOpenHashSet<RenderLayer> EXCLUSIONS = new ReferenceOpenHashSet<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+	private static final ReferenceOpenHashSet<RenderType> EXCLUSIONS = new ReferenceOpenHashSet<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 
 	static {
 		// entity shadows aren't worth
-		EXCLUSIONS.add(((EntityRenderDispatcherExt) MinecraftClient.getInstance().getEntityRenderDispatcher()).canvas_shadowLayer());
+		EXCLUSIONS.add(((EntityRenderDispatcherExt) Minecraft.getInstance().getEntityRenderDispatcher()).canvas_shadowLayer());
 
 		// FEAT: handle more of these with shaders
-		EXCLUSIONS.add(RenderLayer.getArmorGlint());
-		EXCLUSIONS.add(RenderLayer.getArmorEntityGlint());
-		EXCLUSIONS.add(RenderLayer.getGlint());
-		EXCLUSIONS.add(RenderLayer.getDirectGlint());
-		EXCLUSIONS.add(RenderLayer.getGlintTranslucent());
-		EXCLUSIONS.add(RenderLayer.getEntityGlint());
-		EXCLUSIONS.add(RenderLayer.getDirectEntityGlint());
-		EXCLUSIONS.add(RenderLayer.getLines());
-		EXCLUSIONS.add(RenderLayer.getLightning());
+		EXCLUSIONS.add(RenderType.armorGlint());
+		EXCLUSIONS.add(RenderType.armorEntityGlint());
+		EXCLUSIONS.add(RenderType.glint());
+		EXCLUSIONS.add(RenderType.glintDirect());
+		EXCLUSIONS.add(RenderType.glintTranslucent());
+		EXCLUSIONS.add(RenderType.entityGlint());
+		EXCLUSIONS.add(RenderType.entityGlintDirect());
+		EXCLUSIONS.add(RenderType.lines());
+		EXCLUSIONS.add(RenderType.lightning());
 		// draw order is important and our sorting mechanism doesn't cover
-		EXCLUSIONS.add(RenderLayer.getWaterMask());
-		EXCLUSIONS.add(RenderLayer.getEndPortal());
-		EXCLUSIONS.add(RenderLayer.getEndGateway());
+		EXCLUSIONS.add(RenderType.waterMask());
+		EXCLUSIONS.add(RenderType.endPortal());
+		EXCLUSIONS.add(RenderType.endGateway());
 
-		ModelLoader.BLOCK_DESTRUCTION_RENDER_LAYERS.forEach((renderLayer) -> {
+		ModelBakery.DESTROY_TYPES.forEach((renderLayer) -> {
 			EXCLUSIONS.add(renderLayer);
 		});
 	}
 
-	public static boolean isExcluded(RenderLayer layer) {
+	public static boolean isExcluded(RenderType layer) {
 		// currently we only handle quads
-		return layer.getDrawMode() != DrawMode.QUADS || EXCLUSIONS.contains(layer);
+		return layer.mode() != Mode.QUADS || EXCLUSIONS.contains(layer);
 	}
 
 	private static void copyFromLayer(MaterialFinderImpl finder, MultiPhaseExt layer) {
 		final AccessMultiPhaseParameters params = layer.canvas_phases();
-		final TextureBase texBase = params.getTexture();
+		final EmptyTextureStateShard texBase = params.getTexture();
 
 		final MojangShaderData sd = ((ShaderExt) params.getShader()).canvas_shaderData();
 
@@ -94,20 +94,20 @@ public final class RenderLayerHelper {
 
 		finder.transparency(MaterialTransparency.fromPhase(params.getTransparency()));
 		finder.depthTest(MaterialDepthTest.fromPhase(params.getDepthTest()));
-		finder.cull(params.getCull() == RenderPhase.ENABLE_CULLING);
+		finder.cull(params.getCull() == RenderStateShard.CULL);
 		finder.writeMask(MaterialWriteMask.fromPhase(params.getWriteMaskState()));
 		finder.decal(MaterialDecal.fromPhase(params.getLayering()));
 		finder.target(MaterialTarget.fromPhase(params.getTarget()));
-		finder.lines(params.getLineWidth() != RenderPhase.FULL_LINE_WIDTH);
+		finder.lines(params.getLineWidth() != RenderStateShard.DEFAULT_LINE);
 		finder.fog(sd.fog);
 		finder.disableDiffuse(!sd.diffuse);
 		finder.cutout(sd.cutout);
 		finder.sorted(((RenderLayerExt) layer).canvas_isTranslucent());
 
 		// vanilla sets these as part of draw process but we don't want special casing
-		if (layer == RenderLayer.getSolid() || layer == RenderLayer.getCutoutMipped() || layer == RenderLayer.getCutout() || layer == RenderLayer.getTranslucent()) {
+		if (layer == RenderType.solid() || layer == RenderType.cutoutMipped() || layer == RenderType.cutout() || layer == RenderType.translucent()) {
 			finder.cull(true);
-			finder.texture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+			finder.texture(TextureAtlas.LOCATION_BLOCKS);
 			finder.writeMask(MaterialConstants.WRITE_MASK_COLOR_DEPTH);
 			finder.disableAo(false);
 		} else {
@@ -117,11 +117,11 @@ public final class RenderLayerHelper {
 
 	private static final ObjectOpenHashSet<String> VANILLA_MATERIAL_SET = new ObjectOpenHashSet<>();
 
-	public static RenderMaterialImpl copyFromLayer(RenderLayer layer) {
+	public static RenderMaterialImpl copyFromLayer(RenderType layer) {
 		return copyFromLayer(layer, false);
 	}
 
-	public static RenderMaterialImpl copyFromLayer(RenderLayer layer, boolean glint) {
+	public static RenderMaterialImpl copyFromLayer(RenderType layer, boolean glint) {
 		if (isExcluded(layer)) {
 			return RenderMaterialImpl.MISSING;
 		}
@@ -132,7 +132,7 @@ public final class RenderLayerHelper {
 
 		// Excludes glint, end portal, and other specialized render layers that won't play nice with our current setup
 		// Excludes render layers with custom shaders
-		if (params.getTexturing() != RenderPhase.DEFAULT_TEXTURING || ((ShaderExt) params.getShader()).canvas_shaderData() == MojangShaderData.MISSING) {
+		if (params.getTexturing() != RenderStateShard.DEFAULT_TEXTURING || ((ShaderExt) params.getShader()).canvas_shaderData() == MojangShaderData.MISSING) {
 			EXCLUSIONS.add(layer);
 			return RenderMaterialImpl.MISSING;
 		}
@@ -160,8 +160,8 @@ public final class RenderLayerHelper {
 	// PERF: disable translucent sorting on vanilla layers that don't actually require it - like horse spots
 	// may need to be a lookup table because some will need it.
 
-	public static final RenderMaterialImpl TRANSLUCENT_TERRAIN = copyFromLayer(RenderLayer.getTranslucent());
-	public static final RenderMaterialImpl TRANSLUCENT_ITEM_ENTITY = copyFromLayer(TexturedRenderLayers.getItemEntityTranslucentCull());
+	public static final RenderMaterialImpl TRANSLUCENT_TERRAIN = copyFromLayer(RenderType.translucent());
+	public static final RenderMaterialImpl TRANSLUCENT_ITEM_ENTITY = copyFromLayer(Sheets.translucentItemSheet());
 
 	static {
 		assert TRANSLUCENT_TERRAIN.primaryTargetTransparency;

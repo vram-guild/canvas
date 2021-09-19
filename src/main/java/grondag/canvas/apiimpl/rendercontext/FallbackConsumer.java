@@ -18,17 +18,14 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.List;
 import java.util.function.Consumer;
-
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.model.ModelHelper;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.util.math.Direction;
-
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
@@ -149,11 +146,11 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		if (count != 0 && context.cullTest(faceIndex)) {
 			if (count == 1) {
 				final BakedQuad q = quads.get(0);
-				renderQuad(q, faceIndex, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
+				renderQuad(q, faceIndex, q.isShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 			} else { // > 1
 				for (int j = 0; j < count; j++) {
 					final BakedQuad q = quads.get(j);
-					renderQuad(q, faceIndex, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
+					renderQuad(q, faceIndex, q.isShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 				}
 			}
 		}
@@ -164,11 +161,11 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 
 		if (count == 1) {
 			final BakedQuad q = quads.get(0);
-			renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
+			renderQuad(q, ModelHelper.NULL_FACE_ID, q.isShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 		} else if (count > 1) {
 			for (int j = 0; j < count; j++) {
 				final BakedQuad q = quads.get(j);
-				renderQuad(q, ModelHelper.NULL_FACE_ID, q.hasShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
+				renderQuad(q, ModelHelper.NULL_FACE_ID, q.isShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 			}
 		}
 	}

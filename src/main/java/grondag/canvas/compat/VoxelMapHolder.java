@@ -21,24 +21,21 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.LightmapTextureManager;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix4f;
-
 import net.fabricmc.loader.api.FabricLoader;
-
+import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.RenderType;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
 import grondag.canvas.CanvasMod;
 
 class VoxelMapHolder {
-	private static final PostRenderHandler DUMMY_RENDER_HANDLER = (WorldRenderer wr, MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) -> { };
+	private static final PostRenderHandler DUMMY_RENDER_HANDLER = (LevelRenderer wr, PoseStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightmapTextureManager, Matrix4f matrix4f) -> { };
 	static PostRenderHandler postRenderHandler = DUMMY_RENDER_HANDLER;
 
-	private static final PostRenderLayerHandler DUMMY_RENDER_LAYER_HANDLER = (WorldRenderer wr, RenderLayer renderLayer, MatrixStack matrixStack, double d, double e, double f) -> { };
+	private static final PostRenderLayerHandler DUMMY_RENDER_LAYER_HANDLER = (LevelRenderer wr, RenderType renderLayer, PoseStack matrixStack, double d, double e, double f) -> { };
 	static PostRenderLayerHandler postRenderLayerHandler = DUMMY_RENDER_LAYER_HANDLER;
 
 	static {
@@ -46,7 +43,7 @@ class VoxelMapHolder {
 			final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
 			try {
-				final Class<?> clazz = WorldRenderer.class;
+				final Class<?> clazz = LevelRenderer.class;
 
 				for (final Method m : clazz.getDeclaredMethods()) {
 					final String name = m.getName();
@@ -56,7 +53,7 @@ class VoxelMapHolder {
 							m.setAccessible(true);
 							final MethodHandle handler = lookup.unreflect(m);
 
-							postRenderHandler = (WorldRenderer wr, MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f) -> {
+							postRenderHandler = (LevelRenderer wr, PoseStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightmapTextureManager, Matrix4f matrix4f) -> {
 								try {
 									handler.invokeExact(wr, matrices, tickDelta, limitTime, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, matrix4f, (CallbackInfo) null);
 								} catch (final Throwable e) {
@@ -69,7 +66,7 @@ class VoxelMapHolder {
 							m.setAccessible(true);
 							final MethodHandle handler = lookup.unreflect(m);
 
-							postRenderLayerHandler = (WorldRenderer wr, RenderLayer renderLayer, MatrixStack matrixStack, double x, double y, double z) -> {
+							postRenderLayerHandler = (LevelRenderer wr, RenderType renderLayer, PoseStack matrixStack, double x, double y, double z) -> {
 								try {
 									handler.invokeExact(wr, renderLayer, matrixStack, x, y, z, (CallbackInfo) null);
 								} catch (final Throwable e) {
@@ -96,10 +93,10 @@ class VoxelMapHolder {
 	}
 
 	interface PostRenderHandler {
-		void render(WorldRenderer wr, MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f matrix4f);
+		void render(LevelRenderer wr, PoseStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightmapTextureManager, Matrix4f matrix4f);
 	}
 
 	interface PostRenderLayerHandler {
-		void render(WorldRenderer wr, RenderLayer renderLayer, MatrixStack matrixStack, double d, double e, double f);
+		void render(LevelRenderer wr, RenderType renderLayer, PoseStack matrixStack, double d, double e, double f);
 	}
 }

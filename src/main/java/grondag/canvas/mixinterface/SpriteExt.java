@@ -18,7 +18,7 @@ package grondag.canvas.mixinterface;
 
 import java.util.function.BooleanSupplier;
 
-import net.minecraft.client.texture.NativeImage;
+import com.mojang.blaze3d.platform.NativeImage;
 
 public interface SpriteExt extends CombinedAnimationConsumer {
 	int canvas_id();

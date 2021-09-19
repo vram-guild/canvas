@@ -28,9 +28,9 @@ import io.vram.frex.api.model.QuadTransform;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.level.block.state.BlockState;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
@@ -100,7 +100,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 			return;
 		}
 
-		final Sprite sprite = materialMap.needsSprite() ? quad.material().texture.atlasInfo().fromId(quad.spriteId()) : null;
+		final TextureAtlasSprite sprite = materialMap.needsSprite() ? quad.material().texture.atlasInfo().fromId(quad.spriteId()) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {

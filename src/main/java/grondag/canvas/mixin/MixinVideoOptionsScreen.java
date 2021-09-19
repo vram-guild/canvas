@@ -20,16 +20,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.option.VideoOptionsScreen;
-import net.minecraft.text.Text;
-
 import grondag.canvas.varia.CanvasButtonWidget;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.VideoSettingsScreen;
+import net.minecraft.network.chat.Component;
 
-@Mixin(VideoOptionsScreen.class)
+@Mixin(VideoSettingsScreen.class)
 public class MixinVideoOptionsScreen extends Screen {
-	public MixinVideoOptionsScreen(Text title) {
+	public MixinVideoOptionsScreen(Component title) {
 		super(title);
 	}
 

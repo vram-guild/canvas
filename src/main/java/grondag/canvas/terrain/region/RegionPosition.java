@@ -16,9 +16,6 @@
 
 package grondag.canvas.terrain.region;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-
 import grondag.bitraster.PackedBox;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum.RegionVisibilityTest;
@@ -26,6 +23,8 @@ import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.camera.CameraVisibility;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 public class RegionPosition extends BlockPos {
 	/** Region that holds this position as its origin. Provides access to world render state. */
@@ -90,7 +89,7 @@ public class RegionPosition extends BlockPos {
 	private int visibleFaceFlags;
 
 	public RegionPosition(long packedPos, RenderRegion owner) {
-		super(unpackLongX(packedPos), unpackLongY(packedPos), unpackLongZ(packedPos));
+		super(getX(packedPos), getY(packedPos), getZ(packedPos));
 		this.owner = owner;
 		worldRenderState = owner.worldRenderState;
 		terrainIterator = worldRenderState.terrainIterator;
@@ -129,7 +128,7 @@ public class RegionPosition extends BlockPos {
 
 		if (this.cameraRegionOrigin != cameraRegionOrigin) {
 			this.cameraRegionOrigin = cameraRegionOrigin;
-			final int cy = (BlockPos.unpackLongY(cameraRegionOrigin) >> 4) - chunkY;
+			final int cy = (BlockPos.getY(cameraRegionOrigin) >> 4) - chunkY;
 			squaredCameraChunkDistance = owner.renderChunk.horizontalSquaredDistance + cy * cy;
 			isInsideRenderDistance = squaredCameraChunkDistance <= worldRenderState.maxSquaredChunkRenderDistance();
 			isNear = squaredCameraChunkDistance <= 3;
@@ -157,7 +156,7 @@ public class RegionPosition extends BlockPos {
 				// These are needed by frustum tests, which happen below, after this update.
 				// not needed at all if outside of render distance
 				if (isInsideRenderDistance) {
-					final Vec3d cameraPos = cameraPVS.frustumCameraPos();
+					final Vec3 cameraPos = cameraPVS.frustumCameraPos();
 					cameraRelativeCenterX = (float) (getX() + 8 - cameraPos.x);
 					cameraRelativeCenterY = (float) (getY() + 8 - cameraPos.y);
 					cameraRelativeCenterZ = (float) (getZ() + 8 - cameraPos.z);

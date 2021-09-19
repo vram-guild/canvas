@@ -17,15 +17,12 @@
 package grondag.canvas.shader.data;
 
 import java.nio.FloatBuffer;
-
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import org.lwjgl.BufferUtils;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
-
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -36,10 +33,10 @@ public final class MatrixData {
 	private static final Matrix3f IDENTITY = new Matrix3f();
 
 	static {
-		IDENTITY.loadIdentity();
+		IDENTITY.setIdentity();
 	}
 
-	static void update(MatrixStack.Entry view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
+	static void update(PoseStack.Pose view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
 		// write values for prior frame before updating
 		viewMatrixExt.writeToBuffer(VIEW_LAST * 16, MATRIX_DATA);
 		projMatrixExt.writeToBuffer(PROJ_LAST * 16, MATRIX_DATA);
@@ -47,9 +44,9 @@ public final class MatrixData {
 		cleanProjMatrixExt.writeToBuffer(CLEAN_PROJ_LAST * 16, MATRIX_DATA);
 		cleanViewProjMatrixExt.writeToBuffer(CLEAN_VP_LAST * 16, MATRIX_DATA);
 
-		((Matrix3fExt) (Object) viewNormalMatrix).set((Matrix3fExt) (Object) view.getNormal());
+		((Matrix3fExt) (Object) viewNormalMatrix).set((Matrix3fExt) (Object) view.normal());
 
-		viewMatrixExt.set((Matrix4fExt) (Object) view.getModel());
+		viewMatrixExt.set((Matrix4fExt) (Object) view.pose());
 		viewMatrixExt.writeToBuffer(VIEW * 16, MATRIX_DATA);
 		projMatrixExt.set((Matrix4fExt) (Object) projectionMatrix);
 		projMatrixExt.writeToBuffer(PROJ * 16, MATRIX_DATA);
@@ -91,18 +88,18 @@ public final class MatrixData {
 	 * Computes projection that doesn't include nausea or view bob and doesn't have 4X depth like vanilla.
 	 */
 	private static void computeCleanProjection(Camera camera, float tickDelta) {
-		final MinecraftClient mc = MinecraftClient.getInstance();
+		final Minecraft mc = Minecraft.getInstance();
 		final GameRendererExt gx = (GameRendererExt) mc.gameRenderer;
 		final float zoom = gx.canvas_zoom();
 
-		cleanProjMatrix.loadIdentity();
+		cleanProjMatrix.setIdentity();
 
 		if (zoom != 1.0F) {
 			cleanProjMatrixExt.translate(gx.canvas_zoomX(), -gx.canvas_zoomY(), 0.0f);
 			cleanProjMatrixExt.scale(zoom, zoom, 1.0F);
 		}
 
-		cleanProjMatrix.multiply(Matrix4f.viewboxMatrix(gx.canvas_getFov(camera, tickDelta, true), mc.getWindow().getFramebufferWidth() / mc.getWindow().getFramebufferHeight(), 0.05F, mc.gameRenderer.getViewDistance()));
+		cleanProjMatrix.multiply(Matrix4f.perspective(gx.canvas_getFov(camera, tickDelta, true), mc.getWindow().getWidth() / mc.getWindow().getHeight(), 0.05F, mc.gameRenderer.getRenderDistance()));
 
 		cleanProjMatrixInvExt.set(cleanProjMatrixExt);
 		cleanProjMatrixInv.invert();

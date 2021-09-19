@@ -18,7 +18,7 @@ package grondag.canvas.buffer.input;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 import grondag.canvas.render.terrain.TerrainFormat;
 
@@ -34,7 +34,7 @@ public record VertexBucket(int firstVertexIndex, int vertexCount) {
 		}
 
 		void clear() {
-			for (var b : buckets) {
+			for (final var b : buckets) {
 				b.clear();
 			}
 		}
@@ -43,7 +43,7 @@ public record VertexBucket(int firstVertexIndex, int vertexCount) {
 			int[] swapData = this.swapData;
 
 			if (swapData == null || swapData.length < integerSize) {
-				swapData = new int[MathHelper.smallestEncompassingPowerOfTwo(integerSize)];
+				swapData = new int[Mth.smallestEncompassingPowerOfTwo(integerSize)];
 				this.swapData = swapData;
 			}
 
@@ -55,7 +55,7 @@ public record VertexBucket(int firstVertexIndex, int vertexCount) {
 			for (int i = 0; i < 7; ++i) {
 				final var bucket = buckets[i];
 
-				for (int sourceIndex : bucket) {
+				for (final int sourceIndex : bucket) {
 					System.arraycopy(swapData, sourceIndex, vertexData, targetIndex, TerrainFormat.TERRAIN_MATERIAL.quadStrideInts);
 					targetIndex += TerrainFormat.TERRAIN_MATERIAL.quadStrideInts;
 				}

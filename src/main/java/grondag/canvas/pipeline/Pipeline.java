@@ -19,9 +19,7 @@ package grondag.canvas.pipeline;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.config.FabulousConfig;
@@ -177,7 +175,7 @@ public class Pipeline {
 	}
 
 	private static void activateInner(PrimaryFrameBuffer primary, int width, int height) {
-		final PipelineConfig config = PipelineConfigBuilder.build(new Identifier(Configurator.pipelineId));
+		final PipelineConfig config = PipelineConfigBuilder.build(new ResourceLocation(Configurator.pipelineId));
 		Pipeline.config = config;
 
 		for (final ImageConfig img : config.images) {
@@ -212,9 +210,9 @@ public class Pipeline {
 		defaultColor = getImage(b.config.colorAttachments[0].image.name).glId();
 		defaultDepth = getImage(b.config.depthAttachment.image.name).glId();
 
-		primary.fbo = defaultFbo.glId();
-		primary.colorAttachment = defaultColor;
-		primary.depthAttachment = defaultDepth;
+		primary.frameBufferId = defaultFbo.glId();
+		primary.colorTextureId = defaultColor;
+		primary.depthBufferId = defaultDepth;
 
 		solidTerrainFbo = getFramebuffer(config.drawTargets.solidTerrain.name);
 		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain.name);

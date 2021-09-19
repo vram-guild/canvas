@@ -20,11 +20,11 @@ import io.vram.frex.api.material.MaterialConstants;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.renderer.RenderType;
 
 import grondag.canvas.mixinterface.RenderLayerExt;
 
-@Mixin(RenderLayer.class)
+@Mixin(RenderType.class)
 public class MixinRenderLayer implements RenderLayerExt {
 	@Shadow
 	private boolean translucent;

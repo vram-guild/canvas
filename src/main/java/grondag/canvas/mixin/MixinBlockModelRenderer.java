@@ -17,30 +17,27 @@
 package grondag.canvas.mixin;
 
 import java.util.Random;
-
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.block.BlockModelRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockRenderView;
-
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 
-@Mixin(BlockModelRenderer.class)
+@Mixin(ModelBlockRenderer.class)
 public abstract class MixinBlockModelRenderer {
 	/**
 	 * @author grondag
 	 * @reason performance; less bad than inject and cancel at head
 	 */
 	@Overwrite
-	public boolean render(BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrix, VertexConsumer buffer, boolean checkSides, Random rand, long seed, int overlay) {
+	public boolean render(BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack matrix, VertexConsumer buffer, boolean checkSides, Random rand, long seed, int overlay) {
 		// PERF: try to avoid threadlocal lookup here
-		BlockRenderContext.get().render((BlockModelRenderer) (Object) this, blockView, model, state, pos, matrix, buffer, checkSides, seed, overlay);
+		BlockRenderContext.get().render((ModelBlockRenderer) (Object) this, blockView, model, state, pos, matrix, buffer, checkSides, seed, overlay);
 		return true;
 	}
 }

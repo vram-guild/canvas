@@ -18,23 +18,21 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.source.BiomeAccess;
-import net.minecraft.world.biome.source.BiomeAccess.Storage;
-import net.minecraft.world.biome.source.BiomeAccessType;
-
 import grondag.canvas.mixinterface.BiomeAccessExt;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.biome.BiomeManager.NoiseBiomeSource;
+import net.minecraft.world.level.biome.BiomeZoomer;
 
-@Mixin(BiomeAccess.class)
+@Mixin(BiomeManager.class)
 public class MixinBiomeAccess implements BiomeAccessExt {
 	@Shadow
 	private long seed;
 	@Shadow
-	private BiomeAccessType type;
+	private BiomeZoomer type;
 
 	@Override
-	public Biome getBiome(int x, int y, int z, Storage storage) {
+	public Biome getBiome(int x, int y, int z, NoiseBiomeSource storage) {
 		return type.getBiome(seed, x, y, z, storage);
 	}
 }

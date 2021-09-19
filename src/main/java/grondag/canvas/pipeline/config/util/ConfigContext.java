@@ -17,9 +17,7 @@
 package grondag.canvas.pipeline.config.util;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PassConfig;
@@ -43,7 +41,7 @@ public class ConfigContext {
 	// allow built-in programs
 	public final NamedDependencyMap<ProgramConfig> programs = new NamedDependencyMap<>(s -> s.equals(PassConfig.CLEAR_NAME));
 
-	public final ObjectOpenHashSet<Identifier> optionIds = new ObjectOpenHashSet<>();
+	public final ObjectOpenHashSet<ResourceLocation> optionIds = new ObjectOpenHashSet<>();
 
 	public final NamedDependencyMap<BooleanConfigEntry> booleanConfigEntries = new NamedDependencyMap<>();
 	public final NamedDependencyMap<EnumConfigEntry> enumConfigEntries = new NamedDependencyMap<>();

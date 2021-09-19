@@ -29,7 +29,11 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import com.google.common.io.CharStreams;
 import io.vram.frex.api.config.ShaderConfig;
 import org.anarres.cpp.DefaultPreprocessorListener;
@@ -43,13 +47,6 @@ import org.lwjgl.opengl.GL21;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.system.NativeType;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
@@ -62,7 +59,7 @@ public class GlShader implements Shader {
 	private static boolean isErrorNoticeComplete = false;
 	private static boolean needsClearDebugOutputWarning = true;
 	private static boolean needsDebugOutputWarning = true;
-	private final Identifier shaderSourceId;
+	private final ResourceLocation shaderSourceId;
 	protected final int shaderType;
 	protected final ProgramType programType;
 	private String source = null;
@@ -70,7 +67,7 @@ public class GlShader implements Shader {
 	private boolean needsLoad = true;
 	private boolean isErrored = false;
 
-	public GlShader(Identifier shaderSource, int shaderType, ProgramType programType) {
+	public GlShader(ResourceLocation shaderSource, int shaderType, ProgramType programType) {
 		shaderSourceId = shaderSource;
 		this.shaderType = shaderType;
 		this.programType = programType;
@@ -83,7 +80,7 @@ public class GlShader implements Shader {
 
 	@SuppressWarnings("resource")
 	private static Path shaderDebugPath() {
-		return MinecraftClient.getInstance().runDirectory.toPath().normalize().resolve("canvas_shader_debug");
+		return Minecraft.getInstance().gameDirectory.toPath().normalize().resolve("canvas_shader_debug");
 	}
 
 	private static void clearDebugSource() {
@@ -113,7 +110,7 @@ public class GlShader implements Shader {
 			}
 		} catch (final Exception e) {
 			if (needsClearDebugOutputWarning) {
-				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_clear_shader_output", path), e);
+				CanvasMod.LOG.error(I18n.get("error.canvas.fail_clear_shader_output", path), e);
 				needsClearDebugOutputWarning = false;
 			}
 		}
@@ -170,11 +167,11 @@ public class GlShader implements Shader {
 
 			if (Configurator.conciseErrors) {
 				if (!isErrorNoticeComplete) {
-					CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_any_shader"));
+					CanvasMod.LOG.error(I18n.get("error.canvas.fail_create_any_shader"));
 					isErrorNoticeComplete = true;
 				}
 			} else {
-				CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader", shaderSourceId.toString(), programType.name, error));
+				CanvasMod.LOG.error(I18n.get("error.canvas.fail_create_shader", shaderSourceId.toString(), programType.name, error));
 			}
 
 			outputDebugSource(source, error);
@@ -265,7 +262,7 @@ public class GlShader implements Shader {
 				writer.close();
 			} catch (final IOException e) {
 				if (needsDebugOutputWarning) {
-					CanvasMod.LOG.error(I18n.translate("error.canvas.fail_create_shader_output", path), e);
+					CanvasMod.LOG.error(I18n.get("error.canvas.fail_create_shader_output", path), e);
 					needsDebugOutputWarning = false;
 				}
 			}
@@ -333,7 +330,7 @@ public class GlShader implements Shader {
 	}
 
 	private String getCombinedShaderSource() {
-		final ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
+		final ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
 		INCLUDED.clear();
 		String result = loadShaderSource(resourceManager, shaderSourceId);
 		result = preprocessSource(resourceManager, result);
@@ -344,7 +341,7 @@ public class GlShader implements Shader {
 		return baseSource;
 	}
 
-	protected static String loadShaderSource(ResourceManager resourceManager, Identifier shaderSourceId) {
+	protected static String loadShaderSource(ResourceManager resourceManager, ResourceLocation shaderSourceId) {
 		String result;
 
 		try (Resource resource = resourceManager.getResource(shaderSourceId)) {
@@ -376,7 +373,7 @@ public class GlShader implements Shader {
 				source = StringUtils.replace(source, m.group(0), "");
 			} else {
 				INCLUDED.add(id);
-				final String src = processSourceIncludes(resourceManager, loadShaderSource(resourceManager, new Identifier(id)));
+				final String src = processSourceIncludes(resourceManager, loadShaderSource(resourceManager, new ResourceLocation(id)));
 				source = StringUtils.replace(source, m.group(0), src, 1);
 			}
 		}
@@ -413,7 +410,7 @@ public class GlShader implements Shader {
 	}
 
 	@Override
-	public Identifier getShaderSourceId() {
+	public ResourceLocation getShaderSourceId() {
 		return shaderSourceId;
 	}
 

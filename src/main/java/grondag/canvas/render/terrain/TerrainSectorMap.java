@@ -18,10 +18,8 @@ package grondag.canvas.render.terrain;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.varia.FixedCapacityIndexAllocator;
 
@@ -62,7 +60,7 @@ public class TerrainSectorMap {
 	private final FixedCapacityIndexAllocator allocator = new FixedCapacityIndexAllocator(MAX_SECTORS_LOADED);
 	private int originBlockX, originBlockZ;
 	private int originSectorX, originSectorZ;
-	private Vec3d cameraPos;
+	private Vec3 cameraPos;
 	private final int[] sectorOffsets = new int[UNIFORM_ARRAY_LENGTH];
 
 	public int originBlockX() {
@@ -80,7 +78,7 @@ public class TerrainSectorMap {
 		}
 	}
 
-	public Vec3d cameraPos() {
+	public Vec3 cameraPos() {
 		return cameraPos;
 	}
 
@@ -107,7 +105,7 @@ public class TerrainSectorMap {
 		}
 	}
 
-	public void setCamera(Vec3d cameraPos, BlockPos cameraBlockPos) {
+	public void setCamera(Vec3 cameraPos, BlockPos cameraBlockPos) {
 		this.cameraPos = cameraPos;
 		final int blockX = cameraBlockPos.getX();
 		final int blockZ = cameraBlockPos.getZ();

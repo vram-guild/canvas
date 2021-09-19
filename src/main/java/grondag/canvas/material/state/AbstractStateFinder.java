@@ -21,7 +21,7 @@ import io.vram.frex.api.material.RenderMaterial;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL21;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialTextureState;
@@ -49,7 +49,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T texture(@Nullable Identifier id) {
+	public T texture(@Nullable ResourceLocation id) {
 		final int val = id == null ? MaterialTextureState.NO_TEXTURE.index : MaterialTextureState.fromId(id).index;
 		bits = TEXTURE.setValue(val, bits);
 		return (T) this;
@@ -120,7 +120,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T shader(Identifier vertexSource, Identifier fragmentSource, Identifier depthVertexSouce, Identifier depthFragmentSouce) {
+	public T shader(ResourceLocation vertexSource, ResourceLocation fragmentSource, ResourceLocation depthVertexSouce, ResourceLocation depthFragmentSouce) {
 		if (vertexSource == null) {
 			vertexSource = ShaderStrings.DEFAULT_VERTEX_SOURCE;
 		}
@@ -141,7 +141,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T shader(Identifier vertexSource, Identifier fragmentSource) {
+	public T shader(ResourceLocation vertexSource, ResourceLocation fragmentSource) {
 		return shader(vertexSource, fragmentSource, ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE);
 	}
 

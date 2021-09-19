@@ -19,11 +19,9 @@ package grondag.canvas.buffer.util;
 import java.nio.IntBuffer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.client.render.VertexFormat.DrawMode;
-
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.render.StreamBuffer;
@@ -85,10 +83,10 @@ public class DrawableStream implements AutoCloseable {
 				if (state.castShadows || !isShadow) {
 					state.enable();
 					final int elementCount = vertexCount / 4 * 6;
-					final RenderSystem.IndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(DrawMode.QUADS, elementCount);
-					GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.getId());
-					final int elementType = indexBuffer.getElementFormat().count; // "count" appears to be a yarn defect
-					GFX.drawElementsBaseVertex(DrawMode.QUADS.mode, elementCount, elementType, 0L, startIndex);
+					final RenderSystem.AutoStorageIndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(Mode.QUADS, elementCount);
+					GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name());
+					final int elementType = indexBuffer.type().asGLType; // "count" appears to be a yarn defect
+					GFX.drawElementsBaseVertex(Mode.QUADS.asGLMode, elementCount, elementType, 0L, startIndex);
 				}
 
 				startIndex += vertexCount;

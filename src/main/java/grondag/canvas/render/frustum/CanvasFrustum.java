@@ -16,10 +16,11 @@
 
 package grondag.canvas.render.frustum;
 
-import net.minecraft.client.render.Frustum;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
+import com.mojang.math.Matrix4f;
+
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.AABB;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -63,7 +64,7 @@ public abstract class CanvasFrustum extends Frustum {
 
 	protected static Matrix4f dummyMatrix() {
 		final Matrix4f dummy = new Matrix4f();
-		dummy.loadIdentity();
+		dummy.setIdentity();
 		return dummy;
 	}
 
@@ -76,11 +77,11 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	@Override
-	public final boolean isVisible(Box box) {
-		return isVisible(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+	public final boolean isVisible(AABB box) {
+		return cubeInFrustum(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
 	}
 
-	public boolean isVisible(double x0, double y0, double z0, double x1, double y1, double z1) {
+	public boolean cubeInFrustum(double x0, double y0, double z0, double x1, double y1, double z1) {
 		final double hdx = 0.5 * (x1 - x0);
 		final double hdy = 0.5 * (y1 - y0);
 		final double hdz = 0.5 * (z1 - z0);
@@ -131,7 +132,7 @@ public abstract class CanvasFrustum extends Frustum {
 		float y = a31 + a01;
 		float z = a32 + a02;
 		float w = a33 + a03;
-		float mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
+		float mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;
@@ -152,7 +153,7 @@ public abstract class CanvasFrustum extends Frustum {
 		y = a31 - a01;
 		z = a32 - a02;
 		w = a33 - a03;
-		mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
+		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;
@@ -173,7 +174,7 @@ public abstract class CanvasFrustum extends Frustum {
 		y = a31 - a11;
 		z = a32 - a12;
 		w = a33 - a13;
-		mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
+		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;
@@ -194,7 +195,7 @@ public abstract class CanvasFrustum extends Frustum {
 		y = a31 + a11;
 		z = a32 + a12;
 		w = a33 + a13;
-		mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
+		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;
@@ -215,7 +216,7 @@ public abstract class CanvasFrustum extends Frustum {
 		y = a31 + matrix.a21();
 		z = a32 + matrix.a22();
 		w = a33 + matrix.a23();
-		mag = -MathHelper.fastInverseSqrt(x * x + y * y + z * z);
+		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;

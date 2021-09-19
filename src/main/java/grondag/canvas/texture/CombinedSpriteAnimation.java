@@ -16,11 +16,11 @@
 
 package grondag.canvas.texture;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import org.lwjgl.system.MemoryUtil;
 
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.util.Mth;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -33,9 +33,9 @@ public final class CombinedSpriteAnimation implements AutoCloseable {
 	public final int width, height, size;
 	private int x0, y0, x1, y1;
 
-	public CombinedSpriteAnimation(SpriteAtlasTexture owner, int x0, int y0, int x1, int y1, int lodCount) {
-		width = MathHelper.smallestEncompassingPowerOfTwo(x1- x0);
-		height = MathHelper.smallestEncompassingPowerOfTwo(y1- y0);
+	public CombinedSpriteAnimation(TextureAtlas owner, int x0, int y0, int x1, int y1, int lodCount) {
+		width = Mth.smallestEncompassingPowerOfTwo(x1- x0);
+		height = Mth.smallestEncompassingPowerOfTwo(y1- y0);
 		size = lodCount + 1;
 		images = new NativeImage[size];
 

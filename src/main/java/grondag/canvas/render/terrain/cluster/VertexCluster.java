@@ -73,7 +73,7 @@ public class VertexCluster implements ClusterTask {
 			if (!allocatedRegions.isEmpty()) {
 				itMe = true;
 
-				for (RegionAllocation alloc : allocatedRegions.values()) {
+				for (final RegionAllocation alloc : allocatedRegions.values()) {
 					alloc.closeRegion();
 				}
 
@@ -81,7 +81,7 @@ public class VertexCluster implements ClusterTask {
 				itMe = false;
 			}
 
-			for (var slab : slabs) {
+			for (final var slab : slabs) {
 				slab.release();
 			}
 
@@ -156,7 +156,7 @@ public class VertexCluster implements ClusterTask {
 			final var oldAllocation = region.getAllocation();
 
 			if (oldAllocation.slab != hungrySlab) {
-				var newAllocation = hungrySlab.transferFromSlabAllocation(region.factory, oldAllocation);
+				final var newAllocation = hungrySlab.transferFromSlabAllocation(region.factory, oldAllocation);
 				region.setAllocation(newAllocation);
 				oldAllocation.release();
 			}
@@ -166,7 +166,7 @@ public class VertexCluster implements ClusterTask {
 		assert slabs.get(0) == hungrySlab;
 
 		if (!holdingLists.isEmpty()) {
-			for (var list : holdingLists) {
+			for (final var list : holdingLists) {
 				list.invalidate();
 			}
 		}

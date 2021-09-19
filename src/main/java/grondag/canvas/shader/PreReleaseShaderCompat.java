@@ -24,14 +24,14 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
 
 public class PreReleaseShaderCompat {
 	private static final ObjectArrayList<Pair<String, String>> COMPAT = new ObjectArrayList<>();
-	private static final ObjectOpenHashSet<Identifier> WARNED = new ObjectOpenHashSet<>();
-	private static final ObjectOpenHashSet<Identifier> EXCLUSIONS = new ObjectOpenHashSet<>();
+	private static final ObjectOpenHashSet<ResourceLocation> WARNED = new ObjectOpenHashSet<>();
+	private static final ObjectOpenHashSet<ResourceLocation> EXCLUSIONS = new ObjectOpenHashSet<>();
 	private static boolean needsFragmentShaderStubs = false;
 
 	static {
@@ -165,13 +165,13 @@ public class PreReleaseShaderCompat {
 		// bitwise.glsl
 		COMPAT.add(Pair.of("frx_bitValue", "frx_bitValue"));
 
-		EXCLUSIONS.add(new Identifier("frex:shaders/api/player.glsl"));
-		EXCLUSIONS.add(new Identifier("frex:shaders/api/view.glsl"));
-		EXCLUSIONS.add(new Identifier("frex:shaders/api/world.glsl"));
-		EXCLUSIONS.add(new Identifier("frex:shaders/lib/bitwise.glsl"));
+		EXCLUSIONS.add(new ResourceLocation("frex:shaders/api/player.glsl"));
+		EXCLUSIONS.add(new ResourceLocation("frex:shaders/api/view.glsl"));
+		EXCLUSIONS.add(new ResourceLocation("frex:shaders/api/world.glsl"));
+		EXCLUSIONS.add(new ResourceLocation("frex:shaders/lib/bitwise.glsl"));
 	}
 
-	public static String compatify(String source, Identifier logPath) {
+	public static String compatify(String source, ResourceLocation logPath) {
 		// Don't update the API implemention files
 		if (EXCLUSIONS.contains(logPath)) {
 			return source;
@@ -203,7 +203,7 @@ public class PreReleaseShaderCompat {
 
 	private static final Pattern MATERIAL_VERTEX_PATTERN = Pattern.compile("frx_startVertex\\s*\\(.*frx_VertexData\\s+(.+)\\s*\\)");
 
-	public static String compatifyMaterialVertex(String source, Identifier logPath) {
+	public static String compatifyMaterialVertex(String source, ResourceLocation logPath) {
 		final Matcher mStart = MATERIAL_VERTEX_PATTERN.matcher(source);
 
 		if (mStart.find()) {
@@ -220,7 +220,7 @@ public class PreReleaseShaderCompat {
 
 	private static final Pattern PIPELINE_VERTEX_PATTERN = Pattern.compile("frx_writePipelineVertex\\s*\\(.*frx_VertexData\\s+(.+)\\s*\\)");
 
-	public static String compatifyPipelineVertex(String source, Identifier logPath) {
+	public static String compatifyPipelineVertex(String source, ResourceLocation logPath) {
 		final Matcher m = PIPELINE_VERTEX_PATTERN.matcher(source);
 
 		if (m.find()) {
@@ -247,7 +247,7 @@ public class PreReleaseShaderCompat {
 
 	private static final Pattern FRAGMENT_PATTERN = Pattern.compile("\\s+([a-zA-Z_]+)\\s*\\(.*frx_FragmentData\\s+(.+)\\s*\\)");
 
-	private static String compatifyFragment(String source, Identifier logPath) {
+	private static String compatifyFragment(String source, ResourceLocation logPath) {
 		final Matcher m = FRAGMENT_PATTERN.matcher(source);
 		boolean warn = false;
 

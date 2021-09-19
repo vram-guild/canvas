@@ -16,15 +16,15 @@
 
 package grondag.canvas.varia;
 
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.Vec3f;
+import com.mojang.math.Vector3f;
+import net.minecraft.client.multiplayer.ClientLevel;
 
 @FunctionalInterface
 public interface CelestialObjectFunction {
 	void compute(CelestialObjectInput input, CelestialObjectOutput output);
 
 	CelestialObjectFunction VANILLA_SUN = (input, output) -> {
-		final float angle = input.world().getSkyAngle(input.tickDelta());
+		final float angle = input.world().getTimeOfDay(input.tickDelta());
 		output.hourAngle = angle * 360.0F;
 
 		// FIX: This results in an abrupt transition around 740 time when the function returns null
@@ -33,7 +33,7 @@ public interface CelestialObjectFunction {
 		// TODO: The color in the overworld is ugly.  Need to provide a way to override it
 		// in celestial object JSON loading.
 
-		final float[] fs = input.world().getSkyProperties().getFogColorOverride(angle, input.tickDelta());
+		final float[] fs = input.world().effects().getSunriseColor(angle, input.tickDelta());
 
 		if (fs == null) {
 			output.atmosphericColorModifier.set(1, 1, 1);
@@ -46,7 +46,7 @@ public interface CelestialObjectFunction {
 	};
 
 	CelestialObjectFunction VANILLA_MOON = (input, output) -> {
-		final float angle = input.world().getSkyAngle(input.tickDelta());
+		final float angle = input.world().getTimeOfDay(input.tickDelta());
 		output.hourAngle = angle * 360.0F + 180F;
 
 		output.atmosphericColorModifier.set(1, 1, 1);
@@ -70,7 +70,7 @@ public interface CelestialObjectFunction {
 	// midnight: b37676
 
 	public interface CelestialObjectInput {
-		ClientWorld world();
+		ClientLevel world();
 		float tickDelta();
 		double cameraX();
 		double cameraY();
@@ -81,9 +81,9 @@ public interface CelestialObjectFunction {
 		public float zenithAngle = 0;
 		public float hourAngle = 0;
 
-		public final Vec3f lightColor = new Vec3f();
+		public final Vector3f lightColor = new Vector3f();
 
-		public final Vec3f atmosphericColorModifier = new Vec3f();
+		public final Vector3f atmosphericColorModifier = new Vector3f();
 
 		public float illuminance;
 	}

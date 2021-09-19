@@ -16,10 +16,11 @@
 
 package grondag.canvas.texture;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.platform.NativeImage;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -28,10 +29,10 @@ import grondag.canvas.config.Configurator;
 @SuppressWarnings("unused")
 class DitherTexture implements AutoCloseable {
 	private static DitherTexture instance;
-	private final NativeImageBackedTexture texture;
+	private final DynamicTexture texture;
 	private final NativeImage image;
-	private final Identifier textureIdentifier;
-	private final MinecraftClient client;
+	private final ResourceLocation textureIdentifier;
+	private final Minecraft client;
 	private boolean needsInitialized = true;
 
 	private DitherTexture() {
@@ -39,10 +40,10 @@ class DitherTexture implements AutoCloseable {
 			CanvasMod.LOG.info("Lifecycle Event: DitherTexture init");
 		}
 
-		client = MinecraftClient.getInstance();
-		texture = new NativeImageBackedTexture(8, 8, false);
-		textureIdentifier = client.getTextureManager().registerDynamicTexture("dither", texture);
-		image = texture.getImage();
+		client = Minecraft.getInstance();
+		texture = new DynamicTexture(8, 8, false);
+		textureIdentifier = client.getTextureManager().register("dither", texture);
+		image = texture.getPixels();
 	}
 
 	private static DitherTexture instance() {
@@ -102,7 +103,7 @@ class DitherTexture implements AutoCloseable {
 
 			for (int u = 0; u < 8; u++) {
 				for (int v = 0; v < 8; v++) {
-					image.setPixelColor(u, v, pattern[v * 8 + u]);
+					image.setPixelRGBA(u, v, pattern[v * 8 + u]);
 				}
 			}
 

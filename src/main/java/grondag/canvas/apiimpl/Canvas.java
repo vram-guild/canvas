@@ -17,18 +17,15 @@
 package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.ResourceLocation;
 import io.vram.frex.api.material.MaterialCondition;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.MeshBuilder;
 import io.vram.frex.api.renderer.Renderer;
 import io.vram.frex.api.renderer.RendererConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
@@ -62,8 +59,8 @@ public class Canvas implements Renderer {
 		RendererConsumer.accept(instance);
 	}
 
-	private final Object2ObjectOpenHashMap<Identifier, RenderMaterialImpl> materialMap = new Object2ObjectOpenHashMap<>();
-	private final Object2ObjectOpenHashMap<Identifier, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<ResourceLocation, RenderMaterialImpl> materialMap = new Object2ObjectOpenHashMap<>();
+	private final Object2ObjectOpenHashMap<ResourceLocation, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
 	private Canvas() { }
 
@@ -78,12 +75,12 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public RenderMaterialImpl materialById(Identifier id) {
+	public RenderMaterialImpl materialById(ResourceLocation id) {
 		return materialMap.get(id);
 	}
 
 	@Override
-	public boolean registerMaterial(Identifier id, RenderMaterial material) {
+	public boolean registerMaterial(ResourceLocation id, RenderMaterial material) {
 		if (materialMap.containsKey(id)) {
 			return false;
 		}
@@ -94,13 +91,13 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public boolean registerOrUpdateMaterial(Identifier id, RenderMaterial material) {
+	public boolean registerOrUpdateMaterial(ResourceLocation id, RenderMaterial material) {
 		// cast to prevent acceptance of impostor implementations
 		return materialMap.put(id, (RenderMaterialImpl) material) == null;
 	}
 
 	public void reload() {
-		CanvasMod.LOG.info(I18n.translate("info.canvas.reloading"));
+		CanvasMod.LOG.info(I18n.get("info.canvas.reloading"));
 		PackedInputRegion.reload();
 		BlockRenderContext.reload();
 		EntityBlockRenderContext.reload();
@@ -113,7 +110,7 @@ public class Canvas implements Renderer {
 	}
 
 	public void recompile() {
-		PipelineLoader.INSTANCE.reload(MinecraftClient.getInstance().getResourceManager());
+		PipelineLoader.INSTANCE.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
 		Pipeline.reload();
 		PreReleaseShaderCompat.reload();
 		GlShader.forceReloadErrors();
@@ -133,12 +130,12 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public MaterialCondition conditionById(Identifier id) {
+	public MaterialCondition conditionById(ResourceLocation id) {
 		return conditionMap.get(id);
 	}
 
 	@Override
-	public boolean registerCondition(Identifier id, MaterialCondition condition) {
+	public boolean registerCondition(ResourceLocation id, MaterialCondition condition) {
 		if (conditionMap.containsKey(id)) {
 			return false;
 		}

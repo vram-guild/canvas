@@ -17,13 +17,10 @@
 package grondag.canvas.mixinterface;
 
 import java.nio.FloatBuffer;
-
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3f;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import grondag.bitraster.Matrix4L;
 
 @Environment(EnvType.CLIENT)
@@ -97,7 +94,7 @@ public interface Matrix4fExt {
 	}
 
 	default void loadIdentity() {
-		((Matrix4f) (Object) this).loadIdentity();
+		((Matrix4f) (Object) this).setIdentity();
 	}
 
 	default void set(Matrix4fExt val) {
@@ -152,10 +149,10 @@ public interface Matrix4fExt {
 		return matches((Matrix4fExt) (Object) val);
 	}
 
-	default void fastTransform(Vec3f vec) {
-		final float x = vec.getX();
-		final float y = vec.getY();
-		final float z = vec.getZ();
+	default void fastTransform(Vector3f vec) {
+		final float x = vec.x();
+		final float y = vec.y();
+		final float z = vec.z();
 
 		vec.set(
 			a00() * x + a01() * y + a02() * z + a03(),

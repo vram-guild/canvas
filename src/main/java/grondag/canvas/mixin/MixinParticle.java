@@ -19,8 +19,7 @@ package grondag.canvas.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.client.particle.Particle;
-import net.minecraft.particle.ParticleType;
-
+import net.minecraft.core.particles.ParticleType;
 import grondag.canvas.mixinterface.ParticleExt;
 
 @Mixin(Particle.class)

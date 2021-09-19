@@ -16,10 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
+import com.mojang.math.Matrix3f;
 import java.nio.FloatBuffer;
-
-import net.minecraft.util.math.Matrix3f;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 

@@ -19,16 +19,13 @@ package grondag.canvas.shader;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.function.Consumer;
-
+import net.minecraft.client.resources.language.I18n;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
-
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
-
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.config.Configurator;
@@ -262,7 +259,7 @@ public class GlProgram {
 				GFX.deleteProgram(progID);
 			}
 
-			CanvasMod.LOG.error(I18n.translate("error.canvas.program_link_failure"), e);
+			CanvasMod.LOG.error(I18n.get("error.canvas.program_link_failure"), e);
 			progID = -1;
 		}
 
@@ -376,7 +373,7 @@ public class GlProgram {
 
 			if (this.unifID == -1) {
 				if (Configurator.logMissingUniforms) {
-					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
+					CanvasMod.LOG.info(I18n.get("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
 				}
 
 				this.flags = 0;
@@ -403,7 +400,7 @@ public class GlProgram {
 				uploadInner();
 
 				if (!GFX.checkError()) {
-					CanvasMod.LOG.info(I18n.translate("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
+					CanvasMod.LOG.info(I18n.get("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
 					unifID = -1;
 				}
 			}

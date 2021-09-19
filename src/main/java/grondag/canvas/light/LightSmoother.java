@@ -16,9 +16,9 @@
 
 package grondag.canvas.light;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.state.BlockState;
 
 import grondag.canvas.terrain.region.input.InputRegion;
 
@@ -40,7 +40,7 @@ public class LightSmoother {
 
 	public static void computeSmoothedBrightness(InputRegion region) {
 		final Helper help = helpers.get();
-		final BlockPos.Mutable smoothPos = help.smoothPos;
+		final BlockPos.MutableBlockPos smoothPos = help.smoothPos;
 		final int[] sky = help.a;
 		final int[] block = help.b;
 
@@ -60,7 +60,7 @@ public class LightSmoother {
 					// don't use cache here because we are populating the cache
 					final int packedLight = region.directBrightness(smoothPos);
 
-					final boolean opaque = state.isOpaqueFullCube(region, smoothPos);
+					final boolean opaque = state.isSolidRender(region, smoothPos);
 
 					final int i = index(x, y, z);
 
@@ -99,8 +99,8 @@ public class LightSmoother {
 			for (int y = MARGIN - 1; y < limit; y++) {
 				for (int z = MARGIN - 1; z < limit; z++) {
 					final int i = index(x, y, z);
-					final int b = MathHelper.clamp(((block[i]) * 104 + 51) / 100, 0, 240);
-					final int k = MathHelper.clamp(((sky[i]) * 104 + 51) / 100, 0, 240);
+					final int b = Mth.clamp(((block[i]) * 104 + 51) / 100, 0, 240);
+					final int k = Mth.clamp(((sky[i]) * 104 + 51) / 100, 0, 240);
 					region.setLightCache(x + minX, y + minY, z + minZ, ((b + 2) & 0b11111100) | (((k + 2) & 0b11111100) << 16));
 				}
 			}
@@ -223,7 +223,7 @@ public class LightSmoother {
 	}
 
 	private static class Helper {
-		private final BlockPos.Mutable smoothPos = new BlockPos.Mutable();
+		private final BlockPos.MutableBlockPos smoothPos = new BlockPos.MutableBlockPos();
 		private final int[] a = new int[POS_COUNT];
 		private final int[] b = new int[POS_COUNT];
 		private final int[] c = new int[POS_COUNT];

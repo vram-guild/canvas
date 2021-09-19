@@ -21,10 +21,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.VertexFormat;
-
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import grondag.canvas.varia.GFX;
 
 /**
@@ -32,7 +30,7 @@ import grondag.canvas.varia.GFX;
  * and implements bind state caching.
  * We change state elsewhere so we save and restore this as needed.
  */
-@Mixin(BufferRenderer.class)
+@Mixin(BufferUploader.class)
 public class MixinBufferRenderer {
 	@Shadow private static int currentVertexArray;
 	@Shadow private static int currentVertexBuffer;

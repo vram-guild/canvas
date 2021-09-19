@@ -23,12 +23,9 @@ import static grondag.bitraster.Constants.SOUTH;
 import static grondag.bitraster.Constants.UP;
 import static grondag.bitraster.Constants.WEST;
 
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
-import net.minecraft.util.math.Vector4f;
-
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 import grondag.bitraster.OrthoRasterizer;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -36,6 +33,8 @@ import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 public class ShadowOccluder extends AbstractOccluder {
 	private final Matrix4f shadowViewMatrix = new Matrix4f();
@@ -47,7 +46,7 @@ public class ShadowOccluder extends AbstractOccluder {
 	private float maxRegionExtent;
 	private float r0, x0, y0, z0, r1, x1, y1, z1, r2, x2, y2, z2, r3, x3, y3, z3;
 	private int lastViewVersion;
-	private Vec3d lastCameraPos;
+	private Vec3 lastCameraPos;
 	private grondag.bitraster.BoxOccluder.BoxTest clearTest;
 	private grondag.bitraster.BoxOccluder.BoxTest occludedTest;
 	private grondag.bitraster.BoxOccluder.BoxDraw draw;
@@ -109,9 +108,9 @@ public class ShadowOccluder extends AbstractOccluder {
 		lightSpaceRegionCenter.set(regionPosition.cameraRelativeCenterX(), regionPosition.cameraRelativeCenterY(), regionPosition.cameraRelativeCenterZ(), 1.0f);
 		lightSpaceRegionCenter.transform(ShadowMatrixData.shadowViewMatrix);
 
-		final float centerX = lightSpaceRegionCenter.getX();
-		final float centerY = lightSpaceRegionCenter.getY();
-		final float centerZ = lightSpaceRegionCenter.getZ();
+		final float centerX = lightSpaceRegionCenter.x();
+		final float centerY = lightSpaceRegionCenter.y();
+		final float centerZ = lightSpaceRegionCenter.z();
 		final float extent = maxRegionExtent;
 
 		// <= extent = at least partially in
@@ -207,19 +206,19 @@ public class ShadowOccluder extends AbstractOccluder {
 		draw.apply(x0, y0, z0, x1, y1, z1);
 	}
 
-	public void setLightVector(Vec3f skylightVector) {
+	public void setLightVector(Vector3f skylightVector) {
 		int outcome = 0;
 
-		if (!MathHelper.approximatelyEquals(skylightVector.getX(), 0)) {
-			outcome |= skylightVector.getX() > 0 ? EAST : WEST;
+		if (!Mth.equal(skylightVector.x(), 0)) {
+			outcome |= skylightVector.x() > 0 ? EAST : WEST;
 		}
 
-		if (!MathHelper.approximatelyEquals(skylightVector.getZ(), 0)) {
-			outcome |= skylightVector.getZ() > 0 ? SOUTH : NORTH;
+		if (!Mth.equal(skylightVector.z(), 0)) {
+			outcome |= skylightVector.z() > 0 ? SOUTH : NORTH;
 		}
 
-		if (!MathHelper.approximatelyEquals(skylightVector.getY(), 0)) {
-			outcome |= skylightVector.getY() > 0 ? UP : DOWN;
+		if (!Mth.equal(skylightVector.y(), 0)) {
+			outcome |= skylightVector.y() > 0 ? UP : DOWN;
 		}
 
 		clearTest = partiallyClearTests[outcome];

@@ -21,13 +21,13 @@ import java.util.Map;
 import java.util.Queue;
 
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleTextureSheet;
-import net.minecraft.client.texture.TextureManager;
+import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.renderer.texture.TextureManager;
 
 public interface ParticleManagerExt {
-	List<ParticleTextureSheet> canvas_textureSheets();
+	List<ParticleRenderType> canvas_textureSheets();
 
-	Map<ParticleTextureSheet, Queue<Particle>> canvas_particles();
+	Map<ParticleRenderType, Queue<Particle>> canvas_particles();
 
 	TextureManager canvas_textureManager();
 }

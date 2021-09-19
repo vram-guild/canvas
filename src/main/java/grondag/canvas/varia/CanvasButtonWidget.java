@@ -16,17 +16,16 @@
 
 package grondag.canvas.varia;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
-
 import grondag.canvas.config.ConfigGui;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
-public class CanvasButtonWidget extends ButtonWidget {
+public class CanvasButtonWidget extends Button {
 	public static Screen parent;
 
-	public CanvasButtonWidget(int x, int y, int width, int height, Text text) {
-		super(x, y, width, height, text, button -> MinecraftClient.getInstance().setScreen(ConfigGui.display(parent)));
+	public CanvasButtonWidget(int x, int y, int width, int height, Component text) {
+		super(x, y, width, height, text, button -> Minecraft.getInstance().setScreen(ConfigGui.display(parent)));
 	}
 }

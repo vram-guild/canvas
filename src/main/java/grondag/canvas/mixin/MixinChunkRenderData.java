@@ -21,11 +21,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.render.chunk.ChunkBuilder.ChunkData;
+import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher.CompiledChunk;
 
 import grondag.canvas.CanvasMod;
 
-@Mixin(ChunkData.class)
+@Mixin(CompiledChunk.class)
 public class MixinChunkRenderData {
 	private static boolean shouldWarn = true;
 

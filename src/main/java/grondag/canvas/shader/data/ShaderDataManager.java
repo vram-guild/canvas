@@ -124,29 +124,27 @@ import static grondag.canvas.shader.data.IntData.UINT_DATA;
 import static grondag.canvas.shader.data.IntData.WORLD_DATA_INDEX;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack.Pose;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import io.vram.frex.api.light.HeldItemLightListener;
 import io.vram.frex.api.light.ItemLight;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack.Entry;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tag.FluidTags;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
-import net.minecraft.world.LightType;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.light.LightingProvider;
-
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.Vec3;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
@@ -165,23 +163,23 @@ public class ShaderDataManager {
 	static double smoothedRainStrength = 0;
 
 	/** Camera view vector in world space - normalized. */
-	public static final Vec3f cameraVector = new Vec3f();
+	public static final Vector3f cameraVector = new Vector3f();
 
 	/** Points towards the light - normalized. */
-	public static final Vec3f skyLightVector = new Vec3f();
+	public static final Vector3f skyLightVector = new Vector3f();
 
 	public static float cameraX, cameraY, cameraZ = 0f;
 
 	// keep extra precision for terrain
 	public static double cameraXd, cameraYd, cameraZd = 0;
 	private static float tickDelta;
-	private static ClientWorld world;
+	private static ClientLevel world;
 
 	private static final CelestialObjectOutput skyOutput = new CelestialObjectOutput();
 
 	private static final CelestialObjectInput skyInput = new CelestialObjectInput() {
 		@Override
-		public ClientWorld world() {
+		public ClientLevel world() {
 			return world;
 		}
 
@@ -218,25 +216,25 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(VEC_VANILLA_CLEAR_COLOR + 2, b);
 	}
 
-	private static void computeEyeNumbers(ClientWorld world, ClientPlayerEntity player) {
+	private static void computeEyeNumbers(ClientLevel world, LocalPlayer player) {
 		float sky = 15, block = 15;
 
 		FLOAT_VECTOR_DATA.put(EYE_POSITION, (float) player.getX());
 		FLOAT_VECTOR_DATA.put(EYE_POSITION + 1, (float) player.getY());
 		FLOAT_VECTOR_DATA.put(EYE_POSITION + 2, (float) player.getZ());
 
-		final int eyeX = MathHelper.floor(player.getX());
-		final int eyeZ = MathHelper.floor(player.getZ());
+		final int eyeX = Mth.floor(player.getX());
+		final int eyeZ = Mth.floor(player.getZ());
 
 		if (eyeX >= -30000000 && eyeZ >= -30000000 && eyeX < 30000000 && eyeZ < 30000000) {
-			if (world.isChunkLoaded(eyeX >> 4, eyeZ >> 4)) {
-				final BlockPos eyePos = new BlockPos(eyeX, MathHelper.floor(player.getEyeY()), eyeZ);
-				final LightingProvider lighter = world.getLightingProvider();
+			if (world.hasChunk(eyeX >> 4, eyeZ >> 4)) {
+				final BlockPos eyePos = new BlockPos(eyeX, Mth.floor(player.getEyeY()), eyeZ);
+				final LevelLightEngine lighter = world.getLightEngine();
 				computeEyeFlags(world, player, eyePos);
 
 				if (lighter != null) {
-					block = lighter.get(LightType.BLOCK).getLightLevel(eyePos);
-					sky = Math.max(0, lighter.get(LightType.SKY).getLightLevel(eyePos) - world.getAmbientDarkness());
+					block = lighter.getLayerListener(LightLayer.BLOCK).getLightValue(eyePos);
+					sky = Math.max(0, lighter.getLayerListener(LightLayer.SKY).getLightValue(eyePos) - world.getSkyDarken());
 				}
 			} else {
 				worldFlags = FLAG_EYE_IN_FLUID.setValue(false, worldFlags);
@@ -266,7 +264,7 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(SMOOTHED_EYE_LIGHT_SKY, (float) smoothedEyeLightSky);
 	}
 
-	private static void computeEyeFlags(ClientWorld world, ClientPlayerEntity player, BlockPos eyePos) {
+	private static void computeEyeFlags(ClientLevel world, LocalPlayer player, BlockPos eyePos) {
 		final FluidState fluidState = world.getFluidState(eyePos);
 
 		if (!fluidState.isEmpty()) {
@@ -275,30 +273,30 @@ public class ShaderDataManager {
 			if (fluidHeight >= player.getEyeY()) {
 				worldFlags = FLAG_EYE_IN_FLUID.setValue(true, worldFlags);
 
-				if (fluidState.getFluid().isIn(FluidTags.WATER)) {
+				if (fluidState.getType().is(FluidTags.WATER)) {
 					worldFlags = FLAG_EYE_IN_WATER.setValue(true, worldFlags);
-				} else if (fluidState.getFluid().isIn(FluidTags.LAVA)) {
+				} else if (fluidState.getType().is(FluidTags.LAVA)) {
 					worldFlags = FLAG_EYE_IN_LAVA.setValue(true, worldFlags);
 				}
 			}
 		}
 	}
 
-	private static void computeCameraFlags(ClientWorld world, Camera camera) {
-		final BlockPos cameraBlockPos = camera.getBlockPos();
+	private static void computeCameraFlags(ClientLevel world, Camera camera) {
+		final BlockPos cameraBlockPos = camera.getBlockPosition();
 
-		if (world.isInBuildLimit(cameraBlockPos) && world.isChunkLoaded(cameraBlockPos)) {
+		if (world.isInWorldBounds(cameraBlockPos) && world.hasChunkAt(cameraBlockPos)) {
 			final FluidState fluidState = world.getFluidState(cameraBlockPos);
 
 			if (!fluidState.isEmpty()) {
 				final double fluidHeight = cameraBlockPos.getY() + fluidState.getHeight(world, cameraBlockPos);
 
-				if (fluidHeight >= camera.getPos().getY()) {
+				if (fluidHeight >= camera.getPosition().y()) {
 					worldFlags = FLAG_CAMERA_IN_FLUID.setValue(true, worldFlags);
 
-					if (fluidState.getFluid().isIn(FluidTags.WATER)) {
+					if (fluidState.getType().is(FluidTags.WATER)) {
 						worldFlags = FLAG_CAMERA_IN_WATER.setValue(true, worldFlags);
-					} else if (fluidState.getFluid().isIn(FluidTags.LAVA)) {
+					} else if (fluidState.getType().is(FluidTags.LAVA)) {
 						worldFlags = FLAG_CAMERA_IN_LAVA.setValue(true, worldFlags);
 					}
 				}
@@ -310,10 +308,10 @@ public class ShaderDataManager {
 		}
 	}
 
-	private static void updateRain(ClientWorld world, float tickDelta) {
-		final float rain = world.getRainGradient(tickDelta);
+	private static void updateRain(ClientLevel world, float tickDelta) {
+		final float rain = world.getRainLevel(tickDelta);
 		FLOAT_VECTOR_DATA.put(RAIN_STRENGTH, rain);
-		FLOAT_VECTOR_DATA.put(THUNDER_STRENGTH, world.getThunderGradient(tickDelta));
+		FLOAT_VECTOR_DATA.put(THUNDER_STRENGTH, world.getThunderLevel(tickDelta));
 
 		// Simple exponential smoothing
 		final double a = 1.0 - Math.pow(Math.E, -1.0 / Pipeline.config().rainSmoothingFrames);
@@ -372,26 +370,26 @@ public class ShaderDataManager {
 	 * @param projectionMatrix
 	 * @param entry
 	 */
-	public static void update(Entry entry, Matrix4f projectionMatrix, Camera camera) {
-		final MinecraftClient client = MinecraftClient.getInstance();
-		final Entity cameraEntity = camera.getFocusedEntity();
-		final float tickDelta = client.getTickDelta();
+	public static void update(Pose entry, Matrix4f projectionMatrix, Camera camera) {
+		final Minecraft client = Minecraft.getInstance();
+		final Entity cameraEntity = camera.getEntity();
+		final float tickDelta = client.getFrameTime();
 		assert cameraEntity != null;
-		assert cameraEntity.getEntityWorld() != null;
+		assert cameraEntity.getCommandSenderWorld() != null;
 		worldFlags = 0;
 		playerFlags = 0;
 
-		if (cameraEntity == null || cameraEntity.getEntityWorld() == null) {
+		if (cameraEntity == null || cameraEntity.getCommandSenderWorld() == null) {
 			return;
 		}
 
 		FLOAT_VECTOR_DATA.put(RENDER_SECONDS, (System.currentTimeMillis() - baseRenderTime) / 1000f);
-		FLOAT_VECTOR_DATA.put(VIEW_DISTANCE, client.options.viewDistance * 16);
+		FLOAT_VECTOR_DATA.put(VIEW_DISTANCE, client.options.renderDistance * 16);
 
 		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS, cameraX);
 		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS + 1, cameraY);
 		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS + 2, cameraZ);
-		final Vec3d cameraPos = camera.getPos();
+		final Vec3 cameraPos = camera.getPosition();
 		cameraXd = cameraPos.x;
 		cameraX = (float) cameraXd;
 
@@ -405,8 +403,8 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(VEC_CAMERA_POS + 1, cameraY);
 		FLOAT_VECTOR_DATA.put(VEC_CAMERA_POS + 2, cameraZ);
 
-		putViewVector(VEC_CAMERA_VIEW, camera.getYaw(), camera.getPitch(), cameraVector);
-		putViewVector(VEC_ENTITY_VIEW, cameraEntity.getYaw(), cameraEntity.getPitch(), null);
+		putViewVector(VEC_CAMERA_VIEW, camera.getYRot(), camera.getXRot(), cameraVector);
+		putViewVector(VEC_ENTITY_VIEW, cameraEntity.getYRot(), cameraEntity.getXRot(), null);
 
 		MatrixData.update(entry, projectionMatrix, camera, tickDelta);
 
@@ -415,16 +413,16 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
 		FLOAT_VECTOR_DATA.put(VIEW_BRIGHTNESS, (float) client.options.gamma);
 
-		final ClientWorld world = client.world;
+		final ClientLevel world = client.level;
 
 		if (world != null) {
-			final long days = world.getTimeOfDay() / 24000L;
+			final long days = world.getDayTime() / 24000L;
 			FLOAT_VECTOR_DATA.put(WORLD_DAYS, (int) (days % 2147483647L));
-			final long tickTime = world.getTimeOfDay() - days * 24000L;
-			final boolean skyLight = world.getDimension().hasSkyLight();
+			final long tickTime = world.getDayTime() - days * 24000L;
+			final boolean skyLight = world.dimensionType().hasSkyLight();
 			FLOAT_VECTOR_DATA.put(WORLD_TIME, (float) (tickTime / 24000.0));
-			final ClientPlayerEntity player = client.player;
-			FLOAT_VECTOR_DATA.put(PLAYER_MOOD, player.getMoodPercentage());
+			final LocalPlayer player = client.player;
+			FLOAT_VECTOR_DATA.put(PLAYER_MOOD, player.getCurrentMood());
 			computeEyeNumbers(world, player);
 			computeCameraFlags(world, camera);
 
@@ -437,7 +435,7 @@ public class ShaderDataManager {
 			if (skyLight) {
 				final boolean moonLight = computeSkylightFactor(tickTime);
 
-				final float skyAngle = world.getSkyAngleRadians(tickDelta);
+				final float skyAngle = world.getSunAngle(tickDelta);
 
 				// FEAT: fully implement celestial object model
 				// should compute all objects and choose brightest as the skylight
@@ -455,18 +453,18 @@ public class ShaderDataManager {
 
 				// Note this computes the value of skyLightVector
 				ShadowMatrixData.update(camera, tickDelta, skyOutput);
-				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.getX());
-				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.getY());
-				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.getZ());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 0, skyLightVector.x());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 1, skyLightVector.y());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_VECTOR + 2, skyLightVector.z());
 				FLOAT_VECTOR_DATA.put(SKY_ANGLE_RADIANS, skyAngle);
 
 				worldFlags = FLAG_MOONLIT.setValue(moonLight, worldFlags);
-				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 0, skyOutput.atmosphericColorModifier.getX());
-				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 1, skyOutput.atmosphericColorModifier.getY());
-				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 2, skyOutput.atmosphericColorModifier.getZ());
-				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 0, skyOutput.lightColor.getX());
-				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 1, skyOutput.lightColor.getY());
-				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 2, skyOutput.lightColor.getZ());
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 0, skyOutput.atmosphericColorModifier.x());
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 1, skyOutput.atmosphericColorModifier.y());
+				FLOAT_VECTOR_DATA.put(ATMOSPHERIC_COLOR + 2, skyOutput.atmosphericColorModifier.z());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 0, skyOutput.lightColor.x());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 1, skyOutput.lightColor.y());
+				FLOAT_VECTOR_DATA.put(SKYLIGHT_COLOR + 2, skyOutput.lightColor.z());
 				FLOAT_VECTOR_DATA.put(SKYLIGHT_ILLUMINANCE, skyOutput.illuminance);
 			} else {
 				FLOAT_VECTOR_DATA.put(SKYLIGHT_TRANSITION_FACTOR, 1);
@@ -481,63 +479,63 @@ public class ShaderDataManager {
 			}
 
 			worldFlags = FLAG_HAS_SKYLIGHT.setValue(skyLight, worldFlags);
-			worldFlags = FLAG_SNEAKING.setValue(player.isInSneakingPose(), worldFlags);
-			worldFlags = FLAG_SNEAKING_POSE.setValue(player.isSneaking(), worldFlags);
+			worldFlags = FLAG_SNEAKING.setValue(player.isCrouching(), worldFlags);
+			worldFlags = FLAG_SNEAKING_POSE.setValue(player.isShiftKeyDown(), worldFlags);
 			worldFlags = FLAG_SWIMMING.setValue(player.isSwimming(), worldFlags);
-			worldFlags = FLAG_SWIMMING_POSE.setValue(player.isInSwimmingPose(), worldFlags);
+			worldFlags = FLAG_SWIMMING_POSE.setValue(player.isVisuallySwimming(), worldFlags);
 			worldFlags = FLAG_CREATIVE.setValue(player.isCreative(), worldFlags);
 			worldFlags = FLAG_SPECTATOR.setValue(player.isSpectator(), worldFlags);
-			worldFlags = FLAG_RIDING.setValue(player.isRiding(), worldFlags);
+			worldFlags = FLAG_RIDING.setValue(player.isHandsBusy(), worldFlags);
 			worldFlags = FLAG_ON_FIRE.setValue(player.isOnFire(), worldFlags);
 			worldFlags = FLAG_SLEEPING.setValue(player.isSleeping(), worldFlags);
 			worldFlags = FLAG_SPRINTING.setValue(player.isSprinting(), worldFlags);
-			worldFlags = FLAG_WET.setValue(player.isWet(), worldFlags);
+			worldFlags = FLAG_WET.setValue(player.isInWaterRainOrBubble(), worldFlags);
 
-			final boolean nightVision = player != null && client.player.hasStatusEffect(StatusEffects.NIGHT_VISION);
+			final boolean nightVision = player != null && client.player.hasEffect(MobEffects.NIGHT_VISION);
 
-			playerFlags = FLAG_SPEED.setValue(client.player.hasStatusEffect(StatusEffects.SPEED), playerFlags);
-			playerFlags = FLAG_SLOWNESS.setValue(client.player.hasStatusEffect(StatusEffects.SLOWNESS), playerFlags);
-			playerFlags = FLAG_HASTE.setValue(client.player.hasStatusEffect(StatusEffects.HASTE), playerFlags);
-			playerFlags = FLAG_MINING_FATIGUE.setValue(client.player.hasStatusEffect(StatusEffects.MINING_FATIGUE), playerFlags);
-			playerFlags = FLAG_STRENGTH.setValue(client.player.hasStatusEffect(StatusEffects.STRENGTH), playerFlags);
-			playerFlags = FLAG_INSTANT_HEALTH.setValue(client.player.hasStatusEffect(StatusEffects.INSTANT_HEALTH), playerFlags);
-			playerFlags = FLAG_INSTANT_DAMAGE.setValue(client.player.hasStatusEffect(StatusEffects.INSTANT_DAMAGE), playerFlags);
-			playerFlags = FLAG_JUMP_BOOST.setValue(client.player.hasStatusEffect(StatusEffects.JUMP_BOOST), playerFlags);
-			playerFlags = FLAG_NAUSEA.setValue(client.player.hasStatusEffect(StatusEffects.NAUSEA), playerFlags);
-			playerFlags = FLAG_REGENERATION.setValue(client.player.hasStatusEffect(StatusEffects.REGENERATION), playerFlags);
-			playerFlags = FLAG_RESISTANCE.setValue(client.player.hasStatusEffect(StatusEffects.RESISTANCE), playerFlags);
-			playerFlags = FLAG_FIRE_RESISTANCE.setValue(client.player.hasStatusEffect(StatusEffects.FIRE_RESISTANCE), playerFlags);
-			playerFlags = FLAG_WATER_BREATHING.setValue(client.player.hasStatusEffect(StatusEffects.WATER_BREATHING), playerFlags);
-			playerFlags = FLAG_INVISIBILITY.setValue(client.player.hasStatusEffect(StatusEffects.INVISIBILITY), playerFlags);
-			playerFlags = FLAG_BLINDNESS.setValue(client.player.hasStatusEffect(StatusEffects.BLINDNESS), playerFlags);
+			playerFlags = FLAG_SPEED.setValue(client.player.hasEffect(MobEffects.MOVEMENT_SPEED), playerFlags);
+			playerFlags = FLAG_SLOWNESS.setValue(client.player.hasEffect(MobEffects.MOVEMENT_SLOWDOWN), playerFlags);
+			playerFlags = FLAG_HASTE.setValue(client.player.hasEffect(MobEffects.DIG_SPEED), playerFlags);
+			playerFlags = FLAG_MINING_FATIGUE.setValue(client.player.hasEffect(MobEffects.DIG_SLOWDOWN), playerFlags);
+			playerFlags = FLAG_STRENGTH.setValue(client.player.hasEffect(MobEffects.DAMAGE_BOOST), playerFlags);
+			playerFlags = FLAG_INSTANT_HEALTH.setValue(client.player.hasEffect(MobEffects.HEAL), playerFlags);
+			playerFlags = FLAG_INSTANT_DAMAGE.setValue(client.player.hasEffect(MobEffects.HARM), playerFlags);
+			playerFlags = FLAG_JUMP_BOOST.setValue(client.player.hasEffect(MobEffects.JUMP), playerFlags);
+			playerFlags = FLAG_NAUSEA.setValue(client.player.hasEffect(MobEffects.CONFUSION), playerFlags);
+			playerFlags = FLAG_REGENERATION.setValue(client.player.hasEffect(MobEffects.REGENERATION), playerFlags);
+			playerFlags = FLAG_RESISTANCE.setValue(client.player.hasEffect(MobEffects.DAMAGE_RESISTANCE), playerFlags);
+			playerFlags = FLAG_FIRE_RESISTANCE.setValue(client.player.hasEffect(MobEffects.FIRE_RESISTANCE), playerFlags);
+			playerFlags = FLAG_WATER_BREATHING.setValue(client.player.hasEffect(MobEffects.WATER_BREATHING), playerFlags);
+			playerFlags = FLAG_INVISIBILITY.setValue(client.player.hasEffect(MobEffects.INVISIBILITY), playerFlags);
+			playerFlags = FLAG_BLINDNESS.setValue(client.player.hasEffect(MobEffects.BLINDNESS), playerFlags);
 			playerFlags = FLAG_NIGHT_VISION.setValue(nightVision, playerFlags);
-			playerFlags = FLAG_HUNGER.setValue(client.player.hasStatusEffect(StatusEffects.HUNGER), playerFlags);
-			playerFlags = FLAG_WEAKNESS.setValue(client.player.hasStatusEffect(StatusEffects.WEAKNESS), playerFlags);
-			playerFlags = FLAG_POISON.setValue(client.player.hasStatusEffect(StatusEffects.POISON), playerFlags);
-			playerFlags = FLAG_WITHER.setValue(client.player.hasStatusEffect(StatusEffects.WITHER), playerFlags);
-			playerFlags = FLAG_HEALTH_BOOST.setValue(client.player.hasStatusEffect(StatusEffects.HEALTH_BOOST), playerFlags);
-			playerFlags = FLAG_ABSORPTION.setValue(client.player.hasStatusEffect(StatusEffects.ABSORPTION), playerFlags);
-			playerFlags = FLAG_SATURATION.setValue(client.player.hasStatusEffect(StatusEffects.SATURATION), playerFlags);
-			playerFlags = FLAG_GLOWING.setValue(client.player.hasStatusEffect(StatusEffects.GLOWING), playerFlags);
-			playerFlags = FLAG_LEVITATION.setValue(client.player.hasStatusEffect(StatusEffects.LEVITATION), playerFlags);
-			playerFlags = FLAG_LUCK.setValue(client.player.hasStatusEffect(StatusEffects.LUCK), playerFlags);
-			playerFlags = FLAG_UNLUCK.setValue(client.player.hasStatusEffect(StatusEffects.UNLUCK), playerFlags);
-			playerFlags = FLAG_SLOW_FALLING.setValue(client.player.hasStatusEffect(StatusEffects.SLOW_FALLING), playerFlags);
-			playerFlags = FLAG_CONDUIT_POWER.setValue(client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER), playerFlags);
-			playerFlags = FLAG_DOLPHINS_GRACE.setValue(client.player.hasStatusEffect(StatusEffects.DOLPHINS_GRACE), playerFlags);
-			playerFlags = FLAG_BAD_OMEN.setValue(client.player.hasStatusEffect(StatusEffects.BAD_OMEN), playerFlags);
-			playerFlags = FLAG_HERO_OF_THE_VILLAGE.setValue(client.player.hasStatusEffect(StatusEffects.HERO_OF_THE_VILLAGE), playerFlags);
+			playerFlags = FLAG_HUNGER.setValue(client.player.hasEffect(MobEffects.HUNGER), playerFlags);
+			playerFlags = FLAG_WEAKNESS.setValue(client.player.hasEffect(MobEffects.WEAKNESS), playerFlags);
+			playerFlags = FLAG_POISON.setValue(client.player.hasEffect(MobEffects.POISON), playerFlags);
+			playerFlags = FLAG_WITHER.setValue(client.player.hasEffect(MobEffects.WITHER), playerFlags);
+			playerFlags = FLAG_HEALTH_BOOST.setValue(client.player.hasEffect(MobEffects.HEALTH_BOOST), playerFlags);
+			playerFlags = FLAG_ABSORPTION.setValue(client.player.hasEffect(MobEffects.ABSORPTION), playerFlags);
+			playerFlags = FLAG_SATURATION.setValue(client.player.hasEffect(MobEffects.SATURATION), playerFlags);
+			playerFlags = FLAG_GLOWING.setValue(client.player.hasEffect(MobEffects.GLOWING), playerFlags);
+			playerFlags = FLAG_LEVITATION.setValue(client.player.hasEffect(MobEffects.LEVITATION), playerFlags);
+			playerFlags = FLAG_LUCK.setValue(client.player.hasEffect(MobEffects.LUCK), playerFlags);
+			playerFlags = FLAG_UNLUCK.setValue(client.player.hasEffect(MobEffects.UNLUCK), playerFlags);
+			playerFlags = FLAG_SLOW_FALLING.setValue(client.player.hasEffect(MobEffects.SLOW_FALLING), playerFlags);
+			playerFlags = FLAG_CONDUIT_POWER.setValue(client.player.hasEffect(MobEffects.CONDUIT_POWER), playerFlags);
+			playerFlags = FLAG_DOLPHINS_GRACE.setValue(client.player.hasEffect(MobEffects.DOLPHINS_GRACE), playerFlags);
+			playerFlags = FLAG_BAD_OMEN.setValue(client.player.hasEffect(MobEffects.BAD_OMEN), playerFlags);
+			playerFlags = FLAG_HERO_OF_THE_VILLAGE.setValue(client.player.hasEffect(MobEffects.HERO_OF_THE_VILLAGE), playerFlags);
 
-			if (world.getRegistryKey() == World.OVERWORLD) {
+			if (world.dimension() == Level.OVERWORLD) {
 				worldFlags = FLAG_IS_OVERWORLD.setValue(true, worldFlags);
-			} else if (world.getRegistryKey() == World.NETHER) {
+			} else if (world.dimension() == Level.NETHER) {
 				worldFlags = FLAG_IS_NETHER.setValue(true, worldFlags);
-			} else if (world.getRegistryKey() == World.END) {
+			} else if (world.dimension() == Level.END) {
 				worldFlags = FLAG_IS_END.setValue(true, worldFlags);
 			}
 
 			worldFlags = FLAG_IS_RAINING.setValue(world.isRaining(), worldFlags);
-			worldFlags = FLAG_IS_SKY_DARKENED.setValue(world.getSkyProperties().isDarkened(), worldFlags);
+			worldFlags = FLAG_IS_SKY_DARKENED.setValue(world.effects().constantAmbientLight(), worldFlags);
 			worldFlags = FLAG_IS_THUNDERING.setValue(world.isThundering(), worldFlags);
 
 			updateRain(world, tickDelta);
@@ -545,15 +543,15 @@ public class ShaderDataManager {
 			ItemLight light = ItemLight.NONE;
 
 			if (player != null) {
-				ItemStack stack = player.getMainHandStack();
+				ItemStack stack = player.getMainHandItem();
 				light = ItemLight.get(stack);
 
 				if (light == ItemLight.NONE) {
-					stack = player.getOffHandStack();
+					stack = player.getOffhandItem();
 					light = ItemLight.get(stack);
 				}
 
-				if (!light.worksInFluid() && player.isSubmergedInWater()) {
+				if (!light.worksInFluid() && player.isUnderWater()) {
 					light = ItemLight.NONE;
 				}
 
@@ -567,14 +565,14 @@ public class ShaderDataManager {
 			FLOAT_VECTOR_DATA.put(HELD_LIGHT_INNER_ANGLE, (float) (0.5 * Math.toRadians(light.innerConeAngleDegrees())));
 			FLOAT_VECTOR_DATA.put(HELD_LIGHT_OUTER_ANGLE, (float) (0.5 * Math.toRadians(light.outerConeAngleDegrees())));
 
-			FLOAT_VECTOR_DATA.put(AMBIENT_INTENSITY, world.method_23783(1.0F));
-			FLOAT_VECTOR_DATA.put(MOON_SIZE, world.getMoonSize());
+			FLOAT_VECTOR_DATA.put(AMBIENT_INTENSITY, world.getSkyDarken(1.0F));
+			FLOAT_VECTOR_DATA.put(MOON_SIZE, world.getMoonBrightness());
 
-			final float fluidModifier = client.player.getUnderwaterVisibility();
+			final float fluidModifier = client.player.getWaterVision();
 
 			if (nightVision) {
-				FLOAT_VECTOR_DATA.put(NIGHT_VISION_STRENGTH, GameRenderer.getNightVisionStrength(client.player, tickDelta));
-			} else if (fluidModifier > 0.0F && client.player.hasStatusEffect(StatusEffects.CONDUIT_POWER)) {
+				FLOAT_VECTOR_DATA.put(NIGHT_VISION_STRENGTH, GameRenderer.getNightVisionScale(client.player, tickDelta));
+			} else if (fluidModifier > 0.0F && client.player.hasEffect(MobEffects.CONDUIT_POWER)) {
 				FLOAT_VECTOR_DATA.put(NIGHT_VISION_STRENGTH, fluidModifier);
 			}
 		}
@@ -597,8 +595,8 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(EMISSIVE_COLOR_BLUE, (color & 0xFF) / 255f);
 	}
 
-	private static void putViewVector(int index, float yaw, float pitch, Vec3f storeTo) {
-		final Vec3d vec = Vec3d.fromPolar(pitch, yaw);
+	private static void putViewVector(int index, float yaw, float pitch, Vector3f storeTo) {
+		final Vec3 vec = Vec3.directionFromRotation(pitch, yaw);
 		final float x = (float) vec.x;
 		final float y = (float) vec.y;
 		final float z = (float) vec.z;

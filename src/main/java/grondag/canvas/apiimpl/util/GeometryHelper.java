@@ -16,17 +16,15 @@
 
 package grondag.canvas.apiimpl.util;
 
-import static net.minecraft.util.math.MathHelper.approximatelyEquals;
+import static net.minecraft.util.Mth.equal;
 
+import com.mojang.math.Vector3f;
 import io.vram.frex.api.mesh.QuadView;
-
-import net.minecraft.client.render.model.BakedQuad;
-import net.minecraft.client.render.model.CubeFace.DirectionIds;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Direction.Axis;
-import net.minecraft.util.math.Direction.AxisDirection;
-import net.minecraft.util.math.Vec3f;
-
+import net.minecraft.client.renderer.FaceInfo.Constants;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.Direction.AxisDirection;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 
 /**
@@ -94,7 +92,7 @@ public abstract class GeometryHelper {
 
 		final int i = face.getAxis().ordinal();
 		final float val = quad.posByIndex(0, i);
-		return approximatelyEquals(val, quad.posByIndex(1, i)) && approximatelyEquals(val, quad.posByIndex(2, i)) && approximatelyEquals(val, quad.posByIndex(3, i));
+		return equal(val, quad.posByIndex(1, i)) && equal(val, quad.posByIndex(2, i)) && equal(val, quad.posByIndex(3, i));
 	}
 
 	/**
@@ -108,7 +106,7 @@ public abstract class GeometryHelper {
 		if (lightFace == null) return false;
 
 		final float x = quad.posByIndex(0, lightFace.getAxis().ordinal());
-		return lightFace.getDirection() == AxisDirection.POSITIVE ? x >= EPS_MAX : x <= EPS_MIN;
+		return lightFace.getAxisDirection() == AxisDirection.POSITIVE ? x >= EPS_MAX : x <= EPS_MIN;
 	}
 
 	/**
@@ -193,7 +191,7 @@ public abstract class GeometryHelper {
 
 	/**
 	 * Identifies the face to which the quad is most closely aligned.
-	 * This mimics the value that {@link BakedQuad#getFace()} returns, and is
+	 * This mimics the value that {@link BakedQuad#getDirection()} returns, and is
 	 * used in the vanilla renderer for all diffuse lighting.
 	 *
 	 * <p>Derived from the quad face normal and expects convex quads with all points co-planar.
@@ -206,17 +204,17 @@ public abstract class GeometryHelper {
 
 		switch (GeometryHelper.longestAxis(x, y, z)) {
 			case X:
-				return x > 0 ? DirectionIds.EAST : DirectionIds.WEST;
+				return x > 0 ? Constants.MAX_X : Constants.MIN_X;
 
 			case Y:
-				return y > 0 ? DirectionIds.UP : DirectionIds.DOWN;
+				return y > 0 ? Constants.MAX_Y : Constants.MIN_Y;
 
 			case Z:
-				return z > 0 ? DirectionIds.SOUTH : DirectionIds.NORTH;
+				return z > 0 ? Constants.MAX_Z : Constants.MIN_Z;
 
 			default:
 				// handle WTF case
-				return DirectionIds.UP;
+				return Constants.MAX_Y;
 		}
 	}
 
@@ -241,8 +239,8 @@ public abstract class GeometryHelper {
 	/**
 	 * @see #longestAxis(float, float, float)
 	 */
-	public static Axis longestAxis(Vec3f vec) {
-		return longestAxis(vec.getX(), vec.getY(), vec.getZ());
+	public static Axis longestAxis(Vector3f vec) {
+		return longestAxis(vec.x(), vec.y(), vec.z());
 	}
 
 	/**

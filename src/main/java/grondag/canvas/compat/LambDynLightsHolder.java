@@ -21,14 +21,14 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
 
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
 class LambDynLightsHolder {
-	static Consumer<WorldRenderer> updateAll = wr -> { };
+	static Consumer<LevelRenderer> updateAll = wr -> { };
 	private static boolean warnInit = true;
 
 	static {
@@ -40,7 +40,7 @@ class LambDynLightsHolder {
 				final Method getInstance = clazz.getDeclaredMethod("get");
 				final Object instance = getInstance.invoke(null);
 
-				final Method update = clazz.getDeclaredMethod("updateAll", WorldRenderer.class);
+				final Method update = clazz.getDeclaredMethod("updateAll", LevelRenderer.class);
 				final MethodHandle updateHandler = lookup.unreflect(update);
 				final MethodHandle boundReUpdateHandler = updateHandler.bindTo(instance);
 

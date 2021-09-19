@@ -18,20 +18,18 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.util.collection.PackedIntegerArray;
-import net.minecraft.world.chunk.Palette;
-import net.minecraft.world.chunk.PalettedContainer;
-
 import grondag.canvas.mixinterface.PalettedContainerExt;
 import grondag.canvas.terrain.util.ChunkPaletteCopier;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
+import net.minecraft.util.BitStorage;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.Palette;
+import net.minecraft.world.level.chunk.PalettedContainer;
 
 @Mixin(PalettedContainer.class)
 public abstract class MixinPalettedContainer<T> implements PalettedContainerExt {
 	@Shadow
-	protected PackedIntegerArray data;
+	protected BitStorage data;
 	@Shadow
 	private T defaultValue;
 	@Shadow

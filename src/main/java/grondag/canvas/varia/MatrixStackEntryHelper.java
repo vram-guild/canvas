@@ -16,20 +16,19 @@
 
 package grondag.canvas.varia;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 import java.lang.reflect.Constructor;
 
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
-
 public class MatrixStackEntryHelper {
-	private static final Constructor<MatrixStack.Entry> CONSTRUCTOR;
+	private static final Constructor<PoseStack.Pose> CONSTRUCTOR;
 
 	static {
-		Constructor<MatrixStack.Entry> c;
+		Constructor<PoseStack.Pose> c;
 
 		try {
-			c = MatrixStack.Entry.class.getDeclaredConstructor(Matrix4f.class, Matrix3f.class);
+			c = PoseStack.Pose.class.getDeclaredConstructor(Matrix4f.class, Matrix3f.class);
 		} catch (final Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -38,7 +37,7 @@ public class MatrixStackEntryHelper {
 		CONSTRUCTOR = c;
 	}
 
-	public static MatrixStack.Entry create(Matrix4f matrix4f, Matrix3f matrix3f) {
+	public static PoseStack.Pose create(Matrix4f matrix4f, Matrix3f matrix3f) {
 		try {
 			return CONSTRUCTOR.newInstance(matrix4f, matrix3f);
 		} catch (final Exception e) {

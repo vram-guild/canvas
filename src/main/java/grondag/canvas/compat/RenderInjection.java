@@ -22,12 +22,9 @@ import java.lang.reflect.Method;
 
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.transformer.meta.MixinMerged;
-
-import net.minecraft.client.render.WorldRenderer;
-
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.loader.api.FabricLoader;
-
+import net.minecraft.client.renderer.LevelRenderer;
 import grondag.canvas.CanvasMod;
 
 interface RenderInjection {
@@ -44,7 +41,7 @@ interface RenderInjection {
 
 		Method candidate = null;
 
-		for (final Method method : WorldRenderer.class.getDeclaredMethods()) {
+		for (final Method method : LevelRenderer.class.getDeclaredMethods()) {
 			final MixinMerged annotation = method.getAnnotation(MixinMerged.class);
 
 			if (annotation != null && mixinName.equals(annotation.mixin())) {

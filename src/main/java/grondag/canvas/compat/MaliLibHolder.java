@@ -20,9 +20,10 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix4f;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
+
+import net.minecraft.client.Minecraft;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -41,7 +42,7 @@ class MaliLibHolder {
 				final Method getInstance = clazz.getDeclaredMethod("getInstance");
 				final Object instance = getInstance.invoke(null);
 
-				final Method renderLast = clazz.getDeclaredMethod("onRenderWorldLast", MatrixStack.class, Matrix4f.class, MinecraftClient.class);
+				final Method renderLast = clazz.getDeclaredMethod("onRenderWorldLast", PoseStack.class, Matrix4f.class, Minecraft.class);
 				final MethodHandle renderLastHandler = lookup.unreflect(renderLast);
 				final MethodHandle boundRenderLastHandler = renderLastHandler.bindTo(instance);
 
@@ -65,6 +66,6 @@ class MaliLibHolder {
 	}
 
 	interface HandleRenderWorldLast {
-		void render(MatrixStack matrixStack, Matrix4f projMatrix, MinecraftClient mc);
+		void render(PoseStack matrixStack, Matrix4f projMatrix, Minecraft mc);
 	}
 }

@@ -20,23 +20,21 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.option.CyclingOption;
-import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.option.Option;
-import net.minecraft.text.TranslatableText;
-
 import grondag.canvas.varia.CanvasButtonWidget;
+import net.minecraft.client.CycleOption;
+import net.minecraft.client.Option;
+import net.minecraft.client.Options;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.network.chat.TranslatableComponent;
 
-@Mixin(CyclingOption.class)
+@Mixin(CycleOption.class)
 public abstract class MixinCyclingOption {
 	@Inject(at = @At("HEAD"), method = "createButton", cancellable = true)
-	private void onCreateButton(GameOptions options, int x, int y, int width, CallbackInfoReturnable<ClickableWidget> info) {
-		final CyclingOption<?> self = (CyclingOption<?>) (Object) this;
+	private void onCreateButton(Options options, int x, int y, int width, CallbackInfoReturnable<AbstractWidget> info) {
+		final CycleOption<?> self = (CycleOption<?>) (Object) this;
 
 		if (self == Option.GRAPHICS) {
-			info.setReturnValue(new CanvasButtonWidget(x, y, width, 20, new TranslatableText("config.canvas.button")));
+			info.setReturnValue(new CanvasButtonWidget(x, y, width, 20, new TranslatableComponent("config.canvas.button")));
 		}
 	}
 }

@@ -16,41 +16,40 @@
 
 package grondag.canvas.render;
 
+import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
-
-import net.minecraft.client.gl.WindowFramebuffer;
 
 import grondag.canvas.pipeline.PipelineManager;
 
-public class FabulousFrameBuffer extends WindowFramebuffer {
+public class FabulousFrameBuffer extends MainTarget {
 	public FabulousFrameBuffer(int fboId, int colorId, int depthId) {
 		super(PipelineManager.width(), PipelineManager.height());
 		setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
 
-		fbo = fboId;
-		colorAttachment = colorId;
-		depthAttachment = depthId;
+		frameBufferId = fboId;
+		colorTextureId = colorId;
+		depthBufferId = depthId;
 
-		checkFramebufferStatus();
-		endRead();
+		checkStatus();
+		unbindRead();
 	}
 
 	@Override
-	public void delete() {
+	public void destroyBuffers() {
 		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
-		endRead();
-		endWrite();
+		unbindRead();
+		unbindWrite();
 
 		// nothing to do here - pipeline will clean up
 	}
 
 	@Override
-	public void initFbo(int width, int height, boolean getError) {
+	public void createBuffers(int width, int height, boolean getError) {
 		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
-		viewportWidth = width;
-		viewportHeight = height;
-		textureWidth = width;
-		textureHeight = height;
+		viewWidth = width;
+		viewHeight = height;
+		this.width = width;
+		this.height = height;
 
 		// rest is handled in init that accepts IDs from pipeline
 	}

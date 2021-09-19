@@ -26,15 +26,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.resource.metadata.AnimationFrameResourceMetadata;
-import net.minecraft.client.resource.metadata.AnimationResourceMetadata;
+import net.minecraft.client.resources.metadata.animation.AnimationFrame;
+import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 
 import grondag.canvas.mixinterface.AnimationResourceMetadataExt;
 import grondag.canvas.mixinterface.SimulatedFrame;
 
-@Mixin(AnimationResourceMetadata.class)
+@Mixin(AnimationMetadataSection.class)
 public class MixinAnimationResourceMetadata implements AnimationResourceMetadataExt {
-	@Shadow private List<AnimationFrameResourceMetadata> frames;
+	@Shadow private List<AnimationFrame> frames;
 	@Shadow private int width;
 	@Shadow private int height;
 	@Shadow private int defaultFrameTime;
@@ -52,9 +52,9 @@ public class MixinAnimationResourceMetadata implements AnimationResourceMetadata
 	public boolean canvas_willAnimate(int spriteWidth, int spriteHeight) {
 		// forecasts the outcome of Sprite.createAnimation()
 
-		final AnimationResourceMetadata animationResourceMetadata = (AnimationResourceMetadata) (Object) this;
-		final int widthFrames = pngWidth / animationResourceMetadata.getWidth(spriteWidth);
-		final int heightFrames = pngHeight / animationResourceMetadata.getHeight(spriteHeight);
+		final AnimationMetadataSection animationResourceMetadata = (AnimationMetadataSection) (Object) this;
+		final int widthFrames = pngWidth / animationResourceMetadata.getFrameWidth(spriteWidth);
+		final int heightFrames = pngHeight / animationResourceMetadata.getFrameHeight(spriteHeight);
 		final int expectedFrames = widthFrames * heightFrames;
 		final var frames = new ObjectArrayList<SimulatedFrame>();
 

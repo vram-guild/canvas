@@ -28,17 +28,15 @@ import java.util.Arrays;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.LightType;
-import net.minecraft.world.chunk.light.LightingProvider;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.ColorResolver;
-
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraft.world.level.material.FluidState;
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
@@ -60,7 +58,7 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 
 	public final BlockEntity[] blockEntities = new BlockEntity[INTERIOR_STATE_COUNT];
 	public final TerrainRenderContext terrainContext;
-	protected final BlockPos.Mutable searchPos = new BlockPos.Mutable();
+	protected final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 	protected final Object[] renderData = new Object[INTERIOR_STATE_COUNT];
 	private final BlockState[] states = new BlockState[TOTAL_STATE_COUNT];
 
@@ -76,7 +74,7 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 			final int x = (xyz5 & 31) - REGION_PADDING;
 			final int y = ((xyz5 >> 5) & 31) - REGION_PADDING;
 			final int z = ((xyz5 >> 10) & 31) - REGION_PADDING;
-			return blockState.isOpaqueFullCube(InputRegion.this, searchPos.set(originX + x, originY + y, originZ + z));
+			return blockState.isSolidRender(InputRegion.this, searchPos.set(originX + x, originY + y, originZ + z));
 		}
 	};
 
@@ -188,8 +186,8 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 	}
 
 	@Override
-	public int getLightLevel(LightType type, BlockPos pos) {
-		return world.getLightLevel(type, pos);
+	public int getBrightness(LightLayer type, BlockPos pos) {
+		return world.getBrightness(type, pos);
 	}
 
 	@Override
@@ -210,7 +208,7 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 			final int x = (packedXyz5 & 31) - 2 + originX;
 			final int y = ((packedXyz5 >> 5) & 31) - 2 + originY;
 			final int z = (packedXyz5 >> 10) - 2 + originZ;
-			result = WorldRenderer.getLightmapCoordinates(world, state, searchPos.set(x, y, z));
+			result = LevelRenderer.getLightColor(world, state, searchPos.set(x, y, z));
 			lightCache[cacheIndex] = result;
 		}
 
@@ -225,14 +223,14 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 	}
 
 	public int directBrightness(BlockPos pos) {
-		return WorldRenderer.getLightmapCoordinates(world, getBlockState(pos), pos);
+		return LevelRenderer.getLightColor(world, getBlockState(pos), pos);
 	}
 
 	// TODO: do anything with this?
 	// Vanilla now computes diffuse shading at chunk bake time and consumes this value in AO calc
 	@Override
-	public float getBrightness(Direction direction, boolean shaded) {
-		return world.getBrightness(direction, shaded);
+	public float getShade(Direction direction, boolean shaded) {
+		return world.getShade(direction, shaded);
 	}
 
 	public int cachedAoLevel(int cacheIndex) {
@@ -241,12 +239,12 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 		if (result == Integer.MAX_VALUE) {
 			final BlockState state = states[cacheIndex];
 
-			if (state.getLuminance() == 0) {
+			if (state.getLightEmission() == 0) {
 				final int packedXyz5 = regionIndexToXyz5(cacheIndex);
 				final int x = (packedXyz5 & 31) - 2 + originX;
 				final int y = ((packedXyz5 >> 5) & 31) - 2 + originY;
 				final int z = (packedXyz5 >> 10) - 2 + originZ;
-				result = Math.round(255f * state.getAmbientOcclusionLightLevel(this, searchPos.set(x, y, z)));
+				result = Math.round(255f * state.getShadeBrightness(this, searchPos.set(x, y, z)));
 			} else {
 				result = 255;
 			}
@@ -258,12 +256,12 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 	}
 
 	@Override
-	public LightingProvider getLightingProvider() {
-		return world.getLightingProvider();
+	public LevelLightEngine getLightEngine() {
+		return world.getLightEngine();
 	}
 
 	@Override
-	public int getColor(BlockPos blockPos, ColorResolver colorResolver) {
+	public int getBlockTint(BlockPos blockPos, ColorResolver colorResolver) {
 		final int x = blockPos.getX();
 		final int z = blockPos.getZ();
 
@@ -297,7 +295,7 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 	}
 
 	@Override
-	public int getBottomY() {
-		return world.getBottomY();
+	public int getMinBuildHeight() {
+		return world.getMinBuildHeight();
 	}
 }

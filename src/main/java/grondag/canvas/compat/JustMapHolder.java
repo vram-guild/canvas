@@ -20,8 +20,9 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.client.Camera;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -37,7 +38,7 @@ class JustMapHolder {
 
 			try {
 				final Class<?> clazz = Class.forName("ru.bulldog.justmap.client.render.WaypointRenderer");
-				final Method render = clazz.getDeclaredMethod("renderWaypoints", MatrixStack.class, Camera.class, float.class);
+				final Method render = clazz.getDeclaredMethod("renderWaypoints", PoseStack.class, Camera.class, float.class);
 				final MethodHandle renderHandler = lookup.unreflect(render);
 
 				justMapRender = (matrixStack, camera, tickDelta) -> {
@@ -60,6 +61,6 @@ class JustMapHolder {
 	}
 
 	interface JustMapRender {
-		void renderWaypoints(MatrixStack matrixStack, Camera camera, float tickDelta);
+		void renderWaypoints(PoseStack matrixStack, Camera camera, float tickDelta);
 	}
 }

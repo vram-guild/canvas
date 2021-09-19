@@ -17,54 +17,53 @@
 package grondag.canvas.mixin;
 
 import com.google.common.collect.ImmutableList;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderType.CompositeState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderLayer.MultiPhaseParameters;
-import net.minecraft.client.render.RenderPhase;
-
-@Mixin(MultiPhaseParameters.class)
+@Mixin(CompositeState.class)
 public interface AccessMultiPhaseParameters {
 	@Accessor
-	RenderPhase.TextureBase getTexture();
+	RenderStateShard.EmptyTextureStateShard getTexture();
 
 	@Accessor
-	RenderPhase.Transparency getTransparency();
+	RenderStateShard.TransparencyStateShard getTransparency();
 
 	@Accessor
-	RenderPhase.DepthTest getDepthTest();
+	RenderStateShard.DepthTestStateShard getDepthTest();
 
 	@Accessor
-	RenderPhase.Cull getCull();
+	RenderStateShard.CullStateShard getCull();
 
 	@Accessor
-	RenderPhase.Lightmap getLightmap();
+	RenderStateShard.LightmapStateShard getLightmap();
 
 	@Accessor
-	RenderPhase.Overlay getOverlay();
+	RenderStateShard.OverlayStateShard getOverlay();
 
 	@Accessor
-	RenderPhase.Layering getLayering();
+	RenderStateShard.LayeringStateShard getLayering();
 
 	@Accessor
-	RenderPhase.Target getTarget();
+	RenderStateShard.OutputStateShard getTarget();
 
 	@Accessor
-	RenderPhase.Texturing getTexturing();
+	RenderStateShard.TexturingStateShard getTexturing();
 
 	@Accessor
-	RenderPhase.WriteMaskState getWriteMaskState();
+	RenderStateShard.WriteMaskStateShard getWriteMaskState();
 
 	@Accessor
-	RenderPhase.LineWidth getLineWidth();
+	RenderStateShard.LineStateShard getLineWidth();
 
 	@Accessor
-	RenderLayer.OutlineMode getOutlineMode();
+	RenderType.OutlineProperty getOutlineMode();
 
 	@Accessor
-	ImmutableList<RenderPhase> getPhases();
+	ImmutableList<RenderStateShard> getPhases();
 
 	@Accessor
-	RenderPhase.Shader getShader();
+	RenderStateShard.ShaderStateShard getShader();
 }

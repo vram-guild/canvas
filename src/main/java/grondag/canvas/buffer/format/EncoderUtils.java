@@ -16,9 +16,7 @@
 
 package grondag.canvas.buffer.format;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumer;
-
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
@@ -26,6 +24,7 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import net.minecraft.client.Minecraft;
 
 public abstract class EncoderUtils {
 	public static void bufferQuad(QuadEditorImpl quad, EncodingContext context, VertexConsumer buff) {
@@ -48,9 +47,9 @@ public abstract class EncoderUtils {
 			final int color = quad.vertexColor(i);
 			buff.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 
-			buff.texture(quad.spriteU(i), quad.spriteV(i));
-			buff.overlay(overlay);
-			buff.light(emissive ? MeshEncodingHelper.FULL_BRIGHTNESS : quad.lightmap(i));
+			buff.uv(quad.spriteU(i), quad.spriteV(i));
+			buff.overlayCoords(overlay);
+			buff.uv2(emissive ? MeshEncodingHelper.FULL_BRIGHTNESS : quad.lightmap(i));
 
 			final int p = ((quadNormalFlags & 1 << i) == 0) ? faceNormal : quad.packedNormal(i);
 
@@ -63,7 +62,7 @@ public abstract class EncoderUtils {
 			}
 
 			buff.normal(nx, ny, nz);
-			buff.next();
+			buff.endVertex();
 		}
 	}
 
@@ -89,7 +88,7 @@ public abstract class EncoderUtils {
 	}
 
 	public static void applyBlockLighting(QuadEditorImpl quad, AbstractRenderContext context) {
-		if (!quad.material().disableAo() && MinecraftClient.isAmbientOcclusionEnabled()) {
+		if (!quad.material().disableAo() && Minecraft.useAmbientOcclusion()) {
 			context.computeAo(quad);
 		} else {
 			context.computeFlat(quad);

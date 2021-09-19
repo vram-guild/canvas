@@ -18,8 +18,8 @@ package grondag.canvas.material.property;
 
 import io.vram.frex.api.material.MaterialConstants;
 
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.RenderPhase.WriteMaskState;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderStateShard.WriteMaskStateShard;
 
 import grondag.canvas.varia.GFX;
 
@@ -88,10 +88,10 @@ public class MaterialWriteMask {
 		}
 	}
 
-	public static int fromPhase(WriteMaskState phase) {
-		if (phase == RenderPhase.COLOR_MASK) {
+	public static int fromPhase(WriteMaskStateShard phase) {
+		if (phase == RenderStateShard.COLOR_WRITE) {
 			return MaterialConstants.WRITE_MASK_COLOR;
-		} else if (phase == RenderPhase.DEPTH_MASK) {
+		} else if (phase == RenderStateShard.DEPTH_WRITE) {
 			return MaterialConstants.WRITE_MASK_DEPTH;
 		} else {
 			return MaterialConstants.WRITE_MASK_COLOR_DEPTH;

@@ -16,8 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.client.render.item.BuiltinModelItemRenderer;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 
 public interface ItemRendererExt {
-	BuiltinModelItemRenderer canvas_builtinModelItemRenderer();
+	BlockEntityWithoutLevelRenderer canvas_builtinModelItemRenderer();
 }

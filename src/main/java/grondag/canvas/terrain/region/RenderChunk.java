@@ -16,11 +16,10 @@
 
 package grondag.canvas.terrain.region;
 
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.ChunkStatus;
-
 import grondag.canvas.render.world.WorldRenderState;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.chunk.ChunkStatus;
 
 public class RenderChunk {
 	final WorldRenderState worldRenderState;
@@ -64,7 +63,7 @@ public class RenderChunk {
 	}
 
 	private boolean areCornerChunksLoaded() {
-		final ClientWorld world = worldRenderState.getWorld();
+		final ClientLevel world = worldRenderState.getWorld();
 
 		final boolean result = world.getChunk(chunkX - 1, chunkZ - 1, ChunkStatus.FULL, false) != null
 				&& world.getChunk(chunkX - 1, chunkZ + 1, ChunkStatus.FULL, false) != null
@@ -101,8 +100,8 @@ public class RenderChunk {
 
 		if (this.cameraRegionOrigin != cameraRegionOrigin) {
 			this.cameraRegionOrigin = cameraRegionOrigin;
-			final int cx = (BlockPos.unpackLongX(cameraRegionOrigin) >> 4) - chunkX;
-			final int cz = (BlockPos.unpackLongZ(cameraRegionOrigin) >> 4) - chunkZ;
+			final int cx = (BlockPos.getX(cameraRegionOrigin) >> 4) - chunkX;
+			final int cz = (BlockPos.getZ(cameraRegionOrigin) >> 4) - chunkZ;
 			horizontalSquaredDistance = cx * cx + cz * cz;
 		}
 	}

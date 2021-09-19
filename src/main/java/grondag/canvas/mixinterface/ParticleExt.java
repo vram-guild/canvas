@@ -16,7 +16,7 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.particle.ParticleType;
+import net.minecraft.core.particles.ParticleType;
 
 public interface ParticleExt {
 	void canvas_particleType(ParticleType<?> particleType);

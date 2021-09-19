@@ -22,7 +22,15 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
-
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.Stitcher;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -33,17 +41,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.texture.TextureStitcher;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
@@ -56,10 +53,10 @@ import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.texture.CombinedSpriteAnimation;
 import grondag.canvas.texture.SpriteIndex;
 
-@Mixin(SpriteAtlasTexture.class)
+@Mixin(TextureAtlas.class)
 public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements SpriteAtlasTextureExt {
-	@Shadow private Identifier id;
-	@Shadow private Map<Identifier, Sprite> sprites;
+	@Shadow private ResourceLocation id;
+	@Shadow private Map<ResourceLocation, TextureAtlasSprite> sprites;
 	@Shadow private int maxTextureSize;
 	private int width, height;
 
@@ -74,12 +71,12 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 	private CombinedSpriteAnimation combined = null;
 
 	@Inject(at = @At("HEAD"), method = "Lnet/minecraft/client/texture/SpriteAtlasTexture;loadSprites(Lnet/minecraft/resource/ResourceManager;Lnet/minecraft/client/texture/TextureStitcher;I)Ljava/util/List;")
-	private void onLoadSprites(ResourceManager resourceManager, TextureStitcher textureStitcher, int lodCount, CallbackInfoReturnable<List<Sprite>> ci) {
+	private void onLoadSprites(ResourceManager resourceManager, Stitcher textureStitcher, int lodCount, CallbackInfoReturnable<List<TextureAtlasSprite>> ci) {
 		this.lodCount = lodCount;
 	}
 
 	@Inject(at = @At("HEAD"), method = "upload")
-	private void beforeUpload(SpriteAtlasTexture.Data input, CallbackInfo ci) {
+	private void beforeUpload(TextureAtlas.Preparations input, CallbackInfo ci) {
 		if (Configurator.traceTextureLoad) {
 			CanvasMod.LOG.info("Start of pre-upload handling for atlas " + id.toString());
 		}
@@ -89,10 +86,10 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 		height = dataExt.canvas_atlasHeight();
 
 		int animationIndex = 0;
-		final List<Sprite> sprites = dataExt.canvas_sprites();
+		final List<TextureAtlasSprite> sprites = dataExt.canvas_sprites();
 
-		for (final Sprite sprite : sprites) {
-			if (sprite.getAnimation() != null) {
+		for (final TextureAtlasSprite sprite : sprites) {
+			if (sprite.getAnimationTicker() != null) {
 				final var spriteExt = (SpriteExt) sprite;
 				final int instanceIndex = animationIndex;
 				final BooleanSupplier getter = () -> animationBits.get(instanceIndex);
@@ -114,24 +111,24 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 				CanvasMod.LOG.info(String.format("Combined dimensions are (%d, %d) to (%d, %d) with LOD count %d", animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount));
 			}
 
-			combined = new CombinedSpriteAnimation((SpriteAtlasTexture) (Object) this, animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount);
+			combined = new CombinedSpriteAnimation((TextureAtlas) (Object) this, animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount);
 
-			for (final Sprite sprite : sprites) {
+			for (final TextureAtlasSprite sprite : sprites) {
 				((SpriteExt) sprite).canvas_setCombinedAnimation(combined);
 			}
 		}
 	}
 
 	@Inject(at = @At("RETURN"), method = "upload")
-	private void afterUpload(SpriteAtlasTexture.Data input, CallbackInfo ci) {
+	private void afterUpload(TextureAtlas.Preparations input, CallbackInfo ci) {
 		if (Configurator.traceTextureLoad) {
 			CanvasMod.LOG.info("Start of post-upload handling for atlas " + id.toString());
 		}
 
-		final ObjectArrayList<Sprite> spriteIndexList = new ObjectArrayList<>();
+		final ObjectArrayList<TextureAtlasSprite> spriteIndexList = new ObjectArrayList<>();
 		int index = 0;
 
-		for (final Sprite sprite : sprites.values()) {
+		for (final TextureAtlasSprite sprite : sprites.values()) {
 			spriteIndexList.add(sprite);
 			final var spriteExt = (SpriteExt) sprite;
 			spriteExt.canvas_id(index++);
@@ -149,7 +146,7 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 			outputAtlasImage();
 		}
 
-		SpriteIndex.getOrCreate(id).reset(input, spriteIndexList, (SpriteAtlasTexture) (Object) this);
+		SpriteIndex.getOrCreate(id).reset(input, spriteIndexList, (TextureAtlas) (Object) this);
 	}
 
 	private void outputAtlasImage() {
@@ -159,17 +156,17 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 			}
 
 			final NativeImage nativeImage = new NativeImage(width, height, false);
-			RenderSystem.bindTexture(this.getGlId());
-			nativeImage.loadFromTextureImage(0, true);
+			RenderSystem.bindTexture(this.getId());
+			nativeImage.downloadTexture(0, true);
 
-			Util.getIoWorkerExecutor().execute(() -> {
+			Util.ioPool().execute(() -> {
 				if (Configurator.traceTextureLoad) {
 					CanvasMod.LOG.info("Exporting atlas image for " + id.toString());
 				}
 
 				try {
 					@SuppressWarnings("resource")
-					final Path path = MinecraftClient.getInstance().runDirectory.toPath().normalize().resolve("atlas_debug");
+					final Path path = Minecraft.getInstance().gameDirectory.toPath().normalize().resolve("atlas_debug");
 					final File atlasDir = path.toFile();
 
 					if (!atlasDir.exists()) {
@@ -178,7 +175,7 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 					}
 
 					final File file = new File(atlasDir.getAbsolutePath() + File.separator + StringUtils.replaceAll(id.toString(), "[_/]", "_"));
-					nativeImage.writeFile(file);
+					nativeImage.writeToFile(file);
 				} catch (final Exception e) {
 					CanvasMod.LOG.warn("Couldn't save atlas image", e);
 				} finally {
@@ -205,7 +202,7 @@ public abstract class MixinSpriteAtlasTexture extends AbstractTexture implements
 			combined.reset();
 		}
 
-		if (Configurator.disableUnseenSpriteAnimation && (SpriteAtlasTexture) (Object) this == TerrainRenderStates.SOLID.texture.atlasInfo().atlas()) {
+		if (Configurator.disableUnseenSpriteAnimation && (TextureAtlas) (Object) this == TerrainRenderStates.SOLID.texture.atlasInfo().atlas()) {
 			animationBits.clear();
 			animationBits.or(perFrameBits);
 			perFrameBits.clear();

@@ -19,9 +19,7 @@ package grondag.canvas.material.state;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-
-import net.minecraft.client.MinecraftClient;
-
+import net.minecraft.client.Minecraft;
 import grondag.canvas.material.property.BinaryMaterialState;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -232,15 +230,15 @@ public final class RenderState extends AbstractRenderState {
 		//so that we don't bind the lightmap texture to some random texture unit
 		() -> {
 			CanvasTextureState.activeTextureUnit(TextureData.MC_LIGHTMAP);
-			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().enable();
+			Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
 		},
 		() -> {
 			CanvasTextureState.activeTextureUnit(TextureData.MC_LIGHTMAP);
-			MinecraftClient.getInstance().gameRenderer.getLightmapTextureManager().disable();
+			Minecraft.getInstance().gameRenderer.lightTexture().turnOffLightLayer();
 		});
 
 	private static final BinaryMaterialState LINE_STATE = new BinaryMaterialState(
-		() -> RenderSystem.lineWidth(Math.max(2.5F, MinecraftClient.getInstance().getWindow().getFramebufferWidth() / 1920.0F * 2.5F)),
+		() -> RenderSystem.lineWidth(Math.max(2.5F, Minecraft.getInstance().getWindow().getWidth() / 1920.0F * 2.5F)),
 		() -> RenderSystem.lineWidth(1.0F));
 
 	public static void disable() {

@@ -17,35 +17,32 @@
 package grondag.canvas.mixin;
 
 import java.util.Optional;
-
+import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexFormat;
-
+import com.mojang.blaze3d.vertex.VertexFormat;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.MultiPhaseExt;
 
 @Mixin(targets = "net.minecraft.client.render.RenderLayer$MultiPhase")
-abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
+abstract class MixinMultiPhase extends RenderType implements MultiPhaseExt {
 	@Shadow
-	private Optional<RenderLayer> affectedOutline;
+	private Optional<RenderType> affectedOutline;
 	@Shadow
 	private boolean outline;
 	@Shadow
-	private RenderLayer.MultiPhaseParameters phases;
+	private RenderType.CompositeState phases;
 
 	private @Nullable RenderMaterialImpl materialState;
 
-	private MixinMultiPhase(String name, VertexFormat vertexFormat, VertexFormat.DrawMode drawMode, int expectedBufferSize, boolean hasCrumbling, boolean translucent, Runnable startAction, Runnable endAction) {
+	private MixinMultiPhase(String name, VertexFormat vertexFormat, VertexFormat.Mode drawMode, int expectedBufferSize, boolean hasCrumbling, boolean translucent, Runnable startAction, Runnable endAction) {
 		super(name, vertexFormat, drawMode, expectedBufferSize, hasCrumbling, translucent, startAction, endAction);
 	}
 
 	@Override
-	public Optional<RenderLayer> canvas_affectedOutline() {
+	public Optional<RenderType> canvas_affectedOutline() {
 		return affectedOutline;
 	}
 
@@ -78,11 +75,11 @@ abstract class MixinMultiPhase extends RenderLayer implements MultiPhaseExt {
 
 	@Override
 	public void canvas_startDrawing() {
-		super.startDrawing();
+		super.setupRenderState();
 	}
 
 	@Override
 	public void canvas_endDrawing() {
-		super.endDrawing();
+		super.clearRenderState();
 	}
 }

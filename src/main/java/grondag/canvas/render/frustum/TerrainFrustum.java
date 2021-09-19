@@ -17,19 +17,16 @@
 package grondag.canvas.render.frustum;
 
 import io.vram.frex.api.config.FlawlessFrames;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -40,12 +37,12 @@ public class TerrainFrustum extends CanvasFrustum {
 	// These are for maintaining a project matrix used by occluder.
 	// Updated every frame but not used directly by occlude because of concurrency
 	// Occluder uses a copy, below.
-	private final MatrixStack projectionStack = new MatrixStack();
-	private final MinecraftClient client = MinecraftClient.getInstance();
+	private final PoseStack projectionStack = new PoseStack();
+	private final Minecraft client = Minecraft.getInstance();
 	private final GameRenderer gr = client.gameRenderer;
 	private final GameRendererExt grx = (GameRendererExt) gr;
-	private final MatrixStack occlusionsProjStack = new MatrixStack();
-	private final Matrix4f occlusionProjMat = occlusionsProjStack.peek().getModel();
+	private final PoseStack occlusionsProjStack = new PoseStack();
+	private final Matrix4f occlusionProjMat = occlusionsProjStack.last().pose();
 	private final Matrix4fExt occlusionProjMatEx = (Matrix4fExt) (Object) occlusionProjMat;
 
 	private int viewDistanceSquared;
@@ -54,7 +51,7 @@ public class TerrainFrustum extends CanvasFrustum {
 	private double lastOcclusionPositionX = Double.MAX_VALUE;
 	private double lastOcclusionPositionY = Double.MAX_VALUE;
 	private double lastOcclusionPositionZ = Double.MAX_VALUE;
-	private Vec3d lastCameraPos = new Vec3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+	private Vec3 lastCameraPos = new Vec3(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 
 	private long lastCameraBlockPos = Long.MAX_VALUE;
 	private float lastCameraPitch = Float.MAX_VALUE;
@@ -71,7 +68,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		lastCameraBlockPos = Long.MAX_VALUE;
 		lastCameraPitch = Float.MAX_VALUE;
 		lastCameraYaw = Float.MAX_VALUE;
-		lastCameraPos = new Vec3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+		lastCameraPos = new Vec3(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 	}
 
 	/**
@@ -88,7 +85,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		return viewVersion;
 	}
 
-	public Vec3d lastCameraPos() {
+	public Vec3 lastCameraPos() {
 		return lastCameraPos;
 	}
 
@@ -169,7 +166,7 @@ public class TerrainFrustum extends CanvasFrustum {
 
 	@SuppressWarnings("resource")
 	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, boolean nearOccludersPresent) {
-		final Vec3d cameraPos = camera.getPos();
+		final Vec3 cameraPos = camera.getPosition();
 		final double x = cameraPos.x;
 		final double y = cameraPos.y;
 		final double z = cameraPos.z;
@@ -177,7 +174,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		// Ignore near occluders if they aren't occluding!
 		nearOccludersPresent &= (Configurator.enableNearOccluders && !FlawlessFrames.isActive());
 
-		final long cameraBlockPos = camera.getBlockPos().asLong();
+		final long cameraBlockPos = camera.getBlockPosition().asLong();
 		boolean movedEnoughToInvalidateOcclusion = false;
 
 		if (cameraBlockPos != lastCameraBlockPos) {
@@ -199,8 +196,8 @@ public class TerrainFrustum extends CanvasFrustum {
 		}
 
 		boolean modelMatrixUpdate = false;
-		final float cameraPitch = camera.getPitch();
-		final float cameraYaw = camera.getYaw();
+		final float cameraPitch = camera.getXRot();
+		final float cameraYaw = camera.getYRot();
 
 		// view (rotation) version changes if moved beyond the configured limit
 		// the frustum is padded elsewhere to compensate
@@ -233,12 +230,12 @@ public class TerrainFrustum extends CanvasFrustum {
 			// depends on mvpMatrix being complete
 			extractPlanes();
 
-			viewDistanceSquared = MinecraftClient.getInstance().options.viewDistance * 16;
+			viewDistanceSquared = Minecraft.getInstance().options.renderDistance * 16;
 			viewDistanceSquared *= viewDistanceSquared;
 
 			// compatibility with mods that expect vanilla frustum
-			super.setPosition(x, y, z);
-			super.init(modelMatrix, projectionMatrix);
+			super.prepare(x, y, z);
+			super.calculateFrustum(modelMatrix, projectionMatrix);
 		}
 	}
 
@@ -251,7 +248,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			fovPadding = Math.max(fovPadding, 5);
 		}
 
-		if (MathHelper.lerp(tickDelta, client.player.lastNauseaStrength, client.player.nextNauseaStrength) * client.options.distortionEffectScale * client.options.distortionEffectScale > 0) {
+		if (Mth.lerp(tickDelta, client.player.oPortalTime, client.player.portalTime) * client.options.screenEffectScale * client.options.screenEffectScale > 0) {
 			fovPadding = Math.max(fovPadding, 20);
 		}
 
@@ -260,7 +257,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		if (client.getCameraEntity() instanceof LivingEntity) {
 			final LivingEntity livingEntity = (LivingEntity) client.getCameraEntity();
 
-			if (livingEntity.isDead()) {
+			if (livingEntity.isDeadOrDying()) {
 				doDeadRotation = true;
 			} else if (livingEntity.hurtTime - tickDelta > 0) {
 				fovPadding = Math.max(fovPadding, 20);
@@ -275,7 +272,7 @@ public class TerrainFrustum extends CanvasFrustum {
 	}
 
 	private void computeProjectionMatrix(Camera camera, float tickDelta, double padding) {
-		occlusionProjMat.loadIdentity();
+		occlusionProjMat.setIdentity();
 
 		if (grx.canvas_zoom() != 1.0F) {
 			final float zoom = grx.canvas_zoom();
@@ -284,7 +281,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		}
 
 		// PERF: WHY 4X ON FAR CLIPPING PLANE MOJANG?
-		occlusionProjMat.multiply(Matrix4f.viewboxMatrix(fov + padding, client.getWindow().getFramebufferWidth() / (float) client.getWindow().getFramebufferHeight(), 0.05F, gr.getViewDistance() * 4.0F));
+		occlusionProjMat.multiply(Matrix4f.perspective(fov + padding, client.getWindow().getWidth() / (float) client.getWindow().getHeight(), 0.05F, gr.getRenderDistance() * 4.0F));
 	}
 
 	public final RegionVisibilityTest visibilityTest = p -> {

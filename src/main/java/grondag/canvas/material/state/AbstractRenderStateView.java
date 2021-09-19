@@ -17,9 +17,7 @@
 package grondag.canvas.material.state;
 
 import io.vram.frex.api.material.MaterialConstants;
-
-import net.minecraft.client.texture.SpriteAtlasTexture;
-
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -234,7 +232,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = CULL.setValue(true, defaultBits);
 		defaultBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, defaultBits);
 		defaultBits = ENABLE_GLINT.setValue(false, defaultBits);
-		defaultBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, defaultBits);
+		defaultBits = TEXTURE.setValue(MaterialTextureState.fromId(TextureAtlas.LOCATION_BLOCKS).index, defaultBits);
 		defaultBits = TARGET.setValue(MaterialConstants.TARGET_MAIN, defaultBits);
 		defaultBits = WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);
@@ -245,7 +243,7 @@ abstract class AbstractRenderStateView {
 		DEFAULT_BITS = defaultBits;
 
 		long translucentBits = PRESET.setValue(MaterialConstants.PRESET_NONE, 0);
-		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
+		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
 		translucentBits = BLUR.setValue(false, translucentBits);
 		translucentBits = TRANSPARENCY.setValue(MaterialConstants.TRANSPARENCY_TRANSLUCENT, translucentBits);
 		translucentBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, translucentBits);
@@ -263,7 +261,7 @@ abstract class AbstractRenderStateView {
 
 		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & COLLECTOR_AND_STATE_MASK;
 
-		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).index, translucentBits);
+		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialConstants.TARGET_ENTITIES, translucentBits);
 
 		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));

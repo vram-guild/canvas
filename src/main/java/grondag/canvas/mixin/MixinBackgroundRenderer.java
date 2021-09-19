@@ -21,11 +21,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import net.minecraft.client.render.BackgroundRenderer;
+import net.minecraft.client.renderer.FogRenderer;
 
 import grondag.canvas.shader.data.ShaderDataManager;
 
-@Mixin(BackgroundRenderer.class)
+@Mixin(FogRenderer.class)
 public class MixinBackgroundRenderer {
 	@Redirect(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clearColor(FFFF)V"), require = 1)
 	private static void onClearColor(float r, float g, float b, float a) {

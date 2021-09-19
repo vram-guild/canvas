@@ -18,13 +18,10 @@ package grondag.canvas.terrain.region;
 
 import java.util.Iterator;
 import java.util.Set;
-
+import net.minecraft.Util;
 import com.google.common.collect.Sets;
 import io.vram.frex.api.config.FlawlessFrames;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-
-import net.minecraft.util.Util;
-
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 /**
@@ -171,7 +168,7 @@ public class RegionRebuildManager {
 				//					break;
 				//				}
 
-				if (!flawless && Util.getMeasuringTimeNano() >= endNanos) {
+				if (!flawless && Util.getNanos() >= endNanos) {
 					break;
 				}
 			}

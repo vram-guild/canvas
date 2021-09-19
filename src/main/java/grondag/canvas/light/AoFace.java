@@ -18,19 +18,17 @@ package grondag.canvas.light;
 
 import static grondag.canvas.light.AoVertexClampFunction.clamp;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.signedXyzOffset5;
-import static net.minecraft.util.math.Direction.DOWN;
-import static net.minecraft.util.math.Direction.EAST;
-import static net.minecraft.util.math.Direction.NORTH;
-import static net.minecraft.util.math.Direction.SOUTH;
-import static net.minecraft.util.math.Direction.UP;
-import static net.minecraft.util.math.Direction.WEST;
-
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3i;
+import static net.minecraft.core.Direction.DOWN;
+import static net.minecraft.core.Direction.EAST;
+import static net.minecraft.core.Direction.NORTH;
+import static net.minecraft.core.Direction.SOUTH;
+import static net.minecraft.core.Direction.UP;
+import static net.minecraft.core.Direction.WEST;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 
 /**
@@ -135,10 +133,10 @@ enum AoFace {
 		neighbors[2] = left.ordinal();
 		neighbors[3] = right.ordinal();
 
-		final Vec3i bottomVec = bottom.getVector();
-		final Vec3i leftVec = left.getVector();
-		final Vec3i topVec = top.getVector();
-		final Vec3i rightVec = right.getVector();
+		final Vec3i bottomVec = bottom.getNormal();
+		final Vec3i leftVec = left.getNormal();
+		final Vec3i topVec = top.getNormal();
+		final Vec3i rightVec = right.getNormal();
 
 		bottomOffset = signedXyzOffset5(bottomVec);
 		leftOffset = signedXyzOffset5(leftVec);
@@ -158,12 +156,12 @@ enum AoFace {
 
 	private static AoFace[] createValues() {
 		final AoFace[] result = new AoFace[6];
-		result[DOWN.getId()] = AOF_DOWN;
-		result[UP.getId()] = AOF_UP;
-		result[NORTH.getId()] = AOF_NORTH;
-		result[SOUTH.getId()] = AOF_SOUTH;
-		result[WEST.getId()] = AOF_WEST;
-		result[EAST.getId()] = AOF_EAST;
+		result[DOWN.get3DDataValue()] = AOF_DOWN;
+		result[UP.get3DDataValue()] = AOF_UP;
+		result[NORTH.get3DDataValue()] = AOF_NORTH;
+		result[SOUTH.get3DDataValue()] = AOF_SOUTH;
+		result[WEST.get3DDataValue()] = AOF_WEST;
+		result[EAST.get3DDataValue()] = AOF_EAST;
 		return result;
 	}
 

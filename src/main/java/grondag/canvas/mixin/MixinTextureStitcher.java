@@ -18,7 +18,9 @@ package grondag.canvas.mixin;
 
 import java.util.Comparator;
 import java.util.List;
-
+import net.minecraft.client.renderer.texture.Stitcher;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.Mth;
 import com.google.common.collect.Lists;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,17 +29,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.TextureStitcher;
-import net.minecraft.util.math.MathHelper;
-
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.AnimationResourceMetadataExt;
 
-@Mixin(TextureStitcher.class)
+@Mixin(Stitcher.class)
 public class MixinTextureStitcher {
-	@Shadow private List<TextureStitcher.Slot> slots = Lists.newArrayListWithCapacity(256);
+	@Shadow private List<Stitcher.Region> slots = Lists.newArrayListWithCapacity(256);
 	@Shadow private int width;
 	@Shadow private int height;
 	@Shadow private int maxWidth;
@@ -53,18 +50,18 @@ public class MixinTextureStitcher {
 	/**
 	 * Cause animated sprites to be stiched first so we can upload them in one call per LOD.
 	 */
-	private static final Comparator<TextureStitcher.Holder> ANIMATION_COMPARATOR = Comparator.comparing((TextureStitcher.Holder holder) -> {
-		return ((AnimationResourceMetadataExt) holder.sprite.animationData).canvas_willAnimate(holder.width, holder.height) ? -1 : 1;
+	private static final Comparator<Stitcher.Holder> ANIMATION_COMPARATOR = Comparator.comparing((Stitcher.Holder holder) -> {
+		return ((AnimationResourceMetadataExt) holder.spriteInfo.metadata).canvas_willAnimate(holder.width, holder.height) ? -1 : 1;
 	}).thenComparing((holder) -> {
 		return -holder.height;
 	}).thenComparing((holder) -> {
 		return -holder.width;
 	}).thenComparing((holder) -> {
-		return holder.sprite.getId();
+		return holder.spriteInfo.name();
 	});
 
 	@ModifyArg(method = "stitch", at = @At(value = "INVOKE", target = "Ljava/util/List;sort(Ljava/util/Comparator;)V"), index = 0)
-	private Comparator<TextureStitcher.Holder> onSort(Comparator<TextureStitcher.Holder> var) {
+	private Comparator<Stitcher.Holder> onSort(Comparator<Stitcher.Holder> var) {
 		return Configurator.groupAnimatedSprites ? ANIMATION_COMPARATOR : var;
 	}
 
@@ -72,9 +69,9 @@ public class MixinTextureStitcher {
 	 * Capture largest sprite size.
 	 */
 	@Inject(at = @At("HEAD"), method = "add")
-	private void onAdd(Sprite.Info info, CallbackInfo ci) {
-		maxHolderWidth = Math.max(maxHolderWidth, applyMipLevel(info.getWidth(), mipLevel));
-		maxHolderHeight = Math.max(maxHolderHeight, applyMipLevel(info.getHeight(), mipLevel));
+	private void onAdd(TextureAtlasSprite.Info info, CallbackInfo ci) {
+		maxHolderWidth = Math.max(maxHolderWidth, applyMipLevel(info.width(), mipLevel));
+		maxHolderHeight = Math.max(maxHolderHeight, applyMipLevel(info.height(), mipLevel));
 	}
 
 	/**
@@ -83,16 +80,16 @@ public class MixinTextureStitcher {
 	 * original design.
 	 */
 	@Inject(at = @At("HEAD"), method = "growAndFit", cancellable = true)
-	private void onGrowAndFit(TextureStitcher.Holder holder, CallbackInfoReturnable<Boolean> ci) {
-		final boolean animated = Configurator.groupAnimatedSprites && ((AnimationResourceMetadataExt) holder.sprite.animationData).canvas_willAnimate(holder.width, holder.height);
+	private void onGrowAndFit(Stitcher.Holder holder, CallbackInfoReturnable<Boolean> ci) {
+		final boolean animated = Configurator.groupAnimatedSprites && ((AnimationResourceMetadataExt) holder.spriteInfo.metadata).canvas_willAnimate(holder.width, holder.height);
 
 		if (animated) {
 			final int slotWidth = animated ? maxHolderWidth : holder.width;
 			final int slotHeight = animated ? maxHolderHeight : holder.height;
-			final int curEffectiveWidth = MathHelper.smallestEncompassingPowerOfTwo(width);
-			final int curEffectiveHeight = MathHelper.smallestEncompassingPowerOfTwo(height);
-			final int newEffectiveWidth = MathHelper.smallestEncompassingPowerOfTwo(width + slotWidth);
-			final int newEffectiveHeight = MathHelper.smallestEncompassingPowerOfTwo(height + slotHeight);
+			final int curEffectiveWidth = Mth.smallestEncompassingPowerOfTwo(width);
+			final int curEffectiveHeight = Mth.smallestEncompassingPowerOfTwo(height);
+			final int newEffectiveWidth = Mth.smallestEncompassingPowerOfTwo(width + slotWidth);
+			final int newEffectiveHeight = Mth.smallestEncompassingPowerOfTwo(height + slotHeight);
 			final boolean canFitWidth = newEffectiveWidth <= maxWidth;
 			final boolean canFitHeight = newEffectiveHeight <= maxHeight;
 
@@ -109,21 +106,21 @@ public class MixinTextureStitcher {
 					addWidth = canFitWidth && curEffectiveWidth <= curEffectiveHeight;
 				}
 
-				final TextureStitcher.Slot slot;
+				final Stitcher.Region slot;
 
 				if (addWidth) {
 					if (this.height == 0) {
 						this.height = slotHeight;
 					}
 
-					slot = new TextureStitcher.Slot(this.width, 0, slotWidth, this.height);
+					slot = new Stitcher.Region(this.width, 0, slotWidth, this.height);
 					this.width += slotWidth;
 				} else {
-					slot = new TextureStitcher.Slot(0, this.height, this.width, slotHeight);
+					slot = new Stitcher.Region(0, this.height, this.width, slotHeight);
 					this.height += slotHeight;
 				}
 
-				slot.fit(holder);
+				slot.add(holder);
 				slots.add(slot);
 
 				ci.setReturnValue(true);

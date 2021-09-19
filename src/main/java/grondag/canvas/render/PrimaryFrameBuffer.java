@@ -16,43 +16,42 @@
 
 package grondag.canvas.render;
 
+import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-
-import net.minecraft.client.gl.WindowFramebuffer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.PipelineManager;
 
-public class PrimaryFrameBuffer extends WindowFramebuffer {
+public class PrimaryFrameBuffer extends MainTarget {
 	public PrimaryFrameBuffer(int width, int height) {
 		super(width, height);
 	}
 
 	@Override
-	public void delete() {
+	public void destroyBuffers() {
 		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
-		endRead();
-		endWrite();
+		unbindRead();
+		unbindWrite();
 
 		//NB: pipeline manager handles close
 	}
 
 	@Override
-	public void initFbo(int width, int height, boolean getError) {
+	public void createBuffers(int width, int height, boolean getError) {
 		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
-		viewportWidth = width;
-		viewportHeight = height;
-		textureWidth = width;
-		textureHeight = height;
+		viewWidth = width;
+		viewHeight = height;
+		this.width = width;
+		this.height = height;
 
 		// UGLY - throwing away what seems to be a spurious INVALID_VALUE error here
 		GlStateManager._getError();
 
 		PipelineManager.init(this, width, height);
 
-		checkFramebufferStatus();
-		endRead();
+		checkStatus();
+		unbindRead();
 	}
 
 	private int clearCount = 0;

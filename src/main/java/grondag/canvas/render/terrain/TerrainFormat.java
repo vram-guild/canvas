@@ -33,12 +33,10 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_TEX_2US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_1US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.NORMAL_TANGENT_4B;
 
+import com.mojang.blaze3d.vertex.VertexFormatElement;
 import io.vram.frex.api.material.MaterialConstants;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexFormatElement;
-import net.minecraft.util.math.MathHelper;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormatElement;
 import grondag.canvas.buffer.format.QuadEncoder;
@@ -49,10 +47,10 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 public class TerrainFormat {
 	private TerrainFormat() { }
 
-	private static final CanvasVertexFormatElement REGION = new CanvasVertexFormatElement(VertexFormatElement.DataType.USHORT, 4, "in_region", false, true);
-	private static final CanvasVertexFormatElement BLOCK_POS_AO = new CanvasVertexFormatElement(VertexFormatElement.DataType.UBYTE, 4, "in_blockpos_ao", false, true);
+	private static final CanvasVertexFormatElement REGION = new CanvasVertexFormatElement(VertexFormatElement.Type.USHORT, 4, "in_region", false, true);
+	private static final CanvasVertexFormatElement BLOCK_POS_AO = new CanvasVertexFormatElement(VertexFormatElement.Type.UBYTE, 4, "in_blockpos_ao", false, true);
 	private static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap", false, true);
+			VertexFormatElement.Type.UBYTE, 2, "in_lightmap", false, true);
 
 	// Would be nice to make this smaller but with less precision in position we start
 	// to see Z-fighting on iron bars, fire, etc. Iron bars require a resolution of 1/16000.
@@ -72,9 +70,9 @@ public class TerrainFormat {
 
 		final int overlay = context.overlay();
 
-		quad.overlay(overlay);
+		quad.overlayCoords(overlay);
 
-		final boolean aoDisabled = !MinecraftClient.isAmbientOcclusionEnabled();
+		final boolean aoDisabled = !Minecraft.useAmbientOcclusion();
 		final float[] aoData = quad.ao;
 		final RenderMaterialImpl mat = quad.material();
 
@@ -141,9 +139,9 @@ public class TerrainFormat {
 			final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
 			final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
 
-			int xInt = MathHelper.floor(xOut);
-			int yInt = MathHelper.floor(yOut);
-			int zInt = MathHelper.floor(zOut);
+			int xInt = Mth.floor(xOut);
+			int yInt = Mth.floor(yOut);
+			int zInt = Mth.floor(zOut);
 
 			final int xFract = Math.round((xOut - xInt) * 0xFFFF);
 			final int yFract = Math.round((yOut - yInt) * 0xFFFF);

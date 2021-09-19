@@ -17,7 +17,10 @@
 package grondag.canvas.pipeline.config;
 
 import java.io.IOException;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.api.SyntaxError;
@@ -25,12 +28,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.option.OptionConfig;
@@ -172,35 +169,35 @@ public class PipelineConfigBuilder {
 		return valid;
 	}
 
-	private static @Nullable PipelineConfigBuilder load(Identifier id) {
-		final ResourceManager rm = MinecraftClient.getInstance().getResourceManager();
+	private static @Nullable PipelineConfigBuilder load(ResourceLocation id) {
+		final ResourceManager rm = Minecraft.getInstance().getResourceManager();
 
 		if (!PipelineLoader.areResourcesAvailable() || rm == null) {
 			return null;
 		}
 
 		final PipelineConfigBuilder result = new PipelineConfigBuilder();
-		final ObjectOpenHashSet<Identifier> included = new ObjectOpenHashSet<>();
-		final ObjectArrayFIFOQueue<Identifier> queue = new ObjectArrayFIFOQueue<>();
+		final ObjectOpenHashSet<ResourceLocation> included = new ObjectOpenHashSet<>();
+		final ObjectArrayFIFOQueue<ResourceLocation> queue = new ObjectArrayFIFOQueue<>();
 
 		queue.enqueue(id);
 		included.add(id);
 
 		while (!queue.isEmpty()) {
-			Identifier target = queue.dequeue();
+			ResourceLocation target = queue.dequeue();
 
 			// Allow flexibility on JSON vs JSON5 extensions
-			if (!rm.containsResource(target)) {
+			if (!rm.hasResource(target)) {
 				if (target.getPath().endsWith("json5")) {
-					final var candidate = new Identifier(target.getNamespace(), target.getPath().substring(0, target.getPath().length() - 1));
+					final var candidate = new ResourceLocation(target.getNamespace(), target.getPath().substring(0, target.getPath().length() - 1));
 
-					if (rm.containsResource(candidate)) {
+					if (rm.hasResource(candidate)) {
 						target = candidate;
 					}
 				} else if (target.getPath().endsWith("json")) {
-					final var candidate = new Identifier(target.getNamespace(), target.getPath() + "5");
+					final var candidate = new ResourceLocation(target.getNamespace(), target.getPath() + "5");
 
-					if (rm.containsResource(candidate)) {
+					if (rm.hasResource(candidate)) {
 						target = candidate;
 					}
 				}
@@ -225,7 +222,7 @@ public class PipelineConfigBuilder {
 		}
 	}
 
-	private static void getIncludes(JsonObject configJson, ObjectOpenHashSet<Identifier> included, ObjectArrayFIFOQueue<Identifier> queue) {
+	private static void getIncludes(JsonObject configJson, ObjectOpenHashSet<ResourceLocation> included, ObjectArrayFIFOQueue<ResourceLocation> queue) {
 		if (configJson == null || !configJson.containsKey("include")) {
 			return;
 		}
@@ -237,7 +234,7 @@ public class PipelineConfigBuilder {
 			final String idString = JanksonHelper.asString(array.get(i));
 
 			if (idString != null && !idString.isEmpty()) {
-				final Identifier id = new Identifier(idString);
+				final ResourceLocation id = new ResourceLocation(idString);
 
 				if (included.add(id)) {
 					queue.enqueue(id);
@@ -246,7 +243,7 @@ public class PipelineConfigBuilder {
 		}
 	}
 
-	public static PipelineConfig build(Identifier identifier) {
+	public static PipelineConfig build(ResourceLocation identifier) {
 		final PipelineConfigBuilder builder = load(identifier);
 		return builder == null ? PipelineConfig.minimalConfig() : new PipelineConfig(builder);
 	}

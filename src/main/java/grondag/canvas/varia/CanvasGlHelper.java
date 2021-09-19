@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -61,7 +61,7 @@ public class CanvasGlHelper {
 
 	private static void logMachineInfo(GLCapabilities caps) {
 		final Logger log = CanvasMod.LOG;
-		final MinecraftClient client = MinecraftClient.getInstance();
+		final Minecraft client = Minecraft.getInstance();
 
 		log.info("==================  CANVAS RENDERER DEBUG INFORMATION ==================");
 		log.info(String.format(" Java: %s %dbit   Canvas: %s", System.getProperty("java.version"), client.is64Bit() ? 64 : 32, CanvasMod.versionString));

@@ -22,9 +22,7 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-
-import net.minecraft.text.TranslatableText;
-
+import net.minecraft.network.chat.TranslatableComponent;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
@@ -46,13 +44,13 @@ public class IntConfigEntry extends OptionConfigEntry<IntConfigEntry> {
 	@Override
 	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
 		if (max - min <= 50) {
-			return builder.startIntSlider(new TranslatableText(nameKey), value, min, max)
+			return builder.startIntSlider(new TranslatableComponent(nameKey), value, min, max)
 					.setDefaultValue(defaultVal)
 					.setTooltip(ConfigManager.parse(descriptionKey))
 					.setSaveConsumer(v -> value = v)
 					.build();
 		} else {
-			return builder.startIntField(new TranslatableText(nameKey), value)
+			return builder.startIntField(new TranslatableComponent(nameKey), value)
 					.setMin(min)
 					.setMax(max)
 					.setDefaultValue(defaultVal)

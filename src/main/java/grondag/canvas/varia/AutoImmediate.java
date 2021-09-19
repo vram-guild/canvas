@@ -16,13 +16,13 @@
 
 package grondag.canvas.varia;
 
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider.Immediate;
+import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+import net.minecraft.client.renderer.RenderType;
 
 import grondag.canvas.mixinterface.BufferBuilderExt;
 
@@ -30,75 +30,75 @@ import grondag.canvas.mixinterface.BufferBuilderExt;
  * Meant primarily for text rendering, creates an Immediate vertex consumer
  * that automatically adds render layers as needed to avoid intermediate draw calls.
  */
-public class AutoImmediate extends Immediate {
+public class AutoImmediate extends BufferSource {
 	public AutoImmediate() {
 		super(null, new Object2ObjectOpenHashMap<>());
 	}
 
 	@Override
-	public VertexConsumer getBuffer(RenderLayer renderLayer) {
-		BufferBuilder builder = layerBuffers.get(renderLayer);
+	public VertexConsumer getBuffer(RenderType renderLayer) {
+		BufferBuilder builder = fixedBuffers.get(renderLayer);
 
 		if (builder == null) {
-			builder = new BufferBuilder(renderLayer.getExpectedBufferSize());
+			builder = new BufferBuilder(renderLayer.bufferSize());
 			((BufferBuilderExt) builder).canvas_enableRepeatableDraw(true);
-			layerBuffers.put(renderLayer, builder);
+			fixedBuffers.put(renderLayer, builder);
 		}
 
-		if (activeConsumers.add(builder)) {
-			builder.begin(renderLayer.getDrawMode(), renderLayer.getVertexFormat());
+		if (startedBuffers.add(builder)) {
+			builder.begin(renderLayer.mode(), renderLayer.format());
 		}
 
 		return builder;
 	}
 
 	@Override
-	public void drawCurrentLayer() {
+	public void endLastBatch() {
 		// NOOP because we will never use fallback layer
 	}
 
 	@Override
-	public void draw() {
+	public void endBatch() {
 		drawRepeatable();
 		clear();
 	}
 
 	@Override
-	public void draw(RenderLayer renderLayer) {
+	public void endBatch(RenderType renderLayer) {
 		assert false : "Vanilla draw method not expected on AutoImmediate";
 
-		BufferBuilder builder = layerBuffers.get(renderLayer);
+		final BufferBuilder builder = fixedBuffers.get(renderLayer);
 
-		if (builder != null && activeConsumers.remove(builder)) {
-			renderLayer.draw(builder, 0, 0, 0);
+		if (builder != null && startedBuffers.remove(builder)) {
+			renderLayer.end(builder, 0, 0, 0);
 		}
 	}
 
 	public void drawRepeatable() {
-		for (var layer : layerBuffers.keySet()) {
+		for (final var layer : fixedBuffers.keySet()) {
 			drawRepeatable(layer);
 		}
 	}
 
-	private void drawRepeatable(RenderLayer renderLayer) {
-		BufferBuilder builder = layerBuffers.get(renderLayer);
+	private void drawRepeatable(RenderType renderLayer) {
+		final BufferBuilder builder = fixedBuffers.get(renderLayer);
 
-		if (builder != null && activeConsumers.contains(builder)) {
-			if (builder.isBuilding()) {
+		if (builder != null && startedBuffers.contains(builder)) {
+			if (builder.building()) {
 				builder.end();
 			}
 
-			renderLayer.startDrawing();
-			BufferRenderer.draw(builder);
-			renderLayer.endDrawing();
+			renderLayer.setupRenderState();
+			BufferUploader.end(builder);
+			renderLayer.clearRenderState();
 		}
 	}
 
 	public void clear() {
-		for (var buffer : activeConsumers) {
-			buffer.reset();
+		for (final var buffer : startedBuffers) {
+			buffer.discard();
 		}
 
-		activeConsumers.clear();
+		startedBuffers.clear();
 	}
 }

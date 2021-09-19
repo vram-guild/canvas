@@ -17,12 +17,9 @@
 package grondag.canvas.terrain.occlusion.shadow;
 
 import java.util.Arrays;
-
+import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3f;
-
+import com.mojang.math.Vector3f;
 import grondag.canvas.terrain.occlusion.base.PotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
@@ -146,8 +143,8 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 	private DistanceRankFunction distanceRankFunction = RANK_XYZ;
 
-	public void setLightVectorAndRestart(Vec3f vec) {
-		setLightVectorAndRestart(vec.getX(), vec.getY(), vec.getZ());
+	public void setLightVectorAndRestart(Vector3f vec) {
+		setLightVectorAndRestart(vec.x(), vec.y(), vec.z());
 	}
 
 	/**

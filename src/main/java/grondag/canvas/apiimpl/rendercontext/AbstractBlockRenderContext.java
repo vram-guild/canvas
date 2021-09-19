@@ -20,23 +20,21 @@ import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.Random;
 import java.util.function.Supplier;
 
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockRenderView;
-
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
@@ -45,21 +43,21 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.mixinterface.RenderLayerExt;
 
-public abstract class AbstractBlockRenderContext<T extends BlockRenderView> extends AbstractRenderContext {
+public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> extends AbstractRenderContext {
 	/**
 	 * For use by chunk builder - avoids another threadlocal.
 	 */
-	public final BlockPos.Mutable searchPos = new BlockPos.Mutable();
+	public final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 	public final Random random = new Random();
 
 	/**
 	 * For internal use.
 	 */
-	protected final BlockPos.Mutable internalSearchPos = new BlockPos.Mutable();
+	protected final BlockPos.MutableBlockPos internalSearchPos = new BlockPos.MutableBlockPos();
 
 	@Nullable protected VertexConsumer defaultConsumer;
 
-	private final BlockColors blockColorMap = MinecraftClient.getInstance().getBlockColors();
+	private final BlockColors blockColorMap = Minecraft.getInstance().getBlockColors();
 	public T region;
 	public BlockPos blockPos;
 	public BlockState blockState;
@@ -74,7 +72,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 			long seed = this.seed;
 
 			if (seed == -1L) {
-				seed = blockState.getRenderingSeed(blockPos);
+				seed = blockState.getSeed(blockPos);
 				this.seed = seed;
 			}
 
@@ -105,12 +103,12 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		needsRandomRefresh = true;
 		fullCubeCache = 0;
 		this.seed = seed;
-		defaultAo = modelAO && MinecraftClient.isAmbientOcclusionEnabled() && blockState.getLuminance() == 0;
+		defaultAo = modelAO && Minecraft.useAmbientOcclusion() && blockState.getLightEmission() == 0;
 
 		// FEAT: support additional blend modes on terrain blocks?
 		defaultBlendMode = isFluidModel
-			? ((RenderLayerExt) RenderLayers.getFluidLayer(blockState.getFluidState())).canvas_preset()
-			: ((RenderLayerExt) RenderLayers.getBlockLayer(blockState)).canvas_preset();
+			? ((RenderLayerExt) ItemBlockRenderTypes.getRenderLayer(blockState.getFluidState())).canvas_preset()
+			: ((RenderLayerExt) ItemBlockRenderTypes.getChunkRenderType(blockState)).canvas_preset();
 	}
 
 	@Override
@@ -129,7 +127,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 
 	public boolean isFullCube() {
 		if (fullCubeCache == 0) {
-			fullCubeCache = Block.isShapeFullCube(blockState.getCollisionShape(region, blockPos)) ? 1 : -1;
+			fullCubeCache = Block.isShapeFullBlock(blockState.getCollisionShape(region, blockPos)) ? 1 : -1;
 		}
 
 		return fullCubeCache == 1;
@@ -156,7 +154,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 		 * Handles geometry-based check for using self brightness or neighbor brightness.
 		 * That logic only applies in flat lighting.
 		 */
-		if (blockState.hasEmissiveLighting(region, blockPos)) {
+		if (blockState.emissiveRendering(region, blockPos)) {
 			return MeshEncodingHelper.FULL_BRIGHTNESS;
 		}
 
@@ -196,7 +194,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockRenderView> exte
 	}
 
 	@Override
-	public MatrixStack matrixStack() {
+	public PoseStack matrixStack() {
 		// WIP implement
 		return null;
 	}

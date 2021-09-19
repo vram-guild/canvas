@@ -23,26 +23,26 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.FluidModel;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.block.entity.BlockEntityRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.Vec3;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -129,12 +129,12 @@ public class RenderRegion implements TerrainExecutorTask {
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
-		final BlockEntityRenderer<E> blockEntityRenderer = MinecraftClient.getInstance().getBlockEntityRenderDispatcher().get(blockEntity);
+		final BlockEntityRenderer<E> blockEntityRenderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(blockEntity);
 
 		if (blockEntityRenderer != null) {
 			chunkEntities.add(blockEntity);
 
-			if (blockEntityRenderer.rendersOutsideBoundingBox(blockEntity)) {
+			if (blockEntityRenderer.shouldRenderOffScreen(blockEntity)) {
 				globalEntities.add(blockEntity);
 			}
 		}
@@ -405,18 +405,18 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		final VertexCollectorList collectors = context.collectors;
 
-		final BlockPos.Mutable searchPos = context.searchPos;
+		final BlockPos.MutableBlockPos searchPos = context.searchPos;
 		final int xOrigin = origin.getX();
 		final int yOrigin = origin.getY();
 		final int zOrigin = origin.getZ();
 
 		final InputRegion region = context.region;
-		final MatrixStack matrixStack = new MatrixStack();
-		final MatrixStack.Entry entry = matrixStack.peek();
-		final Matrix4f modelMatrix = entry.getModel();
-		final Matrix3f normalMatrix = entry.getNormal();
+		final PoseStack matrixStack = new PoseStack();
+		final PoseStack.Pose entry = matrixStack.last();
+		final Matrix4f modelMatrix = entry.pose();
+		final Matrix3f normalMatrix = entry.normal();
 
-		final BlockRenderManager blockRenderManager = MinecraftClient.getInstance().getBlockRenderManager();
+		final BlockRenderDispatcher blockRenderManager = Minecraft.getInstance().getBlockRenderer();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
 
 		for (int i = 0; i < RenderRegionStateIndexer.INTERIOR_STATE_COUNT; i++) {
@@ -429,29 +429,29 @@ public class RenderRegion implements TerrainExecutorTask {
 				searchPos.set(xOrigin + x, yOrigin + y, zOrigin + z);
 
 				final boolean hasFluid = !fluidState.isEmpty();
-				final boolean hasBlock = blockState.getRenderType() != BlockRenderType.INVISIBLE;
+				final boolean hasBlock = blockState.getRenderShape() != RenderShape.INVISIBLE;
 
 				if (hasFluid || hasBlock) {
 					// Vanilla does a push/pop for each block but that creates needless allocation spam.
-					modelMatrix.loadIdentity();
-					modelMatrix.multiplyByTranslation(x, y, z);
+					modelMatrix.setIdentity();
+					modelMatrix.multiplyWithTranslation(x, y, z);
 
-					normalMatrix.loadIdentity();
+					normalMatrix.setIdentity();
 
 					if (hasFluid) {
-						context.renderFluid(blockState, searchPos, false, FluidModel.get(fluidState.getFluid()), matrixStack);
+						context.renderFluid(blockState, searchPos, false, FluidModel.get(fluidState.getType()), matrixStack);
 					}
 
 					if (hasBlock) {
 						if (blockState.getBlock().getOffsetType() != Block.OffsetType.NONE) {
-							final Vec3d vec3d = blockState.getModelOffset(region, searchPos);
+							final Vec3 vec3d = blockState.getOffset(region, searchPos);
 
-							if (vec3d != Vec3d.ZERO) {
-								modelMatrix.multiplyByTranslation((float) vec3d.x, (float) vec3d.y, (float) vec3d.z);
+							if (vec3d != Vec3.ZERO) {
+								modelMatrix.multiplyWithTranslation((float) vec3d.x, (float) vec3d.y, (float) vec3d.z);
 							}
 						}
 
-						final BakedModel model = blockRenderManager.getModel(blockState);
+						final BakedModel model = blockRenderManager.getBlockModel(blockState);
 						context.renderBlock(blockState, searchPos, model.useAmbientOcclusion(), (BlockModel) model, matrixStack);
 					}
 				}

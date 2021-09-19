@@ -19,25 +19,23 @@ package grondag.canvas.mixin;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.WorldChunk;
-
 import grondag.canvas.mixinterface.WorldChunkExt;
 import grondag.canvas.terrain.util.ChunkColorCache;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
 
-@Mixin(WorldChunk.class)
+@Mixin(LevelChunk.class)
 public class MixinWorldChunk implements WorldChunkExt {
 	private @Nullable ChunkColorCache colorCache;
-	@Shadow private World world;
+	@Shadow private Level world;
 
 	@Override
 	public ChunkColorCache canvas_colorCache() {
 		ChunkColorCache result = colorCache;
 
 		if (result == null || result.isInvalid()) {
-			result = new ChunkColorCache((ClientWorld) world, (WorldChunk) (Object) this);
+			result = new ChunkColorCache((ClientLevel) world, (LevelChunk) (Object) this);
 			colorCache = result;
 		}
 

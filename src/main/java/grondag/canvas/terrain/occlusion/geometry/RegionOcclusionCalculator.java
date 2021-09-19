@@ -24,11 +24,9 @@ import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
@@ -111,7 +109,7 @@ public abstract class RegionOcclusionCalculator {
 	private void captureInteriorVisibility(int regionIndex) {
 		final BlockState blockState = blockStateAtIndex(regionIndex);
 
-		if (blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) {
+		if (blockState.getRenderShape() != RenderShape.INVISIBLE || !blockState.getFluidState().isEmpty()) {
 			final boolean closed = closedAtRelativePos(blockState, regionIndex) || (Configurator.renderWhiteGlassAsOccluder && blockState.getBlock() == Blocks.WHITE_STAINED_GLASS);
 			setVisibility(regionIndex, true, closed);
 		}
@@ -232,7 +230,7 @@ public abstract class RegionOcclusionCalculator {
 	private void captureExteriorVisibility(int regionIndex) {
 		final BlockState blockState = blockStateAtIndex(regionIndex);
 
-		if ((blockState.getRenderType() != BlockRenderType.INVISIBLE || !blockState.getFluidState().isEmpty()) && closedAtRelativePos(blockState, regionIndex)) {
+		if ((blockState.getRenderShape() != RenderShape.INVISIBLE || !blockState.getFluidState().isEmpty()) && closedAtRelativePos(blockState, regionIndex)) {
 			setVisibility(regionIndex, false, true);
 		}
 	}

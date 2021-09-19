@@ -17,13 +17,10 @@
 package grondag.canvas.terrain.region;
 
 import java.util.function.Consumer;
-
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
@@ -39,9 +36,9 @@ public class NeighborRegions {
 	NeighborRegions(RenderRegion owner) {
 		this.owner = owner;
 		BlockPos origin = owner.origin;
-		ClientWorld world = owner.worldRenderState.getWorld();
-		isBottom = origin.getY() == world.getBottomY();
-		isTop = origin.getY() == world.getTopY() - 16;
+		ClientLevel world = owner.worldRenderState.getWorld();
+		isBottom = origin.getY() == world.getMinBuildHeight();
+		isTop = origin.getY() == world.getMaxBuildHeight() - 16;
 	}
 
 	void close() {
@@ -80,7 +77,7 @@ public class NeighborRegions {
 
 			final Direction face = ModelHelper.faceFromIndex(faceIndex);
 			BlockPos origin = owner.origin;
-			region = owner.storage.getOrCreateRegion(origin.getX() + face.getOffsetX() * 16, origin.getY() + face.getOffsetY() * 16, origin.getZ() + face.getOffsetZ() * 16);
+			region = owner.storage.getOrCreateRegion(origin.getX() + face.getStepX() * 16, origin.getY() + face.getStepY() * 16, origin.getZ() + face.getStepZ() * 16);
 			neighbors[faceIndex] = region;
 			region.neighbors.attachOrConfirmVisitingNeighbor(BlockPosHelper.oppositeFaceIndex(faceIndex), owner);
 		}

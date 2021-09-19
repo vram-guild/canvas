@@ -16,8 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
 
 public interface GameRendererExt {
 	float canvas_zoom();
@@ -28,9 +28,9 @@ public interface GameRendererExt {
 
 	double canvas_getFov(Camera camera, float tickDelta, boolean changingFov);
 
-	void canvas_bobViewWhenHurt(MatrixStack matrixStack, float f);
+	void canvas_bobViewWhenHurt(PoseStack matrixStack, float f);
 
-	void canvas_bobView(MatrixStack matrixStack, float f);
+	void canvas_bobView(PoseStack matrixStack, float f);
 
 	int canvas_ticks();
 }

@@ -18,11 +18,8 @@ package grondag.canvas.config;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-
+import net.minecraft.client.resources.language.I18n;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.client.resource.language.I18n;
-
 import grondag.canvas.CanvasMod;
 
 public class FlawlessFramesController implements Consumer<Function<String, Consumer<Boolean>>> {
@@ -37,9 +34,9 @@ public class FlawlessFramesController implements Consumer<Function<String, Consu
 	public static void handleToggle() {
 		boolean newActive = active;
 
-		while (CanvasMod.FLAWLESS_TOGGLE.wasPressed()) {
+		while (CanvasMod.FLAWLESS_TOGGLE.consumeClick()) {
 			newActive = !newActive;
-			CanvasMod.LOG.info(I18n.translate("info.canvas.flawless_toggle", newActive));
+			CanvasMod.LOG.info(I18n.get("info.canvas.flawless_toggle", newActive));
 		}
 
 		if (active != newActive) {

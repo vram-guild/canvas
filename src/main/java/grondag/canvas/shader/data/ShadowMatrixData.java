@@ -28,11 +28,12 @@ import static grondag.canvas.shader.data.ShaderDataManager.cameraYd;
 import static grondag.canvas.shader.data.ShaderDataManager.cameraZd;
 import static grondag.canvas.shader.data.ShaderDataManager.skyLightVector;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3f;
-import net.minecraft.util.math.Vector4f;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
+
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.Pipeline;
@@ -95,7 +96,7 @@ public final class ShadowMatrixData {
 		// This reduces the apparent warping of pixel size on surfaces nearest the viewer.
 
 		@SuppressWarnings("resource")
-		final float viewDist = MinecraftClient.getInstance().gameRenderer.getViewDistance();
+		final float viewDist = Minecraft.getInstance().gameRenderer.getRenderDistance();
 
 		// Half-way to view distance isn't the true center of the view frustum, but because
 		// the far corners aren't actually visible it is close enough for now.
@@ -118,20 +119,20 @@ public final class ShadowMatrixData {
 		final int radius = (int) Math.ceil(Math.sqrt(viewDist * viewDist - halfDist * halfDist));
 
 		// Compute sky light vector transform - points towards the sun
-		shadowViewMatrix.loadIdentity();
+		shadowViewMatrix.setIdentity();
 		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
-		shadowViewMatrix.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(-90));
-		shadowViewMatrix.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(skyOutput.zenithAngle));
-		shadowViewMatrix.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(skyOutput.hourAngle));
+		shadowViewMatrix.multiply(Vector3f.YP.rotationDegrees(-90));
+		shadowViewMatrix.multiply(Vector3f.ZP.rotationDegrees(skyOutput.zenithAngle));
+		shadowViewMatrix.multiply(Vector3f.XP.rotationDegrees(skyOutput.hourAngle));
 		testVec.set(0, 1, 0, 0);
 		testVec.transform(shadowViewMatrix);
-		skyLightVector.set(testVec.getX(), testVec.getY(), testVec.getZ());
+		skyLightVector.set(testVec.x(), testVec.y(), testVec.z());
 
 		// Use the unit vector we just computed to create a view matrix from perspective of the sky light.
 		// Distance here isn't too picky, we need to ensure it is far enough away to contain any shadow-casting
 		// geometry but not far enough to lose much precision in the depth (Z) dimension.
 		shadowViewMatrixExt.lookAt(
-			skyLightVector.getX() * radius, skyLightVector.getY() * radius, skyLightVector.getZ() * radius,
+			skyLightVector.x() * radius, skyLightVector.y() * radius, skyLightVector.z() * radius,
 			0, 0, 0,
 			0.0f, 0.0f, 1.0f);
 
@@ -144,8 +145,8 @@ public final class ShadowMatrixData {
 			testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
 			testVec.transform(shadowViewMatrix);
 
-			final float cdx = testVec.getX();
-			final float cdy = testVec.getY();
+			final float cdx = testVec.x();
+			final float cdy = testVec.y();
 
 			final int[] radii = Pipeline.config().skyShadow.cascadeRadii;
 
@@ -161,19 +162,19 @@ public final class ShadowMatrixData {
 
 		testVec.set(8f, -8f, -8f, 0);
 		testVec.transform(shadowViewMatrix);
-		float rme = testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY() + testVec.getZ() * testVec.getZ();
+		float rme = testVec.x() * testVec.x() + testVec.y() * testVec.y() + testVec.z() * testVec.z();
 
 		testVec.set(8f, -8f, 8f, 0);
 		testVec.transform(shadowViewMatrix);
-		rme = Math.max(rme, testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY() + testVec.getZ() * testVec.getZ());
+		rme = Math.max(rme, testVec.x() * testVec.x() + testVec.y() * testVec.y() + testVec.z() * testVec.z());
 
 		testVec.set(8f, 8f, -8f, 0);
 		testVec.transform(shadowViewMatrix);
-		rme = Math.max(rme, testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY() + testVec.getZ() * testVec.getZ());
+		rme = Math.max(rme, testVec.x() * testVec.x() + testVec.y() * testVec.y() + testVec.z() * testVec.z());
 
 		testVec.set(8f, 8f, 8f, 0);
 		testVec.transform(shadowViewMatrix);
-		rme = Math.max(rme, testVec.getX() * testVec.getX() + testVec.getY() * testVec.getY());
+		rme = Math.max(rme, testVec.x() * testVec.x() + testVec.y() * testVec.y());
 
 		regionMaxExtent = (float) Math.sqrt(rme);
 	}
@@ -210,12 +211,12 @@ public final class ShadowMatrixData {
 		}
 
 		// Find the center of our projection.
-		testVec.set(cameraVector.getX() * halfDist, cameraVector.getY() * halfDist, cameraVector.getZ() * halfDist, 1.0f);
+		testVec.set(cameraVector.x() * halfDist, cameraVector.y() * halfDist, cameraVector.z() * halfDist, 1.0f);
 		testVec.transform(shadowViewMatrix);
 
-		float cx = testVec.getX();
-		float cy = testVec.getY();
-		float cz = testVec.getZ();
+		float cx = testVec.x();
+		float cy = testVec.y();
+		float cz = testVec.z();
 
 		cx = (float) (Math.floor(cx / worldPerPixel) * worldPerPixel) - dx;
 		cy = (float) (Math.floor(cy / worldPerPixel) * worldPerPixel) - dy;

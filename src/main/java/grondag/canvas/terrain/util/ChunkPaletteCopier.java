@@ -17,39 +17,37 @@
 package grondag.canvas.terrain.util;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.minecraft.util.BitStorage;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.level.chunk.Palette;
 import org.apache.commons.lang3.ObjectUtils;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.collection.PackedIntegerArray;
-import net.minecraft.world.chunk.ChunkSection;
-import net.minecraft.world.chunk.Palette;
-import net.minecraft.world.chunk.WorldChunk;
-
 import grondag.canvas.mixinterface.PalettedContainerExt;
 
 public class ChunkPaletteCopier {
-	private static final BlockState AIR = Blocks.AIR.getDefaultState();
+	private static final BlockState AIR = Blocks.AIR.defaultBlockState();
 	public static final PaletteCopy AIR_COPY = i -> AIR;
 
-	public static PaletteCopy captureCopy(WorldChunk chunk, int y) {
+	public static PaletteCopy captureCopy(LevelChunk chunk, int y) {
 		if (chunk == null) {
 			return AIR_COPY;
 		}
 
-		final int sectionIndex = (y - chunk.getBottomY()) >> 4;
+		final int sectionIndex = (y - chunk.getMinBuildHeight()) >> 4;
 
 		if (sectionIndex < 0) {
 			return AIR_COPY;
 		}
 
-		final ChunkSection[] sections = chunk.getSectionArray();
+		final LevelChunkSection[] sections = chunk.getSections();
 
 		if (sections == null || sectionIndex >= sections.length) {
 			return AIR_COPY;
 		}
 
-		final ChunkSection sec = sections[sectionIndex];
+		final LevelChunkSection sec = sections[sectionIndex];
 
 		if (sec == null) {
 			return AIR_COPY;
@@ -60,13 +58,13 @@ public class ChunkPaletteCopier {
 			return filler == AIR ? AIR_COPY : i -> filler;
 		}
 
-		return ((PalettedContainerExt) sec.getContainer()).canvas_paletteCopy();
+		return ((PalettedContainerExt) sec.getStates()).canvas_paletteCopy();
 	}
 
 	/**
 	 * Callback from canvas_paletteCopy().
 	 */
-	public static PaletteCopy captureCopy(Palette<BlockState> palette, PackedIntegerArray data, BlockState emptyVal) {
+	public static PaletteCopy captureCopy(Palette<BlockState> palette, BitStorage data, BlockState emptyVal) {
 		if (palette == null || data == null) {
 			return emptyVal == null ? AIR_COPY : i -> emptyVal;
 		}
@@ -87,7 +85,7 @@ public class ChunkPaletteCopier {
 		private final IntArrayList data;
 		private final Palette<BlockState> palette;
 
-		private PaletteCopyImpl(Palette<BlockState> palette, PackedIntegerArray data, BlockState emptyVal) {
+		private PaletteCopyImpl(Palette<BlockState> palette, BitStorage data, BlockState emptyVal) {
 			assert data != null;
 			assert palette != null;
 			this.palette = palette;
@@ -97,7 +95,7 @@ public class ChunkPaletteCopier {
 
 		@Override
 		public BlockState apply(int index) {
-			return ObjectUtils.defaultIfNull(palette.getByIndex(data.getInt(index)), emptyVal);
+			return ObjectUtils.defaultIfNull(palette.valueFor(data.getInt(index)), emptyVal);
 		}
 
 		@Override

@@ -22,12 +22,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-
+import com.mojang.blaze3d.vertex.PoseStack;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.perf.Timekeeper;
@@ -35,6 +30,9 @@ import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.shader.data.ScreenRenderState;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer implements GameRendererExt {
@@ -43,9 +41,9 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 	@Shadow float zoomY;
 	@Shadow int ticks;
 	@Shadow protected abstract double getFov(Camera camera, float tickDelta, boolean changingFov);
-	@Shadow protected abstract void bobViewWhenHurt(MatrixStack matrixStack, float f);
-	@Shadow protected abstract void bobView(MatrixStack matrixStack, float f);
-	@Shadow private MinecraftClient client;
+	@Shadow protected abstract void bobViewWhenHurt(PoseStack matrixStack, float f);
+	@Shadow protected abstract void bobView(PoseStack matrixStack, float f);
+	@Shadow private Minecraft client;
 
 	@Inject(method = "renderHand", require = 1, at = @At("RETURN"))
 	private void afterRenderHand(CallbackInfo ci) {
@@ -59,7 +57,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "getFov", require = 1, at = @At("RETURN"))
 	private void onGetFov(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Double> ci) {
-		((CanvasWorldRenderer) client.worldRenderer).updateProjection(camera, tickDelta, ci.getReturnValueD());
+		((CanvasWorldRenderer) client.levelRenderer).updateProjection(camera, tickDelta, ci.getReturnValueD());
 	}
 
 	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
@@ -88,12 +86,12 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 	}
 
 	@Override
-	public void canvas_bobViewWhenHurt(MatrixStack matrixStack, float f) {
+	public void canvas_bobViewWhenHurt(PoseStack matrixStack, float f) {
 		bobViewWhenHurt(matrixStack, f);
 	}
 
 	@Override
-	public void canvas_bobView(MatrixStack matrixStack, float f) {
+	public void canvas_bobView(PoseStack matrixStack, float f) {
 		bobView(matrixStack, f);
 	}
 

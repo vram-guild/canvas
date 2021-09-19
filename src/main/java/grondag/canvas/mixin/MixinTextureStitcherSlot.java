@@ -17,23 +17,20 @@
 package grondag.canvas.mixin;
 
 import java.util.List;
-
+import net.minecraft.client.renderer.texture.Stitcher;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.client.texture.TextureStitcher;
-
 import grondag.canvas.config.Configurator;
 
-@Mixin(TextureStitcher.Slot.class)
+@Mixin(Stitcher.Region.class)
 public class MixinTextureStitcherSlot {
 	@Shadow private int width;
 	@Shadow private int height;
-	@Shadow private List<TextureStitcher.Slot> subSlots;
-	@Shadow private TextureStitcher.Holder texture;
+	@Shadow private List<Stitcher.Region> subSlots;
+	@Shadow private Stitcher.Holder texture;
 
 	/**
 	 * The changes we made for animated sprite order means a slot big enough
@@ -44,7 +41,7 @@ public class MixinTextureStitcherSlot {
 	 * sprites in subslots.
 	 */
 	@Inject(at = @At("HEAD"), method = "fit", cancellable = true)
-	private void onFit(TextureStitcher.Holder holder, CallbackInfoReturnable<Boolean> ci) {
+	private void onFit(Stitcher.Holder holder, CallbackInfoReturnable<Boolean> ci) {
 		if (Configurator.groupAnimatedSprites && this.texture == null && this.subSlots != null && holder.width == width && holder.height == height) {
 			ci.setReturnValue(false);
 		}

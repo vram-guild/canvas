@@ -21,11 +21,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.vram.frex.api.config.FlawlessFrames;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.util.Mth;
 
 import grondag.bitraster.PackedBox;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
@@ -96,8 +96,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 	}
 
 	public void updateViewDependencies(Camera camera, TerrainFrustum frustum, int renderDistance) {
-		final BlockPos cameraBlockPos = camera.getBlockPos();
-		worldRenderState.sectorManager.setCamera(camera.getPos(), cameraBlockPos);
+		final BlockPos cameraBlockPos = camera.getBlockPosition();
+		worldRenderState.sectorManager.setCamera(camera.getPosition(), cameraBlockPos);
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		regionBoundingSphere.update(renderDistance);
 		this.renderDistance = renderDistance;
@@ -107,12 +107,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 			shadowVisibility.updateView(frustum, cameraChunkOrigin);
 		}
 
-		cameraRegion = worldRenderState.getWorld() == null || worldRenderState.getWorld().isOutOfHeightLimit(cameraBlockPos) ? null : worldRenderState.renderRegionStorage.getOrCreateRegion(cameraBlockPos);
+		cameraRegion = worldRenderState.getWorld() == null || worldRenderState.getWorld().isOutsideBuildHeight(cameraBlockPos) ? null : worldRenderState.renderRegionStorage.getOrCreateRegion(cameraBlockPos);
 		assert cameraRegion == null || cameraChunkOrigin == cameraRegion.origin.asLong();
 	}
 
 	public void buildNearIfNeeded() {
-		MinecraftClient.getInstance().getProfiler().swap("buildnear");
+		Minecraft.getInstance().getProfiler().popPush("buildnear");
 
 		if (cameraRegion != null) {
 			worldRenderState.regionRebuildManager.buildNearRegionIfNeeded(cameraRegion);
@@ -247,10 +247,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 		if (cameraRegion == null) {
 			// prime visible when above or below world and camera region is null
 			final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
-			final boolean above = BlockPos.unpackLongY(cameraChunkOrigin) > 0;
-			final int y = above ? (worldRenderState.getWorld().getTopY() - 1) & 0xFFFFFFF0 : worldRenderState.getWorld().getBottomY() & 0xFFFFFFF0;
-			final int x = BlockPos.unpackLongX(cameraChunkOrigin);
-			final int z = BlockPos.unpackLongZ(cameraChunkOrigin);
+			final boolean above = BlockPos.getY(cameraChunkOrigin) > 0;
+			final int y = above ? (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0 : worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
+			final int x = BlockPos.getX(cameraChunkOrigin);
+			final int z = BlockPos.getZ(cameraChunkOrigin);
 			final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
 			final int entryFace = above ? FaceConstants.UP_FLAG : FaceConstants.DOWN_FLAG;
 
@@ -444,12 +444,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 	private void primeShadowRegions() {
 		final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
-		final int y = BlockPos.unpackLongY(cameraChunkOrigin);
-		final int x = BlockPos.unpackLongX(cameraChunkOrigin);
-		final int z = BlockPos.unpackLongZ(cameraChunkOrigin);
+		final int y = BlockPos.getY(cameraChunkOrigin);
+		final int x = BlockPos.getX(cameraChunkOrigin);
+		final int z = BlockPos.getZ(cameraChunkOrigin);
 		final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
-		final int yMin = worldRenderState.getWorld().getBottomY() & 0xFFFFFFF0;
-		final int yMax = (worldRenderState.getWorld().getTopY() - 1) & 0xFFFFFFF0;
+		final int yMin = worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
+		final int yMax = (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0;
 
 		for (int i = 0; i < limit; ++i) {
 			final int ySphere = regionBoundingSphere.getY(i);
@@ -463,7 +463,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			final RenderRegion region = regionStorage.getOrCreateRegion(
 					(offset.getX() << 4) + x,
-					MathHelper.clamp((ySphere << 4) + y, yMin, yMax),
+					Mth.clamp((ySphere << 4) + y, yMin, yMax),
 					(offset.getZ() << 4) + z);
 
 			if (region != null) {

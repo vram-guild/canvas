@@ -17,19 +17,17 @@
 package grondag.canvas.pipeline;
 
 import org.lwjgl.glfw.GLFW;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
-
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.PoseStack;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.varia.GFX;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.network.chat.TextComponent;
 
 public class BufferDebug {
 	private static final int NONE = 0;
@@ -101,44 +99,44 @@ public class BufferDebug {
 	 */
 	@SuppressWarnings("resource")
 	public static void render() {
-		while (CanvasMod.DEBUG_TOGGLE.wasPressed()) {
+		while (CanvasMod.DEBUG_TOGGLE.consumeClick()) {
 			enabled = !enabled;
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText("Buffer Debug Mode Toggle: " + (enabled ? "ON" : "OFF")), true);
+			Minecraft.getInstance().player.displayClientMessage(new TextComponent("Buffer Debug Mode Toggle: " + (enabled ? "ON" : "OFF")), true);
 		}
 
 		if (!enabled) {
 			return;
 		}
 
-		final long handle = MinecraftClient.getInstance().getWindow().getHandle();
+		final long handle = Minecraft.getInstance().getWindow().getWindow();
 
-		if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) {
+		if (InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_LEFT_SHIFT) || InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_RIGHT_SHIFT)) {
 			keyOption = SHIFT;
-		} else if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_ALT) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_ALT)) {
+		} else if (InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_LEFT_ALT) || InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_RIGHT_ALT)) {
 			keyOption = ALT;
-		} else if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_CONTROL) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_CONTROL)) {
+		} else if (InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_LEFT_CONTROL) || InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_RIGHT_CONTROL)) {
 			keyOption = CTL;
-		} else if (InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_LEFT_SUPER) || InputUtil.isKeyPressed(handle, GLFW.GLFW_KEY_RIGHT_SUPER)) {
+		} else if (InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_LEFT_SUPER) || InputConstants.isKeyDown(handle, GLFW.GLFW_KEY_RIGHT_SUPER)) {
 			keyOption = MENU;
 		} else {
 			keyOption = NONE;
 		}
 
-		while (CanvasMod.DEBUG_PREV.wasPressed()) {
+		while (CanvasMod.DEBUG_PREV.consumeClick()) {
 			VIEWS[keyOption] = (VIEWS[keyOption] + viewCount - 1) % viewCount;
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText(labels[VIEWS[keyOption]]), true);
+			Minecraft.getInstance().player.displayClientMessage(new TextComponent(labels[VIEWS[keyOption]]), true);
 		}
 
-		while (CanvasMod.DEBUG_NEXT.wasPressed()) {
+		while (CanvasMod.DEBUG_NEXT.consumeClick()) {
 			VIEWS[keyOption] = (VIEWS[keyOption] + viewCount + 1) % viewCount;
-			MinecraftClient.getInstance().player.sendMessage(new LiteralText(labels[VIEWS[keyOption]]), true);
+			Minecraft.getInstance().player.displayClientMessage(new TextComponent(labels[VIEWS[keyOption]]), true);
 		}
 
 		final int n = VIEWS[keyOption];
 		PipelineManager.renderDebug(glIds[n], lods[n], layers[n], isDepth[n], isArray[n]);
 	}
 
-	public static void renderOverlay(MatrixStack matrices, TextRenderer fontRenderer) {
+	public static void renderOverlay(PoseStack matrices, Font fontRenderer) {
 		if (!enabled || !Configurator.enableBufferDebug) {
 			return;
 		}
@@ -154,9 +152,9 @@ public class BufferDebug {
 				string += " (selected)";
 			}
 
-			final int k = fontRenderer.getWidth(string);
+			final int k = fontRenderer.width(string);
 			final int m = 100 + 12 * i;
-			DrawableHelper.fill(matrices, 20, m - 1, 22 + k + 1, m + 9, backcolor);
+			GuiComponent.fill(matrices, 20, m - 1, 22 + k + 1, m + 9, backcolor);
 			fontRenderer.draw(matrices, string, 21, m, forecolor);
 		}
 	}

@@ -16,11 +16,10 @@
 
 package grondag.canvas.apiimpl.util;
 
+import com.mojang.math.Vector3f;
 import io.vram.frex.api.mesh.QuadView;
-
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3f;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 
 /**
  * Static routines of general utility for renderer implementations.
@@ -59,7 +58,7 @@ public abstract class PackedVector3f {
 		return ((byte) ((packedVector >>> 16) & 0xFF)) * DIVIDE_BY_127;
 	}
 
-	public static Vec3f unpackTo(int packedVector, Vec3f target) {
+	public static Vector3f unpackTo(int packedVector, Vector3f target) {
 		target.set(
 				packedX(packedVector),
 				packedY(packedVector),
@@ -80,7 +79,7 @@ public abstract class PackedVector3f {
 		final Direction nominalFace = q.nominalFace();
 
 		if (GeometryHelper.isQuadParallelToFace(nominalFace, q)) {
-			final Vec3i vec = nominalFace.getVector();
+			final Vec3i vec = nominalFace.getNormal();
 			return pack(vec.getX(), vec.getY(), vec.getZ());
 		}
 

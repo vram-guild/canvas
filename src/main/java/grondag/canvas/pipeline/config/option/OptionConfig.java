@@ -24,15 +24,15 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 
 public class OptionConfig extends AbstractConfig {
-	public Identifier includeToken;
+	public ResourceLocation includeToken;
 	public String categoryKey;
 	public List<OptionConfigEntry<?>> entries = new ObjectArrayList<>();
 
@@ -100,7 +100,7 @@ public class OptionConfig extends AbstractConfig {
 	}
 
 	public void addGuiEntries(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
-		final ConfigCategory category = builder.getOrCreateCategory(new TranslatableText(categoryKey));
+		final ConfigCategory category = builder.getOrCreateCategory(new TranslatableComponent(categoryKey));
 
 		for (final var entry : entries) {
 			category.addEntry(entry.buildEntry(entryBuilder));

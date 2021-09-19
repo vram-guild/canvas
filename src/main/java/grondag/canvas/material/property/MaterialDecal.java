@@ -18,12 +18,10 @@ package grondag.canvas.material.property;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import io.vram.frex.api.material.MaterialConstants;
-
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.RenderPhase.Layering;
-import net.minecraft.client.util.math.MatrixStack;
-
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderStateShard.LayeringStateShard;
 import grondag.canvas.varia.GFX;
 
 public final class MaterialDecal {
@@ -59,13 +57,13 @@ public final class MaterialDecal {
 		"view_offset",
 		2,
 		() -> {
-			final MatrixStack matrixStack = RenderSystem.getModelViewStack();
-			matrixStack.push();
+			final PoseStack matrixStack = RenderSystem.getModelViewStack();
+			matrixStack.pushPose();
 			matrixStack.scale(0.99975586F, 0.99975586F, 0.99975586F);
 			RenderSystem.applyModelViewMatrix();
 		},
 		() -> {
-			RenderSystem.getModelViewStack().pop();
+			RenderSystem.getModelViewStack().popPose();
 			RenderSystem.applyModelViewMatrix();
 		});
 
@@ -110,10 +108,10 @@ public final class MaterialDecal {
 
 	private static MaterialDecal active = null;
 
-	public static int fromPhase(Layering phase) {
-		if (phase == RenderPhase.VIEW_OFFSET_Z_LAYERING) {
+	public static int fromPhase(LayeringStateShard phase) {
+		if (phase == RenderStateShard.VIEW_OFFSET_Z_LAYERING) {
 			return MaterialConstants.DECAL_VIEW_OFFSET;
-		} else if (phase == RenderPhase.POLYGON_OFFSET_LAYERING) {
+		} else if (phase == RenderStateShard.POLYGON_OFFSET_LAYERING) {
 			return MaterialConstants.DECAL_POLYGON_OFFSET;
 		} else {
 			return MaterialConstants.DECAL_NONE;

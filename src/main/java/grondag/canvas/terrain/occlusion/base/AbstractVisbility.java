@@ -173,7 +173,7 @@ public abstract class AbstractVisbility<T extends AbstractVisbility<T, U, V, W>,
 	}
 
 	/**
-	 * Same purpose as {@link AbstractOccluder#isEmptyRegionVisible(net.minecraft.util.math.BlockPos)}
+	 * Same purpose as {@link AbstractOccluder#isEmptyRegionVisible(net.minecraft.core.BlockPos)}
 	 * but may have extra steps for state management or shadow maps.
 	 */
 	public boolean isEmptyRegionVisible(RegionPosition origin, int fuzz) {

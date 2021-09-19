@@ -18,12 +18,10 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.gl.Framebuffer;
-
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import grondag.canvas.mixinterface.FrameBufferExt;
 
-@Mixin(Framebuffer.class)
+@Mixin(RenderTarget.class)
 public abstract class MixinFrameBuffer implements FrameBufferExt {
 	@Shadow
 	private int colorAttachment;

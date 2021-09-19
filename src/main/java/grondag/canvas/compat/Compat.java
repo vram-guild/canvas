@@ -16,13 +16,12 @@
 
 package grondag.canvas.compat;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumerProvider.Immediate;
-import net.minecraft.util.math.Vec3d;
-
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.phys.Vec3;
 
 public class Compat {
 	private Compat() { }
@@ -49,7 +48,7 @@ public class Compat {
 			// Expects an identity matrix stack
 			LitematicaHolder.litematicaEntityHandler.handle(ctx.matrixStack(), ctx.tickDelta());
 
-			DynocapsHolder.handler.render(ctx.profiler(), ctx.matrixStack(), (Immediate) ctx.consumers(), ctx.camera().getPos());
+			DynocapsHolder.handler.render(ctx.profiler(), ctx.matrixStack(), (BufferSource) ctx.consumers(), ctx.camera().getPosition());
 		});
 
 		WorldRenderEvents.BEFORE_DEBUG_RENDER.register(ctx -> {
@@ -61,14 +60,14 @@ public class Compat {
 			JustMapHolder.justMapRender.renderWaypoints(ctx.matrixStack(), ctx.camera(), ctx.tickDelta());
 			LitematicaHolder.litematicaRenderTranslucent.accept(ctx.matrixStack(), ctx.projectionMatrix());
 			LitematicaHolder.litematicaRenderOverlay.accept(ctx.matrixStack(), ctx.projectionMatrix());
-			final Vec3d cameraPos = ctx.camera().getPos();
-			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderLayer.getTranslucent(), ctx.matrixStack(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ());
+			final Vec3 cameraPos = ctx.camera().getPosition();
+			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderType.translucent(), ctx.matrixStack(), cameraPos.x(), cameraPos.y(), cameraPos.z());
 
 			// litematica overlay uses fabulous buffers so must run before translucent shader when active
 			// It expects view matrix to be pre-applied because it normally happens in weather render
 			// But Canvas already does that for unmanaged draws so no action needed.
 			if (ctx.advancedTranslucency()) {
-				MaliLibHolder.maliLibRenderWorldLast.render(ctx.matrixStack(), ctx.projectionMatrix(), MinecraftClient.getInstance());
+				MaliLibHolder.maliLibRenderWorldLast.render(ctx.matrixStack(), ctx.projectionMatrix(), Minecraft.getInstance());
 			}
 		});
 
@@ -78,7 +77,7 @@ public class Compat {
 
 			// litematica overlay expects to render on top of translucency when fabulous is off
 			if (!ctx.advancedTranslucency()) {
-				MaliLibHolder.maliLibRenderWorldLast.render(ctx.matrixStack(), ctx.projectionMatrix(), MinecraftClient.getInstance());
+				MaliLibHolder.maliLibRenderWorldLast.render(ctx.matrixStack(), ctx.projectionMatrix(), Minecraft.getInstance());
 			}
 		});
 

@@ -18,11 +18,9 @@ package grondag.canvas.mixin;
 
 import static java.lang.Math.fma;
 
+import com.mojang.math.Matrix3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.util.math.Matrix3f;
-
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.mixinterface.Matrix3fExt;
 

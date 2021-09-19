@@ -25,14 +25,11 @@ import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-
 import net.fabricmc.loader.api.FabricLoader;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.pipeline.config.option.OptionConfig;
@@ -57,8 +54,8 @@ public class ConfigManager {
 		pipelineFile = new File(FabricLoader.getInstance().getConfigDir().toFile(), "canvas_pipeline_options.json5");
 	}
 
-	public static Text[] parse(String key) {
-		return Arrays.stream(I18n.translate(key).split(";")).map(s -> new LiteralText(s)).collect(Collectors.toList()).toArray(new Text[0]);
+	public static Component[] parse(String key) {
+		return Arrays.stream(I18n.get(key).split(";")).map(s -> new TextComponent(s)).collect(Collectors.toList()).toArray(new Component[0]);
 	}
 
 	public static void initPipelineOptions(OptionConfig[] options) {
@@ -159,7 +156,7 @@ public class ConfigManager {
 		saveConfig();
 
 		if (Configurator.reload) {
-			MinecraftClient.getInstance().worldRenderer.reload();
+			Minecraft.getInstance().levelRenderer.allChanged();
 		}
 	}
 }

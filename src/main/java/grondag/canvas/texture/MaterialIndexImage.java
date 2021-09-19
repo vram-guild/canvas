@@ -18,7 +18,7 @@ package grondag.canvas.texture;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -77,13 +77,13 @@ public final class MaterialIndexImage {
 		tail = bufferIndex + MaterialIndexTexture.BYTES_PER_MATERIAL;
 	}
 
-	synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId, Sprite sprite) {
+	synchronized void set(int materialIndex, int vertexId, int fragmentId, int programFlags, int conditionId, TextureAtlasSprite sprite) {
 		assert isAtlas;
 
 		data.add(vertexId | (fragmentId << 16));
 		data.add(programFlags | (conditionId << 16));
-		data.add(Math.round(sprite.getMinU() * 0x8000) | (Math.round(sprite.getMinV() * 0x8000) << 16));
-		data.add(Math.round((sprite.getMaxU() - sprite.getMinU()) * 0x8000) | (Math.round((sprite.getMaxV() - sprite.getMinV()) * 0x8000) << 16));
+		data.add(Math.round(sprite.getU0() * 0x8000) | (Math.round(sprite.getV0() * 0x8000) << 16));
+		data.add(Math.round((sprite.getU1() - sprite.getU0()) * 0x8000) | (Math.round((sprite.getV1() - sprite.getV0()) * 0x8000) << 16));
 
 		final int bufferIndex = materialIndex * MaterialIndexTexture.ATLAS_BYTES_PER_MATERIAL;
 		assert bufferIndex >= head;

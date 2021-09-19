@@ -18,23 +18,22 @@ package grondag.canvas.mixin;
 
 import java.util.Deque;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.util.math.MatrixStack;
 
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.mixinterface.MatrixStackExt;
 import grondag.canvas.varia.MatrixStackEntryHelper;
 
-@Mixin(MatrixStack.class)
+@Mixin(PoseStack.class)
 public class MixinMatrixStack implements MatrixStackExt {
-	@Shadow private Deque<MatrixStack.Entry> stack;
+	@Shadow private Deque<PoseStack.Pose> stack;
 
-	private final ObjectArrayList<MatrixStack.Entry> pool = new ObjectArrayList<>();
+	private final ObjectArrayList<PoseStack.Pose> pool = new ObjectArrayList<>();
 
 	/**
 	 * @author grondag
@@ -51,15 +50,15 @@ public class MixinMatrixStack implements MatrixStackExt {
 	 */
 	@Overwrite
 	public void push() {
-		final MatrixStack.Entry current = stack.getLast();
-		MatrixStack.Entry add;
+		final PoseStack.Pose current = stack.getLast();
+		PoseStack.Pose add;
 
 		if (pool.isEmpty()) {
-			add = MatrixStackEntryHelper.create(current.getModel().copy(), current.getNormal().copy());
+			add = MatrixStackEntryHelper.create(current.pose().copy(), current.normal().copy());
 		} else {
 			add = pool.pop();
-			((Matrix4fExt) (Object) add.getModel()).set(current.getModel());
-			((Matrix3fExt) (Object) add.getNormal()).set(current.getNormal());
+			((Matrix4fExt) (Object) add.pose()).set(current.pose());
+			((Matrix3fExt) (Object) add.normal()).set(current.normal());
 		}
 
 		stack.addLast(add);

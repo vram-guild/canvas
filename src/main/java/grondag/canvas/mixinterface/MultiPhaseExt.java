@@ -17,14 +17,12 @@
 package grondag.canvas.mixinterface;
 
 import java.util.Optional;
-
-import net.minecraft.client.render.RenderLayer;
-
+import net.minecraft.client.renderer.RenderType;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixin.AccessMultiPhaseParameters;
 
 public interface MultiPhaseExt extends RenderLayerExt {
-	Optional<RenderLayer> canvas_affectedOutline();
+	Optional<RenderType> canvas_affectedOutline();
 
 	boolean canvas_outline();
 

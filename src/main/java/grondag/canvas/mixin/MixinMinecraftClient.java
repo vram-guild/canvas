@@ -22,22 +22,20 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColors;
-import net.minecraft.client.gl.WindowFramebuffer;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.util.thread.ReentrantThreadExecutor;
-
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.util.thread.ReentrantBlockableEventLoop;
+import com.mojang.blaze3d.pipeline.MainTarget;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.MinecraftClientExt;
 import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.varia.CanvasGlHelper;
 
-@Mixin(MinecraftClient.class)
-public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runnable> implements MinecraftClientExt {
+@Mixin(Minecraft.class)
+public abstract class MixinMinecraftClient extends ReentrantBlockableEventLoop<Runnable> implements MinecraftClientExt {
 	@Shadow
 	ItemColors itemColors;
 
@@ -58,12 +56,12 @@ public abstract class MixinMinecraftClient extends ReentrantThreadExecutor<Runna
 	}
 
 	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/client/render/BufferBuilderStorage;)Lnet/minecraft/client/render/WorldRenderer;"))
-	private WorldRenderer onWorldRendererNew(MinecraftClient client, BufferBuilderStorage bufferBuilders) {
+	private LevelRenderer onWorldRendererNew(Minecraft client, RenderBuffers bufferBuilders) {
 		return new CanvasWorldRenderer(client, bufferBuilders);
 	}
 
 	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "(II)Lnet/minecraft/client/gl/WindowFramebuffer;"))
-	private WindowFramebuffer onFrameBufferNew(int width, int height) {
+	private MainTarget onFrameBufferNew(int width, int height) {
 		return new PrimaryFrameBuffer(width, height);
 	}
 

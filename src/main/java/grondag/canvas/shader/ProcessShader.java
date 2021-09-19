@@ -16,19 +16,18 @@
 
 package grondag.canvas.shader;
 
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Matrix4f;
-
+import com.mojang.math.Matrix4f;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.GlProgram.Uniform1i;
 import grondag.canvas.shader.GlProgram.Uniform2i;
 import grondag.canvas.shader.GlProgram.UniformMatrix4f;
 import grondag.canvas.shader.data.UniformRefreshFrequency;
+import net.minecraft.resources.ResourceLocation;
 
 public class ProcessShader {
 	private final String name;
-	private final Identifier fragmentId;
-	private final Identifier vertexId;
+	private final ResourceLocation fragmentId;
+	private final ResourceLocation vertexId;
 	private final String[] samplers;
 	private GlProgram program;
 	private Uniform2i size;
@@ -36,7 +35,7 @@ public class ProcessShader {
 	private Uniform1i layer;
 	private UniformMatrix4f projMatrix;
 
-	public ProcessShader(String name, Identifier vertexId, Identifier fragmentId, String... samplers) {
+	public ProcessShader(String name, ResourceLocation vertexId, ResourceLocation fragmentId, String... samplers) {
 		this.name = name;
 		this.fragmentId = fragmentId;
 		this.vertexId = vertexId;

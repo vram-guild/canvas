@@ -23,21 +23,18 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.google.common.util.concurrent.Runnables;
-
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Matrix4f;
-
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
 import net.fabricmc.loader.api.FabricLoader;
-
+import net.minecraft.client.renderer.culling.Frustum;
 import grondag.canvas.CanvasMod;
 
 class LitematicaHolder {
 	static Runnable litematicaReload = Runnables.doNothing();
 	static Consumer<Frustum> litematicaTerrainSetup = f -> { };
-	static BiConsumer<MatrixStack, Matrix4f> litematicaRenderSolids = (s, p) -> { };
-	static BiConsumer<MatrixStack, Matrix4f> litematicaRenderTranslucent = (s, p) -> { };
-	static BiConsumer<MatrixStack, Matrix4f> litematicaRenderOverlay = (s, p) -> { };
+	static BiConsumer<PoseStack, Matrix4f> litematicaRenderSolids = (s, p) -> { };
+	static BiConsumer<PoseStack, Matrix4f> litematicaRenderTranslucent = (s, p) -> { };
+	static BiConsumer<PoseStack, Matrix4f> litematicaRenderOverlay = (s, p) -> { };
 	static EntityHandler litematicaEntityHandler = (s, t) -> { };
 
 	private static boolean warnLoad = true;
@@ -64,27 +61,27 @@ class LitematicaHolder {
 				final MethodHandle prepHandler = lookup.unreflect(prep);
 				final MethodHandle boundPrepHandler = prepHandler.bindTo(instance);
 
-				final Method solid = clazz.getDeclaredMethod("piecewiseRenderSolid", MatrixStack.class, Matrix4f.class);
+				final Method solid = clazz.getDeclaredMethod("piecewiseRenderSolid", PoseStack.class, Matrix4f.class);
 				final MethodHandle solidHandler = lookup.unreflect(solid);
 				final MethodHandle boundSolidHandler = solidHandler.bindTo(instance);
 
-				final Method cutout = clazz.getDeclaredMethod("piecewiseRenderCutout", MatrixStack.class, Matrix4f.class);
+				final Method cutout = clazz.getDeclaredMethod("piecewiseRenderCutout", PoseStack.class, Matrix4f.class);
 				final MethodHandle cutoutHandler = lookup.unreflect(cutout);
 				final MethodHandle boundCutoutHandler = cutoutHandler.bindTo(instance);
 
-				final Method mipped = clazz.getDeclaredMethod("piecewiseRenderCutoutMipped", MatrixStack.class, Matrix4f.class);
+				final Method mipped = clazz.getDeclaredMethod("piecewiseRenderCutoutMipped", PoseStack.class, Matrix4f.class);
 				final MethodHandle mippedHandler = lookup.unreflect(mipped);
 				final MethodHandle boundMippedHandler = mippedHandler.bindTo(instance);
 
-				final Method translucent = clazz.getDeclaredMethod("piecewiseRenderTranslucent", MatrixStack.class, Matrix4f.class);
+				final Method translucent = clazz.getDeclaredMethod("piecewiseRenderTranslucent", PoseStack.class, Matrix4f.class);
 				final MethodHandle translucentHandler = lookup.unreflect(translucent);
 				final MethodHandle boundTranslucentHandler = translucentHandler.bindTo(instance);
 
-				final Method overlay = clazz.getDeclaredMethod("piecewiseRenderOverlay", MatrixStack.class, Matrix4f.class);
+				final Method overlay = clazz.getDeclaredMethod("piecewiseRenderOverlay", PoseStack.class, Matrix4f.class);
 				final MethodHandle overlayHandler = lookup.unreflect(overlay);
 				final MethodHandle boundOverlayHandler = overlayHandler.bindTo(instance);
 
-				final Method entities = clazz.getDeclaredMethod("piecewiseRenderEntities", MatrixStack.class, float.class);
+				final Method entities = clazz.getDeclaredMethod("piecewiseRenderEntities", PoseStack.class, float.class);
 				final MethodHandle entitiesHandler = lookup.unreflect(entities);
 				final MethodHandle boundEntitiesHandler = entitiesHandler.bindTo(instance);
 
@@ -170,6 +167,6 @@ class LitematicaHolder {
 	}
 
 	interface EntityHandler {
-		void handle(MatrixStack matrices, float partialTicks);
+		void handle(PoseStack matrices, float partialTicks);
 	}
 }

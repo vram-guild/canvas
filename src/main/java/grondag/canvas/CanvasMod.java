@@ -22,19 +22,16 @@ import io.vram.frex.api.model.FluidModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
-
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.util.Identifier;
-
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
-
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
@@ -56,12 +53,12 @@ import grondag.canvas.texture.ResourceCacheManager;
 public class CanvasMod implements ClientModInitializer {
 	public static final String MODID = "canvas";
 	public static final Logger LOG = LogManager.getLogger("Canvas");
-	public static KeyBinding DEBUG_TOGGLE = new KeyBinding("key.canvas.debug_toggle", Character.valueOf('`'), "key.canvas.category");
-	public static KeyBinding DEBUG_PREV = new KeyBinding("key.canvas.debug_prev", Character.valueOf('['), "key.canvas.category");
-	public static KeyBinding DEBUG_NEXT = new KeyBinding("key.canvas.debug_next", Character.valueOf(']'), "key.canvas.category");
-	public static KeyBinding RECOMPILE = new KeyBinding("key.canvas.recompile", Character.valueOf('='), "key.canvas.category");
-	public static KeyBinding FLAWLESS_TOGGLE = new KeyBinding("key.canvas.flawless_toggle", -1, "key.canvas.category");
-	public static KeyBinding PROFILER_TOGGLE = new KeyBinding("key.canvas.profiler_toggle", -1, "key.canvas.category");
+	public static KeyMapping DEBUG_TOGGLE = new KeyMapping("key.canvas.debug_toggle", Character.valueOf('`'), "key.canvas.category");
+	public static KeyMapping DEBUG_PREV = new KeyMapping("key.canvas.debug_prev", Character.valueOf('['), "key.canvas.category");
+	public static KeyMapping DEBUG_NEXT = new KeyMapping("key.canvas.debug_next", Character.valueOf(']'), "key.canvas.category");
+	public static KeyMapping RECOMPILE = new KeyMapping("key.canvas.recompile", Character.valueOf('='), "key.canvas.category");
+	public static KeyMapping FLAWLESS_TOGGLE = new KeyMapping("key.canvas.flawless_toggle", -1, "key.canvas.category");
+	public static KeyMapping PROFILER_TOGGLE = new KeyMapping("key.canvas.profiler_toggle", -1, "key.canvas.category");
 	public static String versionString = "unknown";
 
 	@Override
@@ -76,11 +73,11 @@ public class CanvasMod implements ClientModInitializer {
 			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
 		}
 
-		((RenderLayerExt) RenderLayer.getTranslucent()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
-		((RenderLayerExt) RenderLayer.getTripwire()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
-		((RenderLayerExt) RenderLayer.getSolid()).canvas_preset(MaterialConstants.PRESET_SOLID);
-		((RenderLayerExt) RenderLayer.getCutout()).canvas_preset(MaterialConstants.PRESET_CUTOUT);
-		((RenderLayerExt) RenderLayer.getCutoutMipped()).canvas_preset(MaterialConstants.PRESET_CUTOUT_MIPPED);
+		((RenderLayerExt) RenderType.translucent()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
+		((RenderLayerExt) RenderType.tripwire()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
+		((RenderLayerExt) RenderType.solid()).canvas_preset(MaterialConstants.PRESET_SOLID);
+		((RenderLayerExt) RenderType.cutout()).canvas_preset(MaterialConstants.PRESET_CUTOUT);
+		((RenderLayerExt) RenderType.cutoutMipped()).canvas_preset(MaterialConstants.PRESET_CUTOUT_MIPPED);
 
 		platformSpecificInit();
 
@@ -101,12 +98,12 @@ public class CanvasMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(PROFILER_TOGGLE);
 
 		FabricLoader.getInstance().getModContainer(MODID).ifPresent(modContainer -> {
-			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:canvas_default"), modContainer, ResourcePackActivationType.DEFAULT_ENABLED);
-			ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:canvas_extras"), modContainer, ResourcePackActivationType.NORMAL);
+			ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("canvas:canvas_default"), modContainer, ResourcePackActivationType.DEFAULT_ENABLED);
+			ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("canvas:canvas_extras"), modContainer, ResourcePackActivationType.NORMAL);
 			//ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:development"), "resourcepacks/canvas_wip", modContainer, false);
 		});
 
-		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(PipelineLoader.INSTANCE);
-		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(ResourceCacheManager.cacheReloader);
+		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(PipelineLoader.INSTANCE);
+		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(ResourceCacheManager.cacheReloader);
 	}
 }

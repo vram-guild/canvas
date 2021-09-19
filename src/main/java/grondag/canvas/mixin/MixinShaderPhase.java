@@ -18,19 +18,16 @@ package grondag.canvas.mixin;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.ShaderInstance;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.Shader;
-
 import grondag.canvas.material.state.MojangShaderData;
 import grondag.canvas.mixinterface.ShaderExt;
 
-@Mixin(RenderPhase.Shader.class)
+@Mixin(RenderStateShard.ShaderStateShard.class)
 public class MixinShaderPhase implements ShaderExt {
-	@Shadow private Optional<Supplier<Shader>> supplier;
+	@Shadow private Optional<Supplier<ShaderInstance>> supplier;
 
 	@Override
 	public MojangShaderData canvas_shaderData() {

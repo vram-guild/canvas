@@ -17,10 +17,9 @@
 package grondag.canvas.terrain.util;
 
 import java.util.Arrays;
-
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 
 /*
  * Static methods and definitions to efficiently
@@ -304,7 +303,7 @@ public abstract class RenderRegionStateIndexer {
 	 * a full-region index offset in the direction of the given face.
 	 */
 	public static int offsetInteriorIndex(int interiorIndex, Direction face) {
-		final Vec3i vec = face.getVector();
+		final Vec3i vec = face.getNormal();
 
 		final int x = (interiorIndex & 0xF) + vec.getX();
 		final int y = ((interiorIndex >> 4) & 0xF) + vec.getY();

@@ -18,14 +18,12 @@ package grondag.canvas.compat;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-
-import net.minecraft.client.render.WorldRenderer;
-
+import net.minecraft.client.renderer.LevelRenderer;
 import grondag.canvas.CanvasMod;
 
 class ClassInspector {
 	static void inspect() {
-		final Class<WorldRenderer> clazz = WorldRenderer.class;
+		final Class<LevelRenderer> clazz = LevelRenderer.class;
 
 		CanvasMod.LOG.info("");
 		CanvasMod.LOG.info("WorldRenderer Class Summary - For Developer Use");

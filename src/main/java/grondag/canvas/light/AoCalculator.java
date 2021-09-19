@@ -26,10 +26,8 @@ import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexTo
 import static grondag.canvas.varia.CanvasMath.clampNormalized;
 
 import io.vram.frex.api.model.ModelHelper;
-
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
@@ -87,7 +85,7 @@ public abstract class AoCalculator {
 	}
 
 	static int blendIndex(int face, float depth) {
-		final int depthIndex = MathHelper.clamp((((int) (depth * BLEND_CACHE_DIVISION * 2 + 1)) >> 1), 1, 15) - 1;
+		final int depthIndex = Mth.clamp((((int) (depth * BLEND_CACHE_DIVISION * 2 + 1)) >> 1), 1, 15) - 1;
 		return face * BLEND_CACHE_DEPTH + depthIndex;
 	}
 
@@ -364,7 +362,7 @@ public abstract class AoCalculator {
 			int maxSky = 0, maxBlock = 0;
 			float maxAo = 0;
 
-			if (!MathHelper.approximatelyEquals(0f, nx)) {
+			if (!Mth.equal(0f, nx)) {
 				final int face = nx > 0 ? EAST : WEST;
 				// PERF: really need to cache these
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
@@ -381,7 +379,7 @@ public abstract class AoCalculator {
 				maxBlock = b;
 			}
 
-			if (!MathHelper.approximatelyEquals(0f, ny)) {
+			if (!Mth.equal(0f, ny)) {
 				final int face = ny > 0 ? UP : DOWN;
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
 				AoFace.get(face).weightFunc.apply(quad, i, w);
@@ -397,7 +395,7 @@ public abstract class AoCalculator {
 				maxBlock = Math.max(b, maxBlock);
 			}
 
-			if (!MathHelper.approximatelyEquals(0f, nz)) {
+			if (!Mth.equal(0f, nz)) {
 				final int face = nz > 0 ? SOUTH : NORTH;
 				final AoFaceCalc fd = blendedInsetData(quad, i, face);
 				AoFace.get(face).weightFunc.apply(quad, i, w);

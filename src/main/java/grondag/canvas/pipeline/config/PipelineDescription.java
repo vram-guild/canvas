@@ -17,19 +17,17 @@
 package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
-
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.pipeline.config.util.JanksonHelper;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.ResourceLocation;
 
 public class PipelineDescription {
-	public final Identifier id;
+	public final ResourceLocation id;
 	public final String nameKey;
 	public final String descriptionKey;
 	public final boolean isFabulous;
 
-	public PipelineDescription (Identifier id, JsonObject config) {
+	public PipelineDescription (ResourceLocation id, JsonObject config) {
 		this.id = id;
 
 		final String nameKey = JanksonHelper.asString(config.get("nameKey"));
@@ -41,10 +39,10 @@ public class PipelineDescription {
 	}
 
 	public String name() {
-		return I18n.translate(nameKey);
+		return I18n.get(nameKey);
 	}
 
 	public String description() {
-		return I18n.translate(descriptionKey);
+		return I18n.get(descriptionKey);
 	}
 }

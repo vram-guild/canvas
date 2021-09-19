@@ -17,12 +17,10 @@
 package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
-
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedConfig;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
+import net.minecraft.resources.ResourceLocation;
 
 /*
  *  Copyright 2019, 2020 grondag
@@ -41,15 +39,15 @@ import grondag.canvas.pipeline.config.util.NamedDependencyMap;
  */
 
 public class ProgramConfig extends NamedConfig<ProgramConfig> {
-	public final Identifier vertexSource;
-	public final Identifier fragmentSource;
+	public final ResourceLocation vertexSource;
+	public final ResourceLocation fragmentSource;
 	public final String[] samplerNames;
 	public final boolean isBuiltIn;
 
 	ProgramConfig(ConfigContext ctx, JsonObject config, String name) {
 		super(ctx, name);
-		vertexSource = new Identifier(config.get(String.class, "vertexSource"));
-		fragmentSource = new Identifier(config.get(String.class, "fragmentSource"));
+		vertexSource = new ResourceLocation(config.get(String.class, "vertexSource"));
+		fragmentSource = new ResourceLocation(config.get(String.class, "fragmentSource"));
 		samplerNames = readerSamplerNames(ctx, config, "program " + name);
 		isBuiltIn = false;
 	}
@@ -68,8 +66,8 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 
 	protected ProgramConfig(ConfigContext ctx, String name, String vertexSource, String fragmentSource) {
 		super(ctx, name);
-		this.vertexSource = new Identifier(vertexSource);
-		this.fragmentSource = new Identifier(fragmentSource);
+		this.vertexSource = new ResourceLocation(vertexSource);
+		this.fragmentSource = new ResourceLocation(fragmentSource);
 		samplerNames = new String[0];
 		isBuiltIn = false;
 	}

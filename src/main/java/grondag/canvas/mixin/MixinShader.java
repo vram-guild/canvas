@@ -20,20 +20,18 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.render.Shader;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.resource.ResourceFactory;
-
+import com.mojang.blaze3d.vertex.VertexFormat;
 import grondag.canvas.material.state.MojangShaderData;
 import grondag.canvas.mixinterface.ShaderExt;
+import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.server.packs.resources.ResourceProvider;
 
-@Mixin(Shader.class)
+@Mixin(ShaderInstance.class)
 public class MixinShader implements ShaderExt {
 	private MojangShaderData canvas_shaderData;
 
 	@Inject(at = @At("RETURN"), method = "<init>*")
-	private void onNew(ResourceFactory resourceFactory, String string, VertexFormat vertexFormat, CallbackInfo ci) {
+	private void onNew(ResourceProvider resourceFactory, String string, VertexFormat vertexFormat, CallbackInfo ci) {
 		canvas_shaderData = MojangShaderData.get(string);
 	}
 

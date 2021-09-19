@@ -17,25 +17,22 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
-
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.model.BlockModel;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.render.RenderLayers;
-import net.minecraft.client.render.TexturedRenderLayers;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.BlockModelRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.decoration.ItemFrameEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.BlockRenderView;
-
+import com.mojang.blaze3d.vertex.PoseStack;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.render.world.CanvasWorldRenderer;
@@ -49,7 +46,7 @@ import grondag.fermion.sc.concurrency.SimpleConcurrentList;
  * <p>Also handle rendering of the item frame which looks and acts like a block
  * and has a block JSON model but is an entity.
  */
-public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRenderView> {
+public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAndTintGetter> {
 	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
 
 	private static final Supplier<ThreadLocal<EntityBlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
@@ -61,7 +58,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	private static ThreadLocal<EntityBlockRenderContext> POOL = POOL_FACTORY.get();
 
 	private int light;
-	private final BlockPos.Mutable pos = new BlockPos.Mutable();
+	private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 	private float tickDelta;
 
 	public EntityBlockRenderContext() {
@@ -85,11 +82,11 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	public void setPosAndWorldFromEntity(Entity entity) {
 		if (entity != null) {
 			final float tickDelta = this.tickDelta;
-			final double x = MathHelper.lerp(tickDelta, entity.prevX, entity.getX());
-			final double y = MathHelper.lerp(tickDelta, entity.prevY, entity.getY()) + entity.getStandingEyeHeight();
-			final double z = MathHelper.lerp(tickDelta, entity.prevZ, entity.getZ());
+			final double x = Mth.lerp(tickDelta, entity.xo, entity.getX());
+			final double y = Mth.lerp(tickDelta, entity.yo, entity.getY()) + entity.getEyeHeight();
+			final double z = Mth.lerp(tickDelta, entity.zo, entity.getZ());
 			pos.set(x, y, z);
-			region = entity.getEntityWorld();
+			region = entity.getCommandSenderWorld();
 		}
 	}
 
@@ -97,10 +94,10 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 	 * Assumes region and block pos set earlier via {@link #setPosAndWorldFromEntity(Entity)}.
 	 */
 	@SuppressWarnings("resource")
-	public void render(BlockModelRenderer vanillaRenderer, BakedModel model, BlockState state, MatrixStack matrixStack, VertexConsumerProvider consumers, int overlay, int light) {
-		defaultConsumer = consumers.getBuffer(RenderLayers.getEntityBlockLayer(state, false));
-		matrix = matrixStack.peek().getModel();
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
+	public void render(ModelBlockRenderer vanillaRenderer, BakedModel model, BlockState state, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light) {
+		defaultConsumer = consumers.getBuffer(ItemBlockRenderTypes.getRenderType(state, false));
+		matrix = matrixStack.last().pose();
+		normalMatrix = (Matrix3fExt) (Object) matrixStack.last().normal();
 		this.light = light;
 		this.overlay = overlay;
 		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
@@ -111,17 +108,17 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockRe
 
 	// item frames don't have a block state but render like a block
 	@SuppressWarnings("resource")
-	public void renderItemFrame(BlockModelRenderer modelRenderer, BakedModel model, MatrixStack matrixStack, VertexConsumerProvider consumers, int overlay, int light, ItemFrameEntity itemFrameEntity) {
-		defaultConsumer = consumers.getBuffer(TexturedRenderLayers.getEntitySolid());
-		matrix = matrixStack.peek().getModel();
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
+	public void renderItemFrame(ModelBlockRenderer modelRenderer, BakedModel model, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light, ItemFrame itemFrameEntity) {
+		defaultConsumer = consumers.getBuffer(Sheets.solidBlockSheet());
+		matrix = matrixStack.last().pose();
+		normalMatrix = (Matrix3fExt) (Object) matrixStack.last().normal();
 		this.light = light;
 		this.overlay = overlay;
 		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
 
 		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());
 		blockPos = pos;
-		blockState = Blocks.AIR.getDefaultState();
+		blockState = Blocks.AIR.defaultBlockState();
 		materialMap = MaterialMap.defaultMaterialMap();
 		lastColorIndex = -1;
 		needsRandomRefresh = true;

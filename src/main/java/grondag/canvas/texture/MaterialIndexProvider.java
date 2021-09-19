@@ -21,10 +21,8 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.Identifier;
-
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -70,9 +68,9 @@ public abstract class MaterialIndexProvider {
 
 	private static class AtlasIndexProvider extends MaterialIndexProvider {
 		@SuppressWarnings("unused")
-		private final Identifier atlasId;
+		private final ResourceLocation atlasId;
 
-		AtlasIndexProvider(Identifier atlasId) {
+		AtlasIndexProvider(ResourceLocation atlasId) {
 			this.atlasId = atlasId;
 		}
 
@@ -96,7 +94,7 @@ public abstract class MaterialIndexProvider {
 				synchronized (sync) {
 					return spriteMap.computeIfAbsent(spriteId, k -> {
 						final int i = nextIndex++;
-						final Sprite sprite = mat.texture.atlasInfo().fromId(k);
+						final TextureAtlasSprite sprite = mat.texture.atlasInfo().fromId(k);
 						tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index, sprite);
 						return i;
 					});
@@ -128,9 +126,9 @@ public abstract class MaterialIndexProvider {
 		}
 	}
 
-	private static final Object2ObjectOpenHashMap<Identifier, AtlasIndexProvider> ATLAS_PROVIDERS = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
+	private static final Object2ObjectOpenHashMap<ResourceLocation, AtlasIndexProvider> ATLAS_PROVIDERS = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 
-	public static final synchronized MaterialIndexProvider getOrCreateForAtlas(Identifier id) {
+	public static final synchronized MaterialIndexProvider getOrCreateForAtlas(ResourceLocation id) {
 		return ATLAS_PROVIDERS.computeIfAbsent(id, AtlasIndexProvider::new);
 	}
 

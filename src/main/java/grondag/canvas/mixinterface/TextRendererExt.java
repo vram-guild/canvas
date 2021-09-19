@@ -16,7 +16,7 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.util.math.Matrix4f;
+import com.mojang.math.Matrix4f;
 
 public interface TextRendererExt {
 	void canvas_beginBatchDraw(Matrix4f fillMatrix4fIn);

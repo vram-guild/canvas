@@ -23,11 +23,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.Window;
-
+import com.mojang.blaze3d.platform.Window;
 import grondag.canvas.config.Configurator;
+import net.minecraft.client.Minecraft;
 
 // Approach is based on that used by RetiNo, by Julian Dunskus
 // https://github.com/juliand665/retiNO
@@ -41,7 +39,7 @@ public class MixinWindow {
 	private void onDefaultWindowHints() {
 		GLFW.glfwDefaultWindowHints();
 
-		if (MinecraftClient.IS_SYSTEM_MAC && Configurator.reduceResolutionOnMac) {
+		if (Minecraft.ON_OSX && Configurator.reduceResolutionOnMac) {
 			GLFW.glfwWindowHint(GLFW.GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW.GLFW_FALSE);
 		}
 	}
@@ -49,7 +47,7 @@ public class MixinWindow {
 	@Inject (at = @At(value = "RETURN"), method = "updateFramebufferSize")
 	private void afterUpdateFrameBufferSize(CallbackInfo ci) {
 		// prevents mis-scaled startup screen
-		if (MinecraftClient.IS_SYSTEM_MAC && Configurator.reduceResolutionOnMac) {
+		if (Minecraft.ON_OSX && Configurator.reduceResolutionOnMac) {
 			framebufferWidth /= 2;
 			framebufferHeight /= 2;
 		}

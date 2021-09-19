@@ -16,20 +16,21 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.util.math.Matrix3f;
-import net.minecraft.util.math.Matrix4f;
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
+
+import net.minecraft.client.renderer.texture.OverlayTexture;
 
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 public final class AbsentEncodingContext extends AbstractEncodingContext {
 	private AbsentEncodingContext() {
 		matrix = new Matrix4f();
-		matrix.loadIdentity();
-		overlay = OverlayTexture.DEFAULT_UV;
+		matrix.setIdentity();
+		overlay = OverlayTexture.NO_OVERLAY;
 
 		final Matrix3f n = new Matrix3f();
-		n.loadIdentity();
+		n.setIdentity();
 		normalMatrix = (Matrix3fExt) (Object) n;
 	}
 

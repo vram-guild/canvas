@@ -18,7 +18,7 @@ package grondag.canvas.render.world;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.pipeline.Pipeline;
@@ -69,14 +69,14 @@ public class SkyShadowRenderer {
 
 		canvasWorldRenderer.worldRenderState.renderShadowLayer(cascade);
 
-		if (Pipeline.config().skyShadow.allowEntities && MinecraftClient.getInstance().options.entityShadows) {
+		if (Pipeline.config().skyShadow.allowEntities && Minecraft.getInstance().options.entityShadows) {
 			entityBuffer.draw(true);
 			shadowExtrasBuffer.draw(true);
 		}
 	}
 
 	/** Preserves entityShadows option state, overwriting it temporarily if needed to prevent vanilla from rendering shadows. */
-	public static void suppressEntityShadows(MinecraftClient mc) {
+	public static void suppressEntityShadows(Minecraft mc) {
 		if (Pipeline.shadowsEnabled()) {
 			renderEntityShadows = mc.options.entityShadows;
 			mc.options.entityShadows = false;
@@ -84,7 +84,7 @@ public class SkyShadowRenderer {
 	}
 
 	/** Restores entityShadows option state. */
-	public static void restoreEntityShadows(MinecraftClient mc) {
+	public static void restoreEntityShadows(Minecraft mc) {
 		if (Pipeline.shadowsEnabled()) {
 			mc.options.entityShadows = renderEntityShadows;
 		}

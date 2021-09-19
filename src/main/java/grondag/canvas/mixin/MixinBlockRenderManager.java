@@ -19,41 +19,39 @@ package grondag.canvas.mixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.BlockModelRenderer;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.item.BuiltinModelItemRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-
+import com.mojang.blaze3d.vertex.PoseStack;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
 
-@Mixin(BlockRenderManager.class)
+@Mixin(BlockRenderDispatcher.class)
 public abstract class MixinBlockRenderManager {
-	@Shadow private BlockModelRenderer blockModelRenderer;
-	@Shadow private BuiltinModelItemRenderer builtinModelItemRenderer;
+	@Shadow private ModelBlockRenderer blockModelRenderer;
+	@Shadow private BlockEntityWithoutLevelRenderer builtinModelItemRenderer;
 
 	/**
 	 * @author grondag
 	 * @reason performance; less bad than inject and cancel at head
 	 */
 	@Overwrite
-	public void renderBlockAsEntity(BlockState state, MatrixStack matrices, VertexConsumerProvider consumers, int light, int overlay) {
-		final BlockRenderType blockRenderType = state.getRenderType();
+	public void renderBlockAsEntity(BlockState state, PoseStack matrices, MultiBufferSource consumers, int light, int overlay) {
+		final RenderShape blockRenderType = state.getRenderShape();
 
-		if (blockRenderType != BlockRenderType.INVISIBLE) {
+		if (blockRenderType != RenderShape.INVISIBLE) {
 			switch (blockRenderType) {
 				case MODEL:
-					final BakedModel bakedModel = ((BlockRenderManager) (Object) this).getModel(state);
+					final BakedModel bakedModel = ((BlockRenderDispatcher) (Object) this).getBlockModel(state);
 					EntityBlockRenderContext.get().render(blockModelRenderer, bakedModel, state, matrices, consumers, overlay, light);
 					break;
 				case ENTITYBLOCK_ANIMATED:
-					builtinModelItemRenderer.render(new ItemStack(state.getBlock()), ModelTransformation.Mode.NONE, matrices, consumers, light, overlay);
+					builtinModelItemRenderer.renderByItem(new ItemStack(state.getBlock()), ItemTransforms.TransformType.NONE, matrices, consumers, light, overlay);
 					break;
 				default:
 					break;

@@ -17,18 +17,15 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
-
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.model.BlockModel;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.render.block.BlockModelRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockRenderView;
-
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
@@ -36,7 +33,7 @@ import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 /**
  * Context for non-terrain block rendering.
  */
-public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderView> {
+public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintGetter> {
 	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
 
 	private static final Supplier<ThreadLocal<BlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
@@ -61,10 +58,10 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 		return POOL.get();
 	}
 
-	public void render(BlockModelRenderer vanillaRenderer, BlockRenderView blockView, BakedModel model, BlockState state, BlockPos pos, MatrixStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
+	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		defaultConsumer = buffer;
-		matrix = matrixStack.peek().getModel();
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.peek().getNormal();
+		matrix = matrixStack.last().pose();
+		normalMatrix = (Matrix3fExt) (Object) matrixStack.last().normal();
 		this.overlay = overlay;
 		region = blockView;
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
@@ -79,7 +76,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockRenderVi
 
 	@Override
 	protected int fastBrightness(BlockState blockState, BlockPos pos) {
-		return WorldRenderer.getLightmapCoordinates(region, blockState, pos);
+		return LevelRenderer.getLightColor(region, blockState, pos);
 	}
 
 	@Override

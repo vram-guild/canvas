@@ -16,12 +16,12 @@
 
 package grondag.canvas.pipeline;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 class Target {
-	final Identifier id;
+	final ResourceLocation id;
 
-	Target(Identifier id) {
+	Target(ResourceLocation id) {
 		this.id = id;
 	}
 }

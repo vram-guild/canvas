@@ -16,9 +16,9 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.source.BiomeAccess.Storage;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager.NoiseBiomeSource;
 
 public interface BiomeAccessExt {
-	Biome getBiome(int x, int y, int z, Storage storage);
+	Biome getBiome(int x, int y, int z, NoiseBiomeSource storage);
 }

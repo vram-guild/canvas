@@ -17,15 +17,13 @@
 package grondag.canvas.pipeline;
 
 import org.lwjgl.opengl.GL46;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.ResourceTexture;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.util.NamedDependency;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.SimpleTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.resources.ResourceLocation;
 
 public class ProgramTextureData {
 	public final int[] texIds;
@@ -42,10 +40,10 @@ public class ProgramTextureData {
 			int bindTarget = GL46.GL_TEXTURE_2D;
 
 			if (imageName.contains(":")) {
-				final AbstractTexture tex = tryLoadResourceTexture(new Identifier(imageName));
+				final AbstractTexture tex = tryLoadResourceTexture(new ResourceLocation(imageName));
 
 				if (tex != null) {
-					imageBind = tex.getGlId();
+					imageBind = tex.getId();
 				}
 			} else {
 				final Image img = Pipeline.getImage(imageName);
@@ -61,8 +59,8 @@ public class ProgramTextureData {
 		}
 	}
 
-	private static AbstractTexture tryLoadResourceTexture(Identifier identifier) {
-		final TextureManager textureManager = MinecraftClient.getInstance().getTextureManager();
+	private static AbstractTexture tryLoadResourceTexture(ResourceLocation identifier) {
+		final TextureManager textureManager = Minecraft.getInstance().getTextureManager();
 		final AbstractTexture existingTexture = textureManager.getTexture(identifier);
 
 		if (existingTexture != null) {
@@ -71,8 +69,8 @@ public class ProgramTextureData {
 			// NB: `registerTexture` will replace the texture with MissingSprite if not found. This is useful for
 			//     pipeline developers.
 			//     Additionally, TextureManager will handle removing missing textures on resource reload.
-			final ResourceTexture resourceTexture = new ResourceTexture(identifier);
-			textureManager.registerTexture(identifier, resourceTexture);
+			final SimpleTexture resourceTexture = new SimpleTexture(identifier);
+			textureManager.register(identifier, resourceTexture);
 			return textureManager.getTexture(identifier);
 		}
 	}

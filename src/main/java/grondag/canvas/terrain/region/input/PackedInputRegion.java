@@ -66,17 +66,14 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
-
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.ChunkSection;
-import net.minecraft.world.chunk.WorldChunk;
-
 import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
-
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.terrain.util.ChunkPaletteCopier;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
@@ -88,7 +85,7 @@ import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
  * <p>Also serves as a state indicator for rebuild activity.
  */
 public class PackedInputRegion extends AbstractInputRegion {
-	private static final BlockState AIR = Blocks.AIR.getDefaultState();
+	private static final BlockState AIR = Blocks.AIR.defaultBlockState();
 	private static final ArrayBlockingQueue<PackedInputRegion> POOL = new ArrayBlockingQueue<>(256);
 
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
@@ -99,7 +96,7 @@ public class PackedInputRegion extends AbstractInputRegion {
 	final ShortArrayList blockEntityPos = new ShortArrayList();
 	PaletteCopy mainSectionCopy;
 
-	public static PackedInputRegion claim(ClientWorld world, BlockPos origin) {
+	public static PackedInputRegion claim(ClientLevel world, BlockPos origin) {
 		final PackedInputRegion result = POOL.poll();
 		return (result == null ? new PackedInputRegion() : result).prepare(world, origin);
 	}
@@ -113,7 +110,7 @@ public class PackedInputRegion extends AbstractInputRegion {
 		POOL.clear();
 	}
 
-	private PackedInputRegion prepare(ClientWorld world, BlockPos origin) {
+	private PackedInputRegion prepare(ClientLevel world, BlockPos origin) {
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startCopy();
 		}
@@ -132,10 +129,10 @@ public class PackedInputRegion extends AbstractInputRegion {
 		final int chunkBaseZ = (originZ >> 4) - 1;
 
 		this.chunkBaseX = chunkBaseX;
-		baseSectionIndex = ((originY - world.getBottomY()) >> 4) - 1;
+		baseSectionIndex = ((originY - world.getMinBuildHeight()) >> 4) - 1;
 		this.chunkBaseZ = chunkBaseZ;
 
-		final WorldChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
+		final LevelChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
 		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, originY);
 
 		final PackedInputRegion result;
@@ -175,7 +172,7 @@ public class PackedInputRegion extends AbstractInputRegion {
 		return result;
 	}
 
-	private void captureBlockEntities(WorldChunk mainChunk) {
+	private void captureBlockEntities(LevelChunk mainChunk) {
 		renderDataPos.clear();
 		renderData.clear();
 		blockEntityPos.clear();
@@ -219,22 +216,22 @@ public class PackedInputRegion extends AbstractInputRegion {
 	}
 
 	private void captureFaces() {
-		final ChunkSection lowX = getSection(0, 1, 1);
+		final LevelChunkSection lowX = getSection(0, 1, 1);
 		captureFace(SIDE_INDEX_X0 - INTERIOR_STATE_COUNT, lowX == null ? AIR_FUNCTION : (i, j, k) -> lowX.getBlockState(14 + k, i, j));
 
-		final ChunkSection highX = getSection(2, 1, 1);
+		final LevelChunkSection highX = getSection(2, 1, 1);
 		captureFace(SIDE_INDEX_X2 - INTERIOR_STATE_COUNT, highX == null ? AIR_FUNCTION : (i, j, k) -> highX.getBlockState(k, i, j));
 
-		final ChunkSection lowZ = getSection(1, 1, 0);
+		final LevelChunkSection lowZ = getSection(1, 1, 0);
 		captureFace(SIDE_INDEX_Z0 - INTERIOR_STATE_COUNT, lowZ == null ? AIR_FUNCTION : (i, j, k) -> lowZ.getBlockState(i, j, 14 + k));
 
-		final ChunkSection highZ = getSection(1, 1, 2);
+		final LevelChunkSection highZ = getSection(1, 1, 2);
 		captureFace(SIDE_INDEX_Z2 - INTERIOR_STATE_COUNT, highZ == null ? AIR_FUNCTION : (i, j, k) -> highZ.getBlockState(i, j, k));
 
-		final ChunkSection lowY = getSection(1, 0, 1);
+		final LevelChunkSection lowY = getSection(1, 0, 1);
 		captureFace(SIDE_INDEX_Y0 - INTERIOR_STATE_COUNT, lowY == null ? AIR_FUNCTION : (i, j, k) -> lowY.getBlockState(i, 14 + k, j));
 
-		final ChunkSection highY = getSection(1, 2, 1);
+		final LevelChunkSection highY = getSection(1, 2, 1);
 		captureFace(SIDE_INDEX_Y2 - INTERIOR_STATE_COUNT, highY == null ? AIR_FUNCTION : (i, j, k) -> highY.getBlockState(i, k, j));
 	}
 
@@ -246,40 +243,40 @@ public class PackedInputRegion extends AbstractInputRegion {
 	}
 
 	private void captureEdges() {
-		final ChunkSection aaZ = getSection(0, 0, 1);
+		final LevelChunkSection aaZ = getSection(0, 0, 1);
 		captureEdge(EDGE_INDEX_Y0X0 - INTERIOR_STATE_COUNT, aaZ == null ? AIR_FUNCTION : (i, j, k) -> aaZ.getBlockState(14 + i, 14 + j, k));
 
-		final ChunkSection abZ = getSection(0, 2, 1);
+		final LevelChunkSection abZ = getSection(0, 2, 1);
 		captureEdge(EDGE_INDEX_Y2X0 - INTERIOR_STATE_COUNT, abZ == null ? AIR_FUNCTION : (i, j, k) -> abZ.getBlockState(14 + i, j, k));
 
-		final ChunkSection baZ = getSection(2, 0, 1);
+		final LevelChunkSection baZ = getSection(2, 0, 1);
 		captureEdge(EDGE_INDEX_Y0X2 - INTERIOR_STATE_COUNT, baZ == null ? AIR_FUNCTION : (i, j, k) -> baZ.getBlockState(i, 14 + j, k));
 
-		final ChunkSection bbZ = getSection(2, 2, 1);
+		final LevelChunkSection bbZ = getSection(2, 2, 1);
 		captureEdge(EDGE_INDEX_Y2X2 - INTERIOR_STATE_COUNT, bbZ == null ? AIR_FUNCTION : (i, j, k) -> bbZ.getBlockState(i, j, k));
 
-		final ChunkSection aYa = getSection(0, 1, 0);
+		final LevelChunkSection aYa = getSection(0, 1, 0);
 		captureEdge(EDGE_INDEX_Z0X0 - INTERIOR_STATE_COUNT, aYa == null ? AIR_FUNCTION : (i, j, k) -> aYa.getBlockState(14 + i, k, 14 + j));
 
-		final ChunkSection aYb = getSection(0, 1, 2);
+		final LevelChunkSection aYb = getSection(0, 1, 2);
 		captureEdge(EDGE_INDEX_Z2X0 - INTERIOR_STATE_COUNT, aYb == null ? AIR_FUNCTION : (i, j, k) -> aYb.getBlockState(14 + i, k, j));
 
-		final ChunkSection bYa = getSection(2, 1, 0);
+		final LevelChunkSection bYa = getSection(2, 1, 0);
 		captureEdge(EDGE_INDEX_Z0X2 - INTERIOR_STATE_COUNT, bYa == null ? AIR_FUNCTION : (i, j, k) -> bYa.getBlockState(i, k, 14 + j));
 
-		final ChunkSection bYb = getSection(2, 1, 2);
+		final LevelChunkSection bYb = getSection(2, 1, 2);
 		captureEdge(EDGE_INDEX_Z2X2 - INTERIOR_STATE_COUNT, bYb == null ? AIR_FUNCTION : (i, j, k) -> bYb.getBlockState(i, k, j));
 
-		final ChunkSection Xaa = getSection(1, 0, 0);
+		final LevelChunkSection Xaa = getSection(1, 0, 0);
 		captureEdge(EDGE_INDEX_Z0Y0 - INTERIOR_STATE_COUNT, Xaa == null ? AIR_FUNCTION : (i, j, k) -> Xaa.getBlockState(k, 14 + i, 14 + j));
 
-		final ChunkSection Xab = getSection(1, 0, 2);
+		final LevelChunkSection Xab = getSection(1, 0, 2);
 		captureEdge(EDGE_INDEX_Z2Y0 - INTERIOR_STATE_COUNT, Xab == null ? AIR_FUNCTION : (i, j, k) -> Xab.getBlockState(k, 14 + i, j));
 
-		final ChunkSection Xba = getSection(1, 2, 0);
+		final LevelChunkSection Xba = getSection(1, 2, 0);
 		captureEdge(EDGE_INDEX_Z0Y2 - INTERIOR_STATE_COUNT, Xba == null ? AIR_FUNCTION : (i, j, k) -> Xba.getBlockState(k, i, 14 + j));
 
-		final ChunkSection Xbb = getSection(1, 2, 2);
+		final LevelChunkSection Xbb = getSection(1, 2, 2);
 		captureEdge(EDGE_INDEX_Z2Y2 - INTERIOR_STATE_COUNT, Xbb == null ? AIR_FUNCTION : (i, j, k) -> Xbb.getBlockState(k, i, j));
 	}
 
@@ -291,28 +288,28 @@ public class PackedInputRegion extends AbstractInputRegion {
 	}
 
 	private void captureCorners() {
-		final ChunkSection xyz = getSection(0, 0, 0);
+		final LevelChunkSection xyz = getSection(0, 0, 0);
 		captureCorner(CORNER_INDEX_000 - INTERIOR_STATE_COUNT, xyz == null ? AIR_FUNCTION : (i, j, k) -> xyz.getBlockState(14 + i, 14 + j, 14 + k));
 
-		final ChunkSection xyZ = getSection(0, 0, 2);
+		final LevelChunkSection xyZ = getSection(0, 0, 2);
 		captureCorner(CORNER_INDEX_200 - INTERIOR_STATE_COUNT, xyZ == null ? AIR_FUNCTION : (i, j, k) -> xyZ.getBlockState(14 + i, 14 + j, k));
 
-		final ChunkSection xYz = getSection(0, 2, 0);
+		final LevelChunkSection xYz = getSection(0, 2, 0);
 		captureCorner(CORNER_INDEX_020 - INTERIOR_STATE_COUNT, xYz == null ? AIR_FUNCTION : (i, j, k) -> xYz.getBlockState(14 + i, j, 14 + k));
 
-		final ChunkSection xYZ = getSection(0, 2, 2);
+		final LevelChunkSection xYZ = getSection(0, 2, 2);
 		captureCorner(CORNER_INDEX_220 - INTERIOR_STATE_COUNT, xYZ == null ? AIR_FUNCTION : (i, j, k) -> xYZ.getBlockState(14 + i, j, k));
 
-		final ChunkSection Xyz = getSection(2, 0, 0);
+		final LevelChunkSection Xyz = getSection(2, 0, 0);
 		captureCorner(CORNER_INDEX_002 - INTERIOR_STATE_COUNT, Xyz == null ? AIR_FUNCTION : (i, j, k) -> Xyz.getBlockState(i, 14 + j, 14 + k));
 
-		final ChunkSection XyZ = getSection(2, 0, 2);
+		final LevelChunkSection XyZ = getSection(2, 0, 2);
 		captureCorner(CORNER_INDEX_202 - INTERIOR_STATE_COUNT, XyZ == null ? AIR_FUNCTION : (i, j, k) -> XyZ.getBlockState(i, 14 + j, k));
 
-		final ChunkSection XYz = getSection(2, 2, 0);
+		final LevelChunkSection XYz = getSection(2, 2, 0);
 		captureCorner(CORNER_INDEX_022 - INTERIOR_STATE_COUNT, XYz == null ? AIR_FUNCTION : (i, j, k) -> XYz.getBlockState(i, j, 14 + k));
 
-		final ChunkSection XYZ = getSection(2, 2, 2);
+		final LevelChunkSection XYZ = getSection(2, 2, 2);
 		captureCorner(CORNER_INDEX_222 - INTERIOR_STATE_COUNT, XYZ == null ? AIR_FUNCTION : (i, j, k) -> XYZ.getBlockState(i, j, k));
 	}
 

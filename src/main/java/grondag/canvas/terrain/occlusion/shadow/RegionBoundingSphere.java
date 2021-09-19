@@ -16,9 +16,8 @@
 
 package grondag.canvas.terrain.occlusion.shadow;
 
-import net.minecraft.util.math.Vec3i;
-
 import grondag.fermion.varia.Useful;
+import net.minecraft.core.Vec3i;
 
 public class RegionBoundingSphere {
 	/** Max visible range, in chunks. (Not block pos.) */

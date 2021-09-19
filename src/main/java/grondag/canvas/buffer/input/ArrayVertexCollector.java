@@ -23,15 +23,15 @@ import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.render.terrain.TerrainFormat;
+import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 
 public class ArrayVertexCollector implements VertexCollector {
 	private final int quadStrideInts;
@@ -62,7 +62,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		final int oldCapacity = capacity;
 
 		if (newSize > oldCapacity) {
-			final int newCapacity = MathHelper.smallestEncompassingPowerOfTwo(newSize);
+			final int newCapacity = Mth.smallestEncompassingPowerOfTwo(newSize);
 			final int[] newData = new int[newCapacity];
 			System.arraycopy(vertexData, 0, newData, 0, oldCapacity);
 			arryBytes.addAndGet(newCapacity - oldCapacity);
@@ -139,7 +139,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		return bucketSorter == null ? null : bucketSorter.sort(vertexData, integerSize);
 	}
 
-	public boolean sortTerrainQuads(Vec3d sortPos, RegionRenderSector sector) {
+	public boolean sortTerrainQuads(Vec3 sortPos, RegionRenderSector sector) {
 		assert isTerrain;
 
 		return sortQuads(
@@ -154,7 +154,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		final QuadDistanceFunc distanceFunc = isTerrain ? quadDistanceTerrain : quadDistanceStandard;
 
 		if (perQuadDistance.length < quadCount) {
-			perQuadDistance = new float[MathHelper.smallestEncompassingPowerOfTwo(quadCount)];
+			perQuadDistance = new float[Mth.smallestEncompassingPowerOfTwo(quadCount)];
 		}
 
 		for (int j = 0; j < quadCount; ++j) {

@@ -20,10 +20,11 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.profiler.Profiler;
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.phys.Vec3;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -40,12 +41,12 @@ class DynocapsHolder {
 
 			try {
 				final Class<?> clazz = Class.forName("com.biom4st3r.dynocaps.features.BoxRenderer");
-				final Method render = clazz.getDeclaredMethod("render", MatrixStack.class, VertexConsumerProvider.Immediate.class, int.class, Vec3d.class);
+				final Method render = clazz.getDeclaredMethod("render", PoseStack.class, MultiBufferSource.BufferSource.class, int.class, Vec3.class);
 				final MethodHandle renderHandler = lookup.unreflect(render);
 
 				handler = (profiler, matrixStack, immediate, camPos) -> {
 					try {
-						profiler.swap("dynocaps");
+						profiler.popPush("dynocaps");
 						renderHandler.invokeExact(matrixStack, immediate, 1, camPos);
 					} catch (final Throwable e) {
 						if (warnRender) {
@@ -64,6 +65,6 @@ class DynocapsHolder {
 	}
 
 	interface DynoCapsRender {
-		void render(Profiler profiler, MatrixStack matrixStack, VertexConsumerProvider.Immediate immediate, Vec3d camPos);
+		void render(ProfilerFiller profiler, PoseStack matrixStack, MultiBufferSource.BufferSource immediate, Vec3 camPos);
 	}
 }

@@ -19,18 +19,15 @@ package grondag.canvas.mixin;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
-
+import net.minecraft.util.Mth;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.util.math.MathHelper;
-
 import grondag.canvas.mixinterface.BufferBuilderExt;
 
 /**
@@ -46,7 +43,7 @@ public class MixinBufferBuilder implements BufferBuilderExt {
 	@Shadow private int currentElementId;
 	@Shadow private boolean building;
 	@Shadow private int elementOffset;
-	@Shadow private List<BufferBuilder.DrawArrayParameters> parameters;
+	@Shadow private List<BufferBuilder.DrawState> parameters;
 	@Shadow private int lastParameterIndex;
 	@Shadow private int nextDrawStart;
 
@@ -84,11 +81,11 @@ public class MixinBufferBuilder implements BufferBuilderExt {
 	}
 
 	@Inject(method = "popData", require = 1, cancellable = true, at = @At("HEAD"))
-	private void onPopData(CallbackInfoReturnable<Pair<BufferBuilder.DrawArrayParameters, ByteBuffer>> ci) {
+	private void onPopData(CallbackInfoReturnable<Pair<BufferBuilder.DrawState, ByteBuffer>> ci) {
 		if (repeatableDraw) {
-			BufferBuilder.DrawArrayParameters drawArrayParameters = parameters.get(lastParameterIndex++);
+			BufferBuilder.DrawState drawArrayParameters = parameters.get(lastParameterIndex++);
 			buffer.position(nextDrawStart);
-			nextDrawStart += MathHelper.roundUpToMultiple(drawArrayParameters.getDrawStart(), 4);
+			nextDrawStart += Mth.roundToward(drawArrayParameters.bufferSize(), 4);
 			buffer.limit(nextDrawStart);
 
 			if (lastParameterIndex == parameters.size() && vertexCount == 0) {

@@ -20,9 +20,9 @@ import java.util.BitSet;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.util.profiling.ProfilerFiller;
 
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
@@ -73,7 +73,7 @@ public class WorldRenderState {
 	private final DrawableRegionList[] shadowDrawLists = new DrawableRegionList[ShadowMatrixData.CASCADE_COUNT];
 
 	private RenderRegionBuilder regionBuilder;
-	private ClientWorld world;
+	private ClientLevel world;
 	private boolean hasSkylight;
 	private String drawlistDebugSummary = "";
 
@@ -98,14 +98,14 @@ public class WorldRenderState {
 
 	void computeDistances() {
 		@SuppressWarnings("resource")
-		int renderDistance = MinecraftClient.getInstance().options.viewDistance;
+		int renderDistance = Minecraft.getInstance().options.renderDistance;
 		chunkRenderDistance = renderDistance;
 		squaredChunkRenderDistance = renderDistance * renderDistance;
 		renderDistance += 2;
 		squaredChunkRetentionDistance = renderDistance * renderDistance;
 	}
 
-	void setWorld(@Nullable ClientWorld clientWorld) {
+	void setWorld(@Nullable ClientLevel clientWorld) {
 		// happens here to avoid creating before renderer is initialized
 		if (regionBuilder == null) {
 			regionBuilder = new RenderRegionBuilder();
@@ -117,12 +117,12 @@ public class WorldRenderState {
 		clearDrawSpecs();
 		terrainIterator.reset();
 		renderRegionStorage.clear();
-		hasSkylight = world != null && world.getDimension().hasSkyLight();
+		hasSkylight = world != null && world.dimensionType().hasSkyLight();
 		solidClusterRealm.clear();
 		translucentClusterRealm.clear();
 	}
 
-	public ClientWorld getWorld() {
+	public ClientLevel getWorld() {
 		return world;
 	}
 
@@ -244,7 +244,7 @@ public class WorldRenderState {
 	}
 
 	void renderSolidTerrain() {
-		final Profiler prof = MinecraftClient.getInstance().getProfiler();
+		final ProfilerFiller prof = Minecraft.getInstance().getProfiler();
 		prof.push("render_solid");
 		MatrixState.set(MatrixState.REGION);
 		solidDrawList.draw(this);
@@ -253,7 +253,7 @@ public class WorldRenderState {
 	}
 
 	void renderTranslucentTerrain() {
-		final Profiler prof = MinecraftClient.getInstance().getProfiler();
+		final ProfilerFiller prof = Minecraft.getInstance().getProfiler();
 		prof.push("render_translucent");
 		MatrixState.set(MatrixState.REGION);
 		translucentDrawList.draw(this);
@@ -262,7 +262,7 @@ public class WorldRenderState {
 	}
 
 	void renderShadowLayer(int cascadeIndex) {
-		final Profiler prof = MinecraftClient.getInstance().getProfiler();
+		final ProfilerFiller prof = Minecraft.getInstance().getProfiler();
 		prof.push("render_shadow");
 		MatrixState.set(MatrixState.REGION);
 		shadowDrawLists[cascadeIndex].draw(this);

@@ -16,12 +16,11 @@
 
 package grondag.canvas.pipeline;
 
-import net.minecraft.client.MinecraftClient;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.AttachmentConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.varia.GFX;
+import net.minecraft.client.Minecraft;
 
 // FEAT: handle clear masks
 public class PipelineFramebuffer {
@@ -137,12 +136,12 @@ public class PipelineFramebuffer {
 			}
 
 			GFX.clearColor(clearColor[0][R], clearColor[0][G], clearColor[0][B], clearColor[0][A]);
-			GFX.clear(mask, MinecraftClient.IS_SYSTEM_MAC);
+			GFX.clear(mask, Minecraft.ON_OSX);
 		} else {
 			// Clears happen separately in other cases
 			if (config.depthAttachment != null && config.depthAttachment.clear) {
 				GFX.clearDepth(config.depthAttachment.clearDepth);
-				GFX.clear(GFX.GL_DEPTH_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+				GFX.clear(GFX.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
 			}
 
 			if (colorClearFlags != 0) {
@@ -152,7 +151,7 @@ public class PipelineFramebuffer {
 					if ((colorClearFlags & (1 << i)) != 0) {
 						GFX.glDrawBuffer(GFX.GL_COLOR_ATTACHMENT0 + i);
 						GFX.clearColor(clearColor[i][R], clearColor[i][G], clearColor[i][B], clearColor[i][A]);
-						GFX.clear(GFX.GL_COLOR_BUFFER_BIT, MinecraftClient.IS_SYSTEM_MAC);
+						GFX.clear(GFX.GL_COLOR_BUFFER_BIT, Minecraft.ON_OSX);
 					}
 				}
 

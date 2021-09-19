@@ -16,33 +16,33 @@
 
 package grondag.canvas.buffer.format;
 
-import net.minecraft.client.render.VertexFormatElement;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
 
 public final class CanvasVertexFormats {
 	public static final CanvasVertexFormatElement POSITION_3F = new CanvasVertexFormatElement(
-		VertexFormatElement.DataType.FLOAT, 3, "in_vertex", true, false);
+		VertexFormatElement.Type.FLOAT, 3, "in_vertex", true, false);
 
 	private static final CanvasVertexFormatElement BASE_TEX_2F = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.FLOAT, 2, "in_uv", true, false);
+			VertexFormatElement.Type.FLOAT, 2, "in_uv", true, false);
 
 	public static final CanvasVertexFormat PROCESS_VERTEX_UV = new CanvasVertexFormat(POSITION_3F, BASE_TEX_2F);
 	public static final CanvasVertexFormat PROCESS_VERTEX = new CanvasVertexFormat(POSITION_3F);
 
 	public static final CanvasVertexFormatElement BASE_RGBA_4UB = new CanvasVertexFormatElement(
-		VertexFormatElement.DataType.UBYTE, 4, "in_color", true, false);
+		VertexFormatElement.Type.UBYTE, 4, "in_color", true, false);
 
 	public static final CanvasVertexFormatElement BASE_TEX_2US = new CanvasVertexFormatElement(
-		VertexFormatElement.DataType.USHORT, 2, "in_uv", true, false);
+		VertexFormatElement.Type.USHORT, 2, "in_uv", true, false);
 
 	/** Low bits hold signs for Z coordinate of normal and tangent vectors. */
 	public static final CanvasVertexFormatElement LIGHTMAPS_2UB_WITH_SIGNS = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.UBYTE, 2, "in_lightmap_with_signs", false, true);
+			VertexFormatElement.Type.UBYTE, 2, "in_lightmap_with_signs", false, true);
 
 	public static final CanvasVertexFormatElement MATERIAL_1US = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.USHORT, 1, "in_material", false, true);
+			VertexFormatElement.Type.USHORT, 1, "in_material", false, true);
 
 	public static final CanvasVertexFormatElement NORMAL_TANGENT_4B = new CanvasVertexFormatElement(
-			VertexFormatElement.DataType.BYTE, 4, "in_normal_tangent", true, false);
+			VertexFormatElement.Type.BYTE, 4, "in_normal_tangent", true, false);
 
 	/**
 	 * Compact default format for all world/game object rendering unless otherwise configured.

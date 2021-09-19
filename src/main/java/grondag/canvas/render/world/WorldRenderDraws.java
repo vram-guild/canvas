@@ -17,25 +17,23 @@
 package grondag.canvas.render.world;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.registry.Registry;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.perf.Timekeeper;
@@ -52,38 +50,38 @@ public class WorldRenderDraws {
 		final int g = (color >> 8) & 0xFF;
 		final int b = color & 0xFF;
 
-		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).endVertex();
 
-		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).endVertex();
 
-		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).next();
-		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).next();
+		bufferBuilder.vertex(x0, y0, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y0, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y0, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y0, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y1, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x0, y1, z1).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y1, z0).color(r, g, b, a).endVertex();
+		bufferBuilder.vertex(x1, y1, z1).color(r, g, b, a).endVertex();
 	}
 
 	static void renderCullBoxes(RenderRegionStorage renderRegionStorage, double cameraX, double cameraY, double cameraZ, float tickDelta) {
-		@SuppressWarnings("resource") final Entity entity = MinecraftClient.getInstance().gameRenderer.getCamera().getFocusedEntity();
+		@SuppressWarnings("resource") final Entity entity = Minecraft.getInstance().gameRenderer.getMainCamera().getEntity();
 
-		final HitResult hit = entity.raycast(12 * 16, tickDelta, true);
+		final HitResult hit = entity.pick(12 * 16, tickDelta, true);
 
 		if (hit.getType() != HitResult.Type.BLOCK) {
 			return;
@@ -102,8 +100,8 @@ public class WorldRenderDraws {
 			return;
 		}
 
-		final Tessellator tessellator = Tessellator.getInstance();
-		final BufferBuilder bufferBuilder = tessellator.getBuffer();
+		final Tesselator tessellator = Tesselator.getInstance();
+		final BufferBuilder bufferBuilder = tessellator.getBuilder();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 		RenderSystem.disableTexture();
@@ -118,7 +116,7 @@ public class WorldRenderDraws {
 		final double z = (pos.getZ() & ~0xF) - cameraZ;
 
 		RenderSystem.lineWidth(6.0F);
-		bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR);
+		bufferBuilder.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR);
 		final int regionRange = region.origin.occlusionRange();
 
 		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
@@ -134,10 +132,10 @@ public class WorldRenderDraws {
 			drawOutline(bufferBuilder, x + PackedBox.x0(b), y + PackedBox.y0(b), z + PackedBox.z0(b), x + PackedBox.x1(b), y + PackedBox.y1(b), z + PackedBox.z1(b), WorldRenderDraws.rangeColor(range));
 		}
 
-		tessellator.draw();
+		tessellator.end();
 		GFX.disableDepthTest();
 		RenderSystem.lineWidth(3.0F);
-		bufferBuilder.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR);
+		bufferBuilder.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR);
 
 		drawOutline(bufferBuilder, x + PackedBox.x0(cb), y + PackedBox.y0(cb), z + PackedBox.z0(cb), x + PackedBox.x1(cb), y + PackedBox.y1(cb), z + PackedBox.z1(cb), 0xFFAAAAAA);
 
@@ -152,7 +150,7 @@ public class WorldRenderDraws {
 			drawOutline(bufferBuilder, x + PackedBox.x0(b), y + PackedBox.y0(b), z + PackedBox.z0(b), x + PackedBox.x1(b), y + PackedBox.y1(b), z + PackedBox.z1(b), WorldRenderDraws.rangeColor(range));
 		}
 
-		tessellator.draw();
+		tessellator.end();
 
 		GFX.enableDepthTest();
 		RenderSystem.enableBlend();
@@ -177,18 +175,18 @@ public class WorldRenderDraws {
 		}
 	}
 
-	static void profileSwap(Profiler profiler, ProfilerGroup profilerGroup, String token) {
-		profiler.swap(token);
+	static void profileSwap(ProfilerFiller profiler, ProfilerGroup profilerGroup, String token) {
+		profiler.popPush(token);
 		Timekeeper.instance.swap(profilerGroup, token);
 	}
 
-	static void renderBlockEntitySafely(BlockEntity blockEntity, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider outputConsumer) {
+	static void renderBlockEntitySafely(BlockEntity blockEntity, float tickDelta, PoseStack matrixStack, MultiBufferSource outputConsumer) {
 		try {
-			MinecraftClient.getInstance().getBlockEntityRenderDispatcher().render(blockEntity, tickDelta, matrixStack, outputConsumer);
+			Minecraft.getInstance().getBlockEntityRenderDispatcher().render(blockEntity, tickDelta, matrixStack, outputConsumer);
 		} catch (final Exception e) {
 			if (WorldRenderDraws.CAUGHT_BER_ERRORS.add(blockEntity.getType())) {
 				CanvasMod.LOG.warn(String.format("Unhandled exception rendering while rendering BlockEntity %s @ %s.  Stack trace follows. Subsequent errors will be suppressed.",
-						Registry.BLOCK_ENTITY_TYPE.getId(blockEntity.getType()).toString(), blockEntity.getPos().toShortString()));
+						Registry.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType()).toString(), blockEntity.getBlockPos().toShortString()));
 
 				// Passing this to .(warn) causes "Negative index in crash report handler" spam, so printing separately
 				e.printStackTrace();

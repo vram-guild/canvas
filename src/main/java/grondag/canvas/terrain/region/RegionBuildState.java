@@ -21,8 +21,8 @@ import java.util.List;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -53,7 +53,7 @@ public class RegionBuildState {
 	 * Persists data for translucency resort if needed, also performing initial sort.
 	 * Should be called after vertex collection is complete.
 	 */
-	public void prepareTranslucentIfNeeded(Vec3d sortPos, RegionRenderSector sector, VertexCollectorList collectors) {
+	public void prepareTranslucentIfNeeded(Vec3 sortPos, RegionRenderSector sector, VertexCollectorList collectors) {
 		final ArrayVertexCollector buffer = collectors.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null && !buffer.isEmpty()) {

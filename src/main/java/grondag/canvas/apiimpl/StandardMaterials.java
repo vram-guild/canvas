@@ -17,12 +17,9 @@
 package grondag.canvas.apiimpl;
 
 import java.util.IdentityHashMap;
-
+import net.minecraft.client.renderer.RenderType;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
-
-import net.minecraft.client.render.RenderLayer;
-
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 public class StandardMaterials {
@@ -32,17 +29,17 @@ public class StandardMaterials {
 	public static final RenderMaterialImpl BLOCK_CUTOUT_MIPPED = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_CUTOUT_MIPPED).find();
 	public static final RenderMaterialImpl MATERIAL_STANDARD = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_DEFAULT).find();
 
-	private static final IdentityHashMap<RenderLayer, RenderMaterialImpl> LAYER_MAP = new IdentityHashMap<>();
+	private static final IdentityHashMap<RenderType, RenderMaterialImpl> LAYER_MAP = new IdentityHashMap<>();
 
 	static {
-		LAYER_MAP.put(RenderLayer.getSolid(), BLOCK_SOLID);
-		LAYER_MAP.put(RenderLayer.getCutout(), BLOCK_CUTOUT);
-		LAYER_MAP.put(RenderLayer.getCutoutMipped(), BLOCK_CUTOUT_MIPPED);
-		LAYER_MAP.put(RenderLayer.getTranslucent(), BLOCK_TRANSLUCENT);
+		LAYER_MAP.put(RenderType.solid(), BLOCK_SOLID);
+		LAYER_MAP.put(RenderType.cutout(), BLOCK_CUTOUT);
+		LAYER_MAP.put(RenderType.cutoutMipped(), BLOCK_CUTOUT_MIPPED);
+		LAYER_MAP.put(RenderType.translucent(), BLOCK_TRANSLUCENT);
 		Canvas.instance().registerMaterial(RenderMaterial.MATERIAL_STANDARD, StandardMaterials.MATERIAL_STANDARD);
 	}
 
-	public static RenderMaterialImpl get(RenderLayer layer) {
+	public static RenderMaterialImpl get(RenderType layer) {
 		return LAYER_MAP.get(layer);
 	}
 }

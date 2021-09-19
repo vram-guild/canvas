@@ -17,14 +17,12 @@
 package grondag.canvas.mixin;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.minecraft.util.BitStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.util.collection.PackedIntegerArray;
-
 import grondag.canvas.mixinterface.PackedIntegerArrayExt;
 
-@Mixin(PackedIntegerArray.class)
+@Mixin(BitStorage.class)
 public abstract class MixinPackedIntegerArray implements PackedIntegerArrayExt {
 	@Shadow
 	private long[] storage;

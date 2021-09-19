@@ -40,15 +40,12 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z0;
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Vector3f;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.mesh.QuadView;
-
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3f;
-
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-
+import net.minecraft.core.Direction;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
@@ -60,7 +57,7 @@ import grondag.canvas.mixinterface.Matrix4fExt;
  * of maintaining and encoding the quad state.
  */
 public class QuadViewImpl implements QuadView {
-	protected static ThreadLocal<Vec3f> FACE_NORMAL_THREADLOCAL = ThreadLocal.withInitial(Vec3f::new);
+	protected static ThreadLocal<Vector3f> FACE_NORMAL_THREADLOCAL = ThreadLocal.withInitial(Vector3f::new);
 	protected int nominalFaceId = ModelHelper.NULL_FACE_ID;
 	protected boolean isGeometryInvalid = true;
 	protected boolean isTangentInvalid = true;
@@ -241,7 +238,7 @@ public class QuadViewImpl implements QuadView {
 	 */
 	@Deprecated
 	@Override
-	public final Vec3f faceNormal() {
+	public final Vector3f faceNormal() {
 		return PackedVector3f.unpackTo(packedFaceNormal(), FACE_NORMAL_THREADLOCAL.get());
 	}
 
@@ -304,9 +301,9 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public Vec3f copyPos(int vertexIndex, Vec3f target) {
+	public Vector3f copyPos(int vertexIndex, Vector3f target) {
 		if (target == null) {
-			target = new Vec3f();
+			target = new Vector3f();
 		}
 
 		final int index = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_X0;
@@ -340,10 +337,10 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public Vec3f copyNormal(int vertexIndex, Vec3f target) {
+	public Vector3f copyNormal(int vertexIndex, Vector3f target) {
 		if (hasNormal(vertexIndex)) {
 			if (target == null) {
-				target = new Vec3f();
+				target = new Vector3f();
 			}
 
 			return PackedVector3f.unpackTo(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0], target);
@@ -377,10 +374,10 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public Vec3f copyTangent(int vertexIndex, Vec3f target) {
+	public Vector3f copyTangent(int vertexIndex, Vector3f target) {
 		if (hasTangent(vertexIndex)) {
 			if (target == null) {
-				target = new Vec3f();
+				target = new Vector3f();
 			}
 
 			return PackedVector3f.unpackTo(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT], target);

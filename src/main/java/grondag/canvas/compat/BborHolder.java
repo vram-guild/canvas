@@ -21,14 +21,11 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
 import com.google.common.util.concurrent.Runnables;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.math.MatrixStack;
-
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.loader.api.FabricLoader;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import grondag.canvas.CanvasMod;
 
 class BborHolder {
@@ -45,7 +42,7 @@ class BborHolder {
 			try {
 				final Class<?> clazz = Class.forName("com.irtimaled.bbor.client.interop.ClientInterop");
 
-				final Method renderHook = clazz.getDeclaredMethod("render", MatrixStack.class, float.class, ClientPlayerEntity.class);
+				final Method renderHook = clazz.getDeclaredMethod("render", PoseStack.class, float.class, LocalPlayer.class);
 				final MethodHandle renderHookHandler = lookup.unreflect(renderHook);
 
 				final Method deferredHook = clazz.getDeclaredMethod("renderDeferred");
@@ -84,11 +81,11 @@ class BborHolder {
 
 	@SuppressWarnings("resource")
 	static void render(WorldRenderContext ctx) {
-		bborHandler.render(ctx.matrixStack(), ctx.tickDelta(), MinecraftClient.getInstance().player);
+		bborHandler.render(ctx.matrixStack(), ctx.tickDelta(), Minecraft.getInstance().player);
 	}
 
 	interface RenderHandler {
-		void render(MatrixStack matrixStack, float partialTicks, ClientPlayerEntity player);
+		void render(PoseStack matrixStack, float partialTicks, LocalPlayer player);
 	}
 
 	static void deferred() {

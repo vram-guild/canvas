@@ -17,9 +17,7 @@
 package grondag.canvas.shader;
 
 import java.util.Locale;
-
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.shader.data.ShaderStrings;
 
 public enum ProgramType {
@@ -32,11 +30,11 @@ public enum ProgramType {
 	public final String name;
 	public final boolean isDepth;
 	public final boolean hasVertexProgramControl;
-	public final Identifier vertexSource;
-	public final Identifier fragmentSource;
+	public final ResourceLocation vertexSource;
+	public final ResourceLocation fragmentSource;
 	public final boolean isTerrain;
 
-	ProgramType(boolean isDepth, boolean hasVertexProgramControl, Identifier vertexSource, Identifier fragmentSource, boolean isTerrain) {
+	ProgramType(boolean isDepth, boolean hasVertexProgramControl, ResourceLocation vertexSource, ResourceLocation fragmentSource, boolean isTerrain) {
 		name = name().toLowerCase(Locale.ROOT);
 		this.isDepth = isDepth;
 		this.hasVertexProgramControl = hasVertexProgramControl;

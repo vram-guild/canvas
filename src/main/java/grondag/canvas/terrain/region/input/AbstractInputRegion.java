@@ -18,17 +18,17 @@ package grondag.canvas.terrain.region.input;
 
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndex;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.ChunkSection;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 
 /**
  * Tries to prevent InputRegion from being unreadably big. Fails.
  */
 public abstract class AbstractInputRegion {
 	// larger than needed to speed up indexing
-	protected final WorldChunk[] chunks = new WorldChunk[16];
+	protected final LevelChunk[] chunks = new LevelChunk[16];
 	protected int originX;
 	protected int originY;
 	protected int originZ;
@@ -36,7 +36,7 @@ public abstract class AbstractInputRegion {
 	/** Section index of region below this one, -1 if this is the bottom-most region in a chunk. */
 	protected int baseSectionIndex;
 	protected int chunkBaseZ;
-	protected World world;
+	protected Level world;
 
 	final boolean isInMainChunk(int x, int y, int z) {
 		return originX == (x & 0xFFFFFFF0) && originY == (y & 0xFFFFFFF0) && originZ == (z & 0xFFFFFFF0);
@@ -50,18 +50,18 @@ public abstract class AbstractInputRegion {
 		return regionIndex(x - originX, y - originY, z - originZ);
 	}
 
-	protected ChunkSection getSection(int x, int y, int z) {
+	protected LevelChunkSection getSection(int x, int y, int z) {
 		final int index = y + baseSectionIndex;
 
 		if (index < 0) {
 			return null;
 		}
 
-		final ChunkSection[] sections = chunks[x | (z << 2)].getSectionArray();
+		final LevelChunkSection[] sections = chunks[x | (z << 2)].getSections();
 		return index >= sections.length ? null : sections[index];
 	}
 
-	protected WorldChunk getChunk(int cx, int cz) {
+	protected LevelChunk getChunk(int cx, int cz) {
 		final int chunkBaseX = this.chunkBaseX;
 		final int chunkBaseZ = this.chunkBaseZ;
 

@@ -17,20 +17,18 @@
 package grondag.canvas.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.font.GlyphRenderer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3f;
-
 import grondag.canvas.mixinterface.BufferBuilderExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
+import net.minecraft.client.gui.font.glyphs.BakedGlyph;
 
-@Mixin(GlyphRenderer.class)
+@Mixin(BakedGlyph.class)
 public abstract class MixinGlyphRenderer {
 	@Shadow private float minU;
 	@Shadow private float maxU;
@@ -41,9 +39,9 @@ public abstract class MixinGlyphRenderer {
 	@Shadow private float minY;
 	@Shadow private float maxY;
 
-	private static final Vec3f pos = new Vec3f();
+	private static final Vector3f pos = new Vector3f();
 	// NB: size in bytes is size of integer array for whole quad
-	private static final int[] quadData = new int[VertexFormats.POSITION_COLOR_TEXTURE_LIGHT.getVertexSize()];
+	private static final int[] quadData = new int[DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP.getVertexSize()];
 
 	// PERF: consider handling drawRectangle also
 
@@ -63,7 +61,7 @@ public abstract class MixinGlyphRenderer {
 		final float obqBotom = oblique ? 1.0F - 0.25F * y1 : 0.0F;
 
 		if (vertexConsumer instanceof BufferBuilderExt extBuilder
-				&& extBuilder.canvas_canSupportDirect(VertexFormats.POSITION_COLOR_TEXTURE_LIGHT)
+				&& extBuilder.canvas_canSupportDirect(DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP)
 				&& RenderSystem.isOnRenderThread() // This last is because we are using static vars
 		) {
 			final Matrix4fExt matrix = Matrix4fExt.cast(matrix4f);
@@ -72,9 +70,9 @@ public abstract class MixinGlyphRenderer {
 
 			pos.set(x0 + obqTop, top, 0.0F);
 			matrix.fastTransform(pos);
-			quadData[i++] = Float.floatToRawIntBits(pos.getX());
-			quadData[i++] = Float.floatToRawIntBits(pos.getY());
-			quadData[i++] = Float.floatToRawIntBits(pos.getZ());
+			quadData[i++] = Float.floatToRawIntBits(pos.x());
+			quadData[i++] = Float.floatToRawIntBits(pos.y());
+			quadData[i++] = Float.floatToRawIntBits(pos.z());
 			quadData[i++] = color;
 			quadData[i++] = Float.floatToRawIntBits(minU);
 			quadData[i++] = Float.floatToRawIntBits(minV);
@@ -82,9 +80,9 @@ public abstract class MixinGlyphRenderer {
 
 			pos.set(x0 + obqBotom, bottom, 0.0F);
 			matrix.fastTransform(pos);
-			quadData[i++] = Float.floatToRawIntBits(pos.getX());
-			quadData[i++] = Float.floatToRawIntBits(pos.getY());
-			quadData[i++] = Float.floatToRawIntBits(pos.getZ());
+			quadData[i++] = Float.floatToRawIntBits(pos.x());
+			quadData[i++] = Float.floatToRawIntBits(pos.y());
+			quadData[i++] = Float.floatToRawIntBits(pos.z());
 			quadData[i++] = color;
 			quadData[i++] = Float.floatToRawIntBits(minU);
 			quadData[i++] = Float.floatToRawIntBits(maxV);
@@ -92,9 +90,9 @@ public abstract class MixinGlyphRenderer {
 
 			pos.set(x1 + obqBotom, bottom, 0.0F);
 			matrix.fastTransform(pos);
-			quadData[i++] = Float.floatToRawIntBits(pos.getX());
-			quadData[i++] = Float.floatToRawIntBits(pos.getY());
-			quadData[i++] = Float.floatToRawIntBits(pos.getZ());
+			quadData[i++] = Float.floatToRawIntBits(pos.x());
+			quadData[i++] = Float.floatToRawIntBits(pos.y());
+			quadData[i++] = Float.floatToRawIntBits(pos.z());
 			quadData[i++] = color;
 			quadData[i++] = Float.floatToRawIntBits(maxU);
 			quadData[i++] = Float.floatToRawIntBits(maxV);
@@ -102,9 +100,9 @@ public abstract class MixinGlyphRenderer {
 
 			pos.set(x1 + obqTop, top, 0.0F);
 			matrix.fastTransform(pos);
-			quadData[i++] = Float.floatToRawIntBits(pos.getX());
-			quadData[i++] = Float.floatToRawIntBits(pos.getY());
-			quadData[i++] = Float.floatToRawIntBits(pos.getZ());
+			quadData[i++] = Float.floatToRawIntBits(pos.x());
+			quadData[i++] = Float.floatToRawIntBits(pos.y());
+			quadData[i++] = Float.floatToRawIntBits(pos.z());
 			quadData[i++] = color;
 			quadData[i++] = Float.floatToRawIntBits(maxU);
 			quadData[i++] = Float.floatToRawIntBits(minV);
@@ -113,10 +111,10 @@ public abstract class MixinGlyphRenderer {
 			assert i == quadData.length;
 			extBuilder.canvas_putQuadDirect(quadData);
 		} else {
-			vertexConsumer.vertex(matrix4f, x0 + obqTop, top, 0.0F).color(red, green, blue, alpha).texture(minU, minV).light(lightmap).next();
-			vertexConsumer.vertex(matrix4f, x0 + obqBotom, bottom, 0.0F).color(red, green, blue, alpha).texture(minU, maxV).light(lightmap).next();
-			vertexConsumer.vertex(matrix4f, x1 + obqBotom, bottom, 0.0F).color(red, green, blue, alpha).texture(maxU, maxV).light(lightmap).next();
-			vertexConsumer.vertex(matrix4f, x1 + obqTop, top, 0.0F).color(red, green, blue, alpha).texture(maxU, minV).light(lightmap).next();
+			vertexConsumer.vertex(matrix4f, x0 + obqTop, top, 0.0F).color(red, green, blue, alpha).uv(minU, minV).uv2(lightmap).endVertex();
+			vertexConsumer.vertex(matrix4f, x0 + obqBotom, bottom, 0.0F).color(red, green, blue, alpha).uv(minU, maxV).uv2(lightmap).endVertex();
+			vertexConsumer.vertex(matrix4f, x1 + obqBotom, bottom, 0.0F).color(red, green, blue, alpha).uv(maxU, maxV).uv2(lightmap).endVertex();
+			vertexConsumer.vertex(matrix4f, x1 + obqTop, top, 0.0F).color(red, green, blue, alpha).uv(maxU, minV).uv2(lightmap).endVertex();
 		}
 	}
 }

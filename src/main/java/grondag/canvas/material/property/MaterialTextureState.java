@@ -18,15 +18,12 @@ package grondag.canvas.material.property;
 
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.util.Identifier;
-
 import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.MaterialIndexProvider;
@@ -36,7 +33,7 @@ import grondag.canvas.varia.GFX;
 
 public class MaterialTextureState {
 	public final int index;
-	public final Identifier id;
+	public final ResourceLocation id;
 
 	private AbstractTexture texture;
 	private boolean isAtlas;
@@ -44,23 +41,23 @@ public class MaterialTextureState {
 	private SpriteIndex atlasInfo;
 	private MaterialIndexProvider donglenator;
 
-	private MaterialTextureState(int index, Identifier id) {
+	private MaterialTextureState(int index, ResourceLocation id) {
 		this.index = index;
 		this.id = id;
 	}
 
 	private void retreiveTexture() {
 		if (texture == null) {
-			final TextureManager tm = MinecraftClient.getInstance().getTextureManager();
+			final TextureManager tm = Minecraft.getInstance().getTextureManager();
 			// forces registration
-			tm.bindTexture(id);
+			tm.bindForSetup(id);
 			texture = tm.getTexture(id);
-			isAtlas = texture != null && texture instanceof SpriteAtlasTexture;
+			isAtlas = texture != null && texture instanceof TextureAtlas;
 
 			if (isAtlas) {
 				atlasInfo = SpriteIndex.getOrCreate(id);
 				donglenator = MaterialIndexProvider.getOrCreateForAtlas(id);
-				spriteFinder = SpriteFinder.get((SpriteAtlasTexture) texture);
+				spriteFinder = SpriteFinder.get((TextureAtlas) texture);
 			} else {
 				atlasInfo = null;
 				donglenator = MaterialIndexProvider.GENERIC;
@@ -99,7 +96,7 @@ public class MaterialTextureState {
 		if (activeState == this) {
 			if (bilinear != activeIsBilinearFilter) {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-				CanvasTextureState.bindTexture(texture().getGlId());
+				CanvasTextureState.bindTexture(texture().getId());
 				setFilter(bilinear);
 				activeIsBilinearFilter = bilinear;
 			}
@@ -109,7 +106,7 @@ public class MaterialTextureState {
 				CanvasTextureState.bindTexture(0);
 			} else {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
-				CanvasTextureState.bindTexture(texture().getGlId());
+				CanvasTextureState.bindTexture(texture().getId());
 				setFilter(bilinear);
 
 				activeIsBilinearFilter = bilinear;
@@ -161,9 +158,9 @@ public class MaterialTextureState {
 	public static final int MAX_TEXTURE_STATES = 4096;
 	private static int nextIndex = 1;
 	private static final MaterialTextureState[] STATES = new MaterialTextureState[MAX_TEXTURE_STATES];
-	private static final Object2ObjectOpenHashMap<Identifier, MaterialTextureState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
+	private static final Object2ObjectOpenHashMap<ResourceLocation, MaterialTextureState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
 
-	public static final MaterialTextureState NO_TEXTURE = new MaterialTextureState(0, TextureManager.MISSING_IDENTIFIER) {
+	public static final MaterialTextureState NO_TEXTURE = new MaterialTextureState(0, TextureManager.INTENTIONAL_MISSING_TEXTURE) {
 		@Override
 		public void enable(boolean bilinear) {
 			if (activeState != this) {
@@ -186,7 +183,7 @@ public class MaterialTextureState {
 	static {
 		STATES[0] = NO_TEXTURE;
 		MAP.defaultReturnValue(NO_TEXTURE);
-		MISSING = fromId(TextureManager.MISSING_IDENTIFIER);
+		MISSING = fromId(TextureManager.INTENTIONAL_MISSING_TEXTURE);
 	}
 
 	public static MaterialTextureState fromIndex(int index) {
@@ -196,7 +193,7 @@ public class MaterialTextureState {
 	private static boolean shouldWarn = true;
 
 	// PERF: use cow or other method to avoid synch
-	public static synchronized MaterialTextureState fromId(Identifier id) {
+	public static synchronized MaterialTextureState fromId(ResourceLocation id) {
 		MaterialTextureState state = MAP.get(id);
 
 		if (state == NO_TEXTURE) {

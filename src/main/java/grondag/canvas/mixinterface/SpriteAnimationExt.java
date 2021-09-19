@@ -17,12 +17,11 @@
 package grondag.canvas.mixinterface;
 
 import java.util.List;
-
-import net.minecraft.client.texture.Sprite.AnimationFrame;
-import net.minecraft.client.texture.Sprite.Interpolation;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite.FrameInfo;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite.InterpolationData;
 
 public interface SpriteAnimationExt extends CombinedAnimationConsumer {
-	Interpolation canvas_interpolation();
+	InterpolationData canvas_interpolation();
 
 	int canvas_frameCount();
 
@@ -30,5 +29,5 @@ public interface SpriteAnimationExt extends CombinedAnimationConsumer {
 
 	int canvas_frameTicks();
 
-	List<AnimationFrame> canvas_frames();
+	List<FrameInfo> canvas_frames();
 }

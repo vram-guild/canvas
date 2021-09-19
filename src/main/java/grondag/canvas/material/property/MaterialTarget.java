@@ -17,13 +17,10 @@
 package grondag.canvas.material.property;
 
 import java.util.function.Predicate;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderStateShard.OutputStateShard;
 import io.vram.frex.api.material.MaterialConstants;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.RenderPhase.Target;
-
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
 
@@ -44,7 +41,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		MaterialConstants.TARGET_OUTLINE,
 		"outline",
 		() -> {
-			MinecraftClient.getInstance().worldRenderer.getEntityOutlinesFramebuffer().beginWrite(false);
+			Minecraft.getInstance().levelRenderer.entityTarget().bindWrite(false);
 		},
 		() -> {
 			Pipeline.defaultFbo.bind();
@@ -153,21 +150,21 @@ public class MaterialTarget implements Predicate<RenderState> {
 
 	private static MaterialTarget active = null;
 
-	public static int fromPhase(Target phase) {
-		if (phase == RenderPhase.TRANSLUCENT_TARGET) {
+	public static int fromPhase(OutputStateShard phase) {
+		if (phase == RenderStateShard.TRANSLUCENT_TARGET) {
 			return MaterialConstants.TARGET_TRANSLUCENT;
-		} else if (phase == RenderPhase.OUTLINE_TARGET) {
+		} else if (phase == RenderStateShard.OUTLINE_TARGET) {
 			return MaterialConstants.TARGET_OUTLINE;
-		} else if (phase == RenderPhase.PARTICLES_TARGET) {
+		} else if (phase == RenderStateShard.PARTICLES_TARGET) {
 			return MaterialConstants.TARGET_PARTICLES;
-		} else if (phase == RenderPhase.WEATHER_TARGET) {
+		} else if (phase == RenderStateShard.WEATHER_TARGET) {
 			return MaterialConstants.TARGET_WEATHER;
-		} else if (phase == RenderPhase.CLOUDS_TARGET) {
+		} else if (phase == RenderStateShard.CLOUDS_TARGET) {
 			return MaterialConstants.TARGET_CLOUDS;
-		} else if (phase == RenderPhase.ITEM_TARGET) {
+		} else if (phase == RenderStateShard.ITEM_ENTITY_TARGET) {
 			return MaterialConstants.TARGET_ENTITIES;
 		} else {
-			assert phase == RenderPhase.MAIN_TARGET : "Unsupported render target";
+			assert phase == RenderStateShard.MAIN_TARGET : "Unsupported render target";
 			return MaterialConstants.TARGET_MAIN;
 		}
 	}

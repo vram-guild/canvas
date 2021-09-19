@@ -17,9 +17,7 @@
 package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
-import net.minecraft.util.Identifier;
-
+import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.GFX;
@@ -36,11 +34,11 @@ public enum GlShaderManager {
 	private final Object2ObjectOpenHashMap<String, Shader> vertexShaders = new Object2ObjectOpenHashMap<>();
 	private final Object2ObjectOpenHashMap<String, Shader> fragmentShaders = new Object2ObjectOpenHashMap<>();
 
-	public static String shaderKey(Identifier shaderSource, ProgramType programType) {
+	public static String shaderKey(ResourceLocation shaderSource, ProgramType programType) {
 		return String.format("%s.%s", shaderSource.toString(), programType.name);
 	}
 
-	public Shader getOrCreateVertexShader(Identifier shaderSource, ProgramType programType) {
+	public Shader getOrCreateVertexShader(ResourceLocation shaderSource, ProgramType programType) {
 		final String shaderKey = shaderKey(shaderSource, programType);
 
 		synchronized (vertexShaders) {
@@ -55,7 +53,7 @@ public enum GlShaderManager {
 		}
 	}
 
-	public Shader getOrCreateFragmentShader(Identifier shaderSourceId, ProgramType programType) {
+	public Shader getOrCreateFragmentShader(ResourceLocation shaderSourceId, ProgramType programType) {
 		final String shaderKey = shaderKey(shaderSourceId, programType);
 
 		synchronized (fragmentShaders) {

@@ -23,7 +23,7 @@ import io.vram.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -136,17 +136,17 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	@Override
-	public Identifier vertexShaderId() {
+	public ResourceLocation vertexShaderId() {
 		return vertexShaderId;
 	}
 
 	@Override
-	public Identifier fragmentShaderId() {
+	public ResourceLocation fragmentShaderId() {
 		return fragmentShaderId;
 	}
 
 	@Override
-	public Identifier textureId() {
+	public ResourceLocation textureId() {
 		return texture.id;
 	}
 

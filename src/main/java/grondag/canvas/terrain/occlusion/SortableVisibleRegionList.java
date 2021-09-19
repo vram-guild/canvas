@@ -16,20 +16,20 @@
 
 package grondag.canvas.terrain.occlusion;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 public final class SortableVisibleRegionList extends VisibleRegionList {
 	private int sortPositionVersion;
 	private int lastSortPositionVersion;
 	private long lastCameraBlockPos = Long.MAX_VALUE;
-	private Vec3d lastSortPos = new Vec3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+	private Vec3 lastSortPos = new Vec3(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 
 	@Override
 	public void clear() {
 		super.clear();
-		lastSortPos = new Vec3d(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+		lastSortPos = new Vec3(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
 		lastCameraBlockPos = Long.MAX_VALUE;
 	}
 
@@ -40,7 +40,7 @@ public final class SortableVisibleRegionList extends VisibleRegionList {
 		return sortPositionVersion;
 	}
 
-	public Vec3d lastSortPos() {
+	public Vec3 lastSortPos() {
 		return lastSortPos;
 	}
 
@@ -53,7 +53,7 @@ public final class SortableVisibleRegionList extends VisibleRegionList {
 	 * won't count against the limit.  Resorts are fast and happen off thread -
 	 * checking incrementally avoids overloading the GPU with buffer uploads.
 	 */
-	public void scheduleResort(Vec3d cameraPos) {
+	public void scheduleResort(Vec3 cameraPos) {
 		final double x = cameraPos.x;
 		final double y = cameraPos.y;
 		final double z = cameraPos.z;
@@ -80,7 +80,7 @@ public final class SortableVisibleRegionList extends VisibleRegionList {
 		final int positionVersion = sortPositionVersion;
 
 		if (positionVersion != lastSortPositionVersion) {
-			final MinecraftClient mc = MinecraftClient.getInstance();
+			final Minecraft mc = Minecraft.getInstance();
 			mc.getProfiler().push("translucent_sort");
 			final int limit = visibleRegionCount;
 			int count = 0;

@@ -20,12 +20,9 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.system.MemoryUtil;
-
-import net.minecraft.client.util.Untracker;
-
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-
+import com.mojang.blaze3d.platform.DebugMemoryUntracker;
 import grondag.canvas.varia.GFX;
 
 /**
@@ -151,6 +148,6 @@ public final class SimpleImage implements AutoCloseable {
 	}
 
 	public void untrack() {
-		Untracker.untrack(pointer);
+		DebugMemoryUntracker.untrack(pointer);
 	}
 }

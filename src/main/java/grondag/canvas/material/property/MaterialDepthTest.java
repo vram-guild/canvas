@@ -17,10 +17,8 @@
 package grondag.canvas.material.property;
 
 import io.vram.frex.api.material.MaterialConstants;
-
-import net.minecraft.client.render.RenderPhase;
-import net.minecraft.client.render.RenderPhase.DepthTest;
-
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderStateShard.DepthTestStateShard;
 import grondag.canvas.varia.GFX;
 
 public class MaterialDepthTest {
@@ -87,12 +85,12 @@ public class MaterialDepthTest {
 		}
 	}
 
-	public static int fromPhase(DepthTest phase) {
-		if (phase == RenderPhase.ALWAYS_DEPTH_TEST) {
+	public static int fromPhase(DepthTestStateShard phase) {
+		if (phase == RenderStateShard.NO_DEPTH_TEST) {
 			return MaterialConstants.DEPTH_TEST_ALWAYS;
-		} else if (phase == RenderPhase.EQUAL_DEPTH_TEST) {
+		} else if (phase == RenderStateShard.EQUAL_DEPTH_TEST) {
 			return MaterialConstants.DEPTH_TEST_EQUAL;
-		} else if (phase == RenderPhase.LEQUAL_DEPTH_TEST) {
+		} else if (phase == RenderStateShard.LEQUAL_DEPTH_TEST) {
 			return MaterialConstants.DEPTH_TEST_LEQUAL;
 		} else {
 			return MaterialConstants.DEPTH_TEST_DISABLE;

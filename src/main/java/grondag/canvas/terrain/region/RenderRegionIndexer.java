@@ -16,7 +16,7 @@
 
 package grondag.canvas.terrain.region;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public final class RenderRegionIndexer {
 	RenderRegionIndexer() { }

@@ -18,16 +18,16 @@ package grondag.canvas.terrain.util;
 
 import java.util.function.Function;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.color.world.BiomeColors;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.source.BiomeAccess;
-import net.minecraft.world.biome.source.BiomeArray;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ColorResolver;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkBiomeContainer;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -37,19 +37,19 @@ import grondag.canvas.mixinterface.WorldChunkExt;
 
 //FEAT: per-vertex blending (quality)
 @Environment(value = EnvType.CLIENT)
-public class ChunkColorCache implements BiomeAccess.Storage {
-	private static final MinecraftClient mc = MinecraftClient.getInstance();
+public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
+	private static final Minecraft mc = Minecraft.getInstance();
 	private static int VERSION = 0;
-	private final WorldChunk chunk;
-	private final ClientWorld world;
+	private final LevelChunk chunk;
+	private final ClientLevel world;
 	private final int chunkX;
 	private final int chunkZ;
 	private final int version;
-	private final BiomeColorCache grassCache = new BiomeColorCache(BiomeColors.GRASS_COLOR, c -> c.grassCache);
-	private final BiomeColorCache foliageCache = new BiomeColorCache(BiomeColors.FOLIAGE_COLOR, c -> c.foliageCache);
-	private final BiomeColorCache waterCache = new BiomeColorCache(BiomeColors.WATER_COLOR, c -> c.waterCache);
+	private final BiomeColorCache grassCache = new BiomeColorCache(BiomeColors.GRASS_COLOR_RESOLVER, c -> c.grassCache);
+	private final BiomeColorCache foliageCache = new BiomeColorCache(BiomeColors.FOLIAGE_COLOR_RESOLVER, c -> c.foliageCache);
+	private final BiomeColorCache waterCache = new BiomeColorCache(BiomeColors.WATER_COLOR_RESOLVER, c -> c.waterCache);
 
-	public ChunkColorCache(ClientWorld world, WorldChunk chunk) {
+	public ChunkColorCache(ClientLevel world, LevelChunk chunk) {
 		this.world = world;
 		this.chunk = chunk;
 		version = VERSION;
@@ -58,7 +58,7 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 		chunkZ = pos.z;
 	}
 
-	public static ChunkColorCache get(WorldChunk chunk) {
+	public static ChunkColorCache get(LevelChunk chunk) {
 		return ((WorldChunkExt) chunk).canvas_colorCache();
 	}
 
@@ -71,10 +71,10 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 	}
 
 	private Biome getBiome(int x, int y, int z) {
-		return ((BiomeAccessExt) world.getBiomeAccess()).getBiome(x, y, z, this);
+		return ((BiomeAccessExt) world.getBiomeManager()).getBiome(x, y, z, this);
 	}
 
-	private WorldChunk getChunk(int cx, int cz) {
+	private LevelChunk getChunk(int cx, int cz) {
 		if (cx == chunkX && cz == chunkZ) {
 			return chunk;
 		} else {
@@ -83,26 +83,26 @@ public class ChunkColorCache implements BiomeAccess.Storage {
 	}
 
 	@Override
-	public Biome getBiomeForNoiseGen(int x, int y, int z) {
-		final Chunk chunk = getChunk(x >> 2, z >> 2);
+	public Biome getNoiseBiome(int x, int y, int z) {
+		final ChunkAccess chunk = getChunk(x >> 2, z >> 2);
 
 		if (chunk != null) {
-			final BiomeArray ba = chunk.getBiomeArray();
+			final ChunkBiomeContainer ba = chunk.getBiomes();
 
 			if (ba != null) {
-				return chunk.getBiomeArray().getBiomeForNoiseGen(x, y, z);
+				return chunk.getBiomes().getNoiseBiome(x, y, z);
 			}
 		}
 
-		return world.getGeneratorStoredBiome(x, y, z);
+		return world.getUncachedNoiseBiome(x, y, z);
 	}
 
 	public int getColor(int x, int y, int z, ColorResolver colorResolver) {
-		if (colorResolver == BiomeColors.GRASS_COLOR) {
+		if (colorResolver == BiomeColors.GRASS_COLOR_RESOLVER) {
 			return grassCache.getColor(x, y, z);
-		} else if (colorResolver == BiomeColors.FOLIAGE_COLOR) {
+		} else if (colorResolver == BiomeColors.FOLIAGE_COLOR_RESOLVER) {
 			return foliageCache.getColor(x, y, z);
-		} else if (colorResolver == BiomeColors.WATER_COLOR) {
+		} else if (colorResolver == BiomeColors.WATER_COLOR_RESOLVER) {
 			return waterCache.getColor(x, y, z);
 		} else {
 			return -1;

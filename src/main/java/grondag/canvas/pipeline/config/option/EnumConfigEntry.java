@@ -22,10 +22,8 @@ import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.TranslatableText;
-
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
@@ -51,9 +49,9 @@ public class EnumConfigEntry extends OptionConfigEntry<EnumConfigEntry> {
 
 	@Override
 	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
-		return builder.startSelector(new TranslatableText(nameKey), choices, value)
+		return builder.startSelector(new TranslatableComponent(nameKey), choices, value)
 				.setTooltip(ConfigManager.parse(descriptionKey))
-				.setNameProvider(o -> new LiteralText(o.toUpperCase(Locale.ROOT)))
+				.setNameProvider(o -> new TextComponent(o.toUpperCase(Locale.ROOT)))
 				.setSaveConsumer(v -> value = v)
 				.build();
 	}

@@ -16,7 +16,7 @@
 
 package grondag.canvas.buffer.util;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public record BinIndex(int binIndex, int capacityBytes) {
 	public static final int MIN_BIN_SIZE = 0x1000;
@@ -43,7 +43,7 @@ public record BinIndex(int binIndex, int capacityBytes) {
 	}
 
 	public static final int binIndex(int size) {
-		return Math.max(0, MathHelper.log2(size) - BIN_INDEX_SHIFT);
+		return Math.max(0, Mth.log2(size) - BIN_INDEX_SHIFT);
 	}
 
 	public static final BinIndex fromIndex(int index) {

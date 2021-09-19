@@ -16,7 +16,7 @@
 
 package grondag.canvas.buffer.format;
 
-import net.minecraft.client.render.VertexFormatElement;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
 
 public class CanvasVertexFormatElement {
 	public final String attributeName;
@@ -26,11 +26,11 @@ public class CanvasVertexFormatElement {
 	public final boolean isInteger;
 	public final int byteSize;
 
-	public CanvasVertexFormatElement(VertexFormatElement.DataType formatIn, int count, String attributeName, boolean isNormalized, boolean isInteger) {
+	public CanvasVertexFormatElement(VertexFormatElement.Type formatIn, int count, String attributeName, boolean isNormalized, boolean isInteger) {
 		this.attributeName = attributeName;
 		elementCount = count;
-		glConstant = formatIn.getId();
-		byteSize = formatIn.getByteLength() * count;
+		glConstant = formatIn.getGlType();
+		byteSize = formatIn.getSize() * count;
 		this.isNormalized = isNormalized;
 		this.isInteger = isInteger;
 	}

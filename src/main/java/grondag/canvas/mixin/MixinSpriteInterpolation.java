@@ -16,13 +16,13 @@
 
 package grondag.canvas.mixin;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import org.lwjgl.system.MemoryUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.NativeImageExt;
@@ -30,12 +30,12 @@ import grondag.canvas.mixinterface.SpriteAnimationExt;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.CombinedSpriteAnimation;
 
-@Mixin(Sprite.Interpolation.class)
+@Mixin(TextureAtlasSprite.InterpolationData.class)
 public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
 	@Shadow private NativeImage[] images;
 
 	@Shadow(aliases = "field_21757")
-	private Sprite parent;
+	private TextureAtlasSprite parent;
 
 	/**
 	 * Hat tip to JellySquid for the approach used here.
@@ -44,7 +44,7 @@ public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
 	 * @reason Vanilla code is too slow
 	 */
 	@Overwrite
-	public void apply(Sprite.Animation animation) {
+	public void apply(TextureAtlasSprite.AnimatedTexture animation) {
 		final var animationExt = (SpriteAnimationExt) animation;
 		final int frameIndex = animationExt.canvas_frameIndex();
 		final var frames = animationExt.canvas_frames();

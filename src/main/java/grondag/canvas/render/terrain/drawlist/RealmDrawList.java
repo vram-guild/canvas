@@ -41,6 +41,7 @@ public class RealmDrawList extends AbstractDrawableRegionList {
 		build();
 	}
 
+	@Override
 	public int quadCount() {
 		return quadCount;
 	}

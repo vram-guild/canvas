@@ -16,8 +16,6 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.util.Identifier;
-
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -29,6 +27,7 @@ import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ProgramType;
+import net.minecraft.resources.ResourceLocation;
 
 abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;
@@ -49,20 +48,20 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final MaterialShaderId shaderId;
 
 	public final int vertexShaderIndex;
-	public final Identifier vertexShaderId;
+	public final ResourceLocation vertexShaderId;
 	public final String vertexShader;
 	public final int fragmentShaderIndex;
-	public final Identifier fragmentShaderId;
+	public final ResourceLocation fragmentShaderId;
 	public final String fragmentShader;
 	public final MaterialShaderImpl shader;
 	public final MaterialShaderImpl guiShader;
 	public final MaterialShaderImpl terrainShader;
 
 	public final int depthVertexShaderIndex;
-	public final Identifier depthVertexShaderId;
+	public final ResourceLocation depthVertexShaderId;
 	public final String depthVertexShader;
 	public final int depthFragmentShaderIndex;
-	public final Identifier depthFragmentShaderId;
+	public final ResourceLocation depthFragmentShaderId;
 	public final String depthFragmentShader;
 	public final MaterialShaderImpl depthShader;
 	public final MaterialShaderImpl terrainDepthShader;

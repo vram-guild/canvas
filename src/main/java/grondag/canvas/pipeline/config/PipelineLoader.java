@@ -21,15 +21,12 @@ import java.util.function.Function;
 
 import blue.endless.jankson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
-
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.ConfigManager;
 
@@ -43,21 +40,21 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 	}
 
 	@Override
-	public Identifier getFabricId() {
+	public ResourceLocation getFabricId() {
 		return ID;
 	}
 
 	@Override
-	public void reload(ResourceManager manager) {
+	public void onResourceManagerReload(ResourceManager manager) {
 		hasLoadedOnce = true;
 		MAP.clear();
 
-		final Iterator<?> it = manager.findResources("pipelines", (stringx) -> {
+		final Iterator<?> it = manager.listResources("pipelines", (stringx) -> {
 			return stringx.endsWith(".json") || stringx.endsWith(".json5");
 		}).iterator();
 
 		while (it.hasNext()) {
-			final Identifier id = (Identifier) it.next();
+			final ResourceLocation id = (ResourceLocation) it.next();
 
 			try (Resource res = manager.getResource(id)) {
 				final JsonObject configJson = ConfigManager.JANKSON.load(res.getInputStream());
@@ -83,9 +80,9 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 		return MAP.values().toArray(new PipelineDescription[MAP.size()]);
 	}
 
-	public static final Function<String, Text> NAME_TEXT_FUNCTION = s -> new TranslatableText(get(s).nameKey);
+	public static final Function<String, Component> NAME_TEXT_FUNCTION = s -> new TranslatableComponent(get(s).nameKey);
 
-	private static final Identifier ID = new Identifier("canvas:pipeline_loader");
+	private static final ResourceLocation ID = new ResourceLocation("canvas:pipeline_loader");
 
 	public static final PipelineLoader INSTANCE = new PipelineLoader();
 }

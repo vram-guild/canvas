@@ -17,20 +17,17 @@
 package grondag.canvas.mixin;
 
 import java.util.List;
-
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.texture.SpriteAtlasTexture;
-
 import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
 
-@Mixin(SpriteAtlasTexture.Data.class)
+@Mixin(TextureAtlas.Preparations.class)
 public class MixinSpriteAtlasTextureData implements SpriteAtlasTextureDataExt {
 	@Shadow int width;
 	@Shadow int height;
-	@Shadow List<Sprite> sprites;
+	@Shadow List<TextureAtlasSprite> sprites;
 
 	@Override
 	public int canvas_atlasWidth() {
@@ -43,7 +40,7 @@ public class MixinSpriteAtlasTextureData implements SpriteAtlasTextureDataExt {
 	}
 
 	@Override
-	public List<Sprite> canvas_sprites() {
+	public List<TextureAtlasSprite> canvas_sprites() {
 		return sprites;
 	}
 }

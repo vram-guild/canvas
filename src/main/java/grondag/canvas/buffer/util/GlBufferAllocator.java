@@ -18,15 +18,14 @@ package grondag.canvas.buffer.util;
 
 import java.nio.IntBuffer;
 
+import com.mojang.blaze3d.platform.MemoryTracker;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
-
-import net.minecraft.client.util.GlAllocationUtils;
 
 import grondag.canvas.varia.GFX;
 
 public class GlBufferAllocator {
 	private static final IntArrayFIFOQueue queue = new IntArrayFIFOQueue(256);
-	private static final IntBuffer buff = GlAllocationUtils.allocateByteBuffer(256 * 4).asIntBuffer();
+	private static final IntBuffer buff = MemoryTracker.create(256 * 4).asIntBuffer();
 	private static int allocatedCount = 0;
 	private static int allocatedBytes = 0;
 

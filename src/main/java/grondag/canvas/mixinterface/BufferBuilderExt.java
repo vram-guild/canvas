@@ -16,8 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.VertexFormat;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.VertexFormat;
 
 public interface BufferBuilderExt {
 	boolean canvas_canSupportDirect(VertexFormat expectedFormat);

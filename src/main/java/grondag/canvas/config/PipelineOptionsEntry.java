@@ -21,45 +21,44 @@ import java.util.List;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.vertex.PoseStack;
 import me.shedaniel.clothconfig2.gui.entries.TooltipListEntry;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.Selectable;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.PressableWidget;
-import net.minecraft.client.util.NarratorManager;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.chat.NarratorChatListener;
+import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class PipelineOptionsEntry extends TooltipListEntry<Void> {
-	private final PressableWidget buttonWidget = new PressableWidget(0, 0, 115, 20, NarratorManager.EMPTY) {
+	private final AbstractButton buttonWidget = new AbstractButton(0, 0, 115, 20, NarratorChatListener.NO_TITLE) {
 		@Override
 		public void onPress() {
-			MinecraftClient.getInstance().setScreen(PipelineOptionGui.display(ConfigGui.pipeline()));
+			Minecraft.getInstance().setScreen(PipelineOptionGui.display(ConfigGui.pipeline()));
 		}
 
 		@Override
-		public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-			setMessage(new TranslatableText("config.canvas.value.pipeline_config"));
+		public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
+			setMessage(new TranslatableComponent("config.canvas.value.pipeline_config"));
 			super.render(matrices, mouseX, mouseY, delta);
 		}
 
 		@Override
-		public void appendNarrations(NarrationMessageBuilder builder) {
+		public void updateNarration(NarrationElementOutput builder) {
 			// Currently unimplemented
 		}
 	};
 
-	private final List<Element> children = ImmutableList.of(buttonWidget);
+	private final List<GuiEventListener> children = ImmutableList.of(buttonWidget);
 
 	@SuppressWarnings("deprecation")
 	public PipelineOptionsEntry() {
-		super(new TranslatableText("config.canvas.value.pipeline_config"), () -> Optional.of(ConfigManager.parse("config.canvas.help.pipeline_config")), false);
+		super(new TranslatableComponent("config.canvas.value.pipeline_config"), () -> Optional.of(ConfigManager.parse("config.canvas.help.pipeline_config")), false);
 	}
 
 	@Override
-	public List<? extends Element> children() {
+	public List<? extends GuiEventListener> children() {
 		return children;
 	}
 
@@ -80,11 +79,11 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 
 	@SuppressWarnings("resource")
 	@Override
-	public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean isSelected, float delta) {
+	public void render(PoseStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean isSelected, float delta) {
 		super.render(matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, isSelected, delta);
 		buttonWidget.y = y;
 
-		if (MinecraftClient.getInstance().textRenderer.isRightToLeft()) {
+		if (Minecraft.getInstance().font.isBidirectional()) {
 			buttonWidget.x = x + 150 - buttonWidget.getWidth();
 		} else {
 			buttonWidget.x = x + entryWidth - 150;
@@ -94,7 +93,7 @@ public class PipelineOptionsEntry extends TooltipListEntry<Void> {
 	}
 
 	@Override
-	public List<? extends Selectable> narratables() {
+	public List<? extends NarratableEntry> narratables() {
 		// Nothing for now
 		return Collections.emptyList();
 	}

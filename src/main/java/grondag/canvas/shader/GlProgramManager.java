@@ -16,10 +16,8 @@
 
 package grondag.canvas.shader;
 
-import net.minecraft.client.MinecraftClient;
-
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-
+import net.minecraft.client.Minecraft;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
@@ -38,7 +36,7 @@ public class GlProgramManager implements ClientTickEvents.EndTick {
 	private final SimpleUnorderedArrayList<GlProgram> programs = new SimpleUnorderedArrayList<>();
 
 	@Override
-	public void onEndTick(MinecraftClient client) {
+	public void onEndTick(Minecraft client) {
 		final int limit = programs.size();
 
 		for (int i = 0; i < limit; i++) {

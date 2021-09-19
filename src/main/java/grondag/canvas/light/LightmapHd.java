@@ -17,18 +17,15 @@
 package grondag.canvas.light;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.util.Mth;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.util.math.MathHelper;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 
 class LightmapHd {
 	// MAYBE: use Fermion cache
-	static final Object2ObjectOpenHashMap<AoFaceData, LightmapHd> MAP = new Object2ObjectOpenHashMap<>(MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float) MathHelper.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
+	static final Object2ObjectOpenHashMap<AoFaceData, LightmapHd> MAP = new Object2ObjectOpenHashMap<>(Mth.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount), LightmapSizer.maxCount / (float) Mth.smallestEncompassingPowerOfTwo(LightmapSizer.maxCount));
 	private static final AtomicInteger nextIndex = new AtomicInteger();
 	private static boolean errorNoticeNeeded = true;
 	public final int uMinImg;
@@ -45,7 +42,7 @@ class LightmapHd {
 
 		if (index >= LightmapSizer.maxCount) {
 			if (errorNoticeNeeded) {
-				CanvasMod.LOG.warn(I18n.translate("error.canvas.fail_create_lightmap"));
+				CanvasMod.LOG.warn(I18n.get("error.canvas.fail_create_lightmap"));
 				errorNoticeNeeded = false;
 			}
 		} else {
