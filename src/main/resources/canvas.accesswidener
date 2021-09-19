@@ -1,130 +1,121 @@
 accessWidener	v1	named
 
-accessible   field   net/minecraft/client/render/RenderPhase   NO_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;  
-accessible   field   net/minecraft/client/render/RenderPhase   ADDITIVE_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
-accessible   field   net/minecraft/client/render/RenderPhase   LIGHTNING_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
-accessible   field   net/minecraft/client/render/RenderPhase   GLINT_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
-accessible   field   net/minecraft/client/render/RenderPhase   CRUMBLING_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
-accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_TRANSPARENCY   Lnet/minecraft/client/render/RenderPhase$Transparency;   
-accessible   field   net/minecraft/client/render/RenderPhase   ZERO_ALPHA   Lnet/minecraft/client/render/RenderPhase$Alpha;   
-accessible   field   net/minecraft/client/render/RenderPhase   ONE_TENTH_ALPHA   Lnet/minecraft/client/render/RenderPhase$Alpha;   
-accessible   field   net/minecraft/client/render/RenderPhase   HALF_ALPHA   Lnet/minecraft/client/render/RenderPhase$Alpha;   
-accessible   field   net/minecraft/client/render/RenderPhase   SHADE_MODEL   Lnet/minecraft/client/render/RenderPhase$ShadeModel;   
-accessible   field   net/minecraft/client/render/RenderPhase   SMOOTH_SHADE_MODEL   Lnet/minecraft/client/render/RenderPhase$ShadeModel;   
-accessible   field   net/minecraft/client/render/RenderPhase   MIPMAP_BLOCK_ATLAS_TEXTURE   Lnet/minecraft/client/render/RenderPhase$Texture;   
-accessible   field   net/minecraft/client/render/RenderPhase   BLOCK_ATLAS_TEXTURE   Lnet/minecraft/client/render/RenderPhase$Texture;   
-accessible   field   net/minecraft/client/render/RenderPhase   NO_TEXTURE   Lnet/minecraft/client/render/RenderPhase$Texture;   
-accessible   field   net/minecraft/client/render/RenderPhase   DEFAULT_TEXTURING   Lnet/minecraft/client/render/RenderPhase$Texturing;   
-accessible   field   net/minecraft/client/render/RenderPhase   OUTLINE_TEXTURING   Lnet/minecraft/client/render/RenderPhase$Texturing;   
-accessible   field   net/minecraft/client/render/RenderPhase   GLINT_TEXTURING   Lnet/minecraft/client/render/RenderPhase$Texturing;   
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_GLINT_TEXTURING   Lnet/minecraft/client/render/RenderPhase$Texturing;   
-accessible   field   net/minecraft/client/render/RenderPhase   ENABLE_LIGHTMAP   Lnet/minecraft/client/render/RenderPhase$Lightmap;   
-accessible   field   net/minecraft/client/render/RenderPhase   DISABLE_LIGHTMAP   Lnet/minecraft/client/render/RenderPhase$Lightmap;   
-accessible   field   net/minecraft/client/render/RenderPhase   ENABLE_OVERLAY_COLOR   Lnet/minecraft/client/render/RenderPhase$Overlay;   
-accessible   field   net/minecraft/client/render/RenderPhase   DISABLE_OVERLAY_COLOR   Lnet/minecraft/client/render/RenderPhase$Overlay;   
-accessible   field   net/minecraft/client/render/RenderPhase   ENABLE_DIFFUSE_LIGHTING   Lnet/minecraft/client/render/RenderPhase$DiffuseLighting;   
-accessible   field   net/minecraft/client/render/RenderPhase   DISABLE_DIFFUSE_LIGHTING   Lnet/minecraft/client/render/RenderPhase$DiffuseLighting;   
-accessible   field   net/minecraft/client/render/RenderPhase   ENABLE_CULLING   Lnet/minecraft/client/render/RenderPhase$Cull;   
-accessible   field   net/minecraft/client/render/RenderPhase   DISABLE_CULLING   Lnet/minecraft/client/render/RenderPhase$Cull;   
-accessible   field   net/minecraft/client/render/RenderPhase   ALWAYS_DEPTH_TEST   Lnet/minecraft/client/render/RenderPhase$DepthTest;   
-accessible   field   net/minecraft/client/render/RenderPhase   EQUAL_DEPTH_TEST   Lnet/minecraft/client/render/RenderPhase$DepthTest;   
-accessible   field   net/minecraft/client/render/RenderPhase   LEQUAL_DEPTH_TEST   Lnet/minecraft/client/render/RenderPhase$DepthTest;   
-accessible   field   net/minecraft/client/render/RenderPhase   ALL_MASK   Lnet/minecraft/client/render/RenderPhase$WriteMaskState;   
-accessible   field   net/minecraft/client/render/RenderPhase   COLOR_MASK   Lnet/minecraft/client/render/RenderPhase$WriteMaskState;   
-accessible   field   net/minecraft/client/render/RenderPhase   DEPTH_MASK   Lnet/minecraft/client/render/RenderPhase$WriteMaskState;   
-accessible   field   net/minecraft/client/render/RenderPhase   NO_LAYERING   Lnet/minecraft/client/render/RenderPhase$Layering;   
-accessible   field   net/minecraft/client/render/RenderPhase   POLYGON_OFFSET_LAYERING   Lnet/minecraft/client/render/RenderPhase$Layering;   
-accessible   field   net/minecraft/client/render/RenderPhase   VIEW_OFFSET_Z_LAYERING   Lnet/minecraft/client/render/RenderPhase$Layering;   
-accessible   field   net/minecraft/client/render/RenderPhase   NO_FOG   Lnet/minecraft/client/render/RenderPhase$Fog;   
-accessible   field   net/minecraft/client/render/RenderPhase   FOG   Lnet/minecraft/client/render/RenderPhase$Fog;   
-accessible   field   net/minecraft/client/render/RenderPhase   BLACK_FOG   Lnet/minecraft/client/render/RenderPhase$Fog;   
-accessible   field   net/minecraft/client/render/RenderPhase   MAIN_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;   
-accessible   field   net/minecraft/client/render/RenderPhase   OUTLINE_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
-accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
-accessible   field   net/minecraft/client/render/RenderPhase   PARTICLES_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
-accessible   field   net/minecraft/client/render/RenderPhase   WEATHER_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
-accessible   field   net/minecraft/client/render/RenderPhase   CLOUDS_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
-accessible   field   net/minecraft/client/render/RenderPhase   ITEM_TARGET   Lnet/minecraft/client/render/RenderPhase$Target;
-accessible   field   net/minecraft/client/render/RenderPhase   FULL_LINE_WIDTH   Lnet/minecraft/client/render/RenderPhase$LineWidth;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_TRANSPARENCY   Lnet/minecraft/client/renderer/RenderStateShard$TransparencyStateShardStateShard;  
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ADDITIVE_TRANSPARENCY   Lnet/minecraft/client/renderer/RenderStateShard$TransparencyStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   LIGHTNING_TRANSPARENCY   Lnet/minecraft/client/renderer/RenderStateShard$TransparencyStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   GLINT_TRANSPARENCY   Lnet/minecraft/client/renderer/RenderStateShard$TransparencyStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   CRUMBLING_TRANSPARENCY   Lnet/minecraft/client/renderer/RenderStateShard$TransparencyStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TRANSLUCENT_TRANSPARENCY   Lnet/minecraft/client/renderer/RenderStateShard$TransparencyStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   BLOCK_SHEET_MIPPED   Lnet/minecraft/client/renderer/RenderStateShard$TextureStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   BLOCK_SHEET   Lnet/minecraft/client/renderer/RenderStateShard$TextureStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_TEXTURE   Lnet/minecraft/client/renderer/RenderStateShard$TextureStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   DEFAULT_TEXTURING   Lnet/minecraft/client/renderer/RenderStateShard$TexturingStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   GLINT_TEXTURING   Lnet/minecraft/client/renderer/RenderStateShard$TexturingStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_GLINT_TEXTURING   Lnet/minecraft/client/renderer/RenderStateShard$TexturingStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   LIGHTMAP   Lnet/minecraft/client/renderer/RenderStateShard$LightmapStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_LIGHTMAP   Lnet/minecraft/client/renderer/RenderStateShard$LightmapStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   OVERLAY   Lnet/minecraft/client/renderer/RenderStateShard$OverlayStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_OVERLAY   Lnet/minecraft/client/renderer/RenderStateShard$OverlayStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENABLE_DIFFUSE_LIGHTING   Lnet/minecraft/client/renderer/RenderStateShard$DiffuseLighting;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   DISABLE_DIFFUSE_LIGHTING   Lnet/minecraft/client/renderer/RenderStateShard$DiffuseLighting;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   CULL   Lnet/minecraft/client/renderer/RenderStateShard$CullStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_CULL   Lnet/minecraft/client/renderer/RenderStateShard$CullStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_DEPTH_TEST   Lnet/minecraft/client/renderer/RenderStateShard$DepthTestStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   EQUAL_DEPTH_TEST   Lnet/minecraft/client/renderer/RenderStateShard$DepthTestStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   LEQUAL_DEPTH_TEST   Lnet/minecraft/client/renderer/RenderStateShard$DepthTestStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ALL_MASK   Lnet/minecraft/client/renderer/RenderStateShard$WriteMaskStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   COLOR_WRITE   Lnet/minecraft/client/renderer/RenderStateShard$WriteMaskStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   DEPTH_WRITE   Lnet/minecraft/client/renderer/RenderStateShard$WriteMaskStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_LAYERING   Lnet/minecraft/client/renderer/RenderStateShard$LayeringStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   POLYGON_OFFSET_LAYERING   Lnet/minecraft/client/renderer/RenderStateShard$LayeringStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   VIEW_OFFSET_Z_LAYERING   Lnet/minecraft/client/renderer/RenderStateShard$LayeringStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   MAIN_TARGET   Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;   
+accessible   field   net/minecraft/client/renderer/RenderStateShard   OUTLINE_TARGET   Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TRANSLUCENT_TARGET   Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   PARTICLES_TARGET   Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   WEATHER_TARGET   Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   CLOUDS_TARGET   Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ITEM_ENTITY_TARGET   Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   DEFAULT_LINE   Lnet/minecraft/client/renderer/RenderStateShard$LineStateShard;
 
-accessible   field   net/minecraft/client/render/RenderPhase   NO_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   BLOCK_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   NEW_ENTITY_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   POSITION_COLOR_LIGHTMAP_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   POSITION_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   POSITION_COLOR_TEXTURE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   POSITION_TEXTURE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   POSITION_COLOR_TEXTURE_LIGHTMAP_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   COLOR_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   SOLID_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   CUTOUT_MIPPED_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   CUTOUT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_MOVING_BLOCK_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_NO_CRUMBLING_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ARMOR_CUTOUT_NO_CULL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_SOLID_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_CUTOUT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_CUTOUT_NONULL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_CUTOUT_NONULL_OFFSET_Z_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ITEM_ENTITY_TRANSLUCENT_CULL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_TRANSLUCENT_CULL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_TRANSLUCENT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_SMOOTH_CUTOUT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   BEACON_BEAM_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_DECAL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_NO_OUTLINE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_SHADOW_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_ALPHA_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   EYES_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENERGY_SWIRL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   LEASH_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   WATER_MASK_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   OUTLINE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ARMOR_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ARMOR_ENTITY_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   TRANSLUCENT_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   DIRECT_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   ENTITY_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   DIRECT_ENTITY_GLINT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   CRUMBLING_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   TEXT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   TRANSPARENT_TEXT_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   LIGHTNING_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   TRIPWIRE_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   END_PORTAL_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   END_GATEWAY_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
-accessible   field   net/minecraft/client/render/RenderPhase   LINES_SHADER   Lnet/minecraft/client/render/RenderPhase$Shader;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   BLOCK_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   NEW_ENTITY_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   POSITION_COLOR_LIGHTMAP_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   POSITION_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   POSITION_COLOR_TEXTURE_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   POSITION_TEXTURE_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   POSITION_COLOR_TEXTURE_LIGHTMAP_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   COLOR_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   SOLID_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   CUTOUT_MIPPED_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   CUTOUT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TRANSLUCENT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TRANSLUCENT_MOVING_BLOCK_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TRANSLUCENT_NO_CRUMBLING_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ARMOR_CUTOUT_NO_CULL_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_SOLID_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_CUTOUT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_CUTOUT_NONULL_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_CUTOUT_NONULL_OFFSET_Z_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ITEM_ENTITY_TRANSLUCENT_CULL_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_TRANSLUCENT_CULL_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_TRANSLUCENT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_SMOOTH_CUTOUT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   BEACON_BEAM_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_DECAL_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_NO_OUTLINE_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_SHADOW_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_ALPHA_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   EYES_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENERGY_SWIRL_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   LEASH_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   WATER_MASK_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   OUTLINE_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ARMOR_GLINT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ARMOR_ENTITY_GLINT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TRANSLUCENT_GLINT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   GLINT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   DIRECT_GLINT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   ENTITY_GLINT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   DIRECT_ENTITY_GLINT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   CRUMBLING_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TEXT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TRANSPARENT_TEXT_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   LIGHTNING_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   TRIPWIRE_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   END_PORTAL_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   END_GATEWAY_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible   field   net/minecraft/client/renderer/RenderStateShard   LINES_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
 
-accessible   field   net/minecraft/client/gl/Framebuffer       colorAttachment I
-accessible   field   net/minecraft/client/gl/Framebuffer       depthAttachment I
+accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       colorTextureId I
+accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       depthBufferId I
 
-accessible class net/minecraft/client/render/RenderLayer$OutlineMode
-accessible class net/minecraft/client/render/RenderLayer$MultiPhaseParameters
-accessible class net/minecraft/client/render/RenderPhase$Texture
-accessible class net/minecraft/client/render/RenderPhase$Shader
-accessible class net/minecraft/client/render/RenderPhase$Layering
-accessible class net/minecraft/client/render/RenderPhase$DepthTest
-accessible class net/minecraft/client/render/RenderPhase$Target
-accessible class net/minecraft/client/render/RenderPhase$Transparency
-accessible class net/minecraft/client/render/RenderPhase$WriteMaskState
-accessible class net/minecraft/client/render/RenderPhase$TextureBase
-accessible class net/minecraft/client/render/RenderPhase$Cull
-accessible class net/minecraft/client/render/RenderPhase$Lightmap
-accessible class net/minecraft/client/render/RenderPhase$Overlay
-accessible class net/minecraft/client/render/RenderPhase$Texturing
-accessible class net/minecraft/client/render/RenderPhase$LineWidth
+accessible class net/minecraft/client/renderer/RenderType$OutlineProperty
+accessible class net/minecraft/client/renderer/RenderType$CompositeState
+accessible class net/minecraft/client/renderer/RenderStateShard$TextureStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$ShaderStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$LayeringStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$DepthTestStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$OutputStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$TransparencyStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$WriteMaskStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$CullStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$LightmapStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$OverlayStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$TexturingStateShard
+accessible class net/minecraft/client/renderer/RenderStateShard$LineStateShard
 
-accessible method net/minecraft/client/render/Frustum init (Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/util/math/Matrix4f;)V
+accessible method net/minecraft/client/renderer/culling/Frustum calculateFrustum (Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix4f;)V
 
-accessible class net/minecraft/client/texture/Sprite$Interpolation
-accessible class net/minecraft/client/texture/Sprite$Animation
+accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$InterpolationData
+accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$AnimatedTexture
 
-accessible class net/minecraft/client/texture/Sprite$AnimationFrame
-accessible field net/minecraft/client/texture/Sprite$AnimationFrame index I
-accessible field net/minecraft/client/texture/Sprite$AnimationFrame time I
+accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$FrameInfo
+accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$FrameInfo index I
+accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$FrameInfo time I
 
-accessible class net/minecraft/client/texture/TextureStitcher$Holder
+accessible class net/minecraft/client/renderer/texture/Stitcher$Holder
 
-accessible field net/minecraft/client/texture/Sprite$Info animationData Lnet/minecraft/client/resource/metadata/AnimationResourceMetadata;
+accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$Info metadata Lnet/minecraft/client/resources/metadata/animation/AnimationMetadataSection;
