@@ -44,8 +44,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.mesh.QuadView;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
 import net.minecraft.core.Direction;
+
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
@@ -492,9 +495,9 @@ public class QuadViewImpl implements QuadView {
 		final float y = Float.intBitsToFloat(data[index + 1]);
 		final float z = Float.intBitsToFloat(data[index + 2]);
 
-		final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-		final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-		final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
+		final float xOut = matrix.m00() * x + matrix.m01() * y + matrix.m02() * z + matrix.m03();
+		final float yOut = matrix.m10() * x + matrix.m11() * y + matrix.m12() * z + matrix.m13();
+		final float zOut = matrix.m20() * x + matrix.m21() * y + matrix.m22() * z + matrix.m23();
 
 		buff.vertex(xOut, yOut, zOut);
 	}

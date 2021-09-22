@@ -18,226 +18,211 @@ package grondag.canvas.mixin;
 
 import java.nio.FloatBuffer;
 
+import com.mojang.math.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import com.mojang.math.Matrix4f;
+
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 @Mixin(Matrix4f.class)
 public class MixinMatrix4f implements Matrix4fExt {
-	@Shadow
-	protected float a00;
-	@Shadow
-	protected float a01;
-	@Shadow
-	protected float a02;
-	@Shadow
-	protected float a03;
-	@Shadow
-	protected float a10;
-	@Shadow
-	protected float a11;
-	@Shadow
-	protected float a12;
-	@Shadow
-	protected float a13;
-	@Shadow
-	protected float a20;
-	@Shadow
-	protected float a21;
-	@Shadow
-	protected float a22;
-	@Shadow
-	protected float a23;
-	@Shadow
-	protected float a30;
-	@Shadow
-	protected float a31;
-	@Shadow
-	protected float a32;
-	@Shadow
-	protected float a33;
+	@Shadow protected float m00;
+	@Shadow protected float m01;
+	@Shadow protected float m02;
+	@Shadow protected float m03;
+	@Shadow protected float m10;
+	@Shadow protected float m11;
+	@Shadow protected float m12;
+	@Shadow protected float m13;
+	@Shadow protected float m20;
+	@Shadow protected float m21;
+	@Shadow protected float m22;
+	@Shadow protected float m23;
+	@Shadow protected float m30;
+	@Shadow protected float m31;
+	@Shadow protected float m32;
+	@Shadow protected float m33;
 
 	@Override
-	public float a00() {
-		return a00;
+	public float m00() {
+		return m00;
 	}
 
 	@Override
-	public float a01() {
-		return a01;
+	public float m01() {
+		return m01;
 	}
 
 	@Override
-	public float a02() {
-		return a02;
+	public float m02() {
+		return m02;
 	}
 
 	@Override
-	public float a03() {
-		return a03;
+	public float m03() {
+		return m03;
 	}
 
 	@Override
-	public float a10() {
-		return a10;
+	public float m10() {
+		return m10;
 	}
 
 	@Override
-	public float a11() {
-		return a11;
+	public float m11() {
+		return m11;
 	}
 
 	@Override
-	public float a12() {
-		return a12;
+	public float m12() {
+		return m12;
 	}
 
 	@Override
-	public float a13() {
-		return a13;
+	public float m13() {
+		return m13;
 	}
 
 	@Override
-	public float a20() {
-		return a20;
+	public float m20() {
+		return m20;
 	}
 
 	@Override
-	public float a21() {
-		return a21;
+	public float m21() {
+		return m21;
 	}
 
 	@Override
-	public float a22() {
-		return a22;
+	public float m22() {
+		return m22;
 	}
 
 	@Override
-	public float a23() {
-		return a23;
+	public float m23() {
+		return m23;
 	}
 
 	@Override
-	public float a30() {
-		return a30;
+	public float m30() {
+		return m30;
 	}
 
 	@Override
-	public float a31() {
-		return a31;
+	public float m31() {
+		return m31;
 	}
 
 	@Override
-	public float a32() {
-		return a32;
+	public float m32() {
+		return m32;
 	}
 
 	@Override
-	public float a33() {
-		return a33;
+	public float m33() {
+		return m33;
 	}
 
 	@Override
-	public void a00(float val) {
-		a00 = val;
+	public void m00(float val) {
+		m00 = val;
 	}
 
 	@Override
-	public void a01(float val) {
-		a01 = val;
+	public void m01(float val) {
+		m01 = val;
 	}
 
 	@Override
-	public void a02(float val) {
-		a02 = val;
+	public void m02(float val) {
+		m02 = val;
 	}
 
 	@Override
-	public void a03(float val) {
-		a03 = val;
+	public void m03(float val) {
+		m03 = val;
 	}
 
 	@Override
-	public void a10(float val) {
-		a10 = val;
+	public void m10(float val) {
+		m10 = val;
 	}
 
 	@Override
-	public void a11(float val) {
-		a11 = val;
+	public void m11(float val) {
+		m11 = val;
 	}
 
 	@Override
-	public void a12(float val) {
-		a12 = val;
+	public void m12(float val) {
+		m12 = val;
 	}
 
 	@Override
-	public void a13(float val) {
-		a13 = val;
+	public void m13(float val) {
+		m13 = val;
 	}
 
 	@Override
-	public void a20(float val) {
-		a20 = val;
+	public void m20(float val) {
+		m20 = val;
 	}
 
 	@Override
-	public void a21(float val) {
-		a21 = val;
+	public void m21(float val) {
+		m21 = val;
 	}
 
 	@Override
-	public void a22(float val) {
-		a22 = val;
+	public void m22(float val) {
+		m22 = val;
 	}
 
 	@Override
-	public void a23(float val) {
-		a23 = val;
+	public void m23(float val) {
+		m23 = val;
 	}
 
 	@Override
-	public void a30(float val) {
-		a30 = val;
+	public void m30(float val) {
+		m30 = val;
 	}
 
 	@Override
-	public void a31(float val) {
-		a31 = val;
+	public void m31(float val) {
+		m31 = val;
 	}
 
 	@Override
-	public void a32(float val) {
-		a32 = val;
+	public void m32(float val) {
+		m32 = val;
 	}
 
 	@Override
-	public void a33(float val) {
-		a33 = val;
+	public void m33(float val) {
+		m33 = val;
 	}
 
 	@Override
 	public void writeToBuffer(int baseIndex, FloatBuffer floatBuffer) {
-		floatBuffer.put(baseIndex + 0, a00);
-		floatBuffer.put(baseIndex + 1, a10);
-		floatBuffer.put(baseIndex + 2, a20);
-		floatBuffer.put(baseIndex + 3, a30);
+		floatBuffer.put(baseIndex + 0, m00);
+		floatBuffer.put(baseIndex + 1, m10);
+		floatBuffer.put(baseIndex + 2, m20);
+		floatBuffer.put(baseIndex + 3, m30);
 
-		floatBuffer.put(baseIndex + 4, a01);
-		floatBuffer.put(baseIndex + 5, a11);
-		floatBuffer.put(baseIndex + 6, a21);
-		floatBuffer.put(baseIndex + 7, a31);
+		floatBuffer.put(baseIndex + 4, m01);
+		floatBuffer.put(baseIndex + 5, m11);
+		floatBuffer.put(baseIndex + 6, m21);
+		floatBuffer.put(baseIndex + 7, m31);
 
-		floatBuffer.put(baseIndex + 8, a02);
-		floatBuffer.put(baseIndex + 9, a12);
-		floatBuffer.put(baseIndex + 10, a22);
-		floatBuffer.put(baseIndex + 11, a32);
+		floatBuffer.put(baseIndex + 8, m02);
+		floatBuffer.put(baseIndex + 9, m12);
+		floatBuffer.put(baseIndex + 10, m22);
+		floatBuffer.put(baseIndex + 11, m32);
 
-		floatBuffer.put(baseIndex + 12, a03);
-		floatBuffer.put(baseIndex + 13, a13);
-		floatBuffer.put(baseIndex + 14, a23);
-		floatBuffer.put(baseIndex + 15, a33);
+		floatBuffer.put(baseIndex + 12, m03);
+		floatBuffer.put(baseIndex + 13, m13);
+		floatBuffer.put(baseIndex + 14, m23);
+		floatBuffer.put(baseIndex + 15, m33);
 	}
 }

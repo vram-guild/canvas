@@ -18,26 +18,25 @@ package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import grondag.canvas.mixinterface.PalettedContainerExt;
-import grondag.canvas.terrain.util.ChunkPaletteCopier;
-import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
+
 import net.minecraft.util.BitStorage;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.Palette;
 import net.minecraft.world.level.chunk.PalettedContainer;
 
+import grondag.canvas.mixinterface.PalettedContainerExt;
+import grondag.canvas.terrain.util.ChunkPaletteCopier;
+import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
+
 @Mixin(PalettedContainer.class)
 public abstract class MixinPalettedContainer<T> implements PalettedContainerExt {
-	@Shadow
-	protected BitStorage data;
-	@Shadow
-	private T defaultValue;
-	@Shadow
-	private Palette<T> palette;
+	@Shadow protected BitStorage storage;
+	@Shadow private T defaultValue;
+	@Shadow private Palette<T> palette;
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public PaletteCopy canvas_paletteCopy() {
-		return ChunkPaletteCopier.captureCopy((Palette<BlockState>) palette, data, (BlockState) defaultValue);
+		return ChunkPaletteCopier.captureCopy((Palette<BlockState>) palette, storage, (BlockState) defaultValue);
 	}
 }

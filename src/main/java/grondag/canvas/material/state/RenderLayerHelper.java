@@ -37,12 +37,12 @@ import grondag.canvas.material.property.MaterialDepthTest;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.property.MaterialTransparency;
 import grondag.canvas.material.property.MaterialWriteMask;
-import grondag.canvas.mixin.AccessMultiPhaseParameters;
-import grondag.canvas.mixin.AccessTexture;
+import grondag.canvas.mixin.AccessCompositeState;
+import grondag.canvas.mixin.AccessTextureStateShard;
 import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
-import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.canvas.mixinterface.RenderLayerExt;
-import grondag.canvas.mixinterface.ShaderExt;
+import grondag.canvas.mixinterface.CompositeRenderTypeExt;
+import grondag.canvas.mixinterface.RenderTypeExt;
+import grondag.canvas.mixinterface.ShaderStateShardExt;
 
 // segregates render layer references from mod init
 public final class RenderLayerHelper {
@@ -79,30 +79,30 @@ public final class RenderLayerHelper {
 		return layer.mode() != Mode.QUADS || EXCLUSIONS.contains(layer);
 	}
 
-	private static void copyFromLayer(MaterialFinderImpl finder, MultiPhaseExt layer) {
-		final AccessMultiPhaseParameters params = layer.canvas_phases();
-		final EmptyTextureStateShard texBase = params.getTexture();
+	private static void copyFromLayer(MaterialFinderImpl finder, CompositeRenderTypeExt layer) {
+		final AccessCompositeState params = layer.canvas_phases();
+		final EmptyTextureStateShard texBase = params.getTextureState();
 
-		final MojangShaderData sd = ((ShaderExt) params.getShader()).canvas_shaderData();
+		final MojangShaderData sd = ((ShaderStateShardExt) params.getShaderState()).canvas_shaderData();
 
-		if (texBase != null && texBase instanceof AccessTexture) {
-			final AccessTexture tex = (AccessTexture) params.getTexture();
-			finder.texture(tex.getId().orElse(null));
+		if (texBase != null && texBase instanceof AccessTextureStateShard) {
+			final AccessTextureStateShard tex = (AccessTextureStateShard) params.getTextureState();
+			finder.texture(tex.getTexture().orElse(null));
 			finder.unmipped(!tex.getMipmap());
 			finder.blur(tex.getBlur());
 		}
 
-		finder.transparency(MaterialTransparency.fromPhase(params.getTransparency()));
-		finder.depthTest(MaterialDepthTest.fromPhase(params.getDepthTest()));
-		finder.cull(params.getCull() == RenderStateShard.CULL);
+		finder.transparency(MaterialTransparency.fromPhase(params.getTransparencyState()));
+		finder.depthTest(MaterialDepthTest.fromPhase(params.getDepthTestState()));
+		finder.cull(params.getCullState() == RenderStateShard.CULL);
 		finder.writeMask(MaterialWriteMask.fromPhase(params.getWriteMaskState()));
-		finder.decal(MaterialDecal.fromPhase(params.getLayering()));
-		finder.target(MaterialTarget.fromPhase(params.getTarget()));
-		finder.lines(params.getLineWidth() != RenderStateShard.DEFAULT_LINE);
+		finder.decal(MaterialDecal.fromPhase(params.getLayeringState()));
+		finder.target(MaterialTarget.fromPhase(params.getOutputState()));
+		finder.lines(params.getLineState() != RenderStateShard.DEFAULT_LINE);
 		finder.fog(sd.fog);
 		finder.disableDiffuse(!sd.diffuse);
 		finder.cutout(sd.cutout);
-		finder.sorted(((RenderLayerExt) layer).canvas_isTranslucent());
+		finder.sorted(((RenderTypeExt) layer).canvas_isSorted());
 
 		// vanilla sets these as part of draw process but we don't want special casing
 		if (layer == RenderType.solid() || layer == RenderType.cutoutMipped() || layer == RenderType.cutout() || layer == RenderType.translucent()) {
@@ -126,13 +126,13 @@ public final class RenderLayerHelper {
 			return RenderMaterialImpl.MISSING;
 		}
 
-		final MultiPhaseExt multiPhase = (MultiPhaseExt) layer;
+		final CompositeRenderTypeExt multiPhase = (CompositeRenderTypeExt) layer;
 		final String name = multiPhase.canvas_name();
 		final var params = multiPhase.canvas_phases();
 
 		// Excludes glint, end portal, and other specialized render layers that won't play nice with our current setup
 		// Excludes render layers with custom shaders
-		if (params.getTexturing() != RenderStateShard.DEFAULT_TEXTURING || ((ShaderExt) params.getShader()).canvas_shaderData() == MojangShaderData.MISSING) {
+		if (params.getTexturingState() != RenderStateShard.DEFAULT_TEXTURING || ((ShaderStateShardExt) params.getShaderState()).canvas_shaderData() == MojangShaderData.MISSING) {
 			EXCLUSIONS.add(layer);
 			return RenderMaterialImpl.MISSING;
 		}

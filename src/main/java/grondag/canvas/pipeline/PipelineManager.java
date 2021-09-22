@@ -17,6 +17,12 @@
 package grondag.canvas.pipeline;
 
 import com.mojang.math.Matrix4f;
+
+import net.minecraft.client.GraphicsStatus;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.ResourceLocation;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
@@ -26,7 +32,7 @@ import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.mixinterface.LevelRendererExt;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
@@ -34,10 +40,6 @@ import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessShader;
 import grondag.canvas.varia.GFX;
-import net.minecraft.client.GraphicsStatus;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.resources.ResourceLocation;
 
 //PERF: handle VAO properly here before re-enabling VAO
 public class PipelineManager {
@@ -213,7 +215,7 @@ public class PipelineManager {
 		final Minecraft mc = Minecraft.getInstance();
 
 		if (mc.levelRenderer != null) {
-			((WorldRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
+			((LevelRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
 		}
 
 		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY;

@@ -20,14 +20,15 @@ import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -35,13 +36,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+
 import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.format.QuadEncoders;
-import grondag.canvas.mixinterface.RenderLayerExt;
+import grondag.canvas.mixinterface.RenderTypeExt;
 
 public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> extends AbstractRenderContext {
 	/**
@@ -107,8 +109,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 
 		// FEAT: support additional blend modes on terrain blocks?
 		defaultBlendMode = isFluidModel
-			? ((RenderLayerExt) ItemBlockRenderTypes.getRenderLayer(blockState.getFluidState())).canvas_preset()
-			: ((RenderLayerExt) ItemBlockRenderTypes.getChunkRenderType(blockState)).canvas_preset();
+			? ((RenderTypeExt) ItemBlockRenderTypes.getRenderLayer(blockState.getFluidState())).canvas_preset()
+			: ((RenderTypeExt) ItemBlockRenderTypes.getChunkRenderType(blockState)).canvas_preset();
 	}
 
 	@Override

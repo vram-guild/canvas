@@ -16,62 +16,64 @@
 
 package grondag.canvas.mixinterface;
 
-import com.mojang.math.Matrix3f;
 import java.nio.FloatBuffer;
+
+import com.mojang.math.Matrix3f;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 public interface Matrix3fExt {
-	float a00();
+	float m00();
 
-	float a01();
+	float m01();
 
-	float a02();
+	float m02();
 
-	float a10();
+	float m10();
 
-	float a11();
+	float m11();
 
-	float a12();
+	float m12();
 
-	float a20();
+	float m20();
 
-	float a21();
+	float m21();
 
-	float a22();
+	float m22();
 
-	void a00(float val);
+	void m00(float val);
 
-	void a01(float val);
+	void m01(float val);
 
-	void a02(float val);
+	void m02(float val);
 
-	void a10(float val);
+	void m10(float val);
 
-	void a11(float val);
+	void m11(float val);
 
-	void a12(float val);
+	void m12(float val);
 
-	void a20(float val);
+	void m20(float val);
 
-	void a21(float val);
+	void m21(float val);
 
-	void a22(float val);
+	void m22(float val);
 
 	int canvas_transform(int packedNormal);
 
 	default void set(Matrix3fExt val) {
-		a00(val.a00());
-		a01(val.a01());
-		a02(val.a02());
+		m00(val.m00());
+		m01(val.m01());
+		m02(val.m02());
 
-		a10(val.a10());
-		a11(val.a11());
-		a12(val.a12());
+		m10(val.m10());
+		m11(val.m11());
+		m12(val.m12());
 
-		a20(val.a20());
-		a21(val.a21());
-		a22(val.a22());
+		m20(val.m20());
+		m21(val.m21());
+		m22(val.m22());
 	}
 
 	default void set(Matrix3f val) {
@@ -80,15 +82,15 @@ public interface Matrix3fExt {
 
 	@Environment(EnvType.CLIENT)
 	default void writeToBuffer(FloatBuffer floatBuffer) {
-		floatBuffer.put(0 * 3 + 0, a00());
-		floatBuffer.put(1 * 3 + 0, a01());
-		floatBuffer.put(2 * 3 + 0, a02());
-		floatBuffer.put(0 * 3 + 1, a10());
-		floatBuffer.put(1 * 3 + 1, a11());
-		floatBuffer.put(2 * 3 + 1, a12());
-		floatBuffer.put(0 * 3 + 2, a20());
-		floatBuffer.put(1 * 3 + 2, a21());
-		floatBuffer.put(2 * 3 + 2, a22());
+		floatBuffer.put(0 * 3 + 0, m00());
+		floatBuffer.put(1 * 3 + 0, m01());
+		floatBuffer.put(2 * 3 + 0, m02());
+		floatBuffer.put(0 * 3 + 1, m10());
+		floatBuffer.put(1 * 3 + 1, m11());
+		floatBuffer.put(2 * 3 + 1, m12());
+		floatBuffer.put(0 * 3 + 2, m20());
+		floatBuffer.put(1 * 3 + 2, m21());
+		floatBuffer.put(2 * 3 + 2, m22());
 	}
 
 	boolean canvas_isIdentity();

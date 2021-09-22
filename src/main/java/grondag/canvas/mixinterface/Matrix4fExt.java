@@ -17,77 +17,80 @@
 package grondag.canvas.mixinterface;
 
 import java.nio.FloatBuffer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+
 import grondag.bitraster.Matrix4L;
 
 @Environment(EnvType.CLIENT)
 public interface Matrix4fExt {
-	float a00();
+	float m00();
 
-	float a01();
+	float m01();
 
-	float a02();
+	float m02();
 
-	float a03();
+	float m03();
 
-	float a10();
+	float m10();
 
-	float a11();
+	float m11();
 
-	float a12();
+	float m12();
 
-	float a13();
+	float m13();
 
-	float a20();
+	float m20();
 
-	float a21();
+	float m21();
 
-	float a22();
+	float m22();
 
-	float a23();
+	float m23();
 
-	float a30();
+	float m30();
 
-	float a31();
+	float m31();
 
-	float a32();
+	float m32();
 
-	float a33();
+	float m33();
 
-	void a00(float val);
+	void m00(float val);
 
-	void a01(float val);
+	void m01(float val);
 
-	void a02(float val);
+	void m02(float val);
 
-	void a03(float val);
+	void m03(float val);
 
-	void a10(float val);
+	void m10(float val);
 
-	void a11(float val);
+	void m11(float val);
 
-	void a12(float val);
+	void m12(float val);
 
-	void a13(float val);
+	void m13(float val);
 
-	void a20(float val);
+	void m20(float val);
 
-	void a21(float val);
+	void m21(float val);
 
-	void a22(float val);
+	void m22(float val);
 
-	void a23(float val);
+	void m23(float val);
 
-	void a30(float val);
+	void m30(float val);
 
-	void a31(float val);
+	void m31(float val);
 
-	void a32(float val);
+	void m32(float val);
 
-	void a33(float val);
+	void m33(float val);
 
 	default void multiply(Matrix4fExt val) {
 		((Matrix4f) (Object) this).multiply((Matrix4f) (Object) val);
@@ -98,25 +101,25 @@ public interface Matrix4fExt {
 	}
 
 	default void set(Matrix4fExt val) {
-		a00(val.a00());
-		a01(val.a01());
-		a02(val.a02());
-		a03(val.a03());
+		m00(val.m00());
+		m01(val.m01());
+		m02(val.m02());
+		m03(val.m03());
 
-		a10(val.a10());
-		a11(val.a11());
-		a12(val.a12());
-		a13(val.a13());
+		m10(val.m10());
+		m11(val.m11());
+		m12(val.m12());
+		m13(val.m13());
 
-		a20(val.a20());
-		a21(val.a21());
-		a22(val.a22());
-		a23(val.a23());
+		m20(val.m20());
+		m21(val.m21());
+		m22(val.m22());
+		m23(val.m23());
 
-		a30(val.a30());
-		a31(val.a31());
-		a32(val.a32());
-		a33(val.a33());
+		m30(val.m30());
+		m31(val.m31());
+		m32(val.m32());
+		m33(val.m33());
 	}
 
 	default void set(Matrix4f val) {
@@ -124,25 +127,25 @@ public interface Matrix4fExt {
 	}
 
 	default boolean matches(Matrix4fExt val) {
-		return a00() == val.a00()
-			&& a01() == val.a01()
-			&& a02() == val.a02()
-			&& a03() == val.a03()
+		return m00() == val.m00()
+			&& m01() == val.m01()
+			&& m02() == val.m02()
+			&& m03() == val.m03()
 
-			&& a10() == val.a10()
-			&& a11() == val.a11()
-			&& a12() == val.a12()
-			&& a13() == val.a13()
+			&& m10() == val.m10()
+			&& m11() == val.m11()
+			&& m12() == val.m12()
+			&& m13() == val.m13()
 
-			&& a20() == val.a20()
-			&& a21() == val.a21()
-			&& a22() == val.a22()
-			&& a23() == val.a23()
+			&& m20() == val.m20()
+			&& m21() == val.m21()
+			&& m22() == val.m22()
+			&& m23() == val.m23()
 
-			&& a30() == val.a30()
-			&& a31() == val.a31()
-			&& a32() == val.a32()
-			&& a33() == val.a33();
+			&& m30() == val.m30()
+			&& m31() == val.m31()
+			&& m32() == val.m32()
+			&& m33() == val.m33();
 	}
 
 	default boolean matches(Matrix4f val) {
@@ -155,49 +158,49 @@ public interface Matrix4fExt {
 		final float z = vec.z();
 
 		vec.set(
-			a00() * x + a01() * y + a02() * z + a03(),
-			a10() * x + a11() * y + a12() * z + a13(),
-			a20() * x + a21() * y + a22() * z + a23());
+			m00() * x + m01() * y + m02() * z + m03(),
+			m10() * x + m11() * y + m12() * z + m13(),
+			m20() * x + m21() * y + m22() * z + m23());
 	}
 
 	default void translate(float x, float y, float z) {
-		final float b03 = a00() * x + a01() * y + a02() * z + a03();
-		final float b13 = a10() * x + a11() * y + a12() * z + a13();
-		final float b23 = a20() * x + a21() * y + a22() * z + a23();
-		final float b33 = a30() * x + a31() * y + a32() * z + a33();
+		final float b03 = m00() * x + m01() * y + m02() * z + m03();
+		final float b13 = m10() * x + m11() * y + m12() * z + m13();
+		final float b23 = m20() * x + m21() * y + m22() * z + m23();
+		final float b33 = m30() * x + m31() * y + m32() * z + m33();
 
-		a03(b03);
-		a13(b13);
-		a23(b23);
-		a33(b33);
+		m03(b03);
+		m13(b13);
+		m23(b23);
+		m33(b33);
 	}
 
 	default void scale(float x, float y, float z) {
-		final float b00 = a00() * x;
-		final float b01 = a01() * y;
-		final float b02 = a02() * z;
-		final float b10 = a10() * x;
-		final float b11 = a11() * y;
-		final float b12 = a12() * z;
-		final float b20 = a20() * x;
-		final float b21 = a21() * y;
-		final float b22 = a22() * z;
-		final float b30 = a30() * x;
-		final float b31 = a31() * y;
-		final float b32 = a32() * z;
+		final float b00 = m00() * x;
+		final float b01 = m01() * y;
+		final float b02 = m02() * z;
+		final float b10 = m10() * x;
+		final float b11 = m11() * y;
+		final float b12 = m12() * z;
+		final float b20 = m20() * x;
+		final float b21 = m21() * y;
+		final float b22 = m22() * z;
+		final float b30 = m30() * x;
+		final float b31 = m31() * y;
+		final float b32 = m32() * z;
 
-		a00(b00);
-		a01(b01);
-		a02(b02);
-		a10(b10);
-		a11(b11);
-		a12(b12);
-		a20(b20);
-		a21(b21);
-		a22(b22);
-		a30(b30);
-		a31(b31);
-		a32(b32);
+		m00(b00);
+		m01(b01);
+		m02(b02);
+		m10(b10);
+		m11(b11);
+		m12(b12);
+		m20(b20);
+		m21(b21);
+		m22(b22);
+		m30(b30);
+		m31(b31);
+		m32(b32);
 	}
 
 	void writeToBuffer(int baseIndex, FloatBuffer floatBuffer);
@@ -218,14 +221,14 @@ public interface Matrix4fExt {
 	 */
 	default void setOrtho(float left, float right, float bottom, float top, float near, float far) {
 		loadIdentity();
-		a00(2.0f / (right - left));
-		a03(-(right + left) / (right - left));
+		m00(2.0f / (right - left));
+		m03(-(right + left) / (right - left));
 
-		a11(2.0f / (top - bottom));
-		a13(-(top + bottom) / (top - bottom));
+		m11(2.0f / (top - bottom));
+		m13(-(top + bottom) / (top - bottom));
 
-		a22(2.0f / (near - far));
-		a23(-(far + near) / (far - near));
+		m22(2.0f / (near - far));
+		m23(-(far + near) / (far - near));
 	}
 
 	// best explanation seen so far:  http://www.songho.ca/opengl/gl_camera.html#lookat
@@ -262,22 +265,22 @@ public interface Matrix4fExt {
 		final float upY = forwardZ * leftX - forwardX * leftZ;
 		final float upZ = forwardX * leftY - forwardY * leftX;
 
-		a00(leftX);
-		a01(leftY);
-		a02(leftZ);
-		a03(-(leftX * fromX + leftY * fromY + leftZ * fromZ));
-		a10(upX);
-		a11(upY);
-		a12(upZ);
-		a13(-(upX * fromX + upY * fromY + upZ * fromZ));
-		a20(forwardX);
-		a21(forwardY);
-		a22(forwardZ);
-		a23(-(forwardX * fromX + forwardY * fromY + forwardZ * fromZ));
-		a30(0.0f);
-		a31(0.0f);
-		a32(0.0f);
-		a33(1.0f);
+		m00(leftX);
+		m01(leftY);
+		m02(leftZ);
+		m03(-(leftX * fromX + leftY * fromY + leftZ * fromZ));
+		m10(upX);
+		m11(upY);
+		m12(upZ);
+		m13(-(upX * fromX + upY * fromY + upZ * fromZ));
+		m20(forwardX);
+		m21(forwardY);
+		m22(forwardZ);
+		m23(-(forwardX * fromX + forwardY * fromY + forwardZ * fromZ));
+		m30(0.0f);
+		m31(0.0f);
+		m32(0.0f);
+		m33(1.0f);
 	}
 
 	static void copy(Matrix4f src, Matrix4L target) {
@@ -286,10 +289,10 @@ public interface Matrix4fExt {
 
 	default void copyTo(Matrix4L target) {
 		target.set(
-				this.a00(), this.a01(), this.a02(), this.a03(),
-				this.a10(), this.a11(), this.a12(), this.a13(),
-				this.a20(), this.a21(), this.a22(), this.a23(),
-				this.a30(), this.a31(), this.a32(), this.a33());
+				this.m00(), this.m01(), this.m02(), this.m03(),
+				this.m10(), this.m11(), this.m12(), this.m13(),
+				this.m20(), this.m21(), this.m22(), this.m23(),
+				this.m30(), this.m31(), this.m32(), this.m33());
 	}
 
 	static Matrix4fExt cast(Matrix4f matrix) {

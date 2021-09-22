@@ -24,17 +24,17 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
+import grondag.canvas.mixinterface.AnimatedTextureExt;
 import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.NativeImageExt;
-import grondag.canvas.mixinterface.SpriteAnimationExt;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(TextureAtlasSprite.InterpolationData.class)
 public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
-	@Shadow private NativeImage[] images;
+	@Shadow private NativeImage[] activeFrame;
 
-	@Shadow(aliases = "field_21757")
+	@Shadow(aliases = {"this$0", "a", "field_21757"})
 	private TextureAtlasSprite parent;
 
 	/**
@@ -44,8 +44,8 @@ public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
 	 * @reason Vanilla code is too slow
 	 */
 	@Overwrite
-	public void apply(TextureAtlasSprite.AnimatedTexture animation) {
-		final var animationExt = (SpriteAnimationExt) animation;
+	public void uploadInterpolatedFrame(TextureAtlasSprite.AnimatedTexture animation) {
+		final var animationExt = (AnimatedTextureExt) animation;
 		final int frameIndex = animationExt.canvas_frameIndex();
 		final var frames = animationExt.canvas_frames();
 		final var currentFrame = frames.get(frameIndex);
@@ -64,7 +64,7 @@ public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
 		final int w0 = (int) (256 * dt);
 		final int w1 = 256 - w0;
 
-		for (int layer = 0; layer < this.images.length; layer++) {
+		for (int layer = 0; layer < this.activeFrame.length; layer++) {
 			final int width = parent.getWidth() >> layer;
 			final int height = parent.getHeight() >> layer;
 
@@ -77,7 +77,7 @@ public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
 			final var sourceImage = parentExt.canvas_images()[layer];
 			final int imageWidth = sourceImage.getWidth();
 			final long sourceAddress = ((NativeImageExt) (Object) sourceImage).canvas_pointer();
-			final var targetImage = (NativeImageExt) (Object) images[layer];
+			final var targetImage = (NativeImageExt) (Object) activeFrame[layer];
 			long targetAddress = targetImage.canvas_pointer();
 
 			long srcAddr0 = sourceAddress + (x0 + ((long) y0 * imageWidth) * 4);
@@ -102,12 +102,12 @@ public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
 			}
 		}
 
-		parentExt.canvas_upload(0, 0, this.images);
+		parentExt.canvas_upload(0, 0, this.activeFrame);
 	}
 
 	@Override
 	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
-		for (final var img : images) {
+		for (final var img : activeFrame) {
 			((CombinedAnimationConsumer) (Object) img).canvas_setCombinedAnimation(combined);
 		}
 	}

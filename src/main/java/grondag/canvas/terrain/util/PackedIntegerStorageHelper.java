@@ -17,9 +17,12 @@
 package grondag.canvas.terrain.util;
 
 import java.util.concurrent.ArrayBlockingQueue;
-import net.minecraft.util.BitStorage;
+
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import grondag.canvas.mixinterface.PackedIntegerArrayExt;
+
+import net.minecraft.util.BitStorage;
+
+import grondag.canvas.mixinterface.BitStorageExt;
 
 /**
  * Minimize new allocation for chunk storage copies by recycling the arrays.
@@ -39,7 +42,7 @@ public class PackedIntegerStorageHelper {
 
 	public static IntArrayList claim(BitStorage array) {
 		final IntArrayList list = claimList();
-		((PackedIntegerArrayExt) array).canvas_fastForEach(list);
+		((BitStorageExt) array).canvas_fastForEach(list);
 		return list;
 	}
 }

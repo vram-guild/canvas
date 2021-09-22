@@ -21,29 +21,21 @@ import static java.lang.Math.fma;
 import com.mojang.math.Matrix3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 @Mixin(Matrix3f.class)
 public class MixinMatrix3f implements Matrix3fExt {
-	@Shadow
-	protected float a00;
-	@Shadow
-	protected float a01;
-	@Shadow
-	protected float a02;
-	@Shadow
-	protected float a10;
-	@Shadow
-	protected float a11;
-	@Shadow
-	protected float a12;
-	@Shadow
-	protected float a20;
-	@Shadow
-	protected float a21;
-	@Shadow
-	protected float a22;
+	@Shadow protected float m00;
+	@Shadow protected float m01;
+	@Shadow protected float m02;
+	@Shadow protected float m10;
+	@Shadow protected float m11;
+	@Shadow protected float m12;
+	@Shadow protected float m20;
+	@Shadow protected float m21;
+	@Shadow protected float m22;
 
 	@Override
 	public int canvas_transform(int packedNormal) {
@@ -51,107 +43,107 @@ public class MixinMatrix3f implements Matrix3fExt {
 		final float y = PackedVector3f.packedY(packedNormal);
 		final float z = PackedVector3f.packedZ(packedNormal);
 
-		final float nx = fma(a00, x, fma(a01, y, a02 * z));
-		final float ny = fma(a10, x, fma(a11, y, a12 * z));
-		final float nz = fma(a20, x, fma(a21, y, a22 * z));
+		final float nx = fma(m00, x, fma(m01, y, m02 * z));
+		final float ny = fma(m10, x, fma(m11, y, m12 * z));
+		final float nz = fma(m20, x, fma(m21, y, m22 * z));
 
 		return PackedVector3f.pack(nx, ny, nz);
 	}
 
 	@Override
 	public boolean canvas_isIdentity() {
-		return a00 == 1.0F && a01 == 0.0F && a02 == 0.0F
-				&& a10 == 0.0F && a11 == 1.0F && a12 == 0.0
-				&& a20 == 0.0F && a21 == 0.0F && a22 == 1.0F;
+		return m00 == 1.0F && m01 == 0.0F && m02 == 0.0F
+				&& m10 == 0.0F && m11 == 1.0F && m12 == 0.0
+				&& m20 == 0.0F && m21 == 0.0F && m22 == 1.0F;
 	}
 
 	@Override
-	public float a00() {
-		return a00;
+	public float m00() {
+		return m00;
 	}
 
 	@Override
-	public float a01() {
-		return a01;
+	public float m01() {
+		return m01;
 	}
 
 	@Override
-	public float a02() {
-		return a02;
+	public float m02() {
+		return m02;
 	}
 
 	@Override
-	public float a10() {
-		return a10;
+	public float m10() {
+		return m10;
 	}
 
 	@Override
-	public float a11() {
-		return a11;
+	public float m11() {
+		return m11;
 	}
 
 	@Override
-	public float a12() {
-		return a12;
+	public float m12() {
+		return m12;
 	}
 
 	@Override
-	public float a20() {
-		return a20;
+	public float m20() {
+		return m20;
 	}
 
 	@Override
-	public float a21() {
-		return a21;
+	public float m21() {
+		return m21;
 	}
 
 	@Override
-	public float a22() {
-		return a22;
+	public float m22() {
+		return m22;
 	}
 
 	@Override
-	public void a00(float val) {
-		a00 = val;
+	public void m00(float val) {
+		m00 = val;
 	}
 
 	@Override
-	public void a01(float val) {
-		a01 = val;
+	public void m01(float val) {
+		m01 = val;
 	}
 
 	@Override
-	public void a02(float val) {
-		a02 = val;
+	public void m02(float val) {
+		m02 = val;
 	}
 
 	@Override
-	public void a10(float val) {
-		a10 = val;
+	public void m10(float val) {
+		m10 = val;
 	}
 
 	@Override
-	public void a11(float val) {
-		a11 = val;
+	public void m11(float val) {
+		m11 = val;
 	}
 
 	@Override
-	public void a12(float val) {
-		a12 = val;
+	public void m12(float val) {
+		m12 = val;
 	}
 
 	@Override
-	public void a20(float val) {
-		a20 = val;
+	public void m20(float val) {
+		m20 = val;
 	}
 
 	@Override
-	public void a21(float val) {
-		a21 = val;
+	public void m21(float val) {
+		m21 = val;
 	}
 
 	@Override
-	public void a22(float val) {
-		a22 = val;
+	public void m22(float val) {
+		m22 = val;
 	}
 }

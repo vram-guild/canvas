@@ -32,8 +32,8 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.canvas.mixinterface.BiomeAccessExt;
-import grondag.canvas.mixinterface.WorldChunkExt;
+import grondag.canvas.mixinterface.BiomeManagerExt;
+import grondag.canvas.mixinterface.LevelChunkExt;
 
 //FEAT: per-vertex blending (quality)
 @Environment(value = EnvType.CLIENT)
@@ -59,7 +59,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 	}
 
 	public static ChunkColorCache get(LevelChunk chunk) {
-		return ((WorldChunkExt) chunk).canvas_colorCache();
+		return ((LevelChunkExt) chunk).canvas_colorCache();
 	}
 
 	public static void invalidate() {
@@ -71,7 +71,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 	}
 
 	private Biome getBiome(int x, int y, int z) {
-		return ((BiomeAccessExt) world.getBiomeManager()).getBiome(x, y, z, this);
+		return ((BiomeManagerExt) world.getBiomeManager()).canvas_getBiome(x, y, z, this);
 	}
 
 	private LevelChunk getChunk(int cx, int cz) {

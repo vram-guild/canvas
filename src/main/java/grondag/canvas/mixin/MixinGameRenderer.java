@@ -16,13 +16,18 @@
 
 package grondag.canvas.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
+
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.perf.Timekeeper;
@@ -30,22 +35,19 @@ import grondag.canvas.pipeline.BufferDebug;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.shader.data.ScreenRenderState;
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer implements GameRendererExt {
 	@Shadow float zoom;
 	@Shadow float zoomX;
 	@Shadow float zoomY;
-	@Shadow int ticks;
+	@Shadow int tick;
 	@Shadow protected abstract double getFov(Camera camera, float tickDelta, boolean changingFov);
-	@Shadow protected abstract void bobViewWhenHurt(PoseStack matrixStack, float f);
+	@Shadow protected abstract void bobHurt(PoseStack matrixStack, float f);
 	@Shadow protected abstract void bobView(PoseStack matrixStack, float f);
-	@Shadow private Minecraft client;
+	@Shadow private Minecraft minecraft;
 
-	@Inject(method = "renderHand", require = 1, at = @At("RETURN"))
+	@Inject(method = "renderItemInHand", require = 1, at = @At("RETURN"))
 	private void afterRenderHand(CallbackInfo ci) {
 		ScreenRenderState.setRenderingHand(false);
 		PipelineManager.afterRenderHand();
@@ -57,11 +59,11 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Inject(method = "getFov", require = 1, at = @At("RETURN"))
 	private void onGetFov(Camera camera, float tickDelta, boolean changingFov, CallbackInfoReturnable<Double> ci) {
-		((CanvasWorldRenderer) client.levelRenderer).updateProjection(camera, tickDelta, ci.getReturnValueD());
+		((CanvasWorldRenderer) minecraft.levelRenderer).updateProjection(camera, tickDelta, ci.getReturnValueD());
 	}
 
-	@Inject(method = "renderWorld", require = 1, at = @At("HEAD"))
-	private void onRenderWorld(CallbackInfo ci) {
+	@Inject(method = "renderLevel", require = 1, at = @At("HEAD"))
+	private void onRenderLevel(CallbackInfo ci) {
 		Timekeeper.instance.startFrame(Timekeeper.ProfilerGroup.GameRendererSetup, "GameRenderer_setup");
 	}
 
@@ -87,7 +89,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Override
 	public void canvas_bobViewWhenHurt(PoseStack matrixStack, float f) {
-		bobViewWhenHurt(matrixStack, f);
+		bobHurt(matrixStack, f);
 	}
 
 	@Override
@@ -97,7 +99,7 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 
 	@Override
 	public int canvas_ticks() {
-		return ticks;
+		return tick;
 	}
 
 	//	@Redirect(method = "renderWorld", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clear(IZ)V"))

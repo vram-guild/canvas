@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
+
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -35,8 +36,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.impl.client.rendering.WorldRenderContextImpl;
+
 import net.minecraft.Util;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CloudStatus;
@@ -67,6 +67,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.fabricmc.fabric.impl.client.rendering.WorldRenderContextImpl;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
@@ -83,8 +87,8 @@ import grondag.canvas.config.FlawlessFramesController;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.mixinterface.BufferBuilderStorageExt;
-import grondag.canvas.mixinterface.WorldRendererExt;
+import grondag.canvas.mixinterface.RenderBuffersExt;
+import grondag.canvas.mixinterface.LevelRendererExt;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
@@ -122,7 +126,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
 	private final PoseStack identityStack = new PoseStack();
 
-	private final WorldRendererExt vanillaWorldRenderer;
+	private final LevelRendererExt vanillaWorldRenderer;
 
 	public CanvasWorldRenderer(Minecraft client, RenderBuffers bufferBuilders) {
 		super(client, bufferBuilders);
@@ -131,7 +135,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
 		}
 
-		vanillaWorldRenderer = (WorldRendererExt) this;
+		vanillaWorldRenderer = (LevelRendererExt) this;
 		instance = this;
 		worldRenderState.computeDistances();
 	}
@@ -149,7 +153,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		worldRenderState.setWorld(clientWorld);
 
 		// we don't want to use our collector unless we are in a world
-		((BufferBuilderStorageExt) vanillaWorldRenderer.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
+		((RenderBuffersExt) vanillaWorldRenderer.canvas_bufferBuilders()).canvas_setEntityConsumers(clientWorld == null ? null : worldRenderImmediate);
 		// Mixins mostly disable what this does
 		super.setLevel(clientWorld);
 	}
@@ -230,7 +234,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 	}
 
 	public void renderWorld(PoseStack viewMatrixStack, float tickDelta, long frameStartNanos, boolean blockOutlines, Camera camera, GameRenderer gameRenderer, LightTexture lightmapTextureManager, Matrix4f projectionMatrix) {
-		final WorldRendererExt wr = vanillaWorldRenderer;
+		final LevelRendererExt wr = vanillaWorldRenderer;
 		final Minecraft mc = Minecraft.getInstance();
 		final LevelRenderer mcwr = mc.levelRenderer;
 		final RenderTarget mcfb = mc.getMainRenderTarget();

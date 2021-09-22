@@ -16,18 +16,19 @@
 
 package grondag.canvas.mixin;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import com.mojang.blaze3d.platform.NativeImage;
+
 import grondag.canvas.mixinterface.NativeImageExt;
 import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(NativeImage.class)
 public class MixinNativeImage implements NativeImageExt {
-	@Shadow private long pointer;
+	@Shadow private long pixels;
 
 	private CombinedSpriteAnimation combinedAnimation = null;
 
@@ -38,10 +39,10 @@ public class MixinNativeImage implements NativeImageExt {
 
 	@Override
 	public long canvas_pointer() {
-		return pointer;
+		return pixels;
 	}
 
-	@Inject(at = @At("HEAD"), method = "uploadInternal", cancellable = true)
+	@Inject(at = @At("HEAD"), method = "_upload", cancellable = true)
 	private void onUploadInternal(final int level, int toX, int toY, int fromX, int fromY, int width, int height, boolean bl, boolean bl2, boolean bl3, boolean bl4, CallbackInfo ci) {
 		if (combinedAnimation != null) {
 			combinedAnimation.uploadSubImage((NativeImage) (Object) this, level, toX, toY, fromX, fromY, width, height);

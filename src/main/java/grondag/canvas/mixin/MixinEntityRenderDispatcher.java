@@ -26,11 +26,10 @@ import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 
 @Mixin(EntityRenderDispatcher.class)
 public abstract class MixinEntityRenderDispatcher implements EntityRenderDispatcherExt {
-	@Shadow
-	private static RenderType SHADOW_LAYER;
+	@Shadow private static RenderType SHADOW_RENDER_TYPE;
 
 	@Override
 	public RenderType canvas_shadowLayer() {
-		return SHADOW_LAYER;
+		return SHADOW_RENDER_TYPE;
 	}
 }

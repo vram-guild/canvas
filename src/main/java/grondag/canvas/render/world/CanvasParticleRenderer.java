@@ -42,7 +42,7 @@ import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.ParticleExt;
-import grondag.canvas.mixinterface.ParticleManagerExt;
+import grondag.canvas.mixinterface.ParticleEngineExt;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.varia.GFX;
 
@@ -50,7 +50,7 @@ public class CanvasParticleRenderer {
 	private Tesselator tessellator;
 	private BufferBuilder bufferBuilder;
 	private LightTexture lightmapTextureManager;
-	private ParticleManagerExt ext;
+	private ParticleEngineExt ext;
 	private Runnable drawHandler = Runnables.doNothing();
 	private RenderMaterialImpl baseMat;
 	private RenderMaterialImpl emissiveMat;
@@ -70,7 +70,7 @@ public class CanvasParticleRenderer {
 		this.lightmapTextureManager = lightmapTextureManager;
 		tessellator = Tesselator.getInstance();
 		bufferBuilder = tessellator.getBuilder();
-		ext = (ParticleManagerExt) pm;
+		ext = (ParticleEngineExt) pm;
 		final Iterator<ParticleRenderType> sheets = ext.canvas_textureSheets().iterator();
 
 		while (sheets.hasNext()) {

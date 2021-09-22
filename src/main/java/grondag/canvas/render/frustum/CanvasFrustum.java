@@ -115,18 +115,18 @@ public abstract class CanvasFrustum extends Frustum {
 
 	protected final void extractPlanes() {
 		final Matrix4fExt matrix = mvpMatrixExt;
-		final float a00 = matrix.a00();
-		final float a01 = matrix.a01();
-		final float a02 = matrix.a02();
-		final float a03 = matrix.a03();
-		final float a10 = matrix.a10();
-		final float a11 = matrix.a11();
-		final float a12 = matrix.a12();
-		final float a13 = matrix.a13();
-		final float a30 = matrix.a30();
-		final float a31 = matrix.a31();
-		final float a32 = matrix.a32();
-		final float a33 = matrix.a33();
+		final float a00 = matrix.m00();
+		final float a01 = matrix.m01();
+		final float a02 = matrix.m02();
+		final float a03 = matrix.m03();
+		final float a10 = matrix.m10();
+		final float a11 = matrix.m11();
+		final float a12 = matrix.m12();
+		final float a13 = matrix.m13();
+		final float a30 = matrix.m30();
+		final float a31 = matrix.m31();
+		final float a32 = matrix.m32();
+		final float a33 = matrix.m33();
 
 		float x = a30 + a00;
 		float y = a31 + a01;
@@ -212,10 +212,10 @@ public abstract class CanvasFrustum extends Frustum {
 		bottomZe = ze;
 		bottomRegionExtent = w - 8 * (xe + ye + ze) - MIN_GAP;
 
-		x = a30 + matrix.a20();
-		y = a31 + matrix.a21();
-		z = a32 + matrix.a22();
-		w = a33 + matrix.a23();
+		x = a30 + matrix.m20();
+		y = a31 + matrix.m21();
+		z = a32 + matrix.m22();
+		w = a33 + matrix.m23();
 		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;

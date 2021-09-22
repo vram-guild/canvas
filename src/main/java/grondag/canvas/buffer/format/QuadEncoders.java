@@ -98,9 +98,9 @@ public class QuadEncoders {
 			final float y = Float.intBitsToFloat(source[fromIndex + VERTEX_Y]);
 			final float z = Float.intBitsToFloat(source[fromIndex + VERTEX_Z]);
 
-			final float xOut = matrix.a00() * x + matrix.a01() * y + matrix.a02() * z + matrix.a03();
-			final float yOut = matrix.a10() * x + matrix.a11() * y + matrix.a12() * z + matrix.a13();
-			final float zOut = matrix.a20() * x + matrix.a21() * y + matrix.a22() * z + matrix.a23();
+			final float xOut = matrix.m00() * x + matrix.m01() * y + matrix.m02() * z + matrix.m03();
+			final float yOut = matrix.m10() * x + matrix.m11() * y + matrix.m12() * z + matrix.m13();
+			final float zOut = matrix.m20() * x + matrix.m21() * y + matrix.m22() * z + matrix.m23();
 
 			target[toIndex] = Float.floatToRawIntBits(xOut);
 			target[toIndex + 1] = Float.floatToRawIntBits(yOut);

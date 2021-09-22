@@ -455,9 +455,9 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	public FrexVertexConsumer vertex(Matrix4f matrix, float x, float y, float z) {
 		final Matrix4fExt mat = (Matrix4fExt) (Object) matrix;
 
-		final float tx = mat.a00() * x + mat.a01() * y + mat.a02() * z + mat.a03();
-		final float ty = mat.a10() * x + mat.a11() * y + mat.a12() * z + mat.a13();
-		final float tz = mat.a20() * x + mat.a21() * y + mat.a22() * z + mat.a23();
+		final float tx = mat.m00() * x + mat.m01() * y + mat.m02() * z + mat.m03();
+		final float ty = mat.m10() * x + mat.m11() * y + mat.m12() * z + mat.m13();
+		final float tz = mat.m20() * x + mat.m21() * y + mat.m22() * z + mat.m23();
 
 		return this.vertex(tx, ty, tz);
 	}
@@ -466,9 +466,9 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	public FrexVertexConsumer normal(Matrix3f matrix, float x, float y, float z) {
 		final Matrix3fExt mat = (Matrix3fExt) (Object) matrix;
 
-		final float tx = mat.a00() * x + mat.a01() * y + mat.a02() * z;
-		final float ty = mat.a10() * x + mat.a11() * y + mat.a12() * z;
-		final float tz = mat.a20() * x + mat.a21() * y + mat.a22() * z;
+		final float tx = mat.m00() * x + mat.m01() * y + mat.m02() * z;
+		final float ty = mat.m10() * x + mat.m11() * y + mat.m12() * z;
+		final float tz = mat.m20() * x + mat.m21() * y + mat.m22() * z;
 
 		return this.normal(tx, ty, tz);
 	}

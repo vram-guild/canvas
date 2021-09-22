@@ -38,7 +38,7 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.mixinterface.MultiPhaseExt;
+import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 
 public class CanvasImmediate extends BufferSource implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList(false);
@@ -51,7 +51,7 @@ public class CanvasImmediate extends BufferSource implements FrexVertexConsumerP
 
 	@Override
 	public VertexConsumer getBuffer(RenderType renderLayer) {
-		RenderMaterialImpl mat = ((MultiPhaseExt) renderLayer).canvas_materialState();
+		RenderMaterialImpl mat = ((CompositeRenderTypeExt) renderLayer).canvas_materialState();
 
 		if (mat == RenderMaterialImpl.MISSING) {
 			return super.getBuffer(renderLayer);
@@ -102,7 +102,7 @@ public class CanvasImmediate extends BufferSource implements FrexVertexConsumerP
 		if (RenderLayerHelper.isExcluded(layer)) {
 			super.endBatch(layer);
 		} else {
-			final ArrayVertexCollector collector = collectors.getIfExists(((MultiPhaseExt) layer).canvas_materialState());
+			final ArrayVertexCollector collector = collectors.getIfExists(((CompositeRenderTypeExt) layer).canvas_materialState());
 
 			if (collector != null && !collector.isEmpty()) {
 				collector.draw(true);

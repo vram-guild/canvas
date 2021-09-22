@@ -17,18 +17,21 @@
 package grondag.canvas.mixin;
 
 import java.util.concurrent.Executor;
-import net.minecraft.Util;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import net.minecraft.Util;
+
 import grondag.canvas.config.Configurator;
 import grondag.canvas.terrain.util.TerrainExecutor;
 
 @Mixin(Util.class)
 public class MixinUtil {
-	@Inject(at = @At("HEAD"), method = "getMainWorkerExecutor", cancellable = true)
-	private static void onGetMainWorkerExecutor(CallbackInfoReturnable<Executor> ci) {
+	@Inject(at = @At("HEAD"), method = "backgroundExecutor", cancellable = true)
+	private static void onGetBackgroundExecutor(CallbackInfoReturnable<Executor> ci) {
 		if (Configurator.useCombinedThreadPool) {
 			ci.setReturnValue(TerrainExecutor.INSTANCE);
 		}

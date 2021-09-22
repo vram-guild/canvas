@@ -19,7 +19,7 @@ package grondag.canvas.mixin;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
-import net.minecraft.util.Mth;
+
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
@@ -28,6 +28,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import net.minecraft.util.Mth;
+
 import grondag.canvas.mixinterface.BufferBuilderExt;
 
 /**
@@ -39,15 +42,15 @@ import grondag.canvas.mixinterface.BufferBuilderExt;
 public class MixinBufferBuilder implements BufferBuilderExt {
 	@Shadow private VertexFormat format;
 	@Shadow private ByteBuffer buffer;
-	@Shadow private int vertexCount;
-	@Shadow private int currentElementId;
+	@Shadow private int vertices;
+	@Shadow private int elementIndex;
 	@Shadow private boolean building;
-	@Shadow private int elementOffset;
-	@Shadow private List<BufferBuilder.DrawState> parameters;
-	@Shadow private int lastParameterIndex;
-	@Shadow private int nextDrawStart;
+	@Shadow private int nextElementByte;
+	@Shadow private List<BufferBuilder.DrawState> drawStates;
+	@Shadow private int lastPoppedStateIndex;
+	@Shadow private int totalUploadedBytes;
 
-	@Shadow private void grow(int i) { }
+	@Shadow private void ensureCapacity(int i) { }
 
 	private ByteBuffer lastByteBuffer;
 	private IntBuffer intBuffer;
@@ -55,7 +58,7 @@ public class MixinBufferBuilder implements BufferBuilderExt {
 
 	@Override
 	public boolean canvas_canSupportDirect(VertexFormat expectedFormat) {
-		return building && format == expectedFormat && currentElementId == 0;
+		return building && format == expectedFormat && elementIndex == 0;
 	}
 
 	private IntBuffer getIntBuffer() {
@@ -68,11 +71,11 @@ public class MixinBufferBuilder implements BufferBuilderExt {
 
 	@Override
 	public void canvas_putQuadDirect(int[] data) {
-		assert currentElementId == 0;
-		grow(format.getVertexSize() * 4);
-		vertexCount += 4;
-		getIntBuffer().put(elementOffset / 4, data);
-		elementOffset += data.length * 4;
+		assert elementIndex == 0;
+		ensureCapacity(format.getVertexSize() * 4);
+		vertices += 4;
+		getIntBuffer().put(nextElementByte / 4, data);
+		nextElementByte += data.length * 4;
 	}
 
 	@Override
@@ -80,20 +83,20 @@ public class MixinBufferBuilder implements BufferBuilderExt {
 		repeatableDraw = enable;
 	}
 
-	@Inject(method = "popData", require = 1, cancellable = true, at = @At("HEAD"))
-	private void onPopData(CallbackInfoReturnable<Pair<BufferBuilder.DrawState, ByteBuffer>> ci) {
+	@Inject(method = "popNextBuffer", require = 1, cancellable = true, at = @At("HEAD"))
+	private void onPopNextBuffer(CallbackInfoReturnable<Pair<BufferBuilder.DrawState, ByteBuffer>> ci) {
 		if (repeatableDraw) {
-			BufferBuilder.DrawState drawArrayParameters = parameters.get(lastParameterIndex++);
-			buffer.position(nextDrawStart);
-			nextDrawStart += Mth.roundToward(drawArrayParameters.bufferSize(), 4);
-			buffer.limit(nextDrawStart);
+			final BufferBuilder.DrawState drawArrayParameters = drawStates.get(lastPoppedStateIndex++);
+			buffer.position(totalUploadedBytes);
+			totalUploadedBytes += Mth.roundToward(drawArrayParameters.bufferSize(), 4);
+			buffer.limit(totalUploadedBytes);
 
-			if (lastParameterIndex == parameters.size() && vertexCount == 0) {
-				nextDrawStart = 0;
-				lastParameterIndex = 0;
+			if (lastPoppedStateIndex == drawStates.size() && vertices == 0) {
+				totalUploadedBytes = 0;
+				lastPoppedStateIndex = 0;
 			}
 
-			ByteBuffer byteBuffer = buffer.slice();
+			final ByteBuffer byteBuffer = buffer.slice();
 			buffer.clear();
 			ci.setReturnValue(Pair.of(drawArrayParameters, byteBuffer));
 		}

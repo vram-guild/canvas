@@ -21,18 +21,21 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
+
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlas.Preparations;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.SpriteAtlasTextureDataExt;
-import grondag.canvas.mixinterface.SpriteAtlasTextureExt;
+import grondag.canvas.mixinterface.TextureAtlasPreparationExt;
 import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.mixinterface.TextureAtlasExt;
 
 @Environment(EnvType.CLIENT)
 public class SpriteIndex {
@@ -66,11 +69,11 @@ public class SpriteIndex {
 		}
 
 		atlas = atlasIn;
-		canvas_frameAnimationConsumer = ((SpriteAtlasTextureExt) atlasIn).canvas_frameAnimationConsumer();
+		canvas_frameAnimationConsumer = ((TextureAtlasExt) atlasIn).canvas_frameAnimationConsumer();
 
 		spriteIndex = spriteIndexIn;
-		atlasWidth = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasWidth();
-		atlasHeight = ((SpriteAtlasTextureDataExt) dataIn).canvas_atlasHeight();
+		atlasWidth = ((TextureAtlasPreparationExt) dataIn).canvas_atlasWidth();
+		atlasHeight = ((TextureAtlasPreparationExt) dataIn).canvas_atlasHeight();
 
 		spriteAnimationIndex.clear();
 

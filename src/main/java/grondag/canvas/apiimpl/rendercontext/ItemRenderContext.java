@@ -20,15 +20,16 @@ import static grondag.canvas.buffer.format.EncoderUtils.applyItemLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import io.vram.frex.api.model.ItemModel;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -46,19 +47,20 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.AbstractBannerBlock;
 import net.minecraft.world.level.block.state.BlockState;
+
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
-import grondag.canvas.mixin.AccessMultiPhaseParameters;
-import grondag.canvas.mixin.AccessTexture;
+import grondag.canvas.mixin.AccessCompositeState;
+import grondag.canvas.mixin.AccessTextureStateShard;
 import grondag.canvas.mixinterface.ItemRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.canvas.mixinterface.MultiPhaseExt;
-import grondag.canvas.mixinterface.ShaderExt;
+import grondag.canvas.mixinterface.CompositeRenderTypeExt;
+import grondag.canvas.mixinterface.ShaderStateShardExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 public class ItemRenderContext extends AbstractRenderContext {
@@ -301,12 +303,12 @@ public class ItemRenderContext extends AbstractRenderContext {
 	}
 
 	static int inferDefaultItemPreset(RenderType layer) {
-		final AccessMultiPhaseParameters params = ((MultiPhaseExt) layer).canvas_phases();
+		final AccessCompositeState params = ((CompositeRenderTypeExt) layer).canvas_phases();
 
-		if (params.getTransparency() == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {
+		if (params.getTransparencyState() == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {
 			return MaterialConstants.PRESET_TRANSLUCENT;
-		} else if (((ShaderExt) params.getShader()).canvas_shaderData().cutout != MaterialConstants.CUTOUT_NONE) {
-			final AccessTexture tex = (AccessTexture) params.getTexture();
+		} else if (((ShaderStateShardExt) params.getShaderState()).canvas_shaderData().cutout != MaterialConstants.CUTOUT_NONE) {
+			final AccessTextureStateShard tex = (AccessTextureStateShard) params.getTextureState();
 			return tex.getMipmap() ? MaterialConstants.PRESET_CUTOUT_MIPPED : MaterialConstants.PRESET_CUTOUT;
 		} else {
 			return MaterialConstants.PRESET_SOLID;

@@ -20,12 +20,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import grondag.canvas.varia.CanvasButtonWidget;
+
 import net.minecraft.client.CycleOption;
 import net.minecraft.client.Option;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.network.chat.TranslatableComponent;
+
+import grondag.canvas.varia.CanvasButtonWidget;
 
 @Mixin(CycleOption.class)
 public abstract class MixinCyclingOption {

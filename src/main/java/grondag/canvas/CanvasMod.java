@@ -22,22 +22,25 @@ import io.vram.frex.api.model.FluidModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
+
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
+
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.RenderLayerExt;
+import grondag.canvas.mixinterface.RenderTypeExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.texture.ResourceCacheManager;
 
@@ -73,11 +76,11 @@ public class CanvasMod implements ClientModInitializer {
 			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
 		}
 
-		((RenderLayerExt) RenderType.translucent()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
-		((RenderLayerExt) RenderType.tripwire()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
-		((RenderLayerExt) RenderType.solid()).canvas_preset(MaterialConstants.PRESET_SOLID);
-		((RenderLayerExt) RenderType.cutout()).canvas_preset(MaterialConstants.PRESET_CUTOUT);
-		((RenderLayerExt) RenderType.cutoutMipped()).canvas_preset(MaterialConstants.PRESET_CUTOUT_MIPPED);
+		((RenderTypeExt) RenderType.translucent()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
+		((RenderTypeExt) RenderType.tripwire()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
+		((RenderTypeExt) RenderType.solid()).canvas_preset(MaterialConstants.PRESET_SOLID);
+		((RenderTypeExt) RenderType.cutout()).canvas_preset(MaterialConstants.PRESET_CUTOUT);
+		((RenderTypeExt) RenderType.cutoutMipped()).canvas_preset(MaterialConstants.PRESET_CUTOUT_MIPPED);
 
 		platformSpecificInit();
 
