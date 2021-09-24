@@ -19,13 +19,14 @@ package grondag.canvas.mixin;
 import java.util.Optional;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
+import io.vram.frex.mixin.core.AccessCompositeState;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.client.renderer.RenderType;
 
-import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.material.state.RenderTypeHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 
@@ -66,7 +67,7 @@ abstract class MixinCompositeRenderType extends RenderType implements CompositeR
 		RenderMaterialImpl result = materialState;
 
 		if (result == null) {
-			result = RenderLayerHelper.copyFromLayer(this);
+			result = (RenderMaterialImpl) RenderTypeHelper.copyFromRenderType(this);
 			materialState = result;
 		}
 

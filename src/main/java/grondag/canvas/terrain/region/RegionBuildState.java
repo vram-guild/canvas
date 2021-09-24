@@ -29,7 +29,7 @@ import net.fabricmc.api.Environment;
 
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
@@ -54,7 +54,7 @@ public class RegionBuildState {
 	 * Should be called after vertex collection is complete.
 	 */
 	public void prepareTranslucentIfNeeded(Vec3 sortPos, RegionRenderSector sector, VertexCollectorList collectors) {
-		final ArrayVertexCollector buffer = collectors.getIfExists(RenderLayerHelper.TRANSLUCENT_TERRAIN);
+		final ArrayVertexCollector buffer = collectors.getIfExists(TerrainRenderStates.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null && !buffer.isEmpty()) {
 			buffer.sortTerrainQuads(sortPos, sector);

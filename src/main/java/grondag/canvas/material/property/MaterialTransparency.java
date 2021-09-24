@@ -17,8 +17,7 @@
 package grondag.canvas.material.property;
 
 import io.vram.frex.api.material.MaterialConstants;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderStateShard.TransparencyStateShard;
+
 import grondag.canvas.varia.GFX;
 
 public class MaterialTransparency {
@@ -120,22 +119,6 @@ public class MaterialTransparency {
 		if (active != this) {
 			action.run();
 			active = this;
-		}
-	}
-
-	public static int fromPhase(TransparencyStateShard phase) {
-		if (phase == RenderStateShard.ADDITIVE_TRANSPARENCY) {
-			return MaterialConstants.TRANSPARENCY_ADDITIVE;
-		} else if (phase == RenderStateShard.LIGHTNING_TRANSPARENCY) {
-			return MaterialConstants.TRANSPARENCY_LIGHTNING;
-		} else if (phase == RenderStateShard.GLINT_TRANSPARENCY) {
-			return MaterialConstants.TRANSPARENCY_GLINT;
-		} else if (phase == RenderStateShard.CRUMBLING_TRANSPARENCY) {
-			return MaterialConstants.TRANSPARENCY_CRUMBLING;
-		} else if (phase == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {
-			return MaterialConstants.TRANSPARENCY_TRANSLUCENT;
-		} else {
-			return MaterialConstants.TRANSPARENCY_NONE;
 		}
 	}
 

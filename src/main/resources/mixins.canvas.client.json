@@ -4,8 +4,6 @@
   "package": "grondag.canvas.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-	"AccessCompositeState",
-	"AccessTextureStateShard",
 	"MixinAnimatedTexture",
 	"MixinAnimationMetadataSection",
 	"MixinBakedGlyph",

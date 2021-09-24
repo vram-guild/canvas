@@ -205,8 +205,6 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return copyFrom((V) material);
 	}
 
-	protected abstract V missing();
-
 	public V find() {
 		return findInner();
 	}

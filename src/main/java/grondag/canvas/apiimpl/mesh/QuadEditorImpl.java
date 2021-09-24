@@ -46,7 +46,6 @@ import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 
-import grondag.canvas.apiimpl.StandardMaterials;
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -65,7 +64,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	// vanilla light outputs
 	// PERF use integer byte values for these instead of floats
 	public final float[] ao = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
-	protected RenderMaterialImpl defaultMaterial = StandardMaterials.MATERIAL_STANDARD;
+	protected RenderMaterialImpl defaultMaterial = RenderMaterialImpl.STANDARD_MATERIAL;
 
 	private int vertexIndex = 0;
 

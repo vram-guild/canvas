@@ -30,11 +30,6 @@ public class RenderStateFinder extends AbstractStateFinder<RenderStateFinder, Re
 		return result;
 	}
 
-	@Override
-	protected RenderState missing() {
-		return RenderState.MISSING;
-	}
-
 	private static ThreadLocal<RenderStateFinder> FINDER = ThreadLocal.withInitial(RenderStateFinder::new);
 
 	public static RenderStateFinder threadLocal() {

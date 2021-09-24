@@ -36,8 +36,8 @@ import net.minecraft.client.resources.model.ModelBakery;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
-import grondag.canvas.material.state.RenderLayerHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.RenderTypeHelper;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 
 public class CanvasImmediate extends BufferSource implements FrexVertexConsumerProvider {
@@ -53,13 +53,13 @@ public class CanvasImmediate extends BufferSource implements FrexVertexConsumerP
 	public VertexConsumer getBuffer(RenderType renderLayer) {
 		RenderMaterialImpl mat = ((CompositeRenderTypeExt) renderLayer).canvas_materialState();
 
-		if (mat == RenderMaterialImpl.MISSING) {
+		if (mat == RenderMaterialImpl.MISSING_MATERIAL) {
 			return super.getBuffer(renderLayer);
 		}
 
 		mat = contextState.mapMaterial(mat);
 
-		if (mat == RenderMaterialImpl.MISSING) {
+		if (mat == RenderMaterialImpl.MISSING_MATERIAL) {
 			return super.getBuffer(renderLayer);
 		} else {
 			return collectors.consumer.prepare(mat);
@@ -98,11 +98,11 @@ public class CanvasImmediate extends BufferSource implements FrexVertexConsumerP
 	}
 
 	@Override
-	public void endBatch(RenderType layer) {
-		if (RenderLayerHelper.isExcluded(layer)) {
-			super.endBatch(layer);
+	public void endBatch(RenderType renderType) {
+		if (RenderTypeHelper.isExcluded(renderType)) {
+			super.endBatch(renderType);
 		} else {
-			final ArrayVertexCollector collector = collectors.getIfExists(((CompositeRenderTypeExt) layer).canvas_materialState());
+			final ArrayVertexCollector collector = collectors.getIfExists((RenderMaterialImpl) RenderTypeHelper.copyFromRenderType(renderType));
 
 			if (collector != null && !collector.isEmpty()) {
 				collector.draw(true);

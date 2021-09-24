@@ -29,6 +29,8 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import io.vram.frex.api.model.ItemModel;
+import io.vram.frex.mixin.core.AccessCompositeState;
+import io.vram.frex.mixin.core.AccessTextureStateShard;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColors;
@@ -54,8 +56,6 @@ import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
-import grondag.canvas.mixin.AccessCompositeState;
-import grondag.canvas.mixin.AccessTextureStateShard;
 import grondag.canvas.mixinterface.ItemRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;

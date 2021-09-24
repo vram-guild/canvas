@@ -50,7 +50,7 @@ import net.fabricmc.api.Environment;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.material.state.RenderLayerHelper;
+import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
@@ -306,7 +306,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 			if (state != null) {
 				final VertexCollectorList collectors = context.collectors;
-				final ArrayVertexCollector collector = collectors.get(RenderLayerHelper.TRANSLUCENT_TERRAIN);
+				final ArrayVertexCollector collector = collectors.get(TerrainRenderStates.TRANSLUCENT_TERRAIN);
 				collector.loadState(state);
 
 				if (collector.sortTerrainQuads(worldRenderState.sectorManager.cameraPos(), renderSector)) {

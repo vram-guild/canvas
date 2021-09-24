@@ -18,14 +18,16 @@ package grondag.canvas.apiimpl.fluid;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
+
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.FluidAppearance;
 import io.vram.frex.api.model.FluidModel;
+import io.vram.frex.api.model.SimpleFluidModel;
 import io.vram.frex.api.renderer.Renderer;
-import grondag.frex.api.fluid.SimpleFluidModel;
+
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 
 public class FluidHandler {
 	// WIP: let material be registered with the appearance

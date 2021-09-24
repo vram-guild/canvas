@@ -17,7 +17,10 @@
 package grondag.canvas.material.state;
 
 import java.util.function.Predicate;
+
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.Sheets;
+
 import grondag.canvas.material.property.MaterialTarget;
 
 /**
@@ -26,9 +29,16 @@ import grondag.canvas.material.property.MaterialTarget;
 public final class TerrainRenderStates {
 	private TerrainRenderStates() { }
 
-	public static final RenderState TRANSLUCENT = RenderLayerHelper.TRANSLUCENT_TERRAIN.renderState;
-	public static final RenderState SOLID = RenderLayerHelper.copyFromLayer(RenderType.solid()).renderState;
-
+	public static final RenderMaterialImpl TRANSLUCENT_TERRAIN = (RenderMaterialImpl) RenderTypeHelper.copyFromRenderType(RenderType.translucent());
+	public static final RenderState TRANSLUCENT = TRANSLUCENT_TERRAIN.renderState;
+	public static final RenderState SOLID = ((RenderMaterialImpl) RenderTypeHelper.copyFromRenderType(RenderType.solid())).renderState;
 	public static final Predicate<RenderState> TRANSLUCENT_PREDICATE = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
 	public static final Predicate<RenderState> SOLID_PREDICATE = m -> !TRANSLUCENT_PREDICATE.test(m);
+
+	static {
+		assert TRANSLUCENT_TERRAIN.primaryTargetTransparency;
+
+		// ensure item entity gets mapped to primary transparency
+		assert ((RenderMaterialImpl) RenderTypeHelper.copyFromRenderType(Sheets.translucentItemSheet())).primaryTargetTransparency;
+	}
 }

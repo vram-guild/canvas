@@ -17,10 +17,11 @@
 package grondag.canvas.material.property;
 
 import java.util.function.Predicate;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderStateShard.OutputStateShard;
+
 import io.vram.frex.api.material.MaterialConstants;
+
+import net.minecraft.client.Minecraft;
+
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
 
@@ -149,25 +150,6 @@ public class MaterialTarget implements Predicate<RenderState> {
 	}
 
 	private static MaterialTarget active = null;
-
-	public static int fromPhase(OutputStateShard phase) {
-		if (phase == RenderStateShard.TRANSLUCENT_TARGET) {
-			return MaterialConstants.TARGET_TRANSLUCENT;
-		} else if (phase == RenderStateShard.OUTLINE_TARGET) {
-			return MaterialConstants.TARGET_OUTLINE;
-		} else if (phase == RenderStateShard.PARTICLES_TARGET) {
-			return MaterialConstants.TARGET_PARTICLES;
-		} else if (phase == RenderStateShard.WEATHER_TARGET) {
-			return MaterialConstants.TARGET_WEATHER;
-		} else if (phase == RenderStateShard.CLOUDS_TARGET) {
-			return MaterialConstants.TARGET_CLOUDS;
-		} else if (phase == RenderStateShard.ITEM_ENTITY_TARGET) {
-			return MaterialConstants.TARGET_ENTITIES;
-		} else {
-			assert phase == RenderStateShard.MAIN_TARGET : "Unsupported render target";
-			return MaterialConstants.TARGET_MAIN;
-		}
-	}
 
 	@Override
 	public boolean test(RenderState mat) {

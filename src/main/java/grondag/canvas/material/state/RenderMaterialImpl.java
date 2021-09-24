@@ -19,6 +19,7 @@ package grondag.canvas.material.state;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Strings;
+import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -26,6 +27,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.texture.MaterialIndexer;
@@ -66,10 +68,17 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	static final RenderMaterialImpl[] VALUES = new RenderMaterialImpl[MAX_MATERIAL_COUNT];
 	static final Long2ObjectOpenHashMap<RenderMaterialImpl> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
 
-	public static final RenderMaterialImpl MISSING = new RenderMaterialImpl(0, "<canvas missing>");
+	public static final RenderMaterialImpl MISSING_MATERIAL;
+	public static final RenderMaterialImpl STANDARD_MATERIAL;
+	// PERF: disable translucent sorting on vanilla layers that don't actually require it - like horse spots
+	// may need to be a lookup table because some will need it.
 
 	static {
-		VALUES[MISSING.index] = MISSING;
+		MISSING_MATERIAL = new RenderMaterialImpl(0, "<canvas missing>");
+		VALUES[MISSING_MATERIAL.index] = MISSING_MATERIAL;
+		STANDARD_MATERIAL = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_DEFAULT).find();
+		Canvas.instance().registerMaterial(RenderMaterial.STANDARD_MATERIAL_KEY, STANDARD_MATERIAL);
+		Canvas.instance().registerMaterial(RenderMaterial.MISSING_MATERIAL_KEY, MISSING_MATERIAL);
 	}
 
 	public static RenderMaterialImpl fromIndex(int index) {

@@ -22,7 +22,6 @@ import java.util.function.Predicate;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.apiimpl.StandardMaterials;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
@@ -55,7 +54,7 @@ public class VertexCollectorList {
 	public class Consumer extends QuadEditorImpl {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
-			material(StandardMaterials.MATERIAL_STANDARD);
+			material(RenderMaterialImpl.STANDARD_MATERIAL);
 		}
 
 		@Override
@@ -96,11 +95,11 @@ public class VertexCollectorList {
 	}
 
 	public final ArrayVertexCollector getIfExists(RenderMaterialImpl materialState) {
-		return materialState == RenderMaterialImpl.MISSING ? null : collectors[materialState.collectorIndex];
+		return materialState == RenderMaterialImpl.MISSING_MATERIAL ? null : collectors[materialState.collectorIndex];
 	}
 
 	public final ArrayVertexCollector get(RenderMaterialImpl materialState) {
-		if (materialState == RenderMaterialImpl.MISSING) {
+		if (materialState == RenderMaterialImpl.MISSING_MATERIAL) {
 			return null;
 		}
 

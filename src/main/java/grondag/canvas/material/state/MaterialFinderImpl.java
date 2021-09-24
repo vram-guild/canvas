@@ -46,11 +46,6 @@ public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, 
 		return result;
 	}
 
-	@Override
-	protected RenderMaterialImpl missing() {
-		return RenderMaterialImpl.MISSING;
-	}
-
 	private static ThreadLocal<MaterialFinderImpl> FINDER = ThreadLocal.withInitial(MaterialFinderImpl::new);
 
 	public static MaterialFinderImpl threadLocal() {
@@ -59,5 +54,5 @@ public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, 
 		return result;
 	}
 
-	public static final String CANVAS_MATERIAL_NAME = "<canvas custom material>";
+	public static final String CANVAS_MATERIAL_NAME = "<unnamed material>";
 }
