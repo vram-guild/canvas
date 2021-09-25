@@ -23,9 +23,10 @@ import com.google.common.base.Predicates;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.material.RenderTypeExclusion;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
+import io.vram.frex.api.rendertype.RenderTypeExclusion;
+import io.vram.frex.api.rendertype.RenderTypeUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -39,7 +40,6 @@ import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
-import grondag.canvas.wip.RenderTypeUtil;
 
 public class CanvasImmediate extends BufferSource implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList(false);

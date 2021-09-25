@@ -18,6 +18,7 @@ package grondag.canvas.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import io.vram.frex.api.rendertype.RenderTypeUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -37,7 +38,6 @@ import net.minecraft.world.item.ItemStack;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.mixinterface.ItemRendererExt;
-import grondag.canvas.wip.RenderTypeUtil;
 
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer implements ItemRendererExt {

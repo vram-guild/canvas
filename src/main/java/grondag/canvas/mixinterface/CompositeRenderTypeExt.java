@@ -16,24 +16,8 @@
 
 package grondag.canvas.mixinterface;
 
-import java.util.Optional;
-
-import io.vram.frex.mixin.core.AccessCompositeState;
-
-import net.minecraft.client.renderer.RenderType;
-
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 public interface CompositeRenderTypeExt extends RenderTypeExt {
-	Optional<RenderType> canvas_affectedOutline();
-
-	boolean canvas_outline();
-
-	void canvas_startDrawing();
-
-	void canvas_endDrawing();
-
-	AccessCompositeState canvas_phases();
-
 	RenderMaterialImpl canvas_materialState();
 }

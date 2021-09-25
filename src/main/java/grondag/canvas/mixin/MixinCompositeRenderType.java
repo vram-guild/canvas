@@ -16,45 +16,22 @@
 
 package grondag.canvas.mixin;
 
-import java.util.Optional;
-
 import com.mojang.blaze3d.vertex.VertexFormat;
-import io.vram.frex.mixin.core.AccessCompositeState;
+import io.vram.frex.api.rendertype.RenderTypeUtil;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.client.renderer.RenderType;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
-import grondag.canvas.wip.RenderTypeUtil;
 
 @Mixin(targets = "net.minecraft.client.renderer.RenderType$CompositeRenderType")
 abstract class MixinCompositeRenderType extends RenderType implements CompositeRenderTypeExt {
-	@Shadow private Optional<RenderType> outline;
-	@Shadow private boolean isOutline;
-	@Shadow private RenderType.CompositeState state;
-
 	private @Nullable RenderMaterialImpl materialState;
 
 	private MixinCompositeRenderType(String name, VertexFormat vertexFormat, VertexFormat.Mode drawMode, int expectedBufferSize, boolean hasCrumbling, boolean translucent, Runnable startAction, Runnable endAction) {
 		super(name, vertexFormat, drawMode, expectedBufferSize, hasCrumbling, translucent, startAction, endAction);
-	}
-
-	@Override
-	public Optional<RenderType> canvas_affectedOutline() {
-		return outline;
-	}
-
-	@Override
-	public boolean canvas_outline() {
-		return isOutline;
-	}
-
-	@Override
-	public AccessCompositeState canvas_phases() {
-		return (AccessCompositeState) (Object) state;
 	}
 
 	@Override
@@ -67,15 +44,5 @@ abstract class MixinCompositeRenderType extends RenderType implements CompositeR
 		}
 
 		return result;
-	}
-
-	@Override
-	public void canvas_startDrawing() {
-		super.setupRenderState();
-	}
-
-	@Override
-	public void canvas_endDrawing() {
-		super.clearRenderState();
 	}
 }

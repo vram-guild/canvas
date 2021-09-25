@@ -19,9 +19,9 @@ package grondag.canvas;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import io.vram.frex.api.config.FrexFeature;
 import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.material.RenderTypeExclusion;
 import io.vram.frex.api.model.FluidModel;
-import io.vram.frex.impl.material.MojangShaderData;
+import io.vram.frex.api.rendertype.RenderTypeExclusion;
+import io.vram.frex.api.rendertype.VanillaShaderData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
@@ -29,6 +29,7 @@ import org.lwjgl.system.Configuration;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderType.CompositeRenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.resources.ResourceLocation;
@@ -46,9 +47,7 @@ import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 import grondag.canvas.mixinterface.RenderTypeExt;
-import grondag.canvas.mixinterface.ShaderStateShardExt;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.texture.ResourceCacheManager;
 
@@ -119,11 +118,11 @@ public class CanvasMod implements ClientModInitializer {
 				return true;
 			}
 
-			final var params = ((CompositeRenderTypeExt) renderType).canvas_phases();
+			final var compositeState = ((CompositeRenderType) renderType).state;
 
 			// Excludes glint, end portal, and other specialized render layers that won't play nice with our current setup
 			// Excludes render layers with custom shaders
-			if (params.getTexturingState() != RenderStateShard.DEFAULT_TEXTURING || ((ShaderStateShardExt) params.getShaderState()).canvas_shaderData() == MojangShaderData.MISSING) {
+			if (compositeState.texturingState != RenderStateShard.DEFAULT_TEXTURING || VanillaShaderData.get(compositeState.shaderState) == VanillaShaderData.MISSING) {
 				return true;
 			}
 

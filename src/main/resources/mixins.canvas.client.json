@@ -40,8 +40,6 @@
 	"MixinRenderBuffers",
 	"MixinRenderTarget",
 	"MixinRenderType",
-	"MixinShaderInstance",
-	"MixinShaderStateShard",
 	"MixinSimpleTexture",
 	"MixinSpriteInterpolation",
 	"MixinStitcher",

@@ -29,8 +29,7 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import io.vram.frex.api.model.ItemModel;
-import io.vram.frex.mixin.core.AccessCompositeState;
-import io.vram.frex.mixin.core.AccessTextureStateShard;
+import io.vram.frex.api.rendertype.VanillaShaderData;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColors;
@@ -39,7 +38,9 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.ItemModelShaper;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderStateShard.TextureStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderType.CompositeRenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.client.resources.model.BakedModel;
@@ -56,11 +57,9 @@ import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
-import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 import grondag.canvas.mixinterface.ItemRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.canvas.mixinterface.ShaderStateShardExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 public class ItemRenderContext extends AbstractRenderContext {
@@ -303,13 +302,13 @@ public class ItemRenderContext extends AbstractRenderContext {
 	}
 
 	static int inferDefaultItemPreset(RenderType layer) {
-		final AccessCompositeState params = ((CompositeRenderTypeExt) layer).canvas_phases();
+		final var compositeState = ((CompositeRenderType) layer).state;
 
-		if (params.getTransparencyState() == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {
+		if (compositeState.transparencyState == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {
 			return MaterialConstants.PRESET_TRANSLUCENT;
-		} else if (((ShaderStateShardExt) params.getShaderState()).canvas_shaderData().cutout != MaterialConstants.CUTOUT_NONE) {
-			final AccessTextureStateShard tex = (AccessTextureStateShard) params.getTextureState();
-			return tex.getMipmap() ? MaterialConstants.PRESET_CUTOUT_MIPPED : MaterialConstants.PRESET_CUTOUT;
+		} else if (VanillaShaderData.get(compositeState.shaderState).cutout() != MaterialConstants.CUTOUT_NONE) {
+			final TextureStateShard tex = (TextureStateShard) compositeState.textureState;
+			return tex.mipmap ? MaterialConstants.PRESET_CUTOUT_MIPPED : MaterialConstants.PRESET_CUTOUT;
 		} else {
 			return MaterialConstants.PRESET_SOLID;
 		}

@@ -18,11 +18,12 @@ package grondag.canvas.material.state;
 
 import java.util.function.Predicate;
 
+import io.vram.frex.api.rendertype.RenderTypeUtil;
+
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
 
 import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.wip.RenderTypeUtil;
 
 /**
  * Here to defer initialization when referencing classes are loaded.
