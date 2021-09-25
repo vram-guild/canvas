@@ -18,7 +18,9 @@ package grondag.canvas.compat;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+
 import net.minecraft.client.renderer.LevelRenderer;
+
 import grondag.canvas.CanvasMod;
 
 class ClassInspector {

@@ -17,6 +17,9 @@
 package grondag.canvas.buffer.format;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import net.minecraft.client.Minecraft;
+
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
@@ -24,7 +27,6 @@ import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import net.minecraft.client.Minecraft;
 
 public abstract class EncoderUtils {
 	public static void bufferQuad(QuadEditorImpl quad, EncodingContext context, VertexConsumer buff) {

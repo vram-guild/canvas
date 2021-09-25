@@ -19,7 +19,6 @@ package grondag.canvas.material.state;
 import io.vram.frex.api.material.MaterialCondition;
 import io.vram.frex.api.material.RenderMaterial;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL21;
 
 import net.minecraft.resources.ResourceLocation;
 
@@ -39,15 +38,15 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T primitive(int primitive) {
-		if (primitive != GL21.GL_QUADS) {
-			throw new IllegalArgumentException("Invalid GL primitive.  Currently only quads are supported.");
-		}
-
-		//assert primitive <= 7;
-		//bits = PRIMITIVE.setValue(primitive, bits);
-		return (T) this;
-	}
+	//public T primitive(int primitive) {
+	//	if (primitive != GL21.GL_QUADS) {
+	//		throw new IllegalArgumentException("Invalid GL primitive.  Currently only quads are supported.");
+	//	}
+	//
+	//	//assert primitive <= 7;
+	//	//bits = PRIMITIVE.setValue(primitive, bits);
+	//	return (T) this;
+	//}
 
 	public T texture(@Nullable ResourceLocation id) {
 		final int val = id == null ? MaterialTextureState.NO_TEXTURE.index : MaterialTextureState.fromId(id).index;
@@ -80,7 +79,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T enableGlint(boolean enableGlint) {
+	public T foilOverlay(boolean enableGlint) {
 		bits = ENABLE_GLINT.setValue(enableGlint, bits);
 		return (T) this;
 	}

@@ -17,9 +17,12 @@
 package grondag.canvas.terrain.occlusion.shadow;
 
 import java.util.Arrays;
-import net.minecraft.core.BlockPos;
-import org.jetbrains.annotations.Nullable;
+
 import com.mojang.math.Vector3f;
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.core.BlockPos;
+
 import grondag.canvas.terrain.occlusion.base.PotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
@@ -257,13 +260,13 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 	@Override
 	public void add(ShadowRegionVisibility state) {
-		BlockPos origin = state.region.origin;
-		int rx = (origin.getX() >> 4) + xBase;
-		int rz = (origin.getZ() >> 4) + zBase;
-		int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
+		final BlockPos origin = state.region.origin;
+		final int rx = (origin.getX() >> 4) + xBase;
+		final int rz = (origin.getZ() >> 4) + zBase;
+		final int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
 
 		//System.out.println(String.format("Adding origin %s with region pos %d  %d  %d  with index %d", region.origin().toShortString(), rx, ry, rz, index(rx, ry, rz)));
-		int i = index(rx, ry, rz);
+		final int i = index(rx, ry, rz);
 		assert states[i] == null;
 		states[i] = state;
 		++regionCount;
@@ -289,7 +292,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 		if (!complete) {
 			while (result == null) {
-				int i = index(x, y, z);
+				final int i = index(x, y, z);
 				result = states[i];
 
 				if (!tertiary.next()) {
@@ -307,10 +310,10 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	}
 
 	public int distanceRank(ShadowRegionVisibility state) {
-		BlockPos origin = state.region.origin;
-		int rx = (origin.getX() >> 4) + xBase;
-		int rz = (origin.getZ() >> 4) + zBase;
-		int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
+		final BlockPos origin = state.region.origin;
+		final int rx = (origin.getX() >> 4) + xBase;
+		final int rz = (origin.getZ() >> 4) + zBase;
+		final int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
 		return distanceRankFunction.distanceRank(xDir.apply(rx), yDir.apply(ry), zDir.apply(rz));
 	}
 

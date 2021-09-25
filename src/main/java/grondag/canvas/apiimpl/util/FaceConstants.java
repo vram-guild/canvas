@@ -17,6 +17,7 @@
 package grondag.canvas.apiimpl.util;
 
 import io.vram.frex.api.model.ModelHelper;
+
 import net.minecraft.core.Direction;
 
 public class FaceConstants {

@@ -17,7 +17,9 @@
 package grondag.canvas.material.state;
 
 import io.vram.frex.api.material.MaterialConstants;
+
 import net.minecraft.client.renderer.texture.TextureAtlas;
+
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;

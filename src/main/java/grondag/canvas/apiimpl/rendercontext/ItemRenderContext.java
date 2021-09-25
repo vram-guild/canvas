@@ -56,10 +56,10 @@ import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
+import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 import grondag.canvas.mixinterface.ItemRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 import grondag.canvas.mixinterface.ShaderStateShardExt;
 import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
@@ -219,7 +219,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 	protected void adjustMaterial() {
 		final MaterialFinderImpl finder = this.finder;
 
-		finder.enableGlint(hasGlint);
+		finder.foilOverlay(hasGlint);
 
 		int preset = finder.preset();
 

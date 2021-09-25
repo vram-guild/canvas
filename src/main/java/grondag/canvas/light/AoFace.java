@@ -25,10 +25,12 @@ import static net.minecraft.core.Direction.SOUTH;
 import static net.minecraft.core.Direction.UP;
 import static net.minecraft.core.Direction.WEST;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 
 /**

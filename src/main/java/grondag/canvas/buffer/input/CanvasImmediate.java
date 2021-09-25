@@ -23,6 +23,7 @@ import com.google.common.base.Predicates;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.material.RenderTypeExclusion;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
@@ -37,8 +38,8 @@ import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.material.state.RenderTypeHelper;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
+import grondag.canvas.wip.RenderTypeUtil;
 
 public class CanvasImmediate extends BufferSource implements FrexVertexConsumerProvider {
 	public final VertexCollectorList collectors = new VertexCollectorList(false);
@@ -99,10 +100,10 @@ public class CanvasImmediate extends BufferSource implements FrexVertexConsumerP
 
 	@Override
 	public void endBatch(RenderType renderType) {
-		if (RenderTypeHelper.isExcluded(renderType)) {
+		if (RenderTypeExclusion.isExcluded(renderType)) {
 			super.endBatch(renderType);
 		} else {
-			final ArrayVertexCollector collector = collectors.getIfExists((RenderMaterialImpl) RenderTypeHelper.copyFromRenderType(renderType));
+			final ArrayVertexCollector collector = collectors.getIfExists((RenderMaterialImpl) RenderTypeUtil.toMaterial(renderType));
 
 			if (collector != null && !collector.isEmpty()) {
 				collector.draw(true);

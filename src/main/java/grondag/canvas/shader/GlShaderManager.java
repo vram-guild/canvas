@@ -17,7 +17,9 @@
 package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
 import net.minecraft.resources.ResourceLocation;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.varia.GFX;

@@ -18,12 +18,14 @@ package grondag.canvas.material.state;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
+
 import io.vram.frex.api.material.BlockEntityMaterialMap;
 import io.vram.frex.api.material.EntityMaterialMap;
 import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class RenderContextState {
 	private EntityMaterialMap entityMap = null;

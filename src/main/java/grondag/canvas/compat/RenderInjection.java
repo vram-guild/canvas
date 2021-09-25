@@ -22,9 +22,12 @@ import java.lang.reflect.Method;
 
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.transformer.meta.MixinMerged;
+
+import net.minecraft.client.renderer.LevelRenderer;
+
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.renderer.LevelRenderer;
+
 import grondag.canvas.CanvasMod;
 
 interface RenderInjection {

@@ -17,7 +17,9 @@
 package grondag.canvas.shader;
 
 import java.util.Locale;
+
 import net.minecraft.resources.ResourceLocation;
+
 import grondag.canvas.shader.data.ShaderStrings;
 
 public enum ProgramType {

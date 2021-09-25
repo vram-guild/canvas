@@ -17,6 +17,7 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import com.mojang.math.Matrix4f;
+
 import grondag.canvas.buffer.format.EncodingContext;
 import grondag.canvas.mixinterface.Matrix3fExt;
 

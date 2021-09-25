@@ -16,9 +16,10 @@
 
 package grondag.canvas.varia;
 
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+
+import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 public class BlockPosHelper {
 	private static final OffsetFunc[] FACE_OFFSETS = new OffsetFunc[6];

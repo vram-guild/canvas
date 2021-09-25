@@ -19,11 +19,14 @@ package grondag.canvas.terrain.occlusion.base;
 import static grondag.bitraster.Constants.PIXEL_HEIGHT;
 import static grondag.bitraster.Constants.PIXEL_WIDTH;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import java.io.File;
+
+import com.mojang.blaze3d.platform.NativeImage;
+
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+
 import grondag.bitraster.AbstractRasterizer;
 import grondag.bitraster.BoxOccluder;
 import grondag.canvas.CanvasMod;

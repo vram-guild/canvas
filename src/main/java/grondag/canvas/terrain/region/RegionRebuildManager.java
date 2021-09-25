@@ -18,10 +18,13 @@ package grondag.canvas.terrain.region;
 
 import java.util.Iterator;
 import java.util.Set;
-import net.minecraft.Util;
+
 import com.google.common.collect.Sets;
 import io.vram.frex.api.config.FlawlessFrames;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
+import net.minecraft.Util;
+
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
 /**

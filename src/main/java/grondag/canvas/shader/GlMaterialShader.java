@@ -18,10 +18,12 @@ package grondag.canvas.shader;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.opengl.GL21;
-import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.shader.data.ShaderStrings;
+
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
+
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.shader.data.ShaderStrings;
 
 // PERF: emit switch statements on non-Mac
 public class GlMaterialShader extends GlShader {

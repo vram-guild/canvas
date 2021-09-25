@@ -16,8 +16,9 @@
 
 package grondag.canvas.terrain.occlusion.shadow;
 
-import grondag.fermion.varia.Useful;
 import net.minecraft.core.Vec3i;
+
+import grondag.fermion.varia.Useful;
 
 public class RegionBoundingSphere {
 	/** Max visible range, in chunks. (Not block pos.) */
@@ -36,17 +37,17 @@ public class RegionBoundingSphere {
 
 			for (int i = 0; i < indexLimit; ++i) {
 				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
-				int x = offset.getX();
-				int z = offset.getZ();
+				final int x = offset.getX();
+				final int z = offset.getZ();
 
-				int ysq = maxSqDist - x * x - z * z;
+				final int ysq = maxSqDist - x * x - z * z;
 
 				if (ysq <= 0) {
 					// Implies outside render distance.
 					// Negative value lets us filter these out in iteration
 					yDist[i] = -1;
 				} else {
-					int y = (int) Math.floor(Math.sqrt(ysq));
+					final int y = (int) Math.floor(Math.sqrt(ysq));
 
 					assert x * x + y * y + z * z <= maxSqDist;
 					assert x * x + (y + 1) * (y + 1) + z * z > maxSqDist;

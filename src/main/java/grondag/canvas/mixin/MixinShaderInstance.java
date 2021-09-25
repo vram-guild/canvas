@@ -17,6 +17,7 @@
 package grondag.canvas.mixin;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
+import io.vram.frex.impl.material.MojangShaderData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -25,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.server.packs.resources.ResourceProvider;
 
-import grondag.canvas.material.state.MojangShaderData;
 import grondag.canvas.mixinterface.ShaderStateShardExt;
 
 @Mixin(ShaderInstance.class)

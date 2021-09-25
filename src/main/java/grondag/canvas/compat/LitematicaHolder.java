@@ -25,8 +25,11 @@ import java.util.function.Consumer;
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
-import net.fabricmc.loader.api.FabricLoader;
+
 import net.minecraft.client.renderer.culling.Frustum;
+
+import net.fabricmc.loader.api.FabricLoader;
+
 import grondag.canvas.CanvasMod;
 
 class LitematicaHolder {

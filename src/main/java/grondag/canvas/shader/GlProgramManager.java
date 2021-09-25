@@ -16,8 +16,10 @@
 
 package grondag.canvas.shader;
 
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;

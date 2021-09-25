@@ -17,9 +17,11 @@
 package grondag.canvas.config;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
+
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.option.OptionConfig;

@@ -26,8 +26,10 @@ import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexTo
 import static grondag.canvas.varia.CanvasMath.clampNormalized;
 
 import io.vram.frex.api.model.ModelHelper;
+
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;

@@ -25,11 +25,14 @@ import blue.endless.jankson.Jankson;
 import blue.endless.jankson.JsonObject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.fabricmc.loader.api.FabricLoader;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+
+import net.fabricmc.loader.api.FabricLoader;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.pipeline.config.option.OptionConfig;

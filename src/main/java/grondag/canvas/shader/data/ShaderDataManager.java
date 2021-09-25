@@ -129,6 +129,7 @@ import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import io.vram.frex.api.light.HeldItemLightListener;
 import io.vram.frex.api.light.ItemLight;
+
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -145,6 +146,7 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;

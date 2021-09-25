@@ -17,13 +17,15 @@
 package grondag.canvas.pipeline;
 
 import org.lwjgl.opengl.GL46;
-import grondag.canvas.pipeline.config.ImageConfig;
-import grondag.canvas.pipeline.config.util.NamedDependency;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.SimpleTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
+
+import grondag.canvas.pipeline.config.ImageConfig;
+import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class ProgramTextureData {
 	public final int[] texIds;

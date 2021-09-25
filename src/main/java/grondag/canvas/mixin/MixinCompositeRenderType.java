@@ -26,9 +26,9 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.client.renderer.RenderType;
 
-import grondag.canvas.material.state.RenderTypeHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
+import grondag.canvas.wip.RenderTypeUtil;
 
 @Mixin(targets = "net.minecraft.client.renderer.RenderType$CompositeRenderType")
 abstract class MixinCompositeRenderType extends RenderType implements CompositeRenderTypeExt {
@@ -48,11 +48,6 @@ abstract class MixinCompositeRenderType extends RenderType implements CompositeR
 	}
 
 	@Override
-	public String canvas_name() {
-		return name;
-	}
-
-	@Override
 	public boolean canvas_outline() {
 		return isOutline;
 	}
@@ -67,7 +62,7 @@ abstract class MixinCompositeRenderType extends RenderType implements CompositeR
 		RenderMaterialImpl result = materialState;
 
 		if (result == null) {
-			result = (RenderMaterialImpl) RenderTypeHelper.copyFromRenderType(this);
+			result = (RenderMaterialImpl) RenderTypeUtil.toMaterial(this);
 			materialState = result;
 		}
 

@@ -17,9 +17,11 @@
 package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
-import grondag.canvas.pipeline.config.util.JanksonHelper;
+
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
+
+import grondag.canvas.pipeline.config.util.JanksonHelper;
 
 public class PipelineDescription {
 	public final ResourceLocation id;

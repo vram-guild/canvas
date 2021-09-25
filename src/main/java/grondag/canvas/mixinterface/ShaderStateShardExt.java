@@ -16,7 +16,7 @@
 
 package grondag.canvas.mixinterface;
 
-import grondag.canvas.material.state.MojangShaderData;
+import io.vram.frex.impl.material.MojangShaderData;
 
 public interface ShaderStateShardExt {
 	MojangShaderData canvas_shaderData();

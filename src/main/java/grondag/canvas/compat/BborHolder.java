@@ -22,10 +22,13 @@ import java.lang.reflect.Method;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.loader.api.FabricLoader;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.loader.api.FabricLoader;
+
 import grondag.canvas.CanvasMod;
 
 class BborHolder {

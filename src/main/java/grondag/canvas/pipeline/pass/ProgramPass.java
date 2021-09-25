@@ -17,6 +17,7 @@
 package grondag.canvas.pipeline.pass;
 
 import com.mojang.math.Matrix4f;
+
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.ProgramTextureData;
 import grondag.canvas.pipeline.config.PassConfig;

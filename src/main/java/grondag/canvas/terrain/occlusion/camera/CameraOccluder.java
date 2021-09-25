@@ -16,12 +16,13 @@
 
 package grondag.canvas.terrain.occlusion.camera;
 
+import net.minecraft.world.phys.Vec3;
+
 import grondag.bitraster.PerspectiveRasterizer;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
-import net.minecraft.world.phys.Vec3;
 
 public class CameraOccluder extends AbstractOccluder {
 	/**

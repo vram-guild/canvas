@@ -19,8 +19,10 @@ package grondag.canvas.apiimpl.util;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
 
 import io.vram.frex.api.mesh.QuadEditor;
+
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
+
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.SpriteExt;
 

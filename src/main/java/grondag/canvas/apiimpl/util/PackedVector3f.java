@@ -18,6 +18,7 @@ package grondag.canvas.apiimpl.util;
 
 import com.mojang.math.Vector3f;
 import io.vram.frex.api.mesh.QuadView;
+
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 

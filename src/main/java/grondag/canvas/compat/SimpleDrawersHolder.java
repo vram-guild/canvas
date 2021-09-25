@@ -19,11 +19,14 @@ package grondag.canvas.compat;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.loader.api.FabricLoader;
+
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.item.ItemStack;
+
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.loader.api.FabricLoader;
+
 import grondag.canvas.CanvasMod;
 
 class SimpleDrawersHolder {

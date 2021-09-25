@@ -17,13 +17,15 @@
 package grondag.canvas.terrain.util;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import org.apache.commons.lang3.ObjectUtils;
+
 import net.minecraft.util.BitStorage;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.Palette;
-import org.apache.commons.lang3.ObjectUtils;
+
 import grondag.canvas.mixinterface.PalettedContainerExt;
 
 public class ChunkPaletteCopier {

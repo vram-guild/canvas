@@ -17,7 +17,9 @@
 package grondag.canvas.terrain.occlusion.camera;
 
 import io.vram.frex.api.config.FlawlessFrames;
+
 import net.minecraft.world.phys.Vec3;
+
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;

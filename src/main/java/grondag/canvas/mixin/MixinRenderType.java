@@ -31,11 +31,6 @@ public class MixinRenderType implements RenderTypeExt {
 	private int preset = MaterialConstants.PRESET_DEFAULT;
 
 	@Override
-	public boolean canvas_isSorted() {
-		return sortOnUpload;
-	}
-
-	@Override
 	public void canvas_preset(int preset) {
 		this.preset = preset;
 	}

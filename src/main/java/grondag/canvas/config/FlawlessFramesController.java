@@ -18,8 +18,11 @@ package grondag.canvas.config;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import net.minecraft.client.resources.language.I18n;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import net.minecraft.client.resources.language.I18n;
+
 import grondag.canvas.CanvasMod;
 
 public class FlawlessFramesController implements Consumer<Function<String, Consumer<Boolean>>> {

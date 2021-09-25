@@ -66,7 +66,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
@@ -74,6 +74,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
+
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.terrain.util.ChunkPaletteCopier;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;

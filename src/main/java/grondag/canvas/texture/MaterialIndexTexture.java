@@ -16,9 +16,11 @@
 
 package grondag.canvas.texture;
 
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.CanvasTextureState;

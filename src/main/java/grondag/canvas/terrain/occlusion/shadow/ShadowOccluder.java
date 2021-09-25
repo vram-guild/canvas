@@ -26,6 +26,10 @@ import static grondag.bitraster.Constants.WEST;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
+
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+
 import grondag.bitraster.OrthoRasterizer;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.mixinterface.Matrix4fExt;
@@ -33,8 +37,6 @@ import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
-import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 
 public class ShadowOccluder extends AbstractOccluder {
 	private final Matrix4f shadowViewMatrix = new Matrix4f();

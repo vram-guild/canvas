@@ -19,13 +19,15 @@ package grondag.canvas.pipeline.config;
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
 import org.apache.commons.lang3.ObjectUtils;
+
+import net.minecraft.resources.ResourceLocation;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 import grondag.canvas.varia.GFX;
-import net.minecraft.resources.ResourceLocation;
 
 public class SkyShadowConfig extends AbstractConfig {
 	public final NamedDependency<FramebufferConfig> framebuffer;

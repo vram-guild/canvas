@@ -21,12 +21,15 @@ import java.util.function.Function;
 
 import blue.endless.jankson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.ConfigManager;
 

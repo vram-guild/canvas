@@ -25,6 +25,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 
 import net.minecraft.CrashReport;
@@ -41,10 +42,9 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.mixinterface.ParticleEngineExt;
+import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
-import grondag.canvas.varia.GFX;
 
 public class CanvasParticleRenderer {
 	private Tesselator tessellator;
@@ -162,15 +162,14 @@ public class CanvasParticleRenderer {
 	}
 
 	private static MaterialFinderImpl baseFinder() {
-		return MaterialFinderImpl.threadLocal()
-				.primitive(GFX.GL_QUADS)
+		return (MaterialFinderImpl) MaterialFinder.threadLocal()
 				.depthTest(MaterialConstants.DEPTH_TEST_LEQUAL)
 				.cull(false)
 				.writeMask(MaterialConstants.WRITE_MASK_COLOR_DEPTH)
 				.decal(MaterialConstants.DECAL_NONE)
 				.target(MaterialConstants.TARGET_PARTICLES)
 				.lines(false)
-				.enableGlint(false)
+				.foilOverlay(false)
 				.disableAo(true)
 				.disableDiffuse(true)
 				.cutout(MaterialConstants.CUTOUT_TENTH)

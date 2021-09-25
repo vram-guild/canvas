@@ -36,6 +36,4 @@ public interface CompositeRenderTypeExt extends RenderTypeExt {
 	AccessCompositeState canvas_phases();
 
 	RenderMaterialImpl canvas_materialState();
-
-	String canvas_name();
 }

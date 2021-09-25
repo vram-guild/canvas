@@ -16,10 +16,11 @@
 
 package grondag.canvas.render.terrain.drawlist;
 
+import net.minecraft.core.BlockPos;
+
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
-import net.minecraft.core.BlockPos;
 
 public class DrawListCullingHelper {
 	final WorldRenderState worldRenderState;

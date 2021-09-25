@@ -19,13 +19,13 @@ package grondag.canvas.mixin;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import io.vram.frex.impl.material.MojangShaderData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.ShaderInstance;
 
-import grondag.canvas.material.state.MojangShaderData;
 import grondag.canvas.mixinterface.ShaderStateShardExt;
 
 @Mixin(RenderStateShard.ShaderStateShard.class)

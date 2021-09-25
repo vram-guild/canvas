@@ -18,7 +18,9 @@ package grondag.canvas.render.terrain.cluster;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+
 import net.minecraft.core.BlockPos;
+
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation;
 
 public class VertexClusterRealm {
@@ -52,7 +54,7 @@ public class VertexClusterRealm {
 	public void clear() {
 		assert RenderSystem.isOnRenderThread();
 
-		for (VertexCluster cluster : clusters.values()) {
+		for (final VertexCluster cluster : clusters.values()) {
 			cluster.close();
 		}
 
@@ -76,7 +78,7 @@ public class VertexClusterRealm {
 
 	void notifyClosed(VertexCluster cluster) {
 		assert RenderSystem.isOnRenderThread();
-		VertexCluster deadCluster = clusters.remove(cluster.clusterPos);
+		final VertexCluster deadCluster = clusters.remove(cluster.clusterPos);
 		assert deadCluster != null : "Clump gone missing.";
 	}
 
@@ -90,7 +92,7 @@ public class VertexClusterRealm {
 
 		long activeByes = 0;
 
-		for (var cluster : clusters.values()) {
+		for (final var cluster : clusters.values()) {
 			activeByes += cluster.activeBytes();
 		}
 

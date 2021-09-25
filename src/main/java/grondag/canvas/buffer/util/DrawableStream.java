@@ -22,6 +22,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
+
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.render.StreamBuffer;

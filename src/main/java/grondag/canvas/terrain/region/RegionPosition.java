@@ -16,6 +16,9 @@
 
 package grondag.canvas.terrain.region;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+
 import grondag.bitraster.PackedBox;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum.RegionVisibilityTest;
@@ -23,8 +26,6 @@ import grondag.canvas.render.terrain.drawlist.DrawListCullingHelper;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 import grondag.canvas.terrain.occlusion.camera.CameraVisibility;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.Vec3;
 
 public class RegionPosition extends BlockPos {
 	/** Region that holds this position as its origin. Provides access to world render state. */

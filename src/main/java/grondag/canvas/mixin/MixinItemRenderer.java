@@ -36,8 +36,8 @@ import net.minecraft.world.item.ItemStack;
 
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
-import grondag.canvas.material.state.RenderTypeHelper;
 import grondag.canvas.mixinterface.ItemRendererExt;
+import grondag.canvas.wip.RenderTypeUtil;
 
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer implements ItemRendererExt {
@@ -61,35 +61,35 @@ public abstract class MixinItemRenderer implements ItemRendererExt {
 	@Inject(at = @At("HEAD"), method = "getArmorFoilBuffer", cancellable = true)
 	private static void onGetArmorFoilBuffer(MultiBufferSource provider, RenderType layer, boolean solid, boolean glint, CallbackInfoReturnable<VertexConsumer> ci) {
 		if (glint && provider instanceof CanvasImmediate) {
-			ci.setReturnValue(((CanvasImmediate) provider).getConsumer(RenderTypeHelper.copyFromRenderType(layer, true)));
+			ci.setReturnValue(((CanvasImmediate) provider).getConsumer(RenderTypeUtil.toMaterial(layer, true)));
 		}
 	}
 
 	@Inject(at = @At("HEAD"), method = "getCompassFoilBuffer", cancellable = true)
 	private static void onGetCompassFoilBuffer(MultiBufferSource provider, RenderType layer, PoseStack.Pose entry, CallbackInfoReturnable<VertexConsumer> ci) {
 		if (provider instanceof CanvasImmediate) {
-			ci.setReturnValue(((CanvasImmediate) provider).getConsumer(RenderTypeHelper.copyFromRenderType(layer, true)));
+			ci.setReturnValue(((CanvasImmediate) provider).getConsumer(RenderTypeUtil.toMaterial(layer, true)));
 		}
 	}
 
 	@Inject(at = @At("HEAD"), method = "getCompassFoilBufferDirect", cancellable = true)
 	private static void onGetCompassFoilBufferDirect(MultiBufferSource provider, RenderType layer, PoseStack.Pose entry, CallbackInfoReturnable<VertexConsumer> ci) {
 		if (provider instanceof CanvasImmediate) {
-			ci.setReturnValue(((CanvasImmediate) provider).getConsumer(RenderTypeHelper.copyFromRenderType(layer, true)));
+			ci.setReturnValue(((CanvasImmediate) provider).getConsumer(RenderTypeUtil.toMaterial(layer, true)));
 		}
 	}
 
 	@Inject(at = @At("HEAD"), method = "getFoilBuffer", cancellable = true)
 	private static void onGetFoilBuffer(MultiBufferSource vertexConsumers, RenderType layer, boolean solid, boolean glint, CallbackInfoReturnable<VertexConsumer> ci) {
 		if (glint && vertexConsumers instanceof CanvasImmediate) {
-			ci.setReturnValue(((CanvasImmediate) vertexConsumers).getConsumer(RenderTypeHelper.copyFromRenderType(layer, true)));
+			ci.setReturnValue(((CanvasImmediate) vertexConsumers).getConsumer(RenderTypeUtil.toMaterial(layer, true)));
 		}
 	}
 
 	@Inject(at = @At("HEAD"), method = "getFoilBufferDirect", cancellable = true)
 	private static void onGetFoilBufferDirect(MultiBufferSource provider, RenderType layer, boolean solid, boolean glint, CallbackInfoReturnable<VertexConsumer> ci) {
 		if (glint && provider instanceof CanvasImmediate) {
-			ci.setReturnValue(((CanvasImmediate) provider).getConsumer(RenderTypeHelper.copyFromRenderType(layer, true)));
+			ci.setReturnValue(((CanvasImmediate) provider).getConsumer(RenderTypeUtil.toMaterial(layer, true)));
 		}
 	}
 }

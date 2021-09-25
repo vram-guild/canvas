@@ -17,8 +17,6 @@
 package grondag.canvas.mixinterface;
 
 public interface RenderTypeExt {
-	boolean canvas_isSorted();
-
 	void canvas_preset(int preset);
 
 	int canvas_preset();

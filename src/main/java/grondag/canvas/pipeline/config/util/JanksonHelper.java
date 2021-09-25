@@ -21,14 +21,14 @@ import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import org.jetbrains.annotations.Nullable;
-import grondag.canvas.CanvasMod;
+
 import net.minecraft.resources.ResourceLocation;
+
+import grondag.canvas.CanvasMod;
 
 public class JanksonHelper {
 	public static @Nullable String asString(JsonElement json) {
-		if (json instanceof JsonPrimitive) {
-			final JsonPrimitive p = (JsonPrimitive) json;
-
+		if (json instanceof JsonPrimitive p) {
 			if (p.getValue() instanceof String) {
 				return (String) p.getValue();
 			}
@@ -38,9 +38,7 @@ public class JanksonHelper {
 	}
 
 	public static @Nullable ResourceLocation asIdentifier(JsonElement json) {
-		if (json instanceof JsonPrimitive) {
-			final JsonPrimitive p = (JsonPrimitive) json;
-
+		if (json instanceof JsonPrimitive p) {
 			if (p.getValue() instanceof String) {
 				final String id = (String) p.getValue();
 				return id == null || id.isEmpty() ? null : ResourceLocation.tryParse((String) p.getValue());
@@ -51,9 +49,7 @@ public class JanksonHelper {
 	}
 
 	public static @Nullable String asStringOrDefault(JsonElement json, String defaultVal) {
-		if (json instanceof JsonPrimitive) {
-			final JsonPrimitive p = (JsonPrimitive) json;
-
+		if (json instanceof JsonPrimitive p) {
 			if (p.getValue() instanceof String) {
 				return (String) p.getValue();
 			}
@@ -78,9 +74,7 @@ public class JanksonHelper {
 	}
 
 	public static String[] asStringArray(JsonElement element) {
-		if (element instanceof JsonArray) {
-			final JsonArray array = (JsonArray) element;
-
+		if (element instanceof JsonArray array) {
 			if (!array.getString(0, "").equals("")) {
 				final String[] result = new String[array.size()];
 

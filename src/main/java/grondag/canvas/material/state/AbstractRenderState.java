@@ -16,6 +16,8 @@
 
 package grondag.canvas.material.state;
 
+import net.minecraft.resources.ResourceLocation;
+
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialDecal;
 import grondag.canvas.material.property.MaterialDepthTest;
@@ -27,7 +29,6 @@ import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ProgramType;
-import net.minecraft.resources.ResourceLocation;
 
 abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;

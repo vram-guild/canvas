@@ -17,11 +17,13 @@
 package grondag.canvas.render.frustum;
 
 import com.mojang.math.Matrix4f;
-import grondag.canvas.render.world.WorldRenderState;
-import grondag.canvas.terrain.region.RenderRegionStorage;
+
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.Mth;
+
+import grondag.canvas.render.world.WorldRenderState;
+import grondag.canvas.terrain.region.RenderRegionStorage;
 
 public class RegionCullingFrustum extends FastFrustum {
 	private final WorldRenderState worldRenderState;

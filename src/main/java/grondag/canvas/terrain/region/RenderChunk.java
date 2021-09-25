@@ -16,10 +16,11 @@
 
 package grondag.canvas.terrain.region;
 
-import grondag.canvas.render.world.WorldRenderState;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.chunk.ChunkStatus;
+
+import grondag.canvas.render.world.WorldRenderState;
 
 public class RenderChunk {
 	final WorldRenderState worldRenderState;

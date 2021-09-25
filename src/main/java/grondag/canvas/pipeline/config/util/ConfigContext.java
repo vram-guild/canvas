@@ -17,7 +17,9 @@
 package grondag.canvas.pipeline.config.util;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
 import net.minecraft.resources.ResourceLocation;
+
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PassConfig;

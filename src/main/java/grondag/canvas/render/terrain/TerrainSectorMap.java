@@ -18,8 +18,10 @@ package grondag.canvas.render.terrain;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
+
 import grondag.canvas.terrain.region.RegionPosition;
 import grondag.canvas.varia.FixedCapacityIndexAllocator;
 
@@ -120,7 +122,7 @@ public class TerrainSectorMap {
 			originSectorZ = sectorXorZ(blockZ);
 
 			synchronized (map) {
-				for (var sector : map.values()) {
+				for (final var sector : map.values()) {
 					sector.updateCameraDependentValues();
 				}
 			}
@@ -139,9 +141,9 @@ public class TerrainSectorMap {
 		int sectorId = -1;
 
 		private RegionRenderSector(RegionPosition origin) {
-			int x = origin.getX();
-			int y = origin.getY();
-			int z = origin.getZ();
+			final int x = origin.getX();
+			final int y = origin.getY();
+			final int z = origin.getZ();
 			sectorKey = sectorKey(x, y, z);
 
 			// Shifted negative to give positive packed coordinates with negative vertex coordinates

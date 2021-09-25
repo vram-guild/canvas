@@ -16,11 +16,12 @@
 
 package grondag.canvas.pipeline;
 
+import net.minecraft.client.Minecraft;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.AttachmentConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.varia.GFX;
-import net.minecraft.client.Minecraft;
 
 // FEAT: handle clear masks
 public class PipelineFramebuffer {

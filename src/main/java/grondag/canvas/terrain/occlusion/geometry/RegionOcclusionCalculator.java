@@ -24,9 +24,11 @@ import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndex;
 
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
+
 import grondag.bitraster.PackedBox;
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;

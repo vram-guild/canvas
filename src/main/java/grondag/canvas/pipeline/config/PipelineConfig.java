@@ -17,8 +17,10 @@
 package grondag.canvas.pipeline.config;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.resources.ResourceLocation;
+
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;

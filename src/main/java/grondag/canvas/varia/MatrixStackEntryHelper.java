@@ -16,10 +16,11 @@
 
 package grondag.canvas.varia;
 
+import java.lang.reflect.Constructor;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
-import java.lang.reflect.Constructor;
 
 public class MatrixStackEntryHelper {
 	private static final Constructor<PoseStack.Pose> CONSTRUCTOR;

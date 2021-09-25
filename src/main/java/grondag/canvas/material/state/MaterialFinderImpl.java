@@ -20,16 +20,17 @@ import io.vram.frex.api.material.MaterialFinder;
 
 // PERF: implement proper decal layers in JMX, RenderBender and XB/XM to improve performance for multi-layer blocks
 public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, RenderMaterialImpl> implements MaterialFinder {
-	private String renderLayerName = CANVAS_MATERIAL_NAME;
+	private String label = CANVAS_MATERIAL_NAME;
 
 	@Override
 	public MaterialFinderImpl clear() {
-		renderLayerName = CANVAS_MATERIAL_NAME;
+		label = CANVAS_MATERIAL_NAME;
 		return super.clear();
 	}
 
-	public MaterialFinderImpl renderlayerName(String name) {
-		renderLayerName = name;
+	@Override
+	public MaterialFinderImpl label(String name) {
+		label = name;
 		return this;
 	}
 
@@ -38,19 +39,11 @@ public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, 
 		RenderMaterialImpl result = RenderMaterialImpl.MAP.get(bits);
 
 		if (result == null) {
-			result = new RenderMaterialImpl(bits, renderLayerName);
+			result = new RenderMaterialImpl(bits, label);
 			RenderMaterialImpl.MAP.put(bits, result);
 			RenderMaterialImpl.VALUES[result.index] = result;
 		}
 
-		return result;
-	}
-
-	private static ThreadLocal<MaterialFinderImpl> FINDER = ThreadLocal.withInitial(MaterialFinderImpl::new);
-
-	public static MaterialFinderImpl threadLocal() {
-		final MaterialFinderImpl result = FINDER.get();
-		result.clear();
 		return result;
 	}
 
