@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
+import io.vram.frex.api.mesh.FrexBufferSource;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.Minecraft;
@@ -190,7 +190,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	}
 
 	@Override
-	public FrexVertexConsumerProvider vertexConsumers() {
+	public FrexBufferSource vertexConsumers() {
 		// WIP implement
 		return null;
 	}

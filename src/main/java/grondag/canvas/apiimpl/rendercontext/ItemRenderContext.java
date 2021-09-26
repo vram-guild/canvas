@@ -27,9 +27,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.mesh.FrexVertexConsumerProvider;
+import io.vram.frex.api.mesh.FrexBufferSource;
 import io.vram.frex.api.model.ItemModel;
-import io.vram.frex.api.rendertype.VanillaShaderData;
+import io.vram.frex.api.rendertype.VanillaShaderInfo;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColors;
@@ -306,7 +306,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 
 		if (compositeState.transparencyState == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {
 			return MaterialConstants.PRESET_TRANSLUCENT;
-		} else if (VanillaShaderData.get(compositeState.shaderState).cutout() != MaterialConstants.CUTOUT_NONE) {
+		} else if (VanillaShaderInfo.get(compositeState.shaderState).cutout() != MaterialConstants.CUTOUT_NONE) {
 			final TextureStateShard tex = (TextureStateShard) compositeState.textureState;
 			return tex.mipmap ? MaterialConstants.PRESET_CUTOUT_MIPPED : MaterialConstants.PRESET_CUTOUT;
 		} else {
@@ -315,7 +315,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 	}
 
 	@Override
-	public FrexVertexConsumerProvider vertexConsumers() {
+	public FrexBufferSource vertexConsumers() {
 		// WIP implement
 		return null;
 	}

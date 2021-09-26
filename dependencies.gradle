@@ -1,14 +1,15 @@
 repositories {
-	//mavenLocal()
+	mavenLocal()
 	maven { url "https://maven.shedaniel.me/"}
 	jcenter();
 	maven {
 		name = "Fabric"
 		url "https://maven.fabricmc.net/"
 	}
-	maven {
-		name = "dblsaiko"
-		url = "https://maven.dblsaiko.net/"
+ 	maven {
+		name = "vram"
+		url = "http://maven.vram.io"
+		allowInsecureProtocol = true
 	}
 	maven {
 		name = "Cotton"

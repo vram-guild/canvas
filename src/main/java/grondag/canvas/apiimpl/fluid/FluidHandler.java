@@ -21,16 +21,16 @@ import java.util.function.Function;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.model.FluidAppearance;
-import io.vram.frex.api.model.FluidModel;
-import io.vram.frex.api.model.SimpleFluidModel;
+import io.vram.frex.api.model.fluid.FluidAppearance;
+import io.vram.frex.api.model.fluid.FluidModel;
+import io.vram.frex.api.model.fluid.SimpleFluidModel;
 import io.vram.frex.api.renderer.Renderer;
 
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public class FluidHandler {
-	// WIP: let material be registered with the appearance
+	// WIP: derive material from fluid render layer and move this all to FREX as the default fluid model handling
 	static final RenderMaterial WATER_MATERIAL = Renderer.get().materialFinder()
 			.preset(MaterialConstants.PRESET_TRANSLUCENT).disableAo(true).disableColorIndex(true).find();
 

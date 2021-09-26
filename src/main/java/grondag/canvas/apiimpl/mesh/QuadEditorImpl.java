@@ -307,7 +307,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public QuadEditorImpl sprite(int vertexIndex, float u, float v) {
+	public QuadEditorImpl uv(int vertexIndex, float u, float v) {
 		// This legacy method accepts interpolated coordinates
 		// and so any usage forces us to de-normalize if we are not already.
 		// Otherwise any subsequent reads or transformations could be inconsistent.
@@ -398,7 +398,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 
 	@Override
 	public FrexVertexConsumer uv(float u, float v) {
-		sprite(vertexIndex, u, v);
+		uv(vertexIndex, u, v);
 		return this;
 	}
 

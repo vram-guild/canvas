@@ -138,17 +138,17 @@ publishing {
 
 	repositories {
 		mavenLocal()
-		//maven {
-		//	url "https://grondag-repo.appspot.com"
-		//	credentials {
-		//		if (project.hasProperty('maven_user')) {
-		//			username = project.getProperty('maven_user')
-		//		}
-		//		if (project.hasProperty('maven_password')) {
-		//			password = project.getProperty('maven_password')
-		//		}
-		//	}
-		//}
+        maven {
+            url = 's3://maven-vram-io/releases'
+            credentials(AwsCredentials) {
+            	if (project.hasProperty('aws_id')){
+					accessKey = project.getProperty('aws_id')
+				}
+				if (project.hasProperty('aws_key')){
+					secretKey = project.getProperty('aws_key')
+				}
+            }
+        }
 		maven {
 			url 'sftp://dblsaiko.net:22/var/maven'
 			credentials {

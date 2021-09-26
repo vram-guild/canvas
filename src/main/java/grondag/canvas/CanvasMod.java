@@ -19,9 +19,9 @@ package grondag.canvas;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import io.vram.frex.api.config.FrexFeature;
 import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.model.FluidModel;
+import io.vram.frex.api.model.fluid.FluidModel;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
-import io.vram.frex.api.rendertype.VanillaShaderData;
+import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.system.Configuration;
@@ -122,7 +122,7 @@ public class CanvasMod implements ClientModInitializer {
 
 			// Excludes glint, end portal, and other specialized render layers that won't play nice with our current setup
 			// Excludes render layers with custom shaders
-			if (compositeState.texturingState != RenderStateShard.DEFAULT_TEXTURING || VanillaShaderData.get(compositeState.shaderState) == VanillaShaderData.MISSING) {
+			if (compositeState.texturingState != RenderStateShard.DEFAULT_TEXTURING || VanillaShaderInfo.get(compositeState.shaderState) == VanillaShaderInfo.MISSING) {
 				return true;
 			}
 
