@@ -49,7 +49,7 @@ public abstract class EncoderUtils {
 			final int color = quad.vertexColor(i);
 			buff.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 
-			buff.uv(quad.spriteU(i), quad.spriteV(i));
+			buff.uv(quad.u(i), quad.v(i));
 			buff.overlayCoords(overlay);
 			buff.uv2(emissive ? MeshEncodingHelper.FULL_BRIGHTNESS : quad.lightmap(i));
 

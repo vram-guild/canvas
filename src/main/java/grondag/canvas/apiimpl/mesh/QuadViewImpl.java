@@ -183,8 +183,8 @@ public class QuadViewImpl implements QuadView {
 		int index = targetIndex + 4;
 
 		for (int i = 0; i < 4; ++i) {
-			target[index] = Float.floatToRawIntBits(spriteU(i));
-			target[index + 1] = Float.floatToRawIntBits(spriteV(i));
+			target[index] = Float.floatToRawIntBits(u(i));
+			target[index + 1] = Float.floatToRawIntBits(v(i));
 			index += 8;
 		}
 	}
@@ -428,17 +428,29 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public float spriteU(int vertexIndex) {
+	public float u(int vertexIndex) {
 		return !isSpriteInterpolated && material().texture.isAtlas()
 			? material().texture.atlasInfo().mapU(spriteId(), spriteFloatU(vertexIndex))
 			: spriteFloatU(vertexIndex);
 	}
 
 	@Override
-	public float spriteV(int vertexIndex) {
+	public float v(int vertexIndex) {
 		return !isSpriteInterpolated && material().texture.isAtlas()
 			? material().texture.atlasInfo().mapV(spriteId(), spriteFloatV(vertexIndex))
 			: spriteFloatV(vertexIndex);
+	}
+
+	@Override
+	public float uSprite(int vertexIndex) {
+		assert !isSpriteInterpolated;
+		return spriteFloatU(vertexIndex);
+	}
+
+	@Override
+	public float vSprite(int vertexIndex) {
+		assert !isSpriteInterpolated;
+		return spriteFloatV(vertexIndex);
 	}
 
 	/**

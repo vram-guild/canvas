@@ -40,6 +40,7 @@ import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.model.ModelHelper;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
@@ -304,6 +305,22 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 		} else {
 			return result;
 		}
+	}
+
+	@Override
+	public QuadEditorImpl uvSprite(@Nullable TextureAtlasSprite sprite, float u0, float v0, float u1, float v1, float u2, float v2, float u3, float v3) {
+		isSpriteInterpolated = false;
+		spriteFloat(0, u0, v0);
+		spriteFloat(1, u1, v1);
+		spriteFloat(2, u2, v2);
+		spriteFloat(3, u3, v3);
+
+		if (sprite != null) {
+			assert material().texture.isAtlas() && material().texture.atlasInfo().atlas() == sprite.atlas();
+			spriteId(((SpriteExt) sprite).canvas_id());
+		}
+
+		return this;
 	}
 
 	@Override
