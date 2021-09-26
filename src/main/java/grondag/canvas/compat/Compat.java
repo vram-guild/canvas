@@ -16,12 +16,13 @@
 
 package grondag.canvas.compat;
 
+import io.vram.frex.api.event.RenderReloadListener;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.phys.Vec3;
 
-import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 
 public class Compat {
@@ -86,7 +87,7 @@ public class Compat {
 			VoxelMapHolder.postRenderHandler.render(ctx.worldRenderer(), ctx.matrixStack(), ctx.tickDelta(), ctx.limitTime(), ctx.blockOutlines(), ctx.camera(), ctx.gameRenderer(), ctx.lightmapTextureManager(), ctx.projectionMatrix());
 		});
 
-		InvalidateRenderStateCallback.EVENT.register(() -> {
+		RenderReloadListener.register(() -> {
 			LitematicaHolder.litematicaReload.run();
 		});
 	}

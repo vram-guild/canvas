@@ -18,6 +18,7 @@ package grondag.canvas;
 
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import io.vram.frex.api.config.FrexFeature;
+import io.vram.frex.api.event.RenderReloadListener;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.model.fluid.FluidModel;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
@@ -37,7 +38,6 @@ import net.minecraft.server.packs.PackType;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.InvalidateRenderStateCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -138,7 +138,7 @@ public class CanvasMod implements ClientModInitializer {
 	private static void platformSpecificInit() {
 		FluidModel.setReloadHandler(FluidHandler.HANDLER);
 
-		InvalidateRenderStateCallback.EVENT.register(Canvas.instance()::reload);
+		RenderReloadListener.register(Canvas.instance()::reload);
 
 		KeyBindingHelper.registerKeyBinding(DEBUG_TOGGLE);
 		KeyBindingHelper.registerKeyBinding(DEBUG_PREV);
