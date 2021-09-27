@@ -27,15 +27,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.terrain.region.RegionPosition;
 
-@Environment(EnvType.CLIENT)
 public class TerrainFrustum extends CanvasFrustum {
 	// These are for maintaining a project matrix used by occluder.
 	// Updated every frame but not used directly by occlude because of concurrency

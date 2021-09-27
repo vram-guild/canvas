@@ -16,12 +16,8 @@
 
 package grondag.canvas.light;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.config.Configurator;
 
-@Environment(EnvType.CLIENT)
 public final class AoVertexClampFunction {
 	static ClampFunc func;
 

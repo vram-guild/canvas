@@ -44,9 +44,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
@@ -67,7 +64,6 @@ import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.terrain.util.TerrainExecutorTask;
 
-@Environment(EnvType.CLIENT)
 public class RenderRegion implements TerrainExecutorTask {
 	private final RenderRegionBuilder renderRegionBuilder;
 

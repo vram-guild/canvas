@@ -16,6 +16,7 @@
 
 package grondag.canvas.texture;
 
+import io.vram.frex.api.texture.SpriteFinder;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
@@ -27,17 +28,12 @@ import net.minecraft.client.renderer.texture.TextureAtlas.Preparations;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.renderer.v1.model.SpriteFinder;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.TextureAtlasPreparationExt;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
+import grondag.canvas.mixinterface.TextureAtlasPreparationExt;
 
-@Environment(EnvType.CLIENT)
 public class SpriteIndex {
 	private static final Object2ObjectOpenHashMap<ResourceLocation, SpriteIndex> MAP = new Object2ObjectOpenHashMap<>(64, Hash.VERY_FAST_LOAD_FACTOR);
 

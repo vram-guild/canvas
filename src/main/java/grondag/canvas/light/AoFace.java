@@ -28,15 +28,11 @@ import static net.minecraft.core.Direction.WEST;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 
 /**
  * Adapted from vanilla BlockModelRenderer.AoCalculator.
  */
-@Environment(EnvType.CLIENT)
 enum AoFace {
 	AOF_DOWN(WEST, EAST, NORTH, SOUTH,
 		(q, i) -> clamp(q.y(i)),

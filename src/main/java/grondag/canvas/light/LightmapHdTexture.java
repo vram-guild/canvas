@@ -20,9 +20,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.SimpleImage;
@@ -30,7 +27,6 @@ import grondag.canvas.texture.SimpleTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
-@Environment(EnvType.CLIENT)
 @SuppressWarnings("unused")
 class LightmapHdTexture implements AutoCloseable {
 	private static final ConcurrentLinkedQueue<LightmapHd> updates = new ConcurrentLinkedQueue<>();

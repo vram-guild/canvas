@@ -33,6 +33,7 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.ConfigManager;
 
+// WIP: remove Fabric dep
 public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 	private static boolean hasLoadedOnce = false;
 

@@ -29,14 +29,10 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkBiomeContainer;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.mixinterface.BiomeManagerExt;
 import grondag.canvas.mixinterface.LevelChunkExt;
 
 //FEAT: per-vertex blending (quality)
-@Environment(value = EnvType.CLIENT)
 public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 	private static final Minecraft mc = Minecraft.getInstance();
 	private static int VERSION = 0;

@@ -18,15 +18,11 @@ package grondag.canvas.texture;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 
-@Environment(EnvType.CLIENT)
 public class MaterialIndexTexture {
 	public static final int MAX_INDEX_COUNT = 0x10000;
 	public static final int INTS_PER_MATERIAL = 2;

@@ -20,9 +20,6 @@ import java.nio.FloatBuffer;
 
 import com.mojang.math.Matrix3f;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 public interface Matrix3fExt {
 	float m00();
 
@@ -80,7 +77,6 @@ public interface Matrix3fExt {
 		set((Matrix3fExt) (Object) val);
 	}
 
-	@Environment(EnvType.CLIENT)
 	default void writeToBuffer(FloatBuffer floatBuffer) {
 		floatBuffer.put(0 * 3 + 0, m00());
 		floatBuffer.put(1 * 3 + 0, m01());

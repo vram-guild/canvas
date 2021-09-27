@@ -21,12 +21,8 @@ import java.nio.FloatBuffer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.bitraster.Matrix4L;
 
-@Environment(EnvType.CLIENT)
 public interface Matrix4fExt {
 	float m00();
 

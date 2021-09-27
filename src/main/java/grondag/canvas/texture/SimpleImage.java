@@ -22,15 +22,11 @@ import java.nio.IntBuffer;
 import com.mojang.blaze3d.platform.DebugMemoryUntracker;
 import org.lwjgl.system.MemoryUtil;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.varia.GFX;
 
 /**
  * Leaner adaptation of Minecraft NativeImage suitable for our needs.
  */
-@Environment(EnvType.CLIENT)
 public final class SimpleImage implements AutoCloseable {
 	public final int width;
 	public final int height;

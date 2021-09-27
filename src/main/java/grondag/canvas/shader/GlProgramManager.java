@@ -32,6 +32,7 @@ public class GlProgramManager implements ClientTickEvents.EndTick {
 			CanvasMod.LOG.info("Lifecycle Event: UniformTicker init");
 		}
 
+		// WIP: remove FAPI dependency
 		ClientTickEvents.END_CLIENT_TICK.register(this);
 	}
 

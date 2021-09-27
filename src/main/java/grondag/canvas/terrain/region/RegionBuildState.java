@@ -24,9 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.TerrainRenderStates;
@@ -34,7 +31,6 @@ import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 
-@Environment(EnvType.CLIENT)
 public class RegionBuildState {
 	/** value for new regions that never been built or have been built and then closed. */
 	public static final RegionBuildState UNBUILT = new RegionBuildState();

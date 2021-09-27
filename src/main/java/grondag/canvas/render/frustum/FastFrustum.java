@@ -22,12 +22,8 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.world.phys.Vec3;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.varia.CanvasMath;
 
-@Environment(EnvType.CLIENT)
 public class FastFrustum extends CanvasFrustum {
 	protected float circumCenterX, circumCenterY, circumCenterZ, circumRadius;
 

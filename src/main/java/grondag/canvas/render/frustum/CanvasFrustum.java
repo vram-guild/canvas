@@ -22,9 +22,6 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 /**
@@ -37,7 +34,6 @@ import grondag.canvas.mixinterface.Matrix4fExt;
  * as described in Real-Time Rendering, Fourth Edition (Page 971). CRC Press.
  * Abbey, Duane C.; Haines, Eric; Hoffman, Naty.
  */
-@Environment(EnvType.CLIENT)
 public abstract class CanvasFrustum extends Frustum {
 	protected static final float MIN_GAP = 0.0001f;
 	protected final Matrix4f mvpMatrix = new Matrix4f();

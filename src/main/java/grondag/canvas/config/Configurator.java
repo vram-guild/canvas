@@ -20,14 +20,10 @@ import static grondag.canvas.config.ConfigManager.DEFAULTS;
 
 import net.minecraft.util.Mth;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
 
-@Environment(EnvType.CLIENT)
 public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
 	public static boolean blendFluidColors = DEFAULTS.blendFluidColors;

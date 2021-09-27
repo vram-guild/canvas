@@ -29,6 +29,7 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
+// WIP: Need to remove FAPI event dependency or make it soft
 class SimpleDrawersHolder {
 	static ItemModelHandler itemCallbackHandler = (stack, renderMode, leftHanded, model) -> model;
 	private static boolean warnRender = true;

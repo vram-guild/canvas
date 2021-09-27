@@ -24,12 +24,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.mixinterface.LevelChunkExt;
 
-@Environment(EnvType.CLIENT)
 @Mixin(ClientChunkCache.class)
 public class MixinClientChunkCache {
 	@Inject(method = "replaceWithPacketData", at = {@At(value = "RETURN")}, cancellable = false)

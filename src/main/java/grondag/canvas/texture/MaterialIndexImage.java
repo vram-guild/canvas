@@ -20,9 +20,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
@@ -42,7 +39,6 @@ import grondag.canvas.varia.GFX;
  * B: program flags - currently only GUI<br>
  * A: reserved B
  */
-@Environment(EnvType.CLIENT)
 public final class MaterialIndexImage {
 	private int bufferId;
 	private final IntArrayList data = new IntArrayList();

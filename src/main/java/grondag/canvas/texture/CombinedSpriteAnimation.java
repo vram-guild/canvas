@@ -22,12 +22,8 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.util.Mth;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
 import grondag.canvas.mixinterface.NativeImageExt;
 
-@Environment(EnvType.CLIENT)
 public final class CombinedSpriteAnimation implements AutoCloseable {
 	private final NativeImage[] images;
 	public final int width, height, size;

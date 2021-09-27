@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 
+// WIP: remove FAPI dep
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 
 public class ResourceCacheManager {
