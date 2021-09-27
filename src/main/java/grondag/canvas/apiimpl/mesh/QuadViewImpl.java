@@ -44,10 +44,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.mesh.QuadView;
+import io.vram.frex.api.model.ModelHelper;
 
 import net.minecraft.core.Direction;
-
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.apiimpl.util.GeometryHelper;

@@ -21,6 +21,7 @@ import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.vram.frex.api.model.BlockModel;
+import io.vram.frex.api.model.ModelHelper;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import net.minecraft.CrashReport;
@@ -31,9 +32,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;
@@ -47,7 +45,7 @@ import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
 /**
- * Implementation of {@link RenderContext} used during terrain rendering.
+ * Implementation of RenderContext used during terrain rendering.
  * Dispatches calls from models during chunk rebuild to the appropriate consumer,
  * and holds/manages all of the state needed by them.
  */

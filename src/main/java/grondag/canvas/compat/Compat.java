@@ -16,7 +16,7 @@
 
 package grondag.canvas.compat;
 
-import io.vram.frex.api.event.RenderReloadListener;
+import io.vram.frex.api.renderloop.RenderReloadListener;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;

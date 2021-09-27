@@ -18,9 +18,9 @@ package grondag.canvas;
 
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import io.vram.frex.api.config.FrexFeature;
-import io.vram.frex.api.event.RenderReloadListener;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.model.fluid.FluidModel;
+import io.vram.frex.api.renderloop.RenderReloadListener;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import org.apache.logging.log4j.LogManager;

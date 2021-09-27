@@ -17,9 +17,8 @@
 package grondag.canvas.apiimpl.mesh;
 
 import com.google.common.base.Preconditions;
-
-import net.fabricmc.fabric.api.renderer.v1.mesh.QuadView;
-import net.fabricmc.fabric.api.renderer.v1.model.ModelHelper;
+import io.vram.frex.api.mesh.QuadView;
+import io.vram.frex.api.model.ModelHelper;
 
 /**
  * Holds all the array offsets and bit-wise encoders/decoders for
