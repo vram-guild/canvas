@@ -19,8 +19,6 @@ package grondag.canvas;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import io.vram.frex.api.config.FrexFeature;
 import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.model.fluid.FluidModel;
-import io.vram.frex.api.renderloop.RenderReloadListener;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import org.apache.logging.log4j.LogManager;
@@ -33,23 +31,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderType.CompositeRenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
 
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
-import net.fabricmc.loader.api.FabricLoader;
-
-import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.RenderTypeExt;
-import grondag.canvas.pipeline.config.PipelineLoader;
-import grondag.canvas.texture.ResourceCacheManager;
 
 //FEAT: weather rendering
 //FEAT: sky rendering
@@ -60,7 +46,7 @@ import grondag.canvas.texture.ResourceCacheManager;
 //FEAT: weather uniforms
 //FEAT: biome texture in shader
 
-public class CanvasMod implements ClientModInitializer {
+public class CanvasMod {
 	public static final String MODID = "canvas";
 	public static final Logger LOG = LogManager.getLogger("Canvas");
 	public static KeyMapping DEBUG_TOGGLE = new KeyMapping("key.canvas.debug_toggle", Character.valueOf('`'), "key.canvas.category");
@@ -71,10 +57,7 @@ public class CanvasMod implements ClientModInitializer {
 	public static KeyMapping PROFILER_TOGGLE = new KeyMapping("key.canvas.profiler_toggle", -1, "key.canvas.category");
 	public static String versionString = "unknown";
 
-	@Override
-	public void onInitializeClient() {
-		versionString = FabricLoader.getInstance().getModContainer(CanvasMod.MODID).get().getMetadata().getVersion().getFriendlyString();
-
+	public static void init() {
 		ConfigManager.init();
 		FrexFeature.registerFeatures(FrexFeature.UPDATE_MATERIAL_REGISTRATION);
 
@@ -129,31 +112,6 @@ public class CanvasMod implements ClientModInitializer {
 			return false;
 		});
 
-		platformSpecificInit();
-
 		Compat.init();
-	}
-
-	// Things that need to be moved to proxy or architectury, etc.
-	private static void platformSpecificInit() {
-		FluidModel.setReloadHandler(FluidHandler.HANDLER);
-
-		RenderReloadListener.register(Canvas.instance()::reload);
-
-		KeyBindingHelper.registerKeyBinding(DEBUG_TOGGLE);
-		KeyBindingHelper.registerKeyBinding(DEBUG_PREV);
-		KeyBindingHelper.registerKeyBinding(DEBUG_NEXT);
-		KeyBindingHelper.registerKeyBinding(RECOMPILE);
-		KeyBindingHelper.registerKeyBinding(FLAWLESS_TOGGLE);
-		KeyBindingHelper.registerKeyBinding(PROFILER_TOGGLE);
-
-		FabricLoader.getInstance().getModContainer(MODID).ifPresent(modContainer -> {
-			ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("canvas:canvas_default"), modContainer, ResourcePackActivationType.DEFAULT_ENABLED);
-			ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("canvas:canvas_extras"), modContainer, ResourcePackActivationType.NORMAL);
-			//ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:development"), "resourcepacks/canvas_wip", modContainer, false);
-		});
-
-		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(PipelineLoader.INSTANCE);
-		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(ResourceCacheManager.cacheReloader);
 	}
 }

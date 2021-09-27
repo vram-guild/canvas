@@ -107,6 +107,7 @@ sourceSets {
 	main {
 		java {
 			include 'grondag/**/*'
+			include 'fabric/vram/**/*'
 			exclude '*.DS_Store'
 		}
 		resources

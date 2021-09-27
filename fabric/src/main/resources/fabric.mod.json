@@ -17,10 +17,10 @@
   "environment": "client",
   "entrypoints": {
 	"client": [
-	  "grondag.canvas.CanvasMod"
+	  "io.vram.canvas.CanvasFabricMod"
 	],
 	"preLaunch": [
-      "grondag.canvas.CanvasPreLaunch"
+      "io.vram.canvas.CanvasFabricPreLaunch"
     ],
 	"modmenu": [
 	  "grondag.canvas.compat.ModMenuHelper"

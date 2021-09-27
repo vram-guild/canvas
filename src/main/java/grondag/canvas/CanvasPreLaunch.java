@@ -22,11 +22,8 @@ import org.lwjgl.system.Configuration;
 import org.lwjgl.system.Platform;
 import org.lwjgl.system.jemalloc.JEmalloc;
 
-import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
-
-public class CanvasPreLaunch implements PreLaunchEntrypoint {
-	@Override
-	public void onPreLaunch() {
+public class CanvasPreLaunch {
+	public static void init(boolean isDev) {
 		// Hat tip to JellySquid for this...
 		// LWJGL 3.2.3 ships Jemalloc 5.2.0 which seems to be broken on Windows and suffers from critical memory leak problems
 		// Using the system allocator prevents memory leaks and other problems
@@ -40,18 +37,13 @@ public class CanvasPreLaunch implements PreLaunchEntrypoint {
 
 		RendererInitializer.register("grondag.canvas.apiimpl.Canvas", "instance", Thread.currentThread().getContextClassLoader(), false);
 
-		assert enableRenderDocInDev();
-	}
-
-	// UGLY: need a proper dev config
-	private static boolean enableRenderDocInDev() {
-		try {
-			System.loadLibrary("renderdoc");
-		} catch (final Throwable e) {
-			// eat it
+		if (isDev) {
+			try {
+				System.loadLibrary("renderdoc");
+			} catch (final Throwable e) {
+				// eat it
+			}
 		}
-
-		return true;
 	}
 
 	private static boolean isJEmallocPotentiallyBuggy() {
