@@ -28,13 +28,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.ConfigManager;
 
-// WIP: remove Fabric dep
-public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
+public class PipelineLoader {
 	private static boolean hasLoadedOnce = false;
 
 	private PipelineLoader() { }
@@ -43,13 +40,7 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 		return hasLoadedOnce;
 	}
 
-	@Override
-	public ResourceLocation getFabricId() {
-		return ID;
-	}
-
-	@Override
-	public void onResourceManagerReload(ResourceManager manager) {
+	public static void reload(ResourceManager manager) {
 		hasLoadedOnce = true;
 		MAP.clear();
 
@@ -85,8 +76,4 @@ public class PipelineLoader implements SimpleSynchronousResourceReloadListener {
 	}
 
 	public static final Function<String, Component> NAME_TEXT_FUNCTION = s -> new TranslatableComponent(get(s).nameKey);
-
-	private static final ResourceLocation ID = new ResourceLocation("canvas:pipeline_loader");
-
-	public static final PipelineLoader INSTANCE = new PipelineLoader();
 }

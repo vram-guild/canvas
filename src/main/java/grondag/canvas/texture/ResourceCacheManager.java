@@ -18,26 +18,12 @@ package grondag.canvas.texture;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
+public final class ResourceCacheManager {
+	private ResourceCacheManager() { }
 
-// WIP: remove FAPI dep
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-
-public class ResourceCacheManager {
 	public static final ObjectArrayList<ResourceCache<?>> CACHED = new ObjectArrayList<>(64);
-	public static final SimpleSynchronousResourceReloadListener cacheReloader = new SimpleSynchronousResourceReloadListener() {
-		private final ResourceLocation ID = new ResourceLocation("canvas:resource_cache_reloader");
 
-		@Override
-		public ResourceLocation getFabricId() {
-			return ID;
-		}
-
-		@Override
-		public void onResourceManagerReload(ResourceManager resourceManager) {
-			MaterialIndexProvider.reload();
-			CACHED.forEach(ResourceCache::invalidate);
-		}
-	};
+	public static void invalidate() {
+		CACHED.forEach(ResourceCache::invalidate);
+	}
 }

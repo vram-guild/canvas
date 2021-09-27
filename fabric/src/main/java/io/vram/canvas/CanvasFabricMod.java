@@ -21,17 +21,20 @@ import io.vram.frex.api.renderloop.RenderReloadListener;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.pipeline.config.PipelineLoader;
+import grondag.canvas.texture.MaterialIndexProvider;
 import grondag.canvas.texture.ResourceCacheManager;
 
 public class CanvasFabricMod implements ClientModInitializer {
@@ -58,7 +61,20 @@ public class CanvasFabricMod implements ClientModInitializer {
 			//ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:development"), "resourcepacks/canvas_wip", modContainer, false);
 		});
 
-		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(PipelineLoader.INSTANCE);
-		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(ResourceCacheManager.cacheReloader);
+		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+			@Override
+			public ResourceLocation getFabricId() {
+				return ID;
+			}
+
+			@Override
+			public void onResourceManagerReload(ResourceManager manager) {
+				PipelineLoader.reload(manager);
+				MaterialIndexProvider.reload();
+				ResourceCacheManager.invalidate();
+			}
+		});
 	}
+
+	private static final ResourceLocation ID = new ResourceLocation("canvas:resource_reloader");
 }
