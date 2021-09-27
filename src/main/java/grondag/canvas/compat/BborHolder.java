@@ -22,11 +22,11 @@ import java.lang.reflect.Method;
 
 import com.google.common.util.concurrent.Runnables;
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.vram.frex.api.renderloop.WorldRenderContext;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
@@ -84,7 +84,7 @@ class BborHolder {
 
 	@SuppressWarnings("resource")
 	static void render(WorldRenderContext ctx) {
-		bborHandler.render(ctx.matrixStack(), ctx.tickDelta(), Minecraft.getInstance().player);
+		bborHandler.render(ctx.poseStack(), ctx.tickDelta(), Minecraft.getInstance().player);
 	}
 
 	interface RenderHandler {

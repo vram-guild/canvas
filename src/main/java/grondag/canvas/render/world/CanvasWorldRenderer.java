@@ -31,6 +31,17 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import com.mojang.math.Matrix4f;
 import io.vram.frex.api.config.FlawlessFrames;
+import io.vram.frex.api.renderloop.BlockOutlineListener;
+import io.vram.frex.api.renderloop.BlockOutlinePreListener;
+import io.vram.frex.api.renderloop.DebugRenderListener;
+import io.vram.frex.api.renderloop.EntityRenderPostListener;
+import io.vram.frex.api.renderloop.EntityRenderPreListener;
+import io.vram.frex.api.renderloop.FrustumSetupListener;
+import io.vram.frex.api.renderloop.TranslucentPostListener;
+import io.vram.frex.api.renderloop.WorldRenderContextBase;
+import io.vram.frex.api.renderloop.WorldRenderLastListener;
+import io.vram.frex.api.renderloop.WorldRenderPostListener;
+import io.vram.frex.api.renderloop.WorldRenderStartListener;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -68,9 +79,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.impl.client.rendering.WorldRenderContextImpl;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
@@ -87,8 +95,8 @@ import grondag.canvas.config.FlawlessFramesController;
 import grondag.canvas.material.property.MaterialTarget;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.mixinterface.RenderBuffersExt;
 import grondag.canvas.mixinterface.LevelRendererExt;
+import grondag.canvas.mixinterface.RenderBuffersExt;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.perf.Timekeeper.ProfilerGroup;
 import grondag.canvas.pipeline.Pipeline;
@@ -121,7 +129,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
 	private final CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(entityCullingFrustum);
-	private final WorldRenderContextImpl eventContext = new WorldRenderContextImpl();
+	private final WorldRenderContextBase eventContext = new WorldRenderContextBase();
 
 	/** Used to avoid camera rotation in managed draws.  Kept to avoid reallocation every frame. */
 	private final PoseStack identityStack = new PoseStack();
@@ -297,7 +305,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		eventContext.setFrustum(worldRenderState.terrainFrustum);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "after_setup_event");
-		WorldRenderEvents.AFTER_SETUP.invoker().afterSetup(eventContext);
+		FrustumSetupListener.invoke(eventContext);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "updatechunks");
 		final int maxFps = mc.options.framerateLimit;
@@ -335,7 +343,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
-		WorldRenderEvents.BEFORE_ENTITIES.invoker().beforeEntities(eventContext);
+		EntityRenderPreListener.invoke(eventContext);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "entities");
 		int entityCount = 0;
@@ -532,7 +540,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// Stuff here should probably expect identity matrix. If not, move matrix operations to relevant compat holders.
 		eventContext.matrixStack().pushPose();
 		eventContext.matrixStack().setIdentity();
-		WorldRenderEvents.AFTER_ENTITIES.invoker().afterEntities(eventContext);
+		EntityRenderPostListener.invoke(eventContext);
 		eventContext.matrixStack().popPose();
 
 		bufferBuilders.outlineBufferSource().endOutlineBatch();
@@ -576,7 +584,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "outline");
 		final HitResult hitResult = mc.hitResult;
 
-		if (WorldRenderEvents.BEFORE_BLOCK_OUTLINE.invoker().beforeBlockOutline(eventContext, hitResult)) {
+		if (BlockOutlinePreListener.invoke(eventContext, hitResult)) {
 			if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
 				final BlockPos blockOutlinePos = ((BlockHitResult) hitResult).getBlockPos();
 				final BlockState blockOutlineState = world.getBlockState(blockOutlinePos);
@@ -590,7 +598,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 					eventContext.matrixStack().setIdentity();
 					eventContext.prepareBlockOutline(camera.getEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 
-					if (WorldRenderEvents.BLOCK_OUTLINE.invoker().onBlockOutline(eventContext, eventContext)) {
+					if (BlockOutlineListener.invoke(eventContext, eventContext)) {
 						wr.canvas_drawBlockOutline(identityStack, blockOutlineConumer, camera.getEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 					}
 
@@ -609,7 +617,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			WorldRenderDraws.renderCullBoxes(worldRenderState.renderRegionStorage, frameCameraX, frameCameraY, frameCameraZ, tickDelta);
 		}
 
-		WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().beforeDebugRender(eventContext);
+		DebugRenderListener.invoke(eventContext);
 
 		// We still pass in the transformed stack because that is what debug renderer normally gets
 		mc.debugRenderer.render(viewMatrixStack, immediate, frameCameraX, frameCameraY, frameCameraZ);
@@ -687,7 +695,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
 
 		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
-		WorldRenderEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(eventContext);
+		TranslucentPostListener.invoke(eventContext);
 
 		// FEAT: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
@@ -729,7 +737,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.AfterFabulous, "render_last_event");
 
 		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
-		WorldRenderEvents.LAST.invoker().onLast(eventContext);
+		WorldRenderLastListener.invoke(eventContext);
 
 		// Move these up if otherwise.
 		renderSystemModelViewStack.popPose();
@@ -810,10 +818,10 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		eventContext.prepare(this, viewMatrixStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix, worldRenderImmediate, mc.getProfiler(), Minecraft.useShaderTransparency(), worldRenderState.getWorld());
 
-		WorldRenderEvents.START.invoker().onStart(eventContext);
+		WorldRenderStartListener.invoke(eventContext);
 		PipelineManager.beforeWorldRender();
 		renderWorld(viewMatrixStack, tickDelta, frameStartNanos, renderBlockOutline, camera, gameRenderer, lightmapTextureManager, projectionMatrix);
-		WorldRenderEvents.END.invoker().onEnd(eventContext);
+		WorldRenderPostListener.invoke(eventContext);
 
 		RenderSystem.applyModelViewMatrix();
 		MatrixState.set(MatrixState.SCREEN);

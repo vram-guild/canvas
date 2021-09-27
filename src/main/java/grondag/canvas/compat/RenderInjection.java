@@ -20,12 +20,12 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
+import io.vram.frex.api.renderloop.WorldRenderContext;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.transformer.meta.MixinMerged;
 
 import net.minecraft.client.renderer.LevelRenderer;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
@@ -76,7 +76,7 @@ interface RenderInjection {
 		return ctx -> {
 			if (!caught[0]) {
 				try {
-					handle.invokeExact(ctx.worldRenderer(), ctx.matrixStack(), ctx.tickDelta(), ctx.limitTime(), ctx.blockOutlines(), ctx.camera(), ctx.gameRenderer(), ctx.lightmapTextureManager(), ctx.projectionMatrix(), CALLBACK_INFO);
+					handle.invokeExact(ctx.worldRenderer(), ctx.poseStack(), ctx.tickDelta(), ctx.limitTime(), ctx.blockOutlines(), ctx.camera(), ctx.gameRenderer(), ctx.lightmapTexture(), ctx.projectionMatrix(), CALLBACK_INFO);
 				} catch (final Throwable throwable) {
 					CanvasMod.LOG.warn("Unable to call " + debugName + " hook due to exception: ", throwable);
 					CanvasMod.LOG.warn("Subsequent errors will be suppressed");
