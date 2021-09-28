@@ -33,7 +33,8 @@
 	]
   },
   "mixins": [
-	"mixins.canvas.client.json"
+	"mixins.canvas.client.json",
+	"mixins.canvas.fabric.json"
   ],
   "depends": {
 	"fabricloader": ">=0.11.3",

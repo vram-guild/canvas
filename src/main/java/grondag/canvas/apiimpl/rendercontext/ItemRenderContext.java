@@ -25,11 +25,6 @@ import java.util.function.Supplier;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.mesh.FrexBufferSource;
-import io.vram.frex.api.model.ItemModel;
-import io.vram.frex.api.rendertype.VanillaShaderInfo;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemColors;
@@ -51,6 +46,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.AbstractBannerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.mesh.FrexBufferSource;
+import io.vram.frex.api.model.ItemModel;
+import io.vram.frex.api.rendertype.VanillaShaderInfo;
+import io.vram.sc.concurrency.SimpleConcurrentList;
+
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.buffer.input.CanvasImmediate;
@@ -60,7 +62,6 @@ import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.MinecraftClientExt;
-import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 public class ItemRenderContext extends AbstractRenderContext {
 	/**

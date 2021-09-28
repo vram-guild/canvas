@@ -18,16 +18,17 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
-import io.vram.frex.api.material.MaterialCondition;
-import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.MeshBuilder;
-import io.vram.frex.api.renderer.Renderer;
-import io.vram.frex.api.renderer.RendererConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
+
+import io.vram.frex.api.material.MaterialCondition;
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.mesh.MeshBuilder;
+import io.vram.frex.api.renderer.Renderer;
+import io.vram.frex.api.renderer.RendererConsumer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;

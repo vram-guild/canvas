@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -39,16 +40,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 
-// WIP: remove FAPI dep
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
-
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
 // FIX: should not allow direct world access, esp from non-main threads
-public class InputRegion extends AbstractInputRegion implements RenderAttachedBlockView {
+public class InputRegion extends AbstractInputRegion implements BlockAndTintGetter {
 	private static final int[] EMPTY_AO_CACHE = new int[TOTAL_STATE_COUNT];
 	private static final int[] EMPTY_LIGHT_CACHE = new int[TOTAL_STATE_COUNT];
 	private static final Object[] EMPTY_RENDER_DATA = new Object[INTERIOR_STATE_COUNT];
@@ -193,7 +191,7 @@ public class InputRegion extends AbstractInputRegion implements RenderAttachedBl
 		return world.getBrightness(type, pos);
 	}
 
-	@Override
+	// Implements Fabrics API RenderAttachedBlockView
 	public Object getBlockEntityRenderAttachment(BlockPos pos) {
 		return isInMainChunk(pos) ? renderData[interiorIndex(pos)] : null;
 	}

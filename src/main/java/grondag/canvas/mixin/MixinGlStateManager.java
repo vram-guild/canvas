@@ -21,10 +21,11 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+
+import com.mojang.blaze3d.platform.GlStateManager;
 
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;

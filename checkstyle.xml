@@ -69,7 +69,7 @@
 		<module name="UnusedImports"/>
 
 		<module name="ImportOrder">
-			<property name="groups" value="java,javax,*,net.minecraft,net.fabricmc,grondag"/>
+			<property name="groups" value="java,javax,*,com.mojang,net.minecraft,net.fabricmc,io.vram,io.grondag,grondag"/>
 			<property name="ordered" value="false"/><!-- the plugin orders alphabetically without considering separators.. -->
 			<property name="separated" value="true"/>
 			<property name="option" value="top"/>

@@ -19,10 +19,11 @@ package grondag.canvas.mixinterface;
 import java.util.Set;
 import java.util.SortedSet;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;

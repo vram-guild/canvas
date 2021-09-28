@@ -18,11 +18,12 @@ package grondag.canvas.shader;
 
 import java.nio.FloatBuffer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.math.Matrix4f;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL21;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.math.Matrix4f;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.mixinterface.Matrix4fExt;

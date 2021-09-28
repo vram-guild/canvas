@@ -19,6 +19,7 @@ package grondag.canvas.terrain.region;
 import java.util.Queue;
 
 import com.google.common.collect.Queues;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;

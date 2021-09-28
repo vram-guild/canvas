@@ -18,11 +18,11 @@ package grondag.canvas.terrain.region;
 
 import java.util.function.Consumer;
 
-import io.vram.frex.api.model.ModelHelper;
-
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+
+import io.vram.frex.api.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.pipeline.Pipeline;

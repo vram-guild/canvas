@@ -22,11 +22,12 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL46C;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;

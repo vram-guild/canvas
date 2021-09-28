@@ -19,10 +19,9 @@ package grondag.canvas.apiimpl.rendercontext;
 import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import io.vram.frex.api.model.BlockModel;
-import io.vram.frex.api.model.ModelHelper;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
@@ -32,6 +31,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
+import io.vram.frex.api.model.BlockModel;
+import io.vram.frex.api.model.ModelHelper;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;

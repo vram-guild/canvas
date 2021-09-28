@@ -18,10 +18,11 @@ package grondag.canvas.render.terrain.cluster;
 
 import java.util.IdentityHashMap;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager.ClusterTask;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;

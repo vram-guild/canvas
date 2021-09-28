@@ -16,11 +16,12 @@
 
 package grondag.canvas.material.state;
 
-import io.vram.frex.api.material.MaterialCondition;
-import io.vram.frex.api.material.RenderMaterial;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.resources.ResourceLocation;
+
+import io.vram.frex.api.material.MaterialCondition;
+import io.vram.frex.api.material.RenderMaterial;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.MaterialTextureState;

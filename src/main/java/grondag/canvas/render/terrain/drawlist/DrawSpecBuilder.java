@@ -16,9 +16,10 @@
 
 package grondag.canvas.render.terrain.drawlist;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
 

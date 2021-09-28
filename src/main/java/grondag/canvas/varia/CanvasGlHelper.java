@@ -16,10 +16,11 @@
 
 package grondag.canvas.varia;
 
-import com.mojang.blaze3d.platform.GLX;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
+
+import com.mojang.blaze3d.platform.GLX;
 
 import net.minecraft.client.Minecraft;
 

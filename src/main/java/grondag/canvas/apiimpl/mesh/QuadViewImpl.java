@@ -42,11 +42,12 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z0;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
+
+import net.minecraft.core.Direction;
+
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.mesh.QuadView;
 import io.vram.frex.api.model.ModelHelper;
-
-import net.minecraft.core.Direction;
 
 import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.apiimpl.util.GeometryHelper;

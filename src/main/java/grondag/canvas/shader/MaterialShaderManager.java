@@ -21,10 +21,11 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.resources.ResourceLocation;
 
+import io.vram.sc.unordered.SimpleUnorderedArrayList;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.data.ShaderStrings;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.IndexedInterner;
 
 public enum MaterialShaderManager {

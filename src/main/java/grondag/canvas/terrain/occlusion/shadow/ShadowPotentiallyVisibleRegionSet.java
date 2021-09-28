@@ -18,8 +18,9 @@ package grondag.canvas.terrain.occlusion.shadow;
 
 import java.util.Arrays;
 
-import com.mojang.math.Vector3f;
 import org.jetbrains.annotations.Nullable;
+
+import com.mojang.math.Vector3f;
 
 import net.minecraft.core.BlockPos;
 

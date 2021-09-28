@@ -34,10 +34,11 @@ import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_1US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.NORMAL_TANGENT_4B;
 
 import com.mojang.blaze3d.vertex.VertexFormatElement;
-import io.vram.frex.api.material.MaterialConstants;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
+
+import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormatElement;

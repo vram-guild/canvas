@@ -19,8 +19,9 @@ package grondag.canvas.buffer.input;
 import java.util.Comparator;
 import java.util.function.Predicate;
 
-import io.vram.frex.api.mesh.FrexVertexConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import io.vram.frex.api.mesh.FrexVertexConsumer;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;

@@ -17,8 +17,10 @@
 package grondag.canvas.material.property;
 
 import com.google.common.util.concurrent.Runnables;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+
 import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.varia.GFX;

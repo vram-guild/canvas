@@ -20,7 +20,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.resources.ResourceLocation;
 
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
+import io.vram.sc.unordered.SimpleUnorderedArrayList;
 
 public class MaterialShaderId {
 	public final int index;

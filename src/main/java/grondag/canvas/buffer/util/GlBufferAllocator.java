@@ -18,8 +18,9 @@ package grondag.canvas.buffer.util;
 
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.MemoryTracker;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
+
+import com.mojang.blaze3d.platform.MemoryTracker;
 
 import grondag.canvas.varia.GFX;
 

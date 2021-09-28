@@ -16,7 +16,6 @@
 
 package grondag.canvas.texture;
 
-import io.vram.frex.api.texture.SpriteFinder;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
@@ -27,6 +26,8 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlas.Preparations;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
+
+import io.vram.frex.api.texture.SpriteFinder;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;

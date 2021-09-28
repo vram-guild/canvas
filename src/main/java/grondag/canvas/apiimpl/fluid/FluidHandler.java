@@ -19,15 +19,15 @@ package grondag.canvas.apiimpl.fluid;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.fluid.FluidAppearance;
 import io.vram.frex.api.model.fluid.FluidModel;
 import io.vram.frex.api.model.fluid.SimpleFluidModel;
 import io.vram.frex.api.renderer.Renderer;
-
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 
 public class FluidHandler {
 	// WIP: derive material from fluid render layer and move this all to FREX as the default fluid model handling

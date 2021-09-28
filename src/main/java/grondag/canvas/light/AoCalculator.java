@@ -25,10 +25,10 @@ import static grondag.canvas.terrain.util.RenderRegionStateIndexer.offsetInterio
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
 import static grondag.canvas.varia.CanvasMath.clampNormalized;
 
-import io.vram.frex.api.model.ModelHelper;
-
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+
+import io.vram.frex.api.model.ModelHelper;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;

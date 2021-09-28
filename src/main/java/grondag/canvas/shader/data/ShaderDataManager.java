@@ -127,8 +127,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
-import io.vram.frex.api.light.HeldItemLightListener;
-import io.vram.frex.api.light.ItemLight;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -146,6 +144,9 @@ import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
+
+import io.vram.frex.api.light.HeldItemLightListener;
+import io.vram.frex.api.light.ItemLight;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;

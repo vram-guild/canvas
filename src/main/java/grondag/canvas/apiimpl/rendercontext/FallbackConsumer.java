@@ -19,15 +19,15 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.List;
 import java.util.function.Consumer;
 
-import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.material.MaterialFinder;
-import io.vram.frex.api.mesh.QuadEditor;
-import io.vram.frex.api.model.ModelHelper;
-
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
+
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
+import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.model.ModelHelper;
 
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;

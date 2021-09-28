@@ -19,13 +19,14 @@ package grondag.canvas.material.state;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Strings;
-import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.material.MaterialFinder;
-import io.vram.frex.api.material.RenderMaterial;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import net.minecraft.resources.ResourceLocation;
+
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
+import io.vram.frex.api.material.RenderMaterial;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;

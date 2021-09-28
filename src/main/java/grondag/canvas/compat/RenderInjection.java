@@ -20,13 +20,14 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
-import io.vram.frex.api.renderloop.WorldRenderContext;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.transformer.meta.MixinMerged;
 
 import net.minecraft.client.renderer.LevelRenderer;
 
 import net.fabricmc.loader.api.FabricLoader;
+
+import io.vram.frex.api.renderloop.WorldRenderContext;
 
 import grondag.canvas.CanvasMod;
 

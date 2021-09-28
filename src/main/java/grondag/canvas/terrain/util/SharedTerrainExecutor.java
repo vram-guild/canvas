@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.fermion.sc.Sc;
 
 /**
  * Simple executor service with ability to submit privileged tasks
@@ -192,7 +191,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 					final TerrainExecutorTask t = renderQueue.poll();
 
 					if (t == null) {
-						Runnable runnable = serverQueue.poll();
+						final Runnable runnable = serverQueue.poll();
 
 						if (runnable != null) {
 							runnable.run();
@@ -205,7 +204,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					Sc.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
 				}
 			}
 		}
@@ -221,7 +220,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 		public void run() {
 			while (true) {
 				try {
-					Runnable runnable = serverQueue.poll();
+					final Runnable runnable = serverQueue.poll();
 
 					if (runnable == null) {
 						final TerrainExecutorTask t = renderQueue.poll();
@@ -237,7 +236,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					Sc.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
 				}
 			}
 		}
@@ -250,7 +249,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 
 	@Override
 	public void debugReport(List<String> target) {
-		long newTime = System.currentTimeMillis();
+		final long newTime = System.currentTimeMillis();
 
 		if (newTime > nextTime) {
 			nextTime = newTime + 1000;

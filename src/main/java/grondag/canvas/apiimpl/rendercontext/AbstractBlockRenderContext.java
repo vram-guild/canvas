@@ -23,12 +23,10 @@ import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.mesh.FrexBufferSource;
-import io.vram.frex.api.model.ModelHelper;
-import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
@@ -37,6 +35,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+
+import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.mesh.FrexBufferSource;
+import io.vram.frex.api.model.ModelHelper;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;

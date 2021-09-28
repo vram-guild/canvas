@@ -16,10 +16,10 @@
 
 package grondag.canvas.varia;
 
-import io.vram.frex.api.model.ModelHelper;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+
+import io.vram.frex.api.model.ModelHelper;
 
 public class BlockPosHelper {
 	private static final OffsetFunc[] FACE_OFFSETS = new OffsetFunc[6];

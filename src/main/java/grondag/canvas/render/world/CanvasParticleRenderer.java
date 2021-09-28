@@ -19,14 +19,12 @@ package grondag.canvas.render.world;
 import java.util.Iterator;
 
 import com.google.common.util.concurrent.Runnables;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.material.MaterialFinder;
-import io.vram.frex.api.material.MaterialMap;
 
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
@@ -38,6 +36,10 @@ import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
+import io.vram.frex.api.material.MaterialMap;
 
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.MaterialFinderImpl;

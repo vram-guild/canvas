@@ -16,9 +16,10 @@
 
 package grondag.canvas.perf;
 
+import io.vram.sc.concurrency.ConcurrentPerformanceCounter;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.fermion.sc.concurrency.ConcurrentPerformanceCounter;
 
 public abstract class ChunkRebuildCounters {
 	public static final boolean ENABLED = Configurator.enablePerformanceTrace;

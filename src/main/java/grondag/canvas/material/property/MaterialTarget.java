@@ -18,9 +18,9 @@ package grondag.canvas.material.property;
 
 import java.util.function.Predicate;
 
-import io.vram.frex.api.material.MaterialConstants;
-
 import net.minecraft.client.Minecraft;
+
+import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;

@@ -24,10 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -125,7 +126,7 @@ public class DirectBufferAllocator {
 			Reference<? extends DirectBufferReference> ref;
 
 			while ((ref = REFERENCES.poll()) != null) {
-				Deallocator dealloc = MAP.remove(ref);
+				final Deallocator dealloc = MAP.remove(ref);
 
 				if (dealloc == null) {
 					CanvasMod.LOG.error("Direct buffer reference not found for finalization");

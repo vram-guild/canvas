@@ -19,8 +19,9 @@ package grondag.canvas.texture;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import com.mojang.blaze3d.platform.DebugMemoryUntracker;
 import org.lwjgl.system.MemoryUtil;
+
+import com.mojang.blaze3d.platform.DebugMemoryUntracker;
 
 import grondag.canvas.varia.GFX;
 

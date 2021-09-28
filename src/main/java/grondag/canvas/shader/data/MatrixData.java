@@ -18,10 +18,11 @@ package grondag.canvas.shader.data;
 
 import java.nio.FloatBuffer;
 
+import org.lwjgl.BufferUtils;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
-import org.lwjgl.BufferUtils;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;

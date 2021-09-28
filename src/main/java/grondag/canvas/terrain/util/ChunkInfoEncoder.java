@@ -16,9 +16,9 @@
 
 package grondag.canvas.terrain.util;
 
-import io.vram.frex.api.model.ModelHelper;
-
 import net.minecraft.core.Direction;
+
+import io.vram.frex.api.model.ModelHelper;
 
 public class ChunkInfoEncoder {
 	private static final int FACE_SHIFT = 22;

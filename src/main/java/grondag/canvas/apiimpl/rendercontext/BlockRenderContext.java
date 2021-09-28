@@ -20,7 +20,6 @@ import java.util.function.Supplier;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.vram.frex.api.model.BlockModel;
 
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
@@ -29,9 +28,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.model.BlockModel;
+import io.vram.sc.concurrency.SimpleConcurrentList;
+
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 /**
  * Context for non-terrain block rendering.

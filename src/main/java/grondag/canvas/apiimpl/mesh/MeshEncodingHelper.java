@@ -17,6 +17,7 @@
 package grondag.canvas.apiimpl.mesh;
 
 import com.google.common.base.Preconditions;
+
 import io.vram.frex.api.mesh.QuadView;
 import io.vram.frex.api.model.ModelHelper;
 

@@ -21,8 +21,9 @@ import static grondag.canvas.render.terrain.cluster.SlabAllocator.BYTES_PER_SLAB
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.render.AbstractGlBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;

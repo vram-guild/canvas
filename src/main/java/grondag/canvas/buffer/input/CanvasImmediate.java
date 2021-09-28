@@ -20,20 +20,22 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import com.google.common.base.Predicates;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.FrexVertexConsumer;
-import io.vram.frex.api.mesh.FrexBufferSource;
-import io.vram.frex.api.rendertype.RenderTypeExclusion;
-import io.vram.frex.api.rendertype.RenderTypeUtil;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.Util;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.ModelBakery;
+
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.mesh.FrexBufferSource;
+import io.vram.frex.api.mesh.FrexVertexConsumer;
+import io.vram.frex.api.rendertype.RenderTypeExclusion;
+import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.property.MaterialTarget;

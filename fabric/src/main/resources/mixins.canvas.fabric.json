@@ -1,0 +1,17 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "io.vram.canvas.mixin.fabric",
+	"compatibilityLevel": "JAVA_16",
+	"plugin": "io.vram.canvas.mixin.fabric.CanvasFabricMixinPlugin",
+	"mixins": [
+		"MixinInputRegion",
+		"MixinPackedInputRegion"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"conformVisibility": true
+	}
+}

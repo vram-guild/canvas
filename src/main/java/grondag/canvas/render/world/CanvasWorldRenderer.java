@@ -21,6 +21,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -30,23 +36,6 @@ import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import com.mojang.math.Matrix4f;
-import io.vram.frex.api.config.FlawlessFrames;
-import io.vram.frex.api.renderloop.BlockOutlineListener;
-import io.vram.frex.api.renderloop.BlockOutlinePreListener;
-import io.vram.frex.api.renderloop.DebugRenderListener;
-import io.vram.frex.api.renderloop.EntityRenderPostListener;
-import io.vram.frex.api.renderloop.EntityRenderPreListener;
-import io.vram.frex.api.renderloop.FrustumSetupListener;
-import io.vram.frex.api.renderloop.TranslucentPostListener;
-import io.vram.frex.api.renderloop.WorldRenderContextBase;
-import io.vram.frex.api.renderloop.WorldRenderLastListener;
-import io.vram.frex.api.renderloop.WorldRenderPostListener;
-import io.vram.frex.api.renderloop.WorldRenderStartListener;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.Util;
 import net.minecraft.client.Camera;
@@ -78,6 +67,19 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+
+import io.vram.frex.api.config.FlawlessFrames;
+import io.vram.frex.api.renderloop.BlockOutlineListener;
+import io.vram.frex.api.renderloop.BlockOutlinePreListener;
+import io.vram.frex.api.renderloop.DebugRenderListener;
+import io.vram.frex.api.renderloop.EntityRenderPostListener;
+import io.vram.frex.api.renderloop.EntityRenderPreListener;
+import io.vram.frex.api.renderloop.FrustumSetupListener;
+import io.vram.frex.api.renderloop.TranslucentPostListener;
+import io.vram.frex.api.renderloop.WorldRenderContextBase;
+import io.vram.frex.api.renderloop.WorldRenderLastListener;
+import io.vram.frex.api.renderloop.WorldRenderPostListener;
+import io.vram.frex.api.renderloop.WorldRenderStartListener;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialConditionImpl;

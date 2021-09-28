@@ -34,18 +34,20 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U0;
 import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X0;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
-import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.FrexVertexConsumer;
-import io.vram.frex.api.mesh.QuadEditor;
-import io.vram.frex.api.model.ModelHelper;
-import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
+
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.mesh.FrexVertexConsumer;
+import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.model.ModelHelper;
 
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.apiimpl.util.TextureHelper;

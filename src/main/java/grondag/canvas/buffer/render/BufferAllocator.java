@@ -23,8 +23,9 @@ import java.util.Queue;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.util.BinIndex;
 
@@ -114,8 +115,8 @@ public class BufferAllocator<T extends AllocatableBuffer> {
 	public void forceReload() {
 		assert RenderSystem.isOnRenderThread();
 
-		for (var list : BINS) {
-			for (var buffer : list) {
+		for (final var list : BINS) {
+			for (final var buffer : list) {
 				buffer.shutdown();
 			}
 

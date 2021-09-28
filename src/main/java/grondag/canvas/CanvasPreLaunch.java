@@ -16,11 +16,12 @@
 
 package grondag.canvas;
 
-import io.vram.frex.api.renderer.RendererInitializer;
 import org.apache.logging.log4j.LogManager;
 import org.lwjgl.system.Configuration;
 import org.lwjgl.system.Platform;
 import org.lwjgl.system.jemalloc.JEmalloc;
+
+import io.vram.frex.api.renderer.RendererInitializer;
 
 public class CanvasPreLaunch {
 	public static void init(boolean isDev) {

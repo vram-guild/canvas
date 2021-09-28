@@ -19,13 +19,15 @@ package grondag.canvas.terrain.occlusion;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.vram.frex.api.config.FlawlessFrames;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
+
+import io.vram.frex.api.config.FlawlessFrames;
+import io.vram.sc.unordered.SimpleUnorderedArrayList;
 
 import grondag.bitraster.PackedBox;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
@@ -46,7 +48,6 @@ import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutorTask;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 import grondag.fermion.varia.Useful;
 
 public class TerrainIterator implements TerrainExecutorTask {

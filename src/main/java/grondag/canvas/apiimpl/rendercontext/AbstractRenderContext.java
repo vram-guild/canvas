@@ -18,6 +18,13 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.BitSet;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.level.block.state.BlockState;
+
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
@@ -25,12 +32,6 @@ import io.vram.frex.api.mesh.Mesh;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.model.ModelRenderContext;
 import io.vram.frex.api.model.QuadTransform;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jetbrains.annotations.Nullable;
-
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.world.level.block.state.BlockState;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
@@ -135,13 +136,14 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	}
 
 	@Override
-	public final void accept(Mesh mesh) {
+	public final void accept(Mesh mesh, @Nullable BlockState blockState) {
+		// WIP: Implement blockstate override
 		meshConsumer.accept(mesh);
 	}
 
 	@Override
 	public final void accept(BakedModel model, BlockState blockState) {
-		// WIP: Add blockstate to fallback consumer
+		// WIP: Implement blockstate override
 		fallbackConsumer.accept(model);
 	}
 

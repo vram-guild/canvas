@@ -21,8 +21,9 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.function.Consumer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.buffer.util.BinIndex;
 import grondag.canvas.buffer.util.BufferSynchronizer;

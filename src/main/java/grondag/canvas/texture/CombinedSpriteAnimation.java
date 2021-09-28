@@ -16,8 +16,9 @@
 
 package grondag.canvas.texture;
 
-import com.mojang.blaze3d.platform.NativeImage;
 import org.lwjgl.system.MemoryUtil;
+
+import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.util.Mth;

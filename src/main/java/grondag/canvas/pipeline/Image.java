@@ -18,8 +18,9 @@ package grondag.canvas.pipeline;
 
 import java.nio.ByteBuffer;
 
-import com.mojang.blaze3d.platform.TextureUtil;
 import org.lwjgl.opengl.GL11;
+
+import com.mojang.blaze3d.platform.TextureUtil;
 
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.render.CanvasTextureState;

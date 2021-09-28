@@ -18,27 +18,22 @@ package grondag.canvas.shader;
 
 import net.minecraft.client.Minecraft;
 
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import io.vram.sc.unordered.SimpleUnorderedArrayList;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.fermion.sc.unordered.SimpleUnorderedArrayList;
 
-public class GlProgramManager implements ClientTickEvents.EndTick {
+public class GlProgramManager {
 	public static final GlProgramManager INSTANCE = new GlProgramManager();
 
 	private GlProgramManager() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: UniformTicker init");
 		}
-
-		// WIP: remove FAPI dependency
-		ClientTickEvents.END_CLIENT_TICK.register(this);
 	}
 
 	private final SimpleUnorderedArrayList<GlProgram> programs = new SimpleUnorderedArrayList<>();
 
-	@Override
 	public void onEndTick(Minecraft client) {
 		final int limit = programs.size();
 

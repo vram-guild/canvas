@@ -16,7 +16,6 @@
 
 package grondag.canvas.material.property;
 
-import io.vram.frex.api.texture.SpriteFinder;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -25,6 +24,8 @@ import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
+
+import io.vram.frex.api.texture.SpriteFinder;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;

@@ -18,10 +18,10 @@ package grondag.canvas.material.state;
 
 import java.util.function.Predicate;
 
-import io.vram.frex.api.rendertype.RenderTypeUtil;
-
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
+
+import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.material.property.MaterialTarget;
 

@@ -16,12 +16,14 @@
 
 package grondag.canvas.mixin;
 
-import com.mojang.blaze3d.vertex.VertexFormat;
-import io.vram.frex.api.rendertype.RenderTypeUtil;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 
+import com.mojang.blaze3d.vertex.VertexFormat;
+
 import net.minecraft.client.renderer.RenderType;
+
+import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;

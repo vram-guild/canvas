@@ -20,12 +20,13 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.function.Consumer;
 
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
+
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.resources.language.I18n;
 

@@ -32,17 +32,23 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}") {
-		exclude(module: "fabric-biomes-v1")
-		exclude(module: "fabric-dimensions-v1")
-	}
+	
+	modImplementation(fabricApi.module("fabric-api-base", project.fabric_version))
+    modImplementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_version))
+    modImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
+    modImplementation(fabricApi.module( "fabric-key-binding-api-v1", project.fabric_version))
+   
+    modCompileOnly(fabricApi.module("fabric-rendering-data-attachment-v1", project.fabric_version))
+    
+    //modImplementation(fabricApi.module("fabric-rendering-fluids-v1", project.fabric_version))
+    //modImplementation(fabricApi.module("fabric-renderer-api-v1", project.fabric_version))
+    //modImplementation(fabricApi.module("fabric-renderer-indigo", project.fabric_version))
+    //modImplementation(fabricApi.module("fabric-rendering-v1", project.fabric_version))
 
 	modImplementation "org.anarres:jcpp:1.4.14"
 	
 	// The first would be sufficient but we want to bring in changes of underlying
 	modImplementation("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false; changing = true; }
-	modImplementation("grondag:frex-core-${project.mc_tag}:${project.frex_core_version}.+") { transitive = false; changing = true; }
-	modImplementation("grondag:frex-fabric-${project.mc_tag}:${project.frex_fabric_version}.+") { transitive = false; changing = true; }
 
 	modImplementation("grondag:fermion-${project.mc_tag}:${project.fermion_version}.+") {
 		transitive = false
@@ -70,6 +76,7 @@ dependencies {
 	}
 
 	modImplementation("grondag:bitraster:${bitraster_version}");
+	modImplementation("io.vram:special-circumstances:${special_circumstances_version}");
 	
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
@@ -77,14 +84,16 @@ dependencies {
 	modImplementation("grondag:jmx-${project.mc_tag}:${project.jmx_version}.+") { transitive = false; changing = true; }
 
 	if (!(gradle.startParameter.taskNames.contains("publish") || gradle.startParameter.taskNames.contains("publishToMavenLocal"))) {
+		include(fabricApi.module("fabric-api-base", project.fabric_version))
+    	include(fabricApi.module("fabric-resource-loader-v0", project.fabric_version))
+    	include(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
+    	include(fabricApi.module( "fabric-key-binding-api-v1", project.fabric_version))
 		// frex jar contains no code but prevents loader from loading older versions
 		include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
-		include "grondag:frex-core-${project.mc_tag}:${project.frex_core_version}.+"
-		include "grondag:frex-fabric-${project.mc_tag}:${project.frex_fabric_version}.+"
 		include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
 		include "grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+"
 		include "grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+"
-		include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
+		include "io.vram:special-circumstances:${special_circumstances_version}"
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
 		include "me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}"
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"

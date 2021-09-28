@@ -18,8 +18,9 @@ package grondag.canvas.texture;
 
 import java.nio.ByteBuffer;
 
-import com.mojang.blaze3d.platform.TextureUtil;
 import org.jetbrains.annotations.Nullable;
+
+import com.mojang.blaze3d.platform.TextureUtil;
 
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;

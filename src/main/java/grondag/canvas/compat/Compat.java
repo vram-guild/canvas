@@ -16,6 +16,11 @@
 
 package grondag.canvas.compat;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.phys.Vec3;
+
 import io.vram.frex.api.renderloop.DebugRenderListener;
 import io.vram.frex.api.renderloop.EntityRenderPostListener;
 import io.vram.frex.api.renderloop.EntityRenderPreListener;
@@ -25,11 +30,6 @@ import io.vram.frex.api.renderloop.TranslucentPostListener;
 import io.vram.frex.api.renderloop.WorldRenderLastListener;
 import io.vram.frex.api.renderloop.WorldRenderPostListener;
 import io.vram.frex.api.renderloop.WorldRenderStartListener;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.world.phys.Vec3;
 
 public class Compat {
 	private Compat() { }

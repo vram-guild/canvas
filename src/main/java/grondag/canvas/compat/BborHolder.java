@@ -21,13 +21,15 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
 import com.google.common.util.concurrent.Runnables;
+
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.vram.frex.api.renderloop.WorldRenderContext;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 
 import net.fabricmc.loader.api.FabricLoader;
+
+import io.vram.frex.api.renderloop.WorldRenderContext;
 
 import grondag.canvas.CanvasMod;
 

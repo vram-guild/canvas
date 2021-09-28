@@ -14,30 +14,14 @@
  *  the License.
  */
 
-package grondag.canvas.mixin;
+package io.vram.canvas.mixin.fabric;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.client.renderer.RenderType;
+import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
 
-import io.vram.frex.api.material.MaterialConstants;
+import grondag.canvas.terrain.region.input.InputRegion;
 
-import grondag.canvas.mixinterface.RenderTypeExt;
-
-@Mixin(RenderType.class)
-public class MixinRenderType implements RenderTypeExt {
-	@Shadow private boolean sortOnUpload;
-
-	private int preset = MaterialConstants.PRESET_DEFAULT;
-
-	@Override
-	public void canvas_preset(int preset) {
-		this.preset = preset;
-	}
-
-	@Override
-	public int canvas_preset() {
-		return preset;
-	}
-}
+/** Attached Fabric API interface to our render regions when needed for compat. */
+@Mixin(InputRegion.class)
+public abstract class MixinInputRegion implements RenderAttachedBlockView { }

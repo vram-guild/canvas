@@ -19,9 +19,6 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.function.Supplier;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.model.BlockModel;
 
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -36,10 +33,14 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.model.BlockModel;
+import io.vram.sc.concurrency.SimpleConcurrentList;
+
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.render.world.CanvasWorldRenderer;
-import grondag.fermion.sc.concurrency.SimpleConcurrentList;
 
 /**
  * Context used when blocks are rendered as part of an entity.

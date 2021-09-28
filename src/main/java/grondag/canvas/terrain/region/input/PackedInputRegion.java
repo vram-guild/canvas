@@ -75,9 +75,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
-// WIP: remove FAPI dep
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
-
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.terrain.util.ChunkPaletteCopier;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
@@ -197,7 +194,7 @@ public class PackedInputRegion extends AbstractInputRegion {
 			blockEntityPos.add(key);
 			blockEntities.add(be);
 
-			final Object rd = ((RenderAttachmentBlockEntity) be).getRenderAttachmentData();
+			final Object rd = readBlockEntity(be);
 
 			if (rd != null) {
 				renderDataPos.add(key);
@@ -333,5 +330,10 @@ public class PackedInputRegion extends AbstractInputRegion {
 		renderData.clear();
 
 		release(this);
+	}
+
+	// Overwritten to read data attachment when Fabric API is present
+	private static Object readBlockEntity(BlockEntity be) {
+		return null;
 	}
 }
