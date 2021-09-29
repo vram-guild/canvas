@@ -5,8 +5,7 @@
 	"compatibilityLevel": "JAVA_16",
 	"plugin": "io.vram.canvas.mixin.fabric.CanvasFabricMixinPlugin",
 	"mixins": [
-		"MixinInputRegion",
-		"MixinPackedInputRegion"
+		"MixinInputRegion"
 	],
 	"injectors": {
 		"defaultRequire": 1

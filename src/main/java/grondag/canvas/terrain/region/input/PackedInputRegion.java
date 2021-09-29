@@ -75,6 +75,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
+import io.vram.frex.api.world.BlockEntityRenderData;
+
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.terrain.util.ChunkPaletteCopier;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
@@ -194,7 +196,7 @@ public class PackedInputRegion extends AbstractInputRegion {
 			blockEntityPos.add(key);
 			blockEntities.add(be);
 
-			final Object rd = readBlockEntity(be);
+			final Object rd = BlockEntityRenderData.get(be);
 
 			if (rd != null) {
 				renderDataPos.add(key);
@@ -330,10 +332,5 @@ public class PackedInputRegion extends AbstractInputRegion {
 		renderData.clear();
 
 		release(this);
-	}
-
-	// Overwritten to read data attachment when Fabric API is present
-	private static Object readBlockEntity(BlockEntity be) {
-		return null;
 	}
 }
