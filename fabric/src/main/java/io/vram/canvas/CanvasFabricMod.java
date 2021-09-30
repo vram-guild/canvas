@@ -32,13 +32,7 @@ import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 
-import io.vram.frex.api.model.fluid.FluidModel;
-import io.vram.frex.api.renderloop.RenderReloadListener;
-
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.Canvas;
-import grondag.canvas.apiimpl.fluid.FluidHandler;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.texture.MaterialIndexProvider;
@@ -50,10 +44,6 @@ public class CanvasFabricMod implements ClientModInitializer {
 		CanvasMod.versionString = FabricLoader.getInstance().getModContainer(CanvasMod.MODID).get().getMetadata().getVersion().getFriendlyString();
 
 		CanvasMod.init();
-
-		FluidModel.setReloadHandler(FluidHandler.HANDLER);
-
-		RenderReloadListener.register(Canvas.instance()::reload);
 
 		KeyBindingHelper.registerKeyBinding(CanvasMod.DEBUG_TOGGLE);
 		KeyBindingHelper.registerKeyBinding(CanvasMod.DEBUG_PREV);
@@ -81,10 +71,6 @@ public class CanvasFabricMod implements ClientModInitializer {
 				ResourceCacheManager.invalidate();
 			}
 		});
-
-		if (Configurator.enableLifeCycleDebug) {
-			CanvasMod.LOG.info("Lifecycle Event: UniformTicker init");
-		}
 
 		ClientTickEvents.END_CLIENT_TICK.register(GlProgramManager.INSTANCE::onEndTick);
 	}

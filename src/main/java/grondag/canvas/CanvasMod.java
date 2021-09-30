@@ -35,9 +35,13 @@ import net.minecraft.client.resources.model.ModelBakery;
 
 import io.vram.frex.api.config.FrexFeature;
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.model.fluid.FluidModel;
+import io.vram.frex.api.renderloop.RenderReloadListener;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 
+import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
@@ -64,6 +68,10 @@ public class CanvasMod {
 	public static String versionString = "unknown";
 
 	public static void init() {
+		if (Configurator.enableLifeCycleDebug) {
+			CanvasMod.LOG.info("Lifecycle Event: Canvas mod initialization");
+		}
+
 		ConfigManager.init();
 		FrexFeature.registerFeatures(FrexFeature.UPDATE_MATERIAL_REGISTRATION);
 
@@ -117,6 +125,9 @@ public class CanvasMod {
 
 			return false;
 		});
+
+		FluidModel.setReloadHandler(FluidHandler.HANDLER);
+		RenderReloadListener.register(Canvas.instance()::reload);
 
 		Compat.init();
 	}
