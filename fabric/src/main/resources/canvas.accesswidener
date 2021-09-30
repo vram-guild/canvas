@@ -91,10 +91,37 @@ accessible   field   net/minecraft/client/renderer/RenderStateShard   LINES_SHAD
 accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       colorTextureId I
 accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       depthBufferId I
 
+accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
+accessible field net/minecraft/client/renderer/RenderType$CompositeRenderType state Lnet/minecraft/client/renderer/RenderType$CompositeState;
+accessible field net/minecraft/client/renderer/RenderType$CompositeRenderType outline Ljava/util/Optional;
+accessible field net/minecraft/client/renderer/RenderType$CompositeRenderType isOutline Z
+
 accessible class net/minecraft/client/renderer/RenderType$OutlineProperty
+
 accessible class net/minecraft/client/renderer/RenderType$CompositeState
+accessible field net/minecraft/client/renderer/RenderType$CompositeState textureState Lnet/minecraft/client/renderer/RenderStateShard$EmptyTextureStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState shaderState Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState transparencyState Lnet/minecraft/client/renderer/RenderStateShard$TransparencyStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState depthTestState Lnet/minecraft/client/renderer/RenderStateShard$DepthTestStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState cullState Lnet/minecraft/client/renderer/RenderStateShard$CullStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState lightmapState Lnet/minecraft/client/renderer/RenderStateShard$LightmapStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState overlayState Lnet/minecraft/client/renderer/RenderStateShard$OverlayStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState layeringState Lnet/minecraft/client/renderer/RenderStateShard$LayeringStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState outputState Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState texturingState Lnet/minecraft/client/renderer/RenderStateShard$TexturingStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState writeMaskState Lnet/minecraft/client/renderer/RenderStateShard$WriteMaskStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState lineState Lnet/minecraft/client/renderer/RenderStateShard$LineStateShard;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState outlineProperty Lnet/minecraft/client/renderer/RenderType$OutlineProperty;
+accessible field net/minecraft/client/renderer/RenderType$CompositeState states Lcom/google/common/collect/ImmutableList;
+
 accessible class net/minecraft/client/renderer/RenderStateShard$TextureStateShard
+accessible field net/minecraft/client/renderer/RenderStateShard$TextureStateShard texture Ljava/util/Optional;
+accessible field net/minecraft/client/renderer/RenderStateShard$TextureStateShard blur Z
+accessible field net/minecraft/client/renderer/RenderStateShard$TextureStateShard mipmap Z
+
 accessible class net/minecraft/client/renderer/RenderStateShard$ShaderStateShard
+accessible field net/minecraft/client/renderer/RenderStateShard$ShaderStateShard shader Ljava/util/Optional;
+
 accessible class net/minecraft/client/renderer/RenderStateShard$LayeringStateShard
 accessible class net/minecraft/client/renderer/RenderStateShard$DepthTestStateShard
 accessible class net/minecraft/client/renderer/RenderStateShard$OutputStateShard
@@ -119,3 +146,7 @@ accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$FrameI
 accessible class net/minecraft/client/renderer/texture/Stitcher$Holder
 
 accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$Info metadata Lnet/minecraft/client/resources/metadata/animation/AnimationMetadataSection;
+
+accessible field net/minecraft/client/renderer/entity/EntityRenderDispatcher SHADOW_RENDER_TYPE Lnet/minecraft/client/renderer/RenderType;
+
+accessible field net/minecraft/client/renderer/ShaderInstance name Ljava/lang/String;

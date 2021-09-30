@@ -53,12 +53,12 @@ processResources {
 }
 
 license {
-	header rootProject.file("HEADER")
+	header rootProject.file("../HEADER")
 	include "**/*.java"
 }
 
 checkstyle {
-	configFile = rootProject.file("checkstyle.xml")
+	configFile = rootProject.file("../checkstyle.xml")
 	toolVersion = "8.44"
 }
 
@@ -76,7 +76,7 @@ tasks.withType(JavaCompile) {
 }
 
 jar {
-	from "LICENSE"
+	from "../LICENSE"
 	manifest
 			{
 				attributes "Implementation-Title": project.archivesBaseName
@@ -106,19 +106,19 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 sourceSets {
 	main {
 		java {
-			include 'grondag/**/*'
-			include 'fabric/vram/**/*'
+			srcDirs = ['../src/main/java', 'src/main/java']
+			include '**/*'
 			exclude '*.DS_Store'
 		}
-		resources
-				{
-					include '**/*'
-					exclude '*.DS_Store'
-				}
+		resources {
+			srcDirs = ['../src/main/resources', 'src/main/resources']
+			include '**/*'
+			exclude '*.DS_Store'
+		}
 	}
 	test {
 		java {
-			exclude 'grondag/**'
+			exclude '**/*'
 		}
 	}
 }

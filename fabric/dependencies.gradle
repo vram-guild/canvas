@@ -59,7 +59,7 @@ dependencies {
 
 	modImplementation("grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+") { transitive = false; changing = true; }
 	modImplementation("grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+") { transitive = false; changing = true; }
-	modImplementation("grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+") { transitive = false; changing = true;  }
+	modImplementation("io.vram:special-circumstances:${project.special_circumstances_version}.+") { transitive = false; changing = true;  }
 
 	modImplementation("io.github.cottonmc:Jankson-Fabric:${jankson_version}") {
 		exclude group: "net.fabricmc.fabric-api"
@@ -93,7 +93,7 @@ dependencies {
 		include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
 		include "grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+"
 		include "grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+"
-		include "io.vram:special-circumstances:${special_circumstances_version}"
+		include "io.vram:special-circumstances:${special_circumstances_version}.+"
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
 		include "me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}"
 		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
