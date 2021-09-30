@@ -56,6 +56,7 @@ public class EnumConfigEntry extends OptionConfigEntry<EnumConfigEntry> {
 	@Override
 	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
 		return builder.startSelector(new TranslatableComponent(nameKey), choices, value)
+				.setDefaultValue(defaultVal)
 				.setTooltip(ConfigManager.parse(descriptionKey))
 				.setNameProvider(o -> new TextComponent(o.toUpperCase(Locale.ROOT)))
 				.setSaveConsumer(v -> value = v)
