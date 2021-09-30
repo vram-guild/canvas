@@ -39,18 +39,11 @@
   "depends": {
 	"fabricloader": ">=0.11.3",
     "minecraft": "1.17.x",
-    "java": ">=16",
-	"fabric-api-base": "*",
-	"fabric-renderer-api-v1": "*",
-	"fabric-rendering-data-attachment-v1": "*"
+    "java": ">=16"
   },
   "breaks": {
 	"sodium": "*",
 	"retino": "*"
-  },
-  "custom": {
-	"fabric-renderer-api-v1:contains_renderer": true,
-	"frex:contains_frex_renderer": true
   },
   "accessWidener": "canvas.accesswidener"
 }

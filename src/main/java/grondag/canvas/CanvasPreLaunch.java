@@ -21,8 +21,6 @@ import org.lwjgl.system.Configuration;
 import org.lwjgl.system.Platform;
 import org.lwjgl.system.jemalloc.JEmalloc;
 
-import io.vram.frex.api.renderer.RendererInitializer;
-
 public class CanvasPreLaunch {
 	public static void init(boolean isDev) {
 		// Hat tip to JellySquid for this...
@@ -35,8 +33,6 @@ public class CanvasPreLaunch {
 				LogManager.getLogger("Canvas").info("Canvas configured LWJGL to use the system memory allocator due to a potential memory leak in JEmalloc.");
 			}
 		}
-
-		RendererInitializer.register("grondag.canvas.apiimpl.Canvas", "instance", Thread.currentThread().getContextClassLoader(), false);
 
 		if (isDev) {
 			try {

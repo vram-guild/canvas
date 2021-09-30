@@ -28,7 +28,6 @@ import io.vram.frex.api.material.MaterialCondition;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.MeshBuilder;
 import io.vram.frex.api.renderer.Renderer;
-import io.vram.frex.api.renderer.RendererConsumer;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
@@ -57,10 +56,6 @@ public class Canvas implements Renderer {
 
 	public static Canvas instance() {
 		return instance;
-	}
-
-	public static void initialize() {
-		RendererConsumer.accept(instance);
 	}
 
 	private final Object2ObjectOpenHashMap<ResourceLocation, RenderMaterialImpl> materialMap = new Object2ObjectOpenHashMap<>();
