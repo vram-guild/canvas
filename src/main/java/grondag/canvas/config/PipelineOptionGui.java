@@ -41,8 +41,6 @@ public class PipelineOptionGui {
 				.setTitle(new TranslatableComponent("config.canvas.value.pipeline_config"))
 				.setAlwaysShowTabs(false)
 				.setShouldListSmoothScroll(true)
-				.setShouldListSmoothScroll(true)
-				.setAlwaysShowTabs(true)
 				.setDoesConfirmSave(false);
 
 		builder.setGlobalized(true);

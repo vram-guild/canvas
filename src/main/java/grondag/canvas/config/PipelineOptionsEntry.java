@@ -30,31 +30,13 @@ import me.shedaniel.clothconfig2.gui.entries.TooltipListEntry;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.chat.NarratorChatListener;
-import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.TranslatableComponent;
 
 public class PipelineOptionsEntry extends TooltipListEntry<Void> {
-	private final AbstractButton buttonWidget = new AbstractButton(0, 0, 115, 20, NarratorChatListener.NO_TITLE) {
-		@Override
-		public void onPress() {
-			Minecraft.getInstance().setScreen(PipelineOptionGui.display(ConfigGui.pipeline()));
-		}
-
-		@Override
-		public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
-			setMessage(new TranslatableComponent("config.canvas.value.pipeline_config"));
-			super.render(matrices, mouseX, mouseY, delta);
-		}
-
-		@Override
-		public void updateNarration(NarrationElementOutput builder) {
-			// Currently unimplemented
-		}
-	};
+	private final Button buttonWidget = new Button(0, 0, 115, 20, new TranslatableComponent("config.canvas.value.pipeline_config"), b -> Minecraft.getInstance().setScreen(PipelineOptionGui.display(ConfigGui.pipeline())));
 
 	private final List<GuiEventListener> children = ImmutableList.of(buttonWidget);
 
