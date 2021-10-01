@@ -146,6 +146,7 @@
   "key.canvas.recompile": "Recompile Shaders",
   "config.canvas.value.pipeline": "Pipeline",
   "config.canvas.help.pipeline": "Renderer configuration. Determines appearance, ;performance and available options.",
+  "config.canvas.category.pipeline_selection": "Select a Pipeline",
   "config.canvas.category.empty": "This pipeline has no configuration options",
   "config.canvas.value.pipeline_config": "Pipeline Options",
   "config.canvas.help.pipeline_config": "Available options depend on selected pipeline.",

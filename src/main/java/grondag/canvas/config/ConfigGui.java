@@ -72,23 +72,19 @@ import static grondag.canvas.config.Configurator.useCombinedThreadPool;
 import static grondag.canvas.config.Configurator.wavyGrass;
 
 import java.lang.ref.WeakReference;
-import java.util.Optional;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-import me.shedaniel.clothconfig2.gui.entries.SelectionListEntry;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
-import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
-import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
 
 public class ConfigGui {
@@ -98,7 +94,7 @@ public class ConfigGui {
 	 * Use to stash parent screen during display.
 	 */
 	private static WeakReference<Screen> configScreen;
-	private static SelectionListEntry<PipelineDescription> pipeline;
+	private static PipelineSelectorEntry pipeline;
 
 	static ResourceLocation pipeline() {
 		return pipeline == null ? PipelineConfig.DEFAULT_ID : pipeline.getValue().id;
@@ -125,19 +121,7 @@ public class ConfigGui {
 		// FEATURES
 		final ConfigCategory features = builder.getOrCreateCategory(new TranslatableComponent("config.canvas.category.features"));
 
-		pipeline = ENTRY_BUILDER
-				.startSelector(new TranslatableComponent("config.canvas.value.pipeline"), PipelineLoader.array(), PipelineLoader.get(pipelineId))
-				.setNameProvider(o -> new TextComponent(o.name()))
-				.setTooltip(parse("config.canvas.help.pipeline"))
-				.setTooltipSupplier(o -> Optional.of(parse(o.descriptionKey)))
-				.setSaveConsumer(b -> {
-					if (!b.id.toString().equals(pipelineId)) {
-						Canvas.instance().recompile();
-						reload = true;
-						pipelineId = b.id.toString();
-					}
-				})
-				.build();
+		pipeline = new PipelineSelectorEntry(PipelineLoader.get(pipelineId));
 
 		features.addEntry(pipeline);
 
