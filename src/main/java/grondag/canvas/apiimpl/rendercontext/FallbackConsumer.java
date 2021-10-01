@@ -21,7 +21,6 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
@@ -58,7 +57,7 @@ import grondag.canvas.material.state.RenderMaterialImpl;
  * vertex data is sent to the byte buffer.  Generally POJO array access will be faster than
  * manipulating the data via NIO.
  */
-public class FallbackConsumer implements Consumer<BakedModel> {
+public class FallbackConsumer {
 	protected static final int BLEND_MODE_COUNT;
 	protected static final int FLAT_INDEX_START;
 	protected static final int SHADED_INDEX_START;
@@ -132,10 +131,9 @@ public class FallbackConsumer implements Consumer<BakedModel> {
 		this.context = context;
 	}
 
-	@Override
-	public void accept(BakedModel model) {
+	public void accept(BakedModel model, BlockState blockStateIn) {
 		final boolean useAo = context.defaultAo() && model.useAmbientOcclusion();
-		final BlockState blockState = context.blockState();
+		final BlockState blockState = blockStateIn == null ? context.blockState() : blockStateIn;
 
 		acceptFaceQuads(FaceConstants.DOWN_INDEX, useAo, model.getQuads(blockState, Direction.DOWN, context.random()));
 		acceptFaceQuads(FaceConstants.UP_INDEX, useAo, model.getQuads(blockState, Direction.UP, context.random()));

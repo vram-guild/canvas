@@ -148,8 +148,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 
 	@Override
 	public final void accept(BakedModel model, BlockState blockState) {
-		// WIP: Implement blockstate override
-		fallbackConsumer.accept(model);
+		fallbackConsumer.accept(model, blockState);
 	}
 
 	@Override
