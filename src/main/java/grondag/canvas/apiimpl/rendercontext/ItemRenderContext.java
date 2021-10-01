@@ -55,6 +55,7 @@ import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexBufferSource;
 import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
+import io.vram.frex.api.world.ItemColorRegistry;
 import io.vram.sc.concurrency.SimpleConcurrentList;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
@@ -65,7 +66,6 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.MinecraftClientExt;
 
 public class ItemRenderContext extends AbstractRenderContext {
 	/**
@@ -76,7 +76,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
 
 	private static final Supplier<ThreadLocal<ItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
-		final ItemRenderContext result = new ItemRenderContext(((MinecraftClientExt) Minecraft.getInstance()).canvas_itemColors());
+		final ItemRenderContext result = new ItemRenderContext(ItemColorRegistry.get());
 		LOADED.add(result);
 		return result;
 	});
