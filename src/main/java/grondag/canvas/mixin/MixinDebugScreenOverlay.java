@@ -87,7 +87,7 @@ public class MixinDebugScreenOverlay extends GuiComponent {
 		}
 	}
 
-	@Redirect(method = "getSystemInformation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlUtil;getOpenGLVersion()Ljava/lang/String;", remap = false), require = 1)
+	@Redirect(method = "getSystemInformation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlUtil;getOpenGLVersion()Ljava/lang/String;"), require = 1)
 	private String onGetGlDebugVersion() {
 		return GlUtil.getOpenGLVersion() + " (OGL " + CanvasGlHelper.maxGlVersion() + " available)";
 	}
