@@ -23,7 +23,7 @@ loom {
 	accessWidenerPath = file("src/main/resources/${project.mod_name}.accesswidener")
 }
 
-def artifact_name = project.mod_name + "-" + project.mc_tag
+def artifact_name = project.mod_name + "-fabric-" + project.mc_tag
 
 project.archivesBaseName = artifact_name
 
@@ -140,27 +140,16 @@ publishing {
 	repositories {
 		mavenLocal()
         maven {
-            url = 's3://maven-vram-io/releases'
-            credentials(AwsCredentials) {
-            	if (project.hasProperty('aws_id')){
-					accessKey = project.getProperty('aws_id')
+            url = 'sftp://maven.vram.io:22'
+            credentials {
+            	if (project.hasProperty('maven_user')){
+					username = project.getProperty('maven_user')
 				}
-				if (project.hasProperty('aws_key')){
-					secretKey = project.getProperty('aws_key')
+				if (project.hasProperty('maven_password')){
+					password = project.getProperty('maven_password')
 				}
             }
         }
-		maven {
-			url 'sftp://dblsaiko.net:22/var/maven'
-			credentials {
-				if (project.hasProperty('maven_user_2')) {
-					username = project.getProperty('maven_user_2')
-				}
-				if (project.hasProperty('maven_password_2')) {
-					password = project.getProperty('maven_password_2')
-				}
-			}
-		}
 	}
 }
 

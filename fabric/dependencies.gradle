@@ -8,8 +8,7 @@ repositories {
 	}
  	maven {
 		name = "vram"
-		url = "http://maven.vram.io"
-		allowInsecureProtocol = true
+		url = "https://maven.vram.io"
 	}
 	maven {
 		name = "Cotton"
@@ -49,7 +48,7 @@ dependencies {
 	modImplementation "org.anarres:jcpp:1.4.14"
 	
 	// The first would be sufficient but we want to bring in changes of underlying
-	modImplementation("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false; changing = true; }
+	modImplementation("io.vram:frex-fabric-${project.mc_tag}:${project.frex_version}.+") { transitive = false; changing = true; }
 
 	modImplementation("grondag:fermion-${project.mc_tag}:${project.fermion_version}.+") {
 		transitive = false
@@ -76,13 +75,13 @@ dependencies {
 		exclude group: "net.fabricmc.fabric-loader"
 	}
 
-	modImplementation("grondag:bitraster:${bitraster_version}");
-	modImplementation("io.vram:special-circumstances:${special_circumstances_version}");
+	modImplementation("io.vram:bitraster:${bitraster_version}") { changing = true; }
+	modImplementation("io.vram:special-circumstances:${special_circumstances_version}") { changing = true; }
 	
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
 
-	modImplementation("grondag:jmx-${project.mc_tag}:${project.jmx_version}.+") { transitive = false; changing = true; }
+	modImplementation("io.vram:jmx-fabric-${project.mc_tag}:${project.jmx_version}.+") { transitive = false; changing = true; }
 
 	if (!(gradle.startParameter.taskNames.contains("publish") || gradle.startParameter.taskNames.contains("publishToMavenLocal"))) {
 		include(fabricApi.module("fabric-api-base", project.fabric_version))
@@ -90,15 +89,15 @@ dependencies {
     	include(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
     	include(fabricApi.module( "fabric-key-binding-api-v1", project.fabric_version))
 		// frex jar contains no code but prevents loader from loading older versions
-		include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
+		include "io.vram:frex-fabric-${project.mc_tag}:${project.frex_version}.+"
 		include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
 		include "grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+"
 		include "grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+"
 		include "io.vram:special-circumstances:${special_circumstances_version}.+"
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
 		include "me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}"
-		include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
-		include "grondag:bitraster:${bitraster_version}"
+		include "io.vram:jmx-fabric-${project.mc_tag}:${project.jmx_version}.+"
+		include "io.vram:bitraster:${bitraster_version}"
 		include "org.anarres:jcpp:1.4.14"
 	}
 

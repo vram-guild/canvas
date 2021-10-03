@@ -66,7 +66,8 @@ public class PipelineSelectionEntry extends TooltipListEntry<Boolean> {
 					vLine(poseStack, x + width - 1, y, y + height, 0xFFFFFFFF);
 				}
 
-				Font font = Minecraft.getInstance().font;
+				@SuppressWarnings("resource")
+				final Font font = Minecraft.getInstance().font;
 				drawCenteredString(poseStack, font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, 16777215 | Mth.ceil(this.alpha * 255.0F) << 24);
 			}
 
