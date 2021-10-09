@@ -163,7 +163,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	}
 
 	@Override
-	protected boolean cullTest(int faceIndex) {
+	public boolean cullTest(int faceIndex) {
 		if (faceIndex == ModelHelper.UNASSIGNED_INDEX) {
 			return true;
 		}

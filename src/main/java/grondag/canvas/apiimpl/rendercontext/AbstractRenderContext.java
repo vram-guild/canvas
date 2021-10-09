@@ -27,7 +27,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialConstants;
@@ -141,18 +140,13 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	}
 
 	@Override
-	public final void accept(BakedModel model, BlockState blockState) {
-		fallbackConsumer.accept(model, blockState);
-	}
-
-	@Override
 	public final QuadEditor quadEmitter() {
 		makerQuad.clear();
 		return makerQuad;
 	}
 
 	// for use by fallback consumer
-	protected boolean cullTest(int faceIndex) {
+	public boolean cullTest(int faceIndex) {
 		return true;
 	}
 
