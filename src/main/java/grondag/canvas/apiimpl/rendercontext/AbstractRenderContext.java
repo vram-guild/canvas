@@ -34,7 +34,7 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.QuadEditor;
-import io.vram.frex.api.model.ModelRenderContext;
+import io.vram.frex.api.model.ModelOuputContext;
 import io.vram.frex.api.model.QuadTransform;
 
 import grondag.canvas.CanvasMod;
@@ -47,7 +47,7 @@ import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 // UGLY: consolidate and simplify this class hierarchy
-public abstract class AbstractRenderContext extends AbstractEncodingContext implements ModelRenderContext {
+public abstract class AbstractRenderContext extends AbstractEncodingContext implements ModelOuputContext {
 	private static final QuadTransform NO_TRANSFORM = (q) -> true;
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
