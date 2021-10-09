@@ -133,7 +133,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 		fullCubeCache = 0;
 		seed = 42;
 		defaultAo = false;
-		defaultBlendMode = MaterialConstants.PRESET_SOLID;
+		defaultPreset = MaterialConstants.PRESET_SOLID;
 
 		((BlockModel) model).renderAsBlock(region, null, pos, this);
 		defaultConsumer = null;

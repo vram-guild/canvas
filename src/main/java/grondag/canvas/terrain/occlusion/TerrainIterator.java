@@ -31,11 +31,11 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 
 import io.vram.frex.api.config.FlawlessFrames;
+import io.vram.frex.api.model.ModelHelper;
 import io.vram.sc.unordered.SimpleUnorderedArrayList;
 
 import grondag.bitraster.PackedBox;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
@@ -257,7 +257,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			final int x = BlockPos.getX(cameraChunkOrigin);
 			final int z = BlockPos.getZ(cameraChunkOrigin);
 			final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
-			final int entryFace = above ? FaceConstants.UP_FLAG : FaceConstants.DOWN_FLAG;
+			final int entryFace = above ? ModelHelper.UP_FLAG : ModelHelper.DOWN_FLAG;
 
 			for (int i = 0; i < limit; ++i) {
 				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
@@ -277,7 +277,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			if (Pipeline.advancedTerrainCulling()) {
 				cameraRegion.cameraVisibility.addIfValid();
 			} else {
-				cameraRegion.cameraVisibility.addIfValid(FaceConstants.ALL_REAL_FACE_FLAGS);
+				cameraRegion.cameraVisibility.addIfValid(ModelHelper.ALL_REAL_FACE_FLAGS);
 			}
 		}
 	}

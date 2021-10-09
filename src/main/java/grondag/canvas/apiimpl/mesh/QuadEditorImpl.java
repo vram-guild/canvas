@@ -101,7 +101,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
 		isGeometryInvalid = true;
 		isTangentInvalid = true;
-		nominalFaceId = ModelHelper.NULL_FACE_ID;
+		nominalFaceId = ModelHelper.UNASSIGNED_INDEX;
 		material(defaultMaterial);
 		isSpriteInterpolated = false;
 		vertexIndex = 0;

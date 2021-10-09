@@ -112,7 +112,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 		defaultAo = modelAO && Minecraft.useAmbientOcclusion() && blockState.getLightEmission() == 0;
 
 		// FEAT: support additional blend modes on terrain blocks?
-		defaultBlendMode = isFluidModel
+		defaultPreset = isFluidModel
 			? ((RenderTypeExt) ItemBlockRenderTypes.getRenderLayer(blockState.getFluidState())).canvas_preset()
 			: ((RenderTypeExt) ItemBlockRenderTypes.getChunkRenderType(blockState)).canvas_preset();
 	}
@@ -169,7 +169,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 		// To mirror Vanilla's behavior, if the face has a cull-face, always sample the light value
 		// offset in that direction. See net.minecraft.client.render.block.BlockModelRenderer.renderFlat
 		// for reference.
-		if (quad.cullFaceId() != ModelHelper.NULL_FACE_ID) {
+		if (quad.cullFaceId() != ModelHelper.UNASSIGNED_INDEX) {
 			internalSearchPos.move(quad.cullFace());
 		} else if ((quad.geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) != 0 || isFullCube()) {
 			internalSearchPos.move(quad.lightFace());

@@ -76,7 +76,7 @@ public abstract class MeshEncodingHelper {
 
 	static {
 		EMPTY[HEADER_COLOR_INDEX] = -1;
-		EMPTY[HEADER_BITS] = MeshEncodingHelper.cullFace(0, ModelHelper.NULL_FACE_ID);
+		EMPTY[HEADER_BITS] = MeshEncodingHelper.cullFace(0, ModelHelper.UNASSIGNED_INDEX);
 	}
 
 	public static final int DEFAULT_HEADER_BITS;
@@ -109,8 +109,8 @@ public abstract class MeshEncodingHelper {
 
 	static {
 		int defaultHeader = 0;
-		defaultHeader = cullFace(defaultHeader, ModelHelper.NULL_FACE_ID);
-		defaultHeader = lightFace(defaultHeader, ModelHelper.NULL_FACE_ID);
+		defaultHeader = cullFace(defaultHeader, ModelHelper.UNASSIGNED_INDEX);
+		defaultHeader = lightFace(defaultHeader, ModelHelper.UNASSIGNED_INDEX);
 		DEFAULT_HEADER_BITS = defaultHeader;
 	}
 

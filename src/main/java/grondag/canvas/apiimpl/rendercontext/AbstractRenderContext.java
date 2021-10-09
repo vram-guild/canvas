@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialConstants;
@@ -73,7 +72,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	};
 
 	protected MaterialMap materialMap = defaultMap;
-	protected int defaultBlendMode;
+	protected int defaultPreset;
 	protected boolean isFluidModel = false;
 	private QuadTransform activeTransform = NO_TRANSFORM;
 
@@ -225,7 +224,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		int bm = finder.preset();
 
 		if (bm == MaterialConstants.PRESET_DEFAULT) {
-			bm = defaultBlendMode;
+			bm = defaultPreset;
 			finder.preset(MaterialConstants.PRESET_NONE);
 		}
 
@@ -266,11 +265,6 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 			default:
 				assert false : "Unhandled blend mode";
 		}
-	}
-
-	@Override
-	public @Nullable Object blockEntityRenderData(BlockPos pos) {
-		return null;
 	}
 
 	/**

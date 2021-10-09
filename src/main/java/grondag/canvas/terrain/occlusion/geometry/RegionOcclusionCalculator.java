@@ -33,8 +33,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.model.ModelHelper;
+
 import grondag.bitraster.PackedBox;
-import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 
@@ -704,29 +705,29 @@ public abstract class RegionOcclusionCalculator {
 		final int x = xyz4 & 0xF;
 
 		if (x == 0) {
-			visitedFacesMask |= FaceConstants.WEST_FLAG;
+			visitedFacesMask |= ModelHelper.WEST_FLAG;
 			return;
 		} else if (x == 15) {
-			visitedFacesMask |= FaceConstants.EAST_FLAG;
+			visitedFacesMask |= ModelHelper.EAST_FLAG;
 			return;
 		}
 
 		final int y = xyz4 & 0xF0;
 
 		if (y == 0) {
-			visitedFacesMask |= FaceConstants.DOWN_FLAG;
+			visitedFacesMask |= ModelHelper.DOWN_FLAG;
 			return;
 		} else if (y == 0xF0) {
-			visitedFacesMask |= FaceConstants.UP_FLAG;
+			visitedFacesMask |= ModelHelper.UP_FLAG;
 			return;
 		}
 
 		final int z = xyz4 & 0xF00;
 
 		if (z == 0) {
-			visitedFacesMask |= FaceConstants.NORTH_FLAG;
+			visitedFacesMask |= ModelHelper.NORTH_FLAG;
 		} else if (z == 0xF00) {
-			visitedFacesMask |= FaceConstants.SOUTH_FLAG;
+			visitedFacesMask |= ModelHelper.SOUTH_FLAG;
 		}
 	}
 

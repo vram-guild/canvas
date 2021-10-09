@@ -204,7 +204,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 		} else {
 			drawTranslucencyDirectToMainTarget = isGui || renderMode.firstPerson() || !isBlockItem;
 			defaultRenderLayer = ItemBlockRenderTypes.getRenderType(stack, drawTranslucencyDirectToMainTarget);
-			defaultBlendMode = inferDefaultItemPreset(defaultRenderLayer);
+			defaultPreset = inferDefaultItemPreset(defaultRenderLayer);
 
 			if (((vertexConsumers instanceof CanvasImmediate))) {
 				collectors = ((CanvasImmediate) vertexConsumers).collectors;
@@ -231,7 +231,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 		if (preset == MaterialConstants.PRESET_NONE) return;
 
 		if (preset == MaterialConstants.PRESET_DEFAULT) {
-			preset = defaultBlendMode;
+			preset = defaultPreset;
 			finder.preset(MaterialConstants.PRESET_NONE);
 		}
 

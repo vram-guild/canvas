@@ -35,7 +35,6 @@ import io.vram.frex.api.model.ModelHelper;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
-import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 /**
@@ -96,19 +95,19 @@ public class FallbackConsumer {
 	}
 
 	protected RenderMaterialImpl flatMaterial() {
-		return MATERIALS[FLAT_INDEX_START + context.defaultBlendMode];
+		return MATERIALS[FLAT_INDEX_START + context.defaultPreset];
 	}
 
 	protected RenderMaterialImpl shadedMaterial() {
-		return MATERIALS[SHADED_INDEX_START + context.defaultBlendMode];
+		return MATERIALS[SHADED_INDEX_START + context.defaultPreset];
 	}
 
 	protected RenderMaterialImpl aoFlatMaterial() {
-		return MATERIALS[AO_FLAT_INDEX_START + context.defaultBlendMode];
+		return MATERIALS[AO_FLAT_INDEX_START + context.defaultPreset];
 	}
 
 	protected RenderMaterialImpl aoShadedMaterial() {
-		return MATERIALS[AO_SHADED_INDEX_START + context.defaultBlendMode];
+		return MATERIALS[AO_SHADED_INDEX_START + context.defaultPreset];
 	}
 
 	protected final AbstractRenderContext context;
@@ -135,12 +134,12 @@ public class FallbackConsumer {
 		final boolean useAo = context.defaultAo() && model.useAmbientOcclusion();
 		final BlockState blockState = blockStateIn == null ? context.blockState() : blockStateIn;
 
-		acceptFaceQuads(FaceConstants.DOWN_INDEX, useAo, model.getQuads(blockState, Direction.DOWN, context.random()));
-		acceptFaceQuads(FaceConstants.UP_INDEX, useAo, model.getQuads(blockState, Direction.UP, context.random()));
-		acceptFaceQuads(FaceConstants.NORTH_INDEX, useAo, model.getQuads(blockState, Direction.NORTH, context.random()));
-		acceptFaceQuads(FaceConstants.SOUTH_INDEX, useAo, model.getQuads(blockState, Direction.SOUTH, context.random()));
-		acceptFaceQuads(FaceConstants.WEST_INDEX, useAo, model.getQuads(blockState, Direction.WEST, context.random()));
-		acceptFaceQuads(FaceConstants.EAST_INDEX, useAo, model.getQuads(blockState, Direction.EAST, context.random()));
+		acceptFaceQuads(ModelHelper.DOWN_INDEX, useAo, model.getQuads(blockState, Direction.DOWN, context.random()));
+		acceptFaceQuads(ModelHelper.UP_INDEX, useAo, model.getQuads(blockState, Direction.UP, context.random()));
+		acceptFaceQuads(ModelHelper.NORTH_INDEX, useAo, model.getQuads(blockState, Direction.NORTH, context.random()));
+		acceptFaceQuads(ModelHelper.SOUTH_INDEX, useAo, model.getQuads(blockState, Direction.SOUTH, context.random()));
+		acceptFaceQuads(ModelHelper.WEST_INDEX, useAo, model.getQuads(blockState, Direction.WEST, context.random()));
+		acceptFaceQuads(ModelHelper.EAST_INDEX, useAo, model.getQuads(blockState, Direction.EAST, context.random()));
 
 		acceptInsideQuads(useAo, model.getQuads(blockState, null, context.random()));
 	}
@@ -166,11 +165,11 @@ public class FallbackConsumer {
 
 		if (count == 1) {
 			final BakedQuad q = quads.get(0);
-			renderQuad(q, ModelHelper.NULL_FACE_ID, q.isShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
+			renderQuad(q, ModelHelper.UNASSIGNED_INDEX, q.isShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 		} else if (count > 1) {
 			for (int j = 0; j < count; j++) {
 				final BakedQuad q = quads.get(j);
-				renderQuad(q, ModelHelper.NULL_FACE_ID, q.isShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
+				renderQuad(q, ModelHelper.UNASSIGNED_INDEX, q.isShade() ? (useAo ? aoShadedMaterial() : shadedMaterial()) : (useAo ? aoFlatMaterial() : flatMaterial()));
 			}
 		}
 	}

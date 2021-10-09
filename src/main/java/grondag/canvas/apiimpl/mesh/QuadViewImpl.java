@@ -53,7 +53,6 @@ import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.mesh.QuadView;
 import io.vram.frex.api.model.ModelHelper;
 
-import grondag.canvas.apiimpl.util.FaceConstants;
 import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.material.state.RenderMaterialImpl;
@@ -65,7 +64,7 @@ import grondag.canvas.mixinterface.Matrix4fExt;
  */
 public class QuadViewImpl implements QuadView {
 	protected static ThreadLocal<Vector3f> FACE_NORMAL_THREADLOCAL = ThreadLocal.withInitial(Vector3f::new);
-	protected int nominalFaceId = ModelHelper.NULL_FACE_ID;
+	protected int nominalFaceId = ModelHelper.UNASSIGNED_INDEX;
 	protected boolean isGeometryInvalid = true;
 	protected boolean isTangentInvalid = true;
 
@@ -220,7 +219,7 @@ public class QuadViewImpl implements QuadView {
 	 * Based on geometry instead of metadata.  More reliable for terrain backface culling.
 	 */
 	public final int effectiveCullFaceId() {
-		return (geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) == 0 ? FaceConstants.UNASSIGNED_INDEX : lightFaceId();
+		return (geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) == 0 ? ModelHelper.UNASSIGNED_INDEX : lightFaceId();
 	}
 
 	@Override
