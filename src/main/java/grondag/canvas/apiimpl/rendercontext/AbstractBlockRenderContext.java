@@ -41,6 +41,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexBufferSource;
+import io.vram.frex.api.model.BlockModel.BlockInputContext;
 import io.vram.frex.api.model.ModelHelper;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
@@ -49,7 +50,7 @@ import grondag.canvas.apiimpl.util.GeometryHelper;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.mixinterface.RenderTypeExt;
 
-public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> extends AbstractRenderContext {
+public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> extends AbstractRenderContext implements BlockInputContext {
 	/**
 	 * For use by chunk builder - avoids another threadlocal.
 	 */
@@ -196,6 +197,21 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	@Override
 	public FrexBufferSource vertexConsumers() {
 		// WIP implement
+		return null;
+	}
+
+	@Override
+	public BlockAndTintGetter blockView() {
+		return this.region;
+	}
+
+	@Override
+	public BlockPos pos() {
+		return this.blockPos;
+	}
+
+	@Override
+	public @Nullable Object blockEntityRenderData(BlockPos pos) {
 		return null;
 	}
 }

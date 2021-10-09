@@ -54,6 +54,7 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.mesh.FrexBufferSource;
 import io.vram.frex.api.model.ItemModel;
+import io.vram.frex.api.model.ItemModel.ItemInputContext;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import io.vram.frex.api.world.ItemColorRegistry;
 import io.vram.sc.concurrency.SimpleConcurrentList;
@@ -67,7 +68,7 @@ import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
 import grondag.canvas.mixinterface.Matrix3fExt;
 
-public class ItemRenderContext extends AbstractRenderContext {
+public class ItemRenderContext extends AbstractRenderContext implements ItemInputContext {
 	/**
 	 * Value vanilla uses for item rendering.  The only sensible choice, of course.
 	 */
@@ -94,6 +95,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 
 	private int lightmap;
 	private ItemStack itemStack;
+	private TransformType renderMode;
 
 	public ItemRenderContext(ItemColors colorMap) {
 		super("ItemRenderContext");
@@ -167,6 +169,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 		lightmap = light;
 		this.overlay = overlay;
 		itemStack = stack;
+		this.renderMode = renderMode;
 		isBlockItem = stack.getItem() instanceof BlockItem;
 		materialMap = MaterialMap.get(itemStack);
 		isGui = renderMode == ItemTransforms.TransformType.GUI;
@@ -213,7 +216,7 @@ public class ItemRenderContext extends AbstractRenderContext {
 				defaultConsumer = vertexConsumers.getBuffer(defaultRenderLayer);
 			}
 
-			((ItemModel) model).renderAsItem(itemStack, renderMode, this);
+			((ItemModel) model).renderAsItem(this, this);
 		}
 
 		matrices.popPose();
@@ -323,5 +326,15 @@ public class ItemRenderContext extends AbstractRenderContext {
 	public FrexBufferSource vertexConsumers() {
 		// WIP implement
 		return null;
+	}
+
+	@Override
+	public ItemStack itemStack() {
+		return itemStack;
+	}
+
+	@Override
+	public TransformType mode() {
+		return renderMode;
 	}
 }

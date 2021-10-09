@@ -21,6 +21,7 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.BitSet;
+import java.util.Random;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
@@ -164,6 +165,9 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	protected abstract BlockState blockState();
 
 	public abstract int indexedColor(int colorIndex);
+
+	// WIP: remove - stub for legacy fallback consumer
+	public abstract Random random();
 
 	/**
 	 * Used in contexts with a fixed brightness, like ITEM.

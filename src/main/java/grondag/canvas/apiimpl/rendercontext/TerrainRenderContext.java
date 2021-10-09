@@ -24,6 +24,7 @@ import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.jetbrains.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -124,7 +125,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;
-			model.renderAsBlock(region, blockState, blockPos, this);
+			model.renderAsBlock(this, this);
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.forThrowable(var9, "Tesselating block in world - Canvas Renderer");
 			final CrashReportCategory crashReportElement_1 = crashReport_1.addCategory("Block being tesselated");
@@ -190,5 +191,10 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
 		TerrainFormat.TERRAIN_ENCODER.encode(quad, this, collectors.get(quad.material()));
+	}
+
+	@Override
+	public @Nullable Object blockEntityRenderData(BlockPos pos) {
+		return region.getBlockEntityRenderAttachment(pos);
 	}
 }
