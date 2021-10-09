@@ -57,7 +57,6 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 
 	protected final String name;
 	protected final QuadEditorImpl makerQuad = new Maker();
-	protected final FallbackConsumer fallbackConsumer = new FallbackConsumer(this);
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private final QuadTransform stackTransform = (q) -> {
 		int i = transformStack.size() - 1;
@@ -145,7 +144,6 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		return makerQuad;
 	}
 
-	// for use by fallback consumer
 	public boolean cullTest(int faceIndex) {
 		return true;
 	}
