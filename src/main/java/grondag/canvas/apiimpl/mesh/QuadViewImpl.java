@@ -149,13 +149,6 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	/**
-	 * Length of encoded quad in array, including header.
-	 */
-	public final int stride() {
-		return MeshEncodingHelper.stride();
-	}
-
-	/**
 	 * gets flags used for lighting - lazily computed via {@link GeometryHelper#computeShapeFlags(QuadView)}.
 	 */
 	public int geometryFlags() {
@@ -297,10 +290,8 @@ public class QuadViewImpl implements QuadView {
 
 		final QuadEditorImpl quad = (QuadEditorImpl) target;
 
-		final int len = Math.min(stride(), quad.stride());
-
 		// copy everything except the material
-		System.arraycopy(data, baseIndex + 1, quad.data, quad.baseIndex + 1, len - 1);
+		System.arraycopy(data, baseIndex, quad.data, quad.baseIndex, MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
 		quad.isSpriteInterpolated = isSpriteInterpolated;
 		quad.nominalFaceId = nominalFaceId;
 		quad.isGeometryInvalid = false;

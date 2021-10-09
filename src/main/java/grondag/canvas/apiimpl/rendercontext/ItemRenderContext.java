@@ -324,10 +324,4 @@ public class ItemRenderContext extends AbstractRenderContext {
 		// WIP implement
 		return null;
 	}
-
-	@Override
-	public PoseStack matrixStack() {
-		// WIP implement
-		return null;
-	}
 }

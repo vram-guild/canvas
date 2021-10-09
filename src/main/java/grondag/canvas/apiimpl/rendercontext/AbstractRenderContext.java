@@ -33,17 +33,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.Mesh;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.model.ModelRenderContext;
 import io.vram.frex.api.model.QuadTransform;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
+import grondag.canvas.material.state.RenderMaterialImpl;
 
 // UGLY: consolidate and simplify this class hierarchy
 public abstract class AbstractRenderContext extends AbstractEncodingContext implements ModelRenderContext {
@@ -56,8 +57,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	@Nullable public VertexCollectorList collectors = null;
 
 	protected final String name;
-	protected final MeshConsumer meshConsumer = new MeshConsumer(this);
-	protected final QuadEditorImpl makerQuad = meshConsumer.editorQuad;
+	protected final QuadEditorImpl makerQuad = new Maker();
 	protected final FallbackConsumer fallbackConsumer = new FallbackConsumer(this);
 	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
 	private final QuadTransform stackTransform = (q) -> {
@@ -141,19 +141,14 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	}
 
 	@Override
-	public final void accept(Mesh mesh, @Nullable BlockState blockState) {
-		// WIP: Implement blockstate override
-		meshConsumer.accept(mesh);
-	}
-
-	@Override
 	public final void accept(BakedModel model, BlockState blockState) {
 		fallbackConsumer.accept(model, blockState);
 	}
 
 	@Override
 	public final QuadEditor quadEmitter() {
-		return meshConsumer.getEmitter();
+		makerQuad.clear();
+		return makerQuad;
 	}
 
 	// for use by fallback consumer
@@ -276,5 +271,25 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	@Override
 	public @Nullable Object blockEntityRenderData(BlockPos pos) {
 		return null;
+	}
+
+	/**
+	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
+	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
+	 */
+	private class Maker extends QuadEditorImpl {
+		{
+			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
+			material(RenderMaterialImpl.STANDARD_MATERIAL);
+		}
+
+		// only used via RenderContext.getEmitter()
+		@Override
+		public Maker emit() {
+			complete();
+			renderQuad();
+			clear();
+			return this;
+		}
 	}
 }

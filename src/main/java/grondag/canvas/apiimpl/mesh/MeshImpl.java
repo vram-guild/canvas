@@ -61,7 +61,7 @@ public class MeshImpl implements Mesh {
 		while (index < limit) {
 			cursor.load(data, index);
 			consumer.accept(cursor);
-			index += cursor.stride();
+			index += MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE;
 		}
 	}
 }

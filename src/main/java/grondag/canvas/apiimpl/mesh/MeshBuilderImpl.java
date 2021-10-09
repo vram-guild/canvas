@@ -73,7 +73,7 @@ public class MeshBuilderImpl implements MeshBuilder {
 		@Override
 		public Maker emit() {
 			complete();
-			index += maker.stride();
+			index += MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE;
 			ensureCapacity(MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
 			baseIndex = index;
 			clear();

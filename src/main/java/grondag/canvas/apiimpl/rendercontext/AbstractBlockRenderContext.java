@@ -29,7 +29,6 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
@@ -196,12 +195,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 
 	@Override
 	public FrexBufferSource vertexConsumers() {
-		// WIP implement
-		return null;
-	}
-
-	@Override
-	public PoseStack matrixStack() {
 		// WIP implement
 		return null;
 	}
