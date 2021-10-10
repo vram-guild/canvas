@@ -33,9 +33,9 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.util.ColorUtil;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;

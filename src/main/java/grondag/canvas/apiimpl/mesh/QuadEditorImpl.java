@@ -20,23 +20,23 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.EMPTY;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_BITS;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_MATERIAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_SPRITE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_TAG;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_QUAD_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE_SHIFT;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR0;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP0;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL0;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U0;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X0;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.EMPTY;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.HEADER_BITS;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.HEADER_COLOR_INDEX;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.HEADER_MATERIAL;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.HEADER_SPRITE;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.HEADER_STRIDE;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.HEADER_TAG;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.MESH_QUAD_STRIDE;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE_SHIFT;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_COLOR0;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP0;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_NORMAL0;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_U0;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_X0;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +53,7 @@ import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;

@@ -26,8 +26,8 @@ import net.minecraft.client.Minecraft;
 
 import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 import grondag.canvas.mixinterface.Matrix3fExt;

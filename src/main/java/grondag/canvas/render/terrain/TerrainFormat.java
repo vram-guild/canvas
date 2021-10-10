@@ -20,22 +20,22 @@
 
 package grondag.canvas.render.terrain;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_COLOR;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_NORMAL;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_U;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_V;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_X;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Y;
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.VERTEX_Z;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_RGBA_4UB;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.BASE_TEX_2US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.MATERIAL_1US;
 import static grondag.canvas.buffer.format.CanvasVertexFormats.NORMAL_TANGENT_4B;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.HEADER_FIRST_VERTEX_TANGENT;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.MESH_VERTEX_STRIDE;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.UV_EXTRA_PRECISION;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.UV_ROUNDING_BIT;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_COLOR;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_LIGHTMAP;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_NORMAL;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_U;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_V;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_X;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Y;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Z;
 
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 

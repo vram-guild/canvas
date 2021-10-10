@@ -20,7 +20,7 @@
 
 package grondag.canvas.apiimpl.util;
 
-import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
+import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VALUE;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;

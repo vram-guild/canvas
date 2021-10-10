@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 
 import io.vram.frex.api.mesh.Mesh;
 import io.vram.frex.api.mesh.QuadView;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 /**
  * Implementation of {@link Mesh}.

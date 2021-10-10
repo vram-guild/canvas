@@ -23,6 +23,7 @@ package grondag.canvas.apiimpl.mesh;
 import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.mesh.Mesh;
 import io.vram.frex.api.mesh.MeshBuilder;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 /**
  * Our implementation of {@link MeshBuilder}, used for static mesh creation and baking.

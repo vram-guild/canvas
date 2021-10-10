@@ -42,9 +42,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.model.BlockModel.BlockInputContext;
 import io.vram.frex.api.model.util.GeometryUtil;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.api.model.util.FaceUtil;
 
-import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.mixinterface.RenderTypeExt;
