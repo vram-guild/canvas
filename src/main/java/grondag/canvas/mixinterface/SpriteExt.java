@@ -25,10 +25,6 @@ import java.util.function.BooleanSupplier;
 import com.mojang.blaze3d.platform.NativeImage;
 
 public interface SpriteExt extends CombinedAnimationConsumer {
-	int canvas_id();
-
-	void canvas_id(int id);
-
 	NativeImage[] canvas_images();
 
 	void canvas_upload(int i, int j, NativeImage[] images);

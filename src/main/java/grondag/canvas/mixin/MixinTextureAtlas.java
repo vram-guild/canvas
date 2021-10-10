@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -48,6 +47,8 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 
+import io.vram.frex.impl.texture.TextureAtlasPreparationExt;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
@@ -55,10 +56,8 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
-import grondag.canvas.mixinterface.TextureAtlasPreparationExt;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.texture.CombinedSpriteAnimation;
-import grondag.canvas.texture.SpriteIndex;
 
 @Mixin(TextureAtlas.class)
 public abstract class MixinTextureAtlas extends AbstractTexture implements TextureAtlasExt {
@@ -89,11 +88,11 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 		}
 
 		final var dataExt = (TextureAtlasPreparationExt) input;
-		width = dataExt.canvas_atlasWidth();
-		height = dataExt.canvas_atlasHeight();
+		width = dataExt.frex_atlasWidth();
+		height = dataExt.frex_atlasHeight();
 
 		int animationIndex = 0;
-		final List<TextureAtlasSprite> sprites = dataExt.canvas_sprites();
+		final List<TextureAtlasSprite> sprites = dataExt.frex_sprites();
 
 		for (final TextureAtlasSprite sprite : sprites) {
 			if (sprite.getAnimationTicker() != null) {
@@ -132,15 +131,6 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 			CanvasMod.LOG.info("Start of post-upload handling for atlas " + location.toString());
 		}
 
-		final ObjectArrayList<TextureAtlasSprite> spriteIndexList = new ObjectArrayList<>();
-		int index = 0;
-
-		for (final TextureAtlasSprite sprite : texturesByName.values()) {
-			spriteIndexList.add(sprite);
-			final var spriteExt = (SpriteExt) sprite;
-			spriteExt.canvas_id(index++);
-		}
-
 		if (combined != null) {
 			if (Configurator.traceTextureLoad) {
 				CanvasMod.LOG.info("Beginning initial combined upload for atlas " + location.toString());
@@ -152,8 +142,6 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 		if (Configurator.debugSpriteAtlas) {
 			outputAtlasImage();
 		}
-
-		SpriteIndex.getOrCreate(location).reset(input, spriteIndexList, (TextureAtlas) (Object) this);
 	}
 
 	private void outputAtlasImage() {

@@ -30,11 +30,11 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.texture.SpriteFinder;
+import io.vram.frex.impl.texture.SpriteIndex;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.texture.MaterialIndexProvider;
-import grondag.canvas.texture.SpriteIndex;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 

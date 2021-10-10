@@ -54,12 +54,12 @@ import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
+import io.vram.frex.impl.texture.IndexedSprite;
 
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
-import grondag.canvas.mixinterface.SpriteExt;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
@@ -277,7 +277,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 	private void normalizeSprite() {
 		if (material().texture.isAtlas()) {
 			final TextureAtlasSprite sprite = findSprite();
-			final int spriteId = ((SpriteExt) sprite).canvas_id();
+			final int spriteId = ((IndexedSprite) sprite).frex_index();
 			final float u0 = sprite.getU0();
 			final float v0 = sprite.getV0();
 			final float uSpanInv = 1f / (sprite.getU1() - u0);
@@ -325,7 +325,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 
 		if (sprite != null) {
 			assert material().texture.isAtlas() && material().texture.textureAsAtlas() == sprite.atlas();
-			spriteId(((SpriteExt) sprite).canvas_id());
+			spriteId(((IndexedSprite) sprite).frex_index());
 		}
 
 		return this;

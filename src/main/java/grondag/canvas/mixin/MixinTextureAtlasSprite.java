@@ -41,19 +41,8 @@ public class MixinTextureAtlasSprite implements SpriteExt {
 	@Shadow void upload(int i, int j, NativeImage[] nativeImages) { }
 	@Shadow private TextureAtlasSprite.AnimatedTexture animatedTexture;
 
-	private int canvasId;
 	private int animationIndex = -1;
 	private BooleanSupplier shouldAnimate = () -> true;
-
-	@Override
-	public int canvas_id() {
-		return canvasId;
-	}
-
-	@Override
-	public void canvas_id(int id) {
-		canvasId = id;
-	}
 
 	@Override
 	public NativeImage[] canvas_images() {

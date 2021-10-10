@@ -29,6 +29,8 @@ import org.lwjgl.opengl.GL21;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Matrix4f;
 
+import io.vram.frex.impl.texture.SpriteIndex;
+
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.Pipeline;
@@ -36,7 +38,6 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.shader.data.UniformRefreshFrequency;
-import grondag.canvas.texture.SpriteIndex;
 import grondag.canvas.texture.TextureData;
 import grondag.fermion.bits.BitPacker32;
 

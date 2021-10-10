@@ -45,7 +45,6 @@
 		"MixinStitcher",
 		"MixinStitcherRegion",
 		"MixinTextureAtlas",
-		"MixinTextureAtlasPreparation",
 		"MixinTextureAtlasSprite",
 		"MixinTextureSheetParticle",
 		"MixinUtil",

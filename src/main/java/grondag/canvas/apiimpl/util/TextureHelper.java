@@ -26,9 +26,9 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 
 import io.vram.frex.api.buffer.QuadEmitter;
+import io.vram.frex.impl.texture.IndexedSprite;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
-import grondag.canvas.mixinterface.SpriteExt;
 
 /**
  * Handles most texture-baking use cases for model loaders and model libraries
@@ -61,7 +61,7 @@ public class TextureHelper {
 	 */
 	public static void bakeSprite(QuadEditorImpl quad, TextureAtlasSprite sprite, int bakeFlags) {
 		quad.setSpriteNormalized();
-		quad.spriteId(((SpriteExt) sprite).canvas_id());
+		quad.spriteId(((IndexedSprite) sprite).frex_index());
 
 		if (quad.nominalFace() != null && (QuadEmitter.BAKE_LOCK_UV & bakeFlags) != 0) {
 			// Assigns normalized UV coordinates based on vertex positions
