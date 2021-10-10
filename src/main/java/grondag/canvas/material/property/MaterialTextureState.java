@@ -30,7 +30,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.texture.SpriteFinder;
-import io.vram.frex.impl.texture.SpriteIndex;
+import io.vram.frex.api.texture.SpriteIndex;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
@@ -45,7 +45,7 @@ public class MaterialTextureState {
 	private AbstractTexture texture;
 	private boolean isAtlas;
 	private SpriteFinder spriteFinder;
-	private SpriteIndex atlasInfo;
+	private SpriteIndex spriteIndex;
 	private MaterialIndexProvider donglenator;
 
 	private MaterialTextureState(int index, ResourceLocation id) {
@@ -62,11 +62,11 @@ public class MaterialTextureState {
 			isAtlas = texture != null && texture instanceof TextureAtlas;
 
 			if (isAtlas) {
-				atlasInfo = SpriteIndex.getOrCreate(id);
+				spriteIndex = SpriteIndex.getOrCreate(id);
 				donglenator = MaterialIndexProvider.getOrCreateForAtlas(id);
 				spriteFinder = SpriteFinder.get((TextureAtlas) texture);
 			} else {
-				atlasInfo = null;
+				spriteIndex = null;
 				donglenator = MaterialIndexProvider.GENERIC;
 			}
 		}
@@ -96,9 +96,9 @@ public class MaterialTextureState {
 		return isAtlas;
 	}
 
-	public SpriteIndex atlasInfo() {
+	public SpriteIndex spriteIndex() {
 		retreiveTexture();
-		return atlasInfo;
+		return spriteIndex;
 	}
 
 	public void enable(boolean bilinear) {

@@ -197,7 +197,7 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 			combined.reset();
 		}
 
-		if (Configurator.disableUnseenSpriteAnimation && (TextureAtlas) (Object) this == TerrainRenderStates.SOLID.texture.atlasInfo().atlas()) {
+		if (Configurator.disableUnseenSpriteAnimation && (TextureAtlas) (Object) this == TerrainRenderStates.SOLID.texture.spriteIndex().atlas()) {
 			animationBits.clear();
 			animationBits.or(perFrameBits);
 			perFrameBits.clear();

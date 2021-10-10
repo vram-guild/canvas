@@ -29,7 +29,7 @@ import org.lwjgl.opengl.GL21;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Matrix4f;
 
-import io.vram.frex.impl.texture.SpriteIndex;
+import io.vram.frex.api.texture.SpriteIndex;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.mixinterface.Matrix4fExt;

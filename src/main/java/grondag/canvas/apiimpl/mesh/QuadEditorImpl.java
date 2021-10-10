@@ -341,7 +341,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 			final var mat = material();
 
 			if (mat.texture.isAtlas()) {
-				final var atlasInfo = material().texture.atlasInfo();
+				final var atlasInfo = material().texture.spriteIndex();
 				final var spriteId = spriteId();
 
 				for (int i = 0; i < 4; ++i) {

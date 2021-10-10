@@ -80,7 +80,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 			return;
 		}
 
-		final TextureAtlasSprite sprite = materialMap.needsSprite() ? quad.material().texture.atlasInfo().fromIndex(quad.spriteId()) : null;
+		final TextureAtlasSprite sprite = materialMap.needsSprite() ? quad.material().texture.spriteIndex().fromIndex(quad.spriteId()) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {
@@ -142,7 +142,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 
 			if (!mat.discardsTexture && mat.texture.isAtlas()) {
 				// WIP: create and use sprite method on quad
-				final int animationIndex = ((SpriteExt) mat.texture.atlasInfo().fromIndex(makerQuad.spriteId())).canvas_animationIndex();
+				final int animationIndex = ((SpriteExt) mat.texture.spriteIndex().fromIndex(makerQuad.spriteId())).canvas_animationIndex();
 
 				if (animationIndex >= 0) {
 					animationBits.set(animationIndex);

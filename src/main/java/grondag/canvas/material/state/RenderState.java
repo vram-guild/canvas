@@ -147,7 +147,7 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
-		depthShader.updateContextInfo(texture.atlasInfo(), target.index);
+		depthShader.updateContextInfo(texture.spriteIndex(), target.index);
 		depthShader.setModelOrigin(x, y, z);
 		depthShader.setCascade(cascade);
 
@@ -225,7 +225,7 @@ public final class RenderState extends AbstractRenderState {
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
-		shader.updateContextInfo(texture.atlasInfo(), target.index);
+		shader.updateContextInfo(texture.spriteIndex(), target.index);
 		shader.setModelOrigin(x, y, z);
 	}
 

@@ -20,7 +20,7 @@
 
 package grondag.canvas.shader;
 
-import io.vram.frex.impl.texture.SpriteIndex;
+import io.vram.frex.api.texture.SpriteIndex;
 
 public final class MaterialShaderImpl {
 	public final int index;

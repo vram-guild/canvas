@@ -375,14 +375,14 @@ public class QuadViewImpl implements QuadView {
 	@Override
 	public float u(int vertexIndex) {
 		return !isSpriteInterpolated && material().texture.isAtlas()
-			? material().texture.atlasInfo().mapU(spriteId(), spriteFloatU(vertexIndex))
+			? material().texture.spriteIndex().mapU(spriteId(), spriteFloatU(vertexIndex))
 			: spriteFloatU(vertexIndex);
 	}
 
 	@Override
 	public float v(int vertexIndex) {
 		return !isSpriteInterpolated && material().texture.isAtlas()
-			? material().texture.atlasInfo().mapV(spriteId(), spriteFloatV(vertexIndex))
+			? material().texture.spriteIndex().mapV(spriteId(), spriteFloatV(vertexIndex))
 			: spriteFloatV(vertexIndex);
 	}
 

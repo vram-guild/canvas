@@ -190,7 +190,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	public void trackPerFrameAnimation(int spriteId) {
 		if (!this.discardsTexture && texture.isAtlas()) {
 			// WIP: create and use sprite method on quad
-			final int animationIndex = ((SpriteExt) texture.atlasInfo().fromIndex(spriteId)).canvas_animationIndex();
+			final int animationIndex = ((SpriteExt) texture.spriteIndex().fromIndex(spriteId)).canvas_animationIndex();
 
 			if (animationIndex > 0) {
 				((TextureAtlasExt) texture.textureAsAtlas()).canvas_trackFrameAnimation(animationIndex);

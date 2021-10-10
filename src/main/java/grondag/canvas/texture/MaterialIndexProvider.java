@@ -100,7 +100,7 @@ public abstract class MaterialIndexProvider {
 				synchronized (sync) {
 					return spriteMap.computeIfAbsent(spriteId, k -> {
 						final int i = nextIndex++;
-						final TextureAtlasSprite sprite = mat.texture.atlasInfo().fromIndex(k);
+						final TextureAtlasSprite sprite = mat.texture.spriteIndex().fromIndex(k);
 						tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index, sprite);
 						return i;
 					});
