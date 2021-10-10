@@ -215,7 +215,7 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 				defaultConsumer = vertexConsumers.getBuffer(defaultRenderLayer);
 			}
 
-			((ItemModel) model).renderAsItem(this, this);
+			((ItemModel) model).renderAsItem(this, emitter());
 		}
 
 		matrices.popPose();

@@ -110,7 +110,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 		this.overlay = overlay;
 		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42);
-		((BlockModel) model).renderAsBlock(this, this);
+		((BlockModel) model).renderAsBlock(this, emitter());
 		defaultConsumer = null;
 	}
 
@@ -135,7 +135,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 		defaultAo = false;
 		defaultPreset = MaterialConstants.PRESET_SOLID;
 
-		((BlockModel) model).renderAsBlock(this, this);
+		((BlockModel) model).renderAsBlock(this, emitter());
 		defaultConsumer = null;
 	}
 

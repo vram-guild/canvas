@@ -125,7 +125,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
 			cullCompletionFlags = 0;
 			cullResultFlags = 0;
-			model.renderAsBlock(this, this);
+			model.renderAsBlock(this, emitter());
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.forThrowable(var9, "Tesselating block in world - Canvas Renderer");
 			final CrashReportCategory crashReportElement_1 = crashReport_1.addCategory("Block being tesselated");

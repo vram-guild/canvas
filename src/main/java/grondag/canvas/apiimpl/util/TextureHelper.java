@@ -25,7 +25,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VAL
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 
-import io.vram.frex.api.mesh.QuadEmitter;
+import io.vram.frex.api.buffer.QuadEmitter;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.SpriteExt;

@@ -48,9 +48,9 @@ import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 
+import io.vram.frex.api.buffer.FrexVertexConsumer;
+import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.FrexVertexConsumer;
-import io.vram.frex.api.mesh.QuadEmitter;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 
@@ -494,15 +494,5 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 		final float tz = mat.m20() * x + mat.m21() * y + mat.m22() * z;
 
 		return this.normal(tx, ty, tz);
-	}
-
-	@Override
-	public FrexVertexConsumer asVertexConsumer() {
-		return this;
-	}
-
-	@Override
-	public QuadEmitter asQuadEditor() {
-		return this;
 	}
 }

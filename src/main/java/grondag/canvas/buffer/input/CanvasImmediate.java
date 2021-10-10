@@ -35,8 +35,8 @@ import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.ModelBakery;
 
+import io.vram.frex.api.buffer.FrexVertexConsumer;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.FrexVertexConsumer;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 

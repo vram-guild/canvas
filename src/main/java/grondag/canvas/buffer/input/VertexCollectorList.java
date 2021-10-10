@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import io.vram.frex.api.mesh.FrexVertexConsumer;
+import io.vram.frex.api.buffer.FrexVertexConsumer;
 
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;

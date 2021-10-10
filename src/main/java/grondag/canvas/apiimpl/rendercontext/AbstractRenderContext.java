@@ -23,18 +23,15 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.BitSet;
 import java.util.Random;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.QuadEmitter;
-import io.vram.frex.api.model.ModelOuputContext;
-import io.vram.frex.api.model.QuadTransform;
 import io.vram.frex.api.model.util.ColorUtil;
 
 import grondag.canvas.CanvasMod;
@@ -46,8 +43,7 @@ import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 
 // UGLY: consolidate and simplify this class hierarchy
-public abstract class AbstractRenderContext extends AbstractEncodingContext implements ModelOuputContext {
-	private static final QuadTransform NO_TRANSFORM = (q) -> true;
+public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinderImpl finder = new MaterialFinderImpl();
 	public final float[] vecData = new float[3];
@@ -57,23 +53,10 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 
 	protected final String name;
 	protected final QuadEditorImpl makerQuad = new Maker();
-	private final ObjectArrayList<QuadTransform> transformStack = new ObjectArrayList<>();
-	private final QuadTransform stackTransform = (q) -> {
-		int i = transformStack.size() - 1;
-
-		while (i >= 0) {
-			if (!transformStack.get(i--).transform(q)) {
-				return false;
-			}
-		}
-
-		return true;
-	};
 
 	protected MaterialMap materialMap = defaultMap;
 	protected int defaultPreset;
 	protected boolean isFluidModel = false;
-	private QuadTransform activeTransform = NO_TRANSFORM;
 
 	public final BitSet animationBits = new BitSet();
 
@@ -91,14 +74,6 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		}
 	}
 
-	protected final boolean transform(QuadEditorImpl q) {
-		return activeTransform.transform(q);
-	}
-
-	protected boolean hasTransform() {
-		return activeTransform != NO_TRANSFORM;
-	}
-
 	void mapMaterials(QuadEditorImpl quad) {
 		if (materialMap == defaultMap) {
 			return;
@@ -112,34 +87,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		}
 	}
 
-	@Override
-	public void pushTransform(QuadTransform transform) {
-		if (transform == null) {
-			throw new NullPointerException("Renderer received null QuadTransform.");
-		}
-
-		transformStack.push(transform);
-
-		if (transformStack.size() == 1) {
-			activeTransform = transform;
-		} else if (transformStack.size() == 2) {
-			activeTransform = stackTransform;
-		}
-	}
-
-	@Override
-	public void popTransform() {
-		transformStack.pop();
-
-		if (transformStack.size() == 0) {
-			activeTransform = NO_TRANSFORM;
-		} else if (transformStack.size() == 1) {
-			activeTransform = transformStack.get(0);
-		}
-	}
-
-	@Override
-	public final QuadEmitter quadEmitter() {
+	public final QuadEmitter emitter() {
 		makerQuad.clear();
 		return makerQuad;
 	}
@@ -184,15 +132,6 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 		final QuadEditorImpl quad = makerQuad;
 
 		mapMaterials(quad);
-
-		if (hasTransform()) {
-			if (!transform(quad)) {
-				return;
-			}
-
-			quad.geometryFlags();
-			quad.normalizeSpritesIfNeeded();
-		}
 
 		if (cullTest(quad)) {
 			finder.copyFrom(quad.material());

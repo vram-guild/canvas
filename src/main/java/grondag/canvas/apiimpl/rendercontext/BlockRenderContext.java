@@ -73,7 +73,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintG
 		this.overlay = overlay;
 		region = blockView;
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
-		((BlockModel) model).renderAsBlock(this, this);
+		((BlockModel) model).renderAsBlock(this, emitter());
 		defaultConsumer = null;
 	}
 

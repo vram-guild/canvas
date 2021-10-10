@@ -49,7 +49,7 @@ import com.mojang.math.Vector3f;
 
 import net.minecraft.core.Direction;
 
-import io.vram.frex.api.mesh.QuadEmitter;
+import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.mesh.QuadView;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.GeometryUtil;
