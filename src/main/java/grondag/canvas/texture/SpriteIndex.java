@@ -21,8 +21,6 @@
 package grondag.canvas.texture;
 
 import it.unimi.dsi.fastutil.Hash;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -34,10 +32,6 @@ import net.minecraft.resources.ResourceLocation;
 import io.vram.frex.api.texture.SpriteFinder;
 import io.vram.frex.base.renderer.util.ResourceCache;
 
-import grondag.canvas.CanvasMod;
-import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.mixinterface.TextureAtlasPreparationExt;
 
 public class SpriteIndex {
@@ -47,10 +41,8 @@ public class SpriteIndex {
 		return MAP.computeIfAbsent(id, SpriteIndex::new);
 	}
 
-	private ObjectArrayList<TextureAtlasSprite> spriteIndex = null;
-	private final IntArrayList spriteAnimationIndex = new IntArrayList();
+	private ObjectArrayList<TextureAtlasSprite> spriteIndexList = null;
 	private TextureAtlas atlas;
-	private IntConsumer canvas_frameAnimationConsumer;
 	private ResourceCache<SpriteFinder> spriteFinder;
 	private int atlasWidth;
 	private int atlasHeight;
@@ -66,40 +58,25 @@ public class SpriteIndex {
 	}
 
 	public void reset(Preparations dataIn, ObjectArrayList<TextureAtlasSprite> spriteIndexIn, TextureAtlas atlasIn) {
-		if (Configurator.enableLifeCycleDebug || Configurator.traceTextureLoad) {
-			CanvasMod.LOG.info("Lifecycle Event: SpriteIndex reset");
-		}
-
 		atlas = atlasIn;
-		canvas_frameAnimationConsumer = ((TextureAtlasExt) atlasIn).canvas_frameAnimationConsumer();
 
-		spriteIndex = spriteIndexIn;
+		spriteIndexList = spriteIndexIn;
 		atlasWidth = ((TextureAtlasPreparationExt) dataIn).canvas_atlasWidth();
 		atlasHeight = ((TextureAtlasPreparationExt) dataIn).canvas_atlasHeight();
-
-		spriteAnimationIndex.clear();
-
-		for (final var sprite : spriteIndexIn) {
-			spriteAnimationIndex.add(((SpriteExt) sprite).canvas_animationIndex());
-		}
 	}
 
-	public TextureAtlasSprite fromId(int spriteId) {
-		return spriteIndex.get(spriteId);
-	}
-
-	public int animationIndexFromSpriteId(int spriteId) {
-		return spriteAnimationIndex.getInt(spriteId);
+	public TextureAtlasSprite fromIndex(int spriteId) {
+		return spriteIndexList.get(spriteId);
 	}
 
 	public float mapU(int spriteId, float unmappedU) {
-		final TextureAtlasSprite sprite = spriteIndex.get(spriteId);
+		final TextureAtlasSprite sprite = spriteIndexList.get(spriteId);
 		final float u0 = sprite.getU0();
 		return u0 + unmappedU * (sprite.getU1() - u0);
 	}
 
 	public float mapV(int spriteId, float unmappedV) {
-		final TextureAtlasSprite sprite = spriteIndex.get(spriteId);
+		final TextureAtlasSprite sprite = spriteIndexList.get(spriteId);
 		final float v0 = sprite.getV0();
 		return v0 + unmappedV * (sprite.getV1() - v0);
 	}
@@ -118,13 +95,5 @@ public class SpriteIndex {
 
 	public SpriteFinder spriteFinder() {
 		return spriteFinder.getOrLoad();
-	}
-
-	public void trackPerFrameAnimation(int spriteId) {
-		final int animationIndex = animationIndexFromSpriteId(spriteId);
-
-		if (animationIndex >= 0) {
-			canvas_frameAnimationConsumer.accept(animationIndex);
-		}
 	}
 }

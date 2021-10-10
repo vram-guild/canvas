@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
-import it.unimi.dsi.fastutil.ints.IntConsumer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -199,8 +198,8 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 	}
 
 	@Override
-	public IntConsumer canvas_frameAnimationConsumer() {
-		return i -> perFrameBits.set(i);
+	public void canvas_trackFrameAnimation(int animationIndex) {
+		perFrameBits.set(animationIndex);
 	}
 
 	@SuppressWarnings("resource")

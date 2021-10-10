@@ -36,6 +36,8 @@ import io.vram.frex.base.renderer.util.ResourceCache;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.texture.MaterialIndexer;
 
@@ -187,7 +189,12 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 
 	public void trackPerFrameAnimation(int spriteId) {
 		if (!this.discardsTexture && texture.isAtlas()) {
-			texture.atlasInfo().trackPerFrameAnimation(spriteId);
+			// WIP: create and use sprite method on quad
+			final int animationIndex = ((SpriteExt) texture.atlasInfo().fromIndex(spriteId)).canvas_animationIndex();
+
+			if (animationIndex > 0) {
+				((TextureAtlasExt) texture.textureAsAtlas()).canvas_trackFrameAnimation(animationIndex);
+			}
 		}
 	}
 

@@ -41,6 +41,7 @@ import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.mixinterface.SpriteExt;
 
 // UGLY: consolidate and simplify this class hierarchy
 public abstract class AbstractRenderContext extends AbstractEncodingContext {
@@ -79,7 +80,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 			return;
 		}
 
-		final TextureAtlasSprite sprite = materialMap.needsSprite() ? quad.material().texture.atlasInfo().fromId(quad.spriteId()) : null;
+		final TextureAtlasSprite sprite = materialMap.needsSprite() ? quad.material().texture.atlasInfo().fromIndex(quad.spriteId()) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {
@@ -140,7 +141,8 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 			quad.material(mat);
 
 			if (!mat.discardsTexture && mat.texture.isAtlas()) {
-				final int animationIndex = mat.texture.atlasInfo().animationIndexFromSpriteId(makerQuad.spriteId());
+				// WIP: create and use sprite method on quad
+				final int animationIndex = ((SpriteExt) mat.texture.atlasInfo().fromIndex(makerQuad.spriteId())).canvas_animationIndex();
 
 				if (animationIndex >= 0) {
 					animationBits.set(animationIndex);
