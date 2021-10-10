@@ -87,6 +87,10 @@ public class MaterialTextureState {
 		return texture;
 	}
 
+	public TextureAtlas textureAsAtlas() {
+		return (TextureAtlas) texture();
+	}
+
 	public boolean isAtlas() {
 		retreiveTexture();
 		return isAtlas;

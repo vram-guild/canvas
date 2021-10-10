@@ -32,6 +32,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.texture.SpriteFinder;
+import io.vram.frex.base.renderer.util.ResourceCache;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;

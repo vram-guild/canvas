@@ -305,11 +305,11 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 			v += spriteFloatV(i);
 		}
 
-		final TextureAtlasSprite result = material().texture.atlasInfo().spriteFinder().find(u * 0.25f, v * 0.25f);
+		final TextureAtlasSprite result = material().texture.spriteFinder().find(u * 0.25f, v * 0.25f);
 
 		// Handle bug in SpriteFinder that can return sprite for the wrong atlas
 		if (result instanceof MissingTextureAtlasSprite) {
-			return material().texture.atlasInfo().atlas().getSprite(MissingTextureAtlasSprite.getLocation());
+			return material().texture.textureAsAtlas().getSprite(MissingTextureAtlasSprite.getLocation());
 		} else {
 			return result;
 		}
@@ -324,7 +324,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 		spriteFloat(3, u3, v3);
 
 		if (sprite != null) {
-			assert material().texture.isAtlas() && material().texture.atlasInfo().atlas() == sprite.atlas();
+			assert material().texture.isAtlas() && material().texture.textureAsAtlas() == sprite.atlas();
 			spriteId(((SpriteExt) sprite).canvas_id());
 		}
 

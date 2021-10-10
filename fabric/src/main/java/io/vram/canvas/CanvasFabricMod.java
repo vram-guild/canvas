@@ -36,7 +36,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.texture.MaterialIndexProvider;
-import grondag.canvas.texture.ResourceCacheManager;
 
 public class CanvasFabricMod implements ClientModInitializer {
 	@Override
@@ -68,7 +67,6 @@ public class CanvasFabricMod implements ClientModInitializer {
 			public void onResourceManagerReload(ResourceManager manager) {
 				PipelineLoader.reload(manager);
 				MaterialIndexProvider.reload();
-				ResourceCacheManager.invalidate();
 			}
 		});
 

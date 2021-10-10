@@ -31,13 +31,13 @@ import net.minecraft.resources.ResourceLocation;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.util.ResourceCache;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.texture.MaterialIndexer;
-import grondag.canvas.texture.ResourceCache;
 
 public final class RenderMaterialImpl extends AbstractRenderState implements RenderMaterial {
 	public static final int MAX_MATERIAL_COUNT = RenderState.MAX_COUNT * 4;
