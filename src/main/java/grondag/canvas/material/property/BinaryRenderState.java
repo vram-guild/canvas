@@ -20,11 +20,11 @@
 
 package grondag.canvas.material.property;
 
-public class BinaryMaterialState {
+public class BinaryRenderState {
 	private final Runnable enableAction;
 	private final Runnable disableAction;
 
-	public BinaryMaterialState(Runnable enableAction, Runnable disableAction) {
+	public BinaryRenderState(Runnable enableAction, Runnable disableAction) {
 		this.enableAction = enableAction;
 		this.disableAction = disableAction;
 	}

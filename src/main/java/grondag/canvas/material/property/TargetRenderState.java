@@ -30,8 +30,8 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
 
 @SuppressWarnings("resource")
-public class MaterialTarget implements Predicate<RenderState> {
-	public static final MaterialTarget MAIN = new MaterialTarget(
+public class TargetRenderState implements Predicate<RenderState> {
+	public static final TargetRenderState MAIN = new TargetRenderState(
 		MaterialConstants.TARGET_MAIN,
 		"main",
 		() -> {
@@ -42,7 +42,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		}
 	);
 
-	public static final MaterialTarget OUTLINE = new MaterialTarget(
+	public static final TargetRenderState OUTLINE = new TargetRenderState(
 		MaterialConstants.TARGET_OUTLINE,
 		"outline",
 		() -> {
@@ -53,7 +53,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		}
 	);
 
-	public static final MaterialTarget TRANSLUCENT = new MaterialTarget(
+	public static final TargetRenderState TRANSLUCENT = new TargetRenderState(
 		MaterialConstants.TARGET_TRANSLUCENT,
 		"translucent",
 		() -> {
@@ -64,7 +64,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		}
 	);
 
-	public static final MaterialTarget PARTICLES = new MaterialTarget(
+	public static final TargetRenderState PARTICLES = new TargetRenderState(
 		MaterialConstants.TARGET_PARTICLES,
 		"particles",
 		() -> {
@@ -75,7 +75,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		}
 	);
 
-	public static final MaterialTarget WEATHER = new MaterialTarget(
+	public static final TargetRenderState WEATHER = new TargetRenderState(
 		MaterialConstants.TARGET_WEATHER,
 		"weather",
 		() -> {
@@ -86,7 +86,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		}
 	);
 
-	public static final MaterialTarget CLOUDS = new MaterialTarget(
+	public static final TargetRenderState CLOUDS = new TargetRenderState(
 		MaterialConstants.TARGET_CLOUDS,
 		"clouds",
 		() -> {
@@ -97,7 +97,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		}
 	);
 
-	public static final MaterialTarget ENTITIES = new MaterialTarget(
+	public static final TargetRenderState ENTITIES = new TargetRenderState(
 		MaterialConstants.TARGET_ENTITIES,
 		"entities",
 		() -> {
@@ -109,7 +109,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 	);
 
 	public static final int TARGET_COUNT = 7;
-	private static final MaterialTarget[] VALUES = new MaterialTarget[TARGET_COUNT];
+	private static final TargetRenderState[] VALUES = new TargetRenderState[TARGET_COUNT];
 
 	static {
 		VALUES[MaterialConstants.TARGET_MAIN] = MAIN;
@@ -121,7 +121,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		VALUES[MaterialConstants.TARGET_ENTITIES] = ENTITIES;
 	}
 
-	public static MaterialTarget fromIndex(int index) {
+	public static TargetRenderState fromIndex(int index) {
 		return VALUES[index];
 	}
 
@@ -130,7 +130,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 	private final Runnable startAction;
 	private final Runnable endAction;
 
-	private MaterialTarget(int index, String name, Runnable startAction, Runnable endAction) {
+	private TargetRenderState(int index, String name, Runnable startAction, Runnable endAction) {
 		this.index = index;
 		this.name = name;
 		this.startAction = startAction;
@@ -153,7 +153,7 @@ public class MaterialTarget implements Predicate<RenderState> {
 		}
 	}
 
-	private static MaterialTarget active = null;
+	private static TargetRenderState active = null;
 
 	@Override
 	public boolean test(RenderState mat) {

@@ -39,7 +39,7 @@ import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.light.AoVertexClampFunction;
-import grondag.canvas.material.property.MaterialTextureState;
+import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.perf.ChunkRebuildCounters;
@@ -122,7 +122,7 @@ public class Canvas implements Renderer {
 		MaterialProgramManager.INSTANCE.reload();
 		// LightmapHdTexture.reload();
 		// LightmapHd.reload();
-		MaterialTextureState.reload();
+		TextureMaterialState.reload();
 		ShaderDataManager.reload();
 		Timekeeper.configOrPipelineReload();
 	}

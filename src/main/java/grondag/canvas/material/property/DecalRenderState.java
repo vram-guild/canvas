@@ -29,22 +29,22 @@ import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.varia.GFX;
 
-public final class MaterialDecal {
+public final class DecalRenderState {
 	public static final int DECAL_COUNT = 3;
-	private static final MaterialDecal[] VALUES = new MaterialDecal[DECAL_COUNT];
+	private static final DecalRenderState[] VALUES = new DecalRenderState[DECAL_COUNT];
 
-	public static MaterialDecal fromIndex(int index) {
+	public static DecalRenderState fromIndex(int index) {
 		return VALUES[index];
 	}
 
-	public static final MaterialDecal NONE = new MaterialDecal(
+	public static final DecalRenderState NONE = new DecalRenderState(
 		MaterialConstants.DECAL_NONE,
 		"none",
 		0,
 		Runnables.doNothing(),
 		Runnables.doNothing());
 
-	public static final MaterialDecal POLYGON_OFFSET = new MaterialDecal(
+	public static final DecalRenderState POLYGON_OFFSET = new DecalRenderState(
 		MaterialConstants.DECAL_POLYGON_OFFSET,
 		"polygon_offset",
 		1,
@@ -57,7 +57,7 @@ public final class MaterialDecal {
 			GFX.disablePolygonOffset();
 		});
 
-	public static final MaterialDecal VIEW_OFFSET = new MaterialDecal(
+	public static final DecalRenderState VIEW_OFFSET = new DecalRenderState(
 		MaterialConstants.DECAL_VIEW_OFFSET,
 		"view_offset",
 		2,
@@ -86,7 +86,7 @@ public final class MaterialDecal {
 	/** Higher goes first. */
 	public final int drawPriority;
 
-	private MaterialDecal(int index, String name, int drawPriority, Runnable startAction, Runnable endAction) {
+	private DecalRenderState(int index, String name, int drawPriority, Runnable startAction, Runnable endAction) {
 		this.index = index;
 		this.name = name;
 		this.drawPriority = drawPriority;
@@ -111,5 +111,5 @@ public final class MaterialDecal {
 		}
 	}
 
-	private static MaterialDecal active = null;
+	private static DecalRenderState active = null;
 }

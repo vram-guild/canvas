@@ -98,7 +98,7 @@ import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.FlawlessFramesController;
-import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.property.TargetRenderState;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.mixinterface.LevelRendererExt;
@@ -522,9 +522,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		RenderState.disable();
 
-		try (DrawableStream entityBuffer = immediate.prepareDrawable(MaterialTarget.MAIN);
-			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(MaterialTarget.MAIN);
-			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(MaterialTarget.MAIN)
+		try (DrawableStream entityBuffer = immediate.prepareDrawable(TargetRenderState.MAIN);
+			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(TargetRenderState.MAIN);
+			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(TargetRenderState.MAIN)
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, entityBuffer, shadowExtrasBuffer);
@@ -631,7 +631,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "draw_solid");
 
 		// Should generally not have anything here but draw in case content injected in hooks
-		immediate.drawCollectors(MaterialTarget.MAIN);
+		immediate.drawCollectors(TargetRenderState.MAIN);
 
 		// These should be empty and probably won't work, but prevent them from accumulating if somehow used.
 		immediate.endBatch(RenderType.armorGlint());
@@ -662,7 +662,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			immediate.endBatch(RenderType.lines());
 
 			// PERF: Why is this here? Should be empty
-			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
+			immediate.drawCollectors(TargetRenderState.TRANSLUCENT);
 
 			// This catches entity layer and any remaining non-main layers
 			immediate.endBatch();
@@ -687,7 +687,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			immediate.endBatch(RenderType.lines());
 
 			// PERF: how is this needed? - would either have been drawn above or will be drawn below
-			immediate.drawCollectors(MaterialTarget.TRANSLUCENT);
+			immediate.drawCollectors(TargetRenderState.TRANSLUCENT);
 
 			// This catches entity layer and any remaining non-main layers
 			immediate.endBatch();

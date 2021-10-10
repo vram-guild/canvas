@@ -41,7 +41,7 @@ import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.buffer.util.DrawableStream;
-import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.property.TargetRenderState;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
@@ -77,13 +77,13 @@ public class CanvasImmediate extends BufferSource {
 		return collectors.consumer.prepare(mat);
 	}
 
-	public DrawableStream prepareDrawable(MaterialTarget target) {
+	public DrawableStream prepareDrawable(TargetRenderState target) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectors.sortedDrawList(target);
 
 		return drawList.isEmpty() ? DrawableStream.EMPTY : new DrawableStream(drawList);
 	}
 
-	public void drawCollectors(MaterialTarget target) {
+	public void drawCollectors(TargetRenderState target) {
 		final ObjectArrayList<ArrayVertexCollector> drawList = collectors.sortedDrawList(target);
 
 		if (!drawList.isEmpty()) {

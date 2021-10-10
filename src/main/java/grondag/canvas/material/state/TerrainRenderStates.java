@@ -27,7 +27,7 @@ import net.minecraft.client.renderer.Sheets;
 
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
-import grondag.canvas.material.property.MaterialTarget;
+import grondag.canvas.material.property.TargetRenderState;
 
 /**
  * Here to defer initialization when referencing classes are loaded.
@@ -38,7 +38,7 @@ public final class TerrainRenderStates {
 	public static final RenderMaterialImpl TRANSLUCENT_TERRAIN = (RenderMaterialImpl) RenderTypeUtil.toMaterial(RenderType.translucent());
 	public static final RenderState TRANSLUCENT = TRANSLUCENT_TERRAIN.renderState;
 	public static final RenderState SOLID = ((RenderMaterialImpl) RenderTypeUtil.toMaterial(RenderType.solid())).renderState;
-	public static final Predicate<RenderState> TRANSLUCENT_PREDICATE = m -> m.target == MaterialTarget.TRANSLUCENT && m.primaryTargetTransparency;
+	public static final Predicate<RenderState> TRANSLUCENT_PREDICATE = m -> m.target == TargetRenderState.TRANSLUCENT && m.primaryTargetTransparency;
 	public static final Predicate<RenderState> SOLID_PREDICATE = m -> !TRANSLUCENT_PREDICATE.test(m);
 
 	static {

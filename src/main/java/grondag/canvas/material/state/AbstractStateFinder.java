@@ -28,7 +28,7 @@ import io.vram.frex.api.material.MaterialCondition;
 import io.vram.frex.api.material.RenderMaterial;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.material.property.MaterialTextureState;
+import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.data.ShaderStrings;
 
@@ -54,7 +54,7 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	//}
 
 	public T texture(@Nullable ResourceLocation id) {
-		final int val = id == null ? MaterialTextureState.NO_TEXTURE.index : MaterialTextureState.fromId(id).index;
+		final int val = id == null ? TextureMaterialState.NO_TEXTURE.index : TextureMaterialState.fromId(id).index;
 		bits = TEXTURE.setValue(val, bits);
 		return (T) this;
 	}

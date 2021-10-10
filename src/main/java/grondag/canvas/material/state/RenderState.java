@@ -27,13 +27,13 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
 
-import grondag.canvas.material.property.BinaryMaterialState;
-import grondag.canvas.material.property.MaterialDecal;
-import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.property.MaterialTextureState;
-import grondag.canvas.material.property.MaterialTransparency;
-import grondag.canvas.material.property.MaterialWriteMask;
+import grondag.canvas.material.property.BinaryRenderState;
+import grondag.canvas.material.property.DecalRenderState;
+import grondag.canvas.material.property.DepthTestRenderState;
+import grondag.canvas.material.property.TargetRenderState;
+import grondag.canvas.material.property.TextureMaterialState;
+import grondag.canvas.material.property.TransparencyRenderState;
+import grondag.canvas.material.property.WriteMaskRenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.world.SkyShadowRenderer;
@@ -66,18 +66,18 @@ public final class RenderState extends AbstractRenderState {
 
 	// these aren't order-dependent, they are included in sort to minimize state changes
 	private static final BitPacker64<Void>.BooleanElement SORT_BLUR = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
+	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(DepthTestRenderState.DEPTH_TEST_COUNT);
 	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
 
 	// decal should be drawn after non-decal
-	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
+	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(DecalRenderState.DECAL_COUNT);
 	// primary sorted layer drawn first
 	private static final BitPacker64<Void>.BooleanElement SORT_TPP = SORT_PACKER.createBooleanElement();
 	// draw solid first, then various translucent layers
-	private static final BitPacker64<Void>.IntElement SORT_TRANSPARENCY = SORT_PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
+	private static final BitPacker64<Void>.IntElement SORT_TRANSPARENCY = SORT_PACKER.createIntElement(TransparencyRenderState.TRANSPARENCY_COUNT);
 	// draw things that update depth buffer first
-	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
+	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(WriteMaskRenderState.WRITE_MASK_COUNT);
 
 	public final long drawPriority;
 
@@ -229,10 +229,10 @@ public final class RenderState extends AbstractRenderState {
 		shader.setModelOrigin(x, y, z);
 	}
 
-	private static final BinaryMaterialState CULL_STATE = new BinaryMaterialState(GFX::enableCull, GFX::disableCull);
+	private static final BinaryRenderState CULL_STATE = new BinaryRenderState(GFX::enableCull, GFX::disableCull);
 
 	@SuppressWarnings("resource")
-	private static final BinaryMaterialState LIGHTMAP_STATE = new BinaryMaterialState(
+	private static final BinaryRenderState LIGHTMAP_STATE = new BinaryRenderState(
 		//UGLY: vanilla handles binding before uniform upload but we need to do it here
 		//so that we don't bind the lightmap texture to some random texture unit
 		() -> {
@@ -244,7 +244,7 @@ public final class RenderState extends AbstractRenderState {
 			Minecraft.getInstance().gameRenderer.lightTexture().turnOffLightLayer();
 		});
 
-	private static final BinaryMaterialState LINE_STATE = new BinaryMaterialState(
+	private static final BinaryRenderState LINE_STATE = new BinaryRenderState(
 		() -> RenderSystem.lineWidth(Math.max(2.5F, Minecraft.getInstance().getWindow().getWidth() / 1920.0F * 2.5F)),
 		() -> RenderSystem.lineWidth(1.0F));
 
@@ -262,14 +262,14 @@ public final class RenderState extends AbstractRenderState {
 		GFX.glCullFace(GFX.GL_BACK);
 
 		GlProgram.deactivate();
-		MaterialDecal.disable();
-		MaterialTransparency.disable();
-		MaterialDepthTest.disable();
-		MaterialWriteMask.disable();
+		DecalRenderState.disable();
+		TransparencyRenderState.disable();
+		DepthTestRenderState.disable();
+		WriteMaskRenderState.disable();
 		CULL_STATE.disable();
 		LIGHTMAP_STATE.disable();
 		LINE_STATE.disable();
-		MaterialTextureState.disable();
+		TextureMaterialState.disable();
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 		MaterialIndexTexture.disable();
 
@@ -278,7 +278,7 @@ public final class RenderState extends AbstractRenderState {
 			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, 0);
 		}
 
-		MaterialTarget.disable();
+		TargetRenderState.disable();
 		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 	}
 

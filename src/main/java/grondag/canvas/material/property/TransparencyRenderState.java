@@ -24,8 +24,8 @@ import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.varia.GFX;
 
-public class MaterialTransparency {
-	public static final MaterialTransparency NONE = new MaterialTransparency(
+public class TransparencyRenderState {
+	public static final TransparencyRenderState NONE = new TransparencyRenderState(
 		MaterialConstants.TRANSPARENCY_NONE,
 		"none",
 		6,
@@ -33,7 +33,7 @@ public class MaterialTransparency {
 			GFX.disableBlend();
 		});
 
-	public static final MaterialTransparency ADDITIVE = new MaterialTransparency(
+	public static final TransparencyRenderState ADDITIVE = new TransparencyRenderState(
 		MaterialConstants.TRANSPARENCY_ADDITIVE,
 		"additive",
 		2,
@@ -42,7 +42,7 @@ public class MaterialTransparency {
 			GFX.blendFunc(GFX.GL_ONE, GFX.GL_ONE);
 		});
 
-	public static final MaterialTransparency LIGHTNING = new MaterialTransparency(
+	public static final TransparencyRenderState LIGHTNING = new TransparencyRenderState(
 		MaterialConstants.TRANSPARENCY_LIGHTNING,
 		"lightning",
 		5,
@@ -51,7 +51,7 @@ public class MaterialTransparency {
 			GFX.blendFunc(GFX.GL_SRC_ALPHA, GFX.GL_ONE);
 		});
 
-	public static final MaterialTransparency GLINT = new MaterialTransparency(
+	public static final TransparencyRenderState GLINT = new TransparencyRenderState(
 		MaterialConstants.TRANSPARENCY_GLINT,
 		"glint",
 		1,
@@ -60,7 +60,7 @@ public class MaterialTransparency {
 			GFX.blendFuncSeparate(GFX.GL_SRC_COLOR, GFX.GL_ONE, GFX.GL_ZERO, GFX.GL_ONE);
 		});
 
-	public static final MaterialTransparency CRUMBLING = new MaterialTransparency(
+	public static final TransparencyRenderState CRUMBLING = new TransparencyRenderState(
 		MaterialConstants.TRANSPARENCY_CRUMBLING,
 		"crumbling",
 		0,
@@ -69,7 +69,7 @@ public class MaterialTransparency {
 			GFX.blendFuncSeparate(GFX.GL_DST_COLOR, GFX.GL_SRC_COLOR, GFX.GL_ONE, GFX.GL_ZERO);
 		});
 
-	public static final MaterialTransparency TRANSLUCENT = new MaterialTransparency(
+	public static final TransparencyRenderState TRANSLUCENT = new TransparencyRenderState(
 		MaterialConstants.TRANSPARENCY_TRANSLUCENT,
 		"translucent",
 		4,
@@ -79,7 +79,7 @@ public class MaterialTransparency {
 		});
 
 	/** Used for terrain particles. */
-	public static final MaterialTransparency DEFAULT = new MaterialTransparency(
+	public static final TransparencyRenderState DEFAULT = new TransparencyRenderState(
 		MaterialConstants.TRANSPARENCY_DEFAULT,
 		"default",
 		3,
@@ -89,7 +89,7 @@ public class MaterialTransparency {
 		});
 
 	public static final int TRANSPARENCY_COUNT = 7;
-	private static final MaterialTransparency[] VALUES = new MaterialTransparency[TRANSPARENCY_COUNT];
+	private static final TransparencyRenderState[] VALUES = new TransparencyRenderState[TRANSPARENCY_COUNT];
 
 	static {
 		VALUES[MaterialConstants.TRANSPARENCY_NONE] = NONE;
@@ -101,7 +101,7 @@ public class MaterialTransparency {
 		VALUES[MaterialConstants.TRANSPARENCY_DEFAULT] = DEFAULT;
 	}
 
-	public static MaterialTransparency fromIndex(int index) {
+	public static TransparencyRenderState fromIndex(int index) {
 		return VALUES[index];
 	}
 
@@ -112,7 +112,7 @@ public class MaterialTransparency {
 	/** Higher goes first. */
 	public final int drawPriority;
 
-	private MaterialTransparency(int index, String name, int drawPriority, Runnable action) {
+	private TransparencyRenderState(int index, String name, int drawPriority, Runnable action) {
 		this.index = index;
 		this.name = name;
 		this.drawPriority = drawPriority;
@@ -126,7 +126,7 @@ public class MaterialTransparency {
 		}
 	}
 
-	private static MaterialTransparency active = null;
+	private static TransparencyRenderState active = null;
 
 	public static void disable() {
 		if (active != null) {

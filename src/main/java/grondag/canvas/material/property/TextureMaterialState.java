@@ -38,7 +38,7 @@ import grondag.canvas.texture.MaterialIndexProvider;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
 
-public class MaterialTextureState {
+public class TextureMaterialState {
 	public final int index;
 	public final ResourceLocation id;
 
@@ -48,7 +48,7 @@ public class MaterialTextureState {
 	private SpriteIndex spriteIndex;
 	private MaterialIndexProvider donglenator;
 
-	private MaterialTextureState(int index, ResourceLocation id) {
+	private TextureMaterialState(int index, ResourceLocation id) {
 		this.index = index;
 		this.id = id;
 	}
@@ -112,7 +112,7 @@ public class MaterialTextureState {
 				activeIsBilinearFilter = bilinear;
 			}
 		} else {
-			if (this == MaterialTextureState.NO_TEXTURE) {
+			if (this == TextureMaterialState.NO_TEXTURE) {
 				CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 				CanvasTextureState.bindTexture(0);
 			} else {
@@ -168,10 +168,10 @@ public class MaterialTextureState {
 
 	public static final int MAX_TEXTURE_STATES = 4096;
 	private static int nextIndex = 1;
-	private static final MaterialTextureState[] STATES = new MaterialTextureState[MAX_TEXTURE_STATES];
-	private static final Object2ObjectOpenHashMap<ResourceLocation, MaterialTextureState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
+	private static final TextureMaterialState[] STATES = new TextureMaterialState[MAX_TEXTURE_STATES];
+	private static final Object2ObjectOpenHashMap<ResourceLocation, TextureMaterialState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
 
-	public static final MaterialTextureState NO_TEXTURE = new MaterialTextureState(0, TextureManager.INTENTIONAL_MISSING_TEXTURE) {
+	public static final TextureMaterialState NO_TEXTURE = new TextureMaterialState(0, TextureManager.INTENTIONAL_MISSING_TEXTURE) {
 		@Override
 		public void enable(boolean bilinear) {
 			if (activeState != this) {
@@ -180,9 +180,9 @@ public class MaterialTextureState {
 		}
 	};
 
-	public static final MaterialTextureState MISSING;
+	public static final TextureMaterialState MISSING;
 
-	private static MaterialTextureState activeState = NO_TEXTURE;
+	private static TextureMaterialState activeState = NO_TEXTURE;
 	private static boolean activeIsBilinearFilter = false;
 
 	public static void disable() {
@@ -197,15 +197,15 @@ public class MaterialTextureState {
 		MISSING = fromId(TextureManager.INTENTIONAL_MISSING_TEXTURE);
 	}
 
-	public static MaterialTextureState fromIndex(int index) {
+	public static TextureMaterialState fromIndex(int index) {
 		return STATES[index];
 	}
 
 	private static boolean shouldWarn = true;
 
 	// PERF: use cow or other method to avoid synch
-	public static synchronized MaterialTextureState fromId(ResourceLocation id) {
-		MaterialTextureState state = MAP.get(id);
+	public static synchronized TextureMaterialState fromId(ResourceLocation id) {
+		TextureMaterialState state = MAP.get(id);
 
 		if (state == NO_TEXTURE) {
 			if (nextIndex >= MAX_TEXTURE_STATES) {
@@ -215,7 +215,7 @@ public class MaterialTextureState {
 							MAX_TEXTURE_STATES, id.toString()));
 					CanvasMod.LOG.warn("Previously encountered textures are listed below. Subsequent warnings are suppressed.");
 
-					for (final MaterialTextureState extant : STATES) {
+					for (final TextureMaterialState extant : STATES) {
 						CanvasMod.LOG.info(extant == null ? "Null (this is a bug)" : extant.id.toString());
 					}
 				}
@@ -224,7 +224,7 @@ public class MaterialTextureState {
 			}
 
 			final int index = nextIndex++;
-			state = new MaterialTextureState(index, id);
+			state = new TextureMaterialState(index, id);
 			MAP.put(id, state);
 			STATES[index] = state;
 		}

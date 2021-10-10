@@ -24,50 +24,47 @@ import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.varia.GFX;
 
-public class MaterialDepthTest {
-	public static final MaterialDepthTest DISABLE = new MaterialDepthTest(
-		MaterialConstants.DEPTH_TEST_DISABLE,
-		"disable",
+public class WriteMaskRenderState {
+	public static final WriteMaskRenderState COLOR = new WriteMaskRenderState(
+		MaterialConstants.WRITE_MASK_COLOR,
+		"color",
+		0,
 		() -> {
-			GFX.disableDepthTest();
-			GFX.depthFunc(GFX.GL_LEQUAL);
-		});
+			GFX.depthMask(false);
+			GFX.colorMask(true, true, true, true);
+		}
+	);
 
-	public static final MaterialDepthTest ALWAYS = new MaterialDepthTest(
-		MaterialConstants.DEPTH_TEST_ALWAYS,
-		"disable",
+	public static final WriteMaskRenderState DEPTH = new WriteMaskRenderState(
+		MaterialConstants.WRITE_MASK_DEPTH,
+		"depth",
+		2,
 		() -> {
-			GFX.enableDepthTest();
-			GFX.depthFunc(GFX.GL_ALWAYS);
-		});
+			GFX.depthMask(true);
+			GFX.colorMask(false, false, false, false);
+		}
+	);
 
-	public static final MaterialDepthTest EQUAL = new MaterialDepthTest(
-		MaterialConstants.DEPTH_TEST_EQUAL,
-		"disable",
+	public static final WriteMaskRenderState COLOR_DEPTH = new WriteMaskRenderState(
+		MaterialConstants.WRITE_MASK_COLOR_DEPTH,
+		"color_depth",
+		1,
 		() -> {
-			GFX.enableDepthTest();
-			GFX.depthFunc(GFX.GL_EQUAL);
-		});
+			GFX.depthMask(true);
+			GFX.colorMask(true, true, true, true);
+		}
+	);
 
-	public static final MaterialDepthTest LEQUAL = new MaterialDepthTest(
-		MaterialConstants.DEPTH_TEST_LEQUAL,
-		"disable",
-		() -> {
-			GFX.enableDepthTest();
-			GFX.depthFunc(GFX.GL_LEQUAL);
-		});
-
-	public static final int DEPTH_TEST_COUNT = 4;
-	private static final MaterialDepthTest[] VALUES = new MaterialDepthTest[DEPTH_TEST_COUNT];
+	public static final int WRITE_MASK_COUNT = 3;
+	private static final WriteMaskRenderState[] VALUES = new WriteMaskRenderState[WRITE_MASK_COUNT];
 
 	static {
-		VALUES[MaterialConstants.DEPTH_TEST_DISABLE] = DISABLE;
-		VALUES[MaterialConstants.DEPTH_TEST_ALWAYS] = ALWAYS;
-		VALUES[MaterialConstants.DEPTH_TEST_EQUAL] = EQUAL;
-		VALUES[MaterialConstants.DEPTH_TEST_LEQUAL] = LEQUAL;
+		VALUES[MaterialConstants.WRITE_MASK_COLOR] = COLOR;
+		VALUES[MaterialConstants.WRITE_MASK_DEPTH] = DEPTH;
+		VALUES[MaterialConstants.WRITE_MASK_COLOR_DEPTH] = COLOR_DEPTH;
 	}
 
-	public static MaterialDepthTest fromIndex(int index) {
+	public static WriteMaskRenderState fromIndex(int index) {
 		return VALUES[index];
 	}
 
@@ -75,9 +72,13 @@ public class MaterialDepthTest {
 	public final String name;
 	private final Runnable action;
 
-	private MaterialDepthTest(int index, String name, Runnable action) {
+	/** Higher goes first. */
+	public final int drawPriority;
+
+	private WriteMaskRenderState(int index, String name, int drawPriority, Runnable action) {
 		this.index = index;
 		this.name = name;
+		this.drawPriority = drawPriority;
 		this.action = action;
 	}
 
@@ -88,11 +89,11 @@ public class MaterialDepthTest {
 		}
 	}
 
-	private static MaterialDepthTest active = null;
+	private static WriteMaskRenderState active = null;
 
 	public static void disable() {
 		if (active != null) {
-			DISABLE.action.run();
+			COLOR_DEPTH.action.run();
 			active = null;
 		}
 	}

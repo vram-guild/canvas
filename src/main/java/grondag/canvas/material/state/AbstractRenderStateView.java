@@ -25,12 +25,12 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.material.property.MaterialDecal;
-import grondag.canvas.material.property.MaterialDepthTest;
-import grondag.canvas.material.property.MaterialTarget;
-import grondag.canvas.material.property.MaterialTextureState;
-import grondag.canvas.material.property.MaterialTransparency;
-import grondag.canvas.material.property.MaterialWriteMask;
+import grondag.canvas.material.property.DecalRenderState;
+import grondag.canvas.material.property.DepthTestRenderState;
+import grondag.canvas.material.property.TargetRenderState;
+import grondag.canvas.material.property.TextureMaterialState;
+import grondag.canvas.material.property.TransparencyRenderState;
+import grondag.canvas.material.property.WriteMaskRenderState;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.data.ShaderStrings;
@@ -90,8 +90,8 @@ abstract class AbstractRenderStateView {
 		return DISABLE_AO.getValue(bits);
 	}
 
-	public MaterialTextureState textureState() {
-		return MaterialTextureState.fromIndex(TEXTURE.getValue(bits));
+	public TextureMaterialState textureState() {
+		return TextureMaterialState.fromIndex(TEXTURE.getValue(bits));
 	}
 
 	public boolean blur() {
@@ -173,14 +173,14 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);
 
 	// GL State comes first for sorting
-	static final BitPacker64<Void>.IntElement TARGET = PACKER.createIntElement(MaterialTarget.TARGET_COUNT);
-	static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(MaterialTextureState.MAX_TEXTURE_STATES);
+	static final BitPacker64<Void>.IntElement TARGET = PACKER.createIntElement(TargetRenderState.TARGET_COUNT);
+	static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(TextureMaterialState.MAX_TEXTURE_STATES);
 	static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(MaterialTransparency.TRANSPARENCY_COUNT);
-	static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(MaterialDepthTest.DEPTH_TEST_COUNT);
+	static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(TransparencyRenderState.TRANSPARENCY_COUNT);
+	static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(DepthTestRenderState.DEPTH_TEST_COUNT);
 	static final BitPacker64<Void>.BooleanElement CULL = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.IntElement WRITE_MASK = PACKER.createIntElement(MaterialWriteMask.WRITE_MASK_COUNT);
-	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(MaterialDecal.DECAL_COUNT);
+	static final BitPacker64<Void>.IntElement WRITE_MASK = PACKER.createIntElement(WriteMaskRenderState.WRITE_MASK_COUNT);
+	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(DecalRenderState.DECAL_COUNT);
 	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
 
 	// These don't affect GL state but must be collected and drawn separately
@@ -238,7 +238,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = CULL.setValue(true, defaultBits);
 		defaultBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, defaultBits);
 		defaultBits = ENABLE_GLINT.setValue(false, defaultBits);
-		defaultBits = TEXTURE.setValue(MaterialTextureState.fromId(TextureAtlas.LOCATION_BLOCKS).index, defaultBits);
+		defaultBits = TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, defaultBits);
 		defaultBits = TARGET.setValue(MaterialConstants.TARGET_MAIN, defaultBits);
 		defaultBits = WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);
@@ -249,14 +249,14 @@ abstract class AbstractRenderStateView {
 		DEFAULT_BITS = defaultBits;
 
 		long translucentBits = PRESET.setValue(MaterialConstants.PRESET_NONE, 0);
-		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
+		translucentBits = TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
 		translucentBits = BLUR.setValue(false, translucentBits);
 		translucentBits = TRANSPARENCY.setValue(MaterialConstants.TRANSPARENCY_TRANSLUCENT, translucentBits);
 		translucentBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, translucentBits);
 		translucentBits = CULL.setValue(true, translucentBits);
 		translucentBits = WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, translucentBits);
 		translucentBits = ENABLE_GLINT.setValue(false, translucentBits);
-		translucentBits = DECAL.setValue(MaterialDecal.NONE.index, translucentBits);
+		translucentBits = DECAL.setValue(DecalRenderState.NONE.index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialConstants.TARGET_TRANSLUCENT, translucentBits);
 		translucentBits = LINES.setValue(false, translucentBits);
 		translucentBits = FOG.setValue(true, translucentBits);
@@ -267,7 +267,7 @@ abstract class AbstractRenderStateView {
 
 		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & COLLECTOR_AND_STATE_MASK;
 
-		translucentBits = TEXTURE.setValue(MaterialTextureState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
+		translucentBits = TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
 		translucentBits = TARGET.setValue(MaterialConstants.TARGET_ENTITIES, translucentBits);
 
 		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
