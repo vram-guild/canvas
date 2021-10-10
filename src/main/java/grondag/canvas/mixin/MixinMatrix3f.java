@@ -27,7 +27,8 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import com.mojang.math.Matrix3f;
 
-import grondag.canvas.apiimpl.util.PackedVector3f;
+import io.vram.frex.api.model.util.PackedVector3f;
+
 import grondag.canvas.mixinterface.Matrix3fExt;
 
 @Mixin(Matrix3f.class)

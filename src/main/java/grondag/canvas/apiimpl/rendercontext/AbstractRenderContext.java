@@ -35,11 +35,11 @@ import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.model.ModelOuputContext;
 import io.vram.frex.api.model.QuadTransform;
+import io.vram.frex.api.model.util.ColorUtil;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
-import grondag.canvas.apiimpl.util.ColorHelper;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.MaterialFinderImpl;
@@ -172,10 +172,10 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 
 	protected void computeFlatSimple(QuadEditorImpl quad) {
 		final int brightness = flatBrightness(quad);
-		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
-		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
-		quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
-		quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
+		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), brightness));
+		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), brightness));
+		quad.lightmap(2, ColorUtil.maxBrightness(quad.lightmap(2), brightness));
+		quad.lightmap(3, ColorUtil.maxBrightness(quad.lightmap(3), brightness));
 	}
 
 	public abstract int flatBrightness(QuadEditorImpl quad);

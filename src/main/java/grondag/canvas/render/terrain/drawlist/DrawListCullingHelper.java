@@ -22,7 +22,7 @@ package grondag.canvas.render.terrain.drawlist;
 
 import net.minecraft.core.BlockPos;
 
-import io.vram.frex.api.model.ModelHelper;
+import io.vram.frex.api.model.util.FaceUtil;
 
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
@@ -40,7 +40,7 @@ public class DrawListCullingHelper {
 	private int westMinX;
 	private int southMaxZ;
 	private int northMinZ;
-	private int shadowFlags = ModelHelper.UNASSIGNED_FLAG;
+	private int shadowFlags = FaceUtil.UNASSIGNED_FLAG;
 
 	public void update() {
 		final long packedCameraRegionOrign = worldRenderState.terrainIterator.cameraRegionOrigin();
@@ -54,10 +54,10 @@ public class DrawListCullingHelper {
 		southMaxZ = z + 1;
 		northMinZ = z - 1;
 
-		shadowFlags = ModelHelper.UNASSIGNED_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.x() > 0 ? ModelHelper.EAST_FLAG : ModelHelper.WEST_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.y() > 0 ? ModelHelper.UP_FLAG : ModelHelper.DOWN_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.z() > 0 ? ModelHelper.SOUTH_FLAG : ModelHelper.NORTH_FLAG;
+		shadowFlags = FaceUtil.UNASSIGNED_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.x() > 0 ? FaceUtil.EAST_FLAG : FaceUtil.WEST_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.y() > 0 ? FaceUtil.UP_FLAG : FaceUtil.DOWN_FLAG;
+		shadowFlags |= ShaderDataManager.skyLightVector.z() > 0 ? FaceUtil.SOUTH_FLAG : FaceUtil.NORTH_FLAG;
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
@@ -66,16 +66,16 @@ public class DrawListCullingHelper {
 		final int y = BlockPos.getY(packedOriginBlockPos) >> 4;
 		final int z = BlockPos.getZ(packedOriginBlockPos) >> 4;
 
-		int result = ModelHelper.UNASSIGNED_FLAG;
+		int result = FaceUtil.UNASSIGNED_FLAG;
 
-		if (x < eastMaxX) result |= ModelHelper.EAST_FLAG;
-		if (x > westMinX) result |= ModelHelper.WEST_FLAG;
+		if (x < eastMaxX) result |= FaceUtil.EAST_FLAG;
+		if (x > westMinX) result |= FaceUtil.WEST_FLAG;
 
-		if (y < upMaxY) result |= ModelHelper.UP_FLAG;
-		if (y > downMinY) result |= ModelHelper.DOWN_FLAG;
+		if (y < upMaxY) result |= FaceUtil.UP_FLAG;
+		if (y > downMinY) result |= FaceUtil.DOWN_FLAG;
 
-		if (z < southMaxZ) result |= ModelHelper.SOUTH_FLAG;
-		if (z > northMinZ) result |= ModelHelper.NORTH_FLAG;
+		if (z < southMaxZ) result |= FaceUtil.SOUTH_FLAG;
+		if (z > northMinZ) result |= FaceUtil.NORTH_FLAG;
 
 		return result;
 	}

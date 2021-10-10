@@ -20,24 +20,24 @@
 
 package grondag.canvas.light;
 
-import static grondag.canvas.apiimpl.util.GeometryHelper.AXIS_ALIGNED_FLAG;
-import static grondag.canvas.apiimpl.util.GeometryHelper.CUBIC_FLAG;
-import static grondag.canvas.apiimpl.util.GeometryHelper.LIGHT_FACE_FLAG;
 import static grondag.canvas.light.AoFaceData.OPAQUE;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.fastOffsetRegionIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.offsetInteriorIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
 import static grondag.canvas.varia.CanvasMath.clampNormalized;
+import static io.vram.frex.api.model.util.GeometryUtil.AXIS_ALIGNED_FLAG;
+import static io.vram.frex.api.model.util.GeometryUtil.CUBIC_FLAG;
+import static io.vram.frex.api.model.util.GeometryUtil.LIGHT_FACE_FLAG;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 
-import io.vram.frex.api.model.ModelHelper;
+import io.vram.frex.api.model.util.ColorUtil;
+import io.vram.frex.api.model.util.FaceUtil;
+import io.vram.frex.api.model.util.PackedVector3f;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.mesh.QuadViewImpl;
-import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
@@ -222,7 +222,7 @@ public abstract class AoCalculator {
 
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
+			quad.lightmap(i, ColorUtil.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 			ao[i] = clampNormalized(faceData.weigtedAo(w) * DIVIDE_BY_255);
 		}
 	}
@@ -236,7 +236,7 @@ public abstract class AoCalculator {
 
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
+			quad.lightmap(i, ColorUtil.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 		}
 	}
 
@@ -306,7 +306,7 @@ public abstract class AoCalculator {
 
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
+			quad.lightmap(i, ColorUtil.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 			ao[i] = clampNormalized(faceData.weigtedAo(w) * DIVIDE_BY_255);
 		}
 	}
@@ -320,7 +320,7 @@ public abstract class AoCalculator {
 
 		for (int i = 0; i < 4; i++) {
 			wFunc.apply(quad, i, w);
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
+			quad.lightmap(i, ColorUtil.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 		}
 	}
 
@@ -418,7 +418,7 @@ public abstract class AoCalculator {
 			}
 
 			aoResult[i] = clampNormalized((ao + maxAo) * (0.5f * DIVIDE_BY_255));
-			quad.lightmap(i, ColorHelper.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
+			quad.lightmap(i, ColorUtil.maxBrightness(quad.lightmap(i), (((int) ((sky + maxSky) * 0.5f) & 0xFF) << 16)
 					| ((int) ((block + maxBlock) * 0.5f) & 0xFF)));
 		}
 	}
@@ -426,10 +426,10 @@ public abstract class AoCalculator {
 	private void irregularFaceFlat(QuadEditorImpl quad) {
 		// use center light - interpolation too expensive given how often this happen for foliage, etc.
 		final int brightness = brightness(regionRelativeCacheIndex);
-		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), brightness));
-		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), brightness));
-		quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), brightness));
-		quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), brightness));
+		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), brightness));
+		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), brightness));
+		quad.lightmap(2, ColorUtil.maxBrightness(quad.lightmap(2), brightness));
+		quad.lightmap(3, ColorUtil.maxBrightness(quad.lightmap(3), brightness));
 	}
 
 	/**
@@ -464,7 +464,7 @@ public abstract class AoCalculator {
 		// A key difference from vanilla is that this position is then used as the center for
 		// all following offsets, which avoids anisotropy in smooth lighting.
 		if (isOnBlockFace) {
-			final int offsetIndex = offsetInteriorIndex(index, ModelHelper.faceFromIndex(lightFace));
+			final int offsetIndex = offsetInteriorIndex(index, FaceUtil.faceFromIndex(lightFace));
 
 			if (!isOpaque(offsetIndex)) {
 				index = offsetIndex;

@@ -51,9 +51,9 @@ import net.minecraft.core.Direction;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import io.vram.frex.api.mesh.QuadEditor;
-import io.vram.frex.api.model.ModelHelper;
+import io.vram.frex.api.model.util.FaceUtil;
+import io.vram.frex.api.model.util.PackedVector3f;
 
-import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.apiimpl.util.TextureHelper;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
@@ -101,7 +101,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 		System.arraycopy(EMPTY, 0, data, baseIndex, MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
 		isGeometryInvalid = true;
 		isTangentInvalid = true;
-		nominalFaceId = ModelHelper.UNASSIGNED_INDEX;
+		nominalFaceId = FaceUtil.UNASSIGNED_INDEX;
 		material(defaultMaterial);
 		isSpriteInterpolated = false;
 		vertexIndex = 0;
@@ -129,7 +129,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	@Override
 	@Deprecated
 	public final QuadEditorImpl cullFace(Direction face) {
-		return cullFace(ModelHelper.toFaceIndex(face));
+		return cullFace(FaceUtil.toFaceIndex(face));
 	}
 
 	public final QuadEditorImpl nominalFace(int faceId) {
@@ -140,7 +140,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	@Override
 	@Deprecated
 	public final QuadEditorImpl nominalFace(Direction face) {
-		return nominalFace(ModelHelper.toFaceIndex(face));
+		return nominalFace(FaceUtil.toFaceIndex(face));
 	}
 
 	@Override
@@ -179,7 +179,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 
 	@Override
 	public final QuadEditorImpl fromVanilla(BakedQuad quad, RenderMaterial material, Direction cullFace) {
-		return fromVanilla(quad, material, ModelHelper.toFaceIndex(cullFace));
+		return fromVanilla(quad, material, FaceUtil.toFaceIndex(cullFace));
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 		normalizeSprite();
 		isSpriteInterpolated = false;
 		data[baseIndex + HEADER_BITS] = MeshEncodingHelper.cullFace(0, cullFaceId);
-		nominalFaceId = ModelHelper.toFaceIndex(quad.getDirection());
+		nominalFaceId = FaceUtil.toFaceIndex(quad.getDirection());
 		data[baseIndex + HEADER_COLOR_INDEX] = quad.getTintIndex();
 		data[baseIndex + HEADER_TAG] = 0;
 		isGeometryInvalid = true;

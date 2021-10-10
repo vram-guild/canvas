@@ -26,11 +26,10 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
-import io.vram.frex.api.model.ModelHelper;
+import io.vram.frex.api.model.util.FaceUtil;
 
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.terrain.occlusion.geometry.OcclusionResult;
-import grondag.canvas.varia.BlockPosHelper;
 
 /** Caches directly adjacent regions for fast access and provides visitor operations for terrain iteration. */
 public class NeighborRegions {
@@ -52,23 +51,23 @@ public class NeighborRegions {
 			final RenderRegion nr = neighbors[i];
 
 			if (nr != null) {
-				nr.neighbors.notifyNeighborClosed(BlockPosHelper.oppositeFaceIndex(i), owner);
+				nr.neighbors.notifyNeighborClosed(FaceUtil.oppositeFaceIndex(i), owner);
 			}
 		}
 	}
 
 	public void forEachAvailable(Consumer<RenderRegion> operation) {
-		operation.accept(getNeighbor(ModelHelper.EAST_INDEX));
-		operation.accept(getNeighbor(ModelHelper.WEST_INDEX));
-		operation.accept(getNeighbor(ModelHelper.NORTH_INDEX));
-		operation.accept(getNeighbor(ModelHelper.SOUTH_INDEX));
+		operation.accept(getNeighbor(FaceUtil.EAST_INDEX));
+		operation.accept(getNeighbor(FaceUtil.WEST_INDEX));
+		operation.accept(getNeighbor(FaceUtil.NORTH_INDEX));
+		operation.accept(getNeighbor(FaceUtil.SOUTH_INDEX));
 
 		if (!isTop) {
-			operation.accept(getNeighbor(ModelHelper.UP_INDEX));
+			operation.accept(getNeighbor(FaceUtil.UP_INDEX));
 		}
 
 		if (!isBottom) {
-			operation.accept(getNeighbor(ModelHelper.DOWN_INDEX));
+			operation.accept(getNeighbor(FaceUtil.DOWN_INDEX));
 		}
 	}
 
@@ -81,11 +80,11 @@ public class NeighborRegions {
 			//	return null;
 			//}
 
-			final Direction face = ModelHelper.faceFromIndex(faceIndex);
+			final Direction face = FaceUtil.faceFromIndex(faceIndex);
 			final BlockPos origin = owner.origin;
 			region = owner.storage.getOrCreateRegion(origin.getX() + face.getStepX() * 16, origin.getY() + face.getStepY() * 16, origin.getZ() + face.getStepZ() * 16);
 			neighbors[faceIndex] = region;
-			region.neighbors.attachOrConfirmVisitingNeighbor(BlockPosHelper.oppositeFaceIndex(faceIndex), owner);
+			region.neighbors.attachOrConfirmVisitingNeighbor(FaceUtil.oppositeFaceIndex(faceIndex), owner);
 		}
 
 		return region;
@@ -112,28 +111,28 @@ public class NeighborRegions {
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 		final int openFlags = OcclusionResult.openFacesFlag(mutalOcclusionFaceFlags, owner.cameraVisibility.entryFaceFlags());
 
-		if ((openFlags & ModelHelper.EAST_FLAG) != 0) {
-			getNeighbor(ModelHelper.EAST_INDEX).enqueueAsUnvistedCameraNeighbor(ModelHelper.WEST_FLAG, mySquaredDist);
+		if ((openFlags & FaceUtil.EAST_FLAG) != 0) {
+			getNeighbor(FaceUtil.EAST_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.WEST_FLAG, mySquaredDist);
 		}
 
-		if ((openFlags & ModelHelper.WEST_FLAG) != 0) {
-			getNeighbor(ModelHelper.WEST_INDEX).enqueueAsUnvistedCameraNeighbor(ModelHelper.EAST_FLAG, mySquaredDist);
+		if ((openFlags & FaceUtil.WEST_FLAG) != 0) {
+			getNeighbor(FaceUtil.WEST_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.EAST_FLAG, mySquaredDist);
 		}
 
-		if ((openFlags & ModelHelper.NORTH_FLAG) != 0) {
-			getNeighbor(ModelHelper.NORTH_INDEX).enqueueAsUnvistedCameraNeighbor(ModelHelper.SOUTH_FLAG, mySquaredDist);
+		if ((openFlags & FaceUtil.NORTH_FLAG) != 0) {
+			getNeighbor(FaceUtil.NORTH_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.SOUTH_FLAG, mySquaredDist);
 		}
 
-		if ((openFlags & ModelHelper.SOUTH_FLAG) != 0) {
-			getNeighbor(ModelHelper.SOUTH_INDEX).enqueueAsUnvistedCameraNeighbor(ModelHelper.NORTH_FLAG, mySquaredDist);
+		if ((openFlags & FaceUtil.SOUTH_FLAG) != 0) {
+			getNeighbor(FaceUtil.SOUTH_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.NORTH_FLAG, mySquaredDist);
 		}
 
-		if (!isTop && (openFlags & ModelHelper.UP_FLAG) != 0) {
-			getNeighbor(ModelHelper.UP_INDEX).enqueueAsUnvistedCameraNeighbor(ModelHelper.DOWN_FLAG, mySquaredDist);
+		if (!isTop && (openFlags & FaceUtil.UP_FLAG) != 0) {
+			getNeighbor(FaceUtil.UP_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.DOWN_FLAG, mySquaredDist);
 		}
 
-		if (!isBottom && (openFlags & ModelHelper.DOWN_FLAG) != 0) {
-			getNeighbor(ModelHelper.DOWN_INDEX).enqueueAsUnvistedCameraNeighbor(ModelHelper.UP_FLAG, mySquaredDist);
+		if (!isBottom && (openFlags & FaceUtil.DOWN_FLAG) != 0) {
+			getNeighbor(FaceUtil.DOWN_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.UP_FLAG, mySquaredDist);
 		}
 	}
 
@@ -143,41 +142,41 @@ public class NeighborRegions {
 
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 
-		var region = getNeighbor(ModelHelper.EAST_INDEX);
+		var region = getNeighbor(FaceUtil.EAST_INDEX);
 		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
-		region = getNeighbor(ModelHelper.WEST_INDEX);
+		region = getNeighbor(FaceUtil.WEST_INDEX);
 		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
-		region = getNeighbor(ModelHelper.NORTH_INDEX);
+		region = getNeighbor(FaceUtil.NORTH_INDEX);
 		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
-		region = getNeighbor(ModelHelper.SOUTH_INDEX);
+		region = getNeighbor(FaceUtil.SOUTH_INDEX);
 		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
 		if (!isTop) {
-			region = getNeighbor(ModelHelper.UP_INDEX);
+			region = getNeighbor(FaceUtil.UP_INDEX);
 			if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 		}
 
 		if (!isBottom) {
-			region = getNeighbor(ModelHelper.DOWN_INDEX);
+			region = getNeighbor(FaceUtil.DOWN_INDEX);
 			if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 		}
 	}
 
 	public void enqueueUnvistedShadowNeighbors() {
-		getNeighbor(ModelHelper.EAST_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(ModelHelper.WEST_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(ModelHelper.NORTH_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(ModelHelper.SOUTH_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceUtil.EAST_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceUtil.WEST_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceUtil.NORTH_INDEX).shadowVisibility.addIfValid();
+		getNeighbor(FaceUtil.SOUTH_INDEX).shadowVisibility.addIfValid();
 
 		if (!isTop) {
-			getNeighbor(ModelHelper.UP_INDEX).shadowVisibility.addIfValid();
+			getNeighbor(FaceUtil.UP_INDEX).shadowVisibility.addIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(ModelHelper.DOWN_INDEX).shadowVisibility.addIfValid();
+			getNeighbor(FaceUtil.DOWN_INDEX).shadowVisibility.addIfValid();
 		}
 	}
 }

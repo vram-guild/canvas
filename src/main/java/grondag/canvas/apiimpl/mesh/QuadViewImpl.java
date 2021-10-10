@@ -51,10 +51,10 @@ import net.minecraft.core.Direction;
 
 import io.vram.frex.api.mesh.QuadEditor;
 import io.vram.frex.api.mesh.QuadView;
-import io.vram.frex.api.model.ModelHelper;
+import io.vram.frex.api.model.util.FaceUtil;
+import io.vram.frex.api.model.util.GeometryUtil;
+import io.vram.frex.api.model.util.PackedVector3f;
 
-import grondag.canvas.apiimpl.util.GeometryHelper;
-import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
@@ -63,8 +63,7 @@ import grondag.canvas.mixinterface.Matrix4fExt;
  * of maintaining and encoding the quad state.
  */
 public class QuadViewImpl implements QuadView {
-	protected static ThreadLocal<Vector3f> FACE_NORMAL_THREADLOCAL = ThreadLocal.withInitial(Vector3f::new);
-	protected int nominalFaceId = ModelHelper.UNASSIGNED_INDEX;
+	protected int nominalFaceId = FaceUtil.UNASSIGNED_INDEX;
 	protected boolean isGeometryInvalid = true;
 	protected boolean isTangentInvalid = true;
 
@@ -148,7 +147,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	/**
-	 * gets flags used for lighting - lazily computed via {@link GeometryHelper#computeShapeFlags(QuadView)}.
+	 * gets flags used for lighting - lazily computed via {@link GeometryUtil#computeShapeFlags(QuadView)}.
 	 */
 	public int geometryFlags() {
 		computeGeometry();
@@ -164,10 +163,10 @@ public class QuadViewImpl implements QuadView {
 
 			// depends on face normal
 			// NB: important to save back to array because used by geometry helper
-			data[flagsIndex] = MeshEncodingHelper.lightFace(data[flagsIndex], GeometryHelper.lightFaceId(this));
+			data[flagsIndex] = MeshEncodingHelper.lightFace(data[flagsIndex], GeometryUtil.lightFaceId(this));
 
 			// depends on light face
-			data[flagsIndex] = MeshEncodingHelper.geometryFlags(data[flagsIndex], GeometryHelper.computeShapeFlags(this));
+			data[flagsIndex] = MeshEncodingHelper.geometryFlags(data[flagsIndex], GeometryUtil.computeShapeFlags(this));
 		}
 	}
 
@@ -208,7 +207,7 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public final Direction lightFace() {
-		return ModelHelper.faceFromIndex(lightFaceId());
+		return FaceUtil.faceFromIndex(lightFaceId());
 	}
 
 	public final int cullFaceId() {
@@ -219,28 +218,20 @@ public class QuadViewImpl implements QuadView {
 	 * Based on geometry instead of metadata.  More reliable for terrain backface culling.
 	 */
 	public final int effectiveCullFaceId() {
-		return (geometryFlags() & GeometryHelper.LIGHT_FACE_FLAG) == 0 ? ModelHelper.UNASSIGNED_INDEX : lightFaceId();
+		return (geometryFlags() & GeometryUtil.LIGHT_FACE_FLAG) == 0 ? FaceUtil.UNASSIGNED_INDEX : lightFaceId();
 	}
 
 	@Override
 	public final Direction cullFace() {
-		return ModelHelper.faceFromIndex(cullFaceId());
+		return FaceUtil.faceFromIndex(cullFaceId());
 	}
 
 	@Override
 	public final Direction nominalFace() {
-		return ModelHelper.faceFromIndex(nominalFaceId);
+		return FaceUtil.faceFromIndex(nominalFaceId);
 	}
 
-	/**
-	 * DO NOT USE INTERNALLY - SLOWER THAN PACKED VALUES.
-	 */
-	@Deprecated
 	@Override
-	public final Vector3f faceNormal() {
-		return PackedVector3f.unpackTo(packedFaceNormal(), FACE_NORMAL_THREADLOCAL.get());
-	}
-
 	public int packedFaceNormal() {
 		computeGeometry();
 		return data[baseIndex + HEADER_FACE_NORMAL];
@@ -334,35 +325,8 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public Vector3f copyNormal(int vertexIndex, Vector3f target) {
-		if (hasNormal(vertexIndex)) {
-			if (target == null) {
-				target = new Vector3f();
-			}
-
-			return PackedVector3f.unpackTo(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0], target);
-		} else {
-			return null;
-		}
-	}
-
 	public int packedNormal(int vertexIndex) {
 		return hasNormal(vertexIndex) ? data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0] : packedFaceNormal();
-	}
-
-	@Override
-	public float normalX(int vertexIndex) {
-		return hasNormal(vertexIndex) ? PackedVector3f.packedX(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
-	}
-
-	@Override
-	public float normalY(int vertexIndex) {
-		return hasNormal(vertexIndex) ? PackedVector3f.packedY(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
-	}
-
-	@Override
-	public float normalZ(int vertexIndex) {
-		return hasNormal(vertexIndex) ? PackedVector3f.packedZ(data[baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_NORMAL0]) : Float.NaN;
 	}
 
 	@Override
@@ -383,24 +347,10 @@ public class QuadViewImpl implements QuadView {
 		}
 	}
 
+	@Override
 	public int packedTangent(int vertexIndex) {
 		// WIP should probably not return zero here
 		return hasTangent(vertexIndex) ? data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT] : 0;
-	}
-
-	@Override
-	public float tangentX(int vertexIndex) {
-		return hasTangent(vertexIndex) ? PackedVector3f.packedX(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
-	}
-
-	@Override
-	public float tangentY(int vertexIndex) {
-		return hasTangent(vertexIndex) ? PackedVector3f.packedY(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
-	}
-
-	@Override
-	public float tangentZ(int vertexIndex) {
-		return hasTangent(vertexIndex) ? PackedVector3f.packedZ(data[baseIndex + vertexIndex + HEADER_FIRST_VERTEX_TANGENT]) : Float.NaN;
 	}
 
 	@Override

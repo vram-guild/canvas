@@ -38,7 +38,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.model.BlockModel;
-import io.vram.frex.api.model.ModelHelper;
+import io.vram.frex.api.model.util.FaceUtil;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;
@@ -164,7 +164,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 
 	@Override
 	public boolean cullTest(int faceIndex) {
-		if (faceIndex == ModelHelper.UNASSIGNED_INDEX) {
+		if (faceIndex == FaceUtil.UNASSIGNED_INDEX) {
 			return true;
 		}
 
@@ -172,7 +172,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 
 		if ((cullCompletionFlags & mask) == 0) {
 			cullCompletionFlags |= mask;
-			final Direction face = ModelHelper.faceFromIndex(faceIndex);
+			final Direction face = FaceUtil.faceFromIndex(faceIndex);
 
 			if (Block.shouldRenderFace(blockState, region, blockPos, face, internalSearchPos.setWithOffset(blockPos, face))) {
 				cullResultFlags |= mask;

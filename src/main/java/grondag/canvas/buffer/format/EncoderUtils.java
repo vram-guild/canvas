@@ -24,11 +24,12 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
 
+import io.vram.frex.api.model.util.ColorUtil;
+import io.vram.frex.api.model.util.PackedVector3f;
+
 import grondag.canvas.apiimpl.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
-import grondag.canvas.apiimpl.util.ColorHelper;
-import grondag.canvas.apiimpl.util.PackedVector3f;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
@@ -80,16 +81,16 @@ public abstract class EncoderUtils {
 
 		// PERF: don't swap red blue on white quad (most of em)
 		if (colorIndex == -1 || quad.material().disableColorIndex) {
-			quad.vertexColor(0, ColorHelper.swapRedBlueIfNeeded(quad.vertexColor(0)));
-			quad.vertexColor(1, ColorHelper.swapRedBlueIfNeeded(quad.vertexColor(1)));
-			quad.vertexColor(2, ColorHelper.swapRedBlueIfNeeded(quad.vertexColor(2)));
-			quad.vertexColor(3, ColorHelper.swapRedBlueIfNeeded(quad.vertexColor(3)));
+			quad.vertexColor(0, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(0)));
+			quad.vertexColor(1, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(1)));
+			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(2)));
+			quad.vertexColor(3, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(3)));
 		} else {
 			final int indexedColor = context.indexedColor(colorIndex);
-			quad.vertexColor(0, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(indexedColor, quad.vertexColor(0))));
-			quad.vertexColor(1, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(indexedColor, quad.vertexColor(1))));
-			quad.vertexColor(2, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(indexedColor, quad.vertexColor(2))));
-			quad.vertexColor(3, ColorHelper.swapRedBlueIfNeeded(ColorHelper.multiplyColor(indexedColor, quad.vertexColor(3))));
+			quad.vertexColor(0, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(0))));
+			quad.vertexColor(1, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(1))));
+			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(2))));
+			quad.vertexColor(3, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(3))));
 		}
 	}
 
@@ -103,9 +104,9 @@ public abstract class EncoderUtils {
 
 	public static void applyItemLighting(QuadEditorImpl quad, AbstractRenderContext context) {
 		final int lightmap = context.brightness();
-		quad.lightmap(0, ColorHelper.maxBrightness(quad.lightmap(0), lightmap));
-		quad.lightmap(1, ColorHelper.maxBrightness(quad.lightmap(1), lightmap));
-		quad.lightmap(2, ColorHelper.maxBrightness(quad.lightmap(2), lightmap));
-		quad.lightmap(3, ColorHelper.maxBrightness(quad.lightmap(3), lightmap));
+		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), lightmap));
+		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), lightmap));
+		quad.lightmap(2, ColorUtil.maxBrightness(quad.lightmap(2), lightmap));
+		quad.lightmap(3, ColorUtil.maxBrightness(quad.lightmap(3), lightmap));
 	}
 }

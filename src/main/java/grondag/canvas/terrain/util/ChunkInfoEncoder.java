@@ -22,7 +22,7 @@ package grondag.canvas.terrain.util;
 
 import net.minecraft.core.Direction;
 
-import io.vram.frex.api.model.ModelHelper;
+import io.vram.frex.api.model.util.FaceUtil;
 
 public class ChunkInfoEncoder {
 	private static final int FACE_SHIFT = 22;
@@ -30,7 +30,7 @@ public class ChunkInfoEncoder {
 	private static final int INDEX_MASK = (1 << 22) - 1;
 
 	public static int encodeChunkInfo(int chunkIndex, Direction entryFace, int backtrackFlags) {
-		return chunkIndex | (ModelHelper.toFaceIndex(entryFace) << FACE_SHIFT) | (backtrackFlags << FLAGS_SHIFT);
+		return chunkIndex | (FaceUtil.toFaceIndex(entryFace) << FACE_SHIFT) | (backtrackFlags << FLAGS_SHIFT);
 	}
 
 	public static int decodeChunkIndex(int bits) {
@@ -38,7 +38,7 @@ public class ChunkInfoEncoder {
 	}
 
 	public static Direction decodeEntryFaceOrdinal(int bits) {
-		return ModelHelper.faceFromIndex((bits >> FACE_SHIFT) & 7);
+		return FaceUtil.faceFromIndex((bits >> FACE_SHIFT) & 7);
 	}
 
 	public static int decodeBacktrackFlags(int bits) {

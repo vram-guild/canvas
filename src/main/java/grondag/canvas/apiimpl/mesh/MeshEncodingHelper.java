@@ -23,7 +23,7 @@ package grondag.canvas.apiimpl.mesh;
 import com.google.common.base.Preconditions;
 
 import io.vram.frex.api.mesh.QuadView;
-import io.vram.frex.api.model.ModelHelper;
+import io.vram.frex.api.model.util.FaceUtil;
 
 /**
  * Holds all the array offsets and bit-wise encoders/decoders for
@@ -76,7 +76,7 @@ public abstract class MeshEncodingHelper {
 
 	static {
 		EMPTY[HEADER_COLOR_INDEX] = -1;
-		EMPTY[HEADER_BITS] = MeshEncodingHelper.cullFace(0, ModelHelper.UNASSIGNED_INDEX);
+		EMPTY[HEADER_BITS] = MeshEncodingHelper.cullFace(0, FaceUtil.UNASSIGNED_INDEX);
 	}
 
 	public static final int DEFAULT_HEADER_BITS;
@@ -109,8 +109,8 @@ public abstract class MeshEncodingHelper {
 
 	static {
 		int defaultHeader = 0;
-		defaultHeader = cullFace(defaultHeader, ModelHelper.UNASSIGNED_INDEX);
-		defaultHeader = lightFace(defaultHeader, ModelHelper.UNASSIGNED_INDEX);
+		defaultHeader = cullFace(defaultHeader, FaceUtil.UNASSIGNED_INDEX);
+		defaultHeader = lightFace(defaultHeader, FaceUtil.UNASSIGNED_INDEX);
 		DEFAULT_HEADER_BITS = defaultHeader;
 	}
 
