@@ -40,7 +40,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.mesh.FrexBufferSource;
 import io.vram.frex.api.model.BlockModel.BlockInputContext;
 import io.vram.frex.api.model.ModelHelper;
 
@@ -192,12 +191,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 		} else {
 			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get(quad.material()));
 		}
-	}
-
-	@Override
-	public FrexBufferSource vertexConsumers() {
-		// WIP implement
-		return null;
 	}
 
 	@Override

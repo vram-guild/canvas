@@ -36,7 +36,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.ModelBakery;
 
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.FrexBufferSource;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.RenderTypeUtil;
@@ -47,7 +46,7 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 
-public class CanvasImmediate extends BufferSource implements FrexBufferSource {
+public class CanvasImmediate extends BufferSource {
 	public final VertexCollectorList collectors = new VertexCollectorList(false);
 	public final RenderContextState contextState;
 
@@ -73,7 +72,6 @@ public class CanvasImmediate extends BufferSource implements FrexBufferSource {
 		}
 	}
 
-	@Override
 	public FrexVertexConsumer getConsumer(RenderMaterial material) {
 		final RenderMaterialImpl mat = contextState.mapMaterial((RenderMaterialImpl) material);
 		return collectors.consumer.prepare(mat);

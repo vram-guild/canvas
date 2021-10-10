@@ -182,6 +182,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 		return fromVanilla(quad, material, ModelHelper.toFaceIndex(cullFace));
 	}
 
+	@Override
 	public final QuadEditorImpl fromVanilla(BakedQuad quad, RenderMaterial material, int cullFaceId) {
 		System.arraycopy(quad.getVertices(), 0, data, baseIndex + HEADER_STRIDE, MESH_QUAD_STRIDE);
 		material(material);
@@ -493,5 +494,15 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 		final float tz = mat.m20() * x + mat.m21() * y + mat.m22() * z;
 
 		return this.normal(tx, ty, tz);
+	}
+
+	@Override
+	public FrexVertexConsumer asVertexConsumer() {
+		return this;
+	}
+
+	@Override
+	public QuadEditor asQuadEditor() {
+		return this;
 	}
 }

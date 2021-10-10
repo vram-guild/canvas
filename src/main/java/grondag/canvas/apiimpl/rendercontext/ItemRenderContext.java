@@ -52,7 +52,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.mesh.FrexBufferSource;
 import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.model.ItemModel.ItemInputContext;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
@@ -320,12 +319,6 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 		} else {
 			return MaterialConstants.PRESET_SOLID;
 		}
-	}
-
-	@Override
-	public FrexBufferSource vertexConsumers() {
-		// WIP implement
-		return null;
 	}
 
 	@Override
