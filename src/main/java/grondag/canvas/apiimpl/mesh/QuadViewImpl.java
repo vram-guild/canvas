@@ -49,7 +49,7 @@ import com.mojang.math.Vector3f;
 
 import net.minecraft.core.Direction;
 
-import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.mesh.QuadEmitter;
 import io.vram.frex.api.mesh.QuadView;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.GeometryUtil;
@@ -272,7 +272,7 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	@Override
-	public void copyTo(QuadEditor target) {
+	public void copyTo(QuadEmitter target) {
 		// force geometry compute
 		computeGeometry();
 		// force tangent compute

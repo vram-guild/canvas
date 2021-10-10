@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.mesh.QuadEmitter;
 import io.vram.frex.api.model.ModelOuputContext;
 import io.vram.frex.api.model.QuadTransform;
 import io.vram.frex.api.model.util.ColorUtil;
@@ -139,7 +139,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext impl
 	}
 
 	@Override
-	public final QuadEditor quadEmitter() {
+	public final QuadEmitter quadEmitter() {
 		makerQuad.clear();
 		return makerQuad;
 	}

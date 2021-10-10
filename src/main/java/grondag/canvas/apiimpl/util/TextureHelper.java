@@ -25,7 +25,7 @@ import static grondag.canvas.apiimpl.mesh.MeshEncodingHelper.UV_PRECISE_UNIT_VAL
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 
-import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.mesh.QuadEmitter;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -63,10 +63,10 @@ public class TextureHelper {
 		quad.setSpriteNormalized();
 		quad.spriteId(((SpriteExt) sprite).canvas_id());
 
-		if (quad.nominalFace() != null && (QuadEditor.BAKE_LOCK_UV & bakeFlags) != 0) {
+		if (quad.nominalFace() != null && (QuadEmitter.BAKE_LOCK_UV & bakeFlags) != 0) {
 			// Assigns normalized UV coordinates based on vertex positions
 			applyModifier(quad, UVLOCKERS[quad.nominalFace().get3DDataValue()]);
-		} else if ((QuadEditor.BAKE_NORMALIZED & bakeFlags) == 0) {
+		} else if ((QuadEmitter.BAKE_NORMALIZED & bakeFlags) == 0) {
 			// Scales from 0-16 to 0-1
 			applyModifier(quad, (q, i) -> q.spritePrecise(i, q.spritePreciseU(i) >> 4, q.spritePreciseV(i) >> 4));
 		}
@@ -79,12 +79,12 @@ public class TextureHelper {
 			applyModifier(quad, ROTATIONS[rotation]);
 		}
 
-		if ((QuadEditor.BAKE_FLIP_U & bakeFlags) != 0) {
+		if ((QuadEmitter.BAKE_FLIP_U & bakeFlags) != 0) {
 			// Inverts U coordinates.  Assumes normalized (0-1) values.
 			applyModifier(quad, (q, i) -> q.spritePrecise(i, UV_PRECISE_UNIT_VALUE - q.spritePreciseU(i), q.spritePreciseV(i)));
 		}
 
-		if ((QuadEditor.BAKE_FLIP_V & bakeFlags) != 0) {
+		if ((QuadEmitter.BAKE_FLIP_V & bakeFlags) != 0) {
 			// Inverts V coordinates.  Assumes normalized (0-1) values.
 			applyModifier(quad, (q, i) -> q.spritePrecise(i, q.spritePreciseU(i), UV_PRECISE_UNIT_VALUE - q.spritePreciseV(i)));
 		}

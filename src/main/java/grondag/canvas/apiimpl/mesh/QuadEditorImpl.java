@@ -50,7 +50,7 @@ import net.minecraft.core.Direction;
 
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.FrexVertexConsumer;
-import io.vram.frex.api.mesh.QuadEditor;
+import io.vram.frex.api.mesh.QuadEmitter;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 
@@ -64,7 +64,7 @@ import grondag.canvas.mixinterface.SpriteExt;
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
-public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor, FrexVertexConsumer {
+public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter, FrexVertexConsumer {
 	// PERF: pack into one array for LOR?
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
@@ -167,7 +167,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public QuadEditor fromVanilla(int[] quadData, int startIndex) {
+	public QuadEmitter fromVanilla(int[] quadData, int startIndex) {
 		System.arraycopy(quadData, startIndex, data, baseIndex + HEADER_STRIDE, MESH_QUAD_STRIDE);
 		convertVanillaUvPrecision();
 		normalizeSprite();
@@ -502,7 +502,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEditor,
 	}
 
 	@Override
-	public QuadEditor asQuadEditor() {
+	public QuadEmitter asQuadEditor() {
 		return this;
 	}
 }
