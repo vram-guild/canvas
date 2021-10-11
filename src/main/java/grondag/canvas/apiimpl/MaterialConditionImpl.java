@@ -22,7 +22,12 @@ package grondag.canvas.apiimpl;
 
 import java.util.function.BooleanSupplier;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+
+import net.minecraft.resources.ResourceLocation;
+
 import io.vram.frex.api.material.MaterialCondition;
+import io.vram.frex.api.renderer.ConditionRegistry;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.shader.data.IntData;
@@ -52,6 +57,11 @@ public class MaterialConditionImpl implements MaterialCondition {
 	@Override
 	public boolean compute() {
 		return (CONDITION_FLAGS[arrayIndex] & testMask) != 0;
+	}
+
+	@Override
+	public int index() {
+		return index;
 	}
 
 	public static final int CONDITION_FLAG_ARRAY_LENGTH = 2;
@@ -90,4 +100,39 @@ public class MaterialConditionImpl implements MaterialCondition {
 			IntData.INT_DATA.put(IntData.CONDITION_DATA_START + i, CONDITION_FLAGS[i]);
 		}
 	}
+
+	public static final ConditionRegistry REGISTRY = new ConditionRegistry() {
+		private final Object2ObjectOpenHashMap<ResourceLocation, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
+
+		@Override
+		public int indexOf(MaterialCondition condition) {
+			return ((MaterialConditionImpl) condition).index;
+		}
+
+		@Override
+		public MaterialCondition conditionByIndex(int index) {
+			return fromIndex(index);
+		}
+
+		@Override
+		public MaterialCondition createCondition(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
+			return create(supplier, affectBlocks, affectItems);
+		}
+
+		@Override
+		public MaterialCondition conditionById(ResourceLocation id) {
+			return conditionMap.get(id);
+		}
+
+		@Override
+		public boolean registerCondition(ResourceLocation id, MaterialCondition condition) {
+			if (conditionMap.containsKey(id)) {
+				return false;
+			}
+
+			// cast to prevent acceptance of impostor implementations
+			conditionMap.put(id, (MaterialConditionImpl) condition);
+			return true;
+		}
+	};
 }
