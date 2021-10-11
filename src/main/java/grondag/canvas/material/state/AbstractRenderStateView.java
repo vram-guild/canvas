@@ -22,6 +22,7 @@ package grondag.canvas.material.state;
 
 import net.minecraft.client.renderer.texture.TextureAtlas;
 
+import io.vram.bitkit.BitPacker64;
 import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
@@ -34,7 +35,6 @@ import grondag.canvas.material.property.WriteMaskRenderState;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.data.ShaderStrings;
-import grondag.fermion.bits.BitPacker64;
 
 abstract class AbstractRenderStateView {
 	protected long bits;

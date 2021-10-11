@@ -24,8 +24,9 @@ import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 
+import io.vram.bitkit.BitPacker32;
+
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.fermion.bits.BitPacker32;
 
 public final class IntData {
 	private IntData() { }

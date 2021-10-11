@@ -75,8 +75,9 @@ dependencies {
 		exclude group: "net.fabricmc.fabric-loader"
 	}
 
-	modImplementation("io.vram:bitraster:${bitraster_version}") { changing = true; }
-	modImplementation("io.vram:special-circumstances:${special_circumstances_version}") { changing = true; }
+	modImplementation("io.vram:bitraster:${bitraster_version}.+") { changing = true; }
+	modImplementation("io.vram:bitkit:${bitkit_version}.+") { changing = true; }
+	modImplementation("io.vram:special-circumstances:${special_circumstances_version}.+") { changing = true; }
 	
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 	modRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
@@ -97,7 +98,8 @@ dependencies {
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
 		include "me.shedaniel.cloth:cloth-config-fabric:${clothconfig_version}"
 		include "io.vram:jmx-fabric-${project.mc_tag}:${project.jmx_version}.+"
-		include "io.vram:bitraster:${bitraster_version}"
+		include "io.vram:bitraster:${bitraster_version}.+"
+		include "io.vram:bitkit:${bitkit_version}.+"
 		include "org.anarres:jcpp:1.4.14"
 	}
 

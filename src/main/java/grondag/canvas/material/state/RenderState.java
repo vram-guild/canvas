@@ -27,6 +27,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.Minecraft;
 
+import io.vram.bitkit.BitPacker64;
+
 import grondag.canvas.material.property.BinaryRenderState;
 import grondag.canvas.material.property.DecalRenderState;
 import grondag.canvas.material.property.DepthTestRenderState;
@@ -43,7 +45,6 @@ import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
 import grondag.canvas.varia.GFX;
-import grondag.fermion.bits.BitPacker64;
 
 /**
  * Primitives with the same state have the same vertex encoding,
