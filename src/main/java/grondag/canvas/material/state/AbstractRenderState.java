@@ -38,7 +38,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;
 
 	public final TextureMaterialState texture;
-	public final String textureIdString;
 	public final boolean blur;
 	public final TransparencyRenderState transparency;
 	public final DepthTestRenderState depthTest;
@@ -94,7 +93,6 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		super(bits);
 		this.index = index;
 		texture = textureState();
-		textureIdString = texture == null ? "null" : texture.id.toString();
 		blur = blur();
 		depthTest = DepthTestRenderState.fromIndex(depthTest());
 		cull = cull();

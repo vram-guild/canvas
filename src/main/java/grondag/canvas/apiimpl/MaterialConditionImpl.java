@@ -27,7 +27,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.material.MaterialCondition;
-import io.vram.frex.api.renderer.ConditionRegistry;
+import io.vram.frex.api.renderer.ConditionManager;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.shader.data.IntData;
@@ -101,7 +101,7 @@ public class MaterialConditionImpl implements MaterialCondition {
 		}
 	}
 
-	public static final ConditionRegistry REGISTRY = new ConditionRegistry() {
+	public static final ConditionManager REGISTRY = new ConditionManager() {
 		private final Object2ObjectOpenHashMap<ResourceLocation, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
 
 		@Override

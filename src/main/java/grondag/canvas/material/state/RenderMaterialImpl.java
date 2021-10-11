@@ -163,11 +163,6 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	@Override
-	public ResourceLocation textureId() {
-		return texture.id;
-	}
-
-	@Override
 	public String label() {
 		return label;
 	}
@@ -178,8 +173,8 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	@Override
-	public String texture() {
-		return textureIdString;
+	public int textureIndex() {
+		return texture.index;
 	}
 
 	@Override

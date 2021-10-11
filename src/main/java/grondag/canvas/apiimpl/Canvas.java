@@ -28,8 +28,10 @@ import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.MeshBuilder;
-import io.vram.frex.api.renderer.ConditionRegistry;
+import io.vram.frex.api.renderer.ConditionManager;
+import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.renderer.Renderer;
+import io.vram.frex.base.renderer.material.BaseTextureManager;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
@@ -55,6 +57,8 @@ import grondag.canvas.terrain.util.ChunkColorCache;
 
 public class Canvas implements Renderer {
 	private static Canvas instance = new Canvas();
+
+	private final BaseTextureManager textures = new BaseTextureManager();
 
 	public static Canvas instance() {
 		return instance;
@@ -125,7 +129,12 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public ConditionRegistry conditions() {
+	public ConditionManager conditions() {
 		return MaterialConditionImpl.REGISTRY;
+	}
+
+	@Override
+	public MaterialTextureManager textures() {
+		return textures;
 	}
 }
