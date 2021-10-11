@@ -144,6 +144,11 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		return sb.toString();
 	}
 
+	@Override
+	public int index() {
+		return index;
+	}
+
 	public MaterialIndexer dongle() {
 		if (dongle == null) {
 			dongle = new ResourceCache<>(() -> texture.materialIndexProvider().getIndexer(this));

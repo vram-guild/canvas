@@ -97,7 +97,7 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		depthTest = DepthTestRenderState.fromIndex(depthTest());
 		cull = cull();
 		writeMask = WriteMaskRenderState.fromIndex(writeMask());
-		enableGlint = enableGlint();
+		enableGlint = foilOverlay();
 		decal = DecalRenderState.fromIndex(decal());
 		target = TargetRenderState.fromIndex(target());
 		lines = lines();

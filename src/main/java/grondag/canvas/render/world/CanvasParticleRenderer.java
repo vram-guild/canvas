@@ -182,7 +182,7 @@ public class CanvasParticleRenderer {
 				.fog(true);
 	}
 
-	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = baseFinder()
+	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = (RenderMaterialImpl) baseFinder()
 			.texture(TextureAtlas.LOCATION_BLOCKS)
 			.transparency(MaterialConstants.TRANSPARENCY_DEFAULT)
 			.find();
@@ -192,7 +192,7 @@ public class CanvasParticleRenderer {
 			.find();
 
 	// MC has two but they are functionally identical
-	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT = baseFinder()
+	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT = (RenderMaterialImpl) baseFinder()
 			.transparency(MaterialConstants.TRANSPARENCY_NONE)
 			.texture(TextureAtlas.LOCATION_PARTICLES)
 			.find();
@@ -201,7 +201,7 @@ public class CanvasParticleRenderer {
 			.emissive(true)
 			.find();
 
-	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = baseFinder()
+	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = (RenderMaterialImpl) baseFinder()
 			.cutout(MaterialConstants.CUTOUT_ZERO)
 			.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
 			.texture(TextureAtlas.LOCATION_PARTICLES)

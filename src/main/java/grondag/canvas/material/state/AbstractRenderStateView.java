@@ -114,7 +114,7 @@ abstract class AbstractRenderStateView {
 		return WRITE_MASK.getValue(bits);
 	}
 
-	public boolean enableGlint() {
+	public boolean foilOverlay() {
 		return ENABLE_GLINT.getValue(bits);
 	}
 

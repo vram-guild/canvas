@@ -20,15 +20,12 @@
 
 package grondag.canvas.material.state;
 
-import org.jetbrains.annotations.Nullable;
-
 import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.material.MaterialCondition;
 import io.vram.frex.api.material.RenderMaterial;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.data.ShaderStrings;
 
@@ -53,9 +50,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 	//	return (T) this;
 	//}
 
-	public T texture(@Nullable ResourceLocation id) {
-		final int val = id == null ? TextureMaterialState.NO_TEXTURE.index : TextureMaterialState.fromId(id).index;
-		bits = TEXTURE.setValue(val, bits);
+	public T textureIndex(int index) {
+		bits = TEXTURE.setValue(index, bits);
 		return (T) this;
 	}
 
