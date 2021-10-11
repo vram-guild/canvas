@@ -22,10 +22,8 @@ package grondag.canvas.material.state;
 
 import net.minecraft.resources.ResourceLocation;
 
-import io.vram.frex.api.material.MaterialCondition;
 import io.vram.frex.api.material.RenderMaterial;
 
-import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.data.ShaderStrings;
 
@@ -196,8 +194,8 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T condition(MaterialCondition condition) {
-		bits = CONDITION.setValue(((MaterialConditionImpl) condition).index, bits);
+	public T conditionIndex(int index) {
+		bits = CONDITION.setValue(index, bits);
 		return (T) this;
 	}
 

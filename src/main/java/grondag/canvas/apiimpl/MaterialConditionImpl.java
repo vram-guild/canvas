@@ -102,7 +102,9 @@ public class MaterialConditionImpl implements MaterialCondition {
 	}
 
 	public static final ConditionManager REGISTRY = new ConditionManager() {
-		private final Object2ObjectOpenHashMap<ResourceLocation, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
+		protected final Object2ObjectOpenHashMap<ResourceLocation, MaterialConditionImpl> conditionMap = new Object2ObjectOpenHashMap<>();
+
+		protected final MaterialCondition alwaysTrue = createCondition(() -> true, false, false);
 
 		@Override
 		public int indexOf(MaterialCondition condition) {
@@ -133,6 +135,11 @@ public class MaterialConditionImpl implements MaterialCondition {
 			// cast to prevent acceptance of impostor implementations
 			conditionMap.put(id, (MaterialConditionImpl) condition);
 			return true;
+		}
+
+		@Override
+		public MaterialCondition alwaysTrue() {
+			return alwaysTrue;
 		}
 	};
 }
