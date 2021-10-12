@@ -22,6 +22,8 @@ package grondag.canvas.material.state;
 
 import net.minecraft.resources.ResourceLocation;
 
+import io.vram.frex.api.texture.MaterialTexture;
+
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.DecalRenderState;
 import grondag.canvas.material.property.DepthTestRenderState;
@@ -37,6 +39,7 @@ import grondag.canvas.shader.ProgramType;
 abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;
 
+	public final MaterialTexture materialTexture;
 	public final TextureMaterialState texture;
 	public final boolean blur;
 	public final TransparencyRenderState transparency;
@@ -53,10 +56,8 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 
 	public final int vertexShaderIndex;
 	public final ResourceLocation vertexShaderId;
-	public final String vertexShader;
 	public final int fragmentShaderIndex;
 	public final ResourceLocation fragmentShaderId;
-	public final String fragmentShader;
 	public final MaterialShaderImpl shader;
 	public final MaterialShaderImpl guiShader;
 	public final MaterialShaderImpl terrainShader;
@@ -92,7 +93,8 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	protected AbstractRenderState(int index, long bits) {
 		super(bits);
 		this.index = index;
-		texture = textureState();
+		materialTexture = MaterialTexture.fromIndex(super.textureIndex());
+		texture = TextureMaterialState.fromId(materialTexture.id());
 		blur = blur();
 		depthTest = DepthTestRenderState.fromIndex(depthTest());
 		cull = cull();
@@ -102,16 +104,14 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		target = TargetRenderState.fromIndex(target());
 		lines = lines();
 		fog = fog();
-		condition = condition();
+		condition = super.condition();
 		transparency = TransparencyRenderState.fromIndex(transparency());
 		sorted = sorted();
-		shaderId = shaderId();
+		shaderId = MaterialShaderId.get(super.shaderIndex());
 		vertexShaderIndex = shaderId.vertexIndex;
 		vertexShaderId = shaderId.vertexId;
-		vertexShader = vertexShaderId.toString();
 		fragmentShaderIndex = shaderId.fragmentIndex;
 		fragmentShaderId = shaderId.fragmentId;
-		fragmentShader = fragmentShaderId.toString();
 
 		depthVertexShaderIndex = shaderId.depthVertexIndex;
 		depthVertexShaderId = shaderId.depthVertexId;

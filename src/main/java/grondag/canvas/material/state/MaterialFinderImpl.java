@@ -39,6 +39,11 @@ public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, 
 	}
 
 	@Override
+	public String label() {
+		return label;
+	}
+
+	@Override
 	protected synchronized RenderMaterialImpl findInner() {
 		RenderMaterialImpl result = RenderMaterialImpl.MAP.get(bits);
 

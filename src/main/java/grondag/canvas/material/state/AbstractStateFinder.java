@@ -20,12 +20,7 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.resources.ResourceLocation;
-
 import io.vram.frex.api.material.RenderMaterial;
-
-import grondag.canvas.shader.MaterialShaderId;
-import grondag.canvas.shader.data.ShaderStrings;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V extends AbstractRenderState> extends AbstractRenderStateView {
@@ -118,29 +113,9 @@ public abstract class AbstractStateFinder<T extends AbstractStateFinder<T, V>, V
 		return (T) this;
 	}
 
-	public T shader(ResourceLocation vertexSource, ResourceLocation fragmentSource, ResourceLocation depthVertexSouce, ResourceLocation depthFragmentSouce) {
-		if (vertexSource == null) {
-			vertexSource = ShaderStrings.DEFAULT_VERTEX_SOURCE;
-		}
-
-		if (fragmentSource == null) {
-			fragmentSource = ShaderStrings.DEFAULT_FRAGMENT_SOURCE;
-		}
-
-		if (depthVertexSouce == null) {
-			depthVertexSouce = ShaderStrings.DEFAULT_VERTEX_SOURCE;
-		}
-
-		if (depthFragmentSouce == null) {
-			depthFragmentSouce = ShaderStrings.DEFAULT_FRAGMENT_SOURCE;
-		}
-
-		bits = SHADER_ID.setValue(MaterialShaderId.find(vertexSource, fragmentSource, depthVertexSouce, depthFragmentSouce).index, bits);
+	public T shaderIndex(int shaderIndex) {
+		bits = SHADER_ID.setValue(shaderIndex, bits);
 		return (T) this;
-	}
-
-	public T shader(ResourceLocation vertexSource, ResourceLocation fragmentSource) {
-		return shader(vertexSource, fragmentSource, ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE);
 	}
 
 	public T emissive(boolean emissive) {

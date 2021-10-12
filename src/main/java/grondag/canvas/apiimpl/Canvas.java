@@ -29,6 +29,7 @@ import net.minecraft.resources.ResourceLocation;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.MeshBuilder;
 import io.vram.frex.api.renderer.ConditionManager;
+import io.vram.frex.api.renderer.MaterialShaderManager;
 import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.renderer.Renderer;
 import io.vram.frex.base.renderer.material.BaseTextureManager;
@@ -50,6 +51,7 @@ import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
 import grondag.canvas.shader.MaterialProgramManager;
+import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.PreReleaseShaderCompat;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
@@ -136,5 +138,10 @@ public class Canvas implements Renderer {
 	@Override
 	public MaterialTextureManager textures() {
 		return textures;
+	}
+
+	@Override
+	public MaterialShaderManager shaders() {
+		return MaterialShaderId.MANAGER;
 	}
 }

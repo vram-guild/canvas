@@ -112,7 +112,7 @@ public class MaterialConditionImpl implements MaterialCondition {
 		}
 
 		@Override
-		public MaterialCondition conditionByIndex(int index) {
+		public MaterialCondition conditionFromIndex(int index) {
 			return fromIndex(index);
 		}
 
@@ -122,7 +122,7 @@ public class MaterialConditionImpl implements MaterialCondition {
 		}
 
 		@Override
-		public MaterialCondition conditionById(ResourceLocation id) {
+		public MaterialCondition conditionFromId(ResourceLocation id) {
 			return conditionMap.get(id);
 		}
 

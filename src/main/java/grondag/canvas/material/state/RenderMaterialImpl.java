@@ -26,8 +26,6 @@ import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import net.minecraft.resources.ResourceLocation;
-
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.RenderMaterial;
@@ -158,33 +156,18 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	@Override
-	public ResourceLocation vertexShaderId() {
-		return vertexShaderId;
-	}
-
-	@Override
-	public ResourceLocation fragmentShaderId() {
-		return fragmentShaderId;
-	}
-
-	@Override
 	public String label() {
 		return label;
 	}
 
 	@Override
-	public String fragmentShader() {
-		return fragmentShader;
-	}
-
-	@Override
 	public int textureIndex() {
-		return texture.index;
+		return materialTexture.index();
 	}
 
 	@Override
-	public String vertexShader() {
-		return vertexShader;
+	public int shaderIndex() {
+		return shaderId.index;
 	}
 
 	public void trackPerFrameAnimation(int spriteId) {
