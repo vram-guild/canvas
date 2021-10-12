@@ -86,16 +86,18 @@ public class QuadEncoders {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				transformedNormal = (isContextPresent ? normalMatrix.canvas_transform(packedNormal) : packedNormal) & 0xFFFF;
+				transformedNormal = isContextPresent ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
 				normalFlagBits = (transformedNormal >>> 23) & 1;
+				transformedNormal &= 0xFFFF;
 			}
 
 			final int t = ((quadTangetFlags & vertexMask) == 0) ? faceTangent : source[baseSourceIndex + i + HEADER_FIRST_VERTEX_TANGENT];
 
 			if (t != packedTangent) {
 				packedTangent = t;
-				transformedTangent = ((isContextPresent ? normalMatrix.canvas_transform(packedTangent) : packedTangent) & 0xFFFF) << 16;
+				transformedTangent = isContextPresent ? normalMatrix.canvas_transform(packedTangent) : packedTangent;
 				tangentFlagBits = (transformedTangent >>> 23) & 1;
+				transformedTangent = (transformedTangent & 0xFFFF) << 16;
 			}
 
 			final float x = Float.intBitsToFloat(source[fromIndex + VERTEX_X]);
