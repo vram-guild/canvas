@@ -174,20 +174,20 @@ abstract class AbstractRenderStateView {
 	static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);
 
 	// GL State comes first for sorting
-	static final BitPacker64<Void>.IntElement TARGET = PACKER.createIntElement(TargetRenderState.TARGET_COUNT);
-	static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(TextureMaterialState.MAX_TEXTURE_STATES);
-	static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(TransparencyRenderState.TRANSPARENCY_COUNT);
-	static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(DepthTestRenderState.DEPTH_TEST_COUNT);
-	static final BitPacker64<Void>.BooleanElement CULL = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.IntElement WRITE_MASK = PACKER.createIntElement(WriteMaskRenderState.WRITE_MASK_COUNT);
-	static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(DecalRenderState.DECAL_COUNT);
-	static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.IntElement TARGET = PACKER.createIntElement(TargetRenderState.TARGET_COUNT);
+	public static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(TextureMaterialState.MAX_TEXTURE_STATES);
+	public static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(TransparencyRenderState.TRANSPARENCY_COUNT);
+	public static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(DepthTestRenderState.DEPTH_TEST_COUNT);
+	public static final BitPacker64<Void>.BooleanElement CULL = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.IntElement WRITE_MASK = PACKER.createIntElement(WriteMaskRenderState.WRITE_MASK_COUNT);
+	public static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(DecalRenderState.DECAL_COUNT);
+	public static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
 
 	// These don't affect GL state but must be collected and drawn separately
 	// They also generally won't change within a render state for any given context
 	// so they don't cause fragmentation except for sorted transparency, which is intended.
-	static final BitPacker64<Void>.BooleanElement SORTED = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement SORTED = PACKER.createBooleanElement();
 	//static final BitPacker64<Void>.IntElement PRIMITIVE = PACKER.createIntElement(8);
 
 	// Identifies the collection key and state to be used for the primary sorted transparency buffer
@@ -197,34 +197,34 @@ abstract class AbstractRenderStateView {
 	public static final long COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
 
 	// Part of render state and collection key for non-sorted, not included in either for sorted
-	static final BitPacker64<Void>.IntElement SHADER_ID = PACKER.createIntElement(MaterialShaderImpl.MAX_SHADERS);
+	public static final BitPacker64<Void>.IntElement SHADER_ID = PACKER.createIntElement(MaterialShaderImpl.MAX_SHADERS);
 
 	public static final long RENDER_STATE_MASK = PACKER.bitMask();
 
 	// Can't be part of PTT collector key
-	static final BitPacker64<Void>.IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
+	public static final BitPacker64<Void>.IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
 
 	// here and below only used in material - holds vertex state - does not affect buffering or gl State
-	static final BitPacker64<Void>.BooleanElement DISABLE_COLOR_INDEX = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.IntElement PRESET = PACKER.createIntElement(6);
-	static final BitPacker64<Void>.BooleanElement DISCARDS_TEXTURE = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement DISABLE_COLOR_INDEX = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.IntElement PRESET = PACKER.createIntElement(6);
+	public static final BitPacker64<Void>.BooleanElement DISCARDS_TEXTURE = PACKER.createBooleanElement();
 
-	static final int FLAG_SHIFT = PACKER.bitLength();
+	public static final int FLAG_SHIFT = PACKER.bitLength();
 
 	// remaining bits correspond to shader flag bits
-	static final BitPacker64<Void>.BooleanElement EMISSIVE = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement DISABLE_DIFFUSE = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement DISABLE_AO = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement EMISSIVE = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement DISABLE_DIFFUSE = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement DISABLE_AO = PACKER.createBooleanElement();
 	// WIP: doesn't handle alpha type cutout - only used for ender dragon currently
-	static final BitPacker64<Void>.IntElement CUTOUT = PACKER.createIntElement(4);
-	static final BitPacker64<Void>.BooleanElement UNMIPPED = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement FOG = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
-	static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.IntElement CUTOUT = PACKER.createIntElement(4);
+	public static final BitPacker64<Void>.BooleanElement UNMIPPED = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement FOG = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
 
-	static final long DEFAULT_BITS;
+	public static final long DEFAULT_BITS;
 
 	public static final long TRANSLUCENT_TERRAIN_COLLECTOR_KEY;
 	public static final long TRANSLUCENT_ENTITY_COLLECTOR_KEY;
