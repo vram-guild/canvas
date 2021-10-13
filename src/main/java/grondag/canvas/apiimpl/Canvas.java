@@ -29,6 +29,7 @@ import net.minecraft.resources.ResourceLocation;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.MeshBuilder;
 import io.vram.frex.api.renderer.ConditionManager;
+import io.vram.frex.api.renderer.MaterialManager;
 import io.vram.frex.api.renderer.MaterialShaderManager;
 import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.renderer.Renderer;
@@ -57,7 +58,7 @@ import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 
-public class Canvas implements Renderer {
+public class Canvas implements Renderer, MaterialManager {
 	private static Canvas instance = new Canvas();
 
 	private final BaseTextureManager textures = new BaseTextureManager();
@@ -81,7 +82,7 @@ public class Canvas implements Renderer {
 	}
 
 	@Override
-	public RenderMaterialImpl materialById(ResourceLocation id) {
+	public RenderMaterialImpl materialFromId(ResourceLocation id) {
 		return materialMap.get(id);
 	}
 
@@ -143,5 +144,25 @@ public class Canvas implements Renderer {
 	@Override
 	public MaterialShaderManager shaders() {
 		return MaterialShaderId.MANAGER;
+	}
+
+	@Override
+	public RenderMaterial materialFromIndex(int index) {
+		return RenderMaterialImpl.fromIndex(index);
+	}
+
+	@Override
+	public RenderMaterial defaultMaterial() {
+		return RenderMaterialImpl.STANDARD_MATERIAL;
+	}
+
+	@Override
+	public RenderMaterial missingMaterial() {
+		return RenderMaterialImpl.MISSING_MATERIAL;
+	}
+
+	@Override
+	public MaterialManager materials() {
+		return this;
 	}
 }

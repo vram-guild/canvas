@@ -27,18 +27,18 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.fluid.FluidAppearance;
 import io.vram.frex.api.model.fluid.FluidModel;
 import io.vram.frex.api.model.fluid.SimpleFluidModel;
-import io.vram.frex.api.renderer.Renderer;
 
 public class FluidHandler {
 	// WIP: derive material from fluid render layer and move this all to FREX as the default fluid model handling
-	static final RenderMaterial WATER_MATERIAL = Renderer.get().materialFinder()
+	static final RenderMaterial WATER_MATERIAL = MaterialFinder.threadLocal()
 			.preset(MaterialConstants.PRESET_TRANSLUCENT).disableAo(true).disableColorIndex(true).find();
 
-	static final RenderMaterial LAVA_MATERIAL = Renderer.get().materialFinder()
+	static final RenderMaterial LAVA_MATERIAL = MaterialFinder.threadLocal()
 			.preset(MaterialConstants.PRESET_SOLID).disableAo(true).disableColorIndex(true).emissive(true).find();
 
 	public static final BiFunction<Fluid, Function<Fluid, FluidModel>, FluidModel> HANDLER = (fluid, supplier) -> {

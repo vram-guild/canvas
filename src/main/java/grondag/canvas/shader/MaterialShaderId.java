@@ -112,6 +112,8 @@ public class MaterialShaderId implements MaterialShader {
 	}
 
 	public static final io.vram.frex.api.renderer.MaterialShaderManager MANAGER = new io.vram.frex.api.renderer.MaterialShaderManager() {
+		final MaterialShader defaultShader = getOrCreate(null, null);
+
 		@Override
 		public MaterialShader shaderFromIndex(int index) {
 			return get(index);
@@ -141,6 +143,11 @@ public class MaterialShaderId implements MaterialShader {
 			}
 
 			return find(vertexSourceId, fragmentSourceId, depthVertexSourceId, depthFragmentSourceId);
+		}
+
+		@Override
+		public MaterialShader defaultShader() {
+			return defaultShader;
 		}
 	};
 }
