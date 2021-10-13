@@ -57,7 +57,6 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.impl.texture.IndexedSprite;
 
 import grondag.canvas.apiimpl.util.TextureHelper;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
@@ -72,7 +71,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 	// vanilla light outputs
 	// PERF use integer byte values for these instead of floats
 	public final float[] ao = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
-	protected RenderMaterialImpl defaultMaterial = RenderMaterialImpl.STANDARD_MATERIAL;
+	protected RenderMaterial defaultMaterial = RenderMaterial.defaultMaterial();
 
 	private int vertexIndex = 0;
 
@@ -84,7 +83,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 
 	@Override
 	public QuadEditorImpl defaultMaterial(RenderMaterial defaultMaterial) {
-		this.defaultMaterial = (RenderMaterialImpl) defaultMaterial;
+		this.defaultMaterial = defaultMaterial;
 		return this;
 	}
 
@@ -114,10 +113,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 			material = defaultMaterial;
 		}
 
-		data[baseIndex + HEADER_MATERIAL] = ((RenderMaterialImpl) material).index;
-
-		assert RenderMaterialImpl.fromIndex(data[baseIndex + HEADER_MATERIAL]) == material;
-
+		data[baseIndex + HEADER_MATERIAL] = material.index();
 		return this;
 	}
 
@@ -275,7 +271,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 	}
 
 	private void normalizeSprite() {
-		if (material().texture.isAtlas()) {
+		if (material().texture().isAtlas()) {
 			final TextureAtlasSprite sprite = findSprite();
 			final int spriteId = ((IndexedSprite) sprite).frex_index();
 			final float u0 = sprite.getU0();
@@ -305,11 +301,11 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 			v += spriteFloatV(i);
 		}
 
-		final TextureAtlasSprite result = material().texture.spriteFinder().find(u * 0.25f, v * 0.25f);
+		final TextureAtlasSprite result = material().texture().spriteFinder().find(u * 0.25f, v * 0.25f);
 
 		// Handle bug in SpriteFinder that can return sprite for the wrong atlas
 		if (result instanceof MissingTextureAtlasSprite) {
-			return material().texture.textureAsAtlas().getSprite(MissingTextureAtlasSprite.getLocation());
+			return material().texture().textureAsAtlas().getSprite(MissingTextureAtlasSprite.getLocation());
 		} else {
 			return result;
 		}
@@ -324,7 +320,7 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 		spriteFloat(3, u3, v3);
 
 		if (sprite != null) {
-			assert material().texture.isAtlas() && material().texture.textureAsAtlas() == sprite.atlas();
+			assert material().texture().isAtlas() && material().texture().textureAsAtlas() == sprite.atlas();
 			spriteId(((IndexedSprite) sprite).frex_index());
 		}
 
@@ -340,8 +336,8 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 		if (!isSpriteInterpolated) {
 			final var mat = material();
 
-			if (mat.texture.isAtlas()) {
-				final var atlasInfo = material().texture.spriteIndex();
+			if (mat.texture().isAtlas()) {
+				final var atlasInfo = material().texture().spriteIndex();
 				final var spriteId = spriteId();
 
 				for (int i = 0; i < 4; ++i) {

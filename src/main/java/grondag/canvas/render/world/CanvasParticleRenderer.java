@@ -46,8 +46,7 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.wip.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.ParticleEngineExt;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
@@ -58,8 +57,8 @@ public class CanvasParticleRenderer {
 	private LightTexture lightmapTextureManager;
 	private ParticleEngineExt ext;
 	private Runnable drawHandler = Runnables.doNothing();
-	private RenderMaterialImpl baseMat;
-	private RenderMaterialImpl emissiveMat;
+	private CanvasRenderMaterial baseMat;
+	private CanvasRenderMaterial emissiveMat;
 	private final RegionCullingFrustum cullingFrustum;
 
 	public CanvasParticleRenderer(RegionCullingFrustum cullingFrustum) {
@@ -167,8 +166,8 @@ public class CanvasParticleRenderer {
 		return bufferBuilder;
 	}
 
-	private static MaterialFinderImpl baseFinder() {
-		return (MaterialFinderImpl) MaterialFinder.threadLocal()
+	private static MaterialFinder baseFinder() {
+		return MaterialFinder.threadLocal()
 				.depthTest(MaterialConstants.DEPTH_TEST_LEQUAL)
 				.cull(false)
 				.writeMask(MaterialConstants.WRITE_MASK_COLOR_DEPTH)
@@ -182,32 +181,32 @@ public class CanvasParticleRenderer {
 				.fog(true);
 	}
 
-	private static final RenderMaterialImpl RENDER_STATE_TERRAIN = (RenderMaterialImpl) baseFinder()
+	private static final CanvasRenderMaterial RENDER_STATE_TERRAIN = (CanvasRenderMaterial) baseFinder()
 			.texture(TextureAtlas.LOCATION_BLOCKS)
 			.transparency(MaterialConstants.TRANSPARENCY_DEFAULT)
 			.find();
 
-	private static final RenderMaterialImpl RENDER_STATE_TERRAIN_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TERRAIN)
+	private static final CanvasRenderMaterial RENDER_STATE_TERRAIN_EMISSIVE = (CanvasRenderMaterial) baseFinder().copyFrom(RENDER_STATE_TERRAIN)
 			.emissive(true)
 			.find();
 
 	// MC has two but they are functionally identical
-	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT = (RenderMaterialImpl) baseFinder()
+	private static final CanvasRenderMaterial RENDER_STATE_OPAQUE_OR_LIT = (CanvasRenderMaterial) baseFinder()
 			.transparency(MaterialConstants.TRANSPARENCY_NONE)
 			.texture(TextureAtlas.LOCATION_PARTICLES)
 			.find();
 
-	private static final RenderMaterialImpl RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_OPAQUE_OR_LIT)
+	private static final CanvasRenderMaterial RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE = (CanvasRenderMaterial) baseFinder().copyFrom(RENDER_STATE_OPAQUE_OR_LIT)
 			.emissive(true)
 			.find();
 
-	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT = (RenderMaterialImpl) baseFinder()
+	private static final CanvasRenderMaterial RENDER_STATE_TRANSLUCENT = (CanvasRenderMaterial) baseFinder()
 			.cutout(MaterialConstants.CUTOUT_ZERO)
 			.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
 			.texture(TextureAtlas.LOCATION_PARTICLES)
 			.find();
 
-	private static final RenderMaterialImpl RENDER_STATE_TRANSLUCENT_EMISSIVE = baseFinder().copyFrom(RENDER_STATE_TRANSLUCENT)
+	private static final CanvasRenderMaterial RENDER_STATE_TRANSLUCENT_EMISSIVE = (CanvasRenderMaterial) baseFinder().copyFrom(RENDER_STATE_TRANSLUCENT)
 			.emissive(true)
 			.find();
 }

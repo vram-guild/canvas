@@ -26,20 +26,16 @@ import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.material.MaterialFinder;
-import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.base.renderer.util.ResourceCache;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.texture.MaterialIndexer;
 
-public final class RenderMaterialImpl extends AbstractRenderState implements RenderMaterial {
+public final class MaterialImpl extends AbstractRenderState {
 	public static final int MAX_MATERIAL_COUNT = RenderState.MAX_COUNT * 4;
 
 	public final int collectorIndex;
@@ -50,7 +46,7 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	/** Vanilla render layer name if we derived from a vanilla render layer. */
 	public final String label;
 
-	RenderMaterialImpl(long bits, String label) {
+	MaterialImpl(long bits, String label) {
 		super(nextIndex.getAndIncrement(), bits);
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey());
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
@@ -71,28 +67,15 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 	}
 
 	static AtomicInteger nextIndex = new AtomicInteger();
-	static final RenderMaterialImpl[] VALUES = new RenderMaterialImpl[MAX_MATERIAL_COUNT];
-	static final Long2ObjectOpenHashMap<RenderMaterialImpl> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
+	static final MaterialImpl[] VALUES = new MaterialImpl[MAX_MATERIAL_COUNT];
+	static final Long2ObjectOpenHashMap<MaterialImpl> MAP = new Long2ObjectOpenHashMap<>(4096, Hash.VERY_FAST_LOAD_FACTOR);
 
-	public static final RenderMaterialImpl MISSING_MATERIAL;
-	public static final RenderMaterialImpl STANDARD_MATERIAL;
-	// PERF: disable translucent sorting on vanilla layers that don't actually require it - like horse spots
-	// may need to be a lookup table because some will need it.
-
-	static {
-		MISSING_MATERIAL = new RenderMaterialImpl(0, "<canvas missing>");
-		VALUES[MISSING_MATERIAL.index] = MISSING_MATERIAL;
-		STANDARD_MATERIAL = Canvas.instance().materialFinder().preset(MaterialConstants.PRESET_DEFAULT).find();
-		Canvas.instance().registerMaterial(RenderMaterial.STANDARD_MATERIAL_KEY, STANDARD_MATERIAL);
-		Canvas.instance().registerMaterial(RenderMaterial.MISSING_MATERIAL_KEY, MISSING_MATERIAL);
-	}
-
-	public static RenderMaterialImpl fromIndex(int index) {
+	public static MaterialImpl fromIndex(int index) {
 		return VALUES[index];
 	}
 
 	public static void resourceReload() {
-		for (final RenderMaterialImpl e:MAP.values()) {
+		for (final MaterialImpl e:MAP.values()) {
 			e.dongle = null;
 		}
 	}
@@ -142,7 +125,6 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		return sb.toString();
 	}
 
-	@Override
 	public int index() {
 		return index;
 	}
@@ -155,7 +137,6 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 		return dongle.getOrLoad();
 	}
 
-	@Override
 	public String label() {
 		return label;
 	}
@@ -178,21 +159,6 @@ public final class RenderMaterialImpl extends AbstractRenderState implements Ren
 			if (animationIndex > 0) {
 				((TextureAtlasExt) texture.textureAsAtlas()).canvas_trackFrameAnimation(animationIndex);
 			}
-		}
-	}
-
-	public RenderMaterialImpl withOverlay(int u, int v) {
-		final boolean hurtOverlay = v == 3;
-		final boolean flashOverlay = (v == 10 && u > 7);
-
-		if (hurtOverlay || flashOverlay) {
-			final var materialFinder = MaterialFinder.threadLocal();
-			materialFinder.copyFrom(this);
-			materialFinder.hurtOverlay(hurtOverlay);
-			materialFinder.flashOverlay(flashOverlay);
-			return (RenderMaterialImpl) materialFinder.find();
-		} else {
-			return this;
 		}
 	}
 }

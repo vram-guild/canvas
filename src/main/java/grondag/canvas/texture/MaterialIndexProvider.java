@@ -31,10 +31,10 @@ import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.MaterialImpl;
 
 public abstract class MaterialIndexProvider {
-	public abstract MaterialIndexer getIndexer(RenderMaterialImpl mat);
+	public abstract MaterialIndexer getIndexer(MaterialImpl mat);
 
 	public abstract void enable();
 
@@ -46,7 +46,7 @@ public abstract class MaterialIndexProvider {
 		private final MaterialIndexTexture tex = new MaterialIndexTexture(false);
 
 		@Override
-		public MaterialIndexer getIndexer(RenderMaterialImpl mat) {
+		public MaterialIndexer getIndexer(MaterialImpl mat) {
 			final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
 
 			synchronized (this) {
@@ -88,11 +88,11 @@ public abstract class MaterialIndexProvider {
 		private final Object sync = new Object();
 
 		private class Indexer implements MaterialIndexer {
-			private Indexer(RenderMaterialImpl mat) {
+			private Indexer(MaterialImpl mat) {
 				this.mat = mat;
 			}
 
-			private final RenderMaterialImpl mat;
+			private final MaterialImpl mat;
 			private final Int2IntOpenHashMap spriteMap = new Int2IntOpenHashMap(64, Hash.VERY_FAST_LOAD_FACTOR);
 
 			@Override
@@ -109,7 +109,7 @@ public abstract class MaterialIndexProvider {
 		}
 
 		@Override
-		public MaterialIndexer getIndexer(RenderMaterialImpl mat) {
+		public MaterialIndexer getIndexer(MaterialImpl mat) {
 			final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
 
 			synchronized (sync) {

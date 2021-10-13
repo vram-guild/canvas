@@ -38,7 +38,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.input.VertexCollector;
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.wip.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
@@ -53,7 +53,7 @@ public class QuadEncoders {
 			quad.overlayCoords(overlay);
 		}
 
-		final RenderMaterialImpl mat = quad.material();
+		final CanvasRenderMaterial mat = quad.material();
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used
@@ -70,7 +70,7 @@ public class QuadEncoders {
 		int packedTangent = 0;
 		int transformedTangent = 0;
 
-		final int material = mat.dongle().index(quad.spriteId()) << 16;
+		final int material = mat.state.dongle().index(quad.spriteId()) << 16;
 
 		final int baseTargetIndex = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
 		final int[] target = buff.data();

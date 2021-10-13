@@ -20,10 +20,23 @@
 
 package grondag.canvas.material.state.wip;
 
+import io.vram.frex.api.renderer.ConditionManager;
+import io.vram.frex.api.renderer.MaterialShaderManager;
+import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.base.renderer.material.BaseMaterialManager;
 import io.vram.frex.base.renderer.material.BaseMaterialView;
 
+import grondag.canvas.apiimpl.CanvasTextureManager;
+import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.shader.MaterialShaderId;
+
 public class CanvasMaterialManager extends BaseMaterialManager<CanvasRenderMaterial> {
+	public static final CanvasMaterialManager INSTANCE = new CanvasMaterialManager(MaterialConditionImpl.REGISTRY, CanvasTextureManager.INSTANCE, MaterialShaderId.MANAGER);
+
+	protected CanvasMaterialManager(ConditionManager conditions, MaterialTextureManager textures, MaterialShaderManager shaders) {
+		super(conditions, textures, shaders);
+	}
+
 	@Override
 	protected CanvasRenderMaterial createMaterial(BaseMaterialView finder, int index) {
 		return new CanvasRenderMaterial(finder, index);

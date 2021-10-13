@@ -18,10 +18,10 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.mixinterface;
+package grondag.canvas.apiimpl;
 
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
+import io.vram.frex.base.renderer.material.BaseTextureManager;
 
-public interface CompositeRenderTypeExt extends RenderTypeExt {
-	CanvasRenderMaterial canvas_materialState();
+public class CanvasTextureManager extends BaseTextureManager {
+	public static final CanvasTextureManager INSTANCE = new CanvasTextureManager();
 }

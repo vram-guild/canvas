@@ -23,15 +23,16 @@ package grondag.canvas.material.state.wip;
 import io.vram.frex.base.renderer.material.BaseMaterialView;
 import io.vram.frex.base.renderer.material.BaseRenderMaterial;
 
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.property.TextureMaterialState;
+import grondag.canvas.material.state.MaterialImpl;
 
 public class CanvasRenderMaterial extends BaseRenderMaterial {
-	public final RenderMaterialImpl state;
+	public final MaterialImpl state;
 
 	public CanvasRenderMaterial(BaseMaterialView finder, int index) {
 		super(index, finder);
 
-		state = RenderMaterialImpl.finder()
+		state = MaterialImpl.finder()
 			.blur(this.blur())
 			.castShadows(this.castShadows())
 			.conditionIndex(this.conditionIndex())
@@ -54,7 +55,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 			.shaderIndex(this.shaderIndex())
 			.sorted(this.sorted())
 			.target(this.target())
-			.textureIndex(this.textureIndex())
+			.textureIndex(TextureMaterialState.fromId(this.texture().id()).index)
 			.transparency(this.transparency())
 			.unmipped(this.unmipped())
 			.writeMask(this.writeMask())

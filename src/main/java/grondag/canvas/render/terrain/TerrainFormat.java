@@ -47,7 +47,7 @@ import io.vram.frex.api.material.MaterialConstants;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormatElement;
 import grondag.canvas.buffer.format.QuadEncoder;
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.wip.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
@@ -81,9 +81,9 @@ public class TerrainFormat {
 
 		final boolean aoDisabled = !Minecraft.useAmbientOcclusion();
 		final float[] aoData = quad.ao;
-		final RenderMaterialImpl mat = quad.material();
+		final CanvasRenderMaterial mat = quad.material();
 
-		assert mat.preset != MaterialConstants.PRESET_DEFAULT;
+		assert mat.preset() != MaterialConstants.PRESET_DEFAULT;
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used
@@ -100,7 +100,7 @@ public class TerrainFormat {
 		int packedTangent = 0;
 		int transformedTangent = 0;
 
-		final int material = mat.dongle().index(quad.spriteId()) << 16;
+		final int material = mat.state.dongle().index(quad.spriteId()) << 16;
 
 		final int baseTargetIndex = buff.allocate(TERRAIN_QUAD_STRIDE, quad.effectiveCullFaceId());
 		final int[] target = buff.data();

@@ -50,13 +50,14 @@ import com.mojang.math.Vector3f;
 import net.minecraft.core.Direction;
 
 import io.vram.frex.api.buffer.QuadEmitter;
+import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.QuadView;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.GeometryUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.wip.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 /**
@@ -187,8 +188,8 @@ public class QuadViewImpl implements QuadView {
 
 	// PERF: cache this
 	@Override
-	public final RenderMaterialImpl material() {
-		return RenderMaterialImpl.fromIndex(data[baseIndex + HEADER_MATERIAL]);
+	public final CanvasRenderMaterial material() {
+		return (CanvasRenderMaterial) RenderMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
 	@Override
@@ -374,15 +375,15 @@ public class QuadViewImpl implements QuadView {
 
 	@Override
 	public float u(int vertexIndex) {
-		return !isSpriteInterpolated && material().texture.isAtlas()
-			? material().texture.spriteIndex().mapU(spriteId(), spriteFloatU(vertexIndex))
+		return !isSpriteInterpolated && material().texture().isAtlas()
+			? material().texture().spriteIndex().mapU(spriteId(), spriteFloatU(vertexIndex))
 			: spriteFloatU(vertexIndex);
 	}
 
 	@Override
 	public float v(int vertexIndex) {
-		return !isSpriteInterpolated && material().texture.isAtlas()
-			? material().texture.spriteIndex().mapV(spriteId(), spriteFloatV(vertexIndex))
+		return !isSpriteInterpolated && material().texture().isAtlas()
+			? material().texture().spriteIndex().mapV(spriteId(), spriteFloatV(vertexIndex))
 			: spriteFloatV(vertexIndex);
 	}
 

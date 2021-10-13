@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.util.ColorUtil;
@@ -39,14 +40,12 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.SpriteExt;
 
 // UGLY: consolidate and simplify this class hierarchy
 public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
-	final MaterialFinderImpl finder = new MaterialFinderImpl();
+	final MaterialFinder finder = MaterialFinder.newInstance();
 	public final float[] vecData = new float[3];
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
@@ -80,7 +79,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 			return;
 		}
 
-		final TextureAtlasSprite sprite = materialMap.needsSprite() ? quad.material().texture.spriteIndex().fromIndex(quad.spriteId()) : null;
+		final TextureAtlasSprite sprite = materialMap.needsSprite() ? quad.material().texture().spriteIndex().fromIndex(quad.spriteId()) : null;
 		final RenderMaterial mapped = materialMap.getMapped(sprite);
 
 		if (mapped != null) {
@@ -140,9 +139,9 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 			final var mat = finder.find();
 			quad.material(mat);
 
-			if (!mat.discardsTexture && mat.texture.isAtlas()) {
+			if (!mat.discardsTexture() && mat.texture().isAtlas()) {
 				// WIP: create and use sprite method on quad
-				final int animationIndex = ((SpriteExt) mat.texture.spriteIndex().fromIndex(makerQuad.spriteId())).canvas_animationIndex();
+				final int animationIndex = ((SpriteExt) mat.texture().spriteIndex().fromIndex(makerQuad.spriteId())).canvas_animationIndex();
 
 				if (animationIndex >= 0) {
 					animationBits.set(animationIndex);
@@ -156,7 +155,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	protected abstract void encodeQuad(QuadEditorImpl quad);
 
 	protected void adjustMaterial() {
-		final MaterialFinderImpl finder = this.finder;
+		final MaterialFinder finder = this.finder;
 
 		int bm = finder.preset();
 
@@ -211,7 +210,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	private class Maker extends QuadEditorImpl {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
-			material(RenderMaterialImpl.STANDARD_MATERIAL);
+			material(RenderMaterial.defaultMaterial());
 		}
 
 		// only used via RenderContext.getEmitter()

@@ -20,10 +20,8 @@
 
 package grondag.canvas.material.state;
 
-import io.vram.frex.api.material.MaterialFinder;
-
 // PERF: implement proper decal layers in JMX, RenderBender and XB/XM to improve performance for multi-layer blocks
-public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, RenderMaterialImpl> implements MaterialFinder {
+public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, MaterialImpl> {
 	private String label = CANVAS_MATERIAL_NAME;
 
 	@Override
@@ -32,25 +30,23 @@ public class MaterialFinderImpl extends AbstractStateFinder<MaterialFinderImpl, 
 		return super.clear();
 	}
 
-	@Override
 	public MaterialFinderImpl label(String name) {
 		label = name;
 		return this;
 	}
 
-	@Override
 	public String label() {
 		return label;
 	}
 
 	@Override
-	protected synchronized RenderMaterialImpl findInner() {
-		RenderMaterialImpl result = RenderMaterialImpl.MAP.get(bits);
+	protected synchronized MaterialImpl findInner() {
+		MaterialImpl result = MaterialImpl.MAP.get(bits);
 
 		if (result == null) {
-			result = new RenderMaterialImpl(bits, label);
-			RenderMaterialImpl.MAP.put(bits, result);
-			RenderMaterialImpl.VALUES[result.index] = result;
+			result = new MaterialImpl(bits, label);
+			MaterialImpl.MAP.put(bits, result);
+			MaterialImpl.VALUES[result.index] = result;
 		}
 
 		return result;

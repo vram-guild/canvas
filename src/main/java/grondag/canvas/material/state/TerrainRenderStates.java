@@ -28,6 +28,7 @@ import net.minecraft.client.renderer.Sheets;
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.material.property.TargetRenderState;
+import grondag.canvas.material.state.wip.CanvasRenderMaterial;
 
 /**
  * Here to defer initialization when referencing classes are loaded.
@@ -35,16 +36,16 @@ import grondag.canvas.material.property.TargetRenderState;
 public final class TerrainRenderStates {
 	private TerrainRenderStates() { }
 
-	public static final RenderMaterialImpl TRANSLUCENT_TERRAIN = (RenderMaterialImpl) RenderTypeUtil.toMaterial(RenderType.translucent());
-	public static final RenderState TRANSLUCENT = TRANSLUCENT_TERRAIN.renderState;
-	public static final RenderState SOLID = ((RenderMaterialImpl) RenderTypeUtil.toMaterial(RenderType.solid())).renderState;
+	public static final CanvasRenderMaterial TRANSLUCENT_TERRAIN = (CanvasRenderMaterial) RenderTypeUtil.toMaterial(RenderType.translucent());
+	public static final RenderState TRANSLUCENT = TRANSLUCENT_TERRAIN.state.renderState;
+	public static final RenderState SOLID = ((CanvasRenderMaterial) RenderTypeUtil.toMaterial(RenderType.solid())).state.renderState;
 	public static final Predicate<RenderState> TRANSLUCENT_PREDICATE = m -> m.target == TargetRenderState.TRANSLUCENT && m.primaryTargetTransparency;
 	public static final Predicate<RenderState> SOLID_PREDICATE = m -> !TRANSLUCENT_PREDICATE.test(m);
 
 	static {
-		assert TRANSLUCENT_TERRAIN.primaryTargetTransparency;
+		assert TRANSLUCENT_TERRAIN.state.primaryTargetTransparency;
 
 		// ensure item entity gets mapped to primary transparency
-		assert ((RenderMaterialImpl) RenderTypeUtil.toMaterial(Sheets.translucentItemSheet())).primaryTargetTransparency;
+		assert ((CanvasRenderMaterial) RenderTypeUtil.toMaterial(Sheets.translucentItemSheet())).state.primaryTargetTransparency;
 	}
 }

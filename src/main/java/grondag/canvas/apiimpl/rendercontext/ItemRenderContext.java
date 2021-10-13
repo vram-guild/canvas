@@ -51,6 +51,7 @@ import net.minecraft.world.level.block.AbstractBannerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.model.ItemModel.ItemInputContext;
@@ -61,7 +62,6 @@ import io.vram.sc.concurrency.SimpleConcurrentList;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.buffer.input.CanvasImmediate;
-import grondag.canvas.material.state.MaterialFinderImpl;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
@@ -223,7 +223,7 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 
 	@Override
 	protected void adjustMaterial() {
-		final MaterialFinderImpl finder = this.finder;
+		final MaterialFinder finder = this.finder;
 
 		finder.foilOverlay(hasGlint);
 

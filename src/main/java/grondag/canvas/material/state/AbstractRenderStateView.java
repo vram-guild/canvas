@@ -24,7 +24,6 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 
 import io.vram.bitkit.BitPacker64;
 import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.texture.MaterialTexture;
 
 import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.DecalRenderState;
@@ -239,7 +238,7 @@ abstract class AbstractRenderStateView {
 		defaultBits = CULL.setValue(true, defaultBits);
 		defaultBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, defaultBits);
 		defaultBits = ENABLE_GLINT.setValue(false, defaultBits);
-		defaultBits = TEXTURE.setValue(MaterialTexture.fromId(TextureAtlas.LOCATION_BLOCKS).index(), defaultBits);
+		defaultBits = TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, defaultBits);
 		defaultBits = TARGET.setValue(MaterialConstants.TARGET_MAIN, defaultBits);
 		defaultBits = WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, defaultBits);
 		defaultBits = UNMIPPED.setValue(false, defaultBits);

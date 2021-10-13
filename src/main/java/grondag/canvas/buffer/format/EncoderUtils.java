@@ -80,7 +80,7 @@ public abstract class EncoderUtils {
 		final int colorIndex = quad.colorIndex();
 
 		// PERF: don't swap red blue on white quad (most of em)
-		if (colorIndex == -1 || quad.material().disableColorIndex) {
+		if (colorIndex == -1 || quad.material().disableColorIndex()) {
 			quad.vertexColor(0, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(0)));
 			quad.vertexColor(1, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(1)));
 			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(2)));
