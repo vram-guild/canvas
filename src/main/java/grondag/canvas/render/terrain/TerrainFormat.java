@@ -100,7 +100,7 @@ public class TerrainFormat {
 		int packedTangent = 0;
 		int transformedTangent = 0;
 
-		final int material = mat.state.dongle().index(quad.spriteId()) << 16;
+		final int material = mat.materialIndexer().index(quad.spriteId()) << 16;
 
 		final int baseTargetIndex = buff.allocate(TERRAIN_QUAD_STRIDE, quad.effectiveCullFaceId());
 		final int[] target = buff.data();

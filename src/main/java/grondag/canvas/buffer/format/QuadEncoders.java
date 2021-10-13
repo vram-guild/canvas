@@ -70,7 +70,7 @@ public class QuadEncoders {
 		int packedTangent = 0;
 		int transformedTangent = 0;
 
-		final int material = mat.state.dongle().index(quad.spriteId()) << 16;
+		final int material = mat.materialIndexer().index(quad.spriteId()) << 16;
 
 		final int baseTargetIndex = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
 		final int[] target = buff.data();

@@ -67,12 +67,12 @@ public class VertexCollectorList {
 		public Consumer emit() {
 			final CanvasRenderMaterial mat = material();
 
-			if (mat.state.condition.compute()) {
+			if (mat.condition().compute()) {
 				complete();
 				QuadEncoders.STANDARD_ENCODER.encode(this, AbsentEncodingContext.INSTANCE, get(mat));
 
 				if (Configurator.disableUnseenSpriteAnimation) {
-					mat.state.trackPerFrameAnimation(this.spriteId());
+					mat.trackPerFrameAnimation(this.spriteId());
 				}
 			}
 
@@ -101,7 +101,7 @@ public class VertexCollectorList {
 	}
 
 	public final ArrayVertexCollector getIfExists(CanvasRenderMaterial materialState) {
-		return materialState.isMissing() ? null : collectors[materialState.state.collectorIndex];
+		return materialState.isMissing() ? null : collectors[materialState.collectorIndex()];
 	}
 
 	public final ArrayVertexCollector get(CanvasRenderMaterial materialState) {
@@ -109,7 +109,7 @@ public class VertexCollectorList {
 			return null;
 		}
 
-		final int index = materialState.state.collectorIndex;
+		final int index = materialState.collectorIndex();
 		final ArrayVertexCollector[] collectors = this.collectors;
 
 		ArrayVertexCollector result = null;
@@ -119,7 +119,7 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			result = new ArrayVertexCollector(materialState.state.renderState, isTerrain);
+			result = new ArrayVertexCollector(materialState.renderState(), isTerrain);
 			collectors[index] = result;
 			active.add(result);
 		}
@@ -128,7 +128,7 @@ public class VertexCollectorList {
 	}
 
 	public boolean contains(CanvasRenderMaterial materialState) {
-		final int index = materialState.state.collectorIndex;
+		final int index = materialState.collectorIndex();
 		return index < collectors.length && collectors[index] != null;
 	}
 

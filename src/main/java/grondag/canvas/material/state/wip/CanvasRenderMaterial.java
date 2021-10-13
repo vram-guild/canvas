@@ -25,14 +25,16 @@ import io.vram.frex.base.renderer.material.BaseRenderMaterial;
 
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.material.state.MaterialImpl;
+import grondag.canvas.material.state.RenderState;
+import grondag.canvas.texture.MaterialIndexer;
 
 public class CanvasRenderMaterial extends BaseRenderMaterial {
-	public final MaterialImpl state;
+	private final MaterialImpl oldMat;
 
 	public CanvasRenderMaterial(BaseMaterialView finder, int index) {
 		super(index, finder);
 
-		state = MaterialImpl.finder()
+		oldMat = MaterialImpl.finder()
 			.blur(this.blur())
 			.castShadows(this.castShadows())
 			.conditionIndex(this.conditionIndex())
@@ -60,5 +62,21 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 			.unmipped(this.unmipped())
 			.writeMask(this.writeMask())
 			.find();
+	}
+
+	public MaterialIndexer materialIndexer() {
+		return oldMat.dongle();
+	}
+
+	public void trackPerFrameAnimation(int spriteId) {
+		oldMat.trackPerFrameAnimation(spriteId);
+	}
+
+	public int collectorIndex() {
+		return oldMat.collectorIndex;
+	}
+
+	public RenderState renderState() {
+		return oldMat.renderState;
 	}
 }
