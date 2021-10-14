@@ -26,14 +26,11 @@ import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import io.vram.frex.base.renderer.util.ResourceCache;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.shader.MaterialShaderId;
-import grondag.canvas.texture.MaterialIndexer;
 
 public final class MaterialImpl extends AbstractRenderState {
 	public static final int MAX_MATERIAL_COUNT = RenderState.MAX_COUNT * 4;
@@ -41,7 +38,6 @@ public final class MaterialImpl extends AbstractRenderState {
 	public final int collectorIndex;
 	public final RenderState renderState;
 	public final int shaderFlags;
-	private ResourceCache<MaterialIndexer> dongle;
 
 	/** Vanilla render layer name if we derived from a vanilla render layer. */
 	public final String label;
@@ -72,12 +68,6 @@ public final class MaterialImpl extends AbstractRenderState {
 
 	public static MaterialImpl fromIndex(int index) {
 		return VALUES[index];
-	}
-
-	public static void resourceReload() {
-		for (final MaterialImpl e:MAP.values()) {
-			e.dongle = null;
-		}
 	}
 
 	@Override
@@ -127,14 +117,6 @@ public final class MaterialImpl extends AbstractRenderState {
 
 	public int index() {
 		return index;
-	}
-
-	public MaterialIndexer dongle() {
-		if (dongle == null) {
-			dongle = new ResourceCache<>(() -> texture.materialIndexProvider().getIndexer(this));
-		}
-
-		return dongle.getOrLoad();
 	}
 
 	public String label() {

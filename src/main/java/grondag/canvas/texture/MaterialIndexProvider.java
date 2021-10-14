@@ -31,10 +31,10 @@ import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.MaterialImpl;
+import grondag.canvas.material.state.wip.CanvasRenderMaterial;
 
 public abstract class MaterialIndexProvider {
-	public abstract MaterialIndexer getIndexer(MaterialImpl mat);
+	public abstract MaterialIndexer getIndexer(CanvasRenderMaterial mat);
 
 	public abstract void enable();
 
@@ -46,13 +46,13 @@ public abstract class MaterialIndexProvider {
 		private final MaterialIndexTexture tex = new MaterialIndexTexture(false);
 
 		@Override
-		public MaterialIndexer getIndexer(MaterialImpl mat) {
-			final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
+		public MaterialIndexer getIndexer(CanvasRenderMaterial mat) {
+			final long key = mat.vertexShaderIndex() | (mat.fragmentShaderIndex() << 16) | ((mat.shaderFlags()) << 32) | (((long) mat.condition().index()) << 48);
 
 			synchronized (this) {
 				final int result = map.computeIfAbsent(key, k -> {
 					final int i = nextIndex++;
-					tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index);
+					tex.set(i, mat.vertexShaderIndex(), mat.fragmentShaderIndex(), mat.shaderFlags(), mat.condition().index());
 					return i;
 				});
 
@@ -88,11 +88,11 @@ public abstract class MaterialIndexProvider {
 		private final Object sync = new Object();
 
 		private class Indexer implements MaterialIndexer {
-			private Indexer(MaterialImpl mat) {
+			private Indexer(CanvasRenderMaterial mat) {
 				this.mat = mat;
 			}
 
-			private final MaterialImpl mat;
+			private final CanvasRenderMaterial mat;
 			private final Int2IntOpenHashMap spriteMap = new Int2IntOpenHashMap(64, Hash.VERY_FAST_LOAD_FACTOR);
 
 			@Override
@@ -100,8 +100,8 @@ public abstract class MaterialIndexProvider {
 				synchronized (sync) {
 					return spriteMap.computeIfAbsent(spriteId, k -> {
 						final int i = nextIndex++;
-						final TextureAtlasSprite sprite = mat.texture.spriteIndex().fromIndex(k);
-						tex.set(i, mat.vertexShaderIndex, mat.fragmentShaderIndex, mat.shaderFlags, mat.condition.index, sprite);
+						final TextureAtlasSprite sprite = mat.texture().spriteIndex().fromIndex(k);
+						tex.set(i, mat.vertexShaderIndex(), mat.fragmentShaderIndex(), mat.shaderFlags(), mat.condition().index(), sprite);
 						return i;
 					});
 				}
@@ -109,8 +109,8 @@ public abstract class MaterialIndexProvider {
 		}
 
 		@Override
-		public MaterialIndexer getIndexer(MaterialImpl mat) {
-			final long key = mat.vertexShaderIndex | (mat.fragmentShaderIndex << 16) | (((long) mat.shaderFlags) << 32) | (((long) mat.condition.index) << 48);
+		public MaterialIndexer getIndexer(CanvasRenderMaterial mat) {
+			final long key = mat.vertexShaderIndex() | (mat.fragmentShaderIndex() << 16) | ((mat.shaderFlags()) << 32) | (((long) mat.condition().index()) << 48);
 
 			synchronized (sync) {
 				return materialMap.computeIfAbsent(key, k -> {

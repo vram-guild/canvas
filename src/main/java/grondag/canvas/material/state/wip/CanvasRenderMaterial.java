@@ -22,6 +22,7 @@ package grondag.canvas.material.state.wip;
 
 import io.vram.frex.base.renderer.material.BaseMaterialView;
 import io.vram.frex.base.renderer.material.BaseRenderMaterial;
+import io.vram.frex.base.renderer.util.ResourceCache;
 
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.material.state.MaterialImpl;
@@ -29,7 +30,8 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.texture.MaterialIndexer;
 
 public class CanvasRenderMaterial extends BaseRenderMaterial {
-	private final MaterialImpl oldMat;
+	protected final MaterialImpl oldMat;
+	protected final ResourceCache<MaterialIndexer> indexer;
 
 	public CanvasRenderMaterial(BaseMaterialView finder, int index) {
 		super(index, finder);
@@ -62,10 +64,12 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 			.unmipped(this.unmipped())
 			.writeMask(this.writeMask())
 			.find();
+
+		indexer = new ResourceCache<>(() -> oldMat.texture.materialIndexProvider().getIndexer(this));
 	}
 
 	public MaterialIndexer materialIndexer() {
-		return oldMat.dongle();
+		return indexer.getOrLoad();
 	}
 
 	public void trackPerFrameAnimation(int spriteId) {
@@ -78,5 +82,17 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 
 	public RenderState renderState() {
 		return oldMat.renderState;
+	}
+
+	public int vertexShaderIndex() {
+		return oldMat.vertexShaderIndex;
+	}
+
+	public int fragmentShaderIndex() {
+		return oldMat.fragmentShaderIndex;
+	}
+
+	public int shaderFlags() {
+		return oldMat.shaderFlags;
 	}
 }
