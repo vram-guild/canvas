@@ -36,11 +36,15 @@ import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.data.ShaderStrings;
 
-abstract class AbstractRenderStateView {
+public abstract class AbstractRenderStateView {
 	protected long bits;
 
 	protected AbstractRenderStateView(long bits) {
 		this.bits = bits;
+	}
+
+	public long bits() {
+		return bits;
 	}
 
 	public long collectorKey() {

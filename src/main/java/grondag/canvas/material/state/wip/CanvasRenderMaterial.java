@@ -25,16 +25,53 @@ import io.vram.frex.base.renderer.material.BaseRenderMaterial;
 import io.vram.frex.base.renderer.util.ResourceCache;
 
 import grondag.canvas.material.property.TextureMaterialState;
+import grondag.canvas.material.state.AbstractRenderStateView;
+import grondag.canvas.material.state.CollectorIndexMap;
 import grondag.canvas.material.state.MaterialImpl;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.mixinterface.TextureAtlasExt;
+import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.texture.MaterialIndexer;
 
 public class CanvasRenderMaterial extends BaseRenderMaterial {
 	protected final MaterialImpl oldMat;
 	protected final ResourceCache<MaterialIndexer> indexer;
+	protected final int vertexShaderIndex;
+	protected final int fragmentShaderIndex;
+	protected final int collectorIndex;
+	protected final int shaderFlags;
+	protected final RenderState renderState;
 
 	public CanvasRenderMaterial(BaseMaterialView finder, int index) {
 		super(index, finder);
+
+		long stateBits = 0;
+		stateBits = AbstractRenderStateView.BLUR.setValue(blur(), stateBits);
+		stateBits = AbstractRenderStateView.DISABLE_SHADOWS.setValue(!castShadows(), stateBits);
+		stateBits = AbstractRenderStateView.CONDITION.setValue(conditionIndex(), stateBits);
+		stateBits = AbstractRenderStateView.CULL.setValue(cull(), stateBits);
+		stateBits = AbstractRenderStateView.CUTOUT.setValue(cutout(), stateBits);
+		stateBits = AbstractRenderStateView.DECAL.setValue(decal(), stateBits);
+		stateBits = AbstractRenderStateView.DEPTH_TEST.setValue(depthTest(), stateBits);
+		stateBits = AbstractRenderStateView.DISABLE_AO.setValue(disableAo(), stateBits);
+		stateBits = AbstractRenderStateView.DISABLE_COLOR_INDEX.setValue(disableColorIndex(), stateBits);
+		stateBits = AbstractRenderStateView.DISABLE_DIFFUSE.setValue(disableDiffuse(), stateBits);
+		stateBits = AbstractRenderStateView.DISCARDS_TEXTURE.setValue(discardsTexture(), stateBits);
+		stateBits = AbstractRenderStateView.EMISSIVE.setValue(emissive(), stateBits);
+		stateBits = AbstractRenderStateView.FLASH_OVERLAY.setValue(flashOverlay(), stateBits);
+		stateBits = AbstractRenderStateView.FOG.setValue(fog(), stateBits);
+		stateBits = AbstractRenderStateView.ENABLE_GLINT.setValue(foilOverlay(), stateBits);
+		stateBits = AbstractRenderStateView.HURT_OVERLAY.setValue(hurtOverlay(), stateBits);
+		stateBits = AbstractRenderStateView.LINES.setValue(lines(), stateBits);
+		stateBits = AbstractRenderStateView.PRESET.setValue(preset(), stateBits);
+		stateBits = AbstractRenderStateView.SHADER_ID.setValue(shaderIndex(), stateBits);
+		stateBits = AbstractRenderStateView.SORTED.setValue(sorted(), stateBits);
+		stateBits = AbstractRenderStateView.TARGET.setValue(target(), stateBits);
+		stateBits = AbstractRenderStateView.TEXTURE.setValue(TextureMaterialState.fromId(texture().id()).index, stateBits);
+		stateBits = AbstractRenderStateView.TRANSPARENCY.setValue(transparency(), stateBits);
+		stateBits = AbstractRenderStateView.UNMIPPED.setValue(unmipped(), stateBits);
+		stateBits = AbstractRenderStateView.WRITE_MASK.setValue(writeMask(), stateBits);
 
 		oldMat = MaterialImpl.finder()
 			.blur(this.blur())
@@ -62,10 +99,24 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 			.textureIndex(TextureMaterialState.fromId(this.texture().id()).index)
 			.transparency(this.transparency())
 			.unmipped(this.unmipped())
+
 			.writeMask(this.writeMask())
 			.find();
 
+		final long collectorKey = stateBits & AbstractRenderStateView.COLLECTOR_AND_STATE_MASK;
+		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey);
+		shaderFlags = (int) (stateBits >>> AbstractRenderStateView.FLAG_SHIFT) & 0xFFFF;
+		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
+		final var shaderId = (MaterialShaderId) this.shader();
+		vertexShaderIndex = shaderId.vertexIndex;
+		fragmentShaderIndex = shaderId.fragmentIndex;
 		indexer = new ResourceCache<>(() -> oldMat.texture.materialIndexProvider().getIndexer(this));
+
+		assert stateBits == oldMat.bits();
+		assert collectorKey == oldMat.collectorKey();
+		assert collectorIndex == oldMat.collectorIndex;
+		assert shaderFlags == oldMat.shaderFlags;
+		assert renderState == oldMat.renderState;
 	}
 
 	public MaterialIndexer materialIndexer() {
@@ -73,26 +124,33 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 	}
 
 	public void trackPerFrameAnimation(int spriteId) {
-		oldMat.trackPerFrameAnimation(spriteId);
+		if (!this.discardsTexture() && texture().isAtlas()) {
+			// WIP: create and use sprite method on quad
+			final int animationIndex = ((SpriteExt) texture().spriteIndex().fromIndex(spriteId)).canvas_animationIndex();
+
+			if (animationIndex > 0) {
+				((TextureAtlasExt) texture().textureAsAtlas()).canvas_trackFrameAnimation(animationIndex);
+			}
+		}
 	}
 
 	public int collectorIndex() {
-		return oldMat.collectorIndex;
+		return collectorIndex;
 	}
 
 	public RenderState renderState() {
-		return oldMat.renderState;
+		return renderState;
 	}
 
 	public int vertexShaderIndex() {
-		return oldMat.vertexShaderIndex;
+		return vertexShaderIndex;
 	}
 
 	public int fragmentShaderIndex() {
-		return oldMat.fragmentShaderIndex;
+		return fragmentShaderIndex;
 	}
 
 	public int shaderFlags() {
-		return oldMat.shaderFlags;
+		return shaderFlags;
 	}
 }

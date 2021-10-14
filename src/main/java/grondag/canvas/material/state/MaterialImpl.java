@@ -28,8 +28,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.shader.MaterialShaderId;
 
 public final class MaterialImpl extends AbstractRenderState {
@@ -131,16 +129,5 @@ public final class MaterialImpl extends AbstractRenderState {
 	@Override
 	public int shaderIndex() {
 		return shaderId.index;
-	}
-
-	public void trackPerFrameAnimation(int spriteId) {
-		if (!this.discardsTexture && texture.isAtlas()) {
-			// WIP: create and use sprite method on quad
-			final int animationIndex = ((SpriteExt) texture.spriteIndex().fromIndex(spriteId)).canvas_animationIndex();
-
-			if (animationIndex > 0) {
-				((TextureAtlasExt) texture.textureAsAtlas()).canvas_trackFrameAnimation(animationIndex);
-			}
-		}
 	}
 }
