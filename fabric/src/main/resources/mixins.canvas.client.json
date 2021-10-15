@@ -33,6 +33,7 @@
 		"MixinMinecraft",
 		"MixinModelBlockRenderer",
 		"MixinNativeImage",
+		"MixinOutlineBufferSource",
 		"MixinPalettedContainer",
 		"MixinParticle",
 		"MixinParticleEngine",
