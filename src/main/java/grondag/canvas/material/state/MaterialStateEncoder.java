@@ -36,142 +36,19 @@ import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.data.ShaderStrings;
 
-public abstract class AbstractRenderStateView {
-	protected long bits;
+public abstract class MaterialStateEncoder {
+	private MaterialStateEncoder() { }
 
-	protected AbstractRenderStateView(long bits) {
-		this.bits = bits;
-	}
-
-	public long bits() {
-		return bits;
-	}
-
-	public long collectorKey() {
-		return bits & COLLECTOR_AND_STATE_MASK;
-	}
-
-	public int shaderIndex() {
-		return SHADER_ID.getValue(bits);
-	}
-
-	/**
-	 * Will be always visible condition in vertex-controlled render state.
-	 * This is ensured by the state mask.
-	 */
-	public MaterialConditionImpl condition() {
-		return MaterialConditionImpl.fromIndex(CONDITION.getValue(bits));
-	}
-
-	public boolean sorted() {
-		return SORTED.getValue(bits);
-	}
-
-	boolean primaryTargetTransparency() {
-		if (!sorted()) {
+	static boolean primaryTargetTransparency(long bits) {
+		if (!SORTED.getValue(bits)) {
 			return false;
 		}
 
-		final long masked = bits & AbstractRenderState.COLLECTOR_AND_STATE_MASK;
+		final long masked = bits & COLLECTOR_AND_STATE_MASK;
+		final var target = TARGET.getValue(bits);
 
-		return (masked == TRANSLUCENT_TERRAIN_COLLECTOR_KEY && target() == MaterialConstants.TARGET_TRANSLUCENT)
-			|| (masked == TRANSLUCENT_ENTITY_COLLECTOR_KEY && target() == MaterialConstants.TARGET_ENTITIES);
-	}
-
-	public int conditionIndex() {
-		return CONDITION.getValue(bits);
-	}
-
-	public int textureIndex() {
-		return TEXTURE.getValue(bits);
-	}
-
-	public boolean emissive() {
-		return EMISSIVE.getValue(bits);
-	}
-
-	public boolean disableDiffuse() {
-		return DISABLE_DIFFUSE.getValue(bits);
-	}
-
-	public boolean disableAo() {
-		return DISABLE_AO.getValue(bits);
-	}
-
-	public boolean blur() {
-		return BLUR.getValue(bits);
-	}
-
-	public int transparency() {
-		return TRANSPARENCY.getValue(bits);
-	}
-
-	public int depthTest() {
-		return DEPTH_TEST.getValue(bits);
-	}
-
-	public boolean cull() {
-		return CULL.getValue(bits);
-	}
-
-	public int writeMask() {
-		return WRITE_MASK.getValue(bits);
-	}
-
-	public boolean foilOverlay() {
-		return ENABLE_GLINT.getValue(bits);
-	}
-
-	public boolean discardsTexture() {
-		return DISCARDS_TEXTURE.getValue(bits);
-	}
-
-	public int decal() {
-		return DECAL.getValue(bits);
-	}
-
-	public int target() {
-		return TARGET.getValue(bits);
-	}
-
-	public boolean lines() {
-		return LINES.getValue(bits);
-	}
-
-	public boolean fog() {
-		return FOG.getValue(bits);
-	}
-
-	public boolean castShadows() {
-		return !DISABLE_SHADOWS.getValue(bits);
-	}
-
-	public int preset() {
-		return PRESET.getValue(bits);
-	}
-
-	public boolean disableColorIndex() {
-		return DISABLE_COLOR_INDEX.getValue(bits);
-	}
-
-	public int cutout() {
-		return CUTOUT.getValue(bits);
-	}
-
-	public boolean unmipped() {
-		return UNMIPPED.getValue(bits);
-	}
-
-	public boolean hurtOverlay() {
-		return HURT_OVERLAY.getValue(bits);
-	}
-
-	public boolean flashOverlay() {
-		return FLASH_OVERLAY.getValue(bits);
-	}
-
-	public int shaderFlags() {
-		return (int) (bits >>> FLAG_SHIFT) & 0xFFFF;
+		return (masked == TRANSLUCENT_TERRAIN_COLLECTOR_KEY && target == MaterialConstants.TARGET_TRANSLUCENT)
+			|| (masked == TRANSLUCENT_ENTITY_COLLECTOR_KEY && target == MaterialConstants.TARGET_ENTITIES);
 	}
 
 	static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);

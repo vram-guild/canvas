@@ -34,7 +34,7 @@ public class CollectorIndexMap {
 
 	private static final Long2IntFunction FUNC = key -> {
 		final int result = nextIndex++;
-		RENDER_STATES[result] = RenderStateFinder.threadLocal().fromBits(key);
+		RENDER_STATES[result] = RenderState.fromBits(key);
 		KEYS_BY_INDEX[result] = key;
 		return result;
 	};

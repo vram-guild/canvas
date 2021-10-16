@@ -39,12 +39,4 @@ public final class TerrainRenderStates {
 	public static final RenderState SOLID = ((CanvasRenderMaterial) RenderTypeUtil.toMaterial(RenderType.solid())).renderState();
 	public static final Predicate<RenderState> TRANSLUCENT_PREDICATE = m -> m.target == TargetRenderState.TRANSLUCENT && m.primaryTargetTransparency;
 	public static final Predicate<RenderState> SOLID_PREDICATE = m -> !TRANSLUCENT_PREDICATE.test(m);
-
-	// WIP: remove?
-	//static {
-	//	assert TRANSLUCENT_TERRAIN.state.primaryTargetTransparency;
-	//
-	//	// ensure item entity gets mapped to primary transparency
-	//	assert ((CanvasRenderMaterial) RenderTypeUtil.toMaterial(Sheets.translucentItemSheet())).state.primaryTargetTransparency;
-	//}
 }

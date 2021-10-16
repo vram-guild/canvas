@@ -20,12 +20,15 @@
 
 package grondag.canvas.material.state;
 
+import static grondag.canvas.material.state.MaterialStateEncoder.COLLECTOR_AND_STATE_MASK;
+import static grondag.canvas.material.state.MaterialStateEncoder.FLAG_SHIFT;
+import static grondag.canvas.material.state.MaterialStateEncoder.primaryTargetTransparency;
+
 import com.google.common.base.Strings;
 
 import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.material.MaterialCondition;
-import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialShader;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.texture.MaterialTexture;
@@ -49,7 +52,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 	protected final int collectorIndex;
 	protected final int shaderFlags;
 	protected final RenderState renderState;
-	protected final long stateBits;
+	protected final long canvasBits;
 
 	protected final MaterialTexture materialTexture;
 	protected final TextureMaterialState texture;
@@ -88,39 +91,40 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 		texture = TextureMaterialState.fromId(materialTexture.id());
 		condition = (MaterialConditionImpl) super.condition();
 
-		long stateBits = 0;
-		stateBits = AbstractRenderStateView.BLUR.setValue(blur(), stateBits);
-		stateBits = AbstractRenderStateView.DISABLE_SHADOWS.setValue(!castShadows(), stateBits);
-		stateBits = AbstractRenderStateView.CONDITION.setValue(conditionIndex(), stateBits);
-		stateBits = AbstractRenderStateView.CULL.setValue(cull(), stateBits);
-		stateBits = AbstractRenderStateView.CUTOUT.setValue(cutout(), stateBits);
-		stateBits = AbstractRenderStateView.DECAL.setValue(decal(), stateBits);
-		stateBits = AbstractRenderStateView.DEPTH_TEST.setValue(depthTest(), stateBits);
-		stateBits = AbstractRenderStateView.DISABLE_AO.setValue(disableAo(), stateBits);
-		stateBits = AbstractRenderStateView.DISABLE_COLOR_INDEX.setValue(disableColorIndex(), stateBits);
-		stateBits = AbstractRenderStateView.DISABLE_DIFFUSE.setValue(disableDiffuse(), stateBits);
-		stateBits = AbstractRenderStateView.DISCARDS_TEXTURE.setValue(discardsTexture(), stateBits);
-		stateBits = AbstractRenderStateView.EMISSIVE.setValue(emissive(), stateBits);
-		stateBits = AbstractRenderStateView.FLASH_OVERLAY.setValue(flashOverlay(), stateBits);
-		stateBits = AbstractRenderStateView.FOG.setValue(fog(), stateBits);
-		stateBits = AbstractRenderStateView.ENABLE_GLINT.setValue(foilOverlay(), stateBits);
-		stateBits = AbstractRenderStateView.HURT_OVERLAY.setValue(hurtOverlay(), stateBits);
-		stateBits = AbstractRenderStateView.LINES.setValue(lines(), stateBits);
-		stateBits = AbstractRenderStateView.PRESET.setValue(preset(), stateBits);
-		stateBits = AbstractRenderStateView.SHADER_ID.setValue(shaderIndex(), stateBits);
-		stateBits = AbstractRenderStateView.SORTED.setValue(sorted(), stateBits);
-		stateBits = AbstractRenderStateView.TARGET.setValue(target(), stateBits);
-		stateBits = AbstractRenderStateView.TEXTURE.setValue(texture.index, stateBits);
-		stateBits = AbstractRenderStateView.TRANSPARENCY.setValue(transparency(), stateBits);
-		stateBits = AbstractRenderStateView.UNMIPPED.setValue(unmipped(), stateBits);
-		stateBits = AbstractRenderStateView.WRITE_MASK.setValue(writeMask(), stateBits);
-		this.stateBits = stateBits;
+		// NB: must prefix bit packers here because FREX packers have same names
+		long canvasBits = 0;
+		canvasBits = MaterialStateEncoder.BLUR.setValue(blur(), canvasBits);
+		canvasBits = MaterialStateEncoder.DISABLE_SHADOWS.setValue(!castShadows(), canvasBits);
+		canvasBits = MaterialStateEncoder.CONDITION.setValue(conditionIndex(), canvasBits);
+		canvasBits = MaterialStateEncoder.CULL.setValue(cull(), canvasBits);
+		canvasBits = MaterialStateEncoder.CUTOUT.setValue(cutout(), canvasBits);
+		canvasBits = MaterialStateEncoder.DECAL.setValue(decal(), canvasBits);
+		canvasBits = MaterialStateEncoder.DEPTH_TEST.setValue(depthTest(), canvasBits);
+		canvasBits = MaterialStateEncoder.DISABLE_AO.setValue(disableAo(), canvasBits);
+		canvasBits = MaterialStateEncoder.DISABLE_COLOR_INDEX.setValue(disableColorIndex(), canvasBits);
+		canvasBits = MaterialStateEncoder.DISABLE_DIFFUSE.setValue(disableDiffuse(), canvasBits);
+		canvasBits = MaterialStateEncoder.DISCARDS_TEXTURE.setValue(discardsTexture(), canvasBits);
+		canvasBits = MaterialStateEncoder.EMISSIVE.setValue(emissive(), canvasBits);
+		canvasBits = MaterialStateEncoder.FLASH_OVERLAY.setValue(flashOverlay(), canvasBits);
+		canvasBits = MaterialStateEncoder.FOG.setValue(fog(), canvasBits);
+		canvasBits = MaterialStateEncoder.ENABLE_GLINT.setValue(foilOverlay(), canvasBits);
+		canvasBits = MaterialStateEncoder.HURT_OVERLAY.setValue(hurtOverlay(), canvasBits);
+		canvasBits = MaterialStateEncoder.LINES.setValue(lines(), canvasBits);
+		canvasBits = MaterialStateEncoder.PRESET.setValue(preset(), canvasBits);
+		canvasBits = MaterialStateEncoder.SHADER_ID.setValue(shaderIndex(), canvasBits);
+		canvasBits = MaterialStateEncoder.SORTED.setValue(sorted(), canvasBits);
+		canvasBits = MaterialStateEncoder.TARGET.setValue(target(), canvasBits);
+		canvasBits = MaterialStateEncoder.TEXTURE.setValue(texture.index, canvasBits);
+		canvasBits = MaterialStateEncoder.TRANSPARENCY.setValue(transparency(), canvasBits);
+		canvasBits = MaterialStateEncoder.UNMIPPED.setValue(unmipped(), canvasBits);
+		canvasBits = MaterialStateEncoder.WRITE_MASK.setValue(writeMask(), canvasBits);
+		this.canvasBits = canvasBits;
 
 		// Main purpose of persisting this stuff is run-time debug
 		// May also avoid a few pointer chases.
-		collectorKey = stateBits & AbstractRenderStateView.COLLECTOR_AND_STATE_MASK;
+		collectorKey = canvasBits & COLLECTOR_AND_STATE_MASK;
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey);
-		shaderFlags = (int) (stateBits >>> AbstractRenderStateView.FLAG_SHIFT) & 0xFFFF;
+		shaderFlags = (int) (canvasBits >>> FLAG_SHIFT) & 0xFFFF;
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
 		shaderId = (MaterialShaderId) super.shader();
 		vertexShaderIndex = shaderId.vertexIndex;
@@ -135,7 +139,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 		depthFragmentShaderId = shaderId.depthFragmentId;
 		depthFragmentShader = depthFragmentShaderId.toString();
 
-		primaryTargetTransparency = primaryTargetTransparency();
+		primaryTargetTransparency = primaryTargetTransparency(canvasBits);
 
 		// Important that these happen because otherwise material shaders will never be registered - they aren't part of render state.
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
@@ -151,17 +155,6 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 		//System.out.println(this.toString());
 		//System.out.println("Render State");
 		//System.out.println(renderState.toString());
-	}
-
-	protected boolean primaryTargetTransparency() {
-		if (!sorted()) {
-			return false;
-		}
-
-		final long masked = stateBits & AbstractRenderStateView.COLLECTOR_AND_STATE_MASK;
-
-		return (masked == AbstractRenderStateView.TRANSLUCENT_TERRAIN_COLLECTOR_KEY && target() == MaterialConstants.TARGET_TRANSLUCENT)
-			|| (masked == AbstractRenderStateView.TRANSLUCENT_ENTITY_COLLECTOR_KEY && target() == MaterialConstants.TARGET_ENTITIES);
 	}
 
 	public MaterialIndexer materialIndexer() {
@@ -203,11 +196,11 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
 		sb.append("stateIndex:   ").append(index).append("\n");
-		sb.append("stateKey      ").append(Strings.padStart(Long.toHexString(stateBits), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(stateBits), 64, '0')).append("\n");
+		sb.append("stateKey      ").append(Strings.padStart(Long.toHexString(canvasBits), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(canvasBits), 64, '0')).append("\n");
 		sb.append("collectorIdx: ").append(collectorIndex).append("\n");
 		sb.append("collectorKey: ").append(Strings.padStart(Long.toHexString(collectorKey), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(collectorKey), 64, '0')).append("\n");
 		sb.append("renderIndex:  ").append(renderState.index).append("\n");
-		sb.append("renderKey:    ").append(Strings.padStart(Long.toHexString(renderState.bits()), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(renderState.bits()), 64, '0')).append("\n");
+		sb.append("renderKey:    ").append(Strings.padStart(Long.toHexString(renderState.bits), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(renderState.bits), 64, '0')).append("\n");
 		sb.append("renderLayerName: ").append(label).append("\n");
 		sb.append("target: ").append(target()).append("\n");
 		sb.append("texture: ").append(texture().id().toString()).append("\n");
