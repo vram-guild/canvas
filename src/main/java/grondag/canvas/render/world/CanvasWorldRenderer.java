@@ -90,7 +90,7 @@ import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
-import grondag.canvas.buffer.input.CanvasOutlineImmediate;
+import grondag.canvas.buffer.input.OutlineImmediate;
 import grondag.canvas.buffer.render.StreamBufferAllocator;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.buffer.util.BufferSynchronizer;
@@ -135,7 +135,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 	private final CanvasImmediate materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
 	private final CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
-	private final CanvasOutlineImmediate outlineImmediate = new CanvasOutlineImmediate(worldRenderImmediate);
+	private final OutlineImmediate outlineImmediate = new OutlineImmediate(worldRenderImmediate);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(entityCullingFrustum);
 	private final WorldRenderContextBase eventContext = new WorldRenderContextBase();
 

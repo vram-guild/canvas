@@ -32,7 +32,7 @@ import net.minecraft.client.renderer.RenderType;
 
 import grondag.canvas.mixinterface.OutlineBufferSourceExt;
 
-public class CanvasOutlineImmediate implements MultiBufferSource {
+public class OutlineImmediate implements MultiBufferSource {
 	private final CanvasImmediate fallbackSource;
 	private final BufferSource itemBuffer;
 	private BufferSource entityBuffer;
@@ -40,7 +40,7 @@ public class CanvasOutlineImmediate implements MultiBufferSource {
 	private int red, green, blue;
 	private boolean itemState = false;
 
-	public CanvasOutlineImmediate(CanvasImmediate fallbackImmediate) {
+	public OutlineImmediate(CanvasImmediate fallbackImmediate) {
 		fallbackSource = fallbackImmediate;
 		itemBuffer = MultiBufferSource.immediate(new BufferBuilder(256));
 		red = green = blue = 255;
