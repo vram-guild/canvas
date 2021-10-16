@@ -40,12 +40,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.util.FaceUtil;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
@@ -140,12 +141,12 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	}
 
 	@Override
-	public void computeAo(QuadEditorImpl quad) {
+	public void computeAo(BaseQuadEmitter quad) {
 		aoCalc.compute(quad);
 	}
 
 	@Override
-	public void computeFlat(QuadEditorImpl quad) {
+	public void computeFlat(BaseQuadEmitter quad) {
 		if (Configurator.semiFlatLighting) {
 			aoCalc.computeFlat(quad);
 		} else if (Configurator.hdLightmaps()) {
@@ -186,11 +187,11 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	}
 
 	@Override
-	protected void encodeQuad(QuadEditorImpl quad) {
+	protected void encodeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		TerrainFormat.TERRAIN_ENCODER.encode(quad, this, collectors.get(quad.material()));
+		TerrainFormat.TERRAIN_ENCODER.encode(quad, this, collectors.get((CanvasRenderMaterial) quad.material()));
 	}
 
 	@Override

@@ -34,10 +34,10 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.util.ColorUtil;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -52,7 +52,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	@Nullable public VertexCollectorList collectors = null;
 
 	protected final String name;
-	protected final QuadEditorImpl makerQuad = new Maker();
+	protected final BaseQuadEmitter makerQuad = new Maker();
 
 	protected MaterialMap materialMap = defaultMap;
 	protected int defaultPreset;
@@ -74,7 +74,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 		}
 	}
 
-	void mapMaterials(QuadEditorImpl quad) {
+	void mapMaterials(BaseQuadEmitter quad) {
 		if (materialMap == defaultMap) {
 			return;
 		}
@@ -96,7 +96,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 		return true;
 	}
 
-	protected final boolean cullTest(QuadEditorImpl quad) {
+	protected final boolean cullTest(BaseQuadEmitter quad) {
 		return cullTest(quad.cullFaceId());
 	}
 
@@ -114,11 +114,11 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	 */
 	public abstract int brightness();
 
-	public abstract void computeAo(QuadEditorImpl quad);
+	public abstract void computeAo(BaseQuadEmitter quad);
 
-	public abstract void computeFlat(QuadEditorImpl quad);
+	public abstract void computeFlat(BaseQuadEmitter quad);
 
-	protected void computeFlatSimple(QuadEditorImpl quad) {
+	protected void computeFlatSimple(BaseQuadEmitter quad) {
 		final int brightness = flatBrightness(quad);
 		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), brightness));
 		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), brightness));
@@ -126,10 +126,10 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 		quad.lightmap(3, ColorUtil.maxBrightness(quad.lightmap(3), brightness));
 	}
 
-	public abstract int flatBrightness(QuadEditorImpl quad);
+	public abstract int flatBrightness(BaseQuadEmitter quad);
 
 	public final void renderQuad() {
-		final QuadEditorImpl quad = makerQuad;
+		final BaseQuadEmitter quad = makerQuad;
 
 		mapMaterials(quad);
 
@@ -152,7 +152,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 		}
 	}
 
-	protected abstract void encodeQuad(QuadEditorImpl quad);
+	protected abstract void encodeQuad(BaseQuadEmitter quad);
 
 	protected void adjustMaterial() {
 		final MaterialFinder finder = this.finder;
@@ -207,7 +207,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
 	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
 	 */
-	private class Maker extends QuadEditorImpl {
+	private class Maker extends BaseQuadEmitter {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 			material(RenderMaterial.defaultMaterial());

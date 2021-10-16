@@ -37,14 +37,14 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 
 import io.vram.frex.api.math.FastMatri4f;
 import io.vram.frex.api.math.FastMatrix3f;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 
 public class QuadEncoders {
-	private static void encodeQuad(QuadEditorImpl quad, EncodingContext context, VertexCollector buff) {
+	private static void encodeQuad(BaseQuadEmitter quad, EncodingContext context, VertexCollector buff) {
 		final FastMatri4f matrix = (FastMatri4f) context.matrix();
 		final FastMatrix3f normalMatrix = context.normalMatrix();
 		final boolean isContextPresent = context != AbsentEncodingContext.INSTANCE;
@@ -54,7 +54,7 @@ public class QuadEncoders {
 			quad.overlayCoords(overlay);
 		}
 
-		final CanvasRenderMaterial mat = quad.material();
+		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used

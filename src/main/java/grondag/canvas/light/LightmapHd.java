@@ -27,8 +27,9 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.util.Mth;
 
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 
 class LightmapHd {
 	// MAYBE: use Fermion cache
@@ -119,7 +120,7 @@ class LightmapHd {
 		return light[v * LightmapSizer.paddedSize + u];
 	}
 
-	public int coord(QuadEditorImpl q, int i) {
+	public int coord(BaseQuadEmitter q, int i) {
 		final int u, v;
 
 		u = Math.round((uMinImg + 0.5f + q.u[i] * LightmapSizer.centerToCenterPixelDistance) * LightmapSizer.textureToBuffer);

@@ -29,9 +29,9 @@ import io.vram.frex.api.renderer.MaterialManager;
 import io.vram.frex.api.renderer.MaterialShaderManager;
 import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.renderer.Renderer;
+import io.vram.frex.base.renderer.mesh.BaseMeshBuilder;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.BaseMeshBuilder;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;

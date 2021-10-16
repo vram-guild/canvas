@@ -81,7 +81,7 @@ public class TerrainFormat {
 
 		final boolean aoDisabled = !Minecraft.useAmbientOcclusion();
 		final float[] aoData = quad.ao;
-		final CanvasRenderMaterial mat = quad.material();
+		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();
 
 		assert mat.preset() != MaterialConstants.PRESET_DEFAULT;
 

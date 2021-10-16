@@ -34,9 +34,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.sc.concurrency.SimpleConcurrentList;
-
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 
 /**
  * Context for non-terrain block rendering.
@@ -95,12 +94,12 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintG
 	}
 
 	@Override
-	public void computeAo(QuadEditorImpl quad) {
+	public void computeAo(BaseQuadEmitter quad) {
 		// NOOP
 	}
 
 	@Override
-	public void computeFlat(QuadEditorImpl quad) {
+	public void computeFlat(BaseQuadEmitter quad) {
 		computeFlatSimple(quad);
 	}
 }

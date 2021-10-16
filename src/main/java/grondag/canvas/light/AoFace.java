@@ -181,11 +181,11 @@ enum AoFace {
 	 */
 	@FunctionalInterface
 	interface WeightFunction {
-		void apply(BaseQuadView<?> q, int vertexIndex, float[] out);
+		void apply(BaseQuadView q, int vertexIndex, float[] out);
 	}
 
 	@FunctionalInterface
 	interface Vertex2Float {
-		float apply(BaseQuadView<?> q, int vertexIndex);
+		float apply(BaseQuadView q, int vertexIndex);
 	}
 }

@@ -27,9 +27,9 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import io.vram.frex.api.buffer.FrexVertexConsumer;
 import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
@@ -57,7 +57,7 @@ public class VertexCollectorList {
 	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
 	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
 	 */
-	public class Consumer extends QuadEditorImpl {
+	public class Consumer extends BaseQuadEmitter {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 			material(RenderMaterial.defaultMaterial());
@@ -65,7 +65,7 @@ public class VertexCollectorList {
 
 		@Override
 		public Consumer emit() {
-			final CanvasRenderMaterial mat = material();
+			final CanvasRenderMaterial mat = (CanvasRenderMaterial) material();
 
 			if (mat.condition().compute()) {
 				complete();

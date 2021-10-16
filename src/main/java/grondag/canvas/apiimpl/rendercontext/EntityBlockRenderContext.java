@@ -41,9 +41,9 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.sc.concurrency.SimpleConcurrentList;
 
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 
 /**
@@ -156,12 +156,12 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 	}
 
 	@Override
-	public void computeAo(QuadEditorImpl quad) {
+	public void computeAo(BaseQuadEmitter quad) {
 		// NOOP
 	}
 
 	@Override
-	public void computeFlat(QuadEditorImpl quad) {
+	public void computeFlat(BaseQuadEmitter quad) {
 		computeFlatSimple(quad);
 	}
 }

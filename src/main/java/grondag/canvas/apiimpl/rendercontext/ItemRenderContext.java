@@ -58,11 +58,12 @@ import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.model.ItemModel.ItemInputContext;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import io.vram.frex.api.world.ItemColorRegistry;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.sc.concurrency.SimpleConcurrentList;
 
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.buffer.input.CanvasImmediate;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
@@ -137,7 +138,7 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 	}
 
 	@Override
-	public int flatBrightness(QuadEditorImpl quad) {
+	public int flatBrightness(BaseQuadEmitter quad) {
 		return 0;
 	}
 
@@ -287,24 +288,24 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 	}
 
 	@Override
-	public void computeAo(QuadEditorImpl quad) {
+	public void computeAo(BaseQuadEmitter quad) {
 		// NOOP
 	}
 
 	@Override
-	public void computeFlat(QuadEditorImpl quad) {
+	public void computeFlat(BaseQuadEmitter quad) {
 		computeFlatSimple(quad);
 	}
 
 	@Override
-	protected void encodeQuad(QuadEditorImpl quad) {
+	protected void encodeQuad(BaseQuadEmitter quad) {
 		colorizeQuad(quad, this);
 		applyItemLighting(quad, this);
 
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get(quad.material()));
+			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get((CanvasRenderMaterial) quad.material()));
 		}
 	}
 
