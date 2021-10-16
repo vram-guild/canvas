@@ -31,9 +31,10 @@ import com.mojang.math.Matrix4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 
+import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix3f;
+
 import grondag.canvas.mixinterface.GameRendererExt;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 
 public final class MatrixData {
 	private MatrixData() { }
@@ -46,47 +47,47 @@ public final class MatrixData {
 
 	static void update(PoseStack.Pose view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
 		// write values for prior frame before updating
-		viewMatrixExt.writeToBuffer(VIEW_LAST * 16, MATRIX_DATA);
-		projMatrixExt.writeToBuffer(PROJ_LAST * 16, MATRIX_DATA);
-		viewProjMatrixExt.writeToBuffer(VP_LAST * 16, MATRIX_DATA);
-		cleanProjMatrixExt.writeToBuffer(CLEAN_PROJ_LAST * 16, MATRIX_DATA);
-		cleanViewProjMatrixExt.writeToBuffer(CLEAN_VP_LAST * 16, MATRIX_DATA);
+		viewMatrixExt.f_writeToBuffer(VIEW_LAST * 16, MATRIX_DATA);
+		projMatrixExt.f_writeToBuffer(PROJ_LAST * 16, MATRIX_DATA);
+		viewProjMatrixExt.f_writeToBuffer(VP_LAST * 16, MATRIX_DATA);
+		cleanProjMatrixExt.f_writeToBuffer(CLEAN_PROJ_LAST * 16, MATRIX_DATA);
+		cleanViewProjMatrixExt.f_writeToBuffer(CLEAN_VP_LAST * 16, MATRIX_DATA);
 
-		((Matrix3fExt) (Object) viewNormalMatrix).set((Matrix3fExt) (Object) view.normal());
+		((FastMatrix3f) (Object) viewNormalMatrix).f_set((FastMatrix3f) (Object) view.normal());
 
-		viewMatrixExt.set((Matrix4fExt) (Object) view.pose());
-		viewMatrixExt.writeToBuffer(VIEW * 16, MATRIX_DATA);
-		projMatrixExt.set((Matrix4fExt) (Object) projectionMatrix);
-		projMatrixExt.writeToBuffer(PROJ * 16, MATRIX_DATA);
+		viewMatrixExt.f_set((FastMatri4f) (Object) view.pose());
+		viewMatrixExt.f_writeToBuffer(VIEW * 16, MATRIX_DATA);
+		projMatrixExt.f_set((FastMatri4f) (Object) projectionMatrix);
+		projMatrixExt.f_writeToBuffer(PROJ * 16, MATRIX_DATA);
 
-		viewMatrixInvExt.set(viewMatrixExt);
+		viewMatrixInvExt.f_set(viewMatrixExt);
 		// reliable inversion of rotation matrix
 		viewMatrixInv.transpose();
-		viewMatrixInvExt.writeToBuffer(VIEW_INVERSE * 16, MATRIX_DATA);
+		viewMatrixInvExt.f_writeToBuffer(VIEW_INVERSE * 16, MATRIX_DATA);
 
-		projMatrixInvExt.set(projMatrixExt);
+		projMatrixInvExt.f_set(projMatrixExt);
 		projMatrixInv.invert();
-		projMatrixInvExt.writeToBuffer(PROJ_INVERSE * 16, MATRIX_DATA);
+		projMatrixInvExt.f_writeToBuffer(PROJ_INVERSE * 16, MATRIX_DATA);
 
-		viewProjMatrixExt.set(projMatrixExt);
-		viewProjMatrixExt.multiply(viewMatrixExt);
-		viewProjMatrixExt.writeToBuffer(VP * 16, MATRIX_DATA);
+		viewProjMatrixExt.f_set(projMatrixExt);
+		viewProjMatrixExt.f_mul(viewMatrixExt);
+		viewProjMatrixExt.f_writeToBuffer(VP * 16, MATRIX_DATA);
 
-		viewProjMatrixInvExt.set(viewMatrixInvExt);
-		viewProjMatrixInvExt.multiply(projMatrixInvExt);
-		viewProjMatrixInvExt.writeToBuffer(VP_INVERSE * 16, MATRIX_DATA);
+		viewProjMatrixInvExt.f_set(viewMatrixInvExt);
+		viewProjMatrixInvExt.f_mul(projMatrixInvExt);
+		viewProjMatrixInvExt.f_writeToBuffer(VP_INVERSE * 16, MATRIX_DATA);
 
 		computeCleanProjection(camera, tickDelta);
-		cleanProjMatrixExt.writeToBuffer(CLEAN_PROJ * 16, MATRIX_DATA);
-		cleanProjMatrixInvExt.writeToBuffer(CLEAN_PROJ_INVERSE * 16, MATRIX_DATA);
+		cleanProjMatrixExt.f_writeToBuffer(CLEAN_PROJ * 16, MATRIX_DATA);
+		cleanProjMatrixInvExt.f_writeToBuffer(CLEAN_PROJ_INVERSE * 16, MATRIX_DATA);
 
-		cleanViewProjMatrixExt.set(cleanProjMatrixExt);
-		cleanViewProjMatrixExt.multiply(viewMatrixExt);
-		cleanViewProjMatrixExt.writeToBuffer(CLEAN_VP * 16, MATRIX_DATA);
+		cleanViewProjMatrixExt.f_set(cleanProjMatrixExt);
+		cleanViewProjMatrixExt.f_mul(viewMatrixExt);
+		cleanViewProjMatrixExt.f_writeToBuffer(CLEAN_VP * 16, MATRIX_DATA);
 
-		cleanViewProjMatrixInvExt.set(viewMatrixInvExt);
-		cleanViewProjMatrixInvExt.multiply(cleanProjMatrixInvExt);
-		cleanViewProjMatrixInvExt.writeToBuffer(CLEAN_VP_INVERSE * 16, MATRIX_DATA);
+		cleanViewProjMatrixInvExt.f_set(viewMatrixInvExt);
+		cleanViewProjMatrixInvExt.f_mul(cleanProjMatrixInvExt);
+		cleanViewProjMatrixInvExt.f_writeToBuffer(CLEAN_VP_INVERSE * 16, MATRIX_DATA);
 
 		//cleanFrustum.prepare(viewMatrix, tickDelta, camera, cleanProjMatrix);
 		//cleanFrustum.computeCircumCenter(viewMatrixInv, cleanProjMatrixInv);
@@ -103,40 +104,40 @@ public final class MatrixData {
 		cleanProjMatrix.setIdentity();
 
 		if (zoom != 1.0F) {
-			cleanProjMatrixExt.translate(gx.canvas_zoomX(), -gx.canvas_zoomY(), 0.0f);
-			cleanProjMatrixExt.scale(zoom, zoom, 1.0F);
+			cleanProjMatrixExt.f_translate(gx.canvas_zoomX(), -gx.canvas_zoomY(), 0.0f);
+			cleanProjMatrixExt.f_scale(zoom, zoom, 1.0F);
 		}
 
 		cleanProjMatrix.multiply(Matrix4f.perspective(gx.canvas_getFov(camera, tickDelta, true), mc.getWindow().getWidth() / mc.getWindow().getHeight(), 0.05F, mc.gameRenderer.getRenderDistance()));
 
-		cleanProjMatrixInvExt.set(cleanProjMatrixExt);
+		cleanProjMatrixInvExt.f_set(cleanProjMatrixExt);
 		cleanProjMatrixInv.invert();
 	}
 
 	public static final Matrix4f viewMatrix = new Matrix4f();
-	public static final Matrix4fExt viewMatrixExt = (Matrix4fExt) (Object) viewMatrix;
+	public static final FastMatri4f viewMatrixExt = (FastMatri4f) (Object) viewMatrix;
 	private static final Matrix4f viewMatrixInv = new Matrix4f();
-	private static final Matrix4fExt viewMatrixInvExt = (Matrix4fExt) (Object) viewMatrixInv;
+	private static final FastMatri4f viewMatrixInvExt = (FastMatri4f) (Object) viewMatrixInv;
 
 	public static final Matrix4f projMatrix = new Matrix4f();
-	public static final Matrix4fExt projMatrixExt = (Matrix4fExt) (Object) projMatrix;
+	public static final FastMatri4f projMatrixExt = (FastMatri4f) (Object) projMatrix;
 	private static final Matrix4f projMatrixInv = new Matrix4f();
-	private static final Matrix4fExt projMatrixInvExt = (Matrix4fExt) (Object) projMatrixInv;
+	private static final FastMatri4f projMatrixInvExt = (FastMatri4f) (Object) projMatrixInv;
 
 	private static final Matrix4f viewProjMatrix = new Matrix4f();
-	private static final Matrix4fExt viewProjMatrixExt = (Matrix4fExt) (Object) viewProjMatrix;
+	private static final FastMatri4f viewProjMatrixExt = (FastMatri4f) (Object) viewProjMatrix;
 	private static final Matrix4f viewProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt viewProjMatrixInvExt = (Matrix4fExt) (Object) viewProjMatrixInv;
+	private static final FastMatri4f viewProjMatrixInvExt = (FastMatri4f) (Object) viewProjMatrixInv;
 
 	public static final Matrix4f cleanProjMatrix = new Matrix4f();
-	public static final Matrix4fExt cleanProjMatrixExt = (Matrix4fExt) (Object) cleanProjMatrix;
+	public static final FastMatri4f cleanProjMatrixExt = (FastMatri4f) (Object) cleanProjMatrix;
 	private static final Matrix4f cleanProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt cleanProjMatrixInvExt = (Matrix4fExt) (Object) cleanProjMatrixInv;
+	private static final FastMatri4f cleanProjMatrixInvExt = (FastMatri4f) (Object) cleanProjMatrixInv;
 
 	private static final Matrix4f cleanViewProjMatrix = new Matrix4f();
-	private static final Matrix4fExt cleanViewProjMatrixExt = (Matrix4fExt) (Object) cleanViewProjMatrix;
+	private static final FastMatri4f cleanViewProjMatrixExt = (FastMatri4f) (Object) cleanViewProjMatrix;
 	private static final Matrix4f cleanViewProjMatrixInv = new Matrix4f();
-	private static final Matrix4fExt cleanViewProjMatrixInvExt = (Matrix4fExt) (Object) cleanViewProjMatrixInv;
+	private static final FastMatri4f cleanViewProjMatrixInvExt = (FastMatri4f) (Object) cleanViewProjMatrixInv;
 
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
 

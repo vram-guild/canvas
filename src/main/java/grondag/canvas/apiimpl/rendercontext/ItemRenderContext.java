@@ -53,6 +53,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.model.ItemModel.ItemInputContext;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
@@ -65,7 +66,6 @@ import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
-import grondag.canvas.mixinterface.Matrix3fExt;
 
 public class ItemRenderContext extends AbstractRenderContext implements ItemInputContext {
 	/**
@@ -190,7 +190,7 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 		matrices.translate(-0.5D, -0.5D, -0.5D);
 
 		matrix = matrices.last().pose();
-		normalMatrix = (Matrix3fExt) (Object) matrices.last().normal();
+		normalMatrix = (FastMatrix3f) (Object) matrices.last().normal();
 
 		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
 			final BlockEntityWithoutLevelRenderer builtInRenderer = ((ItemRendererExt) Minecraft.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();

@@ -31,10 +31,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 import io.vram.frex.api.config.FlawlessFrames;
+import io.vram.frex.api.math.FastMatri4f;
 
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.terrain.region.RegionPosition;
 
 public class TerrainFrustum extends CanvasFrustum {
@@ -47,7 +47,7 @@ public class TerrainFrustum extends CanvasFrustum {
 	private final GameRendererExt grx = (GameRendererExt) gr;
 	private final PoseStack occlusionsProjStack = new PoseStack();
 	private final Matrix4f occlusionProjMat = occlusionsProjStack.last().pose();
-	private final Matrix4fExt occlusionProjMatEx = (Matrix4fExt) (Object) occlusionProjMat;
+	private final FastMatri4f occlusionProjMatEx = (FastMatri4f) (Object) occlusionProjMat;
 
 	private int viewDistanceSquared;
 	private int viewVersion;
@@ -116,9 +116,9 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		viewDistanceSquared = src.viewDistanceSquared;
 
-		modelMatrixExt.set(src.modelMatrixExt);
-		projectionMatrixExt.set(src.projectionMatrixExt);
-		mvpMatrixExt.set(src.mvpMatrixExt);
+		modelMatrixExt.f_set(src.modelMatrixExt);
+		projectionMatrixExt.f_set(src.projectionMatrixExt);
+		mvpMatrixExt.f_set(src.mvpMatrixExt);
 
 		leftX = src.leftX;
 		leftY = src.leftY;
@@ -214,7 +214,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			modelMatrixUpdate = dPitch * dPitch + dYaw * dYaw >= paddingFov * paddingFov;
 		}
 
-		if (movedEnoughToInvalidateOcclusion || modelMatrixUpdate || !projectionMatrixExt.matches(occlusionProjMat)) {
+		if (movedEnoughToInvalidateOcclusion || modelMatrixUpdate || !projectionMatrixExt.f_equals(occlusionProjMat)) {
 			++viewVersion;
 
 			lastCameraX = x;
@@ -224,12 +224,12 @@ public class TerrainFrustum extends CanvasFrustum {
 			lastCameraPitch = cameraPitch;
 			lastCameraYaw = cameraYaw;
 
-			modelMatrixExt.set(modelMatrix);
-			projectionMatrixExt.set(occlusionProjMat);
+			modelMatrixExt.f_set(modelMatrix);
+			projectionMatrixExt.f_set(occlusionProjMat);
 
-			mvpMatrixExt.loadIdentity();
-			mvpMatrixExt.multiply(projectionMatrixExt);
-			mvpMatrixExt.multiply(modelMatrixExt);
+			mvpMatrixExt.f_identity();
+			mvpMatrixExt.f_mul(projectionMatrixExt);
+			mvpMatrixExt.f_mul(modelMatrixExt);
 
 			// depends on mvpMatrix being complete
 			extractPlanes();
@@ -280,8 +280,8 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		if (grx.canvas_zoom() != 1.0F) {
 			final float zoom = grx.canvas_zoom();
-			occlusionProjMatEx.translate(grx.canvas_zoomX(), -grx.canvas_zoomY(), 0.0F);
-			occlusionProjMatEx.scale(zoom, zoom, 1.0F);
+			occlusionProjMatEx.f_translate(grx.canvas_zoomX(), -grx.canvas_zoomY(), 0.0F);
+			occlusionProjMatEx.f_scale(zoom, zoom, 1.0F);
 		}
 
 		// PERF: WHY 4X ON FAR CLIPPING PLANE MOJANG?

@@ -28,8 +28,6 @@
 		"MixinLevelChunk",
 		"MixinLevelRenderer",
 		"MixinLightTexture",
-		"MixinMatrix3f",
-		"MixinMatrix4f",
 		"MixinMinecraft",
 		"MixinModelBlockRenderer",
 		"MixinNativeImage",

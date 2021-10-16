@@ -35,17 +35,18 @@ import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Z;
 
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
+import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix3f;
+
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.CanvasRenderMaterial;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 
 public class QuadEncoders {
 	private static void encodeQuad(QuadEditorImpl quad, EncodingContext context, VertexCollector buff) {
-		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
-		final Matrix3fExt normalMatrix = context.normalMatrix();
+		final FastMatri4f matrix = (FastMatri4f) context.matrix();
+		final FastMatrix3f normalMatrix = context.normalMatrix();
 		final boolean isContextPresent = context != AbsentEncodingContext.INSTANCE;
 		final int overlay = context.overlay();
 
@@ -86,7 +87,7 @@ public class QuadEncoders {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				transformedNormal = isContextPresent ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
+				transformedNormal = isContextPresent ? normalMatrix.f_transformPacked3f(packedNormal) : packedNormal;
 				normalFlagBits = (transformedNormal >>> 23) & 1;
 				transformedNormal &= 0xFFFF;
 			}
@@ -95,7 +96,7 @@ public class QuadEncoders {
 
 			if (t != packedTangent) {
 				packedTangent = t;
-				transformedTangent = isContextPresent ? normalMatrix.canvas_transform(packedTangent) : packedTangent;
+				transformedTangent = isContextPresent ? normalMatrix.f_transformPacked3f(packedTangent) : packedTangent;
 				tangentFlagBits = (transformedTangent >>> 23) & 1;
 				transformedTangent = (transformedTangent & 0xFFFF) << 16;
 			}
@@ -104,9 +105,9 @@ public class QuadEncoders {
 			final float y = Float.intBitsToFloat(source[fromIndex + VERTEX_Y]);
 			final float z = Float.intBitsToFloat(source[fromIndex + VERTEX_Z]);
 
-			final float xOut = matrix.m00() * x + matrix.m01() * y + matrix.m02() * z + matrix.m03();
-			final float yOut = matrix.m10() * x + matrix.m11() * y + matrix.m12() * z + matrix.m13();
-			final float zOut = matrix.m20() * x + matrix.m21() * y + matrix.m22() * z + matrix.m23();
+			final float xOut = matrix.f_m00() * x + matrix.f_m10() * y + matrix.f_m20() * z + matrix.f_m30();
+			final float yOut = matrix.f_m01() * x + matrix.f_m11() * y + matrix.f_m21() * z + matrix.f_m31();
+			final float zOut = matrix.f_m02() * x + matrix.f_m12() * y + matrix.f_m22() * z + matrix.f_m32();
 
 			target[toIndex] = Float.floatToRawIntBits(xOut);
 			target[toIndex + 1] = Float.floatToRawIntBits(yOut);

@@ -49,22 +49,19 @@ import com.mojang.math.Vector3f;
 
 import net.minecraft.core.Direction;
 
-import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.math.FastMatri4f;
 import io.vram.frex.api.mesh.QuadView;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.GeometryUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import grondag.canvas.material.state.CanvasRenderMaterial;
-import grondag.canvas.mixinterface.Matrix4fExt;
-
 /**
  * Base class for all quads / quad makers. Handles the ugly bits
  * of maintaining and encoding the quad state.
  */
-public class QuadViewImpl implements QuadView {
+public abstract class BaseQuadView<M extends RenderMaterial> implements QuadView {
 	protected int nominalFaceId = FaceUtil.UNASSIGNED_INDEX;
 	protected boolean isGeometryInvalid = true;
 	protected boolean isTangentInvalid = true;
@@ -187,9 +184,10 @@ public class QuadViewImpl implements QuadView {
 	}
 
 	// PERF: cache this
+	@SuppressWarnings("unchecked")
 	@Override
-	public final CanvasRenderMaterial material() {
-		return (CanvasRenderMaterial) RenderMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]);
+	public final M material() {
+		return (M) RenderMaterial.fromIndex(data[baseIndex + HEADER_MATERIAL]);
 	}
 
 	@Override
@@ -271,23 +269,6 @@ public class QuadViewImpl implements QuadView {
 		} else {
 			return data[baseIndex + HEADER_FACE_TANGENT];
 		}
-	}
-
-	@Override
-	public void copyTo(QuadEmitter target) {
-		// force geometry compute
-		computeGeometry();
-		// force tangent compute
-		this.packedFaceTanget();
-
-		final QuadEditorImpl quad = (QuadEditorImpl) target;
-
-		// copy everything except the material
-		System.arraycopy(data, baseIndex, quad.data, quad.baseIndex, MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
-		quad.isSpriteInterpolated = isSpriteInterpolated;
-		quad.nominalFaceId = nominalFaceId;
-		quad.isGeometryInvalid = false;
-		quad.isTangentInvalid = false;
 	}
 
 	@Override
@@ -446,16 +427,16 @@ public class QuadViewImpl implements QuadView {
 		return data[baseIndex + HEADER_SPRITE];
 	}
 
-	public void transformAndAppendVertex(final int vertexIndex, final Matrix4fExt matrix, final VertexConsumer buff) {
+	public void transformAndAppendVertex(final int vertexIndex, final FastMatri4f matrix, final VertexConsumer buff) {
 		final int[] data = this.data;
 		final int index = baseIndex + (vertexIndex << MESH_VERTEX_STRIDE_SHIFT) + VERTEX_X0;
 		final float x = Float.intBitsToFloat(data[index]);
 		final float y = Float.intBitsToFloat(data[index + 1]);
 		final float z = Float.intBitsToFloat(data[index + 2]);
 
-		final float xOut = matrix.m00() * x + matrix.m01() * y + matrix.m02() * z + matrix.m03();
-		final float yOut = matrix.m10() * x + matrix.m11() * y + matrix.m12() * z + matrix.m13();
-		final float zOut = matrix.m20() * x + matrix.m21() * y + matrix.m22() * z + matrix.m23();
+		final float xOut = matrix.f_m00() * x + matrix.f_m10() * y + matrix.f_m20() * z + matrix.f_m30();
+		final float yOut = matrix.f_m01() * x + matrix.f_m11() * y + matrix.f_m21() * z + matrix.f_m31();
+		final float zOut = matrix.f_m02() * x + matrix.f_m12() * y + matrix.f_m22() * z + matrix.f_m32();
 
 		buff.vertex(xOut, yOut, zOut);
 	}

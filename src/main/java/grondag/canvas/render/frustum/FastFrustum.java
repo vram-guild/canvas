@@ -148,12 +148,12 @@ public class FastFrustum extends CanvasFrustum {
 		lastCameraY = vec.y;
 		lastCameraZ = vec.z;
 
-		modelMatrixExt.set(modelMatrix);
-		projectionMatrixExt.set(projectionMatrix);
+		modelMatrixExt.f_set(modelMatrix);
+		projectionMatrixExt.f_set(projectionMatrix);
 
-		mvpMatrixExt.loadIdentity();
-		mvpMatrixExt.multiply(projectionMatrixExt);
-		mvpMatrixExt.multiply(modelMatrixExt);
+		mvpMatrixExt.f_identity();
+		mvpMatrixExt.f_mul(projectionMatrixExt);
+		mvpMatrixExt.f_mul(modelMatrixExt);
 
 		// depends on mvpMatrix being complete
 		extractPlanes();

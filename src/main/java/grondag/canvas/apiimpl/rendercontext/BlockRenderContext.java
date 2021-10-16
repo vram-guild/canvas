@@ -32,11 +32,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.sc.concurrency.SimpleConcurrentList;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
-import grondag.canvas.mixinterface.Matrix3fExt;
 
 /**
  * Context for non-terrain block rendering.
@@ -70,7 +70,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintG
 	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		defaultConsumer = buffer;
 		matrix = matrixStack.last().pose();
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.last().normal();
+		normalMatrix = (FastMatrix3f) (Object) matrixStack.last().normal();
 		this.overlay = overlay;
 		region = blockView;
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);

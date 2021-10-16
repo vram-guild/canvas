@@ -24,21 +24,21 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
 
+import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 
 public abstract class EncoderUtils {
 	public static void bufferQuad(QuadEditorImpl quad, EncodingContext context, VertexConsumer buff) {
-		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
+		final FastMatri4f matrix = (FastMatri4f) context.matrix();
 		final int overlay = context.overlay();
-		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final boolean isNormalMatrixUseful = !normalMatrix.canvas_isIdentity();
+		final FastMatrix3f normalMatrix = context.normalMatrix();
+		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used
@@ -62,7 +62,7 @@ public abstract class EncoderUtils {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				final int transformedNormal = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
+				final int transformedNormal = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedNormal) : packedNormal;
 				nx = PackedVector3f.packedX(transformedNormal);
 				ny = PackedVector3f.packedY(transformedNormal);
 				nz = PackedVector3f.packedZ(transformedNormal);

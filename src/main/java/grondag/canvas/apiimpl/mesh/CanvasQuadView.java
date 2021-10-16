@@ -18,25 +18,28 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.apiimpl.rendercontext;
+package grondag.canvas.apiimpl.mesh;
 
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
+import io.vram.frex.api.buffer.QuadEmitter;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 
-import io.vram.frex.api.math.FastMatrix3f;
+public class CanvasQuadView extends BaseQuadView<CanvasRenderMaterial> {
+	@Override
+	public void copyTo(QuadEmitter target) {
+		// force geometry compute
+		computeGeometry();
+		// force tangent compute
+		this.packedFaceTanget();
 
-public final class AbsentEncodingContext extends AbstractEncodingContext {
-	private AbsentEncodingContext() {
-		matrix = new Matrix4f();
-		matrix.setIdentity();
-		overlay = OverlayTexture.NO_OVERLAY;
+		final QuadEditorImpl quad = (QuadEditorImpl) target;
 
-		final Matrix3f n = new Matrix3f();
-		n.setIdentity();
-		normalMatrix = (FastMatrix3f) (Object) n;
+		// copy everything except the material
+		System.arraycopy(data, baseIndex, quad.data, quad.baseIndex, MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
+		quad.isSpriteInterpolated = isSpriteInterpolated;
+		quad.nominalFaceId = nominalFaceId;
+		quad.isGeometryInvalid = false;
+		quad.isTangentInvalid = false;
 	}
-
-	public static final AbsentEncodingContext INSTANCE = new AbsentEncodingContext();
 }

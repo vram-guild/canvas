@@ -26,7 +26,7 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 
-import grondag.canvas.mixinterface.Matrix4fExt;
+import io.vram.frex.api.math.FastMatri4f;
 
 /**
  * Plane equation derivations based on:
@@ -41,11 +41,11 @@ import grondag.canvas.mixinterface.Matrix4fExt;
 public abstract class CanvasFrustum extends Frustum {
 	protected static final float MIN_GAP = 0.0001f;
 	protected final Matrix4f mvpMatrix = new Matrix4f();
-	protected final Matrix4fExt mvpMatrixExt = (Matrix4fExt) (Object) mvpMatrix;
+	protected final FastMatri4f mvpMatrixExt = (FastMatri4f) (Object) mvpMatrix;
 	protected final Matrix4f projectionMatrix = new Matrix4f();
-	protected final Matrix4fExt projectionMatrixExt = (Matrix4fExt) (Object) projectionMatrix;
+	protected final FastMatri4f projectionMatrixExt = (FastMatri4f) (Object) projectionMatrix;
 	protected final Matrix4f modelMatrix = new Matrix4f();
-	protected final Matrix4fExt modelMatrixExt = (Matrix4fExt) (Object) modelMatrix;
+	protected final FastMatri4f modelMatrixExt = (FastMatri4f) (Object) modelMatrix;
 
 	protected double lastCameraX = Double.MAX_VALUE;
 	protected double lastCameraY = Double.MAX_VALUE;
@@ -68,11 +68,11 @@ public abstract class CanvasFrustum extends Frustum {
 		return dummy;
 	}
 
-	public final Matrix4fExt projectionMatrix() {
+	public final FastMatri4f projectionMatrix() {
 		return projectionMatrixExt;
 	}
 
-	public final Matrix4fExt modelMatrix() {
+	public final FastMatri4f modelMatrix() {
 		return modelMatrixExt;
 	}
 
@@ -114,19 +114,19 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	protected final void extractPlanes() {
-		final Matrix4fExt matrix = mvpMatrixExt;
-		final float a00 = matrix.m00();
-		final float a01 = matrix.m01();
-		final float a02 = matrix.m02();
-		final float a03 = matrix.m03();
-		final float a10 = matrix.m10();
-		final float a11 = matrix.m11();
-		final float a12 = matrix.m12();
-		final float a13 = matrix.m13();
-		final float a30 = matrix.m30();
-		final float a31 = matrix.m31();
-		final float a32 = matrix.m32();
-		final float a33 = matrix.m33();
+		final FastMatri4f matrix = mvpMatrixExt;
+		final float a00 = matrix.f_m00();
+		final float a01 = matrix.f_m10();
+		final float a02 = matrix.f_m20();
+		final float a03 = matrix.f_m30();
+		final float a10 = matrix.f_m01();
+		final float a11 = matrix.f_m11();
+		final float a12 = matrix.f_m21();
+		final float a13 = matrix.f_m31();
+		final float a30 = matrix.f_m03();
+		final float a31 = matrix.f_m13();
+		final float a32 = matrix.f_m23();
+		final float a33 = matrix.f_m33();
 
 		float x = a30 + a00;
 		float y = a31 + a01;
@@ -212,10 +212,10 @@ public abstract class CanvasFrustum extends Frustum {
 		bottomZe = ze;
 		bottomRegionExtent = w - 8 * (xe + ye + ze) - MIN_GAP;
 
-		x = a30 + matrix.m20();
-		y = a31 + matrix.m21();
-		z = a32 + matrix.m22();
-		w = a33 + matrix.m23();
+		x = a30 + matrix.f_m02();
+		y = a31 + matrix.f_m12();
+		z = a32 + matrix.f_m22();
+		w = a33 + matrix.f_m32();
 		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;

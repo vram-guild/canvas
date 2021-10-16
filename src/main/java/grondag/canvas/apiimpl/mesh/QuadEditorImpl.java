@@ -51,20 +51,20 @@ import net.minecraft.core.Direction;
 import io.vram.frex.api.buffer.FrexVertexConsumer;
 import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.impl.texture.IndexedSprite;
 
 import grondag.canvas.apiimpl.util.TextureHelper;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 
 /**
  * Almost-concrete implementation of a mutable quad. The only missing part is {@link #emit()},
  * because that depends on where/how it is used. (Mesh encoding vs. render-time transformation).
  */
-public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter, FrexVertexConsumer {
+public abstract class QuadEditorImpl extends CanvasQuadView implements QuadEmitter, FrexVertexConsumer {
 	// PERF: pack into one array for LOR?
 	public final float[] u = new float[4];
 	public final float[] v = new float[4];
@@ -473,22 +473,22 @@ public abstract class QuadEditorImpl extends QuadViewImpl implements QuadEmitter
 
 	@Override
 	public FrexVertexConsumer vertex(Matrix4f matrix, float x, float y, float z) {
-		final Matrix4fExt mat = (Matrix4fExt) (Object) matrix;
+		final FastMatri4f mat = (FastMatri4f) (Object) matrix;
 
-		final float tx = mat.m00() * x + mat.m01() * y + mat.m02() * z + mat.m03();
-		final float ty = mat.m10() * x + mat.m11() * y + mat.m12() * z + mat.m13();
-		final float tz = mat.m20() * x + mat.m21() * y + mat.m22() * z + mat.m23();
+		final float tx = mat.f_m00() * x + mat.f_m10() * y + mat.f_m20() * z + mat.f_m30();
+		final float ty = mat.f_m01() * x + mat.f_m11() * y + mat.f_m21() * z + mat.f_m31();
+		final float tz = mat.f_m02() * x + mat.f_m12() * y + mat.f_m22() * z + mat.f_m32();
 
 		return this.vertex(tx, ty, tz);
 	}
 
 	@Override
 	public FrexVertexConsumer normal(Matrix3f matrix, float x, float y, float z) {
-		final Matrix3fExt mat = (Matrix3fExt) (Object) matrix;
+		final FastMatrix3f mat = (FastMatrix3f) (Object) matrix;
 
-		final float tx = mat.m00() * x + mat.m01() * y + mat.m02() * z;
-		final float ty = mat.m10() * x + mat.m11() * y + mat.m12() * z;
-		final float tz = mat.m20() * x + mat.m21() * y + mat.m22() * z;
+		final float tx = mat.f_m00() * x + mat.f_m10() * y + mat.f_m20() * z;
+		final float ty = mat.f_m01() * x + mat.f_m11() * y + mat.f_m21() * z;
+		final float tz = mat.f_m02() * x + mat.f_m12() * y + mat.f_m22() * z;
 
 		return this.normal(tx, ty, tz);
 	}

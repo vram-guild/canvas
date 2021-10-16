@@ -39,11 +39,11 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.sc.concurrency.SimpleConcurrentList;
 
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
-import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 
 /**
@@ -105,7 +105,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 	public void render(ModelBlockRenderer vanillaRenderer, BakedModel model, BlockState state, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light) {
 		defaultConsumer = consumers.getBuffer(ItemBlockRenderTypes.getRenderType(state, false));
 		matrix = matrixStack.last().pose();
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.last().normal();
+		normalMatrix = (FastMatrix3f) (Object) matrixStack.last().normal();
 		this.light = light;
 		this.overlay = overlay;
 		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
@@ -119,7 +119,7 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 	public void renderItemFrame(ModelBlockRenderer modelRenderer, BakedModel model, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light, ItemFrame itemFrameEntity) {
 		defaultConsumer = consumers.getBuffer(Sheets.solidBlockSheet());
 		matrix = matrixStack.last().pose();
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.last().normal();
+		normalMatrix = (FastMatrix3f) (Object) matrixStack.last().normal();
 		this.light = light;
 		this.overlay = overlay;
 		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();

@@ -20,12 +20,12 @@
 
 package grondag.canvas.buffer.format;
 
-import grondag.canvas.mixinterface.Matrix3fExt;
+import io.vram.frex.api.math.FastMatrix3f;
 
 public interface EncodingContext {
 	Object matrix();
 
-	Matrix3fExt normalMatrix();
+	FastMatrix3f normalMatrix();
 
 	int overlay();
 

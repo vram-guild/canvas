@@ -39,7 +39,8 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 
-import grondag.canvas.mixinterface.Matrix4fExt;
+import io.vram.frex.api.math.FastMatri4f;
+
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
 
@@ -47,16 +48,16 @@ public final class ShadowMatrixData {
 	private ShadowMatrixData() { }
 
 	public static final Matrix4f shadowViewMatrix = new Matrix4f();
-	private static final Matrix4fExt shadowViewMatrixExt = (Matrix4fExt) (Object) shadowViewMatrix;
+	private static final FastMatri4f shadowViewMatrixExt = (FastMatri4f) (Object) shadowViewMatrix;
 	private static final Matrix4f shadowViewMatrixInv = new Matrix4f();
-	private static final Matrix4fExt shadowViewMatrixInvExt = (Matrix4fExt) (Object) shadowViewMatrixInv;
+	private static final FastMatri4f shadowViewMatrixInvExt = (FastMatri4f) (Object) shadowViewMatrixInv;
 
 	public static final int CASCADE_COUNT = 4;
 
 	private static final Matrix4f[] shadowProjMatrix = new Matrix4f[CASCADE_COUNT];
-	private static final Matrix4fExt[] shadowProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
+	private static final FastMatri4f[] shadowProjMatrixExt = new FastMatri4f[CASCADE_COUNT];
 	private static final Matrix4f[] shadowViewProjMatrix = new Matrix4f[CASCADE_COUNT];
-	private static final Matrix4fExt[] shadowViewProjMatrixExt = new Matrix4fExt[CASCADE_COUNT];
+	private static final FastMatri4f[] shadowViewProjMatrixExt = new FastMatri4f[CASCADE_COUNT];
 
 	public static final float[] cascadeCentersAndRadii = new float[16];
 
@@ -67,10 +68,10 @@ public final class ShadowMatrixData {
 	static {
 		for (int i = 0; i < CASCADE_COUNT; ++i) {
 			shadowProjMatrix[i] = new Matrix4f();
-			shadowProjMatrixExt[i] = (Matrix4fExt) (Object) shadowProjMatrix[i];
+			shadowProjMatrixExt[i] = (FastMatri4f) (Object) shadowProjMatrix[i];
 
 			shadowViewProjMatrix[i] = new Matrix4f();
-			shadowViewProjMatrixExt[i] = (Matrix4fExt) (Object) shadowViewProjMatrix[i];
+			shadowViewProjMatrixExt[i] = (FastMatri4f) (Object) shadowViewProjMatrix[i];
 		}
 	}
 
@@ -135,13 +136,13 @@ public final class ShadowMatrixData {
 		// Use the unit vector we just computed to create a view matrix from perspective of the sky light.
 		// Distance here isn't too picky, we need to ensure it is far enough away to contain any shadow-casting
 		// geometry but not far enough to lose much precision in the depth (Z) dimension.
-		shadowViewMatrixExt.lookAt(
+		shadowViewMatrixExt.f_setLookAt(
 			skyLightVector.x() * radius, skyLightVector.y() * radius, skyLightVector.z() * radius,
 			0, 0, 0,
 			0.0f, 0.0f, 1.0f);
 
 		// Compute inverse while we're here
-		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
+		shadowViewMatrixInvExt.f_set(shadowViewMatrixExt);
 		shadowViewMatrixInv.invert();
 
 		if (Pipeline.config().skyShadow != null) {
@@ -233,7 +234,7 @@ public final class ShadowMatrixData {
 
 		// Construct ortho matrix using bounding sphere/box computed above.
 		// Should give us a consistent size each frame, which helps prevent shimmering.
-		shadowProjMatrixExt[cascade].setOrtho(
+		shadowProjMatrixExt[cascade].f_setOrtho(
 			cx - radius, cx + radius,
 			cy - radius, cy + radius,
 			-(cz + depthRadius), -(cz - depthRadius));
@@ -259,19 +260,19 @@ public final class ShadowMatrixData {
 		computeShadowMatrices(camera, tickDelta, skyoutput);
 
 		// shadow perspective were computed earlier
-		shadowViewMatrixExt.writeToBuffer(SHADOW_VIEW * 16, MATRIX_DATA);
+		shadowViewMatrixExt.f_writeToBuffer(SHADOW_VIEW * 16, MATRIX_DATA);
 
-		shadowViewMatrixInvExt.set(shadowViewMatrixExt);
+		shadowViewMatrixInvExt.f_set(shadowViewMatrixExt);
 		// reliable inversion of rotation matrix
 		shadowViewMatrixInv.transpose();
-		shadowViewMatrixInvExt.writeToBuffer(SHADOW_VIEW_INVERSE * 16, MATRIX_DATA);
+		shadowViewMatrixInvExt.f_writeToBuffer(SHADOW_VIEW_INVERSE * 16, MATRIX_DATA);
 
 		for (int i = 0; i < CASCADE_COUNT; ++i) {
-			shadowProjMatrixExt[i].writeToBuffer((SHADOW_PROJ_0 + i) * 16, MATRIX_DATA);
+			shadowProjMatrixExt[i].f_writeToBuffer((SHADOW_PROJ_0 + i) * 16, MATRIX_DATA);
 
-			shadowViewProjMatrixExt[i].set(shadowProjMatrixExt[i]);
-			shadowViewProjMatrixExt[i].multiply(shadowViewMatrixExt);
-			shadowViewProjMatrixExt[i].writeToBuffer((SHADOW_VIEW_PROJ_0 + i) * 16, MATRIX_DATA);
+			shadowViewProjMatrixExt[i].f_set(shadowProjMatrixExt[i]);
+			shadowViewProjMatrixExt[i].f_mul(shadowViewMatrixExt);
+			shadowViewProjMatrixExt[i].f_writeToBuffer((SHADOW_VIEW_PROJ_0 + i) * 16, MATRIX_DATA);
 		}
 	}
 

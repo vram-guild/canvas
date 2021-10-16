@@ -35,7 +35,7 @@ public class MeshImpl implements Mesh {
 	/**
 	 * Used to satisfy external calls to {@link #forEach(Consumer)}.
 	 */
-	ThreadLocal<QuadViewImpl> POOL = ThreadLocal.withInitial(QuadViewImpl::new);
+	ThreadLocal<CanvasQuadView> POOL = ThreadLocal.withInitial(CanvasQuadView::new);
 
 	MeshImpl(int[] data) {
 		this.data = data;
@@ -55,7 +55,7 @@ public class MeshImpl implements Mesh {
 	 * to avoid the performance hit of a thread-local lookup.
 	 * Also means renderer can hold final references to quad buffers.
 	 */
-	void forEach(Consumer<QuadView> consumer, QuadViewImpl cursor) {
+	void forEach(Consumer<QuadView> consumer, CanvasQuadView cursor) {
 		final int limit = data.length;
 		int index = 0;
 

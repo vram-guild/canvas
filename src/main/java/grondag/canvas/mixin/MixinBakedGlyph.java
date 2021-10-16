@@ -32,8 +32,9 @@ import com.mojang.math.Vector3f;
 
 import net.minecraft.client.gui.font.glyphs.BakedGlyph;
 
+import io.vram.frex.api.math.FastMatri4f;
+
 import grondag.canvas.mixinterface.BufferBuilderExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 
 @Mixin(BakedGlyph.class)
 public abstract class MixinBakedGlyph {
@@ -71,12 +72,12 @@ public abstract class MixinBakedGlyph {
 				&& extBuilder.canvas_canSupportDirect(DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP)
 				&& RenderSystem.isOnRenderThread() // This last is because we are using static vars
 		) {
-			final Matrix4fExt matrix = Matrix4fExt.cast(matrix4f);
+			final FastMatri4f matrix = FastMatri4f.cast(matrix4f);
 			final int color = (int) (red * 255.0F) | ((int) (green * 255.0F) << 8) | ((int) (blue * 255.0F) << 16) | ((int) (alpha * 255.0F) << 24);
 			int i = 0;
 
 			pos.set(x0 + obqTop, top, 0.0F);
-			matrix.fastTransform(pos);
+			matrix.f_transform(pos);
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());
@@ -86,7 +87,7 @@ public abstract class MixinBakedGlyph {
 			quadData[i++] = lightmap;
 
 			pos.set(x0 + obqBotom, bottom, 0.0F);
-			matrix.fastTransform(pos);
+			matrix.f_transform(pos);
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());
@@ -96,7 +97,7 @@ public abstract class MixinBakedGlyph {
 			quadData[i++] = lightmap;
 
 			pos.set(x1 + obqBotom, bottom, 0.0F);
-			matrix.fastTransform(pos);
+			matrix.f_transform(pos);
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());
@@ -106,7 +107,7 @@ public abstract class MixinBakedGlyph {
 			quadData[i++] = lightmap;
 
 			pos.set(x1 + obqTop, top, 0.0F);
-			matrix.fastTransform(pos);
+			matrix.f_transform(pos);
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());

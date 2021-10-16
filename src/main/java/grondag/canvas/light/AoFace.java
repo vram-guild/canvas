@@ -32,7 +32,7 @@ import static net.minecraft.core.Direction.WEST;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 
-import grondag.canvas.apiimpl.mesh.QuadViewImpl;
+import grondag.canvas.apiimpl.mesh.CanvasQuadView;
 
 /**
  * Adapted from vanilla BlockModelRenderer.AoCalculator.
@@ -181,11 +181,11 @@ enum AoFace {
 	 */
 	@FunctionalInterface
 	interface WeightFunction {
-		void apply(QuadViewImpl q, int vertexIndex, float[] out);
+		void apply(CanvasQuadView q, int vertexIndex, float[] out);
 	}
 
 	@FunctionalInterface
 	interface Vertex2Float {
-		float apply(QuadViewImpl q, int vertexIndex);
+		float apply(CanvasQuadView q, int vertexIndex);
 	}
 }

@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.util.FaceUtil;
 
@@ -45,7 +46,6 @@ import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
-import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
@@ -118,7 +118,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		matrix = matrixStack.last().pose();
 
 		// PERF: can probably grab this at prepare
-		normalMatrix = (Matrix3fExt) (Object) matrixStack.last().normal();
+		normalMatrix = (FastMatrix3f) (Object) matrixStack.last().normal();
 
 		try {
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));

@@ -36,8 +36,8 @@ import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 
+import grondag.canvas.apiimpl.mesh.CanvasQuadView;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
-import grondag.canvas.apiimpl.mesh.QuadViewImpl;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoFace.Vertex2Float;
 import grondag.canvas.light.AoFace.WeightFunction;
@@ -274,7 +274,7 @@ public abstract class AoCalculator {
 	/**
 	 * Returns linearly interpolated blend of outer and inner face based on depth of vertex in face.
 	 */
-	private AoFaceCalc blendedInsetData(QuadViewImpl quad, int vertexIndex, int lightFace) {
+	private AoFaceCalc blendedInsetData(CanvasQuadView quad, int vertexIndex, int lightFace) {
 		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, vertexIndex);
 
 		if (w1 <= 0.03125f) {
