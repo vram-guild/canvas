@@ -91,6 +91,9 @@ accessible   field   net/minecraft/client/renderer/RenderStateShard   LINES_SHAD
 accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       colorTextureId I
 accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       depthBufferId I
 
+accessible class net/minecraft/client/renderer/OutlineBufferSource$EntityOutlineGenerator
+accessible method net/minecraft/client/renderer/OutlineBufferSource$EntityOutlineGenerator <init> (Lcom/mojang/blaze3d/vertex/VertexConsumer;IIII)V
+
 accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
 accessible field net/minecraft/client/renderer/RenderType$CompositeRenderType state Lnet/minecraft/client/renderer/RenderType$CompositeState;
 accessible field net/minecraft/client/renderer/RenderType$CompositeRenderType outline Ljava/util/Optional;

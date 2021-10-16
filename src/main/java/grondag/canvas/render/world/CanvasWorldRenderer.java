@@ -65,6 +65,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -365,7 +366,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		if (canDrawEntityOutlines) {
 			wr.canvas_entityOutlinesFramebuffer().clear(Minecraft.ON_OSX);
-			outlineImmediate.setOutlineSource(bufferBuilders.outlineBufferSource());
+			outlineImmediate.setOutlineBufferSource(bufferBuilders.outlineBufferSource());
 		}
 
 		Pipeline.defaultFbo.bind();
@@ -432,7 +433,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 				// WIP: item entities ruins the outline color of non-item entities when present on frame
 				didRenderOutlines = true;
 				renderProvider = outlineImmediate;
-				outlineImmediate.setColor(entity.getTeamColor());
+				outlineImmediate.entityState(entity.getTeamColor(), entity instanceof ItemEntity);
 			} else {
 				renderProvider = immediate;
 			}
@@ -547,6 +548,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		EntityRenderPostListener.invoke(eventContext);
 		eventContext.matrixStack().popPose();
 
+		outlineImmediate.endOutlineBatch();
+
+		// Called in case it was still populated somehow
 		bufferBuilders.outlineBufferSource().endOutlineBatch();
 
 		if (didRenderOutlines) {
