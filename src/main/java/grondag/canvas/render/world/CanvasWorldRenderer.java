@@ -430,7 +430,6 @@ public class CanvasWorldRenderer extends LevelRenderer {
 					renderProvider = shadowExtrasImmediate;
 				}
 			} else if (canDrawEntityOutlines && mc.shouldEntityAppearGlowing(entity)) {
-				// WIP: item entities ruins the outline color of non-item entities when present on frame
 				didRenderOutlines = true;
 				renderProvider = outlineImmediate;
 				outlineImmediate.entityState(entity.getTeamColor(), entity instanceof ItemEntity);
