@@ -27,7 +27,6 @@ import net.minecraft.client.renderer.RenderType;
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.material.property.TargetRenderState;
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
 
 /**
  * Here to defer initialization when referencing classes are loaded.

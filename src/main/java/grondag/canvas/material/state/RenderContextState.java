@@ -33,8 +33,6 @@ import io.vram.frex.api.material.BlockEntityMaterialMap;
 import io.vram.frex.api.material.EntityMaterialMap;
 import io.vram.frex.api.material.MaterialFinder;
 
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
-
 public class RenderContextState {
 	private EntityMaterialMap entityMap = null;
 	private BlockEntityMaterialMap blockEntityMap = null;

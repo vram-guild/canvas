@@ -20,11 +20,10 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.resources.ResourceLocation;
+import com.google.common.base.Strings;
 
 import io.vram.frex.api.texture.MaterialTexture;
 
-import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.DecalRenderState;
 import grondag.canvas.material.property.DepthTestRenderState;
 import grondag.canvas.material.property.TargetRenderState;
@@ -39,6 +38,7 @@ import grondag.canvas.shader.ProgramType;
 abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final int index;
 
+	public final TargetRenderState target;
 	public final MaterialTexture materialTexture;
 	public final TextureMaterialState texture;
 	public final boolean blur;
@@ -46,79 +46,40 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 	public final DepthTestRenderState depthTest;
 	public final boolean cull;
 	public final WriteMaskRenderState writeMask;
-	public final boolean enableGlint;
 	public final DecalRenderState decal;
-	public final boolean sorted;
-	public final TargetRenderState target;
 	public final boolean lines;
-	public final boolean fog;
-	public final MaterialShaderId shaderId;
-
-	public final int vertexShaderIndex;
-	public final ResourceLocation vertexShaderId;
-	public final int fragmentShaderIndex;
-	public final ResourceLocation fragmentShaderId;
-	public final MaterialShaderImpl shader;
-	public final MaterialShaderImpl guiShader;
-	public final MaterialShaderImpl terrainShader;
-
-	public final int depthVertexShaderIndex;
-	public final ResourceLocation depthVertexShaderId;
-	public final String depthVertexShader;
-	public final int depthFragmentShaderIndex;
-	public final ResourceLocation depthFragmentShaderId;
-	public final String depthFragmentShader;
-	public final MaterialShaderImpl depthShader;
-	public final MaterialShaderImpl terrainDepthShader;
-	/**
-	 * Will be always visible condition in vertex-controlled render state.
-	 * This is ensured by the state mask.
-	 */
-	public final MaterialConditionImpl condition;
-
-	public final int preset;
-	public final boolean emissive;
-	public final boolean disableDiffuse;
-	public final boolean disableAo;
-	public final boolean disableColorIndex;
-	public final int cutout;
-	public final boolean unmipped;
-	public final boolean hurtOverlay;
-	public final boolean flashOverlay;
+	public final boolean sorted;
 	public final boolean castShadows;
+
+	protected final MaterialShaderImpl shader;
+	protected final MaterialShaderImpl guiShader;
+	protected final MaterialShaderImpl terrainShader;
+	protected final MaterialShaderImpl depthShader;
+	protected final MaterialShaderImpl terrainDepthShader;
+
 	public final boolean primaryTargetTransparency;
-	// PERF: use this to avoid overhead of animated textures
-	public final boolean discardsTexture;
 
 	protected AbstractRenderState(int index, long bits) {
 		super(bits);
 		this.index = index;
-		materialTexture = MaterialTexture.fromIndex(super.textureIndex());
+		target = TargetRenderState.fromIndex(TARGET.getValue(bits));
+		materialTexture = MaterialTexture.fromIndex(TEXTURE.getValue(bits));
 		texture = TextureMaterialState.fromId(materialTexture.id());
-		blur = blur();
-		depthTest = DepthTestRenderState.fromIndex(depthTest());
-		cull = cull();
-		writeMask = WriteMaskRenderState.fromIndex(writeMask());
-		enableGlint = foilOverlay();
-		decal = DecalRenderState.fromIndex(decal());
-		target = TargetRenderState.fromIndex(target());
-		lines = lines();
-		fog = fog();
-		condition = super.condition();
-		transparency = TransparencyRenderState.fromIndex(transparency());
-		sorted = sorted();
-		shaderId = MaterialShaderId.get(super.shaderIndex());
-		vertexShaderIndex = shaderId.vertexIndex;
-		vertexShaderId = shaderId.vertexId;
-		fragmentShaderIndex = shaderId.fragmentIndex;
-		fragmentShaderId = shaderId.fragmentId;
+		blur = BLUR.getValue(bits);
+		transparency = TransparencyRenderState.fromIndex(TRANSPARENCY.getValue(bits));
+		depthTest = DepthTestRenderState.fromIndex(DEPTH_TEST.getValue(bits));
+		cull = CULL.getValue(bits);
+		writeMask = WriteMaskRenderState.fromIndex(WRITE_MASK.getValue(bits));
+		decal = DecalRenderState.fromIndex(DECAL.getValue(bits));
+		lines = LINES.getValue(bits);
+		sorted = SORTED.getValue(bits);
+		castShadows = !DISABLE_SHADOWS.getValue(bits);
 
-		depthVertexShaderIndex = shaderId.depthVertexIndex;
-		depthVertexShaderId = shaderId.depthVertexId;
-		depthVertexShader = depthVertexShaderId.toString();
-		depthFragmentShaderIndex = shaderId.depthFragmentIndex;
-		depthFragmentShaderId = shaderId.depthFragmentId;
-		depthFragmentShader = depthFragmentShaderId.toString();
+		final var shaderId = MaterialShaderId.get(SHADER_ID.getValue(bits));
+		final var vertexShaderIndex = shaderId.vertexIndex;
+		final var fragmentShaderIndex = shaderId.fragmentIndex;
+		final var depthVertexShaderIndex = shaderId.depthVertexIndex;
+		final var depthFragmentShaderIndex = shaderId.depthFragmentIndex;
 
 		primaryTargetTransparency = primaryTargetTransparency();
 		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
@@ -126,16 +87,24 @@ abstract class AbstractRenderState extends AbstractRenderStateView {
 		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
 		terrainShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
 		terrainDepthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
-		preset = preset();
-		emissive = emissive();
-		disableDiffuse = disableDiffuse();
-		disableAo = disableAo();
-		disableColorIndex = disableColorIndex();
-		cutout = cutout();
-		unmipped = unmipped();
-		hurtOverlay = hurtOverlay();
-		flashOverlay = flashOverlay();
-		castShadows = castShadows();
-		discardsTexture = discardsTexture();
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("stateIndex:   ").append(index).append("\n");
+		sb.append("stateKey      ").append(Strings.padStart(Long.toHexString(bits), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(bits), 64, '0')).append("\n");
+		sb.append("collectorKey: ").append(Strings.padStart(Long.toHexString(collectorKey()), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(collectorKey()), 64, '0')).append("\n");
+		sb.append("primaryTargetTransparency: ").append(primaryTargetTransparency).append("\n");
+		sb.append("target: ").append(target.name).append("\n");
+		sb.append("texture: ").append(texture.index).append("  ").append(texture.id.toString()).append("\n");
+		sb.append("blur: ").append(blur).append("\n");
+		sb.append("transparency: ").append(transparency.name).append("\n");
+		sb.append("depthTest: ").append(depthTest.name).append("\n");
+		sb.append("cull: ").append(cull).append("\n");
+		sb.append("writeMask: ").append(writeMask.name).append("\n");
+		sb.append("decal: ").append(decal.name).append("\n");
+		sb.append("lines: ").append(lines).append("\n");
+		return sb.toString();
 	}
 }

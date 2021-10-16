@@ -29,7 +29,7 @@ import net.minecraft.client.renderer.RenderType;
 
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 
 @Mixin(targets = "net.minecraft.client.renderer.RenderType$CompositeRenderType")

@@ -42,8 +42,8 @@ import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.property.TargetRenderState;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderContextState;
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 
 public class CanvasImmediate extends BufferSource {

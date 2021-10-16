@@ -38,7 +38,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.input.VertexCollector;
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.Matrix3fExt;
 import grondag.canvas.mixinterface.Matrix4fExt;
 

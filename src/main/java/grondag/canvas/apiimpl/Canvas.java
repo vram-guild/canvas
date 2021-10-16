@@ -37,7 +37,7 @@ import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.TextureMaterialState;
-import grondag.canvas.material.state.wip.CanvasMaterialManager;
+import grondag.canvas.material.state.CanvasMaterialManager;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.Pipeline;

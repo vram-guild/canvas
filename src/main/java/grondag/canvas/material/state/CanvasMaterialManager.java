@@ -18,7 +18,7 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.material.state.wip;
+package grondag.canvas.material.state;
 
 import io.vram.frex.api.renderer.ConditionManager;
 import io.vram.frex.api.renderer.MaterialShaderManager;

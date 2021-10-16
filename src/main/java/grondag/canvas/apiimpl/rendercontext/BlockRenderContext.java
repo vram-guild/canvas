@@ -66,6 +66,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintG
 		return POOL.get();
 	}
 
+	// FEAT: honor checkides parameter
 	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		defaultConsumer = buffer;
 		matrix = matrixStack.last().pose();

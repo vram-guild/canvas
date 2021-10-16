@@ -57,7 +57,7 @@ import io.vram.frex.api.model.util.GeometryUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.Matrix4fExt;
 
 /**

@@ -46,7 +46,7 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.ParticleEngineExt;
 import grondag.canvas.mixinterface.ParticleExt;
 import grondag.canvas.render.frustum.RegionCullingFrustum;

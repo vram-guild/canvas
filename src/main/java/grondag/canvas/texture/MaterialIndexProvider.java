@@ -31,7 +31,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.wip.CanvasRenderMaterial;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 
 public abstract class MaterialIndexProvider {
 	public abstract MaterialIndexer getIndexer(CanvasRenderMaterial mat);
