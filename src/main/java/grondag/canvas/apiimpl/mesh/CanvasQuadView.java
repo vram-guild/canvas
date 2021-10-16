@@ -20,26 +20,8 @@
 
 package grondag.canvas.apiimpl.mesh;
 
-import io.vram.frex.api.buffer.QuadEmitter;
-import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
+import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
 import grondag.canvas.material.state.CanvasRenderMaterial;
 
-public class CanvasQuadView extends BaseQuadView<CanvasRenderMaterial> {
-	@Override
-	public void copyTo(QuadEmitter target) {
-		// force geometry compute
-		computeGeometry();
-		// force tangent compute
-		this.packedFaceTanget();
-
-		final QuadEditorImpl quad = (QuadEditorImpl) target;
-
-		// copy everything except the material
-		System.arraycopy(data, baseIndex, quad.data, quad.baseIndex, MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE);
-		quad.isSpriteInterpolated = isSpriteInterpolated;
-		quad.nominalFaceId = nominalFaceId;
-		quad.isGeometryInvalid = false;
-		quad.isTangentInvalid = false;
-	}
-}
+public class CanvasQuadView extends BaseQuadView<CanvasRenderMaterial> { }

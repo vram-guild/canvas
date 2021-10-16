@@ -32,7 +32,7 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
  * All the encoding and other work is handled in the quad base classes.
  * The one interesting bit is in {@link Maker#emit()}.
  */
-public class MeshBuilderImpl implements MeshBuilder {
+public class BaseMeshBuilder implements MeshBuilder {
 	private final Maker maker = new Maker();
 	int[] data = new int[256];
 	int index = 0;

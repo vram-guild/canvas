@@ -31,7 +31,7 @@ import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.renderer.Renderer;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
+import grondag.canvas.apiimpl.mesh.BaseMeshBuilder;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
@@ -63,7 +63,7 @@ public class Canvas implements Renderer {
 
 	@Override
 	public MeshBuilder meshBuilder() {
-		return new MeshBuilderImpl();
+		return new BaseMeshBuilder();
 	}
 
 	public void reload() {
