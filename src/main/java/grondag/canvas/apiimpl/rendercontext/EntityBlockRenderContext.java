@@ -39,7 +39,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.sc.concurrency.SimpleConcurrentList;
@@ -104,10 +103,8 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 	@SuppressWarnings("resource")
 	public void render(ModelBlockRenderer vanillaRenderer, BakedModel model, BlockState state, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light) {
 		defaultConsumer = consumers.getBuffer(ItemBlockRenderTypes.getRenderType(state, false));
-		matrix = matrixStack.last().pose();
-		normalMatrix = (FastMatrix3f) (Object) matrixStack.last().normal();
+		encodingContext.prepare(matrixStack, overlay);
 		this.light = light;
-		this.overlay = overlay;
 		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42);
 		((BlockModel) model).renderAsBlock(this, emitter());
@@ -118,10 +115,8 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 	@SuppressWarnings("resource")
 	public void renderItemFrame(ModelBlockRenderer modelRenderer, BakedModel model, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light, ItemFrame itemFrameEntity) {
 		defaultConsumer = consumers.getBuffer(Sheets.solidBlockSheet());
-		matrix = matrixStack.last().pose();
-		normalMatrix = (FastMatrix3f) (Object) matrixStack.last().normal();
+		encodingContext.prepare(matrixStack, overlay);
 		this.light = light;
-		this.overlay = overlay;
 		region = CanvasWorldRenderer.instance().worldRenderState.getWorld();
 
 		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());

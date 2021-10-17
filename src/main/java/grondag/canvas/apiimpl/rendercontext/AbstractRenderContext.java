@@ -39,15 +39,18 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.buffer.format.AbstractEncodingContext;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteExt;
 
 // UGLY: consolidate and simplify this class hierarchy
-public abstract class AbstractRenderContext extends AbstractEncodingContext {
+public abstract class AbstractRenderContext {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinder finder = MaterialFinder.newInstance();
 	public final float[] vecData = new float[3];
+
+	public final AbstractEncodingContext encodingContext = new AbstractEncodingContext() { };
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;

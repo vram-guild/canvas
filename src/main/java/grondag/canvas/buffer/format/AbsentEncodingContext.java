@@ -18,24 +18,13 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.apiimpl.rendercontext;
+package grondag.canvas.buffer.format;
 
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
-
-import net.minecraft.client.renderer.texture.OverlayTexture;
-
-import io.vram.frex.api.math.FastMatrix3f;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 public final class AbsentEncodingContext extends AbstractEncodingContext {
 	private AbsentEncodingContext() {
-		matrix = new Matrix4f();
-		matrix.setIdentity();
-		overlay = OverlayTexture.NO_OVERLAY;
-
-		final Matrix3f n = new Matrix3f();
-		n.setIdentity();
-		normalMatrix = (FastMatrix3f) (Object) n;
+		prepare(new PoseStack());
 	}
 
 	public static final AbsentEncodingContext INSTANCE = new AbsentEncodingContext();

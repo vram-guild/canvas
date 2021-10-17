@@ -18,21 +18,25 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.apiimpl.rendercontext;
+package grondag.canvas.buffer.format;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
+
+import net.minecraft.client.renderer.texture.OverlayTexture;
 
 import io.vram.frex.api.math.FastMatrix3f;
 
-import grondag.canvas.buffer.format.EncodingContext;
+import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
+import grondag.canvas.terrain.region.RegionPosition;
 
 public abstract class AbstractEncodingContext implements EncodingContext {
 	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
-	public int sectorId;
-	public int sectorRelativeRegionOrigin;
-	protected Matrix4f matrix;
-	protected FastMatrix3f normalMatrix;
-	protected int overlay;
+	private int sectorId;
+	private int sectorRelativeRegionOrigin;
+	private Matrix4f matrix;
+	private FastMatrix3f normalMatrix;
+	private int overlay = OverlayTexture.NO_OVERLAY;
 
 	@Override
 	public final int overlay() {
@@ -57,5 +61,22 @@ public abstract class AbstractEncodingContext implements EncodingContext {
 	@Override
 	public final int sectorRelativeRegionOrigin() {
 		return sectorRelativeRegionOrigin;
+	}
+
+	@Override
+	public void updateSector(RegionRenderSector renderSector, RegionPosition origin) {
+		sectorId = renderSector.sectorId();
+		sectorRelativeRegionOrigin = renderSector.sectorRelativeRegionOrigin(origin);
+	}
+
+	public void prepare(PoseStack matrixStack) {
+		final var last = matrixStack.last();
+		matrix = last.pose();
+		normalMatrix = (FastMatrix3f) (Object) last.normal();
+	}
+
+	public void prepare(PoseStack matrixStack, int overlay) {
+		prepare(matrixStack);
+		this.overlay = overlay;
 	}
 }

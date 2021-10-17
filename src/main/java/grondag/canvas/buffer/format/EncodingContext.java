@@ -22,6 +22,9 @@ package grondag.canvas.buffer.format;
 
 import io.vram.frex.api.math.FastMatrix3f;
 
+import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
+import grondag.canvas.terrain.region.RegionPosition;
+
 public interface EncodingContext {
 	Object matrix();
 
@@ -32,4 +35,6 @@ public interface EncodingContext {
 	int sectorId();
 
 	int sectorRelativeRegionOrigin();
+
+	void updateSector(RegionRenderSector renderSector, RegionPosition origin);
 }

@@ -39,7 +39,6 @@ import io.vram.frex.api.math.FastMatri4f;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
-import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 

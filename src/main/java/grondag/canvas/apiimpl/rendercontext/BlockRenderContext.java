@@ -32,7 +32,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
-import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.sc.concurrency.SimpleConcurrentList;
@@ -68,9 +67,7 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintG
 	// FEAT: honor checkides parameter
 	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		defaultConsumer = buffer;
-		matrix = matrixStack.last().pose();
-		normalMatrix = (FastMatrix3f) (Object) matrixStack.last().normal();
-		this.overlay = overlay;
+		encodingContext.prepare(matrixStack, overlay);
 		region = blockView;
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
 		((BlockModel) model).renderAsBlock(this, emitter());

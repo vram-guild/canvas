@@ -53,7 +53,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.model.ItemModel.ItemInputContext;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
@@ -167,7 +166,6 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 		if (stack.isEmpty()) return;
 
 		lightmap = light;
-		this.overlay = overlay;
 		itemStack = stack;
 		this.renderMode = renderMode;
 		isBlockItem = stack.getItem() instanceof BlockItem;
@@ -190,8 +188,7 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 		model.getTransforms().getTransform(renderMode).apply(leftHanded, matrices);
 		matrices.translate(-0.5D, -0.5D, -0.5D);
 
-		matrix = matrices.last().pose();
-		normalMatrix = (FastMatrix3f) (Object) matrices.last().normal();
+		encodingContext.prepare(matrices, overlay);
 
 		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
 			final BlockEntityWithoutLevelRenderer builtInRenderer = ((ItemRendererExt) Minecraft.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();
@@ -303,9 +300,9 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 		applyItemLighting(quad, this);
 
 		if (collectors == null) {
-			bufferQuad(quad, this, defaultConsumer);
+			bufferQuad(quad, encodingContext, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get((CanvasRenderMaterial) quad.material()));
+			QuadEncoders.STANDARD_ENCODER.encode(quad, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 		}
 	}
 

@@ -37,7 +37,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
@@ -116,10 +115,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 
 	// PERF: don't pass in matrixStack each time, just change model matrix directly
 	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, PoseStack matrixStack) {
-		matrix = matrixStack.last().pose();
-
-		// PERF: can probably grab this at prepare
-		normalMatrix = (FastMatrix3f) (Object) matrixStack.last().normal();
+		encodingContext.prepare(matrixStack);
 
 		try {
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
@@ -191,7 +187,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
-		TerrainFormat.TERRAIN_ENCODER.encode(quad, this, collectors.get((CanvasRenderMaterial) quad.material()));
+		TerrainFormat.TERRAIN_ENCODER.encode(quad, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 	}
 
 	@Override

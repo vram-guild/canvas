@@ -30,7 +30,7 @@ import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
-import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
+import grondag.canvas.buffer.format.AbsentEncodingContext;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.CanvasRenderMaterial;
