@@ -25,7 +25,7 @@ import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
-import grondag.canvas.mixinterface.Matrix3fExt;
+import io.vram.frex.api.math.FastMatrix3f;
 
 public final class AbsentEncodingContext extends AbstractEncodingContext {
 	private AbsentEncodingContext() {
@@ -35,7 +35,7 @@ public final class AbsentEncodingContext extends AbstractEncodingContext {
 
 		final Matrix3f n = new Matrix3f();
 		n.setIdentity();
-		normalMatrix = (Matrix3fExt) (Object) n;
+		normalMatrix = (FastMatrix3f) (Object) n;
 	}
 
 	public static final AbsentEncodingContext INSTANCE = new AbsentEncodingContext();

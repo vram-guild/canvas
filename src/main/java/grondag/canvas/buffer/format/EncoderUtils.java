@@ -24,21 +24,21 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
 
+import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 
 public abstract class EncoderUtils {
-	public static void bufferQuad(QuadEditorImpl quad, EncodingContext context, VertexConsumer buff) {
-		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
+	public static void bufferQuad(BaseQuadEmitter quad, EncodingContext context, VertexConsumer buff) {
+		final FastMatri4f matrix = (FastMatri4f) context.matrix();
 		final int overlay = context.overlay();
-		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final boolean isNormalMatrixUseful = !normalMatrix.canvas_isIdentity();
+		final FastMatrix3f normalMatrix = context.normalMatrix();
+		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used
@@ -62,7 +62,7 @@ public abstract class EncoderUtils {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				final int transformedNormal = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
+				final int transformedNormal = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedNormal) : packedNormal;
 				nx = PackedVector3f.packedX(transformedNormal);
 				ny = PackedVector3f.packedY(transformedNormal);
 				nz = PackedVector3f.packedZ(transformedNormal);
@@ -76,11 +76,11 @@ public abstract class EncoderUtils {
 	/**
 	 * handles block color and red-blue swizzle, common to all renders.
 	 */
-	public static void colorizeQuad(QuadEditorImpl quad, AbstractRenderContext context) {
+	public static void colorizeQuad(BaseQuadEmitter quad, AbstractRenderContext context) {
 		final int colorIndex = quad.colorIndex();
 
 		// PERF: don't swap red blue on white quad (most of em)
-		if (colorIndex == -1 || quad.material().disableColorIndex) {
+		if (colorIndex == -1 || quad.material().disableColorIndex()) {
 			quad.vertexColor(0, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(0)));
 			quad.vertexColor(1, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(1)));
 			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(2)));
@@ -94,7 +94,7 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void applyBlockLighting(QuadEditorImpl quad, AbstractRenderContext context) {
+	public static void applyBlockLighting(BaseQuadEmitter quad, AbstractRenderContext context) {
 		if (!quad.material().disableAo() && Minecraft.useAmbientOcclusion()) {
 			context.computeAo(quad);
 		} else {
@@ -102,7 +102,7 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void applyItemLighting(QuadEditorImpl quad, AbstractRenderContext context) {
+	public static void applyItemLighting(BaseQuadEmitter quad, AbstractRenderContext context) {
 		final int lightmap = context.brightness();
 		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), lightmap));
 		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), lightmap));

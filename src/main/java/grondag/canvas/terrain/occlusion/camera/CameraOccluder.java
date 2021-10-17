@@ -20,10 +20,12 @@
 
 package grondag.canvas.terrain.occlusion.camera;
 
+import java.util.function.Consumer;
+
 import net.minecraft.world.phys.Vec3;
 
+import grondag.bitraster.Matrix4L;
 import grondag.bitraster.PerspectiveRasterizer;
-import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
@@ -74,9 +76,9 @@ public class CameraOccluder extends AbstractOccluder {
 	public boolean prepareScene() {
 		final int viewVersion = occlusionFrustum.viewVersion();
 		final Vec3 cameraPos = occlusionFrustum.lastCameraPos();
-		final Matrix4fExt projectionMatrix = occlusionFrustum.projectionMatrix();
-		final Matrix4fExt modelMatrix = occlusionFrustum.modelMatrix();
-		return super.prepareScene(viewVersion, cameraPos.x, cameraPos.y, cameraPos.z, modelMatrix::copyTo, projectionMatrix::copyTo);
+		final Consumer<Matrix4L> viewSetter = m -> copyMatrixF2L(occlusionFrustum.modelMatrix(), m);
+		final Consumer<Matrix4L> projSetter = m -> copyMatrixF2L(occlusionFrustum.projectionMatrix(), m);
+		return super.prepareScene(viewVersion, cameraPos.x, cameraPos.y, cameraPos.z, viewSetter, projSetter);
 	}
 
 	@Override

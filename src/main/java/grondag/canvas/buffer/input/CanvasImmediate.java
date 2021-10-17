@@ -42,8 +42,8 @@ import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.property.TargetRenderState;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderContextState;
-import grondag.canvas.material.state.RenderMaterialImpl;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 
 public class CanvasImmediate extends BufferSource {
@@ -57,15 +57,15 @@ public class CanvasImmediate extends BufferSource {
 
 	@Override
 	public VertexConsumer getBuffer(RenderType renderLayer) {
-		RenderMaterialImpl mat = ((CompositeRenderTypeExt) renderLayer).canvas_materialState();
+		CanvasRenderMaterial mat = ((CompositeRenderTypeExt) renderLayer).canvas_materialState();
 
-		if (mat == RenderMaterialImpl.MISSING_MATERIAL) {
+		if (mat.isMissing()) {
 			return super.getBuffer(renderLayer);
 		}
 
 		mat = contextState.mapMaterial(mat);
 
-		if (mat == RenderMaterialImpl.MISSING_MATERIAL) {
+		if (mat.isMissing()) {
 			return super.getBuffer(renderLayer);
 		} else {
 			return collectors.consumer.prepare(mat);
@@ -73,7 +73,7 @@ public class CanvasImmediate extends BufferSource {
 	}
 
 	public FrexVertexConsumer getConsumer(RenderMaterial material) {
-		final RenderMaterialImpl mat = contextState.mapMaterial((RenderMaterialImpl) material);
+		final CanvasRenderMaterial mat = contextState.mapMaterial((CanvasRenderMaterial) material);
 		return collectors.consumer.prepare(mat);
 	}
 
@@ -107,7 +107,7 @@ public class CanvasImmediate extends BufferSource {
 		if (RenderTypeExclusion.isExcluded(renderType)) {
 			super.endBatch(renderType);
 		} else {
-			final ArrayVertexCollector collector = collectors.getIfExists((RenderMaterialImpl) RenderTypeUtil.toMaterial(renderType));
+			final ArrayVertexCollector collector = collectors.getIfExists((CanvasRenderMaterial) RenderTypeUtil.toMaterial(renderType));
 
 			if (collector != null && !collector.isEmpty()) {
 				collector.draw(true);

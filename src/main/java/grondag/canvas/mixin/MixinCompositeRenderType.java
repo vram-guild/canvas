@@ -29,23 +29,23 @@ import net.minecraft.client.renderer.RenderType;
 
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
 
 @Mixin(targets = "net.minecraft.client.renderer.RenderType$CompositeRenderType")
 abstract class MixinCompositeRenderType extends RenderType implements CompositeRenderTypeExt {
-	private @Nullable RenderMaterialImpl materialState;
+	private @Nullable CanvasRenderMaterial materialState;
 
 	private MixinCompositeRenderType(String name, VertexFormat vertexFormat, VertexFormat.Mode drawMode, int expectedBufferSize, boolean hasCrumbling, boolean translucent, Runnable startAction, Runnable endAction) {
 		super(name, vertexFormat, drawMode, expectedBufferSize, hasCrumbling, translucent, startAction, endAction);
 	}
 
 	@Override
-	public RenderMaterialImpl canvas_materialState() {
-		RenderMaterialImpl result = materialState;
+	public CanvasRenderMaterial canvas_materialState() {
+		CanvasRenderMaterial result = materialState;
 
 		if (result == null) {
-			result = (RenderMaterialImpl) RenderTypeUtil.toMaterial(this);
+			result = (CanvasRenderMaterial) RenderTypeUtil.toMaterial(this);
 			materialState = result;
 		}
 

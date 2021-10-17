@@ -34,11 +34,12 @@ import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.resources.language.I18n;
 
+import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix3f;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.shader.data.ShaderUniforms;
 import grondag.canvas.shader.data.UniformRefreshFrequency;
 import grondag.canvas.varia.GFX;
@@ -1061,7 +1062,7 @@ public class GlProgram {
 				return;
 			}
 
-			((Matrix4fExt) (Object) matrix).writeToBuffer(0, uniformFloatBuffer);
+			((FastMatri4f) (Object) matrix).f_writeToBuffer(0, uniformFloatBuffer);
 
 			setDirty();
 		}
@@ -1106,10 +1107,10 @@ public class GlProgram {
 				return;
 			}
 
-			final Matrix3fExt m = (Matrix3fExt) (Object) matrix;
-			((Matrix3fExt) (Object) lastValue).set(m);
+			final FastMatrix3f m = (FastMatrix3f) (Object) matrix;
+			((FastMatrix3f) (Object) lastValue).f_set(m);
 
-			m.writeToBuffer(uniformFloatBuffer);
+			m.f_writeToBuffer(uniformFloatBuffer);
 
 			setDirty();
 		}

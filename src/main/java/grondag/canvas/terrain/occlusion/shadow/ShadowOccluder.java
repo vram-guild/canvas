@@ -27,6 +27,8 @@ import static grondag.bitraster.Constants.SOUTH;
 import static grondag.bitraster.Constants.UP;
 import static grondag.bitraster.Constants.WEST;
 
+import java.util.function.Consumer;
+
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
@@ -34,9 +36,11 @@ import com.mojang.math.Vector4f;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
+import io.vram.frex.api.math.FastMatri4f;
+
+import grondag.bitraster.Matrix4L;
 import grondag.bitraster.OrthoRasterizer;
 import grondag.bitraster.PackedBox;
-import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
@@ -44,10 +48,10 @@ import grondag.canvas.terrain.region.RegionPosition;
 
 public class ShadowOccluder extends AbstractOccluder {
 	private final Matrix4f shadowViewMatrix = new Matrix4f();
-	private final Matrix4fExt shadowViewMatrixExt = (Matrix4fExt) (Object) shadowViewMatrix;
+	private final FastMatri4f shadowViewMatrixExt = (FastMatri4f) (Object) shadowViewMatrix;
 
 	public final Matrix4f shadowProjMatrix = new Matrix4f();
-	private final Matrix4fExt shadowProjMatrixExt = (Matrix4fExt) (Object) shadowProjMatrix;
+	private final FastMatri4f shadowProjMatrixExt = (FastMatri4f) (Object) shadowProjMatrix;
 
 	private float maxRegionExtent;
 	private float r0, x0, y0, z0, r1, x1, y1, z1, r2, x2, y2, z2, r3, x3, y3, z3;
@@ -62,8 +66,8 @@ public class ShadowOccluder extends AbstractOccluder {
 	}
 
 	public void copyState(TerrainFrustum occlusionFrustum) {
-		shadowViewMatrixExt.set(ShadowMatrixData.shadowViewMatrix);
-		shadowProjMatrixExt.set(ShadowMatrixData.maxCascadeProjMatrix());
+		shadowViewMatrixExt.f_set(ShadowMatrixData.shadowViewMatrix);
+		shadowProjMatrixExt.f_set(ShadowMatrixData.maxCascadeProjMatrix());
 		maxRegionExtent = ShadowMatrixData.regionMaxExtent();
 		final float[] cascadeCentersAndRadii = ShadowMatrixData.cascadeCentersAndRadii;
 		x0 = cascadeCentersAndRadii[0];
@@ -95,13 +99,16 @@ public class ShadowOccluder extends AbstractOccluder {
 		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), PackedBox.RANGE_MID, origin.shadowDistanceRank());
 	}
 
+	private final Consumer<Matrix4L> shadowViewSetter = m -> copyMatrixF2L(shadowViewMatrixExt, m);
+	private final Consumer<Matrix4L> shadowProjSetter = m -> copyMatrixF2L(shadowProjMatrixExt, m);
+
 	/**
 	 * Check if needs redrawn and prep for redraw if so.
 	 * When false, regions should be drawn only if their occluder version is not current.
 	 */
 	@Override
 	public boolean prepareScene() {
-		return super.prepareScene(lastViewVersion, lastCameraPos.x, lastCameraPos.y, lastCameraPos.z, shadowViewMatrixExt::copyTo, shadowProjMatrixExt::copyTo);
+		return super.prepareScene(lastViewVersion, lastCameraPos.x, lastCameraPos.y, lastCameraPos.z, shadowViewSetter, shadowProjSetter);
 	}
 
 	/**

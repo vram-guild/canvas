@@ -22,15 +22,16 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import com.mojang.math.Matrix4f;
 
+import io.vram.frex.api.math.FastMatrix3f;
+
 import grondag.canvas.buffer.format.EncodingContext;
-import grondag.canvas.mixinterface.Matrix3fExt;
 
 public abstract class AbstractEncodingContext implements EncodingContext {
 	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
 	public int sectorId;
 	public int sectorRelativeRegionOrigin;
 	protected Matrix4f matrix;
-	protected Matrix3fExt normalMatrix;
+	protected FastMatrix3f normalMatrix;
 	protected int overlay;
 
 	@Override
@@ -44,7 +45,7 @@ public abstract class AbstractEncodingContext implements EncodingContext {
 	}
 
 	@Override
-	public final Matrix3fExt normalMatrix() {
+	public final FastMatrix3f normalMatrix() {
 		return normalMatrix;
 	}
 

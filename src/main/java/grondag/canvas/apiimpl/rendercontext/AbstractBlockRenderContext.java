@@ -41,12 +41,13 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.model.BlockModel.BlockInputContext;
-import io.vram.frex.api.model.util.GeometryUtil;
-import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.api.model.util.FaceUtil;
+import io.vram.frex.api.model.util.GeometryUtil;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.buffer.format.QuadEncoders;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.RenderTypeExt;
 
 public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> extends AbstractRenderContext implements BlockInputContext {
@@ -155,7 +156,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	}
 
 	@Override
-	public final int flatBrightness(QuadEditorImpl quad) {
+	public final int flatBrightness(BaseQuadEmitter quad) {
 		/**
 		 * Handles geometry-based check for using self brightness or neighbor brightness.
 		 * That logic only applies in flat lighting.
@@ -181,7 +182,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	protected abstract int fastBrightness(BlockState blockState, BlockPos pos);
 
 	@Override
-	protected void encodeQuad(QuadEditorImpl quad) {
+	protected void encodeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
@@ -189,7 +190,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 		if (collectors == null) {
 			bufferQuad(quad, this, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get(quad.material()));
+			QuadEncoders.STANDARD_ENCODER.encode(quad, this, collectors.get((CanvasRenderMaterial) quad.material()));
 		}
 	}
 

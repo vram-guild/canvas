@@ -29,8 +29,9 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
+import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix3f;
+
 import grondag.canvas.mixinterface.PoseStackExt;
 import grondag.canvas.varia.MatrixStackEntryHelper;
 
@@ -62,8 +63,8 @@ public class MixinPoseStack implements PoseStackExt {
 			add = MatrixStackEntryHelper.create(current.pose().copy(), current.normal().copy());
 		} else {
 			add = pool.pop();
-			((Matrix4fExt) (Object) add.pose()).set(current.pose());
-			((Matrix3fExt) (Object) add.normal()).set(current.normal());
+			((FastMatri4f) (Object) add.pose()).f_set(current.pose());
+			((FastMatrix3f) (Object) add.normal()).f_set(current.normal());
 		}
 
 		poseStack.addLast(add);

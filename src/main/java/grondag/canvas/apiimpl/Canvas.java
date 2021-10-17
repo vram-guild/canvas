@@ -20,30 +20,24 @@
 
 package grondag.canvas.apiimpl;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.resources.ResourceLocation;
 
-import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.mesh.MeshBuilder;
 import io.vram.frex.api.renderer.ConditionManager;
 import io.vram.frex.api.renderer.MaterialManager;
 import io.vram.frex.api.renderer.MaterialShaderManager;
 import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.renderer.Renderer;
-import io.vram.frex.base.renderer.material.BaseTextureManager;
+import io.vram.frex.base.renderer.mesh.BaseMeshBuilder;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.mesh.MeshBuilderImpl;
 import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.TextureMaterialState;
-import grondag.canvas.material.state.MaterialFinderImpl;
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.CanvasMaterialManager;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.Pipeline;
@@ -58,49 +52,18 @@ import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 
-public class Canvas implements Renderer, MaterialManager {
+public class Canvas implements Renderer {
 	private static Canvas instance = new Canvas();
-
-	private final BaseTextureManager textures = new BaseTextureManager();
 
 	public static Canvas instance() {
 		return instance;
 	}
 
-	private final Object2ObjectOpenHashMap<ResourceLocation, RenderMaterialImpl> materialMap = new Object2ObjectOpenHashMap<>();
-
 	private Canvas() { }
 
 	@Override
 	public MeshBuilder meshBuilder() {
-		return new MeshBuilderImpl();
-	}
-
-	@Override
-	public MaterialFinderImpl materialFinder() {
-		return new MaterialFinderImpl();
-	}
-
-	@Override
-	public RenderMaterialImpl materialFromId(ResourceLocation id) {
-		return materialMap.get(id);
-	}
-
-	@Override
-	public boolean registerMaterial(ResourceLocation id, RenderMaterial material) {
-		if (materialMap.containsKey(id)) {
-			return false;
-		}
-
-		// cast to prevent acceptance of impostor implementations
-		materialMap.put(id, (RenderMaterialImpl) material);
-		return true;
-	}
-
-	@Override
-	public boolean registerOrUpdateMaterial(ResourceLocation id, RenderMaterial material) {
-		// cast to prevent acceptance of impostor implementations
-		return materialMap.put(id, (RenderMaterialImpl) material) == null;
+		return new BaseMeshBuilder();
 	}
 
 	public void reload() {
@@ -138,7 +101,7 @@ public class Canvas implements Renderer, MaterialManager {
 
 	@Override
 	public MaterialTextureManager textures() {
-		return textures;
+		return CanvasTextureManager.INSTANCE;
 	}
 
 	@Override
@@ -147,22 +110,7 @@ public class Canvas implements Renderer, MaterialManager {
 	}
 
 	@Override
-	public RenderMaterial materialFromIndex(int index) {
-		return RenderMaterialImpl.fromIndex(index);
-	}
-
-	@Override
-	public RenderMaterial defaultMaterial() {
-		return RenderMaterialImpl.STANDARD_MATERIAL;
-	}
-
-	@Override
-	public RenderMaterial missingMaterial() {
-		return RenderMaterialImpl.MISSING_MATERIAL;
-	}
-
-	@Override
 	public MaterialManager materials() {
-		return this;
+		return CanvasMaterialManager.INSTANCE;
 	}
 }

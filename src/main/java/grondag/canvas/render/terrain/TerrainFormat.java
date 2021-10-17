@@ -43,13 +43,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix3f;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.buffer.format.CanvasVertexFormatElement;
 import grondag.canvas.buffer.format.QuadEncoder;
-import grondag.canvas.material.state.RenderMaterialImpl;
-import grondag.canvas.mixinterface.Matrix3fExt;
-import grondag.canvas.mixinterface.Matrix4fExt;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 
 public class TerrainFormat {
 	private TerrainFormat() { }
@@ -71,9 +71,9 @@ public class TerrainFormat {
 	static final int TERRAIN_VERTEX_STRIDE = TERRAIN_MATERIAL.vertexStrideInts;
 
 	public static final QuadEncoder TERRAIN_ENCODER = (quad, context, buff) -> {
-		final Matrix4fExt matrix = (Matrix4fExt) context.matrix();
-		final Matrix3fExt normalMatrix = context.normalMatrix();
-		final boolean isNormalMatrixUseful = !normalMatrix.canvas_isIdentity();
+		final FastMatri4f matrix = (FastMatri4f) context.matrix();
+		final FastMatrix3f normalMatrix = context.normalMatrix();
+		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
 
 		final int overlay = context.overlay();
 
@@ -81,9 +81,9 @@ public class TerrainFormat {
 
 		final boolean aoDisabled = !Minecraft.useAmbientOcclusion();
 		final float[] aoData = quad.ao;
-		final RenderMaterialImpl mat = quad.material();
+		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();
 
-		assert mat.preset != MaterialConstants.PRESET_DEFAULT;
+		assert mat.preset() != MaterialConstants.PRESET_DEFAULT;
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used
@@ -100,7 +100,7 @@ public class TerrainFormat {
 		int packedTangent = 0;
 		int transformedTangent = 0;
 
-		final int material = mat.dongle().index(quad.spriteId()) << 16;
+		final int material = mat.materialIndexer().index(quad.spriteId()) << 16;
 
 		final int baseTargetIndex = buff.allocate(TERRAIN_QUAD_STRIDE, quad.effectiveCullFaceId());
 		final int[] target = buff.data();
@@ -122,7 +122,7 @@ public class TerrainFormat {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				transformedNormal = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedNormal) : packedNormal;
+				transformedNormal = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedNormal) : packedNormal;
 				normalFlagBits = (transformedNormal >>> 8) & 0x8000;
 				transformedNormal = transformedNormal & 0xFFFF;
 			}
@@ -132,7 +132,7 @@ public class TerrainFormat {
 
 			if (t != packedTangent) {
 				packedTangent = p;
-				transformedTangent = isNormalMatrixUseful ? normalMatrix.canvas_transform(packedTangent) : packedTangent;
+				transformedTangent = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedTangent) : packedTangent;
 				tangentFlagBits = (transformedTangent >>> 9) & 0x4000;
 				transformedTangent = transformedTangent << 16;
 			}
@@ -142,9 +142,9 @@ public class TerrainFormat {
 			final float y = Float.intBitsToFloat(source[fromIndex + VERTEX_Y]);
 			final float z = Float.intBitsToFloat(source[fromIndex + VERTEX_Z]);
 
-			final float xOut = matrix.m00() * x + matrix.m01() * y + matrix.m02() * z + matrix.m03();
-			final float yOut = matrix.m10() * x + matrix.m11() * y + matrix.m12() * z + matrix.m13();
-			final float zOut = matrix.m20() * x + matrix.m21() * y + matrix.m22() * z + matrix.m23();
+			final float xOut = matrix.f_m00() * x + matrix.f_m10() * y + matrix.f_m20() * z + matrix.f_m30();
+			final float yOut = matrix.f_m01() * x + matrix.f_m11() * y + matrix.f_m21() * z + matrix.f_m31();
+			final float zOut = matrix.f_m02() * x + matrix.f_m12() * y + matrix.f_m22() * z + matrix.f_m32();
 
 			int xInt = Mth.floor(xOut);
 			int yInt = Mth.floor(yOut);

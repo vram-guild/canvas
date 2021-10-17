@@ -26,13 +26,14 @@ import java.util.function.Predicate;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import io.vram.frex.api.buffer.FrexVertexConsumer;
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
-import grondag.canvas.apiimpl.mesh.QuadEditorImpl;
 import grondag.canvas.apiimpl.rendercontext.AbsentEncodingContext;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.material.state.RenderMaterialImpl;
+import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
@@ -56,17 +57,17 @@ public class VertexCollectorList {
 	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
 	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
 	 */
-	public class Consumer extends QuadEditorImpl {
+	public class Consumer extends BaseQuadEmitter {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
-			material(RenderMaterialImpl.STANDARD_MATERIAL);
+			material(RenderMaterial.defaultMaterial());
 		}
 
 		@Override
 		public Consumer emit() {
-			final RenderMaterialImpl mat = material();
+			final CanvasRenderMaterial mat = (CanvasRenderMaterial) material();
 
-			if (mat.condition.compute()) {
+			if (mat.condition().compute()) {
 				complete();
 				QuadEncoders.STANDARD_ENCODER.encode(this, AbsentEncodingContext.INSTANCE, get(mat));
 
@@ -79,7 +80,7 @@ public class VertexCollectorList {
 			return this;
 		}
 
-		public FrexVertexConsumer prepare(RenderMaterialImpl mat) {
+		public FrexVertexConsumer prepare(CanvasRenderMaterial mat) {
 			defaultMaterial(mat);
 			clear();
 			return this;
@@ -99,16 +100,16 @@ public class VertexCollectorList {
 		}
 	}
 
-	public final ArrayVertexCollector getIfExists(RenderMaterialImpl materialState) {
-		return materialState == RenderMaterialImpl.MISSING_MATERIAL ? null : collectors[materialState.collectorIndex];
+	public final ArrayVertexCollector getIfExists(CanvasRenderMaterial materialState) {
+		return materialState.isMissing() ? null : collectors[materialState.collectorIndex()];
 	}
 
-	public final ArrayVertexCollector get(RenderMaterialImpl materialState) {
-		if (materialState == RenderMaterialImpl.MISSING_MATERIAL) {
+	public final ArrayVertexCollector get(CanvasRenderMaterial materialState) {
+		if (materialState.isMissing()) {
 			return null;
 		}
 
-		final int index = materialState.collectorIndex;
+		final int index = materialState.collectorIndex();
 		final ArrayVertexCollector[] collectors = this.collectors;
 
 		ArrayVertexCollector result = null;
@@ -118,7 +119,7 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			result = new ArrayVertexCollector(materialState.renderState, isTerrain);
+			result = new ArrayVertexCollector(materialState.renderState(), isTerrain);
 			collectors[index] = result;
 			active.add(result);
 		}
@@ -126,8 +127,8 @@ public class VertexCollectorList {
 		return result;
 	}
 
-	public boolean contains(RenderMaterialImpl materialState) {
-		final int index = materialState.collectorIndex;
+	public boolean contains(CanvasRenderMaterial materialState) {
+		final int index = materialState.collectorIndex();
 		return index < collectors.length && collectors[index] != null;
 	}
 

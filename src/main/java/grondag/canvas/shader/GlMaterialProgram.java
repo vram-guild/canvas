@@ -30,10 +30,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Matrix4f;
 
 import io.vram.bitkit.BitPacker32;
+import io.vram.frex.api.math.FastMatri4f;
 import io.vram.frex.api.texture.SpriteIndex;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
-import grondag.canvas.mixinterface.Matrix4fExt;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
@@ -129,7 +129,7 @@ public class GlMaterialProgram extends GlProgram {
 	private MatrixState lastMatrixState = null;
 
 	private static final Matrix4f guiMatrix = new Matrix4f();
-	private static final Matrix4fExt guiMatrixExt = (Matrix4fExt) (Object) guiMatrix;
+	private static final FastMatri4f guiMatrixExt = (FastMatri4f) (Object) guiMatrix;
 
 	public void updateContextInfo(SpriteIndex atlasInfo, int targetIndex) {
 		final MatrixState ms = MatrixState.get();
@@ -144,7 +144,7 @@ public class GlMaterialProgram extends GlProgram {
 		// updates once for hand, unlimited amount of times for GUI render because GUI transform is baked into view matrix.
 		// NB: unreachable in depth pass
 		if (ms == MatrixState.SCREEN && (ScreenRenderState.stateChanged() || !ScreenRenderState.renderingHand())) {
-			guiMatrixExt.set(RenderSystem.getProjectionMatrix());
+			guiMatrixExt.f_set(RenderSystem.getProjectionMatrix());
 			guiMatrix.multiply(RenderSystem.getModelViewMatrix());
 			guiViewProjMatrix.set(guiMatrix);
 			guiViewProjMatrix.upload();

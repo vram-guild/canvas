@@ -31,20 +31,21 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.BlockEntityMaterialMap;
 import io.vram.frex.api.material.EntityMaterialMap;
+import io.vram.frex.api.material.MaterialFinder;
 
 public class RenderContextState {
 	private EntityMaterialMap entityMap = null;
 	private BlockEntityMaterialMap blockEntityMap = null;
 	private Entity entity;
 	private BlockState blockState;
-	private final MaterialFinderImpl finder = new MaterialFinderImpl();
+	private final MaterialFinder finder = MaterialFinder.newInstance();
 
-	private final Function<RenderMaterialImpl, RenderMaterialImpl> defaultFunc = m -> m;
-	private final Function<RenderMaterialImpl, RenderMaterialImpl> entityFunc = m -> (RenderMaterialImpl) entityMap.getMapped(m, entity, finder);
-	private final Function<RenderMaterialImpl, RenderMaterialImpl> blockEntityFunc = m -> (RenderMaterialImpl) blockEntityMap.getMapped(m, blockState, finder);
+	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> defaultFunc = m -> m;
+	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> entityFunc = m -> (CanvasRenderMaterial) entityMap.getMapped(m, entity, finder);
+	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> blockEntityFunc = m -> (CanvasRenderMaterial) blockEntityMap.getMapped(m, blockState, finder);
 
-	private Function<RenderMaterialImpl, RenderMaterialImpl> activeFunc = defaultFunc;
-	private BiFunction<MaterialFinderImpl, RenderMaterialImpl, RenderMaterialImpl> guiFunc = GuiMode.NORMAL.func;
+	private Function<CanvasRenderMaterial, CanvasRenderMaterial> activeFunc = defaultFunc;
+	private BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> guiFunc = GuiMode.NORMAL.func;
 
 	public void setCurrentEntity(@Nullable Entity entity) {
 		if (entity == null) {
@@ -71,17 +72,17 @@ public class RenderContextState {
 		guiFunc = guiMode.func;
 	}
 
-	public RenderMaterialImpl mapMaterial(RenderMaterialImpl mat) {
+	public CanvasRenderMaterial mapMaterial(CanvasRenderMaterial mat) {
 		return guiFunc.apply(finder, activeFunc.apply(mat));
 	}
 
 	public enum GuiMode {
 		NORMAL((f, m) -> m),
-		GUI_FRONT_LIT((f, m) -> f.copyFrom(m).disableDiffuse(true).find());
+		GUI_FRONT_LIT((f, m) -> (CanvasRenderMaterial) f.copyFrom(m).disableDiffuse(true).find());
 
-		private final BiFunction<MaterialFinderImpl, RenderMaterialImpl, RenderMaterialImpl> func;
+		private final BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> func;
 
-		GuiMode(BiFunction<MaterialFinderImpl, RenderMaterialImpl, RenderMaterialImpl> func) {
+		GuiMode(BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> func) {
 			this.func = func;
 		}
 	}
