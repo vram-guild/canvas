@@ -87,7 +87,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	protected void encodeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
-		colorizeQuad(quad, this);
+		colorizeQuad(quad, this.inputContext);
 
 		if (collectors == null) {
 			bufferQuad(quad, encodingContext, defaultConsumer);

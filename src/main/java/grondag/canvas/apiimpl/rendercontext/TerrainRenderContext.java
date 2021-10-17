@@ -168,7 +168,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	protected void encodeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
 		applyBlockLighting(quad, this);
-		colorizeQuad(quad, this);
+		colorizeQuad(quad, this.inputContext);
 		TerrainFormat.TERRAIN_ENCODER.encode(quad, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 	}
 }

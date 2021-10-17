@@ -261,7 +261,7 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 
 	@Override
 	protected void encodeQuad(BaseQuadEmitter quad) {
-		colorizeQuad(quad, this);
+		colorizeQuad(quad, this.inputContext);
 		applyItemLighting(quad, this);
 
 		if (collectors == null) {

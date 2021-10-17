@@ -26,6 +26,7 @@ import net.minecraft.client.Minecraft;
 
 import io.vram.frex.api.math.FastMatri4f;
 import io.vram.frex.api.math.FastMatrix3f;
+import io.vram.frex.api.model.BakedInputContext;
 import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
@@ -46,6 +47,7 @@ public abstract class EncoderUtils {
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
 
+		final var mat = quad.material();
 		final boolean emissive = quad.material().emissive();
 
 		for (int i = 0; i < 4; i++) {
@@ -76,7 +78,7 @@ public abstract class EncoderUtils {
 	/**
 	 * handles block color and red-blue swizzle, common to all renders.
 	 */
-	public static void colorizeQuad(BaseQuadEmitter quad, AbstractRenderContext<?> context) {
+	public static void colorizeQuad(BaseQuadEmitter quad, BakedInputContext context) {
 		final int colorIndex = quad.colorIndex();
 
 		// PERF: don't swap red blue on white quad (most of em)
@@ -86,7 +88,7 @@ public abstract class EncoderUtils {
 			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(2)));
 			quad.vertexColor(3, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(3)));
 		} else {
-			final int indexedColor = context.inputContext.indexedColor(colorIndex);
+			final int indexedColor = context.indexedColor(colorIndex);
 			quad.vertexColor(0, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(0))));
 			quad.vertexColor(1, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(1))));
 			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(2))));
