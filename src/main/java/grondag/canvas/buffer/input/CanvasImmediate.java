@@ -35,7 +35,7 @@ import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.ModelBakery;
 
-import io.vram.frex.api.buffer.FrexVertexConsumer;
+import io.vram.frex.api.buffer.VertexEmitter;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.RenderTypeUtil;
@@ -72,7 +72,7 @@ public class CanvasImmediate extends BufferSource {
 		}
 	}
 
-	public FrexVertexConsumer getConsumer(RenderMaterial material) {
+	public VertexEmitter getConsumer(RenderMaterial material) {
 		final CanvasRenderMaterial mat = contextState.mapMaterial((CanvasRenderMaterial) material);
 		return collectors.emitter.prepare(mat);
 	}
