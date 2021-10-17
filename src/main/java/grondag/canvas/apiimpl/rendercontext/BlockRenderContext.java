@@ -25,7 +25,6 @@ import java.util.function.Supplier;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
@@ -34,17 +33,13 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
-import io.vram.sc.concurrency.SimpleConcurrentList;
 
 /**
  * Context for non-terrain block rendering.
  */
 public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintGetter> {
-	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
-
 	private static final Supplier<ThreadLocal<BlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
 		final BlockRenderContext result = new BlockRenderContext();
-		LOADED.add(result);
 		return result;
 	});
 
@@ -55,8 +50,6 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintG
 	}
 
 	public static void reload() {
-		LOADED.forEach(c -> c.close());
-		LOADED.clear();
 		POOL = POOL_FACTORY.get();
 	}
 
@@ -68,20 +61,15 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintG
 	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		defaultConsumer = buffer;
 		encodingContext.prepare(matrixStack, overlay);
-		region = blockView;
+		inputContext.prepareForWorld(blockView, checkSides);
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed);
-		((BlockModel) model).renderAsBlock(this, emitter());
+		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
 	}
 
 	@Override
 	public int brightness() {
 		return 0;
-	}
-
-	@Override
-	protected int fastBrightness(BlockState blockState, BlockPos pos) {
-		return LevelRenderer.getLightColor(region, blockState, pos);
 	}
 
 	@Override

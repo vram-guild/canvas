@@ -76,7 +76,7 @@ public abstract class EncoderUtils {
 	/**
 	 * handles block color and red-blue swizzle, common to all renders.
 	 */
-	public static void colorizeQuad(BaseQuadEmitter quad, AbstractRenderContext context) {
+	public static void colorizeQuad(BaseQuadEmitter quad, AbstractRenderContext<?> context) {
 		final int colorIndex = quad.colorIndex();
 
 		// PERF: don't swap red blue on white quad (most of em)
@@ -86,7 +86,7 @@ public abstract class EncoderUtils {
 			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(2)));
 			quad.vertexColor(3, ColorUtil.swapRedBlueIfNeeded(quad.vertexColor(3)));
 		} else {
-			final int indexedColor = context.indexedColor(colorIndex);
+			final int indexedColor = context.inputContext.indexedColor(colorIndex);
 			quad.vertexColor(0, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(0))));
 			quad.vertexColor(1, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(1))));
 			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(2))));
@@ -94,7 +94,7 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void applyBlockLighting(BaseQuadEmitter quad, AbstractRenderContext context) {
+	public static void applyBlockLighting(BaseQuadEmitter quad, AbstractRenderContext<?> context) {
 		if (!quad.material().disableAo() && Minecraft.useAmbientOcclusion()) {
 			context.computeAo(quad);
 		} else {
@@ -102,7 +102,7 @@ public abstract class EncoderUtils {
 		}
 	}
 
-	public static void applyItemLighting(BaseQuadEmitter quad, AbstractRenderContext context) {
+	public static void applyItemLighting(BaseQuadEmitter quad, AbstractRenderContext<?> context) {
 		final int lightmap = context.brightness();
 		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), lightmap));
 		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), lightmap));

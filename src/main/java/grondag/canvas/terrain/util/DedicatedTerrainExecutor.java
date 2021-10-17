@@ -85,7 +85,6 @@ public class DedicatedTerrainExecutor implements TerrainExecutor {
 		queue.clear();
 
 		for (final Worker w : workers) {
-			w.context.close();
 			w.context = new TerrainRenderContext();
 		}
 	}
@@ -123,7 +122,7 @@ public class DedicatedTerrainExecutor implements TerrainExecutor {
 
 	@Override
 	public void debugReport(List<String> target) {
-		long newTime = System.currentTimeMillis();
+		final long newTime = System.currentTimeMillis();
 
 		if (newTime > nextTime) {
 			nextTime = newTime + 1000;

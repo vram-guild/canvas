@@ -55,7 +55,6 @@ public class RenderRegionBuilder {
 
 	public void reset() {
 		TerrainExecutor.INSTANCE.clear();
-		mainThreadContext.close();
 		mainThreadContext = new TerrainRenderContext();
 	}
 

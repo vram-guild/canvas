@@ -27,8 +27,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.collect.ImmutableList;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
 
@@ -51,8 +49,6 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 	private final int poolSize = threadCount();
 	private final Semaphore mixedSignal = new Semaphore(poolSize - 2);
 
-	private final ImmutableList<Worker> workers;
-
 	private final AtomicInteger renderTaskCount = new AtomicInteger();
 	private final AtomicInteger serverTaskCount = new AtomicInteger();
 
@@ -64,16 +60,12 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 	SharedTerrainExecutor() {
 		assert poolSize >= 4;
 
-		final ImmutableList.Builder<Worker> builder = ImmutableList.builder();
-
 		final RenderWorker renderWorker = new RenderWorker();
-		builder.add(renderWorker);
 		final Thread rederThread = new Thread(renderWorker, "Canvas Render Thread");
 		rederThread.setDaemon(true);
 		rederThread.start();
 
 		final ServerWorker serverWorker = new ServerWorker();
-		builder.add(serverWorker);
 		final Thread serverThread = new Thread(serverWorker, "Canvas Server Thread");
 		serverThread.setDaemon(true);
 		serverThread.start();
@@ -82,14 +74,11 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 
 		for (int i = 0; i < limit; i++) {
 			final RenderWorker w = ((i & 1) == 0) ? new RenderFirstWorker() : new ServerFirstWorker();
-			builder.add(w);
 
 			final Thread thread = new Thread(w, "Canvas Mixed Thread - " + i);
 			thread.setDaemon(true);
 			thread.start();
 		}
-
-		workers = builder.build();
 	}
 
 	/**
@@ -122,10 +111,6 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 	@Override
 	public void clear() {
 		renderQueue.clear();
-
-		for (final Worker w : workers) {
-			w.close();
-		}
 	}
 
 	@Override
@@ -133,11 +118,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 		return renderQueue.isEmpty();
 	}
 
-	private interface Worker extends Runnable {
-		void close();
-	}
-
-	private class RenderWorker implements Worker {
+	private class RenderWorker implements Runnable {
 		protected TerrainRenderContext context = new TerrainRenderContext();
 
 		@Override
@@ -156,14 +137,9 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				}
 			}
 		}
-
-		@Override
-		public void close() {
-			context.close();
-		}
 	}
 
-	private class ServerWorker implements Worker {
+	private class ServerWorker implements Runnable {
 		@Override
 		public void run() {
 			while (true) {
@@ -179,11 +155,6 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
 				}
 			}
-		}
-
-		@Override
-		public void close() {
-			// NOOP
 		}
 	}
 
@@ -212,11 +183,6 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				}
 			}
 		}
-
-		@Override
-		public void close() {
-			context.close();
-		}
 	}
 
 	private class ServerFirstWorker extends RenderWorker {
@@ -243,11 +209,6 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
 				}
 			}
-		}
-
-		@Override
-		public void close() {
-			context.close();
 		}
 	}
 

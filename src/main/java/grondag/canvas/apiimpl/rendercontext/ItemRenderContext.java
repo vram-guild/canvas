@@ -24,14 +24,12 @@ import static grondag.canvas.buffer.format.EncoderUtils.applyItemLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
-import java.util.Random;
 import java.util.function.Supplier;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.ItemModelShaper;
@@ -48,17 +46,14 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.AbstractBannerBlock;
-import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.model.ItemModel;
-import io.vram.frex.api.model.ItemModel.ItemInputContext;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
-import io.vram.frex.api.world.ItemColorRegistry;
+import io.vram.frex.base.renderer.context.BaseItemContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
-import io.vram.sc.concurrency.SimpleConcurrentList;
 
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.buffer.input.CanvasImmediate;
@@ -67,43 +62,34 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
 
-public class ItemRenderContext extends AbstractRenderContext implements ItemInputContext {
-	/**
-	 * Value vanilla uses for item rendering.  The only sensible choice, of course.
-	 */
-	private static final long ITEM_RANDOM_SEED = 42L;
-
-	private static final SimpleConcurrentList<AbstractRenderContext> LOADED = new SimpleConcurrentList<>(AbstractRenderContext.class);
-
+public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 	private static final Supplier<ThreadLocal<ItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
-		final ItemRenderContext result = new ItemRenderContext(ItemColorRegistry.get());
-		LOADED.add(result);
+		final ItemRenderContext result = new ItemRenderContext();
 		return result;
 	});
 
 	private static ThreadLocal<ItemRenderContext> POOL = POOL_FACTORY.get();
-	private final ItemColors colorMap;
-	private final Random random = new Random();
-	private final Supplier<Random> randomSupplier = () -> {
-		final Random result = random;
-		result.setSeed(ITEM_RANDOM_SEED);
-		return random;
-	};
+
+	protected int lightmap;
+
 	private RenderType defaultRenderLayer;
 	private VertexConsumer defaultConsumer;
 
-	private int lightmap;
-	private ItemStack itemStack;
-	private TransformType renderMode;
-
-	public ItemRenderContext(ItemColors colorMap) {
+	public ItemRenderContext() {
 		super("ItemRenderContext");
-		this.colorMap = colorMap;
+	}
+
+	@Override
+	protected BaseItemContext createInputContext() {
+		return new BaseItemContext() {
+			@Override
+			public int flatBrightness(BaseQuadEmitter quad) {
+				return lightmap;
+			}
+		};
 	}
 
 	public static void reload() {
-		LOADED.forEach(c -> c.close());
-		LOADED.clear();
 		POOL = POOL_FACTORY.get();
 	}
 
@@ -112,33 +98,13 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 	}
 
 	@Override
-	public Random random() {
-		return randomSupplier.get();
-	}
-
-	@Override
 	public boolean defaultAo() {
 		return false;
 	}
 
 	@Override
-	public BlockState blockState() {
-		return null;
-	}
-
-	@Override
-	public int indexedColor(int colorIndex) {
-		return colorIndex == -1 ? -1 : (colorMap.getColor(itemStack, colorIndex) | 0xFF000000);
-	}
-
-	@Override
 	public int brightness() {
 		return lightmap;
-	}
-
-	@Override
-	public int flatBrightness(BaseQuadEmitter quad) {
-		return 0;
 	}
 
 	/**
@@ -166,10 +132,9 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 		if (stack.isEmpty()) return;
 
 		lightmap = light;
-		itemStack = stack;
-		this.renderMode = renderMode;
+		inputContext.prepareForItem(stack, renderMode);
 		isBlockItem = stack.getItem() instanceof BlockItem;
-		materialMap = MaterialMap.get(itemStack);
+		materialMap = MaterialMap.get(stack);
 		isGui = renderMode == ItemTransforms.TransformType.GUI;
 		isFrontLit = isGui && !model.usesBlockLight();
 		hasGlint = stack.hasFoil();
@@ -213,7 +178,7 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 				defaultConsumer = vertexConsumers.getBuffer(defaultRenderLayer);
 			}
 
-			((ItemModel) model).renderAsItem(this, emitter());
+			((ItemModel) model).renderAsItem(inputContext, emitter());
 		}
 
 		matrices.popPose();
@@ -317,15 +282,5 @@ public class ItemRenderContext extends AbstractRenderContext implements ItemInpu
 		} else {
 			return MaterialConstants.PRESET_SOLID;
 		}
-	}
-
-	@Override
-	public ItemStack itemStack() {
-		return itemStack;
-	}
-
-	@Override
-	public TransformType mode() {
-		return renderMode;
 	}
 }

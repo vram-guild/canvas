@@ -32,13 +32,11 @@ import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.model.BlockModel;
-import io.vram.frex.api.model.util.FaceUtil;
+import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.buffer.input.VertexCollectorList;
@@ -61,6 +59,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
+	public final InputRegion region;
 
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
@@ -79,13 +78,26 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		}
 	};
 
-	private int cullCompletionFlags;
-	private int cullResultFlags;
-
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new InputRegion(this);
+		inputContext.prepareForWorld(region, true);
 		collectors = new VertexCollectorList(true);
+	}
+
+	@Override
+	protected BaseBlockContext<InputRegion> createInputContext() {
+		return new BaseBlockContext<>() {
+			@Override
+			protected int fastBrightness(BlockPos pos) {
+				return region.cachedBrightness(pos);
+			}
+
+			@Override
+			public @Nullable Object blockEntityRenderData(BlockPos pos) {
+				return region.getBlockEntityRenderAttachment(pos);
+			}
+		};
 	}
 
 	public TerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {
@@ -120,9 +132,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		try {
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo, -1);
-			cullCompletionFlags = 0;
-			cullResultFlags = 0;
-			model.renderAsBlock(this, emitter());
+			model.renderAsBlock(this.inputContext, emitter());
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.forThrowable(var9, "Tesselating block in world - Canvas Renderer");
 			final CrashReportCategory crashReportElement_1 = crashReport_1.addCategory("Block being tesselated");
@@ -148,37 +158,9 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		} else if (Configurator.hdLightmaps()) {
 			// FEAT: per-vertex light maps will be ignored unless we bake a custom HD map
 			// or retain vertex light maps in buffer format and logic in shader to take max
-			aoCalc.computeFlatHd(quad, flatBrightness(quad));
+			aoCalc.computeFlatHd(quad, inputContext.flatBrightness(quad));
 		} else {
 			computeFlatSimple(quad);
-		}
-	}
-
-	@Override
-	protected int fastBrightness(BlockState blockState, BlockPos pos) {
-		return region.cachedBrightness(pos);
-	}
-
-	@Override
-	public boolean cullTest(int faceIndex) {
-		if (faceIndex == FaceUtil.UNASSIGNED_INDEX) {
-			return true;
-		}
-
-		final int mask = 1 << faceIndex;
-
-		if ((cullCompletionFlags & mask) == 0) {
-			cullCompletionFlags |= mask;
-			final Direction face = FaceUtil.faceFromIndex(faceIndex);
-
-			if (Block.shouldRenderFace(blockState, region, blockPos, face, internalSearchPos.setWithOffset(blockPos, face))) {
-				cullResultFlags |= mask;
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return (cullResultFlags & mask) != 0;
 		}
 	}
 
@@ -188,10 +170,5 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		applyBlockLighting(quad, this);
 		colorizeQuad(quad, this);
 		TerrainFormat.TERRAIN_ENCODER.encode(quad, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
-	}
-
-	@Override
-	public @Nullable Object blockEntityRenderData(BlockPos pos) {
-		return region.getBlockEntityRenderAttachment(pos);
 	}
 }

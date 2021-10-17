@@ -21,12 +21,10 @@
 package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.BitSet;
-import java.util.Random;
 
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.material.MaterialConstants;
@@ -34,23 +32,22 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.util.ColorUtil;
+import io.vram.frex.base.renderer.context.BaseInputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.AbstractEncodingContext;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteExt;
 
 // UGLY: consolidate and simplify this class hierarchy
-public abstract class AbstractRenderContext {
+public abstract class AbstractRenderContext<C extends BaseInputContext> {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinder finder = MaterialFinder.newInstance();
-	public final float[] vecData = new float[3];
 
 	public final AbstractEncodingContext encodingContext = new AbstractEncodingContext() { };
+	public final C inputContext;
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;
@@ -66,17 +63,10 @@ public abstract class AbstractRenderContext {
 
 	protected AbstractRenderContext(String name) {
 		this.name = name;
-
-		if (Configurator.enableLifeCycleDebug) {
-			CanvasMod.LOG.info("Lifecycle Event: create render context " + name);
-		}
+		inputContext = createInputContext();
 	}
 
-	public void close() {
-		if (Configurator.enableLifeCycleDebug) {
-			CanvasMod.LOG.info("Lifecycle Event: close render context " + name);
-		}
-	}
+	protected abstract C createInputContext();
 
 	void mapMaterials(BaseQuadEmitter quad) {
 		if (materialMap == defaultMap) {
@@ -106,12 +96,9 @@ public abstract class AbstractRenderContext {
 
 	public abstract boolean defaultAo();
 
-	protected abstract BlockState blockState();
+	//protected abstract BlockState blockState();
 
-	public abstract int indexedColor(int colorIndex);
-
-	// WIP: remove - stub for legacy fallback consumer
-	public abstract Random random();
+	//public abstract int indexedColor(int colorIndex);
 
 	/**
 	 * Used in contexts with a fixed brightness, like ITEM.
@@ -123,14 +110,14 @@ public abstract class AbstractRenderContext {
 	public abstract void computeFlat(BaseQuadEmitter quad);
 
 	protected void computeFlatSimple(BaseQuadEmitter quad) {
-		final int brightness = flatBrightness(quad);
+		final int brightness = inputContext.flatBrightness(quad);
 		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), brightness));
 		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), brightness));
 		quad.lightmap(2, ColorUtil.maxBrightness(quad.lightmap(2), brightness));
 		quad.lightmap(3, ColorUtil.maxBrightness(quad.lightmap(3), brightness));
 	}
 
-	public abstract int flatBrightness(BaseQuadEmitter quad);
+	//public abstract int flatBrightness(BaseQuadEmitter quad);
 
 	public final void renderQuad() {
 		final BaseQuadEmitter quad = emitter;
