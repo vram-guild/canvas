@@ -68,13 +68,13 @@ public class CanvasImmediate extends BufferSource {
 		if (mat.isMissing()) {
 			return super.getBuffer(renderLayer);
 		} else {
-			return collectors.consumer.prepare(mat);
+			return collectors.emitter.prepare(mat);
 		}
 	}
 
 	public FrexVertexConsumer getConsumer(RenderMaterial material) {
 		final CanvasRenderMaterial mat = contextState.mapMaterial((CanvasRenderMaterial) material);
-		return collectors.consumer.prepare(mat);
+		return collectors.emitter.prepare(mat);
 	}
 
 	public DrawableStream prepareDrawable(TargetRenderState target) {

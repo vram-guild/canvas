@@ -103,7 +103,7 @@ public class CanvasParticleRenderer {
 					if (baseMat != null) {
 						// FEAT: enhanced material maps for particles - shaders for animation in particular
 						final var mat = MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
-						collectors.consumer.defaultMaterial(mat == null || !mat.emissive() ? baseMat : emissiveMat);
+						collectors.emitter.defaultMaterial(mat == null || !mat.emissive() ? baseMat : emissiveMat);
 					}
 
 					particle.render(consumer, camera, tickDelta);
@@ -145,17 +145,17 @@ public class CanvasParticleRenderer {
 			baseMat = RENDER_STATE_TERRAIN;
 			emissiveMat = RENDER_STATE_TERRAIN_EMISSIVE;
 			drawHandler = () -> collectors.get(baseMat).draw(true);
-			return collectors.consumer.prepare(baseMat);
+			return collectors.emitter.prepare(baseMat);
 		} else if (particleTextureSheet == ParticleRenderType.PARTICLE_SHEET_LIT || particleTextureSheet == ParticleRenderType.PARTICLE_SHEET_OPAQUE) {
 			baseMat = RENDER_STATE_OPAQUE_OR_LIT;
 			emissiveMat = RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE;
 			drawHandler = () -> collectors.get(baseMat).draw(true);
-			return collectors.consumer.prepare(baseMat);
+			return collectors.emitter.prepare(baseMat);
 		} else if (particleTextureSheet == ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT) {
 			baseMat = RENDER_STATE_TRANSLUCENT;
 			emissiveMat = RENDER_STATE_TRANSLUCENT_EMISSIVE;
 			drawHandler = () -> collectors.get(baseMat).draw(true);
-			return collectors.consumer.prepare(baseMat);
+			return collectors.emitter.prepare(baseMat);
 		}
 
 		setupVanillaParticleRender();

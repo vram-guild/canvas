@@ -36,6 +36,7 @@ import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
+import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.input.VertexCollectorList;
@@ -52,7 +53,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	@Nullable public VertexCollectorList collectors = null;
 
 	protected final String name;
-	protected final BaseQuadEmitter makerQuad = new Maker();
+	protected final RootQuadEmitter emitter = new Emitter();
 
 	protected MaterialMap materialMap = defaultMap;
 	protected int defaultPreset;
@@ -88,8 +89,8 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	}
 
 	public final QuadEmitter emitter() {
-		makerQuad.clear();
-		return makerQuad;
+		emitter.clear();
+		return emitter;
 	}
 
 	public boolean cullTest(int faceIndex) {
@@ -129,7 +130,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	public abstract int flatBrightness(BaseQuadEmitter quad);
 
 	public final void renderQuad() {
-		final BaseQuadEmitter quad = makerQuad;
+		final BaseQuadEmitter quad = emitter;
 
 		mapMaterials(quad);
 
@@ -141,7 +142,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 
 			if (!mat.discardsTexture() && mat.texture().isAtlas()) {
 				// WIP: create and use sprite method on quad
-				final int animationIndex = ((SpriteExt) mat.texture().spriteIndex().fromIndex(makerQuad.spriteId())).canvas_animationIndex();
+				final int animationIndex = ((SpriteExt) mat.texture().spriteIndex().fromIndex(emitter.spriteId())).canvas_animationIndex();
 
 				if (animationIndex >= 0) {
 					animationBits.set(animationIndex);
@@ -207,7 +208,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.
 	 * Reused for all mesh quads. Fixed baking array sized to hold largest possible mesh quad.
 	 */
-	private class Maker extends BaseQuadEmitter {
+	private class Emitter extends RootQuadEmitter {
 		{
 			data = new int[MeshEncodingHelper.TOTAL_MESH_QUAD_STRIDE];
 			material(RenderMaterial.defaultMaterial());
@@ -215,7 +216,7 @@ public abstract class AbstractRenderContext extends AbstractEncodingContext {
 
 		// only used via RenderContext.getEmitter()
 		@Override
-		public Maker emit() {
+		public Emitter emit() {
 			complete();
 			renderQuad();
 			clear();
