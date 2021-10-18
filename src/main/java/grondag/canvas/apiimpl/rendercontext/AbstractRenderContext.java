@@ -90,10 +90,6 @@ public abstract class AbstractRenderContext<C extends BaseInputContext> {
 		return true;
 	}
 
-	protected final boolean cullTest(BaseQuadEmitter quad) {
-		return cullTest(quad.cullFaceId());
-	}
-
 	public abstract boolean defaultAo();
 
 	//protected abstract BlockState blockState();
@@ -124,7 +120,7 @@ public abstract class AbstractRenderContext<C extends BaseInputContext> {
 
 		mapMaterials(quad);
 
-		if (cullTest(quad)) {
+		if (cullTest(quad.cullFaceId())) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
 			final var mat = finder.find();

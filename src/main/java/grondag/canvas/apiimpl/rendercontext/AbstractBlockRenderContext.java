@@ -79,6 +79,11 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	}
 
 	@Override
+	public boolean cullTest(int faceIndex) {
+		return inputContext.cullTest(faceIndex);
+	}
+
+	@Override
 	public final boolean defaultAo() {
 		return defaultAo;
 	}
