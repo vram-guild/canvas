@@ -23,22 +23,11 @@ package grondag.canvas.shader;
 import io.vram.frex.api.texture.SpriteIndex;
 
 public final class MaterialShaderImpl {
-	public final int index;
-	public final int vertexShaderIndex;
-	public final int fragmentShaderIndex;
-	public final String vertexShaderSource;
-	public final String fragmentShaderSource;
-
 	public final ProgramType programType;
 	private GlMaterialProgram program;
 
-	public MaterialShaderImpl(int index, int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
-		this.vertexShaderIndex = vertexShaderIndex;
-		this.fragmentShaderIndex = fragmentShaderIndex;
+	private MaterialShaderImpl(ProgramType programType) {
 		this.programType = programType;
-		this.index = index;
-		vertexShaderSource = MaterialShaderManager.VERTEX_INDEXER.fromHandle(vertexShaderIndex).toString();
-		fragmentShaderSource = MaterialShaderManager.FRAGMENT_INDEXER.fromHandle(fragmentShaderIndex).toString();
 	}
 
 	private GlMaterialProgram getOrCreate() {
@@ -75,16 +64,8 @@ public final class MaterialShaderImpl {
 		}
 	}
 
-	public int getIndex() {
-		return index;
-	}
-
-	@Override
-	public String toString() {
-		return "index: " + index + "  type: " + programType.name
-				+ "  vertex: " + vertexShaderSource + "(" + vertexShaderIndex
-				+ ")  fragment: " + fragmentShaderSource + "(" + fragmentShaderIndex + ")";
-	}
-
-	public static final int MAX_SHADERS = 4096;
+	public static final MaterialShaderImpl COLOR = new MaterialShaderImpl(ProgramType.MATERIAL_COLOR);
+	public static final MaterialShaderImpl COLOR_TERRAIN = new MaterialShaderImpl(ProgramType.MATERIAL_COLOR_TERRAIN);
+	public static final MaterialShaderImpl DEPTH = new MaterialShaderImpl(ProgramType.MATERIAL_DEPTH);
+	public static final MaterialShaderImpl DEPTH_TERRAIN = new MaterialShaderImpl(ProgramType.MATERIAL_DEPTH_TERRAIN);
 }

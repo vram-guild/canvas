@@ -35,6 +35,7 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 
 public abstract class EncoderUtils {
+	// WIP: need to convent overlay via material instead of context
 	public static void bufferQuad(BaseQuadEmitter quad, EncodingContext context, VertexConsumer buff) {
 		final FastMatri4f matrix = (FastMatri4f) context.matrix();
 		final int overlay = context.overlay();
@@ -47,7 +48,6 @@ public abstract class EncoderUtils {
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
 
-		final var mat = quad.material();
 		final boolean emissive = quad.material().emissive();
 
 		for (int i = 0; i < 4; i++) {

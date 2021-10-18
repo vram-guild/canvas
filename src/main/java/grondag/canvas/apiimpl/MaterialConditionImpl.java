@@ -27,6 +27,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.material.MaterialCondition;
+import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.renderer.ConditionManager;
 
 import grondag.canvas.CanvasMod;
@@ -64,9 +65,8 @@ public class MaterialConditionImpl implements MaterialCondition {
 		return index;
 	}
 
-	public static final int CONDITION_FLAG_ARRAY_LENGTH = 2;
-	public static final int MAX_CONDITIONS = CONDITION_FLAG_ARRAY_LENGTH * 32;
-	private static MaterialConditionImpl[] CONDITIONS = new MaterialConditionImpl[MAX_CONDITIONS];
+	public static final int CONDITION_FLAG_ARRAY_LENGTH = (MaterialConstants.MAX_CONDITIONS + 31) / 32;
+	private static MaterialConditionImpl[] CONDITIONS = new MaterialConditionImpl[MaterialConstants.MAX_CONDITIONS];
 	private static int nextIndex = 0;
 	public static final MaterialConditionImpl ALWAYS = new MaterialConditionImpl(() -> true, false, false);
 
@@ -75,7 +75,7 @@ public class MaterialConditionImpl implements MaterialCondition {
 	}
 
 	public static MaterialCondition create(BooleanSupplier supplier, boolean affectBlocks, boolean affectItems) {
-		if (nextIndex >= MAX_CONDITIONS) {
+		if (nextIndex >= MaterialConstants.MAX_CONDITIONS) {
 			CanvasMod.LOG.error("Unable to create new render condition because max conditions have already been created.  Some renders may not work correctly.");
 			return ALWAYS;
 		} else {

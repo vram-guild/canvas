@@ -108,8 +108,7 @@ public class TargetRenderState implements Predicate<RenderState> {
 		}
 	);
 
-	public static final int TARGET_COUNT = 7;
-	private static final TargetRenderState[] VALUES = new TargetRenderState[TARGET_COUNT];
+	private static final TargetRenderState[] VALUES = new TargetRenderState[MaterialConstants.TARGET_COUNT];
 
 	static {
 		VALUES[MaterialConstants.TARGET_MAIN] = MAIN;

@@ -30,8 +30,7 @@ import io.vram.frex.api.material.MaterialConstants;
 import grondag.canvas.varia.GFX;
 
 public final class DecalRenderState {
-	public static final int DECAL_COUNT = 3;
-	private static final DecalRenderState[] VALUES = new DecalRenderState[DECAL_COUNT];
+	private static final DecalRenderState[] VALUES = new DecalRenderState[MaterialConstants.DECAL_COUNT];
 
 	public static DecalRenderState fromIndex(int index) {
 		return VALUES[index];

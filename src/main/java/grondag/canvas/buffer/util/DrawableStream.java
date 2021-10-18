@@ -86,14 +86,16 @@ public class DrawableStream implements AutoCloseable {
 				final RenderState state = states[i];
 				final int vertexCount = counts[i];
 
-				if (state.castShadows || !isShadow) {
-					state.enable();
-					final int elementCount = vertexCount / 4 * 6;
-					final RenderSystem.AutoStorageIndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(Mode.QUADS, elementCount);
-					GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name());
-					final int elementType = indexBuffer.type().asGLType; // "count" appears to be a yarn defect
-					GFX.drawElementsBaseVertex(Mode.QUADS.asGLMode, elementCount, elementType, 0L, startIndex);
-				}
+				// WIP: restore ability to skip render of non-shadow casters
+				// probably based on bucket encoding
+				//if (state.castShadows || !isShadow) {
+				state.enable();
+				final int elementCount = vertexCount / 4 * 6;
+				final RenderSystem.AutoStorageIndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(Mode.QUADS, elementCount);
+				GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name());
+				final int elementType = indexBuffer.type().asGLType; // "count" appears to be a yarn defect
+				GFX.drawElementsBaseVertex(Mode.QUADS.asGLMode, elementCount, elementType, 0L, startIndex);
+				//}
 
 				startIndex += vertexCount;
 			}

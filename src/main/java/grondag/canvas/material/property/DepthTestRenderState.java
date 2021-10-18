@@ -57,8 +57,7 @@ public class DepthTestRenderState {
 			GFX.depthFunc(GFX.GL_LEQUAL);
 		});
 
-	public static final int DEPTH_TEST_COUNT = 4;
-	private static final DepthTestRenderState[] VALUES = new DepthTestRenderState[DEPTH_TEST_COUNT];
+	private static final DepthTestRenderState[] VALUES = new DepthTestRenderState[MaterialConstants.DEPTH_TEST_COUNT];
 
 	static {
 		VALUES[MaterialConstants.DEPTH_TEST_DISABLE] = DISABLE;

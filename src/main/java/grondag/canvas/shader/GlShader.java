@@ -54,6 +54,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import io.vram.frex.api.config.ShaderConfig;
+import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -314,7 +315,7 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "//#define SHADOW_MAP_SIZE 1024");
 			}
 
-			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialShaderImpl.MAX_SHADERS);
+			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialConstants.MAX_SHADERS);
 
 			// prepend GLSL version
 			result = "#version " + Pipeline.config().glslVersion + "\n\n" + result;

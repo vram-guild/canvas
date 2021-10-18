@@ -20,9 +20,7 @@
 
 package grondag.canvas.material.state;
 
-import static grondag.canvas.material.state.MaterialStateEncoder.COLLECTOR_AND_STATE_MASK;
 import static grondag.canvas.material.state.MaterialStateEncoder.FLAG_SHIFT;
-import static grondag.canvas.material.state.MaterialStateEncoder.primaryTargetTransparency;
 
 import com.google.common.base.Strings;
 
@@ -41,7 +39,6 @@ import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.shader.MaterialShaderId;
-import grondag.canvas.shader.MaterialShaderImpl;
 import grondag.canvas.shader.MaterialShaderManager;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialIndexer;
@@ -52,7 +49,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 	protected final int collectorIndex;
 	protected final int shaderFlags;
 	protected final RenderState renderState;
-	protected final long canvasBits;
+	protected final long materialKey;
 
 	protected final MaterialTexture materialTexture;
 	protected final TextureMaterialState texture;
@@ -63,9 +60,6 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 	protected final ResourceLocation vertexShaderId;
 	protected final int fragmentShaderIndex;
 	protected final ResourceLocation fragmentShaderId;
-	protected final MaterialShaderImpl shader;
-	protected final MaterialShaderImpl guiShader;
-	protected final MaterialShaderImpl terrainShader;
 
 	protected final int depthVertexShaderIndex;
 	protected final ResourceLocation depthVertexShaderId;
@@ -73,9 +67,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 	protected final int depthFragmentShaderIndex;
 	protected final ResourceLocation depthFragmentShaderId;
 	protected final String depthFragmentShader;
-	protected final MaterialShaderImpl depthShader;
-	protected final MaterialShaderImpl terrainDepthShader;
-	protected final boolean primaryTargetTransparency;
+	//protected final boolean primaryTargetTransparency;
 
 	/**
 	 * Will be always visible condition in vertex-controlled render state.
@@ -91,40 +83,13 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 		texture = TextureMaterialState.fromId(materialTexture.id());
 		condition = (MaterialConditionImpl) super.condition();
 
-		// NB: must prefix bit packers here because FREX packers have same names
-		long canvasBits = 0;
-		canvasBits = MaterialStateEncoder.BLUR.setValue(blur(), canvasBits);
-		canvasBits = MaterialStateEncoder.DISABLE_SHADOWS.setValue(!castShadows(), canvasBits);
-		canvasBits = MaterialStateEncoder.CONDITION.setValue(conditionIndex(), canvasBits);
-		canvasBits = MaterialStateEncoder.CULL.setValue(cull(), canvasBits);
-		canvasBits = MaterialStateEncoder.CUTOUT.setValue(cutout(), canvasBits);
-		canvasBits = MaterialStateEncoder.DECAL.setValue(decal(), canvasBits);
-		canvasBits = MaterialStateEncoder.DEPTH_TEST.setValue(depthTest(), canvasBits);
-		canvasBits = MaterialStateEncoder.DISABLE_AO.setValue(disableAo(), canvasBits);
-		canvasBits = MaterialStateEncoder.DISABLE_COLOR_INDEX.setValue(disableColorIndex(), canvasBits);
-		canvasBits = MaterialStateEncoder.DISABLE_DIFFUSE.setValue(disableDiffuse(), canvasBits);
-		canvasBits = MaterialStateEncoder.DISCARDS_TEXTURE.setValue(discardsTexture(), canvasBits);
-		canvasBits = MaterialStateEncoder.EMISSIVE.setValue(emissive(), canvasBits);
-		canvasBits = MaterialStateEncoder.FLASH_OVERLAY.setValue(flashOverlay(), canvasBits);
-		canvasBits = MaterialStateEncoder.FOG.setValue(fog(), canvasBits);
-		canvasBits = MaterialStateEncoder.ENABLE_GLINT.setValue(foilOverlay(), canvasBits);
-		canvasBits = MaterialStateEncoder.HURT_OVERLAY.setValue(hurtOverlay(), canvasBits);
-		canvasBits = MaterialStateEncoder.LINES.setValue(lines(), canvasBits);
-		canvasBits = MaterialStateEncoder.PRESET.setValue(preset(), canvasBits);
-		canvasBits = MaterialStateEncoder.SHADER_ID.setValue(shaderIndex(), canvasBits);
-		canvasBits = MaterialStateEncoder.SORTED.setValue(sorted(), canvasBits);
-		canvasBits = MaterialStateEncoder.TARGET.setValue(target(), canvasBits);
-		canvasBits = MaterialStateEncoder.TEXTURE.setValue(texture.index, canvasBits);
-		canvasBits = MaterialStateEncoder.TRANSPARENCY.setValue(transparency(), canvasBits);
-		canvasBits = MaterialStateEncoder.UNMIPPED.setValue(unmipped(), canvasBits);
-		canvasBits = MaterialStateEncoder.WRITE_MASK.setValue(writeMask(), canvasBits);
-		this.canvasBits = canvasBits;
+		collectorKey = MaterialStateEncoder.encodeCollectorKey(this, texture);
+		materialKey = MaterialStateEncoder.encodeMaterialKey(this);
 
 		// Main purpose of persisting this stuff is run-time debug
 		// May also avoid a few pointer chases.
-		collectorKey = canvasBits & COLLECTOR_AND_STATE_MASK;
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey);
-		shaderFlags = (int) (canvasBits >>> FLAG_SHIFT) & 0xFFFF;
+		shaderFlags = (int) (materialKey >>> FLAG_SHIFT) & 0xFFFF;
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
 		shaderId = (MaterialShaderId) super.shader();
 		vertexShaderIndex = shaderId.vertexIndex;
@@ -139,14 +104,14 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 		depthFragmentShaderId = shaderId.depthFragmentId;
 		depthFragmentShader = depthFragmentShaderId.toString();
 
-		primaryTargetTransparency = primaryTargetTransparency(canvasBits);
+		//primaryTargetTransparency = primaryTargetTransparency(collectorKey);
 
 		// Important that these happen because otherwise material shaders will never be registered - they aren't part of render state.
-		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
-		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
-		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
-		terrainShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
-		terrainDepthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
+		MaterialShaderManager.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		MaterialShaderManager.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		MaterialShaderManager.INSTANCE.register(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
+		MaterialShaderManager.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
+		MaterialShaderManager.INSTANCE.register(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
 
 		indexer = new ResourceCache<>(() -> renderState.texture.materialIndexProvider().getIndexer(this));
 
@@ -196,7 +161,6 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
 		sb.append("stateIndex:   ").append(index).append("\n");
-		sb.append("stateKey      ").append(Strings.padStart(Long.toHexString(canvasBits), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(canvasBits), 64, '0')).append("\n");
 		sb.append("collectorIdx: ").append(collectorIndex).append("\n");
 		sb.append("collectorKey: ").append(Strings.padStart(Long.toHexString(collectorKey), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(collectorKey), 64, '0')).append("\n");
 		sb.append("renderIndex:  ").append(renderState.index).append("\n");

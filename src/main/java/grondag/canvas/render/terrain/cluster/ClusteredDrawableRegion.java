@@ -53,12 +53,12 @@ public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDra
 		// the vertex offset for each.  The calls won't be batched by region so there's no advantage to
 		// making them adjacent in storage and smaller allocations may be easier to manage for storage.
 		assert drawList.size() == 1;
-		assert collector.renderState.sorted == translucent;
+		assert collector.sorted == translucent;
 
 		final TransferBuffer transferBuffer = TransferBuffers.claim(byteCount);
 		final VertexBucket[] buckets = translucent ? null : collector.sortVertexBuckets();
 		collector.toBuffer(0, transferBuffer, 0);
-		ClusteredDrawableStorage storage = new ClusteredDrawableStorage(
+		final ClusteredDrawableStorage storage = new ClusteredDrawableStorage(
 				realm,
 				transferBuffer, byteCount, origin, collector.quadCount() * 4,
 				buckets);

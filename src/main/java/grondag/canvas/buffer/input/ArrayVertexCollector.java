@@ -50,12 +50,14 @@ public class ArrayVertexCollector implements VertexCollector {
 	private int integerSize = 0;
 
 	public final RenderState renderState;
+	public final boolean sorted;
 	private final VertexBucket.Sorter bucketSorter;
 
-	public ArrayVertexCollector(RenderState renderState, boolean isTerrain) {
+	public ArrayVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain) {
 		this.renderState = renderState;
+		this.sorted = sorted;
 		this.isTerrain = isTerrain;
-		bucketSorter = isTerrain && !renderState.sorted ? new VertexBucket.Sorter() : null;
+		bucketSorter = isTerrain && !sorted ? new VertexBucket.Sorter() : null;
 		quadStrideInts = isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts;
 		swapData = new int[quadStrideInts * 2];
 		arrayCount.incrementAndGet();
@@ -323,7 +325,7 @@ public class ArrayVertexCollector implements VertexCollector {
 	}
 
 	public void sortIfNeeded() {
-		if (renderState.sorted) {
+		if (sorted) {
 			sortQuads(0, 0, 0);
 		}
 	}

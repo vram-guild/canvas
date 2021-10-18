@@ -21,11 +21,9 @@
 package grondag.canvas.shader;
 
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
 import net.minecraft.resources.ResourceLocation;
-
-import io.vram.sc.unordered.SimpleUnorderedArrayList;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -35,50 +33,31 @@ import grondag.fermion.varia.IndexedInterner;
 public enum MaterialShaderManager {
 	INSTANCE;
 
-	private final SimpleUnorderedArrayList<MaterialShaderImpl> shaders = new SimpleUnorderedArrayList<>();
-
 	MaterialShaderManager() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: MaterialShaderManager init");
 		}
 	}
 
-	public synchronized MaterialShaderImpl find(int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
+	public synchronized void register(int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
 		final long key = key(vertexShaderIndex, fragmentShaderIndex, programType);
-		MaterialShaderImpl result = KEYMAP.get(key);
 
-		if (result == null) {
-			result = create(vertexShaderIndex, fragmentShaderIndex, programType);
-			KEYMAP.put(key, result);
+		if (KEYS.add(key)) {
+			boolean isNew;
+
+			if (programType.isDepth) {
+				isNew = DEPTH_VERTEX_INDEXES.add(vertexShaderIndex);
+				isNew |= DEPTH_FRAGMENT_INDEXES.add(fragmentShaderIndex);
+			} else {
+				isNew = VERTEX_INDEXES.add(vertexShaderIndex);
+				isNew |= FRAGMENT_INDEXES.add(fragmentShaderIndex);
+			}
+
+			// ensure shaders are recompiled when new sub-shader source referenced
+			if (isNew) {
+				GlProgramManager.INSTANCE.reload();
+			}
 		}
-
-		return result;
-	}
-
-	private synchronized MaterialShaderImpl create(int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
-		final MaterialShaderImpl result = new MaterialShaderImpl(shaders.size(), vertexShaderIndex, fragmentShaderIndex, programType);
-		shaders.add(result);
-
-		boolean isNew;
-
-		if (programType.isDepth) {
-			isNew = DEPTH_VERTEX_INDEXES.add(vertexShaderIndex);
-			isNew |= DEPTH_FRAGMENT_INDEXES.add(fragmentShaderIndex);
-		} else {
-			isNew = VERTEX_INDEXES.add(vertexShaderIndex);
-			isNew |= FRAGMENT_INDEXES.add(fragmentShaderIndex);
-		}
-
-		// ensure shaders are recompiled when new sub-shader source referenced
-		if (isNew) {
-			GlProgramManager.INSTANCE.reload();
-		}
-
-		return result;
-	}
-
-	public MaterialShaderImpl get(int index) {
-		return shaders.get(index);
 	}
 
 	/** Tracks which vertex sub-shaders are in use by materials. */
@@ -95,7 +74,7 @@ public enum MaterialShaderManager {
 
 	public static final IndexedInterner<ResourceLocation> VERTEX_INDEXER = new IndexedInterner<>(ResourceLocation.class);
 	public static final IndexedInterner<ResourceLocation> FRAGMENT_INDEXER = new IndexedInterner<>(ResourceLocation.class);
-	private static final Long2ObjectOpenHashMap<MaterialShaderImpl> KEYMAP = new Long2ObjectOpenHashMap<>();
+	private static final LongOpenHashSet KEYS = new LongOpenHashSet();
 
 	private static long key(int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
 		// PERF: don't need key space this big

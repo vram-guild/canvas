@@ -20,20 +20,15 @@
 
 package grondag.canvas.material.state;
 
-import static grondag.canvas.material.state.MaterialStateEncoder.BLUR;
-import static grondag.canvas.material.state.MaterialStateEncoder.COLLECTOR_AND_STATE_MASK;
-import static grondag.canvas.material.state.MaterialStateEncoder.CULL;
-import static grondag.canvas.material.state.MaterialStateEncoder.DECAL;
-import static grondag.canvas.material.state.MaterialStateEncoder.DEPTH_TEST;
-import static grondag.canvas.material.state.MaterialStateEncoder.DISABLE_SHADOWS;
-import static grondag.canvas.material.state.MaterialStateEncoder.LINES;
-import static grondag.canvas.material.state.MaterialStateEncoder.SHADER_ID;
-import static grondag.canvas.material.state.MaterialStateEncoder.SORTED;
-import static grondag.canvas.material.state.MaterialStateEncoder.TARGET;
-import static grondag.canvas.material.state.MaterialStateEncoder.TEXTURE;
-import static grondag.canvas.material.state.MaterialStateEncoder.TRANSPARENCY;
-import static grondag.canvas.material.state.MaterialStateEncoder.WRITE_MASK;
-import static grondag.canvas.material.state.MaterialStateEncoder.primaryTargetTransparency;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_BLUR;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_CULL;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_DECAL;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_DEPTH_TEST;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_LINES;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_TARGET;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_TEXTURE;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_TRANSPARENCY;
+import static grondag.canvas.material.state.MaterialStateEncoder.R_WRITE_MASK;
 
 import com.google.common.base.Strings;
 import it.unimi.dsi.fastutil.Hash;
@@ -44,6 +39,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 
 import io.vram.bitkit.BitPacker64;
+import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.texture.MaterialTexture;
 
 import grondag.canvas.material.property.BinaryRenderState;
@@ -57,10 +53,7 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.MaterialShaderImpl;
-import grondag.canvas.shader.MaterialShaderManager;
-import grondag.canvas.shader.ProgramType;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
@@ -94,14 +87,6 @@ public final class RenderState {
 	public final WriteMaskRenderState writeMask;
 	public final DecalRenderState decal;
 	public final boolean lines;
-	public final boolean sorted;
-	public final boolean castShadows;
-
-	protected final MaterialShaderImpl shader;
-	protected final MaterialShaderImpl guiShader;
-	protected final MaterialShaderImpl terrainShader;
-	protected final MaterialShaderImpl depthShader;
-	protected final MaterialShaderImpl terrainDepthShader;
 
 	public final boolean primaryTargetTransparency;
 	public final long drawPriority;
@@ -109,31 +94,18 @@ public final class RenderState {
 	protected RenderState(long bits) {
 		this.bits = bits;
 		this.index = nextIndex++;
-		target = TargetRenderState.fromIndex(TARGET.getValue(bits));
-		materialTexture = MaterialTexture.fromIndex(TEXTURE.getValue(bits));
+		target = TargetRenderState.fromIndex(R_TARGET.getValue(bits));
+		materialTexture = MaterialTexture.fromIndex(R_TEXTURE.getValue(bits));
 		texture = TextureMaterialState.fromId(materialTexture.id());
-		blur = BLUR.getValue(bits);
-		transparency = TransparencyRenderState.fromIndex(TRANSPARENCY.getValue(bits));
-		depthTest = DepthTestRenderState.fromIndex(DEPTH_TEST.getValue(bits));
-		cull = CULL.getValue(bits);
-		writeMask = WriteMaskRenderState.fromIndex(WRITE_MASK.getValue(bits));
-		decal = DecalRenderState.fromIndex(DECAL.getValue(bits));
-		lines = LINES.getValue(bits);
-		sorted = SORTED.getValue(bits);
-		castShadows = !DISABLE_SHADOWS.getValue(bits);
-
-		final var shaderId = MaterialShaderId.get(SHADER_ID.getValue(bits));
-		final var vertexShaderIndex = shaderId.vertexIndex;
-		final var fragmentShaderIndex = shaderId.fragmentIndex;
-		final var depthVertexShaderIndex = shaderId.depthVertexIndex;
-		final var depthFragmentShaderIndex = shaderId.depthFragmentIndex;
-
-		primaryTargetTransparency = primaryTargetTransparency(bits);
-		shader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
-		guiShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
-		depthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
-		terrainShader = MaterialShaderManager.INSTANCE.find(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
-		terrainDepthShader = MaterialShaderManager.INSTANCE.find(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
+		blur = R_BLUR.getValue(bits);
+		transparency = TransparencyRenderState.fromIndex(R_TRANSPARENCY.getValue(bits));
+		depthTest = DepthTestRenderState.fromIndex(R_DEPTH_TEST.getValue(bits));
+		cull = R_CULL.getValue(bits);
+		writeMask = WriteMaskRenderState.fromIndex(R_WRITE_MASK.getValue(bits));
+		decal = DecalRenderState.fromIndex(R_DECAL.getValue(bits));
+		lines = R_LINES.getValue(bits);
+		//castShadows = !DISABLE_SHADOWS.getValue(bits);
+		primaryTargetTransparency = MaterialStateEncoder.primaryTargetTransparency(bits);
 		drawPriority = drawPriority();
 	}
 
@@ -165,7 +137,7 @@ public final class RenderState {
 
 	private void enableDepthPass(int x, int y, int z, int cascade) {
 		final MatrixState matrixState = MatrixState.get();
-		final MaterialShaderImpl depthShader = matrixState == MatrixState.REGION ? terrainDepthShader : this.depthShader;
+		final MaterialShaderImpl depthShader = matrixState == MatrixState.REGION ? MaterialShaderImpl.DEPTH_TERRAIN : MaterialShaderImpl.DEPTH;
 
 		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
 			depthShader.setModelOrigin(x, y, z);
@@ -208,21 +180,8 @@ public final class RenderState {
 	}
 
 	private void enableMaterial(int x, int y, int z) {
-		final MaterialShaderImpl shader;
 		final MatrixState matrixState = MatrixState.get();
-
-		switch (matrixState) {
-			case REGION:
-				shader = terrainShader;
-				break;
-			case SCREEN:
-				shader = guiShader;
-				break;
-			case CAMERA:
-			default:
-				shader = this.shader;
-				break;
-		}
+		final MaterialShaderImpl shader = matrixState == MatrixState.REGION ? MaterialShaderImpl.COLOR_TERRAIN : MaterialShaderImpl.COLOR;
 
 		if (active == this && matrixState == currentMatrixState) {
 			shader.setModelOrigin(x, y, z);
@@ -285,7 +244,6 @@ public final class RenderState {
 		final StringBuilder sb = new StringBuilder();
 		sb.append("stateIndex:   ").append(index).append("\n");
 		sb.append("stateKey      ").append(Strings.padStart(Long.toHexString(bits), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(bits), 64, '0')).append("\n");
-		sb.append("collectorKey: ").append(Strings.padStart(Long.toHexString(bits & COLLECTOR_AND_STATE_MASK), 16, '0')).append("  ").append(Strings.padStart(Long.toBinaryString(bits & COLLECTOR_AND_STATE_MASK), 64, '0')).append("\n");
 		sb.append("primaryTargetTransparency: ").append(primaryTargetTransparency).append("\n");
 		sb.append("target: ").append(target.name).append("\n");
 		sb.append("texture: ").append(texture.index).append("  ").append(texture.id.toString()).append("\n");
@@ -305,18 +263,17 @@ public final class RenderState {
 
 	// these aren't order-dependent, they are included in sort to minimize state changes
 	private static final BitPacker64<Void>.BooleanElement SORT_BLUR = SORT_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(DepthTestRenderState.DEPTH_TEST_COUNT);
+	private static final BitPacker64<Void>.IntElement SORT_DEPTH_TEST = SORT_PACKER.createIntElement(MaterialConstants.DEPTH_TEST_COUNT);
 	private static final BitPacker64<Void>.BooleanElement SORT_CULL = SORT_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement SORT_LINES = SORT_PACKER.createBooleanElement();
 
 	// decal should be drawn after non-decal
-	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(DecalRenderState.DECAL_COUNT);
-	// primary sorted layer drawn first
+	private static final BitPacker64<Void>.IntElement SORT_DECAL = SORT_PACKER.createIntElement(MaterialConstants.DECAL_COUNT);
 	private static final BitPacker64<Void>.BooleanElement SORT_TPP = SORT_PACKER.createBooleanElement();
 	// draw solid first, then various translucent layers
-	private static final BitPacker64<Void>.IntElement SORT_TRANSPARENCY = SORT_PACKER.createIntElement(TransparencyRenderState.TRANSPARENCY_COUNT);
+	private static final BitPacker64<Void>.IntElement SORT_TRANSPARENCY = SORT_PACKER.createIntElement(MaterialConstants.TRANSPARENCY_COUNT);
 	// draw things that update depth buffer first
-	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(WriteMaskRenderState.WRITE_MASK_COUNT);
+	private static final BitPacker64<Void>.IntElement SORT_WRITE_MASK = SORT_PACKER.createIntElement(MaterialConstants.WRITE_MASK_COUNT);
 
 	private static final BinaryRenderState CULL_STATE = new BinaryRenderState(GFX::enableCull, GFX::disableCull);
 
@@ -392,6 +349,8 @@ public final class RenderState {
 	}
 
 	public static synchronized RenderState fromBits(long bits) {
+		bits &= MaterialStateEncoder.RENDER_STATE_MASK;
+
 		RenderState result = RenderState.MAP.get(bits);
 
 		if (result == null) {

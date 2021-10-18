@@ -55,8 +55,7 @@ public class WriteMaskRenderState {
 		}
 	);
 
-	public static final int WRITE_MASK_COUNT = 3;
-	private static final WriteMaskRenderState[] VALUES = new WriteMaskRenderState[WRITE_MASK_COUNT];
+	private static final WriteMaskRenderState[] VALUES = new WriteMaskRenderState[MaterialConstants.WRITE_MASK_COUNT];
 
 	static {
 		VALUES[MaterialConstants.WRITE_MASK_COLOR] = COLOR;

@@ -119,7 +119,7 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			result = new ArrayVertexCollector(materialState.renderState(), isTerrain);
+			result = new ArrayVertexCollector(materialState.renderState(), materialState.sorted(), isTerrain);
 			collectors[index] = result;
 			active.add(result);
 		}
@@ -148,7 +148,7 @@ public class VertexCollectorList {
 		for (int i = 0; i < limit; i++) {
 			final ArrayVertexCollector collector = active.get(i);
 
-			if (!collector.isEmpty() && collector.renderState.sorted == sorted) {
+			if (!collector.isEmpty() && collector.sorted == sorted) {
 				intSize += collector.integerSize();
 			}
 		}

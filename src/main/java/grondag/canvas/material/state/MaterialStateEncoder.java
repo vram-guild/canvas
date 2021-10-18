@@ -24,134 +24,117 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 
 import io.vram.bitkit.BitPacker64;
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.RenderMaterial;
 
-import grondag.canvas.apiimpl.MaterialConditionImpl;
 import grondag.canvas.material.property.DecalRenderState;
-import grondag.canvas.material.property.DepthTestRenderState;
-import grondag.canvas.material.property.TargetRenderState;
 import grondag.canvas.material.property.TextureMaterialState;
-import grondag.canvas.material.property.TransparencyRenderState;
-import grondag.canvas.material.property.WriteMaskRenderState;
-import grondag.canvas.shader.MaterialShaderId;
-import grondag.canvas.shader.MaterialShaderImpl;
-import grondag.canvas.shader.data.ShaderStrings;
 
 public abstract class MaterialStateEncoder {
 	private MaterialStateEncoder() { }
 
 	static boolean primaryTargetTransparency(long bits) {
-		if (!SORTED.getValue(bits)) {
-			return false;
-		}
-
-		final long masked = bits & COLLECTOR_AND_STATE_MASK;
-		final var target = TARGET.getValue(bits);
-
-		return (masked == TRANSLUCENT_TERRAIN_COLLECTOR_KEY && target == MaterialConstants.TARGET_TRANSLUCENT)
-			|| (masked == TRANSLUCENT_ENTITY_COLLECTOR_KEY && target == MaterialConstants.TARGET_ENTITIES);
+		bits &= RENDER_STATE_MASK;
+		return (bits == TRANSLUCENT_TERRAIN_KEY) || (bits == TRANSLUCENT_ENTITY_KEY);
 	}
 
-	static final BitPacker64<Void> PACKER = new BitPacker64<> (null, null);
+	private static final BitPacker64<Void> RENDER_PACKER = new BitPacker64<> (null, null);
 
 	// GL State comes first for sorting
-	public static final BitPacker64<Void>.IntElement TARGET = PACKER.createIntElement(TargetRenderState.TARGET_COUNT);
-	public static final BitPacker64<Void>.IntElement TEXTURE = PACKER.createIntElement(TextureMaterialState.MAX_TEXTURE_STATES);
-	public static final BitPacker64<Void>.BooleanElement BLUR = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.IntElement TRANSPARENCY = PACKER.createIntElement(TransparencyRenderState.TRANSPARENCY_COUNT);
-	public static final BitPacker64<Void>.IntElement DEPTH_TEST = PACKER.createIntElement(DepthTestRenderState.DEPTH_TEST_COUNT);
-	public static final BitPacker64<Void>.BooleanElement CULL = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.IntElement WRITE_MASK = PACKER.createIntElement(WriteMaskRenderState.WRITE_MASK_COUNT);
-	public static final BitPacker64<Void>.IntElement DECAL = PACKER.createIntElement(DecalRenderState.DECAL_COUNT);
-	public static final BitPacker64<Void>.BooleanElement LINES = PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.IntElement R_TARGET = RENDER_PACKER.createIntElement(MaterialConstants.TARGET_COUNT);
+	public static final BitPacker64<Void>.IntElement R_TEXTURE = RENDER_PACKER.createIntElement(MaterialConstants.MAX_TEXTURE_STATES);
+	public static final BitPacker64<Void>.BooleanElement R_BLUR = RENDER_PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.IntElement R_TRANSPARENCY = RENDER_PACKER.createIntElement(MaterialConstants.TRANSPARENCY_COUNT);
+	public static final BitPacker64<Void>.IntElement R_DEPTH_TEST = RENDER_PACKER.createIntElement(MaterialConstants.DEPTH_TEST_COUNT);
+	public static final BitPacker64<Void>.BooleanElement R_CULL = RENDER_PACKER.createBooleanElement();
+	public static final BitPacker64<Void>.IntElement R_WRITE_MASK = RENDER_PACKER.createIntElement(MaterialConstants.WRITE_MASK_COUNT);
+	public static final BitPacker64<Void>.IntElement R_DECAL = RENDER_PACKER.createIntElement(MaterialConstants.DECAL_COUNT);
+	public static final BitPacker64<Void>.BooleanElement R_LINES = RENDER_PACKER.createBooleanElement();
 
-	// These don't affect GL state but must be collected and drawn separately
-	// They also generally won't change within a render state for any given context
-	// so they don't cause fragmentation except for sorted transparency, which is intended.
-	public static final BitPacker64<Void>.BooleanElement SORTED = PACKER.createBooleanElement();
-	//static final BitPacker64<Void>.IntElement PRIMITIVE = PACKER.createIntElement(8);
+	public static final long RENDER_STATE_MASK = RENDER_PACKER.bitMask();
 
-	// Identifies the collection key and state to be used for the primary sorted transparency buffer
-	// for a given target. Also used to render mixed-material atlas quads as a performance optimization.
-	// Quads outside of this buffer, if any, will be rendered after primary and may not sort correctly.
-	// Must not be GUI render
-	public static final long COLLECTOR_AND_STATE_MASK = PACKER.bitMask();
+	// Doesn't affect GL state but must be collected separately.
+	public static final BitPacker64<Void>.BooleanElement R_SORTED = RENDER_PACKER.createBooleanElement();
 
-	// Part of render state and collection key for non-sorted, not included in either for sorted
-	public static final BitPacker64<Void>.IntElement SHADER_ID = PACKER.createIntElement(MaterialShaderImpl.MAX_SHADERS);
+	private static final BitPacker64<Void> MATERIAL_PACKER = new BitPacker64<> (null, null);
 
-	public static final long RENDER_STATE_MASK = PACKER.bitMask();
-
-	// Can't be part of PTT collector key
-	public static final BitPacker64<Void>.IntElement CONDITION = PACKER.createIntElement(MaterialConditionImpl.MAX_CONDITIONS);
+	private static final BitPacker64<Void>.IntElement M_SHADER = MATERIAL_PACKER.createIntElement(MaterialConstants.MAX_SHADERS);
+	private static final BitPacker64<Void>.IntElement M_CONDITION = MATERIAL_PACKER.createIntElement(MaterialConstants.MAX_CONDITIONS);
 
 	// here and below only used in material - holds vertex state - does not affect buffering or gl State
-	public static final BitPacker64<Void>.BooleanElement DISABLE_COLOR_INDEX = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.IntElement PRESET = PACKER.createIntElement(6);
-	public static final BitPacker64<Void>.BooleanElement DISCARDS_TEXTURE = PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement M_DISABLE_COLOR_INDEX = MATERIAL_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.IntElement M_PRESET = MATERIAL_PACKER.createIntElement(6);
+	private static final BitPacker64<Void>.BooleanElement M_DISCARDS_TEXTURE = MATERIAL_PACKER.createBooleanElement();
 
-	public static final int FLAG_SHIFT = PACKER.bitLength();
+	public static final int FLAG_SHIFT = MATERIAL_PACKER.bitLength();
 
 	// remaining bits correspond to shader flag bits
-	public static final BitPacker64<Void>.BooleanElement EMISSIVE = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.BooleanElement DISABLE_DIFFUSE = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.BooleanElement DISABLE_AO = PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement M_EMISSIVE = MATERIAL_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement M_DISABLE_DIFFUSE = MATERIAL_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement M_DISABLE_AO = MATERIAL_PACKER.createBooleanElement();
 	// WIP: doesn't handle alpha type cutout - only used for ender dragon currently
-	public static final BitPacker64<Void>.IntElement CUTOUT = PACKER.createIntElement(4);
-	public static final BitPacker64<Void>.BooleanElement UNMIPPED = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.BooleanElement HURT_OVERLAY = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.BooleanElement FLASH_OVERLAY = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.BooleanElement FOG = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.BooleanElement DISABLE_SHADOWS = PACKER.createBooleanElement();
-	public static final BitPacker64<Void>.BooleanElement ENABLE_GLINT = PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.IntElement M_CUTOUT = MATERIAL_PACKER.createIntElement(4);
+	private static final BitPacker64<Void>.BooleanElement M_UNMIPPED = MATERIAL_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement M_HURT_OVERLAY = MATERIAL_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement M_FLASH_OVERLAY = MATERIAL_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement M_FOG = MATERIAL_PACKER.createBooleanElement();
+	private static final BitPacker64<Void>.BooleanElement M_ENABLE_GLINT = MATERIAL_PACKER.createBooleanElement();
 
-	public static final long DEFAULT_BITS;
-
-	public static final long TRANSLUCENT_TERRAIN_COLLECTOR_KEY;
-	public static final long TRANSLUCENT_ENTITY_COLLECTOR_KEY;
+	private static final long TRANSLUCENT_TERRAIN_KEY;
+	private static final long TRANSLUCENT_ENTITY_KEY;
 
 	static {
-		assert PACKER.bitLength() <= 64;
+		long translucentBits = R_TARGET.setValue(MaterialConstants.TARGET_TRANSLUCENT, 0);
+		translucentBits = R_TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
+		translucentBits = R_BLUR.setValue(false, translucentBits);
+		translucentBits = R_TRANSPARENCY.setValue(MaterialConstants.TRANSPARENCY_TRANSLUCENT, translucentBits);
+		translucentBits = R_DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, translucentBits);
+		translucentBits = R_CULL.setValue(true, translucentBits);
+		translucentBits = R_WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, translucentBits);
+		translucentBits = R_DECAL.setValue(DecalRenderState.NONE.index, translucentBits);
+		translucentBits = R_LINES.setValue(false, translucentBits);
 
-		long defaultBits = 0; //PRIMITIVE.setValue(GL11.GL_QUADS, 0);
+		TRANSLUCENT_TERRAIN_KEY = translucentBits;
 
-		defaultBits = SHADER_ID.setValue(MaterialShaderId.find(ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE, ShaderStrings.DEFAULT_VERTEX_SOURCE, ShaderStrings.DEFAULT_FRAGMENT_SOURCE).index, defaultBits);
-		defaultBits = PRESET.setValue(MaterialConstants.PRESET_DEFAULT, defaultBits);
-		defaultBits = CULL.setValue(true, defaultBits);
-		defaultBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, defaultBits);
-		defaultBits = ENABLE_GLINT.setValue(false, defaultBits);
-		defaultBits = TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, defaultBits);
-		defaultBits = TARGET.setValue(MaterialConstants.TARGET_MAIN, defaultBits);
-		defaultBits = WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, defaultBits);
-		defaultBits = UNMIPPED.setValue(false, defaultBits);
-		defaultBits = FOG.setValue(true, defaultBits);
-		defaultBits = DISABLE_SHADOWS.setValue(false, defaultBits);
-		defaultBits = CUTOUT.setValue(MaterialConstants.CUTOUT_NONE, defaultBits);
+		translucentBits = R_TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
+		translucentBits = R_TARGET.setValue(MaterialConstants.TARGET_ENTITIES, translucentBits);
 
-		DEFAULT_BITS = defaultBits;
+		TRANSLUCENT_ENTITY_KEY = translucentBits;
+	}
 
-		long translucentBits = PRESET.setValue(MaterialConstants.PRESET_NONE, 0);
-		translucentBits = TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
-		translucentBits = BLUR.setValue(false, translucentBits);
-		translucentBits = TRANSPARENCY.setValue(MaterialConstants.TRANSPARENCY_TRANSLUCENT, translucentBits);
-		translucentBits = DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, translucentBits);
-		translucentBits = CULL.setValue(true, translucentBits);
-		translucentBits = WRITE_MASK.setValue(MaterialConstants.WRITE_MASK_COLOR_DEPTH, translucentBits);
-		translucentBits = ENABLE_GLINT.setValue(false, translucentBits);
-		translucentBits = DECAL.setValue(DecalRenderState.NONE.index, translucentBits);
-		translucentBits = TARGET.setValue(MaterialConstants.TARGET_TRANSLUCENT, translucentBits);
-		translucentBits = LINES.setValue(false, translucentBits);
-		translucentBits = FOG.setValue(true, translucentBits);
-		translucentBits = DISABLE_SHADOWS.setValue(false, translucentBits);
-		translucentBits = SORTED.setValue(true, translucentBits);
-		translucentBits = CUTOUT.setValue(MaterialConstants.CUTOUT_NONE, translucentBits);
-		//translucentBits = PRIMITIVE.setValue(GL11.GL_QUADS, translucentBits);
+	// Identifies the collection key ato be used for the primary sorted transparency buffer
+	// for a given target. Also used to render mixed-material atlas quads as a performance optimization.
+	// Quads outside of this buffer, if any, will be rendered after primary and may not sort correctly.
+	public static long encodeCollectorKey(RenderMaterial mat, TextureMaterialState texture) {
+		long result = 0;
+		result = MaterialStateEncoder.R_TARGET.setValue(mat.target(), result);
+		result = MaterialStateEncoder.R_TEXTURE.setValue(texture.index, result);
+		result = MaterialStateEncoder.R_BLUR.setValue(mat.blur(), result);
+		result = MaterialStateEncoder.R_TRANSPARENCY.setValue(mat.transparency(), result);
+		result = MaterialStateEncoder.R_DEPTH_TEST.setValue(mat.depthTest(), result);
+		result = MaterialStateEncoder.R_CULL.setValue(mat.cull(), result);
+		result = MaterialStateEncoder.R_WRITE_MASK.setValue(mat.writeMask(), result);
+		result = MaterialStateEncoder.R_DECAL.setValue(mat.decal(), result);
+		result = MaterialStateEncoder.R_LINES.setValue(mat.lines(), result);
+		result = MaterialStateEncoder.R_SORTED.setValue(mat.sorted(), result);
+		return result;
+	}
 
-		TRANSLUCENT_TERRAIN_COLLECTOR_KEY = translucentBits & COLLECTOR_AND_STATE_MASK;
-
-		translucentBits = TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
-		translucentBits = TARGET.setValue(MaterialConstants.TARGET_ENTITIES, translucentBits);
-
-		//copyFromLayer(RenderLayer.getItemEntityTranslucentCull(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE));
-		TRANSLUCENT_ENTITY_COLLECTOR_KEY = translucentBits & COLLECTOR_AND_STATE_MASK;
+	public static long encodeMaterialKey(RenderMaterial mat) {
+		long result = 0;
+		result = MaterialStateEncoder.M_CONDITION.setValue(mat.conditionIndex(), result);
+		result = MaterialStateEncoder.M_CUTOUT.setValue(mat.cutout(), result);
+		result = MaterialStateEncoder.M_DISABLE_AO.setValue(mat.disableAo(), result);
+		result = MaterialStateEncoder.M_DISABLE_COLOR_INDEX.setValue(mat.disableColorIndex(), result);
+		result = MaterialStateEncoder.M_DISABLE_DIFFUSE.setValue(mat.disableDiffuse(), result);
+		result = MaterialStateEncoder.M_DISCARDS_TEXTURE.setValue(mat.discardsTexture(), result);
+		result = MaterialStateEncoder.M_EMISSIVE.setValue(mat.emissive(), result);
+		result = MaterialStateEncoder.M_FLASH_OVERLAY.setValue(mat.flashOverlay(), result);
+		result = MaterialStateEncoder.M_FOG.setValue(mat.fog(), result);
+		result = MaterialStateEncoder.M_ENABLE_GLINT.setValue(mat.foilOverlay(), result);
+		result = MaterialStateEncoder.M_HURT_OVERLAY.setValue(mat.hurtOverlay(), result);
+		result = MaterialStateEncoder.M_PRESET.setValue(mat.preset(), result);
+		result = MaterialStateEncoder.M_SHADER.setValue(mat.shaderIndex(), result);
+		result = MaterialStateEncoder.M_UNMIPPED.setValue(mat.unmipped(), result);
+		return result;
 	}
 }

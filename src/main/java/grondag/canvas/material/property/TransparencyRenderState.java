@@ -88,8 +88,7 @@ public class TransparencyRenderState {
 			GFX.blendFuncSeparate(GFX.GL_SRC_ALPHA, GFX.GL_ONE_MINUS_SRC_ALPHA, GFX.GL_ONE, GFX.GL_ZERO);
 		});
 
-	public static final int TRANSPARENCY_COUNT = 7;
-	private static final TransparencyRenderState[] VALUES = new TransparencyRenderState[TRANSPARENCY_COUNT];
+	private static final TransparencyRenderState[] VALUES = new TransparencyRenderState[MaterialConstants.TRANSPARENCY_COUNT];
 
 	static {
 		VALUES[MaterialConstants.TRANSPARENCY_NONE] = NONE;

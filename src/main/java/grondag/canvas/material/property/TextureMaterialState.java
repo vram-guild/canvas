@@ -29,6 +29,7 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
+import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.texture.SpriteFinder;
 import io.vram.frex.api.texture.SpriteIndex;
 
@@ -166,9 +167,8 @@ public class TextureMaterialState {
 		}
 	}
 
-	public static final int MAX_TEXTURE_STATES = 4096;
 	private static int nextIndex = 1;
-	private static final TextureMaterialState[] STATES = new TextureMaterialState[MAX_TEXTURE_STATES];
+	private static final TextureMaterialState[] STATES = new TextureMaterialState[MaterialConstants.MAX_TEXTURE_STATES];
 	private static final Object2ObjectOpenHashMap<ResourceLocation, TextureMaterialState> MAP = new Object2ObjectOpenHashMap<>(256, Hash.VERY_FAST_LOAD_FACTOR);
 
 	public static final TextureMaterialState NO_TEXTURE = new TextureMaterialState(0, TextureManager.INTENTIONAL_MISSING_TEXTURE) {
@@ -208,11 +208,11 @@ public class TextureMaterialState {
 		TextureMaterialState state = MAP.get(id);
 
 		if (state == NO_TEXTURE) {
-			if (nextIndex >= MAX_TEXTURE_STATES) {
+			if (nextIndex >= MaterialConstants.MAX_TEXTURE_STATES) {
 				if (shouldWarn) {
 					shouldWarn = false;
 					CanvasMod.LOG.warn(String.format("Maximum unique textures (%d) exceeded when attempting to add %s.  Missing texture will be used.",
-							MAX_TEXTURE_STATES, id.toString()));
+							MaterialConstants.MAX_TEXTURE_STATES, id.toString()));
 					CanvasMod.LOG.warn("Previously encountered textures are listed below. Subsequent warnings are suppressed.");
 
 					for (final TextureMaterialState extant : STATES) {
