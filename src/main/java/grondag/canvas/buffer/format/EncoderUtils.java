@@ -35,20 +35,26 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 
 public abstract class EncoderUtils {
-	// WIP: need to convent overlay via material instead of context
+	// WIP: need to convey overlay via material instead of context
 	public static void bufferQuad(BaseQuadEmitter quad, EncodingContext context, VertexConsumer buff) {
 		final FastMatri4f matrix = (FastMatri4f) context.matrix();
-		final int overlay = context.overlay();
 		final FastMatrix3f normalMatrix = context.normalMatrix();
 		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
+
+		final var mat = quad.material();
+		final boolean emissive = mat.emissive();
+
+		final boolean isHurt = mat.hurtOverlay();
+		final boolean isFlash = mat.flashOverlay();
+		final int overlayV = isHurt ? 3 : 10;
+		// 10 is what TNT uses
+		final int overlayU = isFlash ? 10 : 0;
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used
 		final int faceNormal = quadNormalFlags == 0b1111 ? 0 : quad.packedFaceNormal();
 		int packedNormal = 0;
 		float nx = 0, ny = 0, nz = 0;
-
-		final boolean emissive = quad.material().emissive();
 
 		for (int i = 0; i < 4; i++) {
 			quad.transformAndAppendVertex(i, matrix, buff);
@@ -57,7 +63,7 @@ public abstract class EncoderUtils {
 			buff.color(color & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF);
 
 			buff.uv(quad.u(i), quad.v(i));
-			buff.overlayCoords(overlay);
+			buff.overlayCoords(overlayU, overlayV);
 			buff.uv2(emissive ? MeshEncodingHelper.FULL_BRIGHTNESS : quad.lightmap(i));
 
 			final int p = ((quadNormalFlags & 1 << i) == 0) ? faceNormal : quad.packedNormal(i);

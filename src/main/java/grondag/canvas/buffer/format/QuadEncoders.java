@@ -33,8 +33,6 @@ import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_X;
 import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Y;
 import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Z;
 
-import net.minecraft.client.renderer.texture.OverlayTexture;
-
 import io.vram.frex.api.math.FastMatri4f;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
@@ -47,11 +45,6 @@ public class QuadEncoders {
 		final FastMatri4f matrix = (FastMatri4f) context.matrix();
 		final FastMatrix3f normalMatrix = context.normalMatrix();
 		final boolean isContextPresent = context != AbsentEncodingContext.INSTANCE;
-		final int overlay = context.overlay();
-
-		if (overlay != OverlayTexture.NO_OVERLAY) {
-			quad.overlayCoords(overlay);
-		}
 
 		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();
 

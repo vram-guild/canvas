@@ -67,8 +67,17 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	 * @param modelAO
 	 * @param seed       pass -1 for default behavior
 	 */
-	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed) {
-		inputContext.prepareForBlock(blockState, blockPos, seed);
+	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed, int overlay) {
+		inputContext.prepareForBlock(blockState, blockPos, seed, overlay);
+		prepareForBlock(blockState, modelAO);
+	}
+
+	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO) {
+		inputContext.prepareForBlock(blockState, blockPos);
+		prepareForBlock(blockState, modelAO);
+	}
+
+	private void prepareForBlock(BlockState blockState, boolean modelAO) {
 		materialMap = isFluidModel ? MaterialMap.get(blockState.getFluidState()) : MaterialMap.get(blockState);
 		defaultAo = modelAO && Minecraft.useAmbientOcclusion() && blockState.getLightEmission() == 0;
 

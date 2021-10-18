@@ -75,10 +75,6 @@ public class TerrainFormat {
 		final FastMatrix3f normalMatrix = context.normalMatrix();
 		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
 
-		final int overlay = context.overlay();
-
-		quad.overlayCoords(overlay);
-
 		final boolean aoDisabled = !Minecraft.useAmbientOcclusion();
 		final float[] aoData = quad.ao;
 		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();

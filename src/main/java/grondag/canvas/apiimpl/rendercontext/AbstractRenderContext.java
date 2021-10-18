@@ -24,6 +24,7 @@ import java.util.BitSet;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import io.vram.frex.api.buffer.QuadEmitter;
@@ -149,6 +150,10 @@ public abstract class AbstractRenderContext<C extends BaseInputContext> {
 		if (bm == MaterialConstants.PRESET_DEFAULT) {
 			bm = defaultPreset;
 			finder.preset(MaterialConstants.PRESET_NONE);
+		}
+
+		if (inputContext.overlay() != OverlayTexture.NO_OVERLAY) {
+			finder.overlay(inputContext.overlay());
 		}
 
 		// fully specific renderable material

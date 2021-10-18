@@ -30,8 +30,6 @@ public interface EncodingContext {
 
 	FastMatrix3f normalMatrix();
 
-	int overlay();
-
 	int sectorId();
 
 	int sectorRelativeRegionOrigin();

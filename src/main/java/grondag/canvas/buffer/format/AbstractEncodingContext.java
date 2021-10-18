@@ -23,8 +23,6 @@ package grondag.canvas.buffer.format;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 
-import net.minecraft.client.renderer.texture.OverlayTexture;
-
 import io.vram.frex.api.math.FastMatrix3f;
 
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
@@ -36,12 +34,6 @@ public abstract class AbstractEncodingContext implements EncodingContext {
 	private int sectorRelativeRegionOrigin;
 	private Matrix4f matrix;
 	private FastMatrix3f normalMatrix;
-	private int overlay = OverlayTexture.NO_OVERLAY;
-
-	@Override
-	public final int overlay() {
-		return overlay;
-	}
 
 	@Override
 	public final Matrix4f matrix() {
@@ -73,10 +65,5 @@ public abstract class AbstractEncodingContext implements EncodingContext {
 		final var last = matrixStack.last();
 		matrix = last.pose();
 		normalMatrix = (FastMatrix3f) (Object) last.normal();
-	}
-
-	public void prepare(PoseStack matrixStack, int overlay) {
-		prepare(matrixStack);
-		this.overlay = overlay;
 	}
 }

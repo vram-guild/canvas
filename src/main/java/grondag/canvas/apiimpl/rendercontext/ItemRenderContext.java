@@ -40,6 +40,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderType.CompositeRenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.item.BlockItem;
@@ -132,7 +133,7 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 		if (stack.isEmpty()) return;
 
 		lightmap = light;
-		inputContext.prepareForItem(stack, renderMode);
+		inputContext.prepareForItem(stack, renderMode, overlay);
 		isBlockItem = stack.getItem() instanceof BlockItem;
 		materialMap = MaterialMap.get(stack);
 		isGui = renderMode == ItemTransforms.TransformType.GUI;
@@ -153,7 +154,7 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 		model.getTransforms().getTransform(renderMode).apply(leftHanded, matrices);
 		matrices.translate(-0.5D, -0.5D, -0.5D);
 
-		encodingContext.prepare(matrices, overlay);
+		encodingContext.prepare(matrices);
 
 		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
 			final BlockEntityWithoutLevelRenderer builtInRenderer = ((ItemRendererExt) Minecraft.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();
@@ -189,6 +190,10 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 		final MaterialFinder finder = this.finder;
 
 		finder.foilOverlay(hasGlint);
+
+		if (inputContext.overlay() != OverlayTexture.NO_OVERLAY) {
+			finder.overlay(inputContext.overlay());
+		}
 
 		int preset = finder.preset();
 

@@ -107,10 +107,10 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 	 */
 	public void render(ModelBlockRenderer vanillaRenderer, BakedModel model, BlockState state, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light) {
 		defaultConsumer = consumers.getBuffer(ItemBlockRenderTypes.getRenderType(state, false));
-		encodingContext.prepare(matrixStack, overlay);
+		encodingContext.prepare(matrixStack);
 		this.light = light;
 		inputContext.prepareForWorld(level, false);
-		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42);
+		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42L, overlay);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
 	}
@@ -118,11 +118,11 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 	// item frames don't have a block state but render like a block
 	public void renderItemFrame(ModelBlockRenderer modelRenderer, BakedModel model, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light, ItemFrame itemFrameEntity) {
 		defaultConsumer = consumers.getBuffer(Sheets.solidBlockSheet());
-		encodingContext.prepare(matrixStack, overlay);
+		encodingContext.prepare(matrixStack);
 		this.light = light;
 		inputContext.prepareForWorld(level, false);
 		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());
-		inputContext.prepareForBlock(Blocks.AIR.defaultBlockState(), pos, 42);
+		inputContext.prepareForBlock(Blocks.AIR.defaultBlockState(), pos, 42L, overlay);
 		materialMap = MaterialMap.defaultMaterialMap();
 		defaultAo = false;
 		defaultPreset = MaterialConstants.PRESET_SOLID;
