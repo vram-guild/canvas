@@ -308,6 +308,10 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define ANIMATED_FOLIAGE", "//#define ANIMATED_FOLIAGE");
 			}
 
+			if (programType.isDepth) {
+				result = StringUtils.replace(result, "//#define DEPTH_PASS", "#define DEPTH_PASS");
+			}
+
 			if (Pipeline.shadowsEnabled()) {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "#define SHADOW_MAP_SIZE " + Pipeline.skyShadowSize);
 			} else {
