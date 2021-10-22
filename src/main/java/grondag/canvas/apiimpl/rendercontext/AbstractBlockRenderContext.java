@@ -20,7 +20,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
@@ -100,7 +99,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	@Override
 	protected void encodeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
-		applyBlockLighting(quad, this);
+		computeFlat(quad);
 		colorizeQuad(quad, this.inputContext);
 
 		if (collectors == null) {

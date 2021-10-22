@@ -22,8 +22,6 @@ package grondag.canvas.buffer.format;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
-
 import io.vram.frex.api.math.FastMatri4f;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BakedInputContext;
@@ -99,14 +97,6 @@ public abstract class EncoderUtils {
 			quad.vertexColor(1, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(1))));
 			quad.vertexColor(2, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(2))));
 			quad.vertexColor(3, ColorUtil.swapRedBlueIfNeeded(ColorUtil.multiplyColor(indexedColor, quad.vertexColor(3))));
-		}
-	}
-
-	public static void applyBlockLighting(BaseQuadEmitter quad, AbstractRenderContext<?> context) {
-		if (!quad.material().disableAo() && Minecraft.useAmbientOcclusion()) {
-			context.computeAo(quad);
-		} else {
-			context.computeFlat(quad);
 		}
 	}
 

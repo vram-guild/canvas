@@ -20,7 +20,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.buffer.format.EncoderUtils.applyBlockLighting;
 import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -31,6 +30,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -167,7 +167,12 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	@Override
 	protected void encodeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
-		applyBlockLighting(quad, this);
+		if (!quad.material().disableAo() && Minecraft.useAmbientOcclusion()) {
+			computeAo(quad);
+		} else {
+			computeFlat(quad);
+		}
+
 		colorizeQuad(quad, this.inputContext);
 		TerrainFormat.TERRAIN_ENCODER.encode(quad, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 	}
