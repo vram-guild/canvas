@@ -29,12 +29,10 @@ import grondag.canvas.render.terrain.TerrainFormat;
 
 public class CompoundVertexCollector extends ArrayVertexCollector implements DrawableVertexCollector {
 	public final boolean isTerrain;
-	public final RenderState renderState;
 	private final BucketSorter bucketSorter;
 
 	public CompoundVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
-		super(isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
-		this.renderState = renderState;
+		super(renderState, isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
 		this.isTerrain = isTerrain;
 		bucketSorter = isTerrain ? new BucketSorter() : null;
 	}
@@ -57,11 +55,6 @@ public class CompoundVertexCollector extends ArrayVertexCollector implements Dra
 		if (bucketSorter != null) {
 			bucketSorter.clear();
 		}
-	}
-
-	@Override
-	public final RenderState renderState() {
-		return renderState;
 	}
 
 	@Override

@@ -243,7 +243,7 @@ public class PipelineManager {
 		collector.commit(30);
 
 		final TransferBuffer transfer = TransferBuffers.claim(collector.byteSize());
-		collector.toBuffer(0, transfer, 0);
+		collector.toBuffer(transfer, 0);
 		drawBuffer = new StaticDrawBuffer(CanvasVertexFormats.PROCESS_VERTEX_UV, transfer);
 		drawBuffer.upload();
 

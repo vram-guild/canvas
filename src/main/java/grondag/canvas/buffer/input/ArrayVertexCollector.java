@@ -23,8 +23,6 @@ package grondag.canvas.buffer.input;
 import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
@@ -32,22 +30,17 @@ import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
 import grondag.canvas.buffer.render.TransferBuffer;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 
-public abstract class ArrayVertexCollector implements DrawableVertexCollector {
-	protected final int quadStrideInts;
+public abstract class ArrayVertexCollector extends BaseVertexCollector {
 	protected int capacity = 1024;
 	protected int[] vertexData = new int[capacity];
-	protected final int[] target;
 
-	/** also the index of the first vertex when used in VertexConsumer mode. */
-	protected int integerSize = 0;
-
-	public ArrayVertexCollector(int quadStrideInts, int[] target) {
-		this.quadStrideInts = quadStrideInts;
+	public ArrayVertexCollector(RenderState renderState, int quadStrideInts, int[] target) {
+		super(renderState, quadStrideInts, target);
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
-		this.target = target;
 	}
 
 	protected final void grow(int newSize) {
@@ -61,31 +54,6 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 			capacity = newCapacity;
 			vertexData = newData;
 		}
-	}
-
-	@Override
-	public final int integerSize() {
-		return integerSize;
-	}
-
-	@Override
-	public final int byteSize() {
-		return integerSize * 4;
-	}
-
-	@Override
-	public final int quadCount() {
-		return integerSize / quadStrideInts;
-	}
-
-	@Override
-	public final boolean isEmpty() {
-		return integerSize == 0;
-	}
-
-	@Override
-	public final int[] target() {
-		return target;
 	}
 
 	@Override
@@ -103,13 +71,8 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 	}
 
 	@Override
-	public final void toBuffer(int collectorSourceIndex, TransferBuffer targetBuffer, int bufferTargetIndex) {
-		targetBuffer.put(vertexData, collectorSourceIndex, bufferTargetIndex, integerSize);
-	}
-
-	@Override
-	public void clear() {
-		integerSize = 0;
+	public final void toBuffer(TransferBuffer targetBuffer, int bufferTargetIndex) {
+		targetBuffer.put(vertexData, 0, bufferTargetIndex, integerSize);
 	}
 
 	@Override
@@ -133,25 +96,6 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 	@Override
 	public VertexBucket[] vertexBuckets() {
 		return null;
-	}
-
-	@Override
-	public final void draw(boolean clear) {
-		if (!isEmpty()) {
-			drawSingle();
-
-			if (clear) {
-				clear();
-			}
-		}
-	}
-
-	/** Avoid: slow. */
-	public final void drawSingle() {
-		// PERF: allocation - or eliminate this
-		final ObjectArrayList<DrawableVertexCollector> drawList = new ObjectArrayList<>();
-		drawList.add(this);
-		DrawableVertexCollector.draw(drawList);
 	}
 
 	@Override

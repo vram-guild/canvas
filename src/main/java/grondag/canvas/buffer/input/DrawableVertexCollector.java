@@ -37,7 +37,7 @@ public interface DrawableVertexCollector extends VertexCollector {
 
 	void toBuffer(IntBuffer intBuffer, int targetIndex);
 
-	void toBuffer(int collectorSourceIndex, TransferBuffer targetBuffer, int bufferTargetIndex);
+	void toBuffer(TransferBuffer targetBuffer, int bufferTargetIndex);
 
 	void sortIfNeeded();
 

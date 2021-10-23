@@ -20,16 +20,25 @@
 
 package grondag.canvas.buffer.input;
 
-import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.terrain.TerrainFormat;
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
-public class SimpleVertexCollector extends ArrayVertexCollector implements DrawableVertexCollector {
-	public SimpleVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
-		super(renderState, isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
-	}
+/**
+ * Classifies quads into one or more buckets for which vertex data
+ * should be segregated.  Used in terrain rendering to handle dynamic
+ * face culling as view changes, and to eliminate non-shadow quads in
+ * shadow pass when shadow maps are enabled.
+ *
+ * <p>In non-terrain rendering it's intended use is for shadow-pass segregation.
+ *
+ * <p>Should NOT be used to filter quads that will never render because by the
+ * time this is called a quad has been fully transformed and lit - filtering
+ * should happen earlier for sake of performance.
+ */
+@FunctionalInterface
+public interface VertexBucketFunction {
+	int computeBucket(BaseQuadView quad, RenderMaterial mat);
 
-	public final void commit() {
-		commit(quadStrideInts);
-	}
+	VertexBucketFunction TERRAIN = (q, m) -> q.effectiveCullFaceId();
+	int TERRAIN_BUCKET_COUNT = 7;
 }

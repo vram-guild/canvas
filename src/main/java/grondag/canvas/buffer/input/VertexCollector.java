@@ -39,6 +39,8 @@ public interface VertexCollector {
 
 	int quadCount();
 
+	int vertexCount();
+
 	int byteSize();
 
 	boolean isEmpty();
