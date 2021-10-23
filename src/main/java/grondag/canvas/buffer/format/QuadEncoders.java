@@ -65,15 +65,14 @@ public class QuadEncoders {
 
 		final int material = mat.materialIndexer().index(quad.spriteId()) << 16;
 
-		final int baseTargetIndex = buff.allocate(CanvasVertexFormats.STANDARD_QUAD_STRIDE);
-		final int[] target = buff.data();
+		final int[] target = buff.target();
 		final int baseSourceIndex = quad.vertexStart();
 		final int[] source = quad.data();
 
 		for (int i = 0; i < 4; i++) {
 			final int vertexMask = 1 << i;
 			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
-			final int toIndex = baseTargetIndex + i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
+			final int toIndex = i * CanvasVertexFormats.STANDARD_VERTEX_STRIDE;
 
 			final int p = ((quadNormalFlags & vertexMask) == 0) ? faceNormal : source[fromIndex + VERTEX_NORMAL];
 
@@ -117,6 +116,8 @@ public class QuadEncoders {
 
 			target[toIndex + 6] = transformedNormal | transformedTangent;
 		}
+
+		buff.commit(quad, mat);
 	}
 
 	public static final QuadEncoder STANDARD_ENCODER = QuadEncoders::encodeQuad;

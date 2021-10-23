@@ -20,22 +20,20 @@
 
 package grondag.canvas.buffer.input;
 
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.mesh.BaseQuadView;
+
 /**
  * Thin access layer to vertex buffer/mapped memory range.
  * Caller must know vertex format, boundaries, etc.
  * NOT THREAD SAFE.
  */
 public interface VertexCollector {
-	int allocate(int size);
+	void commit(int size);
 
-	default int allocate(int size, int bucketIndex) {
-		return allocate(size);
-	}
+	void commit(BaseQuadView quad, RenderMaterial material);
 
-	/**
-	 * Must be called AFTER #allocate() and before any other allocations happen.
-	 */
-	int[] data();
+	int[] target();
 
 	void clear();
 

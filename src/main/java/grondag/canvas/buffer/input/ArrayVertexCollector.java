@@ -31,6 +31,7 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 	protected final int quadStrideInts;
 	protected int capacity = 1024;
 	protected int[] vertexData = new int[capacity];
+	protected final int[] target;
 
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	protected int integerSize = 0;
@@ -39,6 +40,7 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 		this.quadStrideInts = quadStrideInts;
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
+		target = new int[64];
 	}
 
 	protected final void grow(int newSize) {
@@ -54,6 +56,7 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 		}
 	}
 
+	@Override
 	public final int integerSize() {
 		return integerSize;
 	}
@@ -68,22 +71,23 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 		return integerSize / quadStrideInts;
 	}
 
+	@Override
 	public final boolean isEmpty() {
 		return integerSize == 0;
 	}
 
 	@Override
-	public final int[] data() {
-		return vertexData;
+	public final int[] target() {
+		return target;
 	}
 
 	@Override
-	public final int allocate(int size) {
-		final int result = integerSize;
-		final int newSize = result + size;
+	public final void commit(int size) {
+		final int targetIndex = integerSize;
+		final int newSize = targetIndex + size;
 		grow(newSize);
+		System.arraycopy(target, 0, vertexData, targetIndex, size);
 		integerSize = newSize;
-		return result;
 	}
 
 	@Override
@@ -91,6 +95,7 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 		intBuffer.put(vertexData, startingIndex, integerSize);
 	}
 
+	@Override
 	public final void toBuffer(int collectorSourceIndex, TransferBuffer targetBuffer, int bufferTargetIndex) {
 		targetBuffer.put(vertexData, collectorSourceIndex, bufferTargetIndex, integerSize);
 	}
@@ -100,6 +105,7 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 		integerSize = 0;
 	}
 
+	@Override
 	public final int[] saveState(int[] priorState) {
 		final int integerSize = this.integerSize;
 
@@ -120,12 +126,13 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 		return result;
 	}
 
+	@Override
 	public final void loadState(int[] stateData) {
 		clear();
 
 		if (stateData != null) {
 			final int size = stateData.length;
-			allocate(size);
+			grow(size);
 			System.arraycopy(stateData, 0, vertexData, 0, size);
 		}
 	}

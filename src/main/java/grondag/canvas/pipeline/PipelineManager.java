@@ -231,14 +231,15 @@ public class PipelineManager {
 		CanvasTextureState.bindTexture(0);
 
 		final OldVertexCollector collector = new OldVertexCollector(RenderState.MISSING, false, false);
-		final int k = collector.allocate(30);
-		final int[] v = collector.data();
-		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k);
-		addVertex(1f, 0f, 0.2f, 1f, 1f, v, k + 5);
-		addVertex(1f, 1f, 0.2f, 1f, 0f, v, k + 10);
-		addVertex(1f, 1f, 0.2f, 1f, 0f, v, k + 15);
-		addVertex(0f, 1f, 0.2f, 0f, 0f, v, k + 20);
-		addVertex(0f, 0f, 0.2f, 0f, 1f, v, k + 25);
+
+		final int[] v = collector.target();
+		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 0);
+		addVertex(1f, 0f, 0.2f, 1f, 1f, v, 5);
+		addVertex(1f, 1f, 0.2f, 1f, 0f, v, 10);
+		addVertex(1f, 1f, 0.2f, 1f, 0f, v, 15);
+		addVertex(0f, 1f, 0.2f, 0f, 0f, v, 20);
+		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 25);
+		collector.commit(30);
 
 		final TransferBuffer transfer = TransferBuffers.claim(collector.byteSize());
 		collector.toBuffer(0, transfer, 0);

@@ -98,8 +98,7 @@ public class TerrainFormat {
 
 		final int material = mat.materialIndexer().index(quad.spriteId()) << 16;
 
-		final int baseTargetIndex = buff.allocate(TERRAIN_QUAD_STRIDE, quad.effectiveCullFaceId());
-		final int[] target = buff.data();
+		final int[] target = buff.target();
 		final int baseSourceIndex = quad.vertexStart();
 		final int[] source = quad.data();
 
@@ -111,7 +110,7 @@ public class TerrainFormat {
 		for (int i = 0; i < 4; i++) {
 			final int vertexMask = 1 << i;
 			final int fromIndex = baseSourceIndex + i * MESH_VERTEX_STRIDE;
-			final int toIndex = baseTargetIndex + i * TERRAIN_VERTEX_STRIDE;
+			final int toIndex = i * TERRAIN_VERTEX_STRIDE;
 
 			// We do this here because we need to pack the normal Z sign bit with sector ID
 			final int p = ((quadNormalFlags & vertexMask) == 0) ? faceNormal : source[fromIndex + VERTEX_NORMAL];
@@ -173,5 +172,7 @@ public class TerrainFormat {
 
 			target[toIndex + 6] = transformedNormal | transformedTangent;
 		}
+
+		buff.commit(quad, mat);
 	};
 }

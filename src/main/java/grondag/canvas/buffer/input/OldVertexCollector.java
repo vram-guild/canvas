@@ -27,6 +27,9 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.mesh.BaseQuadView;
+
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.state.RenderState;
@@ -53,14 +56,12 @@ public class OldVertexCollector extends ArrayVertexCollector implements Drawable
 	}
 
 	@Override
-	public int allocate(int size, int bucketIndex) {
-		assert isTerrain;
-
+	public void commit(BaseQuadView quad, RenderMaterial mat) {
 		if (bucketSorter != null) {
-			bucketSorter.add(bucketIndex, integerSize);
+			bucketSorter.add(quad.effectiveCullFaceId(), integerSize);
 		}
 
-		return allocate(size);
+		commit(quadStrideInts);
 	}
 
 	@Override
@@ -72,10 +73,12 @@ public class OldVertexCollector extends ArrayVertexCollector implements Drawable
 		}
 	}
 
+	@Override
 	public VertexBucket[] sortVertexBuckets() {
 		return bucketSorter == null ? null : bucketSorter.sort(vertexData, integerSize);
 	}
 
+	@Override
 	public boolean sortTerrainQuads(Vec3 sortPos, RegionRenderSector sector) {
 		assert isTerrain;
 

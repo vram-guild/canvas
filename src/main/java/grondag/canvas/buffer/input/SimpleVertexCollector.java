@@ -24,6 +24,9 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.world.phys.Vec3;
 
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.mesh.BaseQuadView;
+
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.TerrainFormat;
@@ -42,14 +45,14 @@ public class SimpleVertexCollector extends ArrayVertexCollector implements Drawa
 	}
 
 	@Override
-	public final int allocate(int size, int bucketIndex) {
+	public void commit(BaseQuadView quad, RenderMaterial mat) {
 		assert isTerrain;
 
 		if (bucketSorter != null) {
-			bucketSorter.add(bucketIndex, integerSize);
+			bucketSorter.add(quad.effectiveCullFaceId(), integerSize);
 		}
 
-		return allocate(size);
+		commit(quadStrideInts);
 	}
 
 	@Override
