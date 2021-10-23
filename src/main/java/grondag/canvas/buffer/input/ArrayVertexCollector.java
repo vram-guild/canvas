@@ -36,11 +36,11 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 	/** also the index of the first vertex when used in VertexConsumer mode. */
 	protected int integerSize = 0;
 
-	public ArrayVertexCollector(int quadStrideInts) {
+	public ArrayVertexCollector(int quadStrideInts, int[] target) {
 		this.quadStrideInts = quadStrideInts;
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
-		target = new int[64];
+		this.target = target;
 	}
 
 	protected final void grow(int newSize) {

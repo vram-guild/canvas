@@ -34,11 +34,12 @@ public class SortingVertexCollector extends SimpleVertexCollector {
 	private final int[] swapData;
 	private boolean didSwap = false;
 
-	public SortingVertexCollector(RenderState renderState, boolean isTerrain) {
-		super(renderState, true, isTerrain);
+	public SortingVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
+		super(renderState, true, isTerrain, target);
 		swapData = new int[quadStrideInts * 2];
 	}
 
+	@Override
 	public boolean sortTerrainQuads(Vec3 sortPos, RegionRenderSector sector) {
 		assert isTerrain;
 

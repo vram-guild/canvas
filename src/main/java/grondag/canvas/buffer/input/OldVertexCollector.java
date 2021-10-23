@@ -47,7 +47,11 @@ public class OldVertexCollector extends ArrayVertexCollector implements Drawable
 	private final VertexBucket.Sorter bucketSorter;
 
 	public OldVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain) {
-		super(isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts);
+		this(renderState, sorted, isTerrain, new int[64]);
+	}
+
+	public OldVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain, int[] target) {
+		super(isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
 		this.renderState = renderState;
 		this.sorted = sorted;
 		this.isTerrain = isTerrain;

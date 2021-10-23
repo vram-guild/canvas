@@ -37,8 +37,8 @@ public class SimpleVertexCollector extends ArrayVertexCollector implements Drawa
 	public final RenderState renderState;
 	private final VertexBucket.Sorter bucketSorter;
 
-	public SimpleVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain) {
-		super(isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts);
+	public SimpleVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain, int[] target) {
+		super(isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
 		this.renderState = renderState;
 		this.isTerrain = isTerrain;
 		bucketSorter = isTerrain && !sorted ? new VertexBucket.Sorter() : null;

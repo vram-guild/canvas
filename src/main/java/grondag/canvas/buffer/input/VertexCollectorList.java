@@ -48,6 +48,7 @@ public class VertexCollectorList {
 	private final DrawableVertexCollector[] collectors = new DrawableVertexCollector[RenderState.MAX_COUNT];
 	private final ObjectArrayList<DrawableVertexCollector> drawList = new ObjectArrayList<>();
 	public final boolean isTerrain;
+	private final int[] target = new int[64];
 
 	public VertexCollectorList(boolean isTerrain) {
 		this.isTerrain = isTerrain;
@@ -119,21 +120,12 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			result = new OldVertexCollector(materialState.renderState(), materialState.sorted(), isTerrain);
+			result = new OldVertexCollector(materialState.renderState(), materialState.sorted(), isTerrain, target);
 			collectors[index] = result;
 			active.add(result);
 		}
 
 		return result;
-	}
-
-	public boolean contains(CanvasRenderMaterial materialState) {
-		final int index = materialState.collectorIndex();
-		return index < collectors.length && collectors[index] != null;
-	}
-
-	public int size() {
-		return active.size();
 	}
 
 	public DrawableVertexCollector get(int index) {
@@ -169,7 +161,7 @@ public class VertexCollectorList {
 		final ObjectArrayList<DrawableVertexCollector> drawList = this.drawList;
 		drawList.clear();
 
-		final int limit = size();
+		final int limit = active.size();
 
 		if (limit != 0) {
 			for (int i = 0; i < limit; ++i) {
