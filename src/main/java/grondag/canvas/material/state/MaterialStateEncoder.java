@@ -71,8 +71,7 @@ public abstract class MaterialStateEncoder {
 	private static final BitPacker64<Void>.BooleanElement M_EMISSIVE = MATERIAL_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement M_DISABLE_DIFFUSE = MATERIAL_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement M_DISABLE_AO = MATERIAL_PACKER.createBooleanElement();
-	// WIP: doesn't handle alpha type cutout - only used for ender dragon currently
-	private static final BitPacker64<Void>.IntElement M_CUTOUT = MATERIAL_PACKER.createIntElement(4);
+	private static final BitPacker64<Void>.IntElement M_CUTOUT = MATERIAL_PACKER.createIntElement(MaterialConstants.CUTOUT_COUNT);
 	private static final BitPacker64<Void>.BooleanElement M_UNMIPPED = MATERIAL_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement M_HURT_OVERLAY = MATERIAL_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement M_FLASH_OVERLAY = MATERIAL_PACKER.createBooleanElement();

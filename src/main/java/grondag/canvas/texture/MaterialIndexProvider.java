@@ -47,7 +47,7 @@ public abstract class MaterialIndexProvider {
 
 		@Override
 		public MaterialIndexer getIndexer(CanvasRenderMaterial mat) {
-			final long key = mat.vertexShaderIndex() | (mat.fragmentShaderIndex() << 16) | ((mat.shaderFlags()) << 32) | (((long) mat.condition().index()) << 48);
+			final long key = mat.vertexShaderIndex() | (mat.fragmentShaderIndex() << 16) | ((long) (mat.shaderFlags()) << 32) | (((long) mat.condition().index()) << 48);
 
 			synchronized (this) {
 				final int result = map.computeIfAbsent(key, k -> {
