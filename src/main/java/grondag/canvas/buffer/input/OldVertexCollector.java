@@ -44,7 +44,7 @@ public class OldVertexCollector extends ArrayVertexCollector implements Drawable
 
 	public final RenderState renderState;
 	public final boolean sorted;
-	private final VertexBucket.Sorter bucketSorter;
+	private final BucketSorter bucketSorter;
 
 	public OldVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain) {
 		this(renderState, sorted, isTerrain, new int[64]);
@@ -55,7 +55,7 @@ public class OldVertexCollector extends ArrayVertexCollector implements Drawable
 		this.renderState = renderState;
 		this.sorted = sorted;
 		this.isTerrain = isTerrain;
-		bucketSorter = isTerrain && !sorted ? new VertexBucket.Sorter() : null;
+		bucketSorter = isTerrain && !sorted ? new BucketSorter() : null;
 		swapData = new int[quadStrideInts * 2];
 	}
 
@@ -78,7 +78,7 @@ public class OldVertexCollector extends ArrayVertexCollector implements Drawable
 	}
 
 	@Override
-	public VertexBucket[] sortVertexBuckets() {
+	public VertexBucket[] vertexBuckets() {
 		return bucketSorter == null ? null : bucketSorter.sort(vertexData, integerSize);
 	}
 

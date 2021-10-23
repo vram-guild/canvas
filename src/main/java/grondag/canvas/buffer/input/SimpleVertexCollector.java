@@ -35,13 +35,13 @@ import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 public class SimpleVertexCollector extends ArrayVertexCollector implements DrawableVertexCollector {
 	public final boolean isTerrain;
 	public final RenderState renderState;
-	private final VertexBucket.Sorter bucketSorter;
+	private final BucketSorter bucketSorter;
 
 	public SimpleVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain, int[] target) {
 		super(isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
 		this.renderState = renderState;
 		this.isTerrain = isTerrain;
-		bucketSorter = isTerrain && !sorted ? new VertexBucket.Sorter() : null;
+		bucketSorter = isTerrain && !sorted ? new BucketSorter() : null;
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class SimpleVertexCollector extends ArrayVertexCollector implements Drawa
 	}
 
 	@Override
-	public VertexBucket[] sortVertexBuckets() {
+	public VertexBucket[] vertexBuckets() {
 		return null;
 	}
 }

@@ -62,5 +62,5 @@ public interface DrawableVertexCollector extends VertexCollector {
 
 	void loadState(int[] state);
 
-	VertexBucket[] sortVertexBuckets();
+	VertexBucket[] vertexBuckets();
 }
