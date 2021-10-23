@@ -22,58 +22,21 @@ package grondag.canvas.buffer.input;
 
 import it.unimi.dsi.fastutil.Swapper;
 import it.unimi.dsi.fastutil.ints.IntComparator;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
-import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 
-public class OldVertexCollector extends ArrayVertexCollector implements DrawableVertexCollector {
-	public final boolean isTerrain;
+public class SortingVertexCollector extends SimpleVertexCollector {
 	private float[] perQuadDistance = new float[512];
 	private final int[] swapData;
 	private boolean didSwap = false;
 
-	public final RenderState renderState;
-	public final boolean sorted;
-	private final VertexBucket.Sorter bucketSorter;
-
-	public OldVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain) {
-		super(isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts);
-		this.renderState = renderState;
-		this.sorted = sorted;
-		this.isTerrain = isTerrain;
-		bucketSorter = isTerrain && !sorted ? new VertexBucket.Sorter() : null;
+	public SortingVertexCollector(RenderState renderState, boolean isTerrain) {
+		super(renderState, true, isTerrain);
 		swapData = new int[quadStrideInts * 2];
-	}
-
-	@Override
-	public int allocate(int size, int bucketIndex) {
-		assert isTerrain;
-
-		if (bucketSorter != null) {
-			bucketSorter.add(bucketIndex, integerSize);
-		}
-
-		return allocate(size);
-	}
-
-	@Override
-	public final void clear() {
-		super.clear();
-
-		if (bucketSorter != null) {
-			bucketSorter.clear();
-		}
-	}
-
-	public VertexBucket[] sortVertexBuckets() {
-		return bucketSorter == null ? null : bucketSorter.sort(vertexData, integerSize);
 	}
 
 	public boolean sortTerrainQuads(Vec3 sortPos, RegionRenderSector sector) {
@@ -212,48 +175,7 @@ public class OldVertexCollector extends ArrayVertexCollector implements Drawable
 	}
 
 	@Override
-	public RenderState renderState() {
-		return renderState;
-	}
-
-	@Override
-	public void draw(boolean clear) {
-		if (!isEmpty()) {
-			drawSingle();
-
-			if (clear) {
-				clear();
-			}
-		}
-	}
-
-	@Override
-	public void sortIfNeeded() {
-		if (sorted) {
-			sortQuads(0, 0, 0);
-		}
-	}
-
-	/** Avoid: slow. */
-	public void drawSingle() {
-		// PERF: allocation - or eliminate this
-		final ObjectArrayList<OldVertexCollector> drawList = new ObjectArrayList<>();
-		drawList.add(this);
-		draw(drawList);
-	}
-
-	/**
-	 * Single-buffer draw, minimizes state changes.
-	 * Assumes all collectors are non-empty.
-	 */
-	public static void draw(ObjectArrayList<OldVertexCollector> drawList) {
-		final DrawableStream buffer = new DrawableStream(drawList);
-		buffer.draw(false);
-		buffer.close();
-	}
-
-	@Override
 	public boolean sorted() {
-		return sorted;
+		return true;
 	}
 }

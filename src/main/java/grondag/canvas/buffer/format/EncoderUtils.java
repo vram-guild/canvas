@@ -33,7 +33,6 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 
 public abstract class EncoderUtils {
-	// WIP: need to convey overlay via material instead of context
 	public static void bufferQuad(BaseQuadEmitter quad, EncodingContext context, VertexConsumer buff) {
 		final FastMatri4f matrix = (FastMatri4f) context.matrix();
 		final FastMatrix3f normalMatrix = context.normalMatrix();

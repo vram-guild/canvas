@@ -27,7 +27,7 @@ import net.minecraft.util.Mth;
 
 import grondag.canvas.buffer.render.TransferBuffer;
 
-public abstract class ArrayVertexCollector implements VertexCollector {
+public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 	protected final int quadStrideInts;
 	protected int capacity = 1024;
 	protected int[] vertexData = new int[capacity];
@@ -58,10 +58,12 @@ public abstract class ArrayVertexCollector implements VertexCollector {
 		return integerSize;
 	}
 
+	@Override
 	public final int byteSize() {
 		return integerSize * 4;
 	}
 
+	@Override
 	public final int quadCount() {
 		return integerSize / quadStrideInts;
 	}
@@ -84,6 +86,7 @@ public abstract class ArrayVertexCollector implements VertexCollector {
 		return result;
 	}
 
+	@Override
 	public final void toBuffer(IntBuffer intBuffer, int startingIndex) {
 		intBuffer.put(vertexData, startingIndex, integerSize);
 	}
@@ -92,6 +95,7 @@ public abstract class ArrayVertexCollector implements VertexCollector {
 		targetBuffer.put(vertexData, collectorSourceIndex, bufferTargetIndex, integerSize);
 	}
 
+	@Override
 	public void clear() {
 		integerSize = 0;
 	}

@@ -36,4 +36,14 @@ public interface VertexCollector {
 	 * Must be called AFTER #allocate() and before any other allocations happen.
 	 */
 	int[] data();
+
+	void clear();
+
+	int quadCount();
+
+	int byteSize();
+
+	boolean isEmpty();
+
+	int integerSize();
 }

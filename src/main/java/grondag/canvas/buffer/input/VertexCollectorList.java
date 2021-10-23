@@ -44,9 +44,9 @@ import grondag.canvas.terrain.region.RegionPosition;
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
  */
 public class VertexCollectorList {
-	private final ObjectArrayList<OldVertexCollector> active = new ObjectArrayList<>();
-	private final OldVertexCollector[] collectors = new OldVertexCollector[RenderState.MAX_COUNT];
-	private final ObjectArrayList<OldVertexCollector> drawList = new ObjectArrayList<>();
+	private final ObjectArrayList<DrawableVertexCollector> active = new ObjectArrayList<>();
+	private final DrawableVertexCollector[] collectors = new DrawableVertexCollector[RenderState.MAX_COUNT];
+	private final ObjectArrayList<DrawableVertexCollector> drawList = new ObjectArrayList<>();
 	public final boolean isTerrain;
 
 	public VertexCollectorList(boolean isTerrain) {
@@ -100,19 +100,19 @@ public class VertexCollectorList {
 		}
 	}
 
-	public final OldVertexCollector getIfExists(CanvasRenderMaterial materialState) {
+	public final DrawableVertexCollector getIfExists(CanvasRenderMaterial materialState) {
 		return materialState.isMissing() ? null : collectors[materialState.collectorIndex()];
 	}
 
-	public final OldVertexCollector get(CanvasRenderMaterial materialState) {
+	public final DrawableVertexCollector get(CanvasRenderMaterial materialState) {
 		if (materialState.isMissing()) {
 			return null;
 		}
 
 		final int index = materialState.collectorIndex();
-		final OldVertexCollector[] collectors = this.collectors;
+		final DrawableVertexCollector[] collectors = this.collectors;
 
-		OldVertexCollector result = null;
+		DrawableVertexCollector result = null;
 
 		if (index < collectors.length) {
 			result = collectors[index];
@@ -136,19 +136,19 @@ public class VertexCollectorList {
 		return active.size();
 	}
 
-	public OldVertexCollector get(int index) {
+	public DrawableVertexCollector get(int index) {
 		return active.get(index);
 	}
 
 	public int totalBytes(boolean sorted) {
 		final int limit = active.size();
-		final ObjectArrayList<OldVertexCollector> active = this.active;
+		final ObjectArrayList<DrawableVertexCollector> active = this.active;
 		int intSize = 0;
 
 		for (int i = 0; i < limit; i++) {
-			final OldVertexCollector collector = active.get(i);
+			final DrawableVertexCollector collector = active.get(i);
 
-			if (!collector.isEmpty() && collector.sorted == sorted) {
+			if (!collector.isEmpty() && collector.sorted() == sorted) {
 				intSize += collector.integerSize();
 			}
 		}
@@ -165,17 +165,17 @@ public class VertexCollectorList {
 	 * Gives populated collectors in the order they should be drawn.
 	 * DO NOT RETAIN A REFERENCE
 	 */
-	public ObjectArrayList<OldVertexCollector> sortedDrawList(Predicate<RenderState> predicate) {
-		final ObjectArrayList<OldVertexCollector> drawList = this.drawList;
+	public ObjectArrayList<DrawableVertexCollector> sortedDrawList(Predicate<RenderState> predicate) {
+		final ObjectArrayList<DrawableVertexCollector> drawList = this.drawList;
 		drawList.clear();
 
 		final int limit = size();
 
 		if (limit != 0) {
 			for (int i = 0; i < limit; ++i) {
-				final OldVertexCollector collector = get(i);
+				final DrawableVertexCollector collector = get(i);
 
-				if (!collector.isEmpty() && predicate.test(collector.renderState)) {
+				if (!collector.isEmpty() && predicate.test(collector.renderState())) {
 					drawList.add(collector);
 				}
 			}
@@ -188,8 +188,8 @@ public class VertexCollectorList {
 		return drawList;
 	}
 
-	private static final Comparator<OldVertexCollector> DRAW_SORT = (a, b) -> {
+	private static final Comparator<DrawableVertexCollector> DRAW_SORT = (a, b) -> {
 		// note reverse argument order - higher priority wins
-		return Long.compare(b.renderState.drawPriority, a.renderState.drawPriority);
+		return Long.compare(b.renderState().drawPriority, a.renderState().drawPriority);
 	};
 }

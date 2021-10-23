@@ -29,7 +29,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.buffer.input.OldVertexCollector;
+import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.render.StreamBuffer;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
@@ -40,13 +40,13 @@ public class DrawableStream implements AutoCloseable {
 	private final int[] counts;
 	private final RenderState[] states;
 
-	public DrawableStream(ObjectArrayList<OldVertexCollector> drawList) {
+	public DrawableStream(ObjectArrayList<? extends DrawableVertexCollector> drawList) {
 		limit = drawList.size();
 
 		int bytes = 0;
 
 		for (int i = 0; i < limit; ++i) {
-			final OldVertexCollector collector = drawList.get(i);
+			final DrawableVertexCollector collector = drawList.get(i);
 			collector.sortIfNeeded();
 			bytes += collector.byteSize();
 		}
@@ -59,10 +59,10 @@ public class DrawableStream implements AutoCloseable {
 		intBuffer.position(0);
 
 		for (int i = 0; i < limit; ++i) {
-			final OldVertexCollector collector = drawList.get(i);
+			final DrawableVertexCollector collector = drawList.get(i);
 			collector.toBuffer(intBuffer, 0);
 			counts[i] = collector.quadCount() * 4;
-			states[i] = collector.renderState;
+			states[i] = collector.renderState();
 			collector.clear();
 		}
 

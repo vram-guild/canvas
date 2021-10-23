@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 
-import grondag.canvas.buffer.input.OldVertexCollector;
+import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
@@ -54,7 +54,7 @@ public class RegionBuildState {
 	 * Should be called after vertex collection is complete.
 	 */
 	public void prepareTranslucentIfNeeded(Vec3 sortPos, RegionRenderSector sector, VertexCollectorList collectors) {
-		final OldVertexCollector buffer = collectors.getIfExists(TerrainRenderStates.TRANSLUCENT_TERRAIN);
+		final DrawableVertexCollector buffer = collectors.getIfExists(TerrainRenderStates.TRANSLUCENT_TERRAIN);
 
 		if (buffer != null && !buffer.isEmpty()) {
 			buffer.sortTerrainQuads(sortPos, sector);

@@ -78,25 +78,25 @@ public class CanvasImmediate extends BufferSource {
 	}
 
 	public DrawableStream prepareDrawable(TargetRenderState target) {
-		final ObjectArrayList<OldVertexCollector> drawList = collectors.sortedDrawList(target);
+		final ObjectArrayList<DrawableVertexCollector> drawList = collectors.sortedDrawList(target);
 
 		return drawList.isEmpty() ? DrawableStream.EMPTY : new DrawableStream(drawList);
 	}
 
 	public void drawCollectors(TargetRenderState target) {
-		final ObjectArrayList<OldVertexCollector> drawList = collectors.sortedDrawList(target);
+		final ObjectArrayList<DrawableVertexCollector> drawList = collectors.sortedDrawList(target);
 
 		if (!drawList.isEmpty()) {
-			OldVertexCollector.draw(drawList);
+			DrawableVertexCollector.draw(drawList);
 		}
 	}
 
 	@Override
 	public void endBatch() {
-		final ObjectArrayList<OldVertexCollector> drawList = collectors.sortedDrawList(Predicates.alwaysTrue());
+		final ObjectArrayList<DrawableVertexCollector> drawList = collectors.sortedDrawList(Predicates.alwaysTrue());
 
 		if (!drawList.isEmpty()) {
-			OldVertexCollector.draw(drawList);
+			DrawableVertexCollector.draw(drawList);
 		}
 
 		super.endBatch();
@@ -107,7 +107,7 @@ public class CanvasImmediate extends BufferSource {
 		if (RenderTypeExclusion.isExcluded(renderType)) {
 			super.endBatch(renderType);
 		} else {
-			final OldVertexCollector collector = collectors.getIfExists((CanvasRenderMaterial) RenderTypeUtil.toMaterial(renderType));
+			final DrawableVertexCollector collector = collectors.getIfExists((CanvasRenderMaterial) RenderTypeUtil.toMaterial(renderType));
 
 			if (collector != null && !collector.isEmpty()) {
 				collector.draw(true);
