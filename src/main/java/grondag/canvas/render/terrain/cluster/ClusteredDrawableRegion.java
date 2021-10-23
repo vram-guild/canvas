@@ -22,7 +22,7 @@ package grondag.canvas.render.terrain.cluster;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.input.OldVertexCollector;
 import grondag.canvas.buffer.input.VertexBucket;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.buffer.render.TransferBuffer;
@@ -40,13 +40,13 @@ public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDra
 
 	public static UploadableRegion uploadable(VertexCollectorList collectorList, VertexClusterRealm realm, int byteCount, RegionPosition origin) {
 		final boolean translucent = realm.isTranslucent;
-		final ObjectArrayList<ArrayVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TerrainRenderStates.TRANSLUCENT_PREDICATE : TerrainRenderStates.SOLID_PREDICATE);
+		final ObjectArrayList<OldVertexCollector> drawList = collectorList.sortedDrawList(translucent ? TerrainRenderStates.TRANSLUCENT_PREDICATE : TerrainRenderStates.SOLID_PREDICATE);
 
 		if (drawList.isEmpty()) {
 			return UploadableRegion.EMPTY_UPLOADABLE;
 		}
 
-		final ArrayVertexCollector collector = drawList.get(0);
+		final OldVertexCollector collector = drawList.get(0);
 
 		// WIP: restore ability to have more than one pass in non-translucent terrain, for decals, etc.
 		// Note that every render state/pass will have a separate storage and storage will control

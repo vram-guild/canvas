@@ -47,7 +47,7 @@ import net.minecraft.client.gui.components.DebugScreenOverlay;
 import net.minecraft.client.renderer.GameRenderer;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.input.OldVertexCollector;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.GlBufferAllocator;
@@ -205,7 +205,7 @@ public class MixinDebugScreenOverlay extends GuiComponent {
 		result.add(DirectBufferAllocator.debugString());
 		result.add(GlBufferAllocator.debugString());
 		result.add(TransferBuffers.debugString());
-		result.add(ArrayVertexCollector.debugReport());
+		result.add(OldVertexCollector.debugReport());
 		TerrainExecutor.INSTANCE.debugReport(result);
 
 		@SuppressWarnings("resource")

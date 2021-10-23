@@ -23,48 +23,25 @@ package grondag.canvas.buffer.input;
 import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import it.unimi.dsi.fastutil.Swapper;
-import it.unimi.dsi.fastutil.ints.IntComparator;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.render.TransferBuffer;
-import grondag.canvas.buffer.util.DrawableStream;
-import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.terrain.TerrainFormat;
-import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 
-public class ArrayVertexCollector implements VertexCollector {
-	private final int quadStrideInts;
-	public final boolean isTerrain;
-	private int capacity = 1024;
-	private int[] vertexData = new int[capacity];
-	private float[] perQuadDistance = new float[512];
-	private final int[] swapData;
-	private boolean didSwap = false;
+public abstract class ArrayVertexCollector implements VertexCollector {
+	protected final int quadStrideInts;
+	protected int capacity = 1024;
+	protected int[] vertexData = new int[capacity];
 
 	/** also the index of the first vertex when used in VertexConsumer mode. */
-	private int integerSize = 0;
+	protected int integerSize = 0;
 
-	public final RenderState renderState;
-	public final boolean sorted;
-	private final VertexBucket.Sorter bucketSorter;
-
-	public ArrayVertexCollector(RenderState renderState, boolean sorted, boolean isTerrain) {
-		this.renderState = renderState;
-		this.sorted = sorted;
-		this.isTerrain = isTerrain;
-		bucketSorter = isTerrain && !sorted ? new VertexBucket.Sorter() : null;
-		quadStrideInts = isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts;
-		swapData = new int[quadStrideInts * 2];
+	public ArrayVertexCollector(int quadStrideInts) {
+		this.quadStrideInts = quadStrideInts;
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
 	}
 
-	protected void grow(int newSize) {
+	protected final void grow(int newSize) {
 		final int oldCapacity = capacity;
 
 		if (newSize > oldCapacity) {
@@ -77,36 +54,29 @@ public class ArrayVertexCollector implements VertexCollector {
 		}
 	}
 
-	public int integerSize() {
+	public final int integerSize() {
 		return integerSize;
 	}
 
-	public int byteSize() {
+	public final int byteSize() {
 		return integerSize * 4;
 	}
 
-	public int quadCount() {
+	public final int quadCount() {
 		return integerSize / quadStrideInts;
 	}
 
-	public boolean isEmpty() {
+	public final boolean isEmpty() {
 		return integerSize == 0;
 	}
 
-	static AtomicInteger arrayCount = new AtomicInteger();
-	static AtomicInteger arryBytes = new AtomicInteger();
-
-	public static String debugReport() {
-		return String.format("Vertex collectors: %d %4.1fMb", arrayCount.get(), arryBytes.get() / 1048576f);
-	}
-
 	@Override
-	public int[] data() {
+	public final int[] data() {
 		return vertexData;
 	}
 
 	@Override
-	public int allocate(int size) {
+	public final int allocate(int size) {
 		final int result = integerSize;
 		final int newSize = result + size;
 		grow(newSize);
@@ -114,173 +84,19 @@ public class ArrayVertexCollector implements VertexCollector {
 		return result;
 	}
 
-	@Override
-	public int allocate(int size, int bucketIndex) {
-		assert isTerrain;
-
-		if (bucketSorter != null) {
-			bucketSorter.add(bucketIndex, integerSize);
-		}
-
-		return allocate(size);
-	}
-
-	public void toBuffer(IntBuffer intBuffer, int startingIndex) {
+	public final void toBuffer(IntBuffer intBuffer, int startingIndex) {
 		intBuffer.put(vertexData, startingIndex, integerSize);
 	}
 
-	public void toBuffer(int collectorSourceIndex, TransferBuffer targetBuffer, int bufferTargetIndex) {
+	public final void toBuffer(int collectorSourceIndex, TransferBuffer targetBuffer, int bufferTargetIndex) {
 		targetBuffer.put(vertexData, collectorSourceIndex, bufferTargetIndex, integerSize);
 	}
 
 	public void clear() {
 		integerSize = 0;
-
-		if (bucketSorter != null) {
-			bucketSorter.clear();
-		}
 	}
 
-	public VertexBucket[] sortVertexBuckets() {
-		return bucketSorter == null ? null : bucketSorter.sort(vertexData, integerSize);
-	}
-
-	public boolean sortTerrainQuads(Vec3 sortPos, RegionRenderSector sector) {
-		assert isTerrain;
-
-		return sortQuads(
-			(float) (sortPos.x - sector.paddedBlockOriginX),
-			(float) (sortPos.y - sector.paddedBlockOriginY),
-			(float) (sortPos.z - sector.paddedBlockOriginZ)
-		);
-	}
-
-	private boolean sortQuads(float x, float y, float z) {
-		final int quadCount = quadCount();
-		final QuadDistanceFunc distanceFunc = isTerrain ? quadDistanceTerrain : quadDistanceStandard;
-
-		if (perQuadDistance.length < quadCount) {
-			perQuadDistance = new float[Mth.smallestEncompassingPowerOfTwo(quadCount)];
-		}
-
-		for (int j = 0; j < quadCount; ++j) {
-			perQuadDistance[j] = distanceFunc.compute(x, y, z, j);
-		}
-
-		didSwap = false;
-
-		// sort the indexes by distance - farthest first
-		// mergesort is important here - quicksort causes problems
-		// PERF: consider sorting primitive packed long array with distance in high bits
-		// and then use result to reorder the array. Will need to copy vertex data.
-		it.unimi.dsi.fastutil.Arrays.mergeSort(0, quadCount, comparator, swapper);
-
-		return didSwap;
-	}
-
-	private interface QuadDistanceFunc {
-		float compute(float x, float y, float z, int quadIndex);
-	}
-
-	private final IntComparator comparator = new IntComparator() {
-		@Override
-		public int compare(int a, int b) {
-			return Float.compare(perQuadDistance[b], perQuadDistance[a]);
-		}
-	};
-
-	private final Swapper swapper = new Swapper() {
-		@Override
-		public void swap(int a, int b) {
-			didSwap = true;
-			final float distSwap = perQuadDistance[a];
-			perQuadDistance[a] = perQuadDistance[b];
-			perQuadDistance[b] = distSwap;
-
-			final int aIndex = a * quadStrideInts;
-			final int bIndex = b * quadStrideInts;
-
-			System.arraycopy(vertexData, aIndex, swapData, 0, quadStrideInts);
-			System.arraycopy(vertexData, bIndex, swapData, quadStrideInts, quadStrideInts);
-			System.arraycopy(swapData, 0, vertexData, bIndex, quadStrideInts);
-			System.arraycopy(swapData, quadStrideInts, vertexData, aIndex, quadStrideInts);
-		}
-	};
-
-	private final QuadDistanceFunc quadDistanceStandard = this::getDistanceSq;
-
-	private float getDistanceSq(float x, float y, float z, int quadIndex) {
-		final int integerStride = quadStrideInts / 4;
-
-		// unpack vertex coordinates
-		int i = quadIndex * quadStrideInts;
-		final float x0 = Float.intBitsToFloat(vertexData[i]);
-		final float y0 = Float.intBitsToFloat(vertexData[i + 1]);
-		final float z0 = Float.intBitsToFloat(vertexData[i + 2]);
-
-		i += integerStride;
-		final float x1 = Float.intBitsToFloat(vertexData[i]);
-		final float y1 = Float.intBitsToFloat(vertexData[i + 1]);
-		final float z1 = Float.intBitsToFloat(vertexData[i + 2]);
-
-		i += integerStride;
-		final float x2 = Float.intBitsToFloat(vertexData[i]);
-		final float y2 = Float.intBitsToFloat(vertexData[i + 1]);
-		final float z2 = Float.intBitsToFloat(vertexData[i + 2]);
-
-		i += integerStride;
-		final float x3 = Float.intBitsToFloat(vertexData[i]);
-		final float y3 = Float.intBitsToFloat(vertexData[i + 1]);
-		final float z3 = Float.intBitsToFloat(vertexData[i + 2]);
-
-		// compute average distance by component
-		final float dx = (x0 + x1 + x2 + x3) * 0.25f - x;
-		final float dy = (y0 + y1 + y2 + y3) * 0.25f - y;
-		final float dz = (z0 + z1 + z2 + z3) * 0.25f - z;
-
-		return dx * dx + dy * dy + dz * dz;
-	}
-
-	private final QuadDistanceFunc quadDistanceTerrain = this::getDistanceSqTerrain;
-	private static final float POS_CONVERSION = 1f / 0xFFFF;
-
-	private float getDistanceSqTerrain(float x, float y, float z, int quadIndex) {
-		final int integerStride = quadStrideInts / 4;
-
-		// unpack vertex coordinates
-		int i = quadIndex * quadStrideInts;
-		final int pos0 = vertexData[i + 2];
-		final float x0 = (pos0 & 0xFF) + (vertexData[i] >>> 16) * POS_CONVERSION;
-		final float y0 = ((pos0 >> 8) & 0xFF) + (vertexData[i + 1] & 0xFFFF) * POS_CONVERSION;
-		final float z0 = ((pos0 >> 16) & 0xFF) + (vertexData[i + 1] >>> 16) * POS_CONVERSION;
-
-		i += integerStride;
-		final int pos1 = vertexData[i + 2];
-		final float x1 = (pos1 & 0xFF) + (vertexData[i] >>> 16) * POS_CONVERSION;
-		final float y1 = ((pos1 >> 8) & 0xFF) + (vertexData[i + 1] & 0xFFFF) * POS_CONVERSION;
-		final float z1 = ((pos1 >> 16) & 0xFF) + (vertexData[i + 1] >>> 16) * POS_CONVERSION;
-
-		i += integerStride;
-		final int pos2 = vertexData[i + 2];
-		final float x2 = (pos2 & 0xFF) + (vertexData[i] >>> 16) * POS_CONVERSION;
-		final float y2 = ((pos2 >> 8) & 0xFF) + (vertexData[i + 1] & 0xFFFF) * POS_CONVERSION;
-		final float z2 = ((pos2 >> 16) & 0xFF) + (vertexData[i + 1] >>> 16) * POS_CONVERSION;
-
-		i += integerStride;
-		final int pos3 = vertexData[i + 2];
-		final float x3 = (pos3 & 0xFF) + (vertexData[i] >>> 16) * POS_CONVERSION;
-		final float y3 = ((pos3 >> 8) & 0xFF) + (vertexData[i + 1] & 0xFFFF) * POS_CONVERSION;
-		final float z3 = ((pos3 >> 16) & 0xFF) + (vertexData[i + 1] >>> 16) * POS_CONVERSION;
-
-		// compute average distance by component
-		final float dx = (x0 + x1 + x2 + x3) * 0.25f - x;
-		final float dy = (y0 + y1 + y2 + y3) * 0.25f - y;
-		final float dz = (z0 + z1 + z2 + z3) * 0.25f - z;
-
-		return dx * dx + dy * dy + dz * dz;
-	}
-
-	public int[] saveState(int[] priorState) {
+	public final int[] saveState(int[] priorState) {
 		final int integerSize = this.integerSize;
 
 		if (integerSize == 0) {
@@ -300,7 +116,7 @@ public class ArrayVertexCollector implements VertexCollector {
 		return result;
 	}
 
-	public void loadState(int[] stateData) {
+	public final void loadState(int[] stateData) {
 		clear();
 
 		if (stateData != null) {
@@ -310,41 +126,10 @@ public class ArrayVertexCollector implements VertexCollector {
 		}
 	}
 
-	public RenderState renderState() {
-		return renderState;
-	}
+	private static AtomicInteger arrayCount = new AtomicInteger();
+	private static AtomicInteger arryBytes = new AtomicInteger();
 
-	public void draw(boolean clear) {
-		if (!isEmpty()) {
-			drawSingle();
-
-			if (clear) {
-				clear();
-			}
-		}
-	}
-
-	public void sortIfNeeded() {
-		if (sorted) {
-			sortQuads(0, 0, 0);
-		}
-	}
-
-	/** Avoid: slow. */
-	public void drawSingle() {
-		// PERF: allocation - or eliminate this
-		final ObjectArrayList<ArrayVertexCollector> drawList = new ObjectArrayList<>();
-		drawList.add(this);
-		draw(drawList);
-	}
-
-	/**
-	 * Single-buffer draw, minimizes state changes.
-	 * Assumes all collectors are non-empty.
-	 */
-	public static void draw(ObjectArrayList<ArrayVertexCollector> drawList) {
-		final DrawableStream buffer = new DrawableStream(drawList);
-		buffer.draw(false);
-		buffer.close();
+	public static String debugReport() {
+		return String.format("Vertex collectors: %d %4.1fMb", arrayCount.get(), arryBytes.get() / 1048576f);
 	}
 }

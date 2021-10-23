@@ -51,7 +51,7 @@ import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.fluid.FluidModel;
 
 import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
-import grondag.canvas.buffer.input.ArrayVertexCollector;
+import grondag.canvas.buffer.input.OldVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.perf.ChunkRebuildCounters;
@@ -308,7 +308,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 			if (state != null) {
 				final VertexCollectorList collectors = context.collectors;
-				final ArrayVertexCollector collector = collectors.get(TerrainRenderStates.TRANSLUCENT_TERRAIN);
+				final OldVertexCollector collector = collectors.get(TerrainRenderStates.TRANSLUCENT_TERRAIN);
 				collector.loadState(state);
 
 				if (collector.sortTerrainQuads(worldRenderState.sectorManager.cameraPos(), renderSector)) {
