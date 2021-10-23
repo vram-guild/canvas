@@ -33,16 +33,16 @@ public class SortingVertexCollector extends SimpleVertexCollector {
 	private float[] perQuadDistance = new float[512];
 	private final int[] swapData;
 	private boolean didSwap = false;
+	final QuadDistanceFunc distanceFunc;
 
 	public SortingVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
-		super(renderState, true, isTerrain, target);
+		super(renderState, isTerrain, target);
 		swapData = new int[quadStrideInts * 2];
+		distanceFunc = isTerrain ? this::getDistanceSqTerrain : this::getDistanceSq;
 	}
 
 	@Override
 	public boolean sortTerrainQuads(Vec3 sortPos, RegionRenderSector sector) {
-		assert isTerrain;
-
 		return sortQuads(
 			(float) (sortPos.x - sector.paddedBlockOriginX),
 			(float) (sortPos.y - sector.paddedBlockOriginY),
@@ -52,7 +52,7 @@ public class SortingVertexCollector extends SimpleVertexCollector {
 
 	private boolean sortQuads(float x, float y, float z) {
 		final int quadCount = quadCount();
-		final QuadDistanceFunc distanceFunc = isTerrain ? quadDistanceTerrain : quadDistanceStandard;
+		final QuadDistanceFunc distanceFunc = this.distanceFunc;
 
 		if (perQuadDistance.length < quadCount) {
 			perQuadDistance = new float[Mth.smallestEncompassingPowerOfTwo(quadCount)];
@@ -102,8 +102,6 @@ public class SortingVertexCollector extends SimpleVertexCollector {
 		}
 	};
 
-	private final QuadDistanceFunc quadDistanceStandard = this::getDistanceSq;
-
 	private float getDistanceSq(float x, float y, float z, int quadIndex) {
 		final int integerStride = quadStrideInts / 4;
 
@@ -136,7 +134,6 @@ public class SortingVertexCollector extends SimpleVertexCollector {
 		return dx * dx + dy * dy + dz * dz;
 	}
 
-	private final QuadDistanceFunc quadDistanceTerrain = this::getDistanceSqTerrain;
 	private static final float POS_CONVERSION = 1f / 0xFFFF;
 
 	private float getDistanceSqTerrain(float x, float y, float z, int quadIndex) {

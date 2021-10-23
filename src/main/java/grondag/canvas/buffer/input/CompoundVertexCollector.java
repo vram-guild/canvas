@@ -20,20 +20,52 @@
 
 package grondag.canvas.buffer.input;
 
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.mesh.BaseQuadView;
+
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.TerrainFormat;
 
-public class SimpleVertexCollector extends ArrayVertexCollector implements DrawableVertexCollector {
+public class CompoundVertexCollector extends ArrayVertexCollector implements DrawableVertexCollector {
+	public final boolean isTerrain;
 	public final RenderState renderState;
+	private final BucketSorter bucketSorter;
 
-	public SimpleVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
+	public CompoundVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
 		super(isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
 		this.renderState = renderState;
+		this.isTerrain = isTerrain;
+		bucketSorter = isTerrain ? new BucketSorter() : null;
+	}
+
+	@Override
+	public void commit(BaseQuadView quad, RenderMaterial mat) {
+		assert isTerrain;
+
+		if (bucketSorter != null) {
+			bucketSorter.add(quad.effectiveCullFaceId(), integerSize);
+		}
+
+		commit(quadStrideInts);
+	}
+
+	@Override
+	public final void clear() {
+		super.clear();
+
+		if (bucketSorter != null) {
+			bucketSorter.clear();
+		}
 	}
 
 	@Override
 	public final RenderState renderState() {
 		return renderState;
+	}
+
+	@Override
+	public VertexBucket[] vertexBuckets() {
+		return bucketSorter == null ? null : bucketSorter.sort(vertexData, integerSize);
 	}
 }

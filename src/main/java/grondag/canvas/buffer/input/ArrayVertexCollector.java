@@ -23,9 +23,16 @@ package grondag.canvas.buffer.input;
 import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+
+import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
 import grondag.canvas.buffer.render.TransferBuffer;
+import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 
 public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 	protected final int quadStrideInts;
@@ -103,6 +110,48 @@ public abstract class ArrayVertexCollector implements DrawableVertexCollector {
 	@Override
 	public void clear() {
 		integerSize = 0;
+	}
+
+	@Override
+	public void commit(BaseQuadView quad, RenderMaterial mat) {
+		commit(quadStrideInts);
+	}
+
+	@Override
+	public void sortIfNeeded() { }
+
+	@Override
+	public boolean sorted() {
+		return false;
+	}
+
+	@Override
+	public boolean sortTerrainQuads(Vec3 sortPos, RegionRenderSector sector) {
+		return false;
+	}
+
+	@Override
+	public VertexBucket[] vertexBuckets() {
+		return null;
+	}
+
+	@Override
+	public final void draw(boolean clear) {
+		if (!isEmpty()) {
+			drawSingle();
+
+			if (clear) {
+				clear();
+			}
+		}
+	}
+
+	/** Avoid: slow. */
+	public final void drawSingle() {
+		// PERF: allocation - or eliminate this
+		final ObjectArrayList<DrawableVertexCollector> drawList = new ObjectArrayList<>();
+		drawList.add(this);
+		DrawableVertexCollector.draw(drawList);
 	}
 
 	@Override

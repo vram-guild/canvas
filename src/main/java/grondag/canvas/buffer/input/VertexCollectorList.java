@@ -120,7 +120,14 @@ public class VertexCollectorList {
 		}
 
 		if (result == null) {
-			result = new OldVertexCollector(materialState.renderState(), materialState.sorted(), isTerrain, target);
+			if (materialState.sorted()) {
+				result = new SortingVertexCollector(materialState.renderState(), isTerrain, target);
+			} else {
+				result = isTerrain
+						? new CompoundVertexCollector(materialState.renderState(), isTerrain, target)
+						: new SimpleVertexCollector(materialState.renderState(), isTerrain, target);
+			}
+
 			collectors[index] = result;
 			active.add(result);
 		}

@@ -30,7 +30,8 @@ import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.buffer.input.OldVertexCollector;
+import grondag.canvas.buffer.input.DrawableVertexCollector;
+import grondag.canvas.buffer.input.SimpleVertexCollector;
 import grondag.canvas.buffer.render.StaticDrawBuffer;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
@@ -230,7 +231,7 @@ public class PipelineManager {
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 
-		final OldVertexCollector collector = new OldVertexCollector(RenderState.MISSING, false, false);
+		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.MISSING, false, new int[64]);
 
 		final int[] v = collector.target();
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 0);
