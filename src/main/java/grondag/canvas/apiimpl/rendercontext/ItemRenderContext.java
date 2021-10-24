@@ -42,7 +42,6 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -144,9 +143,9 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 
 		if (detachedPerspective) {
 			if (stack.is(Items.TRIDENT)) {
-				model = models.getModelManager().getModel(new ModelResourceLocation("minecraft:trident#inventory"));
+				model = models.getItemModel(Items.TRIDENT);
 			} else if (stack.is(Items.SPYGLASS)) {
-				model = models.getModelManager().getModel(new ModelResourceLocation("minecraft:spyglass#inventory"));
+				model = models.getItemModel(Items.SPYGLASS);
 			}
 		}
 
