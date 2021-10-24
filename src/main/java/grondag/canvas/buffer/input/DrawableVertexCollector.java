@@ -62,5 +62,7 @@ public interface DrawableVertexCollector extends VertexCollector {
 
 	void loadState(int[] state);
 
-	FaceBucket[] vertexBuckets();
+	FaceBucket[] faceBuckets();
+
+	FaceBucket faceBucket(int index);
 }

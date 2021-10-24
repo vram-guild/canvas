@@ -65,14 +65,13 @@ public class TerrainVertexCollector extends BaseVertexCollector {
 	}
 
 	@Override
-	public FaceBucket[] vertexBuckets() {
+	public FaceBucket[] faceBuckets() {
 		final FaceBucket[] result = new FaceBucket[FaceUtil.FACE_INDEX_COUNT];
 		int index = 0;
 
 		for (int i = 0; i < FaceUtil.FACE_INDEX_COUNT; ++i) {
-			final int vertexCount = collectors[i].vertexCount();
-			result[i] = new FaceBucket(index, vertexCount);
-			index += vertexCount;
+			result[i] = collectors[i].faceBucket(index);
+			index += collectors[i].vertexCount();
 		}
 
 		return result;
@@ -135,5 +134,10 @@ public class TerrainVertexCollector extends BaseVertexCollector {
 	@Override
 	public void loadState(int[] state) {
 		throw new UnsupportedOperationException("Compound vertex collector does not support loadState");
+	}
+
+	@Override
+	public FaceBucket faceBucket(int index) {
+		throw new UnsupportedOperationException("Compound vertex collector does not support faceBucket");
 	}
 }

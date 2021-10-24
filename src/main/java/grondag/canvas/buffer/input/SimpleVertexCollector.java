@@ -26,4 +26,10 @@ public class SimpleVertexCollector extends ArrayVertexCollector implements Drawa
 	public SimpleVertexCollector(RenderState renderState, int[] target) {
 		super(renderState, target);
 	}
+
+	@Override
+	public FaceBucket faceBucket(int index) {
+		final int vertexCount = vertexCount();
+		return new FaceBucket(index, vertexCount, index, vertexCount);
+	}
 }

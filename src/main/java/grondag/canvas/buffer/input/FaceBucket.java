@@ -20,4 +20,4 @@
 
 package grondag.canvas.buffer.input;
 
-public record FaceBucket(int firstVertexIndex, int vertexCount) { }
+public record FaceBucket(int colorVertexIndex, int colorVertexCount, int shadowVertexIndex, int shadowVertexCount) { }

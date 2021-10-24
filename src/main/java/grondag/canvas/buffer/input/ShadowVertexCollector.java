@@ -120,7 +120,12 @@ public class ShadowVertexCollector extends BaseVertexCollector {
 	}
 
 	@Override
-	public FaceBucket[] vertexBuckets() {
-		return null;
+	public FaceBucket[] faceBuckets() {
+		throw new UnsupportedOperationException("ShadowVertexCollector vertex collector does not support vertexBuckets");
+	}
+
+	@Override
+	public FaceBucket faceBucket(int index) {
+		return new FaceBucket(index, colorOnly.vertexCount(), index, vertexCount());
 	}
 }

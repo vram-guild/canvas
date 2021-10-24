@@ -30,6 +30,7 @@ import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
+import grondag.canvas.buffer.input.FaceBucket;
 import grondag.canvas.buffer.render.StreamBuffer;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.varia.GFX;
@@ -37,7 +38,7 @@ import grondag.canvas.varia.GFX;
 public class DrawableStream implements AutoCloseable {
 	@Nullable private StreamBuffer buffer;
 	private final int limit;
-	private final int[] counts;
+	private final FaceBucket[] buckets;
 	private final RenderState[] states;
 
 	public DrawableStream(ObjectArrayList<? extends DrawableVertexCollector> drawList) {
@@ -53,16 +54,18 @@ public class DrawableStream implements AutoCloseable {
 
 		buffer = StreamBuffer.claim(bytes, CanvasVertexFormats.STANDARD_MATERIAL_FORMAT);
 		final IntBuffer intBuffer = buffer.intBuffer();
-		counts = new int[limit];
+		buckets = new FaceBucket[limit];
 		states = new RenderState[limit];
 
 		intBuffer.position(0);
+		int startIndex = 0;
 
 		for (int i = 0; i < limit; ++i) {
 			final DrawableVertexCollector collector = drawList.get(i);
 			collector.toBuffer(intBuffer, 0);
-			counts[i] = collector.vertexCount();
+			buckets[i] = collector.faceBucket(startIndex);
 			states[i] = collector.renderState();
+			startIndex += collector.vertexCount();
 			collector.clear();
 		}
 
@@ -73,31 +76,27 @@ public class DrawableStream implements AutoCloseable {
 	private DrawableStream() {
 		buffer = null;
 		limit = 0;
-		counts = null;
+		buckets = null;
 		states = null;
 	}
 
 	public void draw(boolean isShadow) {
 		if (buffer != null) {
 			buffer.bind();
-			int startIndex = 0;
 
 			for (int i = 0; i < limit; ++i) {
 				final RenderState state = states[i];
-				final int vertexCount = counts[i];
+				final FaceBucket bucket = buckets[i];
 
-				// WIP: restore ability to skip render of non-shadow casters
-				// probably based on bucket encoding
-				//if (state.castShadows || !isShadow) {
+				final int startIndex = isShadow ? bucket.shadowVertexIndex() : bucket.colorVertexIndex();
+				final int vertexCount = isShadow ? bucket.shadowVertexCount() : bucket.colorVertexCount();
+
 				state.enable();
 				final int elementCount = vertexCount / 4 * 6;
 				final RenderSystem.AutoStorageIndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(Mode.QUADS, elementCount);
 				GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name());
-				final int elementType = indexBuffer.type().asGLType; // "count" appears to be a yarn defect
+				final int elementType = indexBuffer.type().asGLType;
 				GFX.drawElementsBaseVertex(Mode.QUADS.asGLMode, elementCount, elementType, 0L, startIndex);
-				//}
-
-				startIndex += vertexCount;
 			}
 
 			RenderState.disable();

@@ -86,7 +86,7 @@ public abstract class ArrayVertexCollector extends BaseVertexCollector {
 	}
 
 	@Override
-	public FaceBucket[] vertexBuckets() {
+	public FaceBucket[] faceBuckets() {
 		return null;
 	}
 

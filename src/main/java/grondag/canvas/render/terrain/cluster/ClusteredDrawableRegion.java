@@ -56,7 +56,7 @@ public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDra
 		assert collector.sorted() == translucent;
 
 		final TransferBuffer transferBuffer = TransferBuffers.claim(byteCount);
-		final FaceBucket[] buckets = translucent ? null : collector.vertexBuckets();
+		final FaceBucket[] buckets = translucent ? null : collector.faceBuckets();
 		collector.toBuffer(transferBuffer, 0);
 		final ClusteredDrawableStorage storage = new ClusteredDrawableStorage(
 				realm,
