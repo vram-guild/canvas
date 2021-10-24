@@ -26,90 +26,73 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.phys.Vec3;
 
-import io.vram.frex.api.model.util.FaceUtil;
-
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 
-public class CompoundVertexCollector extends BaseVertexCollector {
-	private final DrawableVertexCollector[] collectors;
+public class ShadowVertexCollector extends BaseVertexCollector {
+	protected final SimpleVertexCollector common;
+	protected final SimpleVertexCollector colorOnly;
 
-	public CompoundVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
+	public ShadowVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
 		super(renderState, isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
-
-		// WIP add support for entity pass and for shadow on terrain
-		assert isTerrain;
-
-		collectors = new SimpleVertexCollector[FaceUtil.FACE_INDEX_COUNT];
-
-		for (int i = 0; i < FaceUtil.FACE_INDEX_COUNT; ++i) {
-			collectors[i] = new SimpleVertexCollector(renderState, isTerrain, target);
-		}
+		common = new SimpleVertexCollector(renderState, isTerrain, target);
+		colorOnly = new SimpleVertexCollector(renderState, isTerrain, target);
 	}
 
 	@Override
-	public void commit(int effectiveFaceIndex, boolean castShadow) {
-		collectors[effectiveFaceIndex].commit(castShadow);
+	public void commit(boolean castShadow) {
+		(castShadow ? common : colorOnly).commit(quadStrideInts);
 		integerSize += quadStrideInts;
 	}
 
 	@Override
 	public final void clear() {
 		integerSize = 0;
-
-		for (int i = 0; i < FaceUtil.FACE_INDEX_COUNT; ++i) {
-			collectors[i].clear();
-		}
+		common.clear();
+		colorOnly.clear();
 	}
 
 	@Override
-	public FaceBucket[] vertexBuckets() {
-		final FaceBucket[] result = new FaceBucket[FaceUtil.FACE_INDEX_COUNT];
-		int index = 0;
-
-		for (int i = 0; i < FaceUtil.FACE_INDEX_COUNT; ++i) {
-			final int vertexCount = collectors[i].vertexCount();
-			result[i] = new FaceBucket(index, vertexCount);
-			index += vertexCount;
-		}
-
-		return result;
+	public int commonVertexCount() {
+		return common.vertexCount();
 	}
 
 	@Override
 	public void commit(int size) {
-		throw new UnsupportedOperationException("Commit on compound collector must provide faceIndex and castShadow");
+		throw new UnsupportedOperationException("Commit on ShadowVertexCollector must provide castShadowl");
 	}
 
 	@Override
-	public void commit(boolean castShadow) {
-		throw new UnsupportedOperationException("Commit on compound collector must provide faceIndex and castShadow");
+	public void commit(int effectiveFaceIndex, boolean castShadow) {
+		throw new UnsupportedOperationException("Commit on ShadowVertexCollector must provide castShadow");
 	}
 
 	@Override
 	public void toBuffer(IntBuffer intBuffer, int targetIndex) {
-		for (int i = 0; i < FaceUtil.FACE_INDEX_COUNT; ++i) {
-			final var c = collectors[i];
+		if (!common.isEmpty()) {
+			common.toBuffer(intBuffer, targetIndex);
+			targetIndex += common.integerSize;
+		}
 
-			if (!c.isEmpty()) {
-				collectors[i].toBuffer(intBuffer, targetIndex);
-				targetIndex += collectors[i].integerSize();
-			}
+		if (!colorOnly.isEmpty()) {
+			colorOnly.toBuffer(intBuffer, targetIndex);
+			targetIndex += colorOnly.integerSize;
 		}
 	}
 
 	@Override
 	public void toBuffer(TransferBuffer targetBuffer, int bufferTargetIndex) {
-		for (int i = 0; i < FaceUtil.FACE_INDEX_COUNT; ++i) {
-			final var c = collectors[i];
+		if (!common.isEmpty()) {
+			common.toBuffer(targetBuffer, bufferTargetIndex);
+			bufferTargetIndex += common.integerSize;
+		}
 
-			if (!c.isEmpty()) {
-				collectors[i].toBuffer(targetBuffer, bufferTargetIndex);
-				bufferTargetIndex += collectors[i].integerSize();
-			}
+		if (!colorOnly.isEmpty()) {
+			colorOnly.toBuffer(targetBuffer, bufferTargetIndex);
+			bufferTargetIndex += colorOnly.integerSize;
 		}
 	}
 
@@ -125,16 +108,21 @@ public class CompoundVertexCollector extends BaseVertexCollector {
 
 	@Override
 	public boolean sortTerrainQuads(Vec3 sortPos, RegionRenderSector sector) {
-		throw new UnsupportedOperationException("Compound vertex collector does not support sortTerrainQuads.");
+		throw new UnsupportedOperationException("ShadowVertexCollector vertex collector does not support sortTerrainQuads.");
 	}
 
 	@Override
 	public @Nullable int[] saveState(@Nullable int[] translucentState) {
-		throw new UnsupportedOperationException("Compound vertex collector does not support saveState.");
+		throw new UnsupportedOperationException("ShadowVertexCollector vertex collector does not support saveState.");
 	}
 
 	@Override
 	public void loadState(int[] state) {
-		throw new UnsupportedOperationException("Compound vertex collector does not support loadState");
+		throw new UnsupportedOperationException("ShadowVertexCollector vertex collector does not support loadState");
+	}
+
+	@Override
+	public FaceBucket[] vertexBuckets() {
+		return null;
 	}
 }

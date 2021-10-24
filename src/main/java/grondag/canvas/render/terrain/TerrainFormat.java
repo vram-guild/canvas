@@ -173,6 +173,6 @@ public class TerrainFormat {
 			target[toIndex + 6] = transformedNormal | transformedTangent;
 		}
 
-		buff.commit(quad, mat);
+		buff.commit(quad.effectiveCullFaceId(), mat.castShadows());
 	};
 }

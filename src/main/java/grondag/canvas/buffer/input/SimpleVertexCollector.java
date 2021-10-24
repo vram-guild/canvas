@@ -28,8 +28,4 @@ public class SimpleVertexCollector extends ArrayVertexCollector implements Drawa
 	public SimpleVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
 		super(renderState, isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
 	}
-
-	public final void commit() {
-		commit(quadStrideInts);
-	}
 }

@@ -26,9 +26,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
-import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.base.renderer.mesh.BaseQuadView;
-
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
@@ -76,11 +73,6 @@ public abstract class ArrayVertexCollector extends BaseVertexCollector {
 	}
 
 	@Override
-	public void commit(BaseQuadView quad, RenderMaterial mat) {
-		commit(quadStrideInts);
-	}
-
-	@Override
 	public void sortIfNeeded() { }
 
 	@Override
@@ -94,7 +86,7 @@ public abstract class ArrayVertexCollector extends BaseVertexCollector {
 	}
 
 	@Override
-	public VertexBucket[] vertexBuckets() {
+	public FaceBucket[] vertexBuckets() {
 		return null;
 	}
 

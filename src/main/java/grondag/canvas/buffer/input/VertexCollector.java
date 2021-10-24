@@ -20,9 +20,6 @@
 
 package grondag.canvas.buffer.input;
 
-import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.base.renderer.mesh.BaseQuadView;
-
 /**
  * Thin access layer to vertex buffer/mapped memory range.
  * Caller must know vertex format, boundaries, etc.
@@ -31,7 +28,9 @@ import io.vram.frex.base.renderer.mesh.BaseQuadView;
 public interface VertexCollector {
 	void commit(int size);
 
-	void commit(BaseQuadView quad, RenderMaterial material);
+	void commit(int effectiveFaceIndex, boolean castShadow);
+
+	void commit(boolean castShadow);
 
 	int[] target();
 

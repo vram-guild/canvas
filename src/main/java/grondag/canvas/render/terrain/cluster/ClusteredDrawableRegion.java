@@ -23,7 +23,7 @@ package grondag.canvas.render.terrain.cluster;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import grondag.canvas.buffer.input.DrawableVertexCollector;
-import grondag.canvas.buffer.input.VertexBucket;
+import grondag.canvas.buffer.input.FaceBucket;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
@@ -56,7 +56,7 @@ public class ClusteredDrawableRegion extends AbstractDrawableRegion<ClusteredDra
 		assert collector.sorted() == translucent;
 
 		final TransferBuffer transferBuffer = TransferBuffers.claim(byteCount);
-		final VertexBucket[] buckets = translucent ? null : collector.vertexBuckets();
+		final FaceBucket[] buckets = translucent ? null : collector.vertexBuckets();
 		collector.toBuffer(transferBuffer, 0);
 		final ClusteredDrawableStorage storage = new ClusteredDrawableStorage(
 				realm,

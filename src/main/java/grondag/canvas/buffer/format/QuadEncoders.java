@@ -117,7 +117,7 @@ public class QuadEncoders {
 			target[toIndex + 6] = transformedNormal | transformedTangent;
 		}
 
-		buff.commit(quad, mat);
+		buff.commit(quad.effectiveCullFaceId(), mat.castShadows());
 	}
 
 	public static final QuadEncoder STANDARD_ENCODER = QuadEncoders::encodeQuad;

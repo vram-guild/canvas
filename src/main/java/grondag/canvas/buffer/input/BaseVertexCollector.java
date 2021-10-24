@@ -63,6 +63,17 @@ public abstract class BaseVertexCollector implements DrawableVertexCollector {
 		return integerSize / vertexStrideInts;
 	}
 
+	/**
+	 * Returns count of vertices that should render in both
+	 * color and shadow pass. And vertices after this should
+	 * not render in shadow pass.
+	 *
+	 * <p>Will always be <= {@link #vertexCount()}.
+	 */
+	public int commonVertexCount() {
+		return vertexCount();
+	}
+
 	@Override
 	public final boolean isEmpty() {
 		return integerSize == 0;
@@ -76,6 +87,16 @@ public abstract class BaseVertexCollector implements DrawableVertexCollector {
 	@Override
 	public void clear() {
 		integerSize = 0;
+	}
+
+	@Override
+	public void commit(int effectiveFaceIndex, boolean castShadow) {
+		commit(quadStrideInts);
+	}
+
+	@Override
+	public void commit(boolean castShadow) {
+		commit(quadStrideInts);
 	}
 
 	@Override
