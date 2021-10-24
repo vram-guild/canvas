@@ -40,6 +40,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
@@ -105,22 +106,20 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 	/**
 	 * Assumes region and block pos set earlier via {@link #setPosAndWorldFromEntity(Entity)}.
 	 */
-	public void render(ModelBlockRenderer vanillaRenderer, BakedModel model, BlockState state, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light) {
+	public void render(ModelBlockRenderer vanillaRenderer, BakedModel model, BlockState state, PoseStack poseStack, MultiBufferSource consumers, int overlay, int light) {
 		defaultConsumer = consumers.getBuffer(ItemBlockRenderTypes.getRenderType(state, false));
-		encodingContext.prepare(matrixStack);
 		this.light = light;
-		inputContext.prepareForWorld(level, false);
+		inputContext.prepareForWorld(level, false, MatrixStack.cast(poseStack));
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42L, overlay);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
 	}
 
 	// item frames don't have a block state but render like a block
-	public void renderItemFrame(ModelBlockRenderer modelRenderer, BakedModel model, PoseStack matrixStack, MultiBufferSource consumers, int overlay, int light, ItemFrame itemFrameEntity) {
+	public void renderItemFrame(ModelBlockRenderer modelRenderer, BakedModel model, PoseStack poseStack, MultiBufferSource consumers, int overlay, int light, ItemFrame itemFrameEntity) {
 		defaultConsumer = consumers.getBuffer(Sheets.solidBlockSheet());
-		encodingContext.prepare(matrixStack);
 		this.light = light;
-		inputContext.prepareForWorld(level, false);
+		inputContext.prepareForWorld(level, false, MatrixStack.cast(poseStack));
 		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());
 		inputContext.prepareForBlock(Blocks.AIR.defaultBlockState(), pos, 42L, overlay);
 		materialMap = MaterialMap.defaultMaterialMap();

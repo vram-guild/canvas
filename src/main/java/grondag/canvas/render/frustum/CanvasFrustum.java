@@ -26,7 +26,7 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 
 /**
  * Plane equation derivations based on:
@@ -41,11 +41,11 @@ import io.vram.frex.api.math.FastMatri4f;
 public abstract class CanvasFrustum extends Frustum {
 	protected static final float MIN_GAP = 0.0001f;
 	protected final Matrix4f mvpMatrix = new Matrix4f();
-	protected final FastMatri4f mvpMatrixExt = (FastMatri4f) (Object) mvpMatrix;
+	protected final FastMatrix4f mvpMatrixExt = (FastMatrix4f) (Object) mvpMatrix;
 	protected final Matrix4f projectionMatrix = new Matrix4f();
-	protected final FastMatri4f projectionMatrixExt = (FastMatri4f) (Object) projectionMatrix;
+	protected final FastMatrix4f projectionMatrixExt = (FastMatrix4f) (Object) projectionMatrix;
 	protected final Matrix4f modelMatrix = new Matrix4f();
-	protected final FastMatri4f modelMatrixExt = (FastMatri4f) (Object) modelMatrix;
+	protected final FastMatrix4f modelMatrixExt = (FastMatrix4f) (Object) modelMatrix;
 
 	protected double lastCameraX = Double.MAX_VALUE;
 	protected double lastCameraY = Double.MAX_VALUE;
@@ -68,11 +68,11 @@ public abstract class CanvasFrustum extends Frustum {
 		return dummy;
 	}
 
-	public final FastMatri4f projectionMatrix() {
+	public final FastMatrix4f projectionMatrix() {
 		return projectionMatrixExt;
 	}
 
-	public final FastMatri4f modelMatrix() {
+	public final FastMatrix4f modelMatrix() {
 		return modelMatrixExt;
 	}
 
@@ -114,7 +114,7 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	protected final void extractPlanes() {
-		final FastMatri4f matrix = mvpMatrixExt;
+		final FastMatrix4f matrix = mvpMatrixExt;
 		final float a00 = matrix.f_m00();
 		final float a01 = matrix.f_m10();
 		final float a02 = matrix.f_m20();

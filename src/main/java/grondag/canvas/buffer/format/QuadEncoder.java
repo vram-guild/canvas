@@ -20,11 +20,12 @@
 
 package grondag.canvas.buffer.format;
 
+import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.buffer.input.VertexCollector;
 
 @FunctionalInterface
 public interface QuadEncoder {
-	void encode(BaseQuadEmitter quad, EncodingContext context, VertexCollector collector);
+	void encode(BaseQuadEmitter quad, InputContext inputContext, EncodingContext context, VertexCollector collector);
 }

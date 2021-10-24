@@ -36,7 +36,7 @@ import com.mojang.math.Vector4f;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.bitraster.Matrix4L;
 import grondag.bitraster.OrthoRasterizer;
@@ -48,10 +48,10 @@ import grondag.canvas.terrain.region.RegionPosition;
 
 public class ShadowOccluder extends AbstractOccluder {
 	private final Matrix4f shadowViewMatrix = new Matrix4f();
-	private final FastMatri4f shadowViewMatrixExt = (FastMatri4f) (Object) shadowViewMatrix;
+	private final FastMatrix4f shadowViewMatrixExt = (FastMatrix4f) (Object) shadowViewMatrix;
 
 	public final Matrix4f shadowProjMatrix = new Matrix4f();
-	private final FastMatri4f shadowProjMatrixExt = (FastMatri4f) (Object) shadowProjMatrix;
+	private final FastMatrix4f shadowProjMatrixExt = (FastMatrix4f) (Object) shadowProjMatrix;
 
 	private float maxRegionExtent;
 	private float r0, x0, y0, z0, r1, x1, y1, z1, r2, x2, y2, z2, r3, x3, y3, z3;

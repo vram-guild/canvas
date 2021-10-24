@@ -30,7 +30,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Matrix4f;
 
 import io.vram.bitkit.BitPacker32;
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.texture.SpriteIndex;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
@@ -129,7 +129,7 @@ public class GlMaterialProgram extends GlProgram {
 	private MatrixState lastMatrixState = null;
 
 	private static final Matrix4f guiMatrix = new Matrix4f();
-	private static final FastMatri4f guiMatrixExt = (FastMatri4f) (Object) guiMatrix;
+	private static final FastMatrix4f guiMatrixExt = (FastMatrix4f) (Object) guiMatrix;
 
 	public void updateContextInfo(SpriteIndex atlasInfo, int targetIndex) {
 		final MatrixState ms = MatrixState.get();

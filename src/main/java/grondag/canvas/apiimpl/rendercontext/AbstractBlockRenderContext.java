@@ -103,9 +103,9 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 		colorizeQuad(quad, this.inputContext);
 
 		if (collectors == null) {
-			bufferQuad(quad, encodingContext, defaultConsumer);
+			bufferQuad(quad, inputContext, encodingContext, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_ENCODER.encode(quad, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
+			QuadEncoders.STANDARD_ENCODER.encode(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 		}
 	}
 }

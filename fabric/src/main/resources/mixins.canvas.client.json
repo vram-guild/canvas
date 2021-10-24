@@ -34,7 +34,6 @@
 		"MixinPalettedContainer",
 		"MixinParticle",
 		"MixinParticleEngine",
-		"MixinPoseStack",
 		"MixinRenderBuffers",
 		"MixinRenderTarget",
 		"MixinRenderType",

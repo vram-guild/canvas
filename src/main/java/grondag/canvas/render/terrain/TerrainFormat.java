@@ -43,7 +43,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 
 import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.FastMatrix3f;
 
 import grondag.canvas.buffer.format.CanvasVertexFormat;
@@ -70,9 +70,11 @@ public class TerrainFormat {
 	static final int TERRAIN_QUAD_STRIDE = TERRAIN_MATERIAL.quadStrideInts;
 	static final int TERRAIN_VERTEX_STRIDE = TERRAIN_MATERIAL.vertexStrideInts;
 
-	public static final QuadEncoder TERRAIN_ENCODER = (quad, context, buff) -> {
-		final FastMatri4f matrix = (FastMatri4f) context.matrix();
-		final FastMatrix3f normalMatrix = context.normalMatrix();
+	public static final QuadEncoder TERRAIN_ENCODER = (quad, inputContext, context, buff) -> {
+		final var matrixStack = inputContext.matrixStack();
+		final FastMatrix4f matrix = matrixStack.modelMatrix();
+		final FastMatrix3f normalMatrix = matrixStack.normalMatrix();
+
 		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
 
 		final boolean aoDisabled = !Minecraft.useAmbientOcclusion();

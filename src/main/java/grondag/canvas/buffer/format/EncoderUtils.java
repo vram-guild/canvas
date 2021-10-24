@@ -22,9 +22,10 @@ package grondag.canvas.buffer.format;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.model.BakedInputContext;
+import io.vram.frex.api.model.InputContext;
 import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
@@ -33,9 +34,10 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import grondag.canvas.apiimpl.rendercontext.AbstractRenderContext;
 
 public abstract class EncoderUtils {
-	public static void bufferQuad(BaseQuadEmitter quad, EncodingContext context, VertexConsumer buff) {
-		final FastMatri4f matrix = (FastMatri4f) context.matrix();
-		final FastMatrix3f normalMatrix = context.normalMatrix();
+	public static void bufferQuad(BaseQuadEmitter quad, InputContext inputContext, EncodingContext context, VertexConsumer buff) {
+		final var matrixStack = inputContext.matrixStack();
+		final FastMatrix4f matrix = matrixStack.modelMatrix();
+		final FastMatrix3f normalMatrix = matrixStack.normalMatrix();
 		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
 
 		final var mat = quad.material();

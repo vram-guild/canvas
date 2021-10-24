@@ -31,9 +31,6 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -47,6 +44,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
+import io.vram.frex.api.math.FastMatrix4f;
+import io.vram.frex.api.math.FastMatrix3f;
+import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.fluid.FluidModel;
 
@@ -412,10 +412,10 @@ public class RenderRegion implements TerrainExecutorTask {
 		final int zOrigin = origin.getZ();
 
 		final InputRegion region = context.region;
-		final PoseStack matrixStack = new PoseStack();
-		final PoseStack.Pose entry = matrixStack.last();
-		final Matrix4f modelMatrix = entry.pose();
-		final Matrix3f normalMatrix = entry.normal();
+		final MatrixStack matrixStack = context.matrixStack;
+		final FastMatrix4f modelMatrix = matrixStack.modelMatrix();
+		final FastMatrix3f normalMatrix = matrixStack.normalMatrix();
+		normalMatrix.f_setIdentity();
 
 		final BlockRenderDispatcher blockRenderManager = Minecraft.getInstance().getBlockRenderer();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
@@ -434,13 +434,11 @@ public class RenderRegion implements TerrainExecutorTask {
 
 				if (hasFluid || hasBlock) {
 					// Vanilla does a push/pop for each block but that creates needless allocation spam.
-					modelMatrix.setIdentity();
-					modelMatrix.multiplyWithTranslation(x, y, z);
-
-					normalMatrix.setIdentity();
+					modelMatrix.f_setIdentity();
+					modelMatrix.f_translate(x, y, z);
 
 					if (hasFluid) {
-						context.renderFluid(blockState, searchPos, false, FluidModel.get(fluidState.getType()), matrixStack);
+						context.renderFluid(blockState, searchPos, false, FluidModel.get(fluidState.getType()));
 					}
 
 					if (hasBlock) {
@@ -448,12 +446,12 @@ public class RenderRegion implements TerrainExecutorTask {
 							final Vec3 vec3d = blockState.getOffset(region, searchPos);
 
 							if (vec3d != Vec3.ZERO) {
-								modelMatrix.multiplyWithTranslation((float) vec3d.x, (float) vec3d.y, (float) vec3d.z);
+								modelMatrix.f_translate((float) vec3d.x, (float) vec3d.y, (float) vec3d.z);
 							}
 						}
 
 						final BakedModel model = blockRenderManager.getBlockModel(blockState);
-						context.renderBlock(blockState, searchPos, model.useAmbientOcclusion(), (BlockModel) model, matrixStack);
+						context.renderBlock(blockState, searchPos, model.useAmbientOcclusion(), (BlockModel) model);
 					}
 				}
 			}

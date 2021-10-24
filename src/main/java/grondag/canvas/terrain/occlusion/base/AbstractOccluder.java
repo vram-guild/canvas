@@ -31,7 +31,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.bitraster.AbstractRasterizer;
 import grondag.bitraster.BoxOccluder;
@@ -105,7 +105,7 @@ public abstract class AbstractOccluder extends BoxOccluder {
 	 */
 	public abstract void prepareRegion(RegionPosition origin);
 
-	protected static void copyMatrixF2L(FastMatri4f src, Matrix4L dst) {
+	protected static void copyMatrixF2L(FastMatrix4f src, Matrix4L dst) {
 		dst.set(
 				src.f_m00(), src.f_m10(), src.f_m20(), src.f_m30(),
 				src.f_m01(), src.f_m11(), src.f_m21(), src.f_m31(),

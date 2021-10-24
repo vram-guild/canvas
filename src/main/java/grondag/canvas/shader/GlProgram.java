@@ -34,7 +34,7 @@ import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.resources.language.I18n;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.FastMatrix3f;
 
 import grondag.canvas.CanvasMod;
@@ -1062,7 +1062,7 @@ public class GlProgram {
 				return;
 			}
 
-			((FastMatri4f) (Object) matrix).f_writeToBuffer(0, uniformFloatBuffer);
+			((FastMatrix4f) (Object) matrix).f_writeToBuffer(0, uniformFloatBuffer);
 
 			setDirty();
 		}

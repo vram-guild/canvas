@@ -50,6 +50,7 @@ import net.minecraft.world.level.block.AbstractBannerBlock;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import io.vram.frex.base.renderer.context.BaseItemContext;
@@ -128,17 +129,18 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 
 	private boolean hasGlint;
 
-	public void renderItem(ItemModelShaper models, ItemStack stack, TransformType renderMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
+	public void renderItem(ItemModelShaper models, ItemStack stack, TransformType renderMode, boolean leftHanded, PoseStack poseStack, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
 
 		lightmap = light;
-		inputContext.prepareForItem(stack, renderMode, overlay);
+		final MatrixStack matrixStack = MatrixStack.cast(poseStack);
+		inputContext.prepareForItem(stack, renderMode, overlay, matrixStack);
 		isBlockItem = stack.getItem() instanceof BlockItem;
 		materialMap = MaterialMap.get(stack);
 		isGui = renderMode == ItemTransforms.TransformType.GUI;
 		isFrontLit = isGui && !model.usesBlockLight();
 		hasGlint = stack.hasFoil();
-		matrices.pushPose();
+		matrixStack.push();
 		final boolean detachedPerspective = renderMode == ItemTransforms.TransformType.GUI || renderMode == ItemTransforms.TransformType.GROUND || renderMode == ItemTransforms.TransformType.FIXED;
 
 		if (detachedPerspective) {
@@ -150,10 +152,8 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 		}
 
 		// PERF: optimize matrix stack operations
-		model.getTransforms().getTransform(renderMode).apply(leftHanded, matrices);
-		matrices.translate(-0.5D, -0.5D, -0.5D);
-
-		encodingContext.prepare(matrices);
+		model.getTransforms().getTransform(renderMode).apply(leftHanded, poseStack);
+		matrixStack.translate(-0.5f, -0.5f, -0.5f);
 
 		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
 			final BlockEntityWithoutLevelRenderer builtInRenderer = ((ItemRendererExt) Minecraft.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();
@@ -161,10 +161,10 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 			if (isGui && vertexConsumers instanceof CanvasImmediate) {
 				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
 				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
-				builtInRenderer.renderByItem(stack, renderMode, matrices, vertexConsumers, light, overlay);
+				builtInRenderer.renderByItem(stack, renderMode, poseStack, vertexConsumers, light, overlay);
 				context.guiMode(GuiMode.NORMAL);
 			} else {
-				builtInRenderer.renderByItem(stack, renderMode, matrices, vertexConsumers, light, overlay);
+				builtInRenderer.renderByItem(stack, renderMode, poseStack, vertexConsumers, light, overlay);
 			}
 		} else {
 			drawTranslucencyDirectToMainTarget = isGui || renderMode.firstPerson() || !isBlockItem;
@@ -181,7 +181,7 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 			((ItemModel) model).renderAsItem(inputContext, emitter());
 		}
 
-		matrices.popPose();
+		matrixStack.pop();
 	}
 
 	@Override
@@ -269,9 +269,9 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 		applyItemLighting(quad, this);
 
 		if (collectors == null) {
-			bufferQuad(quad, encodingContext, defaultConsumer);
+			bufferQuad(quad, inputContext, encodingContext, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_ENCODER.encode(quad, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
+			QuadEncoders.STANDARD_ENCODER.encode(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 		}
 	}
 

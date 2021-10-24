@@ -20,12 +20,6 @@
 
 package grondag.canvas.buffer.format;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 public final class AbsentEncodingContext extends AbstractEncodingContext {
-	private AbsentEncodingContext() {
-		prepare(new PoseStack());
-	}
-
 	public static final AbsentEncodingContext INSTANCE = new AbsentEncodingContext();
 }

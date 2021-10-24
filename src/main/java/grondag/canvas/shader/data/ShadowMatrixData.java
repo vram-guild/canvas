@@ -39,7 +39,7 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
@@ -48,16 +48,16 @@ public final class ShadowMatrixData {
 	private ShadowMatrixData() { }
 
 	public static final Matrix4f shadowViewMatrix = new Matrix4f();
-	private static final FastMatri4f shadowViewMatrixExt = (FastMatri4f) (Object) shadowViewMatrix;
+	private static final FastMatrix4f shadowViewMatrixExt = (FastMatrix4f) (Object) shadowViewMatrix;
 	private static final Matrix4f shadowViewMatrixInv = new Matrix4f();
-	private static final FastMatri4f shadowViewMatrixInvExt = (FastMatri4f) (Object) shadowViewMatrixInv;
+	private static final FastMatrix4f shadowViewMatrixInvExt = (FastMatrix4f) (Object) shadowViewMatrixInv;
 
 	public static final int CASCADE_COUNT = 4;
 
 	private static final Matrix4f[] shadowProjMatrix = new Matrix4f[CASCADE_COUNT];
-	private static final FastMatri4f[] shadowProjMatrixExt = new FastMatri4f[CASCADE_COUNT];
+	private static final FastMatrix4f[] shadowProjMatrixExt = new FastMatrix4f[CASCADE_COUNT];
 	private static final Matrix4f[] shadowViewProjMatrix = new Matrix4f[CASCADE_COUNT];
-	private static final FastMatri4f[] shadowViewProjMatrixExt = new FastMatri4f[CASCADE_COUNT];
+	private static final FastMatrix4f[] shadowViewProjMatrixExt = new FastMatrix4f[CASCADE_COUNT];
 
 	public static final float[] cascadeCentersAndRadii = new float[16];
 
@@ -68,10 +68,10 @@ public final class ShadowMatrixData {
 	static {
 		for (int i = 0; i < CASCADE_COUNT; ++i) {
 			shadowProjMatrix[i] = new Matrix4f();
-			shadowProjMatrixExt[i] = (FastMatri4f) (Object) shadowProjMatrix[i];
+			shadowProjMatrixExt[i] = (FastMatrix4f) (Object) shadowProjMatrix[i];
 
 			shadowViewProjMatrix[i] = new Matrix4f();
-			shadowViewProjMatrixExt[i] = (FastMatri4f) (Object) shadowViewProjMatrix[i];
+			shadowViewProjMatrixExt[i] = (FastMatrix4f) (Object) shadowViewProjMatrix[i];
 		}
 	}
 

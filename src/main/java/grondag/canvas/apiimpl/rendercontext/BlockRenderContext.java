@@ -31,6 +31,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
@@ -57,10 +58,9 @@ public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintG
 		return POOL.get();
 	}
 
-	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack matrixStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
+	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		defaultConsumer = buffer;
-		encodingContext.prepare(matrixStack);
-		inputContext.prepareForWorld(blockView, checkSides);
+		inputContext.prepareForWorld(blockView, checkSides, MatrixStack.cast(poseStack));
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed, overlay);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;

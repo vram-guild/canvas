@@ -35,6 +35,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
@@ -60,6 +61,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
 	public final InputRegion region;
+	public final MatrixStack matrixStack = MatrixStack.cast(new PoseStack());
 
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
@@ -81,7 +83,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	public TerrainRenderContext() {
 		super("TerrainRenderContext");
 		region = new InputRegion(this);
-		inputContext.prepareForWorld(region, true);
+		inputContext.prepareForWorld(region, true, matrixStack);
 		collectors = new VertexCollectorList(true, true);
 	}
 
@@ -115,20 +117,18 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		return this;
 	}
 
-	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, PoseStack matrixStack) {
+	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
 		isFluidModel = true;
-		renderInner(blockState, blockPos, defaultAo, model, matrixStack);
+		renderInner(blockState, blockPos, defaultAo, model);
 	}
 
-	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, PoseStack matrixStack) {
+	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
 		isFluidModel = false;
-		renderInner(blockState, blockPos, defaultAo, model, matrixStack);
+		renderInner(blockState, blockPos, defaultAo, model);
 	}
 
 	// PERF: don't pass in matrixStack each time, just change model matrix directly
-	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model, PoseStack matrixStack) {
-		encodingContext.prepare(matrixStack);
-
+	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
 		try {
 			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
 			prepareForBlock(blockState, blockPos, defaultAo);
@@ -174,6 +174,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		}
 
 		colorizeQuad(quad, this.inputContext);
-		TerrainFormat.TERRAIN_ENCODER.encode(quad, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
+		TerrainFormat.TERRAIN_ENCODER.encode(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 	}
 }

@@ -151,7 +151,7 @@ public class FastFrustum extends CanvasFrustum {
 		modelMatrixExt.f_set(modelMatrix);
 		projectionMatrixExt.f_set(projectionMatrix);
 
-		mvpMatrixExt.f_identity();
+		mvpMatrixExt.f_setIdentity();
 		mvpMatrixExt.f_mul(projectionMatrixExt);
 		mvpMatrixExt.f_mul(modelMatrixExt);
 

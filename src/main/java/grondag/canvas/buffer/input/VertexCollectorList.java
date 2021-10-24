@@ -27,6 +27,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import io.vram.frex.api.buffer.VertexEmitter;
 import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.base.renderer.context.AbsentInputContext;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
@@ -79,7 +80,7 @@ public class VertexCollectorList {
 
 			if (mat.condition().compute()) {
 				complete();
-				QuadEncoders.STANDARD_ENCODER.encode(this, AbsentEncodingContext.INSTANCE, get(mat));
+				QuadEncoders.STANDARD_ENCODER.encode(this, AbsentInputContext.INSTANCE, AbsentEncodingContext.INSTANCE, get(mat));
 
 				if (Configurator.disableUnseenSpriteAnimation) {
 					mat.trackPerFrameAnimation(this.spriteId());

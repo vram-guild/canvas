@@ -33,18 +33,21 @@ import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_X;
 import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Y;
 import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Z;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.FastMatrix3f;
+import io.vram.frex.api.model.InputContext;
+import io.vram.frex.base.renderer.context.AbsentInputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 
 public class QuadEncoders {
-	private static void encodeQuad(BaseQuadEmitter quad, EncodingContext context, VertexCollector buff) {
-		final FastMatri4f matrix = (FastMatri4f) context.matrix();
-		final FastMatrix3f normalMatrix = context.normalMatrix();
-		final boolean isContextPresent = context != AbsentEncodingContext.INSTANCE;
+	private static void encodeQuad(BaseQuadEmitter quad, InputContext inputContext, EncodingContext context, VertexCollector buff) {
+		final var matrixStack = inputContext.matrixStack();
+		final FastMatrix4f matrix = matrixStack.modelMatrix();
+		final FastMatrix3f normalMatrix = matrixStack.normalMatrix();
+		final boolean isContextPresent = inputContext != AbsentInputContext.INSTANCE;
 
 		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();
 

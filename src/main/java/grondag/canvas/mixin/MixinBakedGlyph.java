@@ -32,7 +32,7 @@ import com.mojang.math.Vector3f;
 
 import net.minecraft.client.gui.font.glyphs.BakedGlyph;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.canvas.mixinterface.BufferBuilderExt;
 
@@ -72,7 +72,7 @@ public abstract class MixinBakedGlyph {
 				&& extBuilder.canvas_canSupportDirect(DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP)
 				&& RenderSystem.isOnRenderThread() // This last is because we are using static vars
 		) {
-			final FastMatri4f matrix = FastMatri4f.cast(matrix4f);
+			final FastMatrix4f matrix = FastMatrix4f.cast(matrix4f);
 			final int color = (int) (red * 255.0F) | ((int) (green * 255.0F) << 8) | ((int) (blue * 255.0F) << 16) | ((int) (alpha * 255.0F) << 24);
 			int i = 0;
 

@@ -31,7 +31,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 import io.vram.frex.api.config.FlawlessFrames;
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
@@ -47,7 +47,7 @@ public class TerrainFrustum extends CanvasFrustum {
 	private final GameRendererExt grx = (GameRendererExt) gr;
 	private final PoseStack occlusionsProjStack = new PoseStack();
 	private final Matrix4f occlusionProjMat = occlusionsProjStack.last().pose();
-	private final FastMatri4f occlusionProjMatEx = (FastMatri4f) (Object) occlusionProjMat;
+	private final FastMatrix4f occlusionProjMatEx = (FastMatrix4f) (Object) occlusionProjMat;
 
 	private int viewDistanceSquared;
 	private int viewVersion;
@@ -227,7 +227,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			modelMatrixExt.f_set(modelMatrix);
 			projectionMatrixExt.f_set(occlusionProjMat);
 
-			mvpMatrixExt.f_identity();
+			mvpMatrixExt.f_setIdentity();
 			mvpMatrixExt.f_mul(projectionMatrixExt);
 			mvpMatrixExt.f_mul(modelMatrixExt);
 

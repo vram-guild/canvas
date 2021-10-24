@@ -20,11 +20,6 @@
 
 package grondag.canvas.buffer.format;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
-
-import io.vram.frex.api.math.FastMatrix3f;
-
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.terrain.region.RegionPosition;
 
@@ -32,18 +27,6 @@ public abstract class AbstractEncodingContext implements EncodingContext {
 	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
 	private int sectorId;
 	private int sectorRelativeRegionOrigin;
-	private Matrix4f matrix;
-	private FastMatrix3f normalMatrix;
-
-	@Override
-	public final Matrix4f matrix() {
-		return matrix;
-	}
-
-	@Override
-	public final FastMatrix3f normalMatrix() {
-		return normalMatrix;
-	}
 
 	@Override
 	public final int sectorId() {
@@ -59,11 +42,5 @@ public abstract class AbstractEncodingContext implements EncodingContext {
 	public void updateSector(RegionRenderSector renderSector, RegionPosition origin) {
 		sectorId = renderSector.sectorId();
 		sectorRelativeRegionOrigin = renderSector.sectorRelativeRegionOrigin(origin);
-	}
-
-	public void prepare(PoseStack matrixStack) {
-		final var last = matrixStack.last();
-		matrix = last.pose();
-		normalMatrix = (FastMatrix3f) (Object) last.normal();
 	}
 }

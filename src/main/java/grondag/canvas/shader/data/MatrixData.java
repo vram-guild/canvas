@@ -31,7 +31,7 @@ import com.mojang.math.Matrix4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 
-import io.vram.frex.api.math.FastMatri4f;
+import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.FastMatrix3f;
 
 import grondag.canvas.mixinterface.GameRendererExt;
@@ -55,9 +55,9 @@ public final class MatrixData {
 
 		((FastMatrix3f) (Object) viewNormalMatrix).f_set((FastMatrix3f) (Object) view.normal());
 
-		viewMatrixExt.f_set((FastMatri4f) (Object) view.pose());
+		viewMatrixExt.f_set((FastMatrix4f) (Object) view.pose());
 		viewMatrixExt.f_writeToBuffer(VIEW * 16, MATRIX_DATA);
-		projMatrixExt.f_set((FastMatri4f) (Object) projectionMatrix);
+		projMatrixExt.f_set((FastMatrix4f) (Object) projectionMatrix);
 		projMatrixExt.f_writeToBuffer(PROJ * 16, MATRIX_DATA);
 
 		viewMatrixInvExt.f_set(viewMatrixExt);
@@ -115,29 +115,29 @@ public final class MatrixData {
 	}
 
 	public static final Matrix4f viewMatrix = new Matrix4f();
-	public static final FastMatri4f viewMatrixExt = (FastMatri4f) (Object) viewMatrix;
+	public static final FastMatrix4f viewMatrixExt = (FastMatrix4f) (Object) viewMatrix;
 	private static final Matrix4f viewMatrixInv = new Matrix4f();
-	private static final FastMatri4f viewMatrixInvExt = (FastMatri4f) (Object) viewMatrixInv;
+	private static final FastMatrix4f viewMatrixInvExt = (FastMatrix4f) (Object) viewMatrixInv;
 
 	public static final Matrix4f projMatrix = new Matrix4f();
-	public static final FastMatri4f projMatrixExt = (FastMatri4f) (Object) projMatrix;
+	public static final FastMatrix4f projMatrixExt = (FastMatrix4f) (Object) projMatrix;
 	private static final Matrix4f projMatrixInv = new Matrix4f();
-	private static final FastMatri4f projMatrixInvExt = (FastMatri4f) (Object) projMatrixInv;
+	private static final FastMatrix4f projMatrixInvExt = (FastMatrix4f) (Object) projMatrixInv;
 
 	private static final Matrix4f viewProjMatrix = new Matrix4f();
-	private static final FastMatri4f viewProjMatrixExt = (FastMatri4f) (Object) viewProjMatrix;
+	private static final FastMatrix4f viewProjMatrixExt = (FastMatrix4f) (Object) viewProjMatrix;
 	private static final Matrix4f viewProjMatrixInv = new Matrix4f();
-	private static final FastMatri4f viewProjMatrixInvExt = (FastMatri4f) (Object) viewProjMatrixInv;
+	private static final FastMatrix4f viewProjMatrixInvExt = (FastMatrix4f) (Object) viewProjMatrixInv;
 
 	public static final Matrix4f cleanProjMatrix = new Matrix4f();
-	public static final FastMatri4f cleanProjMatrixExt = (FastMatri4f) (Object) cleanProjMatrix;
+	public static final FastMatrix4f cleanProjMatrixExt = (FastMatrix4f) (Object) cleanProjMatrix;
 	private static final Matrix4f cleanProjMatrixInv = new Matrix4f();
-	private static final FastMatri4f cleanProjMatrixInvExt = (FastMatri4f) (Object) cleanProjMatrixInv;
+	private static final FastMatrix4f cleanProjMatrixInvExt = (FastMatrix4f) (Object) cleanProjMatrixInv;
 
 	private static final Matrix4f cleanViewProjMatrix = new Matrix4f();
-	private static final FastMatri4f cleanViewProjMatrixExt = (FastMatri4f) (Object) cleanViewProjMatrix;
+	private static final FastMatrix4f cleanViewProjMatrixExt = (FastMatrix4f) (Object) cleanViewProjMatrix;
 	private static final Matrix4f cleanViewProjMatrixInv = new Matrix4f();
-	private static final FastMatri4f cleanViewProjMatrixInvExt = (FastMatri4f) (Object) cleanViewProjMatrixInv;
+	private static final FastMatrix4f cleanViewProjMatrixInvExt = (FastMatrix4f) (Object) cleanViewProjMatrixInv;
 
 	public static final Matrix3f viewNormalMatrix = new Matrix3f();
 
