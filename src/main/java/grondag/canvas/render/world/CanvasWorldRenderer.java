@@ -551,10 +551,10 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
 
 		// Stuff here should probably expect identity matrix. If not, move matrix operations to relevant compat holders.
-		eventContext.matrixStack().pushPose();
-		eventContext.matrixStack().setIdentity();
+		eventContext.poseStack().pushPose();
+		eventContext.poseStack().setIdentity();
 		EntityRenderPostListener.invoke(eventContext);
-		eventContext.matrixStack().popPose();
+		eventContext.poseStack().popPose();
 
 		bufferBuilders.outlineBufferSource().endOutlineBatch();
 
@@ -607,15 +607,15 @@ public class CanvasWorldRenderer extends LevelRenderer {
 					final VertexConsumer blockOutlineConumer = immediate.getBuffer(RenderType.lines());
 
 					// Lines need to be drawn with identity matrix because transforms will be pre-applied at render time
-					eventContext.matrixStack().pushPose();
-					eventContext.matrixStack().setIdentity();
+					eventContext.poseStack().pushPose();
+					eventContext.poseStack().setIdentity();
 					eventContext.prepareBlockOutline(camera.getEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 
 					if (BlockOutlineListener.invoke(eventContext, eventContext)) {
 						wr.canvas_drawBlockOutline(identityStack, blockOutlineConumer, camera.getEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 					}
 
-					eventContext.matrixStack().popPose();
+					eventContext.poseStack().popPose();
 				}
 			}
 		}
