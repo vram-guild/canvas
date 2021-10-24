@@ -35,7 +35,7 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 	public final int triVertexCount;
 	public final long clusterPos;
 	public final RegionPosition regionOrigin;
-	public final FaceBucket[] cullBuckets;
+	public final FaceBucket[] faceBuckets;
 
 	private TransferBuffer transferBuffer;
 	private boolean isClosed = false;
@@ -46,7 +46,7 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 		this.transferBuffer = transferBuffer;
 		this.byteCount = byteCount;
 		this.quadVertexCount = quadVertexCount;
-		cullBuckets = buckets;
+		faceBuckets = buckets;
 		this.regionOrigin = regionOrigin;
 		triVertexCount = quadVertexCount / 4 * 6;
 		clusterPos = VertexClusterRealm.clusterPos(regionOrigin.asLong());
@@ -97,13 +97,13 @@ public class ClusteredDrawableStorage implements UploadableVertexStorage {
 
 	/** Flag 6 (unassigned) will always be set. */
 	public int visibleFaceFlags() {
-		assert cullBuckets != null : "bucket flags requested when buckets not present";
+		assert faceBuckets != null : "bucket flags requested when buckets not present";
 		return regionOrigin.visibleFaceFlags();
 	}
 
 	/** Flag 6 (unassigned) will always be set. */
 	public int shadowVisibleFaceFlags() {
-		assert cullBuckets != null : "bucket flags requested when buckets not present";
+		assert faceBuckets != null : "bucket flags requested when buckets not present";
 		return regionOrigin.shadowVisibleFaceFlags();
 	}
 }

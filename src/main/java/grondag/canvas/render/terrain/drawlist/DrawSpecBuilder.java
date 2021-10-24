@@ -90,7 +90,7 @@ abstract class DrawSpecBuilder {
 	private static void acceptAllocBucketed(SlabAllocation alloc) {
 		final var region = alloc.region();
 		final int bucketFlags = isShadowMap ? region.shadowVisibleFaceFlags() : region.visibleFaceFlags();
-		final var buckets = alloc.region().cullBuckets;
+		final var buckets = alloc.region().faceBuckets;
 
 		for (int i = 0; i < 7; ++i) {
 			if (((1 << i) & bucketFlags) == 0) {
@@ -98,7 +98,8 @@ abstract class DrawSpecBuilder {
 			}
 
 			final var bucket = buckets[i];
-			final var bucketVertexCount = bucket.colorVertexCount();
+			final var bucketVertexCount = isShadowMap ? bucket.shadowVertexCount() : bucket.colorVertexCount();
+			final var bucketVertexIndex = isShadowMap ? bucket.shadowVertexIndex() : bucket.colorVertexIndex();
 
 			if (bucketVertexCount > 0) {
 				final var bucketQuadCount = bucketVertexCount >> 2;
@@ -106,11 +107,11 @@ abstract class DrawSpecBuilder {
 
 				if (bucketVertexCount <= 65536) {
 					triVertexCount.add(bucketQuadCount * 6);
-					baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + bucket.colorVertexIndex());
+					baseQuadVertexOffset.add(alloc.baseQuadVertexIndex + bucketVertexIndex);
 				} else {
 					// split buckets that go beyond what short element indexing can do
 					int vertexCountRemaining = bucketVertexCount;
-					int firstVertexIndex = bucket.colorVertexIndex();
+					int firstVertexIndex = bucketVertexIndex;
 
 					while (vertexCountRemaining > 0) {
 						final int sliceVertexCount = Math.min(vertexCountRemaining, 65536);

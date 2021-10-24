@@ -36,6 +36,7 @@ import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
@@ -53,13 +54,11 @@ public class VertexCollectorList {
 	/** If true, will segregate quads by face. */
 	public final boolean trackFaces;
 	/** If true, will segregate quads by shadow casting ability. */
-	public final boolean trackShadow;
 	private final int[] target;
 	protected final boolean isTerrain;
 
-	public VertexCollectorList(boolean trackFaces, boolean trackShadow, boolean isTerrain) {
+	public VertexCollectorList(boolean trackFaces, boolean isTerrain) {
 		this.trackFaces = trackFaces;
-		this.trackShadow = trackShadow;
 		this.isTerrain = isTerrain;
 		target = new int[isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts];
 	}
@@ -132,7 +131,7 @@ public class VertexCollectorList {
 		if (result == null) {
 			if (materialState.sorted()) {
 				result = new SortingVertexCollector(materialState.renderState(), isTerrain, target);
-			} else if (trackShadow) {
+			} else if (Pipeline.shadowsEnabled()) {
 				result = trackFaces
 						? new TerrainShadowVertexCollector(materialState.renderState(), target)
 						: new ShadowVertexCollector(materialState.renderState(), target);

@@ -126,6 +126,6 @@ public class ShadowVertexCollector extends BaseVertexCollector {
 
 	@Override
 	public FaceBucket faceBucket(int index) {
-		return new FaceBucket(index, colorOnly.vertexCount(), index, vertexCount());
+		return new FaceBucket(index, vertexCount(), index, common.vertexCount());
 	}
 }

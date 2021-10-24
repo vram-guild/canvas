@@ -45,10 +45,9 @@ import grondag.canvas.material.property.TargetRenderState;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.mixinterface.CompositeRenderTypeExt;
-import grondag.canvas.pipeline.Pipeline;
 
 public class CanvasImmediate extends BufferSource {
-	public final VertexCollectorList collectors = new VertexCollectorList(false, Pipeline.shadowsEnabled(), false);
+	public final VertexCollectorList collectors = new VertexCollectorList(false, false);
 	public final RenderContextState contextState;
 
 	public CanvasImmediate(BufferBuilder fallbackBuffer, Map<RenderType, BufferBuilder> layerBuffers, RenderContextState contextState) {
