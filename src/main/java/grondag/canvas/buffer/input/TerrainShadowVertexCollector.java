@@ -22,8 +22,13 @@ package grondag.canvas.buffer.input;
 
 import grondag.canvas.material.state.RenderState;
 
-public class SimpleVertexCollector extends ArrayVertexCollector implements DrawableVertexCollector {
-	public SimpleVertexCollector(RenderState renderState, int[] target) {
+public class TerrainShadowVertexCollector extends TerrainVertexCollector {
+	public TerrainShadowVertexCollector(RenderState renderState, int[] target) {
 		super(renderState, target);
+	}
+
+	@Override
+	protected DrawableVertexCollector createCollector(RenderState renderState, int[] target) {
+		return new ShadowVertexCollector(renderState, target);
 	}
 }

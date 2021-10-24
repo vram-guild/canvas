@@ -44,6 +44,7 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.state.CanvasRenderMaterial;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
@@ -82,7 +83,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		super("TerrainRenderContext");
 		region = new InputRegion(this);
 		inputContext.prepareForWorld(region, true);
-		collectors = new VertexCollectorList(true);
+		collectors = new VertexCollectorList(true, Pipeline.shadowsEnabled(), true);
 	}
 
 	@Override

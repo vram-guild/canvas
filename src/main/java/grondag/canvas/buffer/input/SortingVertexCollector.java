@@ -36,7 +36,7 @@ public class SortingVertexCollector extends SimpleVertexCollector {
 	final QuadDistanceFunc distanceFunc;
 
 	public SortingVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
-		super(renderState, isTerrain, target);
+		super(renderState, target);
 		swapData = new int[quadStrideInts * 2];
 		distanceFunc = isTerrain ? this::getDistanceSqTerrain : this::getDistanceSq;
 	}

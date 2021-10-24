@@ -26,20 +26,18 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.phys.Vec3;
 
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 
 public class ShadowVertexCollector extends BaseVertexCollector {
 	protected final SimpleVertexCollector common;
 	protected final SimpleVertexCollector colorOnly;
 
-	public ShadowVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
-		super(renderState, isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
-		common = new SimpleVertexCollector(renderState, isTerrain, target);
-		colorOnly = new SimpleVertexCollector(renderState, isTerrain, target);
+	public ShadowVertexCollector(RenderState renderState, int[] target) {
+		super(renderState, target);
+		common = new SimpleVertexCollector(renderState, target);
+		colorOnly = new SimpleVertexCollector(renderState, target);
 	}
 
 	@Override
@@ -67,7 +65,7 @@ public class ShadowVertexCollector extends BaseVertexCollector {
 
 	@Override
 	public void commit(int effectiveFaceIndex, boolean castShadow) {
-		throw new UnsupportedOperationException("Commit on ShadowVertexCollector must provide castShadow");
+		commit(castShadow);
 	}
 
 	@Override

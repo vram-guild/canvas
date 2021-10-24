@@ -34,8 +34,8 @@ public abstract class ArrayVertexCollector extends BaseVertexCollector {
 	protected int capacity = 1024;
 	protected int[] vertexData = new int[capacity];
 
-	public ArrayVertexCollector(RenderState renderState, int quadStrideInts, int[] target) {
-		super(renderState, quadStrideInts, target);
+	public ArrayVertexCollector(RenderState renderState, int[] target) {
+		super(renderState, target);
 		arrayCount.incrementAndGet();
 		arryBytes.addAndGet(capacity);
 	}

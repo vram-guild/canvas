@@ -231,7 +231,7 @@ public class PipelineManager {
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 
-		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.MISSING, false, new int[64]);
+		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.MISSING, new int[64]);
 
 		final int[] v = collector.target();
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 0);

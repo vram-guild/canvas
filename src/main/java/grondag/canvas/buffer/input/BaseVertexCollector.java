@@ -31,9 +31,9 @@ public abstract class BaseVertexCollector implements DrawableVertexCollector {
 	protected final int[] target;
 	protected int integerSize = 0;
 
-	public BaseVertexCollector(RenderState renderState, int quadStrideInts, int[] target) {
+	public BaseVertexCollector(RenderState renderState, int[] target) {
 		this.renderState = renderState;
-		this.quadStrideInts = quadStrideInts;
+		this.quadStrideInts = target.length;
 		this.target = target;
 		this.vertexStrideInts = quadStrideInts / 4;
 	}

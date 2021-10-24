@@ -129,11 +129,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(worldRenderState);
 	private final RenderContextState contextState = new RenderContextState();
-	private final CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+	private CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 	/** Contains the player model output for First Person Model, separate to draw in material pass only. */
-	private final CanvasImmediate materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
+	private CanvasImmediate materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
-	private final CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
+	private CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(entityCullingFrustum);
 	private final WorldRenderContextBase eventContext = new WorldRenderContextBase();
 
@@ -149,9 +149,16 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
 		}
 
+		createImmediates();
 		vanillaWorldRenderer = (LevelRendererExt) this;
 		instance = this;
 		worldRenderState.computeDistances();
+	}
+
+	private void createImmediates() {
+		worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+		materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
+		shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 	}
 
 	public static CanvasWorldRenderer instance() {
@@ -838,6 +845,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 	@Override
 	public void allChanged() {
 		PipelineManager.reloadIfNeeded(true);
+		createImmediates();
 
 		// cause injections to fire but disable all other vanilla logic
 		// by setting world to null temporarily

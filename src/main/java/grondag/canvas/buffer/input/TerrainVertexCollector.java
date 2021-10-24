@@ -28,26 +28,25 @@ import net.minecraft.world.phys.Vec3;
 
 import io.vram.frex.api.model.util.FaceUtil;
 
-import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 
-public class CompoundVertexCollector extends BaseVertexCollector {
-	private final DrawableVertexCollector[] collectors;
+public class TerrainVertexCollector extends BaseVertexCollector {
+	protected final DrawableVertexCollector[] collectors;
 
-	public CompoundVertexCollector(RenderState renderState, boolean isTerrain, int[] target) {
-		super(renderState, isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts, target);
+	public TerrainVertexCollector(RenderState renderState, int[] target) {
+		super(renderState, target);
 
-		// WIP add support for entity pass and for shadow on terrain
-		assert isTerrain;
-
-		collectors = new SimpleVertexCollector[FaceUtil.FACE_INDEX_COUNT];
+		collectors = new DrawableVertexCollector[FaceUtil.FACE_INDEX_COUNT];
 
 		for (int i = 0; i < FaceUtil.FACE_INDEX_COUNT; ++i) {
-			collectors[i] = new SimpleVertexCollector(renderState, isTerrain, target);
+			collectors[i] = createCollector(renderState, target);
 		}
+	}
+
+	protected DrawableVertexCollector createCollector(RenderState renderState, int[] target) {
+		return new SimpleVertexCollector(renderState, target);
 	}
 
 	@Override

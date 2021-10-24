@@ -31,10 +31,12 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
 import grondag.canvas.buffer.format.AbsentEncodingContext;
+import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.format.QuadEncoders;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderState;
+import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
 import grondag.canvas.render.world.WorldRenderState;
@@ -42,16 +44,24 @@ import grondag.canvas.terrain.region.RegionPosition;
 
 /**
  * MUST ALWAYS BE USED WITHIN SAME MATERIAL CONTEXT.
+ * MUST OBTAIN NEW INSTANCE whenever parameters that affect collector construction change.
  */
 public class VertexCollectorList {
 	private final ObjectArrayList<DrawableVertexCollector> active = new ObjectArrayList<>();
 	private final DrawableVertexCollector[] collectors = new DrawableVertexCollector[RenderState.MAX_COUNT];
 	private final ObjectArrayList<DrawableVertexCollector> drawList = new ObjectArrayList<>();
-	public final boolean isTerrain;
-	private final int[] target = new int[64];
+	/** If true, will segregate quads by face. */
+	public final boolean trackFaces;
+	/** If true, will segregate quads by shadow casting ability. */
+	public final boolean trackShadow;
+	private final int[] target;
+	protected final boolean isTerrain;
 
-	public VertexCollectorList(boolean isTerrain) {
+	public VertexCollectorList(boolean trackFaces, boolean trackShadow, boolean isTerrain) {
+		this.trackFaces = trackFaces;
+		this.trackShadow = trackShadow;
 		this.isTerrain = isTerrain;
+		target = new int[isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts];
 	}
 
 	/**
@@ -122,10 +132,14 @@ public class VertexCollectorList {
 		if (result == null) {
 			if (materialState.sorted()) {
 				result = new SortingVertexCollector(materialState.renderState(), isTerrain, target);
+			} else if (trackShadow) {
+				result = trackFaces
+						? new TerrainShadowVertexCollector(materialState.renderState(), target)
+						: new ShadowVertexCollector(materialState.renderState(), target);
 			} else {
-				result = isTerrain
-						? new CompoundVertexCollector(materialState.renderState(), isTerrain, target)
-						: new SimpleVertexCollector(materialState.renderState(), isTerrain, target);
+				result = trackFaces
+						? new TerrainVertexCollector(materialState.renderState(), target)
+						: new SimpleVertexCollector(materialState.renderState(), target);
 			}
 
 			collectors[index] = result;
