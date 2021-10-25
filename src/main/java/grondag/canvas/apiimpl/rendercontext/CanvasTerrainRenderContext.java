@@ -145,17 +145,13 @@ public class CanvasTerrainRenderContext extends TerrainRenderContext<InputRegion
 	public void computeFlat(BaseQuadEmitter quad) {
 		if (Configurator.semiFlatLighting) {
 			aoCalc.computeFlat(quad);
-		} else if (Configurator.hdLightmaps()) {
-			// FEAT: per-vertex light maps will be ignored unless we bake a custom HD map
-			// or retain vertex light maps in buffer format and logic in shader to take max
-			aoCalc.computeFlatHd(quad, inputContext.flatBrightness(quad));
 		} else {
 			computeFlatSimple(quad);
 		}
 	}
 
 	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
+	protected void shadeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
 		if (!quad.material().disableAo() && Minecraft.useAmbientOcclusion()) {
 			computeAo(quad);
@@ -164,6 +160,10 @@ public class CanvasTerrainRenderContext extends TerrainRenderContext<InputRegion
 		}
 
 		colorizeQuad(quad, this.inputContext);
+	}
+
+	@Override
+	protected void encodeQuad(BaseQuadEmitter quad) {
 		TerrainEncoder.encodeQuad(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 	}
 }

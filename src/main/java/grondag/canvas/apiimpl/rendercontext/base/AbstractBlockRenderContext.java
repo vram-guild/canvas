@@ -96,11 +96,14 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 	}
 
 	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
+	protected void shadeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
 		computeFlat(quad);
 		EncoderUtil.colorizeQuad(quad, this.inputContext);
+	}
 
+	@Override
+	protected void encodeQuad(BaseQuadEmitter quad) {
 		if (collectors == null) {
 			EncoderUtil.encodeQuad(quad, inputContext, defaultConsumer);
 		} else {

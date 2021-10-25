@@ -119,11 +119,15 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E extend
 			final var mat = finder.find();
 			quad.material(mat);
 
+			shadeQuad(quad);
+
 			encoder.doStuffTemporarily(quad);
 
 			encodeQuad(quad);
 		}
 	}
+
+	protected abstract void shadeQuad(BaseQuadEmitter quad);
 
 	protected abstract void encodeQuad(BaseQuadEmitter quad);
 

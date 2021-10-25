@@ -248,10 +248,13 @@ public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderCont
 	}
 
 	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
+	protected void shadeQuad(BaseQuadEmitter quad) {
 		colorizeQuad(quad, this.inputContext);
 		applyItemLighting(quad, this.lightmap);
+	}
 
+	@Override
+	protected void encodeQuad(BaseQuadEmitter quad) {
 		if (collectors == null) {
 			EncoderUtil.encodeQuad(quad, inputContext, defaultConsumer);
 		} else {
