@@ -18,9 +18,7 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.apiimpl.rendercontext;
-
-import java.util.function.Supplier;
+package grondag.canvas.apiimpl.rendercontext.base;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -35,27 +33,14 @@ import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
+import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
+
 /**
  * Context for non-terrain block rendering.
  */
-public class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintGetter> {
-	private static final Supplier<ThreadLocal<BlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
-		final BlockRenderContext result = new BlockRenderContext();
-		return result;
-	});
-
-	private static ThreadLocal<BlockRenderContext> POOL = POOL_FACTORY.get();
-
-	public BlockRenderContext() {
-		super("BlockRenderContext");
-	}
-
-	public static void reload() {
-		POOL = POOL_FACTORY.get();
-	}
-
-	public static BlockRenderContext get() {
-		return POOL.get();
+public class BlockRenderContext<E extends QuadEncoder> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
+	public BlockRenderContext(E encoder) {
+		super("BlockRenderContext", encoder);
 	}
 
 	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {

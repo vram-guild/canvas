@@ -18,15 +18,30 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.terrain.util;
+package grondag.canvas.apiimpl.rendercontext;
 
-import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
+import java.util.function.Supplier;
 
-public interface TerrainExecutorTask {
-	void run(CanvasTerrainRenderContext context);
+import grondag.canvas.apiimpl.rendercontext.base.ItemRenderContext;
+import grondag.canvas.apiimpl.rendercontext.encoder.ItemQuadEncoder;
 
-	/**
-	 * Normally squared chunk distance. Use -1 for privileged execution.
-	 */
-	int priority();
+public class CanvasItemRenderContext extends ItemRenderContext<ItemQuadEncoder> {
+	private static final Supplier<ThreadLocal<CanvasItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
+		final CanvasItemRenderContext result = new CanvasItemRenderContext();
+		return result;
+	});
+
+	private static ThreadLocal<CanvasItemRenderContext> POOL = POOL_FACTORY.get();
+
+	public CanvasItemRenderContext() {
+		super(new ItemQuadEncoder());
+	}
+
+	public static void reload() {
+		POOL = POOL_FACTORY.get();
+	}
+
+	public static CanvasItemRenderContext get() {
+		return POOL.get();
+	}
 }

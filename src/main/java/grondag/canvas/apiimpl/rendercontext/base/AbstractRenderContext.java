@@ -18,7 +18,7 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.apiimpl.rendercontext;
+package grondag.canvas.apiimpl.rendercontext.base;
 
 import java.util.BitSet;
 
@@ -38,14 +38,17 @@ import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
+import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.mixinterface.SpriteExt;
 
-public abstract class AbstractRenderContext<C extends BaseInputContext> {
+public abstract class AbstractRenderContext<C extends BaseInputContext, E extends QuadEncoder> {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
-	final MaterialFinder finder = MaterialFinder.newInstance();
+	protected final MaterialFinder finder = MaterialFinder.newInstance();
 
 	public final C inputContext;
+
+	public final E encoder;
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
 	@Nullable public VertexCollectorList collectors = null;
@@ -59,8 +62,9 @@ public abstract class AbstractRenderContext<C extends BaseInputContext> {
 
 	public final BitSet animationBits = new BitSet();
 
-	protected AbstractRenderContext(String name) {
+	protected AbstractRenderContext(String name, E encoder) {
 		this.name = name;
+		this.encoder = encoder;
 		inputContext = createInputContext();
 	}
 

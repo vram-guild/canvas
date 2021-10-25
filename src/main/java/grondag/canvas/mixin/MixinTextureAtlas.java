@@ -50,8 +50,8 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import io.vram.frex.impl.texture.TextureAtlasPreparationExt;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
-import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasItemRenderContext;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.mixinterface.SpriteExt;
@@ -202,11 +202,11 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 			animationBits.or(perFrameBits);
 			perFrameBits.clear();
 
-			final var itemBits = ItemRenderContext.get().animationBits;
+			final var itemBits = CanvasItemRenderContext.get().animationBits;
 			animationBits.or(itemBits);
 			itemBits.clear();
 
-			final var blockBits = BlockRenderContext.get().animationBits;
+			final var blockBits = CanvasBlockRenderContext.get().animationBits;
 			animationBits.or(blockBits);
 			blockBits.clear();
 

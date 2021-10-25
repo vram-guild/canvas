@@ -36,7 +36,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 
-import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 
 @Mixin(BlockRenderDispatcher.class)
 public abstract class MixinBlockRenderDispatcher {
@@ -55,7 +55,7 @@ public abstract class MixinBlockRenderDispatcher {
 			switch (blockRenderType) {
 				case MODEL:
 					final BakedModel bakedModel = ((BlockRenderDispatcher) (Object) this).getBlockModel(state);
-					EntityBlockRenderContext.get().render(modelRenderer, bakedModel, state, poseStack, consumers, overlay, light);
+					CanvasEntityBlockRenderContext.get().render(modelRenderer, bakedModel, state, poseStack, consumers, overlay, light);
 					break;
 				case ENTITYBLOCK_ANIMATED:
 					blockEntityRenderer.renderByItem(new ItemStack(state.getBlock()), ItemTransforms.TransformType.NONE, poseStack, consumers, light, overlay);

@@ -44,13 +44,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
-import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.FastMatrix3f;
+import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.fluid.FluidModel;
 
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.TerrainRenderStates;
@@ -259,7 +259,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	}
 
 	@Override
-	public void run(TerrainRenderContext context) {
+	public void run(CanvasTerrainRenderContext context) {
 		final AtomicReference<PackedInputRegion> runningState = inputState;
 		final PackedInputRegion protoRegion = runningState.getAndSet(SignalInputRegion.IDLE);
 
@@ -378,7 +378,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		}
 	}
 
-	private RegionBuildState captureAndSetBuildState(TerrainRenderContext context, boolean isNear) {
+	private RegionBuildState captureAndSetBuildState(CanvasTerrainRenderContext context, boolean isNear) {
 		final RegionBuildState newBuildState = new RegionBuildState();
 		newBuildState.setOcclusionResult(context.region.occlusion.build(isNear));
 		handleBlockEntities(newBuildState, context);
@@ -399,7 +399,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		return newBuildState;
 	}
 
-	private void buildTerrain(TerrainRenderContext context, RegionBuildState buildState) {
+	private void buildTerrain(CanvasTerrainRenderContext context, RegionBuildState buildState) {
 		if (ChunkRebuildCounters.ENABLED) {
 			ChunkRebuildCounters.startChunk();
 		}
@@ -464,7 +464,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		}
 	}
 
-	private void handleBlockEntities(RegionBuildState regionData, TerrainRenderContext context) {
+	private void handleBlockEntities(RegionBuildState regionData, CanvasTerrainRenderContext context) {
 		final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = context.nonCullBlockEntities;
 		final ObjectArrayList<BlockEntity> regionDataBlockEntities = regionData.blockEntities;
 
@@ -521,7 +521,7 @@ public class RenderRegion implements TerrainExecutorTask {
 				notifyOcclusionChange();
 			}
 		} else {
-			final TerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(inputRegion);
+			final CanvasTerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(inputRegion);
 			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
 			context.encodingContext.updateSector(renderSector, origin);
 

@@ -18,7 +18,7 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.apiimpl.rendercontext;
+package grondag.canvas.apiimpl.rendercontext.base;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -35,11 +35,12 @@ import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
+import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
 import grondag.canvas.buffer.format.StandardEncoder;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.RenderTypeExt;
 
-public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> extends AbstractRenderContext<BaseBlockContext<T>> {
+public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E extends QuadEncoder> extends AbstractRenderContext<BaseBlockContext<T>, E> {
 	/**
 	 * For use by chunk builder - avoids another threadlocal.
 	 */
@@ -49,8 +50,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 
 	public boolean defaultAo;
 
-	protected AbstractBlockRenderContext(String name) {
-		super(name);
+	protected AbstractBlockRenderContext(String name, E encoder) {
+		super(name, encoder);
 	}
 
 	@Override

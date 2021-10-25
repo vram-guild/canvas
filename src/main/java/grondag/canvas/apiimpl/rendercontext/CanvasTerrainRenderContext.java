@@ -22,26 +22,22 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import static io.vram.frex.base.renderer.util.EncoderUtil.colorizeQuad;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
-
-import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
+import grondag.canvas.apiimpl.rendercontext.base.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
 import grondag.canvas.buffer.format.TerrainEncoder;
-import grondag.canvas.buffer.format.TerrainEncodingContext;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
@@ -52,18 +48,17 @@ import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
 /**
- * Implementation of RenderContext used during terrain rendering.
- * Dispatches calls from models during chunk rebuild to the appropriate consumer,
- * and holds/manages all of the state needed by them.
+ * Context for non-terrain block rendering.
  */
-public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion> {
-	// Reused each build to prevent needless allocation
-	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
-	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
-	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
+public class CanvasTerrainRenderContext extends TerrainRenderContext<InputRegion, TerrainQuadEncoder> {
 	public final InputRegion region;
-	public final MatrixStack matrixStack = MatrixStack.cast(new PoseStack());
-	public final TerrainEncodingContext encodingContext = new TerrainEncodingContext() { };
+
+	public CanvasTerrainRenderContext() {
+		super(new TerrainQuadEncoder());
+		region = new InputRegion(this);
+		inputContext.prepareForWorld(region, true, matrixStack);
+		collectors = new VertexCollectorList(true, true);
+	}
 
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
@@ -82,13 +77,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		}
 	};
 
-	public TerrainRenderContext() {
-		super("TerrainRenderContext");
-		region = new InputRegion(this);
-		inputContext.prepareForWorld(region, true, matrixStack);
-		collectors = new VertexCollectorList(true, true);
-	}
-
 	@Override
 	protected BaseBlockContext<InputRegion> createInputContext() {
 		return new BaseBlockContext<>() {
@@ -104,7 +92,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		};
 	}
 
-	public TerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {
+	public CanvasTerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {
 		nonCullBlockEntities.clear();
 		addedBlockEntities.clear();
 		removedBlockEntities.clear();

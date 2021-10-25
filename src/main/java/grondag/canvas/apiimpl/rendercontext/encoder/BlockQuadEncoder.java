@@ -18,15 +18,13 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.terrain.util;
+package grondag.canvas.apiimpl.rendercontext.encoder;
 
-import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
-public interface TerrainExecutorTask {
-	void run(CanvasTerrainRenderContext context);
-
-	/**
-	 * Normally squared chunk distance. Use -1 for privileged execution.
-	 */
-	int priority();
+public class BlockQuadEncoder extends BaseQuadEncoder {
+	@Override
+	protected void encodeQuad(BaseQuadEmitter quad) {
+		// WIP
+	}
 }

@@ -41,7 +41,7 @@ import net.minecraft.world.item.ItemStack;
 
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
-import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasItemRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.mixinterface.ItemRendererExt;
 
@@ -61,7 +61,7 @@ public abstract class MixinItemRenderer implements ItemRendererExt {
 	 */
 	@Overwrite
 	public void render(ItemStack stack, ItemTransforms.TransformType renderMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
-		ItemRenderContext.get().renderItem(itemModelShaper, stack, renderMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
+		CanvasItemRenderContext.get().renderItem(itemModelShaper, stack, renderMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
 	}
 
 	@Inject(at = @At("HEAD"), method = "getArmorFoilBuffer", cancellable = true)

@@ -34,7 +34,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
-import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 
 @Mixin(ModelBlockRenderer.class)
 public abstract class MixinModelBlockRenderer {
@@ -45,7 +45,7 @@ public abstract class MixinModelBlockRenderer {
 	@Overwrite
 	public boolean tesselateBlock(BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer buffer, boolean checkSides, Random rand, long seed, int overlay) {
 		// PERF: try to avoid threadlocal lookup here
-		BlockRenderContext.get().render((ModelBlockRenderer) (Object) this, blockView, model, state, pos, poseStack, buffer, checkSides, seed, overlay);
+		CanvasBlockRenderContext.get().render((ModelBlockRenderer) (Object) this, blockView, model, state, pos, poseStack, buffer, checkSides, seed, overlay);
 		return true;
 	}
 }

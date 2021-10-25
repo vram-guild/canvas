@@ -32,9 +32,9 @@ import io.vram.frex.api.renderer.Renderer;
 import io.vram.frex.base.renderer.mesh.BaseMeshBuilder;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
-import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
-import grondag.canvas.apiimpl.rendercontext.ItemRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasItemRenderContext;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.material.state.CanvasMaterialManager;
@@ -69,9 +69,9 @@ public class Canvas implements Renderer {
 	public void reload() {
 		CanvasMod.LOG.info(I18n.get("info.canvas.reloading"));
 		PackedInputRegion.reload();
-		BlockRenderContext.reload();
-		EntityBlockRenderContext.reload();
-		ItemRenderContext.reload();
+		CanvasBlockRenderContext.reload();
+		CanvasEntityBlockRenderContext.reload();
+		CanvasItemRenderContext.reload();
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
 		AoVertexClampFunction.reload();

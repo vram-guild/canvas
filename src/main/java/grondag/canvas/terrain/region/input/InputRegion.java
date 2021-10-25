@@ -44,7 +44,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.util.ChunkColorCache;
 import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
@@ -62,7 +62,7 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 	}
 
 	public final BlockEntity[] blockEntities = new BlockEntity[INTERIOR_STATE_COUNT];
-	public final TerrainRenderContext terrainContext;
+	public final CanvasTerrainRenderContext terrainContext;
 	protected final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 	protected final Object[] renderData = new Object[INTERIOR_STATE_COUNT];
 	private final BlockState[] states = new BlockState[TOTAL_STATE_COUNT];
@@ -87,7 +87,7 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 	private final int[] aoCache = new int[TOTAL_STATE_COUNT];
 	private final int[] lightCache = new int[TOTAL_STATE_COUNT];
 
-	public InputRegion(TerrainRenderContext terrainContext) {
+	public InputRegion(CanvasTerrainRenderContext terrainContext) {
 		this.terrainContext = terrainContext;
 	}
 

@@ -26,13 +26,13 @@ import com.google.common.collect.Queues;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.terrain.util.TerrainExecutor;
 
 public class RenderRegionBuilder {
 	private final Queue<Runnable> uploadQueue = Queues.newConcurrentLinkedQueue();
 	// for use by render thread rebuilds
-	TerrainRenderContext mainThreadContext = new TerrainRenderContext();
+	CanvasTerrainRenderContext mainThreadContext = new CanvasTerrainRenderContext();
 
 	public String getDebugString() {
 		return String.format("not available");
@@ -55,7 +55,7 @@ public class RenderRegionBuilder {
 
 	public void reset() {
 		TerrainExecutor.INSTANCE.clear();
-		mainThreadContext = new TerrainRenderContext();
+		mainThreadContext = new CanvasTerrainRenderContext();
 	}
 
 	public void scheduleUpload(Runnable task) {

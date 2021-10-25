@@ -87,8 +87,8 @@ import io.vram.frex.api.renderloop.WorldRenderStartListener;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.MaterialConditionImpl;
-import grondag.canvas.apiimpl.rendercontext.BlockRenderContext;
-import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.buffer.render.StreamBufferAllocator;
 import grondag.canvas.buffer.render.TransferBuffers;
@@ -259,8 +259,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		final Minecraft mc = Minecraft.getInstance();
 		final LevelRenderer mcwr = mc.levelRenderer;
 		final RenderTarget mcfb = mc.getMainRenderTarget();
-		final BlockRenderContext blockContext = BlockRenderContext.get();
-		final EntityBlockRenderContext entityBlockContext = EntityBlockRenderContext.get();
+		final CanvasBlockRenderContext blockContext = CanvasBlockRenderContext.get();
+		final CanvasEntityBlockRenderContext entityBlockContext = CanvasEntityBlockRenderContext.get();
 		final ClientLevel world = worldRenderState.getWorld();
 		final RenderBuffers bufferBuilders = wr.canvas_bufferBuilders();
 		final EntityRenderDispatcher entityRenderDispatcher = wr.canvas_entityRenderDispatcher();

@@ -36,7 +36,7 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.level.block.state.BlockState;
 
-import grondag.canvas.apiimpl.rendercontext.EntityBlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 
 @Mixin(ItemFrameRenderer.class)
 public abstract class MixinItemFrameRenderer {
@@ -53,6 +53,6 @@ public abstract class MixinItemFrameRenderer {
 		ItemFrame itemFrameEntity,
 		float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i
 	) {
-		EntityBlockRenderContext.get().renderItemFrame(renderer, bakedModel, matrixStack, vertexConsumerProvider, OverlayTexture.NO_OVERLAY, light, itemFrameEntity);
+		CanvasEntityBlockRenderContext.get().renderItemFrame(renderer, bakedModel, matrixStack, vertexConsumerProvider, OverlayTexture.NO_OVERLAY, light, itemFrameEntity);
 	}
 }

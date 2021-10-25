@@ -35,7 +35,7 @@ import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.sc.unordered.SimpleUnorderedArrayList;
 
 import grondag.bitraster.PackedBox;
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.frustum.TerrainFrustum;
@@ -203,7 +203,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	}
 
 	@Override
-	public void run(TerrainRenderContext ignored) {
+	public void run(CanvasTerrainRenderContext ignored) {
 		assert state.get() == READY;
 		state.set(RUNNING);
 

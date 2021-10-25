@@ -18,12 +18,10 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.apiimpl.rendercontext;
+package grondag.canvas.apiimpl.rendercontext.base;
 
 import static io.vram.frex.base.renderer.util.EncoderUtil.applyItemLighting;
 import static io.vram.frex.base.renderer.util.EncoderUtil.colorizeQuad;
-
-import java.util.function.Supplier;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -56,6 +54,7 @@ import io.vram.frex.base.renderer.context.BaseItemContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
+import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
 import grondag.canvas.buffer.format.StandardEncoder;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.CanvasRenderMaterial;
@@ -63,21 +62,14 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
 
-public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
-	private static final Supplier<ThreadLocal<ItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
-		final ItemRenderContext result = new ItemRenderContext();
-		return result;
-	});
-
-	private static ThreadLocal<ItemRenderContext> POOL = POOL_FACTORY.get();
-
+public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderContext<BaseItemContext, E> {
 	protected int lightmap;
 
 	private RenderType defaultRenderLayer;
 	private VertexConsumer defaultConsumer;
 
-	public ItemRenderContext() {
-		super("ItemRenderContext");
+	public ItemRenderContext(E encoder) {
+		super("ItemRenderContext", encoder);
 	}
 
 	@Override
@@ -88,14 +80,6 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 				return lightmap;
 			}
 		};
-	}
-
-	public static void reload() {
-		POOL = POOL_FACTORY.get();
-	}
-
-	public static ItemRenderContext get() {
-		return POOL.get();
 	}
 
 	@Override
@@ -275,7 +259,7 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 		}
 	}
 
-	static int inferDefaultItemPreset(RenderType layer) {
+	protected static int inferDefaultItemPreset(RenderType layer) {
 		final var compositeState = ((CompositeRenderType) layer).state;
 
 		if (compositeState.transparencyState == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {

@@ -28,7 +28,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 
 /**
  * Simple executor service with ability to submit privileged tasks
@@ -119,7 +119,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 	}
 
 	private class RenderWorker implements Runnable {
-		protected TerrainRenderContext context = new TerrainRenderContext();
+		protected CanvasTerrainRenderContext context = new CanvasTerrainRenderContext();
 
 		@Override
 		public void run() {

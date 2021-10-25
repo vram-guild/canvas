@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.google.common.collect.ImmutableList;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.rendercontext.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 
 /**
  * Simple executor service with ability to submit privileged tasks
@@ -85,7 +85,7 @@ public class DedicatedTerrainExecutor implements TerrainExecutor {
 		queue.clear();
 
 		for (final Worker w : workers) {
-			w.context = new TerrainRenderContext();
+			w.context = new CanvasTerrainRenderContext();
 		}
 	}
 
@@ -95,7 +95,7 @@ public class DedicatedTerrainExecutor implements TerrainExecutor {
 	}
 
 	private class Worker implements Runnable {
-		private TerrainRenderContext context = new TerrainRenderContext();
+		private CanvasTerrainRenderContext context = new CanvasTerrainRenderContext();
 
 		@Override
 		public void run() {

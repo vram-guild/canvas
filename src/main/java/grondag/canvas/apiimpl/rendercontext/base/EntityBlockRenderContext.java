@@ -18,9 +18,7 @@
  * included from other projects. For more information, see ATTRIBUTION.md.
  */
 
-package grondag.canvas.apiimpl.rendercontext;
-
-import java.util.function.Supplier;
+package grondag.canvas.apiimpl.rendercontext.base;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -45,6 +43,8 @@ import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
+import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
+
 /**
  * Context used when blocks are rendered as part of an entity.
  * Vanilla examples include blocks held be endermen, blocks in minecarts,
@@ -53,21 +53,14 @@ import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
  * <p>Also handle rendering of the item frame which looks and acts like a block
  * and has a block JSON model but is an entity.
  */
-public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAndTintGetter> {
-	private static final Supplier<ThreadLocal<EntityBlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
-		final EntityBlockRenderContext result = new EntityBlockRenderContext();
-		return result;
-	});
-
-	private static ThreadLocal<EntityBlockRenderContext> POOL = POOL_FACTORY.get();
-
+public class EntityBlockRenderContext<E extends QuadEncoder> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
 	private int light;
 	private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 	private Level level;
 	private float tickDelta;
 
-	public EntityBlockRenderContext() {
-		super("BlockRenderContext");
+	public EntityBlockRenderContext(E encoder) {
+		super("BlockRenderContext", encoder);
 	}
 
 	@Override
@@ -78,14 +71,6 @@ public class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAn
 				return light;
 			}
 		};
-	}
-
-	public static void reload() {
-		POOL = POOL_FACTORY.get();
-	}
-
-	public static EntityBlockRenderContext get() {
-		return POOL.get();
 	}
 
 	public void tickDelta(float tickDelta) {
