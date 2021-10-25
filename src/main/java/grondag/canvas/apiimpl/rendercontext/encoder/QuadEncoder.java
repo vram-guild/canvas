@@ -24,4 +24,6 @@ import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 public interface QuadEncoder {
 	void accept(BaseQuadEmitter quad);
+
+	void doStuffTemporarily(BaseQuadEmitter quad);
 }

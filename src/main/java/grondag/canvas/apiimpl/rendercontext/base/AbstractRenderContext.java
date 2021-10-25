@@ -20,8 +20,6 @@
 
 package grondag.canvas.apiimpl.rendercontext.base;
 
-import java.util.BitSet;
-
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -40,7 +38,6 @@ import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.mixinterface.SpriteExt;
 
 public abstract class AbstractRenderContext<C extends BaseInputContext, E extends QuadEncoder> {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
@@ -59,8 +56,6 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E extend
 	protected MaterialMap materialMap = defaultMap;
 	protected int defaultPreset;
 	protected boolean isFluidModel = false;
-
-	public final BitSet animationBits = new BitSet();
 
 	protected AbstractRenderContext(String name, E encoder) {
 		this.name = name;
@@ -124,14 +119,7 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E extend
 			final var mat = finder.find();
 			quad.material(mat);
 
-			if (!mat.discardsTexture() && mat.texture().isAtlas()) {
-				// WIP: create and use sprite method on quad
-				final int animationIndex = ((SpriteExt) mat.texture().spriteIndex().fromIndex(emitter.spriteId())).canvas_animationIndex();
-
-				if (animationIndex >= 0) {
-					animationBits.set(animationIndex);
-				}
-			}
+			encoder.doStuffTemporarily(quad);
 
 			encodeQuad(quad);
 		}

@@ -97,7 +97,7 @@ public class CanvasTerrainRenderContext extends TerrainRenderContext<InputRegion
 		addedBlockEntities.clear();
 		removedBlockEntities.clear();
 		region.prepare(protoRegion);
-		animationBits.clear();
+		encoder.animationBits.clear();
 
 		if (Configurator.lightSmoothing) {
 			//            final long start = counter.startRun();

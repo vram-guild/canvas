@@ -364,7 +364,7 @@ public class RenderRegion implements TerrainExecutorTask {
 					solidDrawable = solidUpload.produceDrawable();
 					translucentDrawable = translucentUpload.produceDrawable();
 					animationBits.clear();
-					animationBits.or(context.animationBits);
+					animationBits.or(context.encoder.animationBits);
 					worldRenderState.invalidateDrawLists();
 
 					if (ChunkRebuildCounters.ENABLED) {
@@ -539,7 +539,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			solidDrawable = solidUpload.produceDrawable();
 			translucentDrawable = translucentUpload.produceDrawable();
 			animationBits.clear();
-			animationBits.or(context.animationBits);
+			animationBits.or(context.encoder.animationBits);
 
 			worldRenderState.invalidateDrawLists();
 

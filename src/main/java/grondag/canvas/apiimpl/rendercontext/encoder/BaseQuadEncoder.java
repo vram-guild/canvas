@@ -39,6 +39,13 @@ public abstract class BaseQuadEncoder implements QuadEncoder {
 
 	@Override
 	public void accept(BaseQuadEmitter quad) {
+		assert false;
+
+		//encodeQuad(quad);
+	}
+
+	@Override
+	public void doStuffTemporarily(BaseQuadEmitter quad) {
 		final var mat = quad.material();
 
 		if (!mat.discardsTexture() && mat.texture().isAtlas()) {
@@ -49,7 +56,5 @@ public abstract class BaseQuadEncoder implements QuadEncoder {
 				animationBits.set(animationIndex);
 			}
 		}
-
-		encodeQuad(quad);
 	}
 }

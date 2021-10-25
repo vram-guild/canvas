@@ -202,11 +202,11 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 			animationBits.or(perFrameBits);
 			perFrameBits.clear();
 
-			final var itemBits = CanvasItemRenderContext.get().animationBits;
+			final var itemBits = CanvasItemRenderContext.get().encoder.animationBits;
 			animationBits.or(itemBits);
 			itemBits.clear();
 
-			final var blockBits = CanvasBlockRenderContext.get().animationBits;
+			final var blockBits = CanvasBlockRenderContext.get().encoder.animationBits;
 			animationBits.or(blockBits);
 			blockBits.clear();
 
