@@ -44,11 +44,11 @@ public class BlockRenderContext<E extends QuadEncoder> extends AbstractBlockRend
 	}
 
 	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
+		// WIP: try moving this to input context?
 		defaultConsumer = buffer;
 		inputContext.prepareForWorld(blockView, checkSides, MatrixStack.cast(poseStack));
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), seed, overlay);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
-		defaultConsumer = null;
 	}
 
 	@Override

@@ -52,12 +52,9 @@ import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import io.vram.frex.base.renderer.context.BaseItemContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
-import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
-import grondag.canvas.buffer.format.StandardEncoder;
 import grondag.canvas.buffer.input.CanvasImmediate;
-import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
@@ -65,8 +62,7 @@ import grondag.canvas.mixinterface.ItemRendererExt;
 public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderContext<BaseItemContext, E> {
 	protected int lightmap;
 
-	private RenderType defaultRenderLayer;
-	private VertexConsumer defaultConsumer;
+	protected VertexConsumer defaultConsumer;
 
 	public ItemRenderContext(E encoder) {
 		super("ItemRenderContext", encoder);
@@ -115,7 +111,6 @@ public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderCont
 
 	public void renderItem(ItemModelShaper models, ItemStack stack, TransformType renderMode, boolean leftHanded, PoseStack poseStack, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
-
 		lightmap = light;
 		final MatrixStack matrixStack = MatrixStack.cast(poseStack);
 		inputContext.prepareForItem(stack, renderMode, overlay, matrixStack);
@@ -152,16 +147,9 @@ public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderCont
 			}
 		} else {
 			drawTranslucencyDirectToMainTarget = isGui || renderMode.firstPerson() || !isBlockItem;
-			defaultRenderLayer = ItemBlockRenderTypes.getRenderType(stack, drawTranslucencyDirectToMainTarget);
+			final var defaultRenderLayer = ItemBlockRenderTypes.getRenderType(stack, drawTranslucencyDirectToMainTarget);
+			defaultConsumer = vertexConsumers.getBuffer(defaultRenderLayer);
 			defaultPreset = inferDefaultItemPreset(defaultRenderLayer);
-
-			if (((vertexConsumers instanceof CanvasImmediate))) {
-				collectors = ((CanvasImmediate) vertexConsumers).collectors;
-			} else {
-				collectors = null;
-				defaultConsumer = vertexConsumers.getBuffer(defaultRenderLayer);
-			}
-
 			((ItemModel) model).renderAsItem(inputContext, emitter());
 		}
 
@@ -253,15 +241,6 @@ public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderCont
 		applyItemLighting(quad, this.lightmap);
 	}
 
-	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
-		if (collectors == null) {
-			EncoderUtil.encodeQuad(quad, inputContext, defaultConsumer);
-		} else {
-			StandardEncoder.encodeQuad(quad, inputContext, collectors.get((CanvasRenderMaterial) quad.material()));
-		}
-	}
-
 	protected static int inferDefaultItemPreset(RenderType layer) {
 		final var compositeState = ((CompositeRenderType) layer).state;
 
@@ -273,5 +252,10 @@ public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderCont
 		} else {
 			return MaterialConstants.PRESET_SOLID;
 		}
+	}
+
+	@Override
+	protected void encodeQuad(BaseQuadEmitter quad) {
+		encoder.accept(quad, inputContext, defaultConsumer);
 	}
 }

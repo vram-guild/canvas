@@ -23,9 +23,9 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.rendercontext.base.ItemRenderContext;
-import grondag.canvas.apiimpl.rendercontext.encoder.ItemQuadEncoder;
+import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
 
-public class CanvasItemRenderContext extends ItemRenderContext<ItemQuadEncoder> {
+public class CanvasItemRenderContext extends ItemRenderContext<StandardQuadEncoder> {
 	private static final Supplier<ThreadLocal<CanvasItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
 		final CanvasItemRenderContext result = new CanvasItemRenderContext();
 		return result;
@@ -34,7 +34,7 @@ public class CanvasItemRenderContext extends ItemRenderContext<ItemQuadEncoder> 
 	private static ThreadLocal<CanvasItemRenderContext> POOL = POOL_FACTORY.get();
 
 	public CanvasItemRenderContext() {
-		super(new ItemQuadEncoder());
+		super(new StandardQuadEncoder());
 	}
 
 	public static void reload() {

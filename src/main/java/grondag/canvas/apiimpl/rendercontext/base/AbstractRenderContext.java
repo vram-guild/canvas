@@ -20,8 +20,6 @@
 
 package grondag.canvas.apiimpl.rendercontext.base;
 
-import org.jetbrains.annotations.Nullable;
-
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
@@ -37,7 +35,6 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
-import grondag.canvas.buffer.input.VertexCollectorList;
 
 public abstract class AbstractRenderContext<C extends BaseInputContext, E extends QuadEncoder> {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
@@ -46,9 +43,6 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E extend
 	public final C inputContext;
 
 	public final E encoder;
-
-	/** null when not in world render loop/thread or when default consumer should be honored. */
-	@Nullable public VertexCollectorList collectors = null;
 
 	protected final String name;
 	protected final RootQuadEmitter emitter = new Emitter();

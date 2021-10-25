@@ -20,11 +20,24 @@
 
 package grondag.canvas.apiimpl.rendercontext.encoder;
 
-import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+import org.jetbrains.annotations.Nullable;
 
-public class BlockQuadEncoder extends BaseQuadEncoder {
+import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import io.vram.frex.api.model.InputContext;
+import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+import io.vram.frex.base.renderer.util.EncoderUtil;
+
+import grondag.canvas.buffer.format.StandardEncoder;
+import grondag.canvas.material.state.CanvasRenderMaterial;
+
+public class StandardQuadEncoder extends BaseQuadEncoder {
 	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
-		// WIP
+	public void accept(BaseQuadEmitter quad, InputContext inputContext, @Nullable VertexConsumer defaultConsumer) {
+		if (collectors != null) {
+			StandardEncoder.encodeQuad(quad, inputContext, collectors.get((CanvasRenderMaterial) quad.material()));
+		} else {
+			EncoderUtil.encodeQuad(quad, inputContext, defaultConsumer);
+		}
 	}
 }

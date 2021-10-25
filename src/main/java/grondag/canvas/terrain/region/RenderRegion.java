@@ -307,7 +307,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			final int[] state = regionData.translucentState;
 
 			if (state != null) {
-				final VertexCollectorList collectors = context.collectors;
+				final VertexCollectorList collectors = context.encoder.collectors;
 				final DrawableVertexCollector collector = collectors.get(TerrainRenderStates.TRANSLUCENT_TERRAIN);
 				collector.loadState(state);
 
@@ -340,8 +340,8 @@ public class RenderRegion implements TerrainExecutorTask {
 		} else {
 			context.prepareForRegion(protoRegion);
 			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
-			context.encodingContext.updateSector(renderSector, origin);
-			final VertexCollectorList collectors = context.collectors;
+			context.encoder.encodingContext.updateSector(renderSector, origin);
+			final VertexCollectorList collectors = context.encoder.collectors;
 
 			if (runningState.get() == SignalInputRegion.INVALID) {
 				collectors.clear();
@@ -404,7 +404,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			ChunkRebuildCounters.startChunk();
 		}
 
-		final VertexCollectorList collectors = context.collectors;
+		final VertexCollectorList collectors = context.encoder.collectors;
 
 		final BlockPos.MutableBlockPos searchPos = context.searchPos;
 		final int xOrigin = origin.getX();
@@ -523,7 +523,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		} else {
 			final CanvasTerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(inputRegion);
 			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
-			context.encodingContext.updateSector(renderSector, origin);
+			context.encoder.encodingContext.updateSector(renderSector, origin);
 
 			buildTerrain(context, newBuildState);
 
@@ -531,7 +531,7 @@ public class RenderRegion implements TerrainExecutorTask {
 				ChunkRebuildCounters.startUpload();
 			}
 
-			final VertexCollectorList collectors = context.collectors;
+			final VertexCollectorList collectors = context.encoder.collectors;
 			final UploadableRegion solidUpload = collectors.toUploadableChunk(false, origin, worldRenderState);
 			final UploadableRegion translucentUpload = collectors.toUploadableChunk(true, origin, worldRenderState);
 

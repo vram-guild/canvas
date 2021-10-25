@@ -20,11 +20,28 @@
 
 package grondag.canvas.apiimpl.rendercontext.encoder;
 
+import org.jetbrains.annotations.Nullable;
+
+import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
+import grondag.canvas.buffer.format.TerrainEncoder;
+import grondag.canvas.buffer.format.TerrainEncodingContext;
+import grondag.canvas.buffer.input.VertexCollectorList;
+import grondag.canvas.material.state.CanvasRenderMaterial;
+
 public class TerrainQuadEncoder extends BaseQuadEncoder {
+	// WIP: make this part of the encoder itself
+	public final TerrainEncodingContext encodingContext = new TerrainEncodingContext() { };
+
+	public TerrainQuadEncoder() {
+		collectors = new VertexCollectorList(true, true);
+	}
+
 	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
-		// WIP
+	public void accept(BaseQuadEmitter quad, InputContext inputContext, @Nullable VertexConsumer defaultConsumer) {
+		TerrainEncoder.encodeQuad(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 	}
 }

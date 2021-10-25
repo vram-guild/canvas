@@ -381,8 +381,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		final PostChain entityOutlineShader = wr.canvas_entityOutlineShader();
 		final SortableVisibleRegionList visibleRegions = worldRenderState.cameraVisibleRegions;
 		entityBlockContext.tickDelta(tickDelta);
-		entityBlockContext.collectors = immediate.collectors;
-		blockContext.collectors = immediate.collectors;
+		entityBlockContext.encoder.collectors = immediate.collectors;
+		blockContext.encoder.collectors = immediate.collectors;
 		SkyShadowRenderer.suppressEntityShadows(mc);
 
 		// Because we are passing identity stack to entity renders we need to
@@ -566,7 +566,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "destroyProgress");
 
 		// honor damage render layer irrespective of model material
-		blockContext.collectors = null;
+		blockContext.encoder.collectors = null;
 
 		final ObjectIterator<Entry<SortedSet<BlockDestructionProgress>>> breakings = wr.canvas_blockBreakingProgressions().long2ObjectEntrySet().iterator();
 
@@ -592,7 +592,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			}
 		}
 
-		blockContext.collectors = immediate.collectors;
+		blockContext.encoder.collectors = immediate.collectors;
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "outline");
 		final HitResult hitResult = mc.hitResult;
@@ -759,8 +759,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		GFX.depthMask(true);
 		GFX.disableBlend();
 		FogRenderer.setupNoFog();
-		entityBlockContext.collectors = null;
-		blockContext.collectors = null;
+		entityBlockContext.encoder.collectors = null;
+		blockContext.encoder.collectors = null;
 
 		wr.canvas_setEntityCounts(entityCount, blockEntityCount);
 

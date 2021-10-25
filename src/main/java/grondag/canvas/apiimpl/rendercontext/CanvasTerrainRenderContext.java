@@ -37,12 +37,9 @@ import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.apiimpl.rendercontext.base.TerrainRenderContext;
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
-import grondag.canvas.buffer.format.TerrainEncoder;
-import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
-import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
@@ -57,7 +54,6 @@ public class CanvasTerrainRenderContext extends TerrainRenderContext<InputRegion
 		super(new TerrainQuadEncoder());
 		region = new InputRegion(this);
 		inputContext.prepareForWorld(region, true, matrixStack);
-		collectors = new VertexCollectorList(true, true);
 	}
 
 	private final AoCalculator aoCalc = new AoCalculator() {
@@ -164,6 +160,6 @@ public class CanvasTerrainRenderContext extends TerrainRenderContext<InputRegion
 
 	@Override
 	protected void encodeQuad(BaseQuadEmitter quad) {
-		TerrainEncoder.encodeQuad(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
+		encoder.accept(quad, inputContext, null);
 	}
 }

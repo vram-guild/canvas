@@ -30,7 +30,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import io.vram.frex.api.math.MatrixStack;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
-import grondag.canvas.buffer.format.TerrainEncodingContext;
 
 /**
  * Implementation of RenderContext used during terrain rendering.
@@ -42,8 +41,8 @@ public abstract class TerrainRenderContext<T extends BlockAndTintGetter, E exten
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
+	// WIP: remove?
 	public final MatrixStack matrixStack = MatrixStack.cast(new PoseStack());
-	public final TerrainEncodingContext encodingContext = new TerrainEncodingContext() { };
 
 	public TerrainRenderContext(E encoder) {
 		super("TerrainRenderContext", encoder);

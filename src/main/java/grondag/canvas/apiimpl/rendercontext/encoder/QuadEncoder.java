@@ -20,10 +20,15 @@
 
 package grondag.canvas.apiimpl.rendercontext.encoder;
 
+import org.jetbrains.annotations.Nullable;
+
+import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 public interface QuadEncoder {
-	void accept(BaseQuadEmitter quad);
+	void accept(BaseQuadEmitter quad, InputContext inputContext, @Nullable VertexConsumer defaultConsumer);
 
 	void doStuffTemporarily(BaseQuadEmitter quad);
 }

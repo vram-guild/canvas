@@ -36,8 +36,6 @@ import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
-import grondag.canvas.buffer.format.StandardEncoder;
-import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.RenderTypeExt;
 
 public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E extends QuadEncoder> extends AbstractRenderContext<BaseBlockContext<T>, E> {
@@ -104,10 +102,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 
 	@Override
 	protected void encodeQuad(BaseQuadEmitter quad) {
-		if (collectors == null) {
-			EncoderUtil.encodeQuad(quad, inputContext, defaultConsumer);
-		} else {
-			StandardEncoder.encodeQuad(quad, inputContext, collectors.get((CanvasRenderMaterial) quad.material()));
-		}
+		encoder.accept(quad, inputContext, defaultConsumer);
 	}
 }

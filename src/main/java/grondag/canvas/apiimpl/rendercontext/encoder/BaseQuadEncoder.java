@@ -30,19 +30,9 @@ import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.mixinterface.SpriteExt;
 
 public abstract class BaseQuadEncoder implements QuadEncoder {
-	/** null when not in world render loop/thread or when default consumer should be honored. */
-	@Nullable public VertexCollectorList collectors = null;
+	public @Nullable VertexCollectorList collectors = null;
 
 	public final BitSet animationBits = new BitSet();
-
-	protected abstract void encodeQuad(BaseQuadEmitter quad);
-
-	@Override
-	public void accept(BaseQuadEmitter quad) {
-		assert false;
-
-		//encodeQuad(quad);
-	}
 
 	@Override
 	public void doStuffTemporarily(BaseQuadEmitter quad) {

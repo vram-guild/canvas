@@ -23,7 +23,7 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.rendercontext.base.EntityBlockRenderContext;
-import grondag.canvas.apiimpl.rendercontext.encoder.BlockQuadEncoder;
+import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
 
 /**
  * Context used when blocks are rendered as part of an entity.
@@ -33,7 +33,7 @@ import grondag.canvas.apiimpl.rendercontext.encoder.BlockQuadEncoder;
  * <p>Also handle rendering of the item frame which looks and acts like a block
  * and has a block JSON model but is an entity.
  */
-public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<BlockQuadEncoder> {
+public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<StandardQuadEncoder> {
 	private static final Supplier<ThreadLocal<CanvasEntityBlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
 		final CanvasEntityBlockRenderContext result = new CanvasEntityBlockRenderContext();
 		return result;
@@ -42,7 +42,7 @@ public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<Blo
 	private static ThreadLocal<CanvasEntityBlockRenderContext> POOL = POOL_FACTORY.get();
 
 	public CanvasEntityBlockRenderContext() {
-		super(new BlockQuadEncoder());
+		super(new StandardQuadEncoder());
 	}
 
 	public static void reload() {

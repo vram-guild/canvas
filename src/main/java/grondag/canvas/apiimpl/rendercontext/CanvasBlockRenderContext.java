@@ -23,12 +23,12 @@ package grondag.canvas.apiimpl.rendercontext;
 import java.util.function.Supplier;
 
 import grondag.canvas.apiimpl.rendercontext.base.BlockRenderContext;
-import grondag.canvas.apiimpl.rendercontext.encoder.BlockQuadEncoder;
+import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
 
 /**
  * Context for non-terrain block rendering.
  */
-public class CanvasBlockRenderContext extends BlockRenderContext<BlockQuadEncoder> {
+public class CanvasBlockRenderContext extends BlockRenderContext<StandardQuadEncoder> {
 	private static final Supplier<ThreadLocal<CanvasBlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
 		final CanvasBlockRenderContext result = new CanvasBlockRenderContext();
 		return result;
@@ -37,7 +37,7 @@ public class CanvasBlockRenderContext extends BlockRenderContext<BlockQuadEncode
 	private static ThreadLocal<CanvasBlockRenderContext> POOL = POOL_FACTORY.get();
 
 	public CanvasBlockRenderContext() {
-		super(new BlockQuadEncoder());
+		super(new StandardQuadEncoder());
 	}
 
 	public static void reload() {
