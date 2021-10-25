@@ -22,7 +22,7 @@ package grondag.canvas.render.terrain.cluster;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import grondag.canvas.render.terrain.TerrainFormat;
+import grondag.canvas.buffer.format.TerrainEncoder;
 
 public class SlabAllocator {
 	private static int slabCount = 0;
@@ -45,7 +45,7 @@ public class SlabAllocator {
 
 	static {
 		// Want IDE to show actual numbers above, so check here at run time that nothing changed and got missed.
-		assert BYTES_PER_SLAB_VERTEX == TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes : "Slab vertex size doesn't match vertex format";
+		assert BYTES_PER_SLAB_VERTEX == TerrainEncoder.TERRAIN_MATERIAL.vertexStrideBytes : "Slab vertex size doesn't match vertex format";
 	}
 
 	static Slab claim(int minCapacityBytes) {

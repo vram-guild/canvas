@@ -20,9 +20,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
-import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
-
 import org.jetbrains.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -36,8 +33,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+import io.vram.frex.base.renderer.util.EncoderUtil;
 
-import grondag.canvas.buffer.format.QuadEncoders;
+import grondag.canvas.buffer.format.StandardEncoder;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.mixinterface.RenderTypeExt;
 
@@ -100,12 +98,12 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> e
 	protected void encodeQuad(BaseQuadEmitter quad) {
 		// needs to happen before offsets are applied
 		computeFlat(quad);
-		colorizeQuad(quad, this.inputContext);
+		EncoderUtil.colorizeQuad(quad, this.inputContext);
 
 		if (collectors == null) {
-			bufferQuad(quad, inputContext, encodingContext, defaultConsumer);
+			EncoderUtil.encodeQuad(quad, inputContext, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_ENCODER.encode(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
+			StandardEncoder.encodeQuad(quad, inputContext, collectors.get((CanvasRenderMaterial) quad.material()));
 		}
 	}
 }

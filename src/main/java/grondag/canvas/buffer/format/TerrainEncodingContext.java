@@ -23,22 +23,19 @@ package grondag.canvas.buffer.format;
 import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 import grondag.canvas.terrain.region.RegionPosition;
 
-public abstract class AbstractEncodingContext implements EncodingContext {
+public abstract class TerrainEncodingContext {
 	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
 	private int sectorId;
 	private int sectorRelativeRegionOrigin;
 
-	@Override
 	public final int sectorId() {
 		return sectorId;
 	}
 
-	@Override
 	public final int sectorRelativeRegionOrigin() {
 		return sectorRelativeRegionOrigin;
 	}
 
-	@Override
 	public void updateSector(RegionRenderSector renderSector, RegionPosition origin) {
 		sectorId = renderSector.sectorId();
 		sectorRelativeRegionOrigin = renderSector.sectorRelativeRegionOrigin(origin);

@@ -20,7 +20,7 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
+import static io.vram.frex.base.renderer.util.EncoderUtil.colorizeQuad;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
@@ -40,12 +40,13 @@ import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
+import grondag.canvas.buffer.format.TerrainEncoder;
+import grondag.canvas.buffer.format.TerrainEncodingContext;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.material.state.CanvasRenderMaterial;
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
@@ -62,6 +63,7 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
 	public final InputRegion region;
 	public final MatrixStack matrixStack = MatrixStack.cast(new PoseStack());
+	public final TerrainEncodingContext encodingContext = new TerrainEncodingContext() { };
 
 	private final AoCalculator aoCalc = new AoCalculator() {
 		@Override
@@ -174,6 +176,6 @@ public class TerrainRenderContext extends AbstractBlockRenderContext<InputRegion
 		}
 
 		colorizeQuad(quad, this.inputContext);
-		TerrainFormat.TERRAIN_ENCODER.encode(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
+		TerrainEncoder.encodeQuad(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
 	}
 }

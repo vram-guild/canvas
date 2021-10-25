@@ -31,14 +31,13 @@ import io.vram.frex.base.renderer.context.AbsentInputContext;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
-import grondag.canvas.buffer.format.AbsentEncodingContext;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
-import grondag.canvas.buffer.format.QuadEncoders;
+import grondag.canvas.buffer.format.StandardEncoder;
+import grondag.canvas.buffer.format.TerrainEncoder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.terrain.base.UploadableRegion;
 import grondag.canvas.render.terrain.cluster.ClusteredDrawableRegion;
 import grondag.canvas.render.world.WorldRenderState;
@@ -61,7 +60,7 @@ public class VertexCollectorList {
 	public VertexCollectorList(boolean trackFaces, boolean isTerrain) {
 		this.trackFaces = trackFaces;
 		this.isTerrain = isTerrain;
-		target = new int[isTerrain ? TerrainFormat.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts];
+		target = new int[isTerrain ? TerrainEncoder.TERRAIN_MATERIAL.quadStrideInts : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT.quadStrideInts];
 	}
 
 	/**
@@ -80,7 +79,7 @@ public class VertexCollectorList {
 
 			if (mat.condition().compute()) {
 				complete();
-				QuadEncoders.STANDARD_ENCODER.encode(this, AbsentInputContext.INSTANCE, AbsentEncodingContext.INSTANCE, get(mat));
+				StandardEncoder.encodeQuad(this, AbsentInputContext.INSTANCE, get(mat));
 
 				if (Configurator.disableUnseenSpriteAnimation) {
 					mat.trackPerFrameAnimation(this.spriteId());

@@ -23,18 +23,18 @@ package grondag.canvas.render.terrain.drawlist;
 import java.util.function.IntSupplier;
 
 import grondag.canvas.buffer.format.BufferVAO;
-import grondag.canvas.render.terrain.TerrainFormat;
+import grondag.canvas.buffer.format.TerrainEncoder;
 
 public class TerrainVAO extends BufferVAO {
 	public final int baseQuadVertexIndex;
 
 	public TerrainVAO(IntSupplier arrayIdSupplier, IntSupplier elementIdSupplier, int baseQuadVertexIndex) {
-		super(TerrainFormat.TERRAIN_MATERIAL, arrayIdSupplier, elementIdSupplier);
+		super(TerrainEncoder.TERRAIN_MATERIAL, arrayIdSupplier, elementIdSupplier);
 		this.baseQuadVertexIndex = baseQuadVertexIndex;
 	}
 
 	@Override
 	public void bind() {
-		super.bind(baseQuadVertexIndex * TerrainFormat.TERRAIN_MATERIAL.vertexStrideBytes);
+		super.bind(baseQuadVertexIndex * TerrainEncoder.TERRAIN_MATERIAL.vertexStrideBytes);
 	}
 }

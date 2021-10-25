@@ -38,16 +38,13 @@ import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
-import grondag.canvas.buffer.format.AbstractEncodingContext;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.mixinterface.SpriteExt;
 
-// UGLY: consolidate and simplify this class hierarchy
 public abstract class AbstractRenderContext<C extends BaseInputContext> {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	final MaterialFinder finder = MaterialFinder.newInstance();
 
-	public final AbstractEncodingContext encodingContext = new AbstractEncodingContext() { };
 	public final C inputContext;
 
 	/** null when not in world render loop/thread or when default consumer should be honored. */
@@ -92,10 +89,6 @@ public abstract class AbstractRenderContext<C extends BaseInputContext> {
 	}
 
 	public abstract boolean defaultAo();
-
-	//protected abstract BlockState blockState();
-
-	//public abstract int indexedColor(int colorIndex);
 
 	/**
 	 * Used in contexts with a fixed brightness, like ITEM.

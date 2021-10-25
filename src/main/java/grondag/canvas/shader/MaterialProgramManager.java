@@ -22,9 +22,9 @@ package grondag.canvas.shader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
+import grondag.canvas.buffer.format.TerrainEncoder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.terrain.TerrainSectorMap;
-import grondag.canvas.render.terrain.TerrainFormat;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.shader.data.ShaderUniforms;
 import grondag.canvas.shader.data.UniformRefreshFrequency;
@@ -49,7 +49,7 @@ public enum MaterialProgramManager {
 		if (result == null) {
 			final Shader vs = new GlMaterialShader(programType.vertexSource, GFX.GL_VERTEX_SHADER, programType);
 			final Shader fs = new GlMaterialShader(programType.fragmentSource, GFX.GL_FRAGMENT_SHADER, programType);
-			result = new GlMaterialProgram(vs, fs, programType.isTerrain ? TerrainFormat.TERRAIN_MATERIAL : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT, programType);
+			result = new GlMaterialProgram(vs, fs, programType.isTerrain ? TerrainEncoder.TERRAIN_MATERIAL : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT, programType);
 			ShaderUniforms.MATERIAL_UNIFORM_SETUP.accept(result);
 
 			if (programType.isTerrain) {

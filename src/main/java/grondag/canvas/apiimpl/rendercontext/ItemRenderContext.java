@@ -20,9 +20,8 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static grondag.canvas.buffer.format.EncoderUtils.applyItemLighting;
-import static grondag.canvas.buffer.format.EncoderUtils.bufferQuad;
-import static grondag.canvas.buffer.format.EncoderUtils.colorizeQuad;
+import static io.vram.frex.base.renderer.util.EncoderUtil.applyItemLighting;
+import static io.vram.frex.base.renderer.util.EncoderUtil.colorizeQuad;
 
 import java.util.function.Supplier;
 
@@ -55,8 +54,9 @@ import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import io.vram.frex.base.renderer.context.BaseItemContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+import io.vram.frex.base.renderer.util.EncoderUtil;
 
-import grondag.canvas.buffer.format.QuadEncoders;
+import grondag.canvas.buffer.format.StandardEncoder;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderContextState;
@@ -266,12 +266,12 @@ public class ItemRenderContext extends AbstractRenderContext<BaseItemContext> {
 	@Override
 	protected void encodeQuad(BaseQuadEmitter quad) {
 		colorizeQuad(quad, this.inputContext);
-		applyItemLighting(quad, this);
+		applyItemLighting(quad, this.lightmap);
 
 		if (collectors == null) {
-			bufferQuad(quad, inputContext, encodingContext, defaultConsumer);
+			EncoderUtil.encodeQuad(quad, inputContext, defaultConsumer);
 		} else {
-			QuadEncoders.STANDARD_ENCODER.encode(quad, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) quad.material()));
+			StandardEncoder.encodeQuad(quad, inputContext, collectors.get((CanvasRenderMaterial) quad.material()));
 		}
 	}
 
