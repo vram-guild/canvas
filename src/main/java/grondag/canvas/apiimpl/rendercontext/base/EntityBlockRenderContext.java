@@ -43,8 +43,6 @@ import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
-import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
-
 /**
  * Context used when blocks are rendered as part of an entity.
  * Vanilla examples include blocks held be endermen, blocks in minecarts,
@@ -53,15 +51,11 @@ import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
  * <p>Also handle rendering of the item frame which looks and acts like a block
  * and has a block JSON model but is an entity.
  */
-public class EntityBlockRenderContext<E extends QuadEncoder> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
+public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
 	private int light;
 	private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 	private Level level;
 	private float tickDelta;
-
-	public EntityBlockRenderContext(E encoder) {
-		super("BlockRenderContext", encoder);
-	}
 
 	@Override
 	protected BaseBlockContext<BlockAndTintGetter> createInputContext() {

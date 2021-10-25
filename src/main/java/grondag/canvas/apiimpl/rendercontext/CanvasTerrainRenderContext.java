@@ -22,20 +22,25 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import static io.vram.frex.base.renderer.util.EncoderUtil.colorizeQuad;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
+
+import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
-import grondag.canvas.apiimpl.rendercontext.base.TerrainRenderContext;
+import grondag.canvas.apiimpl.rendercontext.base.AbstractBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
@@ -47,11 +52,17 @@ import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 /**
  * Context for non-terrain block rendering.
  */
-public class CanvasTerrainRenderContext extends TerrainRenderContext<InputRegion, TerrainQuadEncoder> {
+public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<InputRegion, TerrainQuadEncoder> {
+	// Reused each build to prevent needless allocation
+	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
+	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
+	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
+
 	public final InputRegion region;
+	public final MatrixStack matrixStack = MatrixStack.cast(new PoseStack());
 
 	public CanvasTerrainRenderContext() {
-		super(new TerrainQuadEncoder());
+		super();
 		region = new InputRegion(this);
 		inputContext.prepareForWorld(region, true, matrixStack);
 	}
@@ -147,19 +158,24 @@ public class CanvasTerrainRenderContext extends TerrainRenderContext<InputRegion
 	}
 
 	@Override
-	protected void shadeQuad(BaseQuadEmitter quad) {
+	protected void shadeQuad() {
 		// needs to happen before offsets are applied
-		if (!quad.material().disableAo() && Minecraft.useAmbientOcclusion()) {
-			computeAo(quad);
+		if (!emitter.material().disableAo() && Minecraft.useAmbientOcclusion()) {
+			computeAo(emitter);
 		} else {
-			computeFlat(quad);
+			computeFlat(emitter);
 		}
 
-		colorizeQuad(quad, this.inputContext);
+		colorizeQuad(emitter, this.inputContext);
 	}
 
 	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
-		encoder.accept(quad, inputContext, null);
+	protected TerrainQuadEncoder createEncoder() {
+		return new TerrainQuadEncoder(emitter, inputContext);
+	}
+
+	@Override
+	protected void encodeQuad() {
+		encoder.encode();
 	}
 }

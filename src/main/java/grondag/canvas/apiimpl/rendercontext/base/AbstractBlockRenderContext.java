@@ -32,13 +32,11 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
-import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
-import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
 import grondag.canvas.mixinterface.RenderTypeExt;
 
-public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E extends QuadEncoder> extends AbstractRenderContext<BaseBlockContext<T>, E> {
+public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E> extends AbstractRenderContext<BaseBlockContext<T>, E> {
 	/**
 	 * For use by chunk builder - avoids another threadlocal.
 	 */
@@ -47,10 +45,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 	@Nullable protected VertexConsumer defaultConsumer;
 
 	public boolean defaultAo;
-
-	protected AbstractBlockRenderContext(String name, E encoder) {
-		super(name, encoder);
-	}
 
 	@Override
 	protected BaseBlockContext<T> createInputContext() {
@@ -94,14 +88,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 	}
 
 	@Override
-	protected void shadeQuad(BaseQuadEmitter quad) {
-		// needs to happen before offsets are applied
-		computeFlat(quad);
-		EncoderUtil.colorizeQuad(quad, this.inputContext);
-	}
-
-	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
-		encoder.accept(quad, inputContext, defaultConsumer);
+	protected void shadeQuad() {
+		computeFlat(emitter);
+		EncoderUtil.colorizeQuad(emitter, inputContext);
 	}
 }

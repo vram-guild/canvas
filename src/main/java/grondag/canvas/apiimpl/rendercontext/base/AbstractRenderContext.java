@@ -34,9 +34,7 @@ import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
-import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
-
-public abstract class AbstractRenderContext<C extends BaseInputContext, E extends QuadEncoder> {
+public abstract class AbstractRenderContext<C extends BaseInputContext, E> {
 	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 	protected final MaterialFinder finder = MaterialFinder.newInstance();
 
@@ -44,20 +42,20 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E extend
 
 	public final E encoder;
 
-	protected final String name;
 	protected final RootQuadEmitter emitter = new Emitter();
 
 	protected MaterialMap materialMap = defaultMap;
 	protected int defaultPreset;
 	protected boolean isFluidModel = false;
 
-	protected AbstractRenderContext(String name, E encoder) {
-		this.name = name;
-		this.encoder = encoder;
+	protected AbstractRenderContext() {
 		inputContext = createInputContext();
+		encoder = createEncoder();
 	}
 
 	protected abstract C createInputContext();
+
+	protected abstract E createEncoder();
 
 	void mapMaterials(BaseQuadEmitter quad) {
 		if (materialMap == defaultMap) {
@@ -113,17 +111,18 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E extend
 			final var mat = finder.find();
 			quad.material(mat);
 
-			shadeQuad(quad);
+			// needs to happen before offsets are applied
+			shadeQuad();
 
-			encoder.doStuffTemporarily(quad);
-
-			encodeQuad(quad);
+			// Renderer-specific
+			// Responsible for block offsets in terrain rendering
+			encodeQuad();
 		}
 	}
 
-	protected abstract void shadeQuad(BaseQuadEmitter quad);
+	protected abstract void shadeQuad();
 
-	protected abstract void encodeQuad(BaseQuadEmitter quad);
+	protected abstract void encodeQuad();
 
 	protected void adjustMaterial() {
 		final MaterialFinder finder = this.finder;

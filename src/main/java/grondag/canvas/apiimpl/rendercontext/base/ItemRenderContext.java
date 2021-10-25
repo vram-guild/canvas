@@ -53,20 +53,15 @@ import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import io.vram.frex.base.renderer.context.BaseItemContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
-import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
 
-public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderContext<BaseItemContext, E> {
+public abstract class ItemRenderContext<E> extends AbstractRenderContext<BaseItemContext, E> {
 	protected int lightmap;
 
 	protected VertexConsumer defaultConsumer;
-
-	public ItemRenderContext(E encoder) {
-		super("ItemRenderContext", encoder);
-	}
 
 	@Override
 	protected BaseItemContext createInputContext() {
@@ -236,9 +231,9 @@ public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderCont
 	}
 
 	@Override
-	protected void shadeQuad(BaseQuadEmitter quad) {
-		colorizeQuad(quad, this.inputContext);
-		applyItemLighting(quad, this.lightmap);
+	protected void shadeQuad() {
+		colorizeQuad(emitter, inputContext);
+		applyItemLighting(emitter, lightmap);
 	}
 
 	protected static int inferDefaultItemPreset(RenderType layer) {
@@ -252,10 +247,5 @@ public class ItemRenderContext<E extends QuadEncoder> extends AbstractRenderCont
 		} else {
 			return MaterialConstants.PRESET_SOLID;
 		}
-	}
-
-	@Override
-	protected void encodeQuad(BaseQuadEmitter quad) {
-		encoder.accept(quad, inputContext, defaultConsumer);
 	}
 }

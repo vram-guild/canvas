@@ -42,7 +42,7 @@ public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<Sta
 	private static ThreadLocal<CanvasEntityBlockRenderContext> POOL = POOL_FACTORY.get();
 
 	public CanvasEntityBlockRenderContext() {
-		super(new StandardQuadEncoder());
+		super();
 	}
 
 	public static void reload() {
@@ -51,5 +51,15 @@ public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<Sta
 
 	public static CanvasEntityBlockRenderContext get() {
 		return POOL.get();
+	}
+
+	@Override
+	protected StandardQuadEncoder createEncoder() {
+		return new StandardQuadEncoder(emitter, inputContext);
+	}
+
+	@Override
+	protected void encodeQuad() {
+		encoder.encode(defaultConsumer);
 	}
 }

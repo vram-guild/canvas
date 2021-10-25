@@ -33,15 +33,21 @@ public class CanvasItemRenderContext extends ItemRenderContext<StandardQuadEncod
 
 	private static ThreadLocal<CanvasItemRenderContext> POOL = POOL_FACTORY.get();
 
-	public CanvasItemRenderContext() {
-		super(new StandardQuadEncoder());
-	}
-
 	public static void reload() {
 		POOL = POOL_FACTORY.get();
 	}
 
 	public static CanvasItemRenderContext get() {
 		return POOL.get();
+	}
+
+	@Override
+	protected StandardQuadEncoder createEncoder() {
+		return new StandardQuadEncoder(emitter, inputContext);
+	}
+
+	@Override
+	protected void encodeQuad() {
+		encoder.encode(defaultConsumer);
 	}
 }

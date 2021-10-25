@@ -32,12 +32,17 @@ import grondag.canvas.buffer.format.StandardEncoder;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 
 public class StandardQuadEncoder extends BaseQuadEncoder {
-	@Override
-	public void accept(BaseQuadEmitter quad, InputContext inputContext, @Nullable VertexConsumer defaultConsumer) {
+	public StandardQuadEncoder(BaseQuadEmitter emitter, InputContext inputContext) {
+		super(emitter, inputContext);
+	}
+
+	public void encode(@Nullable VertexConsumer defaultConsumer) {
+		trackAnimation(emitter);
+
 		if (collectors != null) {
-			StandardEncoder.encodeQuad(quad, inputContext, collectors.get((CanvasRenderMaterial) quad.material()));
+			StandardEncoder.encodeQuad(emitter, inputContext, collectors.get((CanvasRenderMaterial) emitter.material()));
 		} else {
-			EncoderUtil.encodeQuad(quad, inputContext, defaultConsumer);
+			EncoderUtil.encodeQuad(emitter, inputContext, defaultConsumer);
 		}
 	}
 }

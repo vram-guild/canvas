@@ -24,18 +24,26 @@ import java.util.BitSet;
 
 import org.jetbrains.annotations.Nullable;
 
+import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.mixinterface.SpriteExt;
 
-public abstract class BaseQuadEncoder implements QuadEncoder {
+public abstract class BaseQuadEncoder {
+	protected final BaseQuadEmitter emitter;
+	protected final InputContext inputContext;
+
+	public BaseQuadEncoder(BaseQuadEmitter emitter, InputContext inputContext) {
+		this.emitter = emitter;
+		this.inputContext = inputContext;
+	}
+
 	public @Nullable VertexCollectorList collectors = null;
 
 	public final BitSet animationBits = new BitSet();
 
-	@Override
-	public void doStuffTemporarily(BaseQuadEmitter quad) {
+	protected void trackAnimation(BaseQuadEmitter quad) {
 		final var mat = quad.material();
 
 		if (!mat.discardsTexture() && mat.texture().isAtlas()) {

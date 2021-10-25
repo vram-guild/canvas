@@ -33,16 +33,10 @@ import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
-import grondag.canvas.apiimpl.rendercontext.encoder.QuadEncoder;
-
 /**
  * Context for non-terrain block rendering.
  */
-public class BlockRenderContext<E extends QuadEncoder> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
-	public BlockRenderContext(E encoder) {
-		super("BlockRenderContext", encoder);
-	}
-
+public abstract class BlockRenderContext<E> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
 	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		// WIP: try moving this to input context?
 		defaultConsumer = buffer;
