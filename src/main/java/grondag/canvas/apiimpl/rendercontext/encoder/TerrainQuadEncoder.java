@@ -24,21 +24,44 @@ import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.buffer.format.TerrainEncoder;
-import grondag.canvas.buffer.format.TerrainEncodingContext;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.material.state.CanvasRenderMaterial;
+import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
+import grondag.canvas.terrain.region.RegionPosition;
 
 public class TerrainQuadEncoder extends BaseQuadEncoder {
-	// WIP: make this part of the encoder itself
-	public final TerrainEncodingContext encodingContext = new TerrainEncodingContext() { };
+	/** Used by some terrain render configs to pass a region ID into vertex encoding. */
+	private int sectorId;
+	private int sectorRelativeRegionOrigin;
 
 	public TerrainQuadEncoder(BaseQuadEmitter emitter, InputContext inputContext) {
 		super(emitter, inputContext);
 		collectors = new VertexCollectorList(true, true);
 	}
 
+	public final int sectorId() {
+		return sectorId;
+	}
+
+	public final int sectorRelativeRegionOrigin() {
+		return sectorRelativeRegionOrigin;
+	}
+
+	public void updateSector(RegionRenderSector renderSector, RegionPosition origin) {
+		sectorId = renderSector.sectorId();
+		sectorRelativeRegionOrigin = renderSector.sectorRelativeRegionOrigin(origin);
+	}
+
 	public void encode() {
 		trackAnimation(emitter);
-		TerrainEncoder.encodeQuad(emitter, inputContext, encodingContext, collectors.get((CanvasRenderMaterial) emitter.material()));
+		TerrainEncoder.encodeQuad(this, collectors.get((CanvasRenderMaterial) emitter.material()));
+	}
+
+	public BaseQuadEmitter emitter() {
+		return emitter;
+	}
+
+	public InputContext inputContext() {
+		return inputContext;
 	}
 }

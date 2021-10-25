@@ -340,7 +340,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		} else {
 			context.prepareForRegion(protoRegion);
 			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
-			context.encoder.encodingContext.updateSector(renderSector, origin);
+			context.encoder.updateSector(renderSector, origin);
 			final VertexCollectorList collectors = context.encoder.collectors;
 
 			if (runningState.get() == SignalInputRegion.INVALID) {
@@ -523,7 +523,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		} else {
 			final CanvasTerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(inputRegion);
 			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
-			context.encoder.encodingContext.updateSector(renderSector, origin);
+			context.encoder.updateSector(renderSector, origin);
 
 			buildTerrain(context, newBuildState);
 

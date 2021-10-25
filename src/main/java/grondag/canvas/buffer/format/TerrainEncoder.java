@@ -45,9 +45,8 @@ import net.minecraft.util.Mth;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.math.FastMatrix4f;
-import io.vram.frex.api.model.InputContext;
-import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
+import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
 import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 
@@ -69,7 +68,10 @@ public class TerrainEncoder {
 
 	private static final int TERRAIN_VERTEX_STRIDE = TERRAIN_MATERIAL.vertexStrideInts;
 
-	public static void encodeQuad(BaseQuadEmitter quad, InputContext inputContext, TerrainEncodingContext context, VertexCollector buff) {
+	public static void encodeQuad(TerrainQuadEncoder encoder, VertexCollector buff) {
+		final var quad = encoder.emitter();
+		final var inputContext = encoder.inputContext();
+
 		final var matrixStack = inputContext.matrixStack();
 		final FastMatrix4f matrix = matrixStack.modelMatrix();
 		final FastMatrix3f normalMatrix = matrixStack.normalMatrix();
@@ -104,9 +106,9 @@ public class TerrainEncoder {
 		final int[] source = quad.data();
 
 		// This and pos vertex encoding are the only differences from standard format
-		final int sectorId = context.sectorId();
+		final int sectorId = encoder.sectorId();
 		assert sectorId >= 0;
-		final int sectorRelativeRegionOrigin = context.sectorRelativeRegionOrigin();
+		final int sectorRelativeRegionOrigin = encoder.sectorRelativeRegionOrigin();
 
 		for (int i = 0; i < 4; i++) {
 			final int vertexMask = 1 << i;
