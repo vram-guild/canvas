@@ -28,10 +28,7 @@ import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.ItemModelShaper;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderStateShard.TextureStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderType.CompositeRenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -46,7 +43,7 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.ItemModel;
-import io.vram.frex.api.rendertype.VanillaShaderInfo;
+import io.vram.frex.api.rendertype.RenderTypeUtil;
 import io.vram.frex.base.renderer.context.BaseItemContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.util.EncoderUtil;
@@ -59,6 +56,7 @@ import grondag.canvas.mixinterface.ItemRendererExt;
 public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<BaseItemContext, E> {
 	protected int lightmap;
 
+	protected RenderType defaultRenderType;
 	protected VertexConsumer defaultConsumer;
 
 	@Override
@@ -130,9 +128,8 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 			}
 		} else {
 			drawTranslucencyDirectToMainTarget = isGui || renderMode.firstPerson() || !isBlockItem;
-			final var defaultRenderLayer = ItemBlockRenderTypes.getRenderType(stack, drawTranslucencyDirectToMainTarget);
-			defaultConsumer = vertexConsumers.getBuffer(defaultRenderLayer);
-			defaultPreset = inferDefaultItemPreset(defaultRenderLayer);
+			defaultRenderType = ItemBlockRenderTypes.getRenderType(stack, drawTranslucencyDirectToMainTarget);
+			defaultConsumer = vertexConsumers.getBuffer(defaultRenderType);
 			((ItemModel) model).renderAsItem(inputContext, emitter());
 		}
 
@@ -155,7 +152,7 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 		if (preset == MaterialConstants.PRESET_NONE) return;
 
 		if (preset == MaterialConstants.PRESET_DEFAULT) {
-			preset = defaultPreset;
+			preset = RenderTypeUtil.inferPreset(defaultRenderType);
 			finder.preset(MaterialConstants.PRESET_NONE);
 		}
 
@@ -212,18 +209,5 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 	protected void shadeQuad() {
 		EncoderUtil.colorizeQuad(emitter, inputContext);
 		EncoderUtil.applyFlatLighting(emitter, lightmap);
-	}
-
-	protected static int inferDefaultItemPreset(RenderType layer) {
-		final var compositeState = ((CompositeRenderType) layer).state;
-
-		if (compositeState.transparencyState == RenderStateShard.TRANSLUCENT_TRANSPARENCY) {
-			return MaterialConstants.PRESET_TRANSLUCENT;
-		} else if (VanillaShaderInfo.get(compositeState.shaderState).cutout() != MaterialConstants.CUTOUT_NONE) {
-			final TextureStateShard tex = (TextureStateShard) compositeState.textureState;
-			return tex.mipmap ? MaterialConstants.PRESET_CUTOUT_MIPPED : MaterialConstants.PRESET_CUTOUT;
-		} else {
-			return MaterialConstants.PRESET_SOLID;
-		}
 	}
 }
