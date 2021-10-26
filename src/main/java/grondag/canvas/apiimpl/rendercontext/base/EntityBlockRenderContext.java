@@ -41,7 +41,6 @@ import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
-import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 /**
  * Context used when blocks are rendered as part of an entity.
@@ -113,15 +112,5 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 	protected void adjustMaterial() {
 		super.adjustMaterial();
 		finder.disableAo(true);
-	}
-
-	@Override
-	public void computeAo(BaseQuadEmitter quad) {
-		// NOOP
-	}
-
-	@Override
-	public void computeFlat(BaseQuadEmitter quad) {
-		computeFlatSimple(quad);
 	}
 }

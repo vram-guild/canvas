@@ -38,7 +38,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
-import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.apiimpl.rendercontext.base.AbstractBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
@@ -139,26 +139,14 @@ public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<Input
 	}
 
 	@Override
-	public void computeAo(BaseQuadEmitter quad) {
-		aoCalc.compute(quad);
-	}
-
-	@Override
-	public void computeFlat(BaseQuadEmitter quad) {
-		if (Configurator.semiFlatLighting) {
-			aoCalc.computeFlat(quad);
-		} else {
-			computeFlatSimple(quad);
-		}
-	}
-
-	@Override
 	protected void shadeQuad() {
 		// needs to happen before offsets are applied
 		if (!emitter.material().disableAo() && Minecraft.useAmbientOcclusion()) {
-			computeAo(emitter);
+			aoCalc.compute(emitter);
+		} else if (Configurator.semiFlatLighting) {
+			aoCalc.computeFlat(emitter);
 		} else {
-			computeFlat(emitter);
+			EncoderUtil.applyFlatLighting(emitter, inputContext.flatBrightness(emitter));
 		}
 
 		colorizeQuad(emitter, this.inputContext);

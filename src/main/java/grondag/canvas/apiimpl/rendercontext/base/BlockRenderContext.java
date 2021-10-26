@@ -31,7 +31,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
-import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 /**
  * Context for non-terrain block rendering.
@@ -49,15 +48,5 @@ public abstract class BlockRenderContext<E> extends AbstractBlockRenderContext<B
 	protected void adjustMaterial() {
 		super.adjustMaterial();
 		finder.disableAo(true);
-	}
-
-	@Override
-	public void computeAo(BaseQuadEmitter quad) {
-		// NOOP
-	}
-
-	@Override
-	public void computeFlat(BaseQuadEmitter quad) {
-		computeFlatSimple(quad);
 	}
 }

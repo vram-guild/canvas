@@ -28,7 +28,6 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.base.renderer.context.BaseBakedContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
@@ -75,20 +74,6 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> 
 	public final QuadEmitter emitter() {
 		emitter.clear();
 		return emitter;
-	}
-
-	public abstract boolean defaultAo();
-
-	public abstract void computeAo(BaseQuadEmitter quad);
-
-	public abstract void computeFlat(BaseQuadEmitter quad);
-
-	protected void computeFlatSimple(BaseQuadEmitter quad) {
-		final int brightness = inputContext.flatBrightness(quad);
-		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), brightness));
-		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), brightness));
-		quad.lightmap(2, ColorUtil.maxBrightness(quad.lightmap(2), brightness));
-		quad.lightmap(3, ColorUtil.maxBrightness(quad.lightmap(3), brightness));
 	}
 
 	public void renderQuad() {
@@ -173,7 +158,6 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> 
 			material(RenderMaterial.defaultMaterial());
 		}
 
-		// only used via RenderContext.getEmitter()
 		@Override
 		public Emitter emit() {
 			complete();

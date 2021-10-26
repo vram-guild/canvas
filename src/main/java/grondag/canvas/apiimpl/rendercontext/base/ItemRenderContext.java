@@ -20,9 +20,6 @@
 
 package grondag.canvas.apiimpl.rendercontext.base;
 
-import static io.vram.frex.base.renderer.util.EncoderUtil.applyItemLighting;
-import static io.vram.frex.base.renderer.util.EncoderUtil.colorizeQuad;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
@@ -52,6 +49,7 @@ import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import io.vram.frex.base.renderer.context.BaseItemContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.RenderContextState;
@@ -71,11 +69,6 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 				return lightmap;
 			}
 		};
-	}
-
-	@Override
-	public boolean defaultAo() {
-		return false;
 	}
 
 	/**
@@ -216,19 +209,9 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 	}
 
 	@Override
-	public void computeAo(BaseQuadEmitter quad) {
-		// NOOP
-	}
-
-	@Override
-	public void computeFlat(BaseQuadEmitter quad) {
-		computeFlatSimple(quad);
-	}
-
-	@Override
 	protected void shadeQuad() {
-		colorizeQuad(emitter, inputContext);
-		applyItemLighting(emitter, lightmap);
+		EncoderUtil.colorizeQuad(emitter, inputContext);
+		EncoderUtil.applyFlatLighting(emitter, lightmap);
 	}
 
 	protected static int inferDefaultItemPreset(RenderType layer) {

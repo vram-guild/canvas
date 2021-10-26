@@ -78,13 +78,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 	}
 
 	@Override
-	public final boolean defaultAo() {
-		return defaultAo;
-	}
-
-	@Override
 	protected void shadeQuad() {
-		computeFlat(emitter);
+		EncoderUtil.applyFlatLighting(emitter, inputContext.flatBrightness(emitter));
 		EncoderUtil.colorizeQuad(emitter, inputContext);
 	}
 }
