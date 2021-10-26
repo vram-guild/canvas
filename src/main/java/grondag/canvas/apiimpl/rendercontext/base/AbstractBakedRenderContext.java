@@ -29,26 +29,24 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
 import io.vram.frex.api.model.util.ColorUtil;
-import io.vram.frex.base.renderer.context.BaseInputContext;
+import io.vram.frex.base.renderer.context.BaseBakedContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 
-public abstract class AbstractRenderContext<C extends BaseInputContext, E> {
-	private static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
+public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> {
+	protected static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
+
 	protected final MaterialFinder finder = MaterialFinder.newInstance();
-
-	public final C inputContext;
-
-	public final E encoder;
-
 	protected final RootQuadEmitter emitter = new Emitter();
+	public final C inputContext;
+	public final E encoder;
 
 	protected MaterialMap materialMap = defaultMap;
 	protected int defaultPreset;
 	protected boolean isFluidModel = false;
 
-	protected AbstractRenderContext() {
+	protected AbstractBakedRenderContext() {
 		inputContext = createInputContext();
 		encoder = createEncoder();
 	}
@@ -57,7 +55,11 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E> {
 
 	protected abstract E createEncoder();
 
-	void mapMaterials(BaseQuadEmitter quad) {
+	protected abstract void shadeQuad();
+
+	protected abstract void encodeQuad();
+
+	protected void mapMaterials(BaseQuadEmitter quad) {
 		if (materialMap == defaultMap) {
 			return;
 		}
@@ -73,10 +75,6 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E> {
 	public final QuadEmitter emitter() {
 		emitter.clear();
 		return emitter;
-	}
-
-	public boolean cullTest(int faceIndex) {
-		return true;
 	}
 
 	public abstract boolean defaultAo();
@@ -98,14 +96,12 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E> {
 		quad.lightmap(3, ColorUtil.maxBrightness(quad.lightmap(3), brightness));
 	}
 
-	//public abstract int flatBrightness(BaseQuadEmitter quad);
-
-	public final void renderQuad() {
+	public void renderQuad() {
 		final BaseQuadEmitter quad = emitter;
 
 		mapMaterials(quad);
 
-		if (cullTest(quad.cullFaceId())) {
+		if (inputContext.cullTest(quad.cullFaceId())) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
 			final var mat = finder.find();
@@ -119,10 +115,6 @@ public abstract class AbstractRenderContext<C extends BaseInputContext, E> {
 			encodeQuad();
 		}
 	}
-
-	protected abstract void shadeQuad();
-
-	protected abstract void encodeQuad();
 
 	protected void adjustMaterial() {
 		final MaterialFinder finder = this.finder;

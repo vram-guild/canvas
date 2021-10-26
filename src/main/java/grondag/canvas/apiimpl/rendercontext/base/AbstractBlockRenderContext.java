@@ -36,7 +36,7 @@ import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.mixinterface.RenderTypeExt;
 
-public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E> extends AbstractRenderContext<BaseBlockContext<T>, E> {
+public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E> extends AbstractBakedRenderContext<BaseBlockContext<T>, E> {
 	/**
 	 * For use by chunk builder - avoids another threadlocal.
 	 */
@@ -75,11 +75,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 		defaultPreset = isFluidModel
 			? ((RenderTypeExt) ItemBlockRenderTypes.getRenderLayer(blockState.getFluidState())).canvas_preset()
 			: ((RenderTypeExt) ItemBlockRenderTypes.getChunkRenderType(blockState)).canvas_preset();
-	}
-
-	@Override
-	public boolean cullTest(int faceIndex) {
-		return inputContext.cullTest(faceIndex);
 	}
 
 	@Override

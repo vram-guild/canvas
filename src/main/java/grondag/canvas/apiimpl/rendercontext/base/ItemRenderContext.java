@@ -58,7 +58,7 @@ import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
 
-public abstract class ItemRenderContext<E> extends AbstractRenderContext<BaseItemContext, E> {
+public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<BaseItemContext, E> {
 	protected int lightmap;
 
 	protected VertexConsumer defaultConsumer;
