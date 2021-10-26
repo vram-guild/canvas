@@ -90,6 +90,8 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 
 	private boolean hasGlint;
 
+	protected abstract void prepareEncoding(MultiBufferSource vertexConsumers);
+
 	public void renderItem(ItemModelShaper models, ItemStack stack, TransformType renderMode, boolean leftHanded, PoseStack poseStack, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
 		lightmap = light;
@@ -114,6 +116,8 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 		// PERF: optimize matrix stack operations
 		model.getTransforms().getTransform(renderMode).apply(leftHanded, poseStack);
 		matrixStack.translate(-0.5f, -0.5f, -0.5f);
+
+		prepareEncoding(vertexConsumers);
 
 		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
 			final BlockEntityWithoutLevelRenderer builtInRenderer = ((ItemRendererExt) Minecraft.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();

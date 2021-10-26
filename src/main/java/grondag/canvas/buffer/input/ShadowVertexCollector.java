@@ -69,15 +69,13 @@ public class ShadowVertexCollector extends BaseVertexCollector {
 	}
 
 	@Override
-	public void toBuffer(IntBuffer intBuffer, int targetIndex) {
+	public void toBuffer(IntBuffer intBuffer) {
 		if (!common.isEmpty()) {
-			common.toBuffer(intBuffer, targetIndex);
-			targetIndex += common.integerSize;
+			common.toBuffer(intBuffer);
 		}
 
 		if (!colorOnly.isEmpty()) {
-			colorOnly.toBuffer(intBuffer, targetIndex);
-			targetIndex += colorOnly.integerSize;
+			colorOnly.toBuffer(intBuffer);
 		}
 	}
 

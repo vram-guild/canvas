@@ -62,7 +62,7 @@ public class DrawableStream implements AutoCloseable {
 
 		for (int i = 0; i < limit; ++i) {
 			final DrawableVertexCollector collector = drawList.get(i);
-			collector.toBuffer(intBuffer, 0);
+			collector.toBuffer(intBuffer);
 			buckets[i] = collector.faceBucket(startIndex);
 			states[i] = collector.renderState();
 			startIndex += collector.vertexCount();

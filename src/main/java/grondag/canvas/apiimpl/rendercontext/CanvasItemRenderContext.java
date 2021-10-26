@@ -22,8 +22,11 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
+import net.minecraft.client.renderer.MultiBufferSource;
+
 import grondag.canvas.apiimpl.rendercontext.base.ItemRenderContext;
 import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
+import grondag.canvas.buffer.input.CanvasImmediate;
 
 public class CanvasItemRenderContext extends ItemRenderContext<StandardQuadEncoder> {
 	private static final Supplier<ThreadLocal<CanvasItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
@@ -49,5 +52,10 @@ public class CanvasItemRenderContext extends ItemRenderContext<StandardQuadEncod
 	@Override
 	protected void encodeQuad() {
 		encoder.encode(defaultConsumer);
+	}
+
+	@Override
+	protected void prepareEncoding(MultiBufferSource vertexConsumers) {
+		encoder.collectors = vertexConsumers instanceof CanvasImmediate ? ((CanvasImmediate) vertexConsumers).collectors : null;
 	}
 }

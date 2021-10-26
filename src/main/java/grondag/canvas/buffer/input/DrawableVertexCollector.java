@@ -35,7 +35,7 @@ import grondag.canvas.render.terrain.TerrainSectorMap.RegionRenderSector;
 public interface DrawableVertexCollector extends VertexCollector {
 	RenderState renderState();
 
-	void toBuffer(IntBuffer intBuffer, int targetIndex);
+	void toBuffer(IntBuffer intBuffer);
 
 	void toBuffer(TransferBuffer targetBuffer, int bufferTargetIndex);
 

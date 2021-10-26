@@ -22,8 +22,11 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
+import net.minecraft.client.renderer.MultiBufferSource;
+
 import grondag.canvas.apiimpl.rendercontext.base.EntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
+import grondag.canvas.buffer.input.CanvasImmediate;
 
 /**
  * Context used when blocks are rendered as part of an entity.
@@ -61,5 +64,10 @@ public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<Sta
 	@Override
 	protected void encodeQuad() {
 		encoder.encode(defaultConsumer);
+	}
+
+	@Override
+	protected void prepareEncoding(MultiBufferSource vertexConsumers) {
+		encoder.collectors = vertexConsumers instanceof CanvasImmediate ? ((CanvasImmediate) vertexConsumers).collectors : null;
 	}
 }

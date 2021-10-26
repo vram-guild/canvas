@@ -82,6 +82,8 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 		}
 	}
 
+	protected abstract void prepareEncoding(MultiBufferSource vertexConsumers);
+
 	/**
 	 * Assumes region and block pos set earlier via {@link #setPosAndWorldFromEntity(Entity)}.
 	 */
@@ -90,6 +92,7 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 		this.light = light;
 		inputContext.prepareForWorld(level, false, MatrixStack.cast(poseStack));
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42L, overlay);
+		prepareEncoding(consumers);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
 		isItemFrame = false;
@@ -105,7 +108,7 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 		materialMap = MaterialMap.defaultMaterialMap();
 		defaultAo = false;
 		isItemFrame = true;
-
+		prepareEncoding(consumers);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
 	}

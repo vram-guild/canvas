@@ -63,8 +63,8 @@ public abstract class ArrayVertexCollector extends BaseVertexCollector {
 	}
 
 	@Override
-	public final void toBuffer(IntBuffer intBuffer, int startingIndex) {
-		intBuffer.put(vertexData, startingIndex, integerSize);
+	public final void toBuffer(IntBuffer intBuffer) {
+		intBuffer.put(vertexData, 0, integerSize);
 	}
 
 	@Override

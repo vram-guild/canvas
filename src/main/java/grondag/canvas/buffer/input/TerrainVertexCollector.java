@@ -88,15 +88,8 @@ public class TerrainVertexCollector extends BaseVertexCollector {
 	}
 
 	@Override
-	public void toBuffer(IntBuffer intBuffer, int targetIndex) {
-		for (int i = 0; i < FaceUtil.FACE_INDEX_COUNT; ++i) {
-			final var c = collectors[i];
-
-			if (!c.isEmpty()) {
-				collectors[i].toBuffer(intBuffer, targetIndex);
-				targetIndex += collectors[i].integerSize();
-			}
-		}
+	public void toBuffer(IntBuffer intBuffer) {
+		throw new UnsupportedOperationException("Terrain buffering should always use transfer buffers.");
 	}
 
 	@Override
