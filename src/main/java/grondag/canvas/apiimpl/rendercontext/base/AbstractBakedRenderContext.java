@@ -20,11 +20,9 @@
 
 package grondag.canvas.apiimpl.rendercontext.base;
 
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import io.vram.frex.api.buffer.QuadEmitter;
-import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
@@ -57,6 +55,8 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> 
 	protected abstract void shadeQuad();
 
 	protected abstract void encodeQuad();
+
+	protected abstract void adjustMaterial();
 
 	protected void mapMaterials(BaseQuadEmitter quad) {
 		if (materialMap == defaultMap) {
@@ -92,59 +92,6 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> 
 			// Renderer-specific
 			// Responsible for block offsets in terrain rendering
 			encodeQuad();
-		}
-	}
-
-	protected void adjustMaterial() {
-		final MaterialFinder finder = this.finder;
-
-		int bm = finder.preset();
-
-		if (bm == MaterialConstants.PRESET_DEFAULT) {
-			bm = defaultPreset;
-			finder.preset(MaterialConstants.PRESET_NONE);
-		}
-
-		if (inputContext.overlay() != OverlayTexture.NO_OVERLAY) {
-			finder.overlay(inputContext.overlay());
-		}
-
-		// fully specific renderable material
-		if (bm == MaterialConstants.PRESET_NONE) return;
-
-		switch (bm) {
-			case MaterialConstants.PRESET_CUTOUT: {
-				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
-					.cutout(MaterialConstants.CUTOUT_HALF)
-					.unmipped(true)
-					.target(MaterialConstants.TARGET_MAIN)
-					.sorted(false);
-				break;
-			}
-			case MaterialConstants.PRESET_CUTOUT_MIPPED:
-				finder
-					.transparency(MaterialConstants.TRANSPARENCY_NONE)
-					.cutout(MaterialConstants.CUTOUT_HALF)
-					.unmipped(false)
-					.target(MaterialConstants.TARGET_MAIN)
-					.sorted(false);
-				break;
-			case MaterialConstants.PRESET_TRANSLUCENT:
-				finder.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
-					.cutout(MaterialConstants.CUTOUT_NONE)
-					.unmipped(false)
-					.target(MaterialConstants.TARGET_TRANSLUCENT)
-					.sorted(true);
-				break;
-			case MaterialConstants.PRESET_SOLID:
-				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
-					.cutout(MaterialConstants.CUTOUT_NONE)
-					.unmipped(false)
-					.target(MaterialConstants.TARGET_MAIN)
-					.sorted(false);
-				break;
-			default:
-				assert false : "Unhandled blend mode";
 		}
 	}
 
