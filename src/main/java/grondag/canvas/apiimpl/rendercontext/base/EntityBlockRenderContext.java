@@ -51,10 +51,11 @@ import io.vram.frex.base.renderer.context.BaseBlockContext;
  * and has a block JSON model but is an entity.
  */
 public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
-	private int light;
-	private final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-	private Level level;
-	private float tickDelta;
+	protected int light;
+	protected final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+	protected Level level;
+	protected float tickDelta;
+	protected boolean isItemFrame = false;
 
 	@Override
 	protected BaseBlockContext<BlockAndTintGetter> createInputContext() {
@@ -91,6 +92,7 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42L, overlay);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
+		isItemFrame = false;
 	}
 
 	// item frames don't have a block state but render like a block
@@ -102,10 +104,15 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 		inputContext.prepareForBlock(Blocks.AIR.defaultBlockState(), pos, 42L, overlay);
 		materialMap = MaterialMap.defaultMaterialMap();
 		defaultAo = false;
-		defaultPreset = MaterialConstants.PRESET_SOLID;
+		isItemFrame = true;
 
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
+	}
+
+	@Override
+	protected int defaultPreset() {
+		return isItemFrame ? MaterialConstants.PRESET_SOLID : super.defaultPreset();
 	}
 
 	@Override

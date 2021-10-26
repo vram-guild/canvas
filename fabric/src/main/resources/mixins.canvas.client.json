@@ -36,7 +36,6 @@
 		"MixinParticleEngine",
 		"MixinRenderBuffers",
 		"MixinRenderTarget",
-		"MixinRenderType",
 		"MixinSimpleTexture",
 		"MixinSpriteInterpolation",
 		"MixinStitcher",

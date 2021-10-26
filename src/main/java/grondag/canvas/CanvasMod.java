@@ -34,7 +34,6 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
 
 import io.vram.frex.api.config.FrexFeature;
-import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.model.fluid.FluidModel;
 import io.vram.frex.api.renderloop.RenderReloadListener;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
@@ -45,7 +44,6 @@ import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.RenderTypeExt;
 
 //FEAT: weather rendering
 //FEAT: sky rendering
@@ -79,12 +77,6 @@ public class CanvasMod {
 			LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
 			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
 		}
-
-		((RenderTypeExt) RenderType.translucent()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
-		((RenderTypeExt) RenderType.tripwire()).canvas_preset(MaterialConstants.PRESET_TRANSLUCENT);
-		((RenderTypeExt) RenderType.solid()).canvas_preset(MaterialConstants.PRESET_SOLID);
-		((RenderTypeExt) RenderType.cutout()).canvas_preset(MaterialConstants.PRESET_CUTOUT);
-		((RenderTypeExt) RenderType.cutoutMipped()).canvas_preset(MaterialConstants.PRESET_CUTOUT_MIPPED);
 
 		// entity shadows aren't worth
 		RenderTypeExclusion.exclude(EntityRenderDispatcher.SHADOW_RENDER_TYPE);

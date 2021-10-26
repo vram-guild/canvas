@@ -40,8 +40,6 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> 
 	public final E encoder;
 
 	protected MaterialMap materialMap = defaultMap;
-	protected int defaultPreset;
-	protected boolean isFluidModel = false;
 
 	protected AbstractBakedRenderContext() {
 		inputContext = createInputContext();

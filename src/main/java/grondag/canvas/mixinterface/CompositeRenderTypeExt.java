@@ -22,6 +22,6 @@ package grondag.canvas.mixinterface;
 
 import grondag.canvas.material.state.CanvasRenderMaterial;
 
-public interface CompositeRenderTypeExt extends RenderTypeExt {
+public interface CompositeRenderTypeExt {
 	CanvasRenderMaterial canvas_materialState();
 }

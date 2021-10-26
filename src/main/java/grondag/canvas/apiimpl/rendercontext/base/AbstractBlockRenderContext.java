@@ -34,10 +34,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.api.rendertype.RenderTypeUtil;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.util.EncoderUtil;
-
-import grondag.canvas.mixinterface.RenderTypeExt;
 
 public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E> extends AbstractBakedRenderContext<BaseBlockContext<T>, E> {
 	/**
@@ -47,7 +46,8 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 
 	@Nullable protected VertexConsumer defaultConsumer;
 
-	public boolean defaultAo;
+	protected boolean defaultAo;
+	protected boolean isFluidModel = false;
 
 	@Override
 	protected BaseBlockContext<T> createInputContext() {
@@ -73,11 +73,12 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 	private void prepareForBlock(BlockState blockState, boolean modelAO) {
 		materialMap = isFluidModel ? MaterialMap.get(blockState.getFluidState()) : MaterialMap.get(blockState);
 		defaultAo = modelAO && Minecraft.useAmbientOcclusion() && blockState.getLightEmission() == 0;
+	}
 
-		// FEAT: support additional blend modes on terrain blocks?
-		defaultPreset = isFluidModel
-			? ((RenderTypeExt) ItemBlockRenderTypes.getRenderLayer(blockState.getFluidState())).canvas_preset()
-			: ((RenderTypeExt) ItemBlockRenderTypes.getChunkRenderType(blockState)).canvas_preset();
+	protected int defaultPreset() {
+		return RenderTypeUtil.inferPreset(isFluidModel
+			? ItemBlockRenderTypes.getRenderLayer(inputContext.blockState().getFluidState())
+			: ItemBlockRenderTypes.getChunkRenderType(inputContext.blockState()));
 	}
 
 	@Override
@@ -93,7 +94,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 		int bm = finder.preset();
 
 		if (bm == MaterialConstants.PRESET_DEFAULT) {
-			bm = defaultPreset;
+			bm = defaultPreset();
 			finder.preset(MaterialConstants.PRESET_NONE);
 		}
 
