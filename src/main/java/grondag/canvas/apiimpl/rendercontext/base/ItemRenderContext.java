@@ -78,11 +78,6 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 		return false;
 	}
 
-	@Override
-	public int brightness() {
-		return lightmap;
-	}
-
 	/**
 	 * True when drawing to GUI or first person perspective.
 	 */

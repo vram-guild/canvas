@@ -46,11 +46,6 @@ public abstract class BlockRenderContext<E> extends AbstractBlockRenderContext<B
 	}
 
 	@Override
-	public int brightness() {
-		return 0;
-	}
-
-	@Override
 	protected void adjustMaterial() {
 		super.adjustMaterial();
 		finder.disableAo(true);

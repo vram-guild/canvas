@@ -139,11 +139,6 @@ public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<Input
 	}
 
 	@Override
-	public int brightness() {
-		return 0;
-	}
-
-	@Override
 	public void computeAo(BaseQuadEmitter quad) {
 		aoCalc.compute(quad);
 	}

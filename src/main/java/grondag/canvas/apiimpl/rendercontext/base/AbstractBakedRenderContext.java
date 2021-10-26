@@ -79,11 +79,6 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> 
 
 	public abstract boolean defaultAo();
 
-	/**
-	 * Used in contexts with a fixed brightness, like ITEM.
-	 */
-	public abstract int brightness();
-
 	public abstract void computeAo(BaseQuadEmitter quad);
 
 	public abstract void computeFlat(BaseQuadEmitter quad);
@@ -104,8 +99,7 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> 
 		if (inputContext.cullTest(quad.cullFaceId())) {
 			finder.copyFrom(quad.material());
 			adjustMaterial();
-			final var mat = finder.find();
-			quad.material(mat);
+			quad.material(finder.find());
 
 			// needs to happen before offsets are applied
 			shadeQuad();
