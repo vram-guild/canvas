@@ -47,7 +47,6 @@ import net.minecraft.world.phys.Vec3;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.MatrixStack;
-import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.fluid.FluidModel;
 
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
@@ -451,7 +450,7 @@ public class RenderRegion implements TerrainExecutorTask {
 						}
 
 						final BakedModel model = blockRenderManager.getBlockModel(blockState);
-						context.renderBlock(blockState, searchPos, model.useAmbientOcclusion(), (BlockModel) model);
+						context.renderBlock(blockState, searchPos, model.useAmbientOcclusion(), model);
 					}
 				}
 			}

@@ -22,6 +22,8 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
+
 import net.minecraft.client.renderer.MultiBufferSource;
 
 import grondag.canvas.apiimpl.rendercontext.base.ItemRenderContext;
@@ -44,6 +46,8 @@ public class CanvasItemRenderContext extends ItemRenderContext<StandardQuadEncod
 		return POOL.get();
 	}
 
+	protected VertexConsumer defaultConsumer;
+
 	@Override
 	protected StandardQuadEncoder createEncoder() {
 		return new StandardQuadEncoder(emitter, inputContext);
@@ -56,6 +60,7 @@ public class CanvasItemRenderContext extends ItemRenderContext<StandardQuadEncod
 
 	@Override
 	protected void prepareEncoding(MultiBufferSource vertexConsumers) {
+		defaultConsumer = vertexConsumers.getBuffer(inputContext.defaultRenderType());
 		encoder.collectors = vertexConsumers instanceof CanvasImmediate ? ((CanvasImmediate) vertexConsumers).collectors : null;
 	}
 }

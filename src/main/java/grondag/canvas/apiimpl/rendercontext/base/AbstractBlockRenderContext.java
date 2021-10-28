@@ -25,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
@@ -34,9 +34,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
-import io.vram.frex.api.rendertype.RenderTypeUtil;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
-import io.vram.frex.base.renderer.util.EncoderUtil;
 
 public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E> extends AbstractBakedRenderContext<BaseBlockContext<T>, E> {
 	/**
@@ -47,7 +45,6 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 	@Nullable protected VertexConsumer defaultConsumer;
 
 	protected boolean defaultAo;
-	protected boolean isFluidModel = false;
 
 	@Override
 	protected BaseBlockContext<T> createInputContext() {
@@ -60,31 +57,24 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 	 * @param modelAO
 	 * @param seed       pass -1 for default behavior
 	 */
-	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO, long seed, int overlay) {
-		inputContext.prepareForBlock(blockState, blockPos, seed, overlay);
+	public void prepareForBlock(BakedModel model, BlockState blockState, BlockPos blockPos, boolean modelAO, long seed, int overlay) {
+		inputContext.prepareForBlock(model, blockState, blockPos, seed, overlay);
 		prepareForBlock(blockState, modelAO);
 	}
 
-	public void prepareForBlock(BlockState blockState, BlockPos blockPos, boolean modelAO) {
-		inputContext.prepareForBlock(blockState, blockPos);
+	public void prepareForBlock(BakedModel model, BlockState blockState, BlockPos blockPos, boolean modelAO) {
+		inputContext.prepareForBlock(model, blockState, blockPos);
+		prepareForBlock(blockState, modelAO);
+	}
+
+	public void prepareForFluid(BlockState blockState, BlockPos blockPos, boolean modelAO) {
+		inputContext.prepareForFluid(blockState, blockPos);
 		prepareForBlock(blockState, modelAO);
 	}
 
 	private void prepareForBlock(BlockState blockState, boolean modelAO) {
-		materialMap = isFluidModel ? MaterialMap.get(blockState.getFluidState()) : MaterialMap.get(blockState);
+		materialMap = inputContext.isFluidModel() ? MaterialMap.get(blockState.getFluidState()) : MaterialMap.get(blockState);
 		defaultAo = modelAO && Minecraft.useAmbientOcclusion() && blockState.getLightEmission() == 0;
-	}
-
-	protected int defaultPreset() {
-		return RenderTypeUtil.inferPreset(isFluidModel
-			? ItemBlockRenderTypes.getRenderLayer(inputContext.blockState().getFluidState())
-			: ItemBlockRenderTypes.getChunkRenderType(inputContext.blockState()));
-	}
-
-	@Override
-	protected void shadeQuad() {
-		EncoderUtil.applyFlatLighting(emitter, inputContext.flatBrightness(emitter));
-		EncoderUtil.colorizeQuad(emitter, inputContext);
 	}
 
 	@Override
@@ -94,7 +84,7 @@ public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E
 		int bm = finder.preset();
 
 		if (bm == MaterialConstants.PRESET_DEFAULT) {
-			bm = defaultPreset();
+			bm = inputContext.defaultPreset();
 			finder.preset(MaterialConstants.PRESET_NONE);
 		}
 

@@ -31,6 +31,7 @@ import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -115,25 +116,25 @@ public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<Input
 	}
 
 	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
-		isFluidModel = true;
-		renderInner(blockState, blockPos, defaultAo, model);
+		aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
+		prepareForFluid(blockState, blockPos, defaultAo);
+		renderInner(model);
 	}
 
-	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
-		isFluidModel = false;
-		renderInner(blockState, blockPos, defaultAo, model);
+	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BakedModel model) {
+		aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
+		prepareForBlock(model, blockState, blockPos, defaultAo);
+		renderInner((BlockModel) model);
 	}
 
 	// PERF: don't pass in matrixStack each time, just change model matrix directly
-	private void renderInner(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
+	private void renderInner(final BlockModel model) {
 		try {
-			aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
-			prepareForBlock(blockState, blockPos, defaultAo);
 			model.renderAsBlock(this.inputContext, emitter());
 		} catch (final Throwable var9) {
 			final CrashReport crashReport_1 = CrashReport.forThrowable(var9, "Tesselating block in world - Canvas Renderer");
 			final CrashReportCategory crashReportElement_1 = crashReport_1.addCategory("Block being tesselated");
-			CrashReportCategory.populateBlockDetails(crashReportElement_1, region, blockPos, blockState);
+			CrashReportCategory.populateBlockDetails(crashReportElement_1, region, inputContext.pos(), inputContext.blockState());
 			throw new ReportedException(crashReport_1);
 		}
 	}

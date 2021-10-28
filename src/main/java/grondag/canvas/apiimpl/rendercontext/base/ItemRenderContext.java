@@ -21,14 +21,11 @@
 package grondag.canvas.apiimpl.rendercontext.base;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.ItemModelShaper;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -43,10 +40,7 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.ItemModel;
-import io.vram.frex.api.rendertype.RenderTypeUtil;
 import io.vram.frex.base.renderer.context.BaseItemContext;
-import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
-import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.RenderContextState;
@@ -54,55 +48,15 @@ import grondag.canvas.material.state.RenderContextState.GuiMode;
 import grondag.canvas.mixinterface.ItemRendererExt;
 
 public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<BaseItemContext, E> {
-	protected int lightmap;
-
-	protected RenderType defaultRenderType;
-	protected VertexConsumer defaultConsumer;
-
 	@Override
 	protected BaseItemContext createInputContext() {
-		return new BaseItemContext() {
-			@Override
-			public int flatBrightness(BaseQuadEmitter quad) {
-				return lightmap;
-			}
-		};
+		return new BaseItemContext();
 	}
-
-	/**
-	 * True when drawing to GUI or first person perspective.
-	 */
-	private boolean drawTranslucencyDirectToMainTarget;
-
-	/**
-	 * When false, assume item models are generated and should be rendered with cutout enabled if blend mode is translucent.
-	 * This prevents
-	 */
-	private boolean isBlockItem;
-
-	private boolean isGui;
-
-	/**
-	 * True for generated models when in GUI and diffuse shading shouldn't be used.
-	 * True only when isGui is true;
-	 */
-	private boolean isFrontLit;
-
-	private boolean hasGlint;
 
 	protected abstract void prepareEncoding(MultiBufferSource vertexConsumers);
 
-	public void renderItem(ItemModelShaper models, ItemStack stack, TransformType renderMode, boolean leftHanded, PoseStack poseStack, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
+	public void renderItem(ItemModelShaper models, ItemStack stack, TransformType renderMode, boolean isLeftHand, PoseStack poseStack, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
-		lightmap = light;
-		final MatrixStack matrixStack = MatrixStack.cast(poseStack);
-		inputContext.prepareForItem(stack, renderMode, overlay, matrixStack);
-		isBlockItem = stack.getItem() instanceof BlockItem;
-		materialMap = MaterialMap.get(stack);
-		isGui = renderMode == ItemTransforms.TransformType.GUI;
-		isFrontLit = isGui && !model.usesBlockLight();
-		hasGlint = stack.hasFoil();
-		matrixStack.push();
 		final boolean detachedPerspective = renderMode == ItemTransforms.TransformType.GUI || renderMode == ItemTransforms.TransformType.GROUND || renderMode == ItemTransforms.TransformType.FIXED;
 
 		if (detachedPerspective) {
@@ -113,8 +67,13 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 			}
 		}
 
+		final MatrixStack matrixStack = MatrixStack.cast(poseStack);
+		inputContext.prepareForItem(model, stack, renderMode, light, overlay, isLeftHand, matrixStack);
+		materialMap = MaterialMap.get(stack);
+		matrixStack.push();
+
 		// PERF: optimize matrix stack operations
-		model.getTransforms().getTransform(renderMode).apply(leftHanded, poseStack);
+		model.getTransforms().getTransform(renderMode).apply(isLeftHand, poseStack);
 		matrixStack.translate(-0.5f, -0.5f, -0.5f);
 
 		prepareEncoding(vertexConsumers);
@@ -122,18 +81,15 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
 			final BlockEntityWithoutLevelRenderer builtInRenderer = ((ItemRendererExt) Minecraft.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();
 
-			if (isGui && vertexConsumers instanceof CanvasImmediate) {
+			if (inputContext.isGui() && vertexConsumers instanceof CanvasImmediate) {
 				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
-				context.guiMode(isBlockItem && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
+				context.guiMode(inputContext.isBlockItem() && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
 				builtInRenderer.renderByItem(stack, renderMode, poseStack, vertexConsumers, light, overlay);
 				context.guiMode(GuiMode.NORMAL);
 			} else {
 				builtInRenderer.renderByItem(stack, renderMode, poseStack, vertexConsumers, light, overlay);
 			}
 		} else {
-			drawTranslucencyDirectToMainTarget = isGui || renderMode.firstPerson() || !isBlockItem;
-			defaultRenderType = ItemBlockRenderTypes.getRenderType(stack, drawTranslucencyDirectToMainTarget);
-			defaultConsumer = vertexConsumers.getBuffer(defaultRenderType);
 			((ItemModel) model).renderAsItem(inputContext, emitter());
 		}
 
@@ -144,7 +100,7 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 	protected void adjustMaterial() {
 		final MaterialFinder finder = this.finder;
 
-		finder.foilOverlay(hasGlint);
+		finder.foilOverlay(inputContext.itemStack().hasFoil());
 
 		if (inputContext.overlay() != OverlayTexture.NO_OVERLAY) {
 			finder.overlay(inputContext.overlay());
@@ -156,7 +112,7 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 		if (preset == MaterialConstants.PRESET_NONE) return;
 
 		if (preset == MaterialConstants.PRESET_DEFAULT) {
-			preset = RenderTypeUtil.inferPreset(defaultRenderType);
+			preset = inputContext.defaultPreset();
 			finder.preset(MaterialConstants.PRESET_NONE);
 		}
 
@@ -186,10 +142,10 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 				// The code below is an ugly hack - need a better way
 
 				finder.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
-					.cutout(isBlockItem ? MaterialConstants.CUTOUT_NONE : MaterialConstants.CUTOUT_TENTH)
+					.cutout(inputContext.isBlockItem() ? MaterialConstants.CUTOUT_NONE : MaterialConstants.CUTOUT_TENTH)
 					.unmipped(false)
-					.target(drawTranslucencyDirectToMainTarget ? MaterialConstants.TARGET_MAIN : MaterialConstants.TARGET_ENTITIES)
-					.sorted(!drawTranslucencyDirectToMainTarget);
+					.target(inputContext.drawTranslucencyToMainTarget() ? MaterialConstants.TARGET_MAIN : MaterialConstants.TARGET_ENTITIES)
+					.sorted(!inputContext.drawTranslucencyToMainTarget());
 				break;
 			case MaterialConstants.PRESET_SOLID:
 				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
@@ -202,16 +158,10 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 				assert false : "Unhandled blend mode";
 		}
 
-		if (isGui && isFrontLit) {
+		if (inputContext.isFrontLit()) {
 			finder.disableDiffuse(true);
 		}
 
 		finder.disableAo(true);
-	}
-
-	@Override
-	protected void shadeQuad() {
-		EncoderUtil.colorizeQuad(emitter, inputContext);
-		EncoderUtil.applyFlatLighting(emitter, lightmap);
 	}
 }

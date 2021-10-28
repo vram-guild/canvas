@@ -36,7 +36,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
@@ -55,7 +54,6 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 	protected final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 	protected Level level;
 	protected float tickDelta;
-	protected boolean isItemFrame = false;
 
 	@Override
 	protected BaseBlockContext<BlockAndTintGetter> createInputContext() {
@@ -91,11 +89,10 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 		defaultConsumer = consumers.getBuffer(ItemBlockRenderTypes.getRenderType(state, false));
 		this.light = light;
 		inputContext.prepareForWorld(level, false, MatrixStack.cast(poseStack));
-		prepareForBlock(state, pos, model.useAmbientOcclusion(), 42L, overlay);
+		prepareForBlock(model, state, pos, model.useAmbientOcclusion(), 42L, overlay);
 		prepareEncoding(consumers);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
-		isItemFrame = false;
 	}
 
 	// item frames don't have a block state but render like a block
@@ -104,18 +101,12 @@ public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderCon
 		this.light = light;
 		inputContext.prepareForWorld(level, false, MatrixStack.cast(poseStack));
 		pos.set(itemFrameEntity.getX(), itemFrameEntity.getY(), itemFrameEntity.getZ());
-		inputContext.prepareForBlock(Blocks.AIR.defaultBlockState(), pos, 42L, overlay);
+		inputContext.prepareForBlock(model, Blocks.AIR.defaultBlockState(), pos, 42L, overlay);
 		materialMap = MaterialMap.defaultMaterialMap();
 		defaultAo = false;
-		isItemFrame = true;
 		prepareEncoding(consumers);
 		((BlockModel) model).renderAsBlock(inputContext, emitter());
 		defaultConsumer = null;
-	}
-
-	@Override
-	protected int defaultPreset() {
-		return isItemFrame ? MaterialConstants.PRESET_SOLID : super.defaultPreset();
 	}
 
 	@Override
