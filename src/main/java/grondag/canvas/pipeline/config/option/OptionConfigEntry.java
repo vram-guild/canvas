@@ -26,6 +26,7 @@ import blue.endless.jankson.JsonPrimitive;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedConfig;
@@ -62,7 +63,7 @@ public abstract class OptionConfigEntry<T extends OptionConfigEntry<T>> extends 
 	 *
 	 * @param ctx
 	 * @param key will be reliably present and is key for element - only called if exists
-	 * @param element  will be reliably present and is element matching key - only called if exists
+	 * @param obj will be reliably present and is element matching key - only called if exists
 	 * @return
 	 */
 	static OptionConfigEntry<?> of(ConfigContext ctx, String key, JsonObject obj) {
@@ -77,9 +78,14 @@ public abstract class OptionConfigEntry<T extends OptionConfigEntry<T>> extends 
 				} else if (val.getValue().getClass() == Integer.class || val.getValue().getClass() == Long.class) {
 					return new IntConfigEntry(ctx, key, obj);
 				} else {
+					if (val.getValue().getClass() != Boolean.class) {
+						CanvasMod.LOG.warn(String.format("Could not infer type of pipeline option \"%s\". Defaulting to boolean.", key));
+					}
+
 					return new BooleanConfigEntry(ctx, key, obj);
 				}
 			} else {
+				CanvasMod.LOG.warn(String.format("Could not infer type of pipeline option \"%s\". Defaulting to boolean.", key));
 				return new BooleanConfigEntry(ctx, key, obj);
 			}
 		}
