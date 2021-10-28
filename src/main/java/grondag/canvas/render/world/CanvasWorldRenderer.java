@@ -483,7 +483,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 					stage = sortedSet.last().getProgress();
 				}
 
-				if (stage >= 0 && noCullingBlockEntities.contains(blockEntity)) {
+				if (stage == -1 && noCullingBlockEntities.contains(blockEntity)) {
 					// no need to render global BERs twice if no block breaking overlay
 					continue;
 				}
