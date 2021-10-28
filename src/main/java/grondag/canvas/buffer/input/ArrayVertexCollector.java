@@ -119,6 +119,7 @@ public abstract class ArrayVertexCollector extends BaseVertexCollector {
 			final int size = stateData.length;
 			grow(size);
 			System.arraycopy(stateData, 0, vertexData, 0, size);
+			integerSize = size;
 		}
 	}
 
