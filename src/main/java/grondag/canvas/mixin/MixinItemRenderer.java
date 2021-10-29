@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.ItemModelShaper;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -43,17 +42,10 @@ import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.apiimpl.rendercontext.CanvasItemRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
-import grondag.canvas.mixinterface.ItemRendererExt;
 
 @Mixin(ItemRenderer.class)
-public abstract class MixinItemRenderer implements ItemRendererExt {
+public abstract class MixinItemRenderer {
 	@Shadow private ItemModelShaper itemModelShaper;
-	@Shadow private BlockEntityWithoutLevelRenderer blockEntityRenderer;
-
-	@Override
-	public BlockEntityWithoutLevelRenderer canvas_builtinModelItemRenderer() {
-		return blockEntityRenderer;
-	}
 
 	/**
 	 * @author grondag

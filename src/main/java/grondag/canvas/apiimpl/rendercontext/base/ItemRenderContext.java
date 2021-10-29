@@ -45,7 +45,6 @@ import io.vram.frex.base.renderer.context.BaseItemContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
-import grondag.canvas.mixinterface.ItemRendererExt;
 
 public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<BaseItemContext, E> {
 	@Override
@@ -79,7 +78,8 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 		prepareEncoding(vertexConsumers);
 
 		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
-			final BlockEntityWithoutLevelRenderer builtInRenderer = ((ItemRendererExt) Minecraft.getInstance().getItemRenderer()).canvas_builtinModelItemRenderer();
+			@SuppressWarnings("resource")
+			final BlockEntityWithoutLevelRenderer builtInRenderer = Minecraft.getInstance().getItemRenderer().blockEntityRenderer;
 
 			if (inputContext.isGui() && vertexConsumers instanceof CanvasImmediate) {
 				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
