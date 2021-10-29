@@ -44,7 +44,7 @@ import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.material.property.TargetRenderState;
 import grondag.canvas.material.state.CanvasRenderMaterial;
 import grondag.canvas.material.state.RenderContextState;
-import grondag.canvas.mixinterface.CompositeRenderTypeExt;
+import grondag.canvas.mixinterface.RenderTypeExt;
 
 public class CanvasImmediate extends BufferSource {
 	public final VertexCollectorList collectors = new VertexCollectorList(false, false);
@@ -57,7 +57,7 @@ public class CanvasImmediate extends BufferSource {
 
 	@Override
 	public VertexConsumer getBuffer(RenderType renderLayer) {
-		CanvasRenderMaterial mat = ((CompositeRenderTypeExt) renderLayer).canvas_materialState();
+		CanvasRenderMaterial mat = ((RenderTypeExt) renderLayer).canvas_materialState();
 
 		if (mat.isMissing()) {
 			return super.getBuffer(renderLayer);
