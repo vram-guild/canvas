@@ -38,10 +38,10 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.BlockModel;
-import io.vram.frex.base.renderer.context.BaseBlockContext;
+import io.vram.frex.base.renderer.context.input.BaseBlockInputContext;
+import io.vram.frex.base.renderer.context.render.BlockRenderContext;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
-import grondag.canvas.apiimpl.rendercontext.base.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
@@ -89,8 +89,8 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 	};
 
 	@Override
-	protected BaseBlockContext<InputRegion> createInputContext() {
-		return new BaseBlockContext<>() {
+	protected BaseBlockInputContext<InputRegion> createInputContext() {
+		return new BaseBlockInputContext<>() {
 			@Override
 			protected int fastBrightness(BlockPos pos) {
 				return region.cachedBrightness(pos);

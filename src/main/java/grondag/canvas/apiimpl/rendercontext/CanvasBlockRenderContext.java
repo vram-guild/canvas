@@ -22,7 +22,8 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
-import grondag.canvas.apiimpl.rendercontext.base.SimpleBlockRenderContext;
+import io.vram.frex.base.renderer.context.render.SimpleBlockRenderContext;
+
 import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
 
 /**

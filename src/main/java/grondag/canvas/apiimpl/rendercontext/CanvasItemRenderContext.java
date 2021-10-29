@@ -30,7 +30,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.AbstractBannerBlock;
 
-import grondag.canvas.apiimpl.rendercontext.base.ItemRenderContext;
+import io.vram.frex.base.renderer.context.render.ItemRenderContext;
+
 import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
 import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.RenderContextState;

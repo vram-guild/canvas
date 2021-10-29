@@ -24,7 +24,8 @@ import java.util.function.Supplier;
 
 import net.minecraft.client.renderer.MultiBufferSource;
 
-import grondag.canvas.apiimpl.rendercontext.base.EntityBlockRenderContext;
+import io.vram.frex.base.renderer.context.render.EntityBlockRenderContext;
+
 import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
 import grondag.canvas.buffer.input.CanvasImmediate;
 

@@ -27,7 +27,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import io.vram.frex.api.buffer.VertexEmitter;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.base.renderer.context.AbsentInputContext;
+import io.vram.frex.base.renderer.context.input.AbsentInputContext;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 

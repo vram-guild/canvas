@@ -36,7 +36,7 @@ import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Z;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.model.InputContext;
-import io.vram.frex.base.renderer.context.AbsentInputContext;
+import io.vram.frex.base.renderer.context.input.AbsentInputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.buffer.input.VertexCollector;
