@@ -23,29 +23,23 @@ package grondag.canvas.mixin;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 
-import com.mojang.blaze3d.vertex.VertexFormat;
-
 import net.minecraft.client.renderer.RenderType;
 
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.material.state.CanvasRenderMaterial;
-import grondag.canvas.mixinterface.CompositeRenderTypeExt;
+import grondag.canvas.mixinterface.RenderTypeExt;
 
-@Mixin(targets = "net.minecraft.client.renderer.RenderType$CompositeRenderType")
-abstract class MixinCompositeRenderType extends RenderType implements CompositeRenderTypeExt {
+@Mixin(RenderType.class)
+abstract class MixinRenderType implements RenderTypeExt {
 	private @Nullable CanvasRenderMaterial materialState;
-
-	private MixinCompositeRenderType(String name, VertexFormat vertexFormat, VertexFormat.Mode drawMode, int expectedBufferSize, boolean hasCrumbling, boolean translucent, Runnable startAction, Runnable endAction) {
-		super(name, vertexFormat, drawMode, expectedBufferSize, hasCrumbling, translucent, startAction, endAction);
-	}
 
 	@Override
 	public CanvasRenderMaterial canvas_materialState() {
 		CanvasRenderMaterial result = materialState;
 
 		if (result == null) {
-			result = (CanvasRenderMaterial) RenderTypeUtil.toMaterial(this);
+			result = (CanvasRenderMaterial) RenderTypeUtil.toMaterial((RenderType) (Object) this);
 			materialState = result;
 		}
 

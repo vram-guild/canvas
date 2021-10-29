@@ -15,7 +15,7 @@
 		"MixinChunkRenderDispatcher",
 		"MixinClientChunkCache",
 		"MixinCompiledChunk",
-		"MixinCompositeRenderType",
+		"MixinRenderType",
 		"MixinCyclingOption",
 		"MixinDebugScreenOverlay",
 		"MixinEntityRenderDispatcher",
