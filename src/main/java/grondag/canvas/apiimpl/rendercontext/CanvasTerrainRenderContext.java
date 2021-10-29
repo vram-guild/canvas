@@ -41,7 +41,7 @@ import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
-import grondag.canvas.apiimpl.rendercontext.base.AbstractBlockRenderContext;
+import grondag.canvas.apiimpl.rendercontext.base.BlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.light.AoCalculator;
@@ -53,7 +53,7 @@ import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 /**
  * Context for non-terrain block rendering.
  */
-public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<InputRegion> {
+public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> {
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();

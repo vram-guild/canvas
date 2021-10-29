@@ -26,13 +26,12 @@ import io.vram.frex.api.buffer.QuadEmitter;
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.RenderMaterial;
-import io.vram.frex.base.renderer.context.BaseBakedContext;
+import io.vram.frex.base.renderer.context.BaseInputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
-import io.vram.frex.base.renderer.util.EncoderUtil;
 
-public abstract class AbstractBakedRenderContext<C extends BaseBakedContext> {
+public abstract class BaseRenderContext<C extends BaseInputContext> {
 	protected static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 
 	protected final MaterialFinder finder = MaterialFinder.newInstance();
@@ -41,20 +40,13 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext> {
 
 	protected MaterialMap materialMap = defaultMap;
 
-	protected AbstractBakedRenderContext() {
+	protected BaseRenderContext() {
 		inputContext = createInputContext();
 	}
 
 	protected abstract C createInputContext();
 
-	protected void shadeQuad() {
-		EncoderUtil.applyFlatLighting(emitter, inputContext.flatBrightness(emitter));
-		EncoderUtil.colorizeQuad(emitter, inputContext);
-	}
-
 	protected abstract void encodeQuad();
-
-	protected abstract void adjustMaterial();
 
 	protected void mapMaterials(BaseQuadEmitter quad) {
 		if (materialMap == defaultMap) {
@@ -69,29 +61,12 @@ public abstract class AbstractBakedRenderContext<C extends BaseBakedContext> {
 		}
 	}
 
-	public final QuadEmitter emitter() {
+	public QuadEmitter emitter() {
 		emitter.clear();
 		return emitter;
 	}
 
-	public void renderQuad() {
-		final BaseQuadEmitter quad = emitter;
-
-		mapMaterials(quad);
-
-		if (inputContext.cullTest(quad.cullFaceId())) {
-			finder.copyFrom(quad.material());
-			adjustMaterial();
-			quad.material(finder.find());
-
-			// needs to happen before offsets are applied
-			shadeQuad();
-
-			// Renderer-specific
-			// Responsible for block offsets in terrain rendering
-			encodeQuad();
-		}
-	}
+	public abstract void renderQuad();
 
 	/**
 	 * Where we handle all pre-buffer coloring, lighting, transformation, etc.

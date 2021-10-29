@@ -20,32 +20,114 @@
 
 package grondag.canvas.apiimpl.rendercontext.base;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
-import io.vram.frex.api.math.MatrixStack;
-import io.vram.frex.api.model.BlockModel;
+import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.material.MaterialFinder;
+import io.vram.frex.api.material.MaterialMap;
+import io.vram.frex.base.renderer.context.BaseBlockContext;
 
-/**
- * Context for non-terrain block rendering.
- */
-public abstract class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintGetter> {
-	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
-		defaultConsumer = buffer;
-		inputContext.prepareForWorld(blockView, checkSides, MatrixStack.cast(poseStack));
-		prepareForBlock(model, state, pos, model.useAmbientOcclusion(), seed, overlay);
-		((BlockModel) model).renderAsBlock(inputContext, emitter());
+public abstract class BlockRenderContext<T extends BlockAndTintGetter> extends BakedRenderContext<BaseBlockContext<T>> {
+	/**
+	 * For use by chunk builder - avoids another threadlocal.
+	 */
+	public final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
+
+	@Nullable protected VertexConsumer defaultConsumer;
+
+	protected boolean defaultAo;
+
+	@Override
+	protected BaseBlockContext<T> createInputContext() {
+		return new BaseBlockContext<>();
+	}
+
+	/**
+	 * @param blockState
+	 * @param blockPos
+	 * @param modelAO
+	 * @param seed       pass -1 for default behavior
+	 */
+	public void prepareForBlock(BakedModel model, BlockState blockState, BlockPos blockPos, boolean modelAO, long seed, int overlay) {
+		inputContext.prepareForBlock(model, blockState, blockPos, seed, overlay);
+		prepareForBlock(blockState, modelAO);
+	}
+
+	public void prepareForBlock(BakedModel model, BlockState blockState, BlockPos blockPos, boolean modelAO) {
+		inputContext.prepareForBlock(model, blockState, blockPos);
+		prepareForBlock(blockState, modelAO);
+	}
+
+	public void prepareForFluid(BlockState blockState, BlockPos blockPos, boolean modelAO) {
+		inputContext.prepareForFluid(blockState, blockPos);
+		prepareForBlock(blockState, modelAO);
+	}
+
+	private void prepareForBlock(BlockState blockState, boolean modelAO) {
+		materialMap = inputContext.isFluidModel() ? MaterialMap.get(blockState.getFluidState()) : MaterialMap.get(blockState);
+		defaultAo = modelAO && Minecraft.useAmbientOcclusion() && blockState.getLightEmission() == 0;
 	}
 
 	@Override
 	protected void adjustMaterial() {
-		super.adjustMaterial();
-		finder.disableAo(true);
+		final MaterialFinder finder = this.finder;
+
+		int bm = finder.preset();
+
+		if (bm == MaterialConstants.PRESET_DEFAULT) {
+			bm = inputContext.defaultPreset();
+			finder.preset(MaterialConstants.PRESET_NONE);
+		}
+
+		if (inputContext.overlay() != OverlayTexture.NO_OVERLAY) {
+			finder.overlay(inputContext.overlay());
+		}
+
+		// fully specific renderable material
+		if (bm == MaterialConstants.PRESET_NONE) return;
+
+		switch (bm) {
+			case MaterialConstants.PRESET_CUTOUT: {
+				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_HALF)
+					.unmipped(true)
+					.target(MaterialConstants.TARGET_MAIN)
+					.sorted(false);
+				break;
+			}
+			case MaterialConstants.PRESET_CUTOUT_MIPPED:
+				finder
+					.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_HALF)
+					.unmipped(false)
+					.target(MaterialConstants.TARGET_MAIN)
+					.sorted(false);
+				break;
+			case MaterialConstants.PRESET_TRANSLUCENT:
+				finder.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
+					.cutout(MaterialConstants.CUTOUT_NONE)
+					.unmipped(false)
+					.target(MaterialConstants.TARGET_TRANSLUCENT)
+					.sorted(true);
+				break;
+			case MaterialConstants.PRESET_SOLID:
+				finder.transparency(MaterialConstants.TRANSPARENCY_NONE)
+					.cutout(MaterialConstants.CUTOUT_NONE)
+					.unmipped(false)
+					.target(MaterialConstants.TARGET_MAIN)
+					.sorted(false);
+				break;
+			default:
+				assert false : "Unhandled blend mode";
+		}
 	}
 }
