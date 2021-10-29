@@ -30,10 +30,8 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.AbstractBannerBlock;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
@@ -41,10 +39,6 @@ import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.base.renderer.context.BaseItemContext;
-
-import grondag.canvas.buffer.input.CanvasImmediate;
-import grondag.canvas.material.state.RenderContextState;
-import grondag.canvas.material.state.RenderContextState.GuiMode;
 
 public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<BaseItemContext, E> {
 	@Override
@@ -54,6 +48,7 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 
 	protected abstract void prepareEncoding(MultiBufferSource vertexConsumers);
 
+	@SuppressWarnings("resource")
 	public void renderItem(ItemModelShaper models, ItemStack stack, TransformType renderMode, boolean isLeftHand, PoseStack poseStack, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
 		if (stack.isEmpty()) return;
 		final boolean detachedPerspective = renderMode == ItemTransforms.TransformType.GUI || renderMode == ItemTransforms.TransformType.GROUND || renderMode == ItemTransforms.TransformType.FIXED;
@@ -78,23 +73,15 @@ public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<Ba
 		prepareEncoding(vertexConsumers);
 
 		if (model.isCustomRenderer() || stack.getItem() == Items.TRIDENT && !detachedPerspective) {
-			@SuppressWarnings("resource")
-			final BlockEntityWithoutLevelRenderer builtInRenderer = Minecraft.getInstance().getItemRenderer().blockEntityRenderer;
-
-			if (inputContext.isGui() && vertexConsumers instanceof CanvasImmediate) {
-				final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
-				context.guiMode(inputContext.isBlockItem() && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
-				builtInRenderer.renderByItem(stack, renderMode, poseStack, vertexConsumers, light, overlay);
-				context.guiMode(GuiMode.NORMAL);
-			} else {
-				builtInRenderer.renderByItem(stack, renderMode, poseStack, vertexConsumers, light, overlay);
-			}
+			renderCustomModel(Minecraft.getInstance().getItemRenderer().blockEntityRenderer, vertexConsumers);
 		} else {
 			((ItemModel) model).renderAsItem(inputContext, emitter());
 		}
 
 		matrixStack.pop();
 	}
+
+	protected abstract void renderCustomModel(BlockEntityWithoutLevelRenderer builtInRenderer, MultiBufferSource vertexConsumers);
 
 	@Override
 	protected void adjustMaterial() {
