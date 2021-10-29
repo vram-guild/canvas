@@ -36,7 +36,7 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.base.renderer.context.BaseBlockContext;
 
-public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter, E> extends AbstractBakedRenderContext<BaseBlockContext<T>, E> {
+public abstract class AbstractBlockRenderContext<T extends BlockAndTintGetter> extends AbstractBakedRenderContext<BaseBlockContext<T>> {
 	/**
 	 * For use by chunk builder - avoids another threadlocal.
 	 */

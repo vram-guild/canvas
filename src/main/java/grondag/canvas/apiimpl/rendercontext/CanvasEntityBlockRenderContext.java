@@ -36,7 +36,7 @@ import grondag.canvas.buffer.input.CanvasImmediate;
  * <p>Also handle rendering of the item frame which looks and acts like a block
  * and has a block JSON model but is an entity.
  */
-public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<StandardQuadEncoder> {
+public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext {
 	private static final Supplier<ThreadLocal<CanvasEntityBlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
 		final CanvasEntityBlockRenderContext result = new CanvasEntityBlockRenderContext();
 		return result;
@@ -44,8 +44,11 @@ public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<Sta
 
 	private static ThreadLocal<CanvasEntityBlockRenderContext> POOL = POOL_FACTORY.get();
 
+	public final StandardQuadEncoder encoder;
+
 	public CanvasEntityBlockRenderContext() {
 		super();
+		encoder = new StandardQuadEncoder(emitter, inputContext);
 	}
 
 	public static void reload() {
@@ -54,11 +57,6 @@ public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext<Sta
 
 	public static CanvasEntityBlockRenderContext get() {
 		return POOL.get();
-	}
-
-	@Override
-	protected StandardQuadEncoder createEncoder() {
-		return new StandardQuadEncoder(emitter, inputContext);
 	}
 
 	@Override

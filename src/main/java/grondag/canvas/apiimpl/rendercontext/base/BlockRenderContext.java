@@ -35,7 +35,7 @@ import io.vram.frex.api.model.BlockModel;
 /**
  * Context for non-terrain block rendering.
  */
-public abstract class BlockRenderContext<E> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
+public abstract class BlockRenderContext extends AbstractBlockRenderContext<BlockAndTintGetter> {
 	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
 		defaultConsumer = buffer;
 		inputContext.prepareForWorld(blockView, checkSides, MatrixStack.cast(poseStack));

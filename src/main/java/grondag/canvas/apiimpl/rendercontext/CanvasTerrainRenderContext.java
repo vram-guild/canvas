@@ -53,7 +53,7 @@ import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 /**
  * Context for non-terrain block rendering.
  */
-public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<InputRegion, TerrainQuadEncoder> {
+public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<InputRegion> {
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
@@ -62,10 +62,13 @@ public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<Input
 	public final InputRegion region;
 	public final MatrixStack matrixStack = MatrixStack.cast(new PoseStack());
 
+	public final TerrainQuadEncoder encoder;
+
 	public CanvasTerrainRenderContext() {
 		super();
 		region = new InputRegion(this);
 		inputContext.prepareForWorld(region, true, matrixStack);
+		encoder = new TerrainQuadEncoder(emitter, inputContext);
 	}
 
 	private final AoCalculator aoCalc = new AoCalculator() {
@@ -151,11 +154,6 @@ public class CanvasTerrainRenderContext extends AbstractBlockRenderContext<Input
 		}
 
 		colorizeQuad(emitter, this.inputContext);
-	}
-
-	@Override
-	protected TerrainQuadEncoder createEncoder() {
-		return new TerrainQuadEncoder(emitter, inputContext);
 	}
 
 	@Override

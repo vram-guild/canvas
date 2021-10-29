@@ -32,24 +32,20 @@ import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 import io.vram.frex.base.renderer.mesh.RootQuadEmitter;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
-public abstract class AbstractBakedRenderContext<C extends BaseBakedContext, E> {
+public abstract class AbstractBakedRenderContext<C extends BaseBakedContext> {
 	protected static final MaterialMap defaultMap = MaterialMap.defaultMaterialMap();
 
 	protected final MaterialFinder finder = MaterialFinder.newInstance();
 	protected final RootQuadEmitter emitter = new Emitter();
 	public final C inputContext;
-	public final E encoder;
 
 	protected MaterialMap materialMap = defaultMap;
 
 	protected AbstractBakedRenderContext() {
 		inputContext = createInputContext();
-		encoder = createEncoder();
 	}
 
 	protected abstract C createInputContext();
-
-	protected abstract E createEncoder();
 
 	protected void shadeQuad() {
 		EncoderUtil.applyFlatLighting(emitter, inputContext.flatBrightness(emitter));

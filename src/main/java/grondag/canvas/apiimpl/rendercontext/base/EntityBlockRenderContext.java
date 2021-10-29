@@ -49,7 +49,7 @@ import io.vram.frex.base.renderer.context.BaseBlockContext;
  * <p>Also handle rendering of the item frame which looks and acts like a block
  * and has a block JSON model but is an entity.
  */
-public abstract class EntityBlockRenderContext<E> extends AbstractBlockRenderContext<BlockAndTintGetter, E> {
+public abstract class EntityBlockRenderContext extends AbstractBlockRenderContext<BlockAndTintGetter> {
 	protected int light;
 	protected final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 	protected Level level;

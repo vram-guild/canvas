@@ -28,7 +28,7 @@ import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
 /**
  * Context for non-terrain block rendering.
  */
-public class CanvasBlockRenderContext extends BlockRenderContext<StandardQuadEncoder> {
+public class CanvasBlockRenderContext extends BlockRenderContext {
 	private static final Supplier<ThreadLocal<CanvasBlockRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
 		final CanvasBlockRenderContext result = new CanvasBlockRenderContext();
 		return result;
@@ -44,9 +44,11 @@ public class CanvasBlockRenderContext extends BlockRenderContext<StandardQuadEnc
 		return POOL.get();
 	}
 
-	@Override
-	protected StandardQuadEncoder createEncoder() {
-		return new StandardQuadEncoder(emitter, inputContext);
+	public final StandardQuadEncoder encoder;
+
+	public CanvasBlockRenderContext() {
+		super();
+		encoder = new StandardQuadEncoder(emitter, inputContext);
 	}
 
 	@Override

@@ -36,7 +36,7 @@ import grondag.canvas.buffer.input.CanvasImmediate;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 
-public class CanvasItemRenderContext extends ItemRenderContext<StandardQuadEncoder> {
+public class CanvasItemRenderContext extends ItemRenderContext {
 	private static final Supplier<ThreadLocal<CanvasItemRenderContext>> POOL_FACTORY = () -> ThreadLocal.withInitial(() -> {
 		final CanvasItemRenderContext result = new CanvasItemRenderContext();
 		return result;
@@ -54,9 +54,11 @@ public class CanvasItemRenderContext extends ItemRenderContext<StandardQuadEncod
 
 	protected VertexConsumer defaultConsumer;
 
-	@Override
-	protected StandardQuadEncoder createEncoder() {
-		return new StandardQuadEncoder(emitter, inputContext);
+	public final StandardQuadEncoder encoder;
+
+	public CanvasItemRenderContext() {
+		super();
+		encoder = new StandardQuadEncoder(emitter, inputContext);
 	}
 
 	@Override

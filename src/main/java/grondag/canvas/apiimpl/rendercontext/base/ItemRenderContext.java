@@ -40,7 +40,7 @@ import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.ItemModel;
 import io.vram.frex.base.renderer.context.BaseItemContext;
 
-public abstract class ItemRenderContext<E> extends AbstractBakedRenderContext<BaseItemContext, E> {
+public abstract class ItemRenderContext extends AbstractBakedRenderContext<BaseItemContext> {
 	@Override
 	protected BaseItemContext createInputContext() {
 		return new BaseItemContext();
