@@ -24,6 +24,8 @@ import static grondag.canvas.light.LightmapHd.lightIndex;
 
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 
+import io.vram.frex.base.renderer.ao.AoFaceData;
+
 final class LightmapHdCalc {
 	static float input(int b, boolean isSky) {
 		return b == AoFaceData.OPAQUE ? AoFaceData.OPAQUE : (isSky ? (b >> 16) & 0xFF : b & 0xFF);

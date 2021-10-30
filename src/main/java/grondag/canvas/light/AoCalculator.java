@@ -20,14 +20,14 @@
 
 package grondag.canvas.light;
 
-import static grondag.canvas.light.AoFaceData.OPAQUE;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.fastOffsetRegionIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.offsetInteriorIndex;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
-import static grondag.canvas.varia.CanvasMath.clampNormalized;
+import static io.vram.frex.api.math.FrexMathUtil.clampNormalized;
 import static io.vram.frex.api.model.util.GeometryUtil.AXIS_ALIGNED_FLAG;
 import static io.vram.frex.api.model.util.GeometryUtil.CUBIC_FLAG;
 import static io.vram.frex.api.model.util.GeometryUtil.LIGHT_FACE_FLAG;
+import static io.vram.frex.base.renderer.ao.AoFaceData.OPAQUE;
 
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
@@ -35,6 +35,8 @@ import net.minecraft.util.Mth;
 import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
+import io.vram.frex.base.renderer.ao.AoFaceCalc;
+import io.vram.frex.base.renderer.ao.AoFaceData;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.BaseQuadView;
 

@@ -35,7 +35,7 @@ import net.minecraft.core.Vec3i;
 import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
 /**
- * Adapted from vanilla BlockModelRenderer.AoCalculator.
+ * Adapted from vanilla.
  */
 enum AoFace {
 	AOF_DOWN(WEST, EAST, NORTH, SOUTH,

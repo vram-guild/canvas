@@ -27,6 +27,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.util.Mth;
 
+import io.vram.frex.base.renderer.ao.AoFaceData;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.CanvasMod;

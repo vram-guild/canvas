@@ -35,7 +35,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
-import grondag.canvas.varia.CanvasMath;
+import io.vram.frex.api.math.FrexMathUtil;
 
 @Mixin(TextureSheetParticle.class)
 public abstract class MixinTextureSheetParticle extends SingleQuadParticle {
@@ -67,7 +67,7 @@ public abstract class MixinTextureSheetParticle extends SingleQuadParticle {
 			rotation.set(cr.i(), cr.j(), cr.k(), cr.r());
 			final float adjustedAngle = Mth.lerp(tickDelta, oRoll, roll);
 			final Quaternion radialRotation = auxQuat;
-			CanvasMath.setRadialRotation(radialRotation, Vector3f.ZP, adjustedAngle);
+			FrexMathUtil.setRadialRotation(radialRotation, Vector3f.ZP, adjustedAngle);
 			rotation.mul(radialRotation);
 		}
 
@@ -81,19 +81,19 @@ public abstract class MixinTextureSheetParticle extends SingleQuadParticle {
 		final float o = getV1();
 
 		vec.set(-1.0F, -1.0F, 0.0F);
-		CanvasMath.applyBillboardRotation(pos, rotation);
+		FrexMathUtil.applyBillboardRotation(pos, rotation);
 		vertexConsumer.vertex(cx + pos.x() * scale, cy + pos.y() * scale, cz + pos.z() * scale).uv(m, o).color(rCol, gCol, bCol, alpha).uv2(light).endVertex();
 
 		vec.set(-1.0F, 1.0F, 0.0F);
-		CanvasMath.applyBillboardRotation(pos, rotation);
+		FrexMathUtil.applyBillboardRotation(pos, rotation);
 		vertexConsumer.vertex(cx + pos.x() * scale, cy + pos.y() * scale, cz + pos.z() * scale).uv(m, n).color(rCol, gCol, bCol, alpha).uv2(light).endVertex();
 
 		vec.set(1.0F, 1.0F, 0.0F);
-		CanvasMath.applyBillboardRotation(pos, rotation);
+		FrexMathUtil.applyBillboardRotation(pos, rotation);
 		vertexConsumer.vertex(cx + pos.x() * scale, cy + pos.y() * scale, cz + pos.z() * scale).uv(l, n).color(rCol, gCol, bCol, alpha).uv2(light).endVertex();
 
 		vec.set(1.0F, -1.0F, 0.0F);
-		CanvasMath.applyBillboardRotation(pos, rotation);
+		FrexMathUtil.applyBillboardRotation(pos, rotation);
 		vertexConsumer.vertex(cx + pos.x() * scale, cy + pos.y() * scale, cz + pos.z() * scale).uv(l, o).color(rCol, gCol, bCol, alpha).uv2(light).endVertex();
 		//		}
 	}

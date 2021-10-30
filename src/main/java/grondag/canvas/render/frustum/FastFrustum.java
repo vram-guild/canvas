@@ -26,7 +26,7 @@ import com.mojang.math.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.world.phys.Vec3;
 
-import grondag.canvas.varia.CanvasMath;
+import io.vram.frex.api.math.FrexMathUtil;
 
 public class FastFrustum extends CanvasFrustum {
 	protected float circumCenterX, circumCenterY, circumCenterZ, circumRadius;
@@ -110,9 +110,9 @@ public class FastFrustum extends CanvasFrustum {
 		fy1 = corner.y();
 		fz1 = corner.z();
 
-		final float a = CanvasMath.dist(fx0, fy0, fz0, fx1, fy1, fz1);
-		final float b = CanvasMath.dist(nx0, ny0, nz0, nx1, ny1, nz1);
-		final float c = CanvasMath.dist(nx0, ny0, nz0, fx0, fy0, fz0);
+		final float a = FrexMathUtil.dist(fx0, fy0, fz0, fx1, fy1, fz1);
+		final float b = FrexMathUtil.dist(nx0, ny0, nz0, nx1, ny1, nz1);
+		final float c = FrexMathUtil.dist(nx0, ny0, nz0, fx0, fy0, fz0);
 		final float ab = a - b;
 
 		circumRadius = c * (float) Math.sqrt((a * b + c * c) / (4 * c * c - ab * ab));
@@ -132,7 +132,7 @@ public class FastFrustum extends CanvasFrustum {
 		final float fcy = (fy0 + fy1) * 0.5f;
 		final float fcz = (fz0 + fz1) * 0.5f;
 
-		final float depth = CanvasMath.dist(ncx, ncy, ncz, fcx, fcy, fcz);
+		final float depth = FrexMathUtil.dist(ncx, ncy, ncz, fcx, fcy, fcz);
 
 		final float centerFactor = centerDepth / depth;
 
