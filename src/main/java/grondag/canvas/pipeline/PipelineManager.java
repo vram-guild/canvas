@@ -28,7 +28,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.SimpleVertexCollector;
@@ -110,7 +110,7 @@ public class PipelineManager {
 
 		if (forceRecompile) {
 			CanvasMod.LOG.info(I18n.get("info.canvas.recompile"));
-			Canvas.INSTANCE.recompile();
+			CanvasState.recompile();
 		}
 	}
 

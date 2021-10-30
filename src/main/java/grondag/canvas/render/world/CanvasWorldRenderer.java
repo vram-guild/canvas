@@ -73,6 +73,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import io.vram.frex.api.config.FlawlessFrames;
+import io.vram.frex.api.renderer.Renderer;
 import io.vram.frex.api.renderloop.BlockOutlineListener;
 import io.vram.frex.api.renderloop.BlockOutlinePreListener;
 import io.vram.frex.api.renderloop.DebugRenderListener;
@@ -87,7 +88,6 @@ import io.vram.frex.api.renderloop.WorldRenderStartListener;
 import io.vram.frex.base.renderer.BaseConditionManager;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
@@ -247,7 +247,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 	}
 
 	private void updateConditions() {
-		final var conditions = Canvas.INSTANCE.conditions();
+		final var conditions = (BaseConditionManager) Renderer.get().conditions();
 		conditions.update();
 		final var conditionFlags = conditions.conditionFlags;
 

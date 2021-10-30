@@ -26,7 +26,9 @@ import org.lwjgl.opengl.GL21;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 
-import grondag.canvas.apiimpl.Canvas;
+import io.vram.frex.api.renderer.Renderer;
+import io.vram.frex.base.renderer.BaseMaterialShaderManager;
+
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.data.ShaderStrings;
 
@@ -56,6 +58,7 @@ public class GlMaterialShader extends GlShader {
 	private String preprocessFragmentSource(ResourceManager resourceManager, String baseSource) {
 		String starts;
 		String impl;
+		final var shaderManager = (BaseMaterialShaderManager) Renderer.get().shaders();
 
 		final int[] shaders = MaterialShaderIndexer.fragmentIds(programType);
 		final int limit = shaders.length;
@@ -64,7 +67,7 @@ public class GlMaterialShader extends GlShader {
 			starts = "\t// NOOP";
 			impl = "";
 		} else if (limit == 1) {
-			impl = loadMaterialFragmentShader(resourceManager, Canvas.INSTANCE.shaders().fragmentIdFromIndex(shaders[0]));
+			impl = loadMaterialFragmentShader(resourceManager, shaderManager.fragmentIdFromIndex(shaders[0]));
 
 			if (impl.contains("frx_startFragment")) {
 				starts = "\tfrx_startFragment(compatData);";
@@ -86,7 +89,7 @@ public class GlMaterialShader extends GlShader {
 				startsBuilder.append(index);
 				startsBuilder.append(": ");
 
-				String src = loadMaterialFragmentShader(resourceManager, Canvas.INSTANCE.shaders().fragmentIdFromIndex(index));
+				String src = loadMaterialFragmentShader(resourceManager, shaderManager.fragmentIdFromIndex(index));
 
 				// UGLY: some pre-release compat handling here - should eventually be removed
 				if (src.contains("frx_startFragment")) {
@@ -133,13 +136,14 @@ public class GlMaterialShader extends GlShader {
 		String impl;
 
 		final int[] shaders = MaterialShaderIndexer.vertexIds(programType);
+		final var shaderManager = (BaseMaterialShaderManager) Renderer.get().shaders();
 		final int limit = shaders.length;
 
 		if (limit == 0) {
 			starts = "\t// NOOP";
 			impl = "\t// NOOP";
 		} else if (limit == 1) {
-			impl = loadMaterialVertexShader(resourceManager, Canvas.INSTANCE.shaders().vertexIdFromIndex(shaders[0]));
+			impl = loadMaterialVertexShader(resourceManager, shaderManager.vertexIdFromIndex(shaders[0]));
 
 			// prevent abandoned endVertex calls from conflicting
 			impl = StringUtils.replace(impl, "frx_endVertex", "frx_endVertex_UNUSED");
@@ -158,7 +162,7 @@ public class GlMaterialShader extends GlShader {
 				startsBuilder.append(index);
 				startsBuilder.append(": ");
 
-				String src = loadMaterialVertexShader(resourceManager, Canvas.INSTANCE.shaders().vertexIdFromIndex(index));
+				String src = loadMaterialVertexShader(resourceManager, shaderManager.vertexIdFromIndex(index));
 
 				// prevent abandoned endVertex calls from conflicting
 				src = StringUtils.replace(src, "frx_endVertex", "frx_endVertex" + i + "_UNUSED");

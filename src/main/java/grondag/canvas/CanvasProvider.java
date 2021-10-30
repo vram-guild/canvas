@@ -28,6 +28,6 @@ import grondag.canvas.apiimpl.Canvas;
 public class CanvasProvider implements RendererProvider {
 	@Override
 	public Renderer getRenderer() {
-		return Canvas.INSTANCE;
+		return new Canvas();
 	}
 }

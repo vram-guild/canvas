@@ -39,7 +39,7 @@ import io.vram.frex.api.renderloop.RenderReloadListener;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 
-import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.config.ConfigManager;
@@ -119,7 +119,7 @@ public class CanvasMod {
 		});
 
 		FluidModel.setReloadHandler(FluidHandler.HANDLER);
-		RenderReloadListener.register(Canvas.INSTANCE::reload);
+		RenderReloadListener.register(CanvasState::reload);
 
 		Compat.init();
 	}

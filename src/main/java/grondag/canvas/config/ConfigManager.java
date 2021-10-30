@@ -38,7 +38,7 @@ import net.minecraft.network.chat.TextComponent;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 
 public class ConfigManager {
@@ -115,7 +115,7 @@ public class ConfigManager {
 			CanvasMod.LOG.error("Error loading pipeline config. Using default values.");
 		}
 
-		Canvas.INSTANCE.recompile();
+		CanvasState.recompile();
 	}
 
 	static void saveConfig() {

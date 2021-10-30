@@ -38,7 +38,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 
-import grondag.canvas.apiimpl.Canvas;
+import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
 
@@ -104,7 +104,7 @@ public class PipelineSelectorEntry extends TooltipListEntry<PipelineDescription>
 	@Override
 	public void save() {
 		if (!getValue().id.toString().equals(Configurator.pipelineId)) {
-			Canvas.INSTANCE.recompile();
+			CanvasState.recompile();
 			Configurator.reload = true;
 			Configurator.pipelineId = getValue().id.toString();
 		}

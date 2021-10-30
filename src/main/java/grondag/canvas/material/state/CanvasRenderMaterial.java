@@ -28,17 +28,14 @@ import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.material.MaterialCondition;
 import io.vram.frex.api.material.MaterialShader;
-import io.vram.frex.api.renderer.ConditionManager;
-import io.vram.frex.api.renderer.MaterialShaderManager;
-import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.texture.MaterialTexture;
 import io.vram.frex.base.renderer.BaseConditionManager.BaseMaterialCondition;
 import io.vram.frex.base.renderer.BaseMaterialShader;
+import io.vram.frex.base.renderer.material.BaseMaterialManager;
 import io.vram.frex.base.renderer.material.BaseMaterialView;
 import io.vram.frex.base.renderer.material.BaseRenderMaterial;
 import io.vram.frex.base.renderer.util.ResourceCache;
 
-import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
@@ -47,16 +44,6 @@ import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialIndexer;
 
 public class CanvasRenderMaterial extends BaseRenderMaterial {
-	protected static ConditionManager conditions;
-	protected static MaterialTextureManager textures;
-	protected static MaterialShaderManager shaders;
-
-	public static void init(ConditionManager conditionsIn, MaterialTextureManager texturesIn, MaterialShaderManager shadersIn) {
-		conditions = conditionsIn;
-		textures = texturesIn;
-		shaders = shadersIn;
-	}
-
 	protected final ResourceCache<MaterialIndexer> indexer;
 	protected final long collectorKey;
 	protected final int collectorIndex;
@@ -89,12 +76,12 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 	protected final BaseMaterialCondition condition;
 
 	// PERF: use discardsTexture() to avoid overhead of animated textures
-	public CanvasRenderMaterial(int index, BaseMaterialView finder) {
-		super(index, finder);
+	public CanvasRenderMaterial(BaseMaterialManager<CanvasRenderMaterial> manager, int index, BaseMaterialView finder) {
+		super(manager, index, finder);
 
-		materialTexture = textures.textureFromIndex(textureIndex);
+		materialTexture = manager.textures.textureFromIndex(textureIndex);
 		texture = TextureMaterialState.fromId(materialTexture.id());
-		condition = (BaseMaterialCondition) conditions.conditionFromIndex(conditionIndex());
+		condition = (BaseMaterialCondition) manager.conditions.conditionFromIndex(conditionIndex());
 
 		collectorKey = MaterialStateEncoder.encodeCollectorKey(this, texture);
 		materialKey = MaterialStateEncoder.encodeMaterialKey(this);
@@ -104,7 +91,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey);
 		shaderFlags = (int) (materialKey >>> FLAG_SHIFT) & 0xFFFF;
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
-		shaderId = (BaseMaterialShader) shaders.shaderFromIndex(shaderIndex());
+		shaderId = (BaseMaterialShader) manager.shaders.shaderFromIndex(shaderIndex());
 		vertexShaderIndex = shaderId.vertexIndex;
 		fragmentShaderIndex = shaderId.fragmentIndex;
 		vertexShaderId = shaderId.vertexId;
@@ -230,11 +217,11 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 
 	@Override
 	public boolean isDefault() {
-		return this == Canvas.INSTANCE.materials().defaultMaterial();
+		return this == manager.defaultMaterial();
 	}
 
 	@Override
 	public boolean isMissing() {
-		return this == Canvas.INSTANCE.materials().missingMaterial();
+		return this == manager.missingMaterial();
 	}
 }
