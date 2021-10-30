@@ -30,10 +30,10 @@ import grondag.canvas.shader.data.ShaderUniforms;
 import grondag.canvas.shader.data.UniformRefreshFrequency;
 import grondag.canvas.varia.GFX;
 
-public enum MaterialProgramManager {
-	INSTANCE;
+public final class GlMaterialProgramManager {
+	public static final GlMaterialProgramManager INSTANCE = new GlMaterialProgramManager();
 
-	{
+	private GlMaterialProgramManager() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: GlShaderManager init");
 		}

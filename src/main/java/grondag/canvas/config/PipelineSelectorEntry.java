@@ -104,7 +104,7 @@ public class PipelineSelectorEntry extends TooltipListEntry<PipelineDescription>
 	@Override
 	public void save() {
 		if (!getValue().id.toString().equals(Configurator.pipelineId)) {
-			Canvas.instance().recompile();
+			Canvas.INSTANCE.recompile();
 			Configurator.reload = true;
 			Configurator.pipelineId = getValue().id.toString();
 		}

@@ -119,7 +119,7 @@ public class CanvasMod {
 		});
 
 		FluidModel.setReloadHandler(FluidHandler.HANDLER);
-		RenderReloadListener.register(Canvas.instance()::reload);
+		RenderReloadListener.register(Canvas.INSTANCE::reload);
 
 		Compat.init();
 	}

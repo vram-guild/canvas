@@ -25,8 +25,7 @@ import java.nio.IntBuffer;
 import org.lwjgl.BufferUtils;
 
 import io.vram.bitkit.BitPacker32;
-
-import grondag.canvas.apiimpl.MaterialConditionImpl;
+import io.vram.frex.base.renderer.BaseConditionManager;
 
 public final class IntData {
 	private IntData() { }
@@ -36,7 +35,7 @@ public final class IntData {
 	public static final int WORLD_DATA_INDEX = 0;
 	public static final int PLAYER_DATA_INDEX = 1;
 	public static final int CONDITION_DATA_START = 2;
-	public static final int INT_LENGTH = CONDITION_DATA_START + MaterialConditionImpl.CONDITION_FLAG_ARRAY_LENGTH;
+	public static final int INT_LENGTH = CONDITION_DATA_START + BaseConditionManager.CONDITION_FLAG_ARRAY_LENGTH;
 
 	public static final IntBuffer INT_DATA = BufferUtils.createIntBuffer(INT_LENGTH);
 

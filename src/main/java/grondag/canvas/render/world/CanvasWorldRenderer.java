@@ -84,9 +84,10 @@ import io.vram.frex.api.renderloop.WorldRenderContextBase;
 import io.vram.frex.api.renderloop.WorldRenderLastListener;
 import io.vram.frex.api.renderloop.WorldRenderPostListener;
 import io.vram.frex.api.renderloop.WorldRenderStartListener;
+import io.vram.frex.base.renderer.BaseConditionManager;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
@@ -111,6 +112,7 @@ import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
+import grondag.canvas.shader.data.IntData;
 import grondag.canvas.shader.data.MatrixData;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.shader.data.ScreenRenderState;
@@ -199,7 +201,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		regionStorage.closeRegionsOnRenderThread();
 
 		mc.getProfiler().push("camera");
-		MaterialConditionImpl.update();
+
+		updateConditions();
+
 		GlProgramManager.INSTANCE.onRenderTick();
 
 		regionRebuildManager.processExternalBuildRequests();
@@ -240,6 +244,16 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		}
 
 		mc.getProfiler().pop();
+	}
+
+	private void updateConditions() {
+		final var conditions = Canvas.INSTANCE.conditions();
+		conditions.update();
+		final var conditionFlags = conditions.conditionFlags;
+
+		for (int i = 0; i < BaseConditionManager.CONDITION_FLAG_ARRAY_LENGTH; ++i) {
+			IntData.INT_DATA.put(IntData.CONDITION_DATA_START + i, conditionFlags[i]);
+		}
 	}
 
 	private boolean shouldCullChunks(BlockPos pos) {

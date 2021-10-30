@@ -23,13 +23,12 @@ package grondag.canvas.apiimpl;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 
-import io.vram.frex.api.mesh.MeshBuilder;
 import io.vram.frex.api.renderer.ConditionManager;
-import io.vram.frex.api.renderer.MaterialManager;
 import io.vram.frex.api.renderer.MaterialShaderManager;
 import io.vram.frex.api.renderer.MaterialTextureManager;
-import io.vram.frex.api.renderer.Renderer;
-import io.vram.frex.base.renderer.mesh.BaseMeshBuilder;
+import io.vram.frex.base.renderer.BaseRenderer;
+import io.vram.frex.base.renderer.material.BaseMaterialManager;
+import io.vram.frex.base.renderer.material.BaseMaterialManager.MaterialFactory;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
@@ -37,33 +36,34 @@ import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasItemRenderContext;
 import grondag.canvas.light.AoVertexClampFunction;
 import grondag.canvas.material.property.TextureMaterialState;
-import grondag.canvas.material.state.CanvasMaterialManager;
+import grondag.canvas.material.state.CanvasRenderMaterial;
+import grondag.canvas.material.state.RenderState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineLoader;
+import grondag.canvas.shader.GlMaterialProgramManager;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
-import grondag.canvas.shader.MaterialProgramManager;
-import grondag.canvas.shader.MaterialShaderId;
 import grondag.canvas.shader.PreReleaseShaderCompat;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 
-public class Canvas implements Renderer {
-	private static Canvas instance = new Canvas();
+public class Canvas extends BaseRenderer<CanvasRenderMaterial> {
+	public static final Canvas INSTANCE = new Canvas();
 
-	public static Canvas instance() {
-		return instance;
+	private Canvas() {
+		super(CanvasRenderMaterial::new);
 	}
 
-	private Canvas() { }
-
 	@Override
-	public MeshBuilder meshBuilder() {
-		return new BaseMeshBuilder();
+	protected BaseMaterialManager<CanvasRenderMaterial> createMaterialManager(ConditionManager conditions, MaterialTextureManager textures, MaterialShaderManager shaders, MaterialFactory<CanvasRenderMaterial> factory) {
+		// Need to provide references to manager instances before any materials are instantiated
+		CanvasRenderMaterial.init(conditions, textures, shaders);
+		RenderState.init(textures);
+		return new BaseMaterialManager<>(conditionManager, textureManager, shaderManager, factory);
 	}
 
 	public void reload() {
@@ -86,31 +86,11 @@ public class Canvas implements Renderer {
 		GlShader.forceReloadErrors();
 		GlShaderManager.INSTANCE.reload();
 		GlProgramManager.INSTANCE.reload();
-		MaterialProgramManager.INSTANCE.reload();
+		GlMaterialProgramManager.INSTANCE.reload();
 		// LightmapHdTexture.reload();
 		// LightmapHd.reload();
 		TextureMaterialState.reload();
 		ShaderDataManager.reload();
 		Timekeeper.configOrPipelineReload();
-	}
-
-	@Override
-	public ConditionManager conditions() {
-		return MaterialConditionImpl.REGISTRY;
-	}
-
-	@Override
-	public MaterialTextureManager textures() {
-		return CanvasTextureManager.INSTANCE;
-	}
-
-	@Override
-	public MaterialShaderManager shaders() {
-		return MaterialShaderId.MANAGER;
-	}
-
-	@Override
-	public MaterialManager materials() {
-		return CanvasMaterialManager.INSTANCE;
 	}
 }

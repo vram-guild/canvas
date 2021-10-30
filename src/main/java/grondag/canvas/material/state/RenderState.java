@@ -40,6 +40,7 @@ import net.minecraft.client.Minecraft;
 
 import io.vram.bitkit.BitPacker64;
 import io.vram.frex.api.material.MaterialConstants;
+import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.texture.MaterialTexture;
 
 import grondag.canvas.material.property.BinaryRenderState;
@@ -53,7 +54,7 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.MaterialShaderImpl;
+import grondag.canvas.shader.MaterialProgram;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
@@ -95,7 +96,7 @@ public final class RenderState {
 		this.bits = bits;
 		this.index = nextIndex++;
 		target = TargetRenderState.fromIndex(R_TARGET.getValue(bits));
-		materialTexture = MaterialTexture.fromIndex(R_TEXTURE.getValue(bits));
+		materialTexture = textures.textureFromIndex(R_TEXTURE.getValue(bits));
 		texture = TextureMaterialState.fromId(materialTexture.id());
 		blur = R_BLUR.getValue(bits);
 		transparency = TransparencyRenderState.fromIndex(R_TRANSPARENCY.getValue(bits));
@@ -137,7 +138,7 @@ public final class RenderState {
 
 	private void enableDepthPass(int x, int y, int z, int cascade) {
 		final MatrixState matrixState = MatrixState.get();
-		final MaterialShaderImpl depthShader = matrixState == MatrixState.REGION ? MaterialShaderImpl.DEPTH_TERRAIN : MaterialShaderImpl.DEPTH;
+		final MaterialProgram depthShader = matrixState == MatrixState.REGION ? MaterialProgram.DEPTH_TERRAIN : MaterialProgram.DEPTH;
 
 		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
 			depthShader.setModelOrigin(x, y, z);
@@ -181,7 +182,7 @@ public final class RenderState {
 
 	private void enableMaterial(int x, int y, int z) {
 		final MatrixState matrixState = MatrixState.get();
-		final MaterialShaderImpl shader = matrixState == MatrixState.REGION ? MaterialShaderImpl.COLOR_TERRAIN : MaterialShaderImpl.COLOR;
+		final MaterialProgram shader = matrixState == MatrixState.REGION ? MaterialProgram.COLOR_TERRAIN : MaterialProgram.COLOR;
 
 		if (active == this && matrixState == currentMatrixState) {
 			shader.setModelOrigin(x, y, z);
@@ -338,10 +339,19 @@ public final class RenderState {
 	private static MatrixState currentMatrixState = null;
 	private static MatrixState shadowCurrentMatrixState = null;
 
-	public static final RenderState MISSING = new RenderState(0);
+	private static RenderState missing;
 
-	static {
-		STATES[0] = MISSING;
+	private static MaterialTextureManager textures;
+
+	public static void init(MaterialTextureManager texturesIn) {
+		textures = texturesIn;
+		missing = new RenderState(0);
+		STATES[0] = missing;
+	}
+
+	public static RenderState missing() {
+		assert missing != null;
+		return missing;
 	}
 
 	public static RenderState fromIndex(int index) {

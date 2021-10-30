@@ -23,9 +23,6 @@ package grondag.canvas.shader.data;
 import net.minecraft.resources.ResourceLocation;
 
 public final class ShaderStrings {
-	public static final ResourceLocation DEFAULT_VERTEX_SOURCE = new ResourceLocation("canvas:shaders/material/default.vert");
-	public static final ResourceLocation DEFAULT_FRAGMENT_SOURCE = new ResourceLocation("canvas:shaders/material/default.frag");
-
 	public static final ResourceLocation MATERIAL_MAIN_VERTEX = new ResourceLocation("canvas:shaders/internal/material_main.vert");
 	public static final ResourceLocation MATERIAL_MAIN_FRAGMENT = new ResourceLocation("canvas:shaders/internal/material_main.frag");
 

@@ -23,19 +23,15 @@ package grondag.canvas.shader;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
-import net.minecraft.resources.ResourceLocation;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.shader.data.ShaderStrings;
-import grondag.fermion.varia.IndexedInterner;
 
-public enum MaterialShaderManager {
-	INSTANCE;
+public final class MaterialShaderIndexer {
+	public static final MaterialShaderIndexer INSTANCE = new MaterialShaderIndexer();
 
-	MaterialShaderManager() {
+	private MaterialShaderIndexer() {
 		if (Configurator.enableLifeCycleDebug) {
-			CanvasMod.LOG.info("Lifecycle Event: MaterialShaderManager init");
+			CanvasMod.LOG.info("Lifecycle Event: MaterialShaderIndexer init");
 		}
 	}
 
@@ -72,17 +68,12 @@ public enum MaterialShaderManager {
 	/** Tracks which fragment depth sub-shaders are in use by materials. */
 	private static final IntOpenHashSet DEPTH_FRAGMENT_INDEXES = new IntOpenHashSet();
 
-	public static final IndexedInterner<ResourceLocation> VERTEX_INDEXER = new IndexedInterner<>(ResourceLocation.class);
-	public static final IndexedInterner<ResourceLocation> FRAGMENT_INDEXER = new IndexedInterner<>(ResourceLocation.class);
 	private static final LongOpenHashSet KEYS = new LongOpenHashSet();
 
 	private static long key(int vertexShaderIndex, int fragmentShaderIndex, ProgramType programType) {
 		// PERF: don't need key space this big
 		return programType.ordinal() | ((long) fragmentShaderIndex << 16) | ((long) vertexShaderIndex << 32);
 	}
-
-	public static final int DEFAULT_VERTEX_INDEX = VERTEX_INDEXER.toHandle(ShaderStrings.DEFAULT_VERTEX_SOURCE);
-	public static final int DEFAULT_FRAGMENT_INDEX = FRAGMENT_INDEXER.toHandle(ShaderStrings.DEFAULT_FRAGMENT_SOURCE);
 
 	static int[] vertexIds(ProgramType programType) {
 		return programType.isDepth ? DEPTH_VERTEX_INDEXES.toIntArray() : VERTEX_INDEXES.toIntArray();

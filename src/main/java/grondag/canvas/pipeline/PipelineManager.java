@@ -110,7 +110,7 @@ public class PipelineManager {
 
 		if (forceRecompile) {
 			CanvasMod.LOG.info(I18n.get("info.canvas.recompile"));
-			Canvas.instance().recompile();
+			Canvas.INSTANCE.recompile();
 		}
 	}
 
@@ -231,7 +231,7 @@ public class PipelineManager {
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 
-		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.MISSING, new int[64]);
+		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.missing(), new int[64]);
 
 		final int[] v = collector.target();
 		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 0);

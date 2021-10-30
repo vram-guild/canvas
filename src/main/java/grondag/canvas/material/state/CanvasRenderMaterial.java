@@ -28,22 +28,35 @@ import net.minecraft.resources.ResourceLocation;
 
 import io.vram.frex.api.material.MaterialCondition;
 import io.vram.frex.api.material.MaterialShader;
-import io.vram.frex.api.material.RenderMaterial;
+import io.vram.frex.api.renderer.ConditionManager;
+import io.vram.frex.api.renderer.MaterialShaderManager;
+import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.texture.MaterialTexture;
+import io.vram.frex.base.renderer.BaseConditionManager.BaseMaterialCondition;
+import io.vram.frex.base.renderer.BaseMaterialShader;
 import io.vram.frex.base.renderer.material.BaseMaterialView;
 import io.vram.frex.base.renderer.material.BaseRenderMaterial;
 import io.vram.frex.base.renderer.util.ResourceCache;
 
-import grondag.canvas.apiimpl.MaterialConditionImpl;
+import grondag.canvas.apiimpl.Canvas;
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
-import grondag.canvas.shader.MaterialShaderId;
-import grondag.canvas.shader.MaterialShaderManager;
+import grondag.canvas.shader.MaterialShaderIndexer;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.texture.MaterialIndexer;
 
-public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMaterial {
+public class CanvasRenderMaterial extends BaseRenderMaterial {
+	protected static ConditionManager conditions;
+	protected static MaterialTextureManager textures;
+	protected static MaterialShaderManager shaders;
+
+	public static void init(ConditionManager conditionsIn, MaterialTextureManager texturesIn, MaterialShaderManager shadersIn) {
+		conditions = conditionsIn;
+		textures = texturesIn;
+		shaders = shadersIn;
+	}
+
 	protected final ResourceCache<MaterialIndexer> indexer;
 	protected final long collectorKey;
 	protected final int collectorIndex;
@@ -54,7 +67,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 	protected final MaterialTexture materialTexture;
 	protected final TextureMaterialState texture;
 
-	protected final MaterialShaderId shaderId;
+	protected final BaseMaterialShader shaderId;
 
 	protected final int vertexShaderIndex;
 	protected final ResourceLocation vertexShaderId;
@@ -73,15 +86,15 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 	 * Will be always visible condition in vertex-controlled render state.
 	 * This is ensured by the state mask.
 	 */
-	protected final MaterialConditionImpl condition;
+	protected final BaseMaterialCondition condition;
 
 	// PERF: use discardsTexture() to avoid overhead of animated textures
-	public CanvasRenderMaterial(BaseMaterialView finder, int index) {
+	public CanvasRenderMaterial(int index, BaseMaterialView finder) {
 		super(index, finder);
 
-		materialTexture = MaterialTexture.fromIndex(textureIndex);
+		materialTexture = textures.textureFromIndex(textureIndex);
 		texture = TextureMaterialState.fromId(materialTexture.id());
-		condition = (MaterialConditionImpl) super.condition();
+		condition = (BaseMaterialCondition) conditions.conditionFromIndex(conditionIndex());
 
 		collectorKey = MaterialStateEncoder.encodeCollectorKey(this, texture);
 		materialKey = MaterialStateEncoder.encodeMaterialKey(this);
@@ -91,7 +104,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 		collectorIndex = CollectorIndexMap.indexFromKey(collectorKey);
 		shaderFlags = (int) (materialKey >>> FLAG_SHIFT) & 0xFFFF;
 		renderState = CollectorIndexMap.renderStateForIndex(collectorIndex);
-		shaderId = (MaterialShaderId) super.shader();
+		shaderId = (BaseMaterialShader) shaders.shaderFromIndex(shaderIndex());
 		vertexShaderIndex = shaderId.vertexIndex;
 		fragmentShaderIndex = shaderId.fragmentIndex;
 		vertexShaderId = shaderId.vertexId;
@@ -107,11 +120,11 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 		//primaryTargetTransparency = primaryTargetTransparency(collectorKey);
 
 		// Important that these happen because otherwise material shaders will never be registered - they aren't part of render state.
-		MaterialShaderManager.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
-		MaterialShaderManager.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
-		MaterialShaderManager.INSTANCE.register(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
-		MaterialShaderManager.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
-		MaterialShaderManager.INSTANCE.register(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
+		MaterialShaderIndexer.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		MaterialShaderIndexer.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
+		MaterialShaderIndexer.INSTANCE.register(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
+		MaterialShaderIndexer.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
+		MaterialShaderIndexer.INSTANCE.register(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
 
 		indexer = new ResourceCache<>(() -> renderState.texture.materialIndexProvider().getIndexer(this));
 
@@ -179,7 +192,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 		sb.append("fog: ").append(fog()).append("\n");
 
 		sb.append("sorted: ").append(sorted()).append("\n");
-		final MaterialShaderId sid = (MaterialShaderId) shader();
+		final BaseMaterialShader sid = (BaseMaterialShader) shader();
 		sb.append("vertexShader: ").append(sid.vertexId.toString()).append(" (").append(sid.vertexIndex).append(")\n");
 		sb.append("fragmentShader: ").append(sid.fragmentId.toString()).append(" (").append(sid.fragmentIndex).append(")\n");
 
@@ -217,11 +230,11 @@ public class CanvasRenderMaterial extends BaseRenderMaterial implements RenderMa
 
 	@Override
 	public boolean isDefault() {
-		return this == CanvasMaterialManager.INSTANCE.defaultMaterial();
+		return this == Canvas.INSTANCE.materials().defaultMaterial();
 	}
 
 	@Override
 	public boolean isMissing() {
-		return this == CanvasMaterialManager.INSTANCE.missingMaterial();
+		return this == Canvas.INSTANCE.materials().missingMaterial();
 	}
 }

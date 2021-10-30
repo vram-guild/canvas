@@ -115,7 +115,7 @@ public class ConfigManager {
 			CanvasMod.LOG.error("Error loading pipeline config. Using default values.");
 		}
 
-		Canvas.instance().recompile();
+		Canvas.INSTANCE.recompile();
 	}
 
 	static void saveConfig() {

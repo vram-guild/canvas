@@ -22,11 +22,11 @@ package grondag.canvas.shader;
 
 import io.vram.frex.api.texture.SpriteIndex;
 
-public final class MaterialShaderImpl {
+public final class MaterialProgram {
 	public final ProgramType programType;
 	private GlMaterialProgram program;
 
-	private MaterialShaderImpl(ProgramType programType) {
+	private MaterialProgram(ProgramType programType) {
 		this.programType = programType;
 	}
 
@@ -34,7 +34,7 @@ public final class MaterialShaderImpl {
 		GlMaterialProgram result = program;
 
 		if (result == null) {
-			result = MaterialProgramManager.INSTANCE.getOrCreateMaterialProgram(programType);
+			result = GlMaterialProgramManager.INSTANCE.getOrCreateMaterialProgram(programType);
 			program = result;
 		}
 
@@ -64,8 +64,8 @@ public final class MaterialShaderImpl {
 		}
 	}
 
-	public static final MaterialShaderImpl COLOR = new MaterialShaderImpl(ProgramType.MATERIAL_COLOR);
-	public static final MaterialShaderImpl COLOR_TERRAIN = new MaterialShaderImpl(ProgramType.MATERIAL_COLOR_TERRAIN);
-	public static final MaterialShaderImpl DEPTH = new MaterialShaderImpl(ProgramType.MATERIAL_DEPTH);
-	public static final MaterialShaderImpl DEPTH_TERRAIN = new MaterialShaderImpl(ProgramType.MATERIAL_DEPTH_TERRAIN);
+	public static final MaterialProgram COLOR = new MaterialProgram(ProgramType.MATERIAL_COLOR);
+	public static final MaterialProgram COLOR_TERRAIN = new MaterialProgram(ProgramType.MATERIAL_COLOR_TERRAIN);
+	public static final MaterialProgram DEPTH = new MaterialProgram(ProgramType.MATERIAL_DEPTH);
+	public static final MaterialProgram DEPTH_TERRAIN = new MaterialProgram(ProgramType.MATERIAL_DEPTH_TERRAIN);
 }
