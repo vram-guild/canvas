@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.math.MatrixStack;
+import io.vram.frex.api.math.PackedSectionPos;
 import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.base.renderer.context.input.BaseBlockInputContext;
 import io.vram.frex.base.renderer.context.render.BlockRenderContext;
@@ -86,6 +87,11 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 		protected boolean isOpaque(int cacheIndex) {
 			return region.isClosed(cacheIndex);
 		}
+
+		@Override
+		protected int cacheIndexFromSectionIndex(int packedSectorIndex) {
+			return RenderRegionStateIndexer.packedSectionPosToRegionIndex(packedSectorIndex);
+		}
 	};
 
 	@Override
@@ -119,13 +125,13 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 	}
 
 	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
-		aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
+		aoCalc.prepare(PackedSectionPos.packWithSectionMask(blockPos));
 		prepareForFluid(blockState, blockPos, defaultAo);
 		renderInner(model);
 	}
 
 	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BakedModel model) {
-		aoCalc.prepare(RenderRegionStateIndexer.interiorIndex(blockPos));
+		aoCalc.prepare(PackedSectionPos.packWithSectionMask(blockPos));
 		prepareForBlock(model, blockState, blockPos, defaultAo);
 		renderInner((BlockModel) model);
 	}

@@ -20,8 +20,6 @@
 
 package grondag.canvas.light;
 
-import static grondag.canvas.terrain.util.RenderRegionStateIndexer.offsetInteriorIndex;
-import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToPackedSectionPos;
 import static io.vram.frex.api.math.FrexMathUtil.clampNormalized;
 import static io.vram.frex.api.model.util.GeometryUtil.AXIS_ALIGNED_FLAG;
 import static io.vram.frex.api.model.util.GeometryUtil.CUBIC_FLAG;
@@ -42,8 +40,7 @@ import io.vram.frex.base.renderer.ao.AoFaceData;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
-//import grondag.canvas.config.Configurator;
-import grondag.canvas.terrain.util.RenderRegionStateIndexer;
+//import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
 /**
  * Adaptation of inner, non-static class in BlockModelRenderer that serves same
@@ -75,7 +72,9 @@ public abstract class AoCalculator {
 	private final float[] w = new float[4];
 	private long blendCacheCompletionLowFlags;
 	private long blendCacheCompletionHighFlags;
-	private int regionRelativeCacheIndex;
+	protected int targetSectionPos;
+	protected int targetCacheIndex;
+
 	/**
 	 * Indicates which elements of {@link #faceData} have been computed for the current block.
 	 */
@@ -102,6 +101,8 @@ public abstract class AoCalculator {
 	protected abstract int brightness(int cacheIndex);
 
 	protected abstract boolean isOpaque(int cacheIndex);
+
+	protected abstract int cacheIndexFromSectionIndex(int packedSectionIndex);
 
 	private boolean checkBlendDirty(int blendIndex) {
 		if (blendIndex < 64) {
@@ -130,8 +131,10 @@ public abstract class AoCalculator {
 	 *
 	 * @param index region-relative index - must be an interior index - for block context, will always be 0
 	 */
-	public void prepare(int index) {
-		regionRelativeCacheIndex = index;
+	public void prepare(int packedSectionIndex) {
+		this.targetSectionPos = packedSectionIndex;
+		targetCacheIndex = this.cacheIndexFromSectionIndex(packedSectionIndex);
+
 		completionFlags = 0;
 		blendCacheCompletionLowFlags = 0;
 		blendCacheCompletionHighFlags = 0;
@@ -348,7 +351,7 @@ public abstract class AoCalculator {
 
 	private void irregularFaceFlat(BaseQuadEmitter quad) {
 		// use center light - interpolation too expensive given how often this happen for foliage, etc.
-		final int brightness = brightness(regionRelativeCacheIndex);
+		final int brightness = brightness(targetCacheIndex);
 		quad.lightmap(0, ColorUtil.maxBrightness(quad.lightmap(0), brightness));
 		quad.lightmap(1, ColorUtil.maxBrightness(quad.lightmap(1), brightness));
 		quad.lightmap(2, ColorUtil.maxBrightness(quad.lightmap(2), brightness));
@@ -377,7 +380,8 @@ public abstract class AoCalculator {
 	}
 
 	private void updateFace(AoFaceData fd, final int lightFace, boolean isOnBlockFace) {
-		int index = regionRelativeCacheIndex;
+		int centerSectionPos = targetSectionPos;
+		int centerCacheIndex = targetCacheIndex;
 
 		// Overall this is different from vanilla, which seems to be buggy
 		// basically, use neighbor pos unless it is full opaque - in that case cheat and use
@@ -385,42 +389,42 @@ public abstract class AoCalculator {
 		// A key difference from vanilla is that this position is then used as the center for
 		// all following offsets, which avoids anisotropy in smooth lighting.
 		if (isOnBlockFace) {
-			final int offsetIndex = offsetInteriorIndex(index, FaceUtil.faceFromIndex(lightFace));
+			final int offsetSectionPos = PackedSectionPos.offset(targetSectionPos, FaceUtil.faceFromIndex(lightFace));
+			final int offsetCacheIndex = cacheIndexFromSectionIndex(offsetSectionPos);
 
-			if (!isOpaque(offsetIndex)) {
-				index = offsetIndex;
+			if (!isOpaque(offsetCacheIndex)) {
+				centerSectionPos = offsetSectionPos;
+				centerCacheIndex = offsetCacheIndex;
 			}
 		}
 
-		final int packedXyz5 = regionIndexToPackedSectionPos(index);
-
-		fd.center = brightness(index);
-		final int aoCenter = ao(index);
+		fd.center = brightness(centerCacheIndex);
+		final int aoCenter = ao(centerCacheIndex);
 		fd.aoCenter = aoCenter;
 
 		final AoFace aoFace = AoFace.get(lightFace);
 
 		// vanilla was further offsetting these in the direction of the light face
 		// but it was actually mis-sampling and causing visible artifacts in certain situation
-		int cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.bottomOffset));
+		int cacheIndex = cacheIndexFromSectionIndex(PackedSectionPos.add(centerSectionPos, aoFace.bottomOffset));
 		final boolean bottomClear = !isOpaque(cacheIndex);
 		fd.bottom = bottomClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoBottom = ao(cacheIndex);
 		fd.aoBottom = aoBottom;
 
-		cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.topOffset));
+		cacheIndex = cacheIndexFromSectionIndex(PackedSectionPos.add(centerSectionPos, aoFace.topOffset));
 		final boolean topClear = !isOpaque(cacheIndex);
 		fd.top = topClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoTop = ao(cacheIndex);
 		fd.aoTop = aoTop;
 
-		cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.leftOffset));
+		cacheIndex = cacheIndexFromSectionIndex(PackedSectionPos.add(centerSectionPos, aoFace.leftOffset));
 		final boolean leftClear = !isOpaque(cacheIndex);
 		fd.left = leftClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoLeft = ao(cacheIndex);
 		fd.aoLeft = aoLeft;
 
-		cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.rightOffset));
+		cacheIndex = cacheIndexFromSectionIndex(PackedSectionPos.add(centerSectionPos, aoFace.rightOffset));
 		final boolean rightClear = !isOpaque(cacheIndex);
 		fd.right = rightClear ? brightness(cacheIndex) : OPAQUE;
 		final int aoRight = ao(cacheIndex);
@@ -431,7 +435,7 @@ public abstract class AoCalculator {
 			fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
 			fd.bottomLeft = OPAQUE;
 		} else { // at least one clear
-			cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.bottomLeftOffset));
+			cacheIndex = cacheIndexFromSectionIndex(PackedSectionPos.add(centerSectionPos, aoFace.bottomLeftOffset));
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
 			fd.aoBottomLeft = (ao(cacheIndex) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
@@ -442,7 +446,7 @@ public abstract class AoCalculator {
 			fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
 			fd.bottomRight = OPAQUE;
 		} else { // at least one clear
-			cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.bottomRightOffset));
+			cacheIndex = cacheIndexFromSectionIndex(PackedSectionPos.add(centerSectionPos, aoFace.bottomRightOffset));
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 			fd.aoBottomRight = (ao(cacheIndex) + aoBottom + aoCenter + aoRight + 1) >> 2;
@@ -453,7 +457,7 @@ public abstract class AoCalculator {
 			fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
 			fd.topLeft = OPAQUE;
 		} else { // at least one clear
-			cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.topLeftOffset));
+			cacheIndex = cacheIndexFromSectionIndex(PackedSectionPos.add(centerSectionPos, aoFace.topLeftOffset));
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
 			fd.aoTopLeft = (ao(cacheIndex) + aoTop + aoCenter + aoLeft + 1) >> 2;
@@ -464,7 +468,7 @@ public abstract class AoCalculator {
 			fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop + aoRight + 1 + aoCenter) >> 2;
 			fd.topRight = OPAQUE;
 		} else { // at least one clear
-			cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.topRightOffset));
+			cacheIndex = cacheIndexFromSectionIndex(PackedSectionPos.add(centerSectionPos, aoFace.topRightOffset));
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
 			fd.aoTopRight = (ao(cacheIndex) + aoTop + aoCenter + aoRight + 1) >> 2;
