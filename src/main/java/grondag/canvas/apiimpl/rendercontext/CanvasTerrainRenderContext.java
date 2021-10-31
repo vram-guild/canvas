@@ -39,13 +39,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.math.PackedSectionPos;
 import io.vram.frex.api.model.BlockModel;
+import io.vram.frex.base.renderer.ao.AoCalculator;
 import io.vram.frex.base.renderer.context.input.BaseBlockInputContext;
 import io.vram.frex.base.renderer.context.render.BlockRenderContext;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.light.AoCalculator;
 import grondag.canvas.light.LightSmoother;
 import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
