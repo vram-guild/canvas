@@ -36,14 +36,13 @@ import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
 import io.vram.frex.base.renderer.ao.AoFace;
+import io.vram.frex.base.renderer.ao.AoFace.WeightFunction;
 import io.vram.frex.base.renderer.ao.AoFaceCalc;
 import io.vram.frex.base.renderer.ao.AoFaceData;
-import io.vram.frex.base.renderer.ao.AoFace.Vertex2Float;
-import io.vram.frex.base.renderer.ao.AoFace.WeightFunction;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
-import grondag.canvas.config.Configurator;
+//import grondag.canvas.config.Configurator;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
 /**
@@ -66,8 +65,6 @@ public abstract class AoCalculator {
 	private static final int NORTH = Direction.NORTH.ordinal();
 	private static final int SOUTH = Direction.SOUTH.ordinal();
 	private final AoFaceCalc[] blendCache = new AoFaceCalc[BLEND_CACHE_ARRAY_SIZE];
-	// PERF: need to cache these vs only the calc results due to mixed use
-	private final AoFaceData localData = new AoFaceData();
 	/**
 	 * Caches results of {@link #gatherFace(Direction, boolean)} for the current block.
 	 */
@@ -140,14 +137,6 @@ public abstract class AoCalculator {
 		blendCacheCompletionHighFlags = 0;
 	}
 
-	public void computeFlatHd(BaseQuadEmitter quad, int flatBrightness) {
-		if (Configurator.hdLightmaps()) {
-			flatFaceSmoothHd(quad, flatBrightness);
-		} else {
-			assert false : "Called block lighter for flat lighting outside HD lighting model";
-		}
-	}
-
 	public void compute(BaseQuadEmitter quad) {
 		if (quad.hasVertexNormals()) {
 			// these can only be lit this way
@@ -156,24 +145,6 @@ public abstract class AoCalculator {
 		}
 
 		final int flags = quad.geometryFlags();
-
-		if (Configurator.hdLightmaps()) {
-			if ((flags & AXIS_ALIGNED_FLAG) == AXIS_ALIGNED_FLAG) {
-				if ((flags & LIGHT_FACE_FLAG) == LIGHT_FACE_FLAG) {
-					vanillaPartialFaceSmooth(quad, true);
-				} else {
-					blendedPartialFaceSmooth(quad);
-				}
-			} else {
-				// currently can't handle these
-				irregularFace(quad);
-				//quad.hdLight = null;
-			}
-
-			return;
-		}
-
-		//quad.hdLight = null;
 
 		switch (flags) {
 			case AXIS_ALIGNED_FLAG | CUBIC_FLAG | LIGHT_FACE_FLAG:
@@ -244,37 +215,6 @@ public abstract class AoCalculator {
 		}
 	}
 
-	private void vanillaPartialFaceSmooth(BaseQuadEmitter quad, boolean isOnLightFace) {
-		final int lightFace = quad.lightFaceId();
-		//final AoFaceData faceData = gatherFace(lightFace, isOnLightFace);
-		final AoFace face = AoFace.get(lightFace);
-		final Vertex2Float uFunc = face.uFunc;
-		final Vertex2Float vFunc = face.vFunc;
-
-		for (int i = 0; i < 4; i++) {
-			quad.u[i] = uFunc.apply(quad, i);
-			quad.v[i] = vFunc.apply(quad, i);
-		}
-
-		//quad.hdLight = LightmapHd.find(faceData);
-	}
-
-	private void flatFaceSmoothHd(BaseQuadEmitter quad, int flatBrightness) {
-		final int lightFace = quad.lightFaceId();
-		final AoFaceData faceData = localData;
-		faceData.setFlat(flatBrightness);
-		final AoFace face = AoFace.get(lightFace);
-		final Vertex2Float uFunc = face.uFunc;
-		final Vertex2Float vFunc = face.vFunc;
-
-		for (int i = 0; i < 4; i++) {
-			quad.u[i] = uFunc.apply(quad, i);
-			quad.v[i] = vFunc.apply(quad, i);
-		}
-
-		//quad.hdLight = LightmapHd.find(faceData);
-	}
-
 	/**
 	 * Returns linearly interpolated blend of outer and inner face based on depth of vertex in face.
 	 */
@@ -326,27 +266,6 @@ public abstract class AoCalculator {
 			wFunc.apply(quad, i, w);
 			quad.lightmap(i, ColorUtil.maxBrightness(quad.lightmap(i), faceData.weightedCombinedLight(w)));
 		}
-	}
-
-	private void blendedPartialFaceSmooth(BaseQuadEmitter quad) {
-		final int lightFace = quad.lightFaceId();
-		final float w1 = AoFace.get(lightFace).depthFunc.apply(quad, 0);
-		final float w0 = 1 - w1;
-		final AoFaceData faceData = localData;
-
-		// PERF: cache recent results somehow
-		AoFaceData.blendTo(gatherFace(lightFace, true), w0, gatherFace(lightFace, false), w1, faceData);
-
-		final AoFace face = AoFace.get(lightFace);
-		final Vertex2Float uFunc = face.uFunc;
-		final Vertex2Float vFunc = face.vFunc;
-
-		for (int i = 0; i < 4; i++) {
-			quad.u[i] = uFunc.apply(quad, i);
-			quad.v[i] = vFunc.apply(quad, i);
-		}
-
-		//quad.hdLight = LightmapHd.find(faceData);
 	}
 
 	private void irregularFace(BaseQuadEmitter quad) {
@@ -458,8 +377,6 @@ public abstract class AoCalculator {
 	}
 
 	private void updateFace(AoFaceData fd, final int lightFace, boolean isOnBlockFace) {
-		final boolean hd = Configurator.hdLightmaps();
-
 		int index = regionRelativeCacheIndex;
 
 		// Overall this is different from vanilla, which seems to be buggy
@@ -511,93 +428,48 @@ public abstract class AoCalculator {
 
 		if (!(leftClear || bottomClear)) {
 			// both not clear
-			if (hd) {
-				fd.aoBottomLeft = Math.min(aoLeft, aoBottom);
-			} else {
-				fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
-			}
-
+			fd.aoBottomLeft = (Math.min(aoLeft, aoBottom) + aoBottom + aoLeft + 1 + aoCenter) >> 2;
 			fd.bottomLeft = OPAQUE;
 		} else { // at least one clear
 			cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.bottomLeftOffset));
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
-
-			if (hd) {
-				fd.aoBottomLeft = ao(cacheIndex);
-			} else {
-				fd.aoBottomLeft = (ao(cacheIndex) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
-			}
+			fd.aoBottomLeft = (ao(cacheIndex) + aoBottom + aoCenter + aoLeft + 1) >> 2;  // bitwise divide by four, rounding up
 		}
 
 		if (!(rightClear || bottomClear)) {
 			// both not clear
-			if (hd) {
-				fd.aoBottomRight = Math.min(aoRight, aoBottom);
-			} else {
-				fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
-			}
-
+			fd.aoBottomRight = (Math.min(aoRight, aoBottom) + aoBottom + aoRight + 1 + aoCenter) >> 2;
 			fd.bottomRight = OPAQUE;
 		} else { // at least one clear
 			cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.bottomRightOffset));
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.bottomRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
-
-			if (hd) {
-				fd.aoBottomRight = ao(cacheIndex);
-			} else {
-				fd.aoBottomRight = (ao(cacheIndex) + aoBottom + aoCenter + aoRight + 1) >> 2;
-			}
+			fd.aoBottomRight = (ao(cacheIndex) + aoBottom + aoCenter + aoRight + 1) >> 2;
 		}
 
 		if (!(leftClear || topClear)) {
 			// both not clear
-			if (hd) {
-				fd.aoTopLeft = Math.min(aoLeft, aoTop);
-			} else {
-				fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
-			}
-
+			fd.aoTopLeft = (Math.min(aoLeft, aoTop) + aoTop + aoLeft + 1 + aoCenter) >> 2;
 			fd.topLeft = OPAQUE;
 		} else { // at least one clear
 			cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.topLeftOffset));
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topLeft = cornerClear ? brightness(cacheIndex) : OPAQUE;
-
-			if (hd) {
-				fd.aoTopLeft = ao(cacheIndex);
-			} else {
-				fd.aoTopLeft = (ao(cacheIndex) + aoTop + aoCenter + aoLeft + 1) >> 2;
-			}
+			fd.aoTopLeft = (ao(cacheIndex) + aoTop + aoCenter + aoLeft + 1) >> 2;
 		}
 
 		if (!(rightClear || topClear)) {
 			// both not clear
-			if (hd) {
-				fd.aoTopRight = Math.min(aoRight, aoTop);
-			} else {
-				fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop + aoRight + 1 + aoCenter) >> 2;
-			}
-
+			fd.aoTopRight = (Math.min(aoRight, aoTop) + aoTop + aoRight + 1 + aoCenter) >> 2;
 			fd.topRight = OPAQUE;
 		} else { // at least one clear
 			cacheIndex = RenderRegionStateIndexer.packedSectionPosToRegionIndex(PackedSectionPos.add(packedXyz5, aoFace.topRightOffset));
 			final boolean cornerClear = !isOpaque(cacheIndex);
 			fd.topRight = cornerClear ? brightness(cacheIndex) : OPAQUE;
-
-			if (hd) {
-				fd.aoTopRight = ao(cacheIndex);
-			} else {
-				fd.aoTopRight = (ao(cacheIndex) + aoTop + aoCenter + aoRight + 1) >> 2;
-			}
+			fd.aoTopRight = (ao(cacheIndex) + aoTop + aoCenter + aoRight + 1) >> 2;
 		}
 
-		if (hd) {
-			fd.updateHash();
-		}
-
-		//PERF: skip if not needed in HD model
 		fd.calc.compute(fd);
 	}
 }
