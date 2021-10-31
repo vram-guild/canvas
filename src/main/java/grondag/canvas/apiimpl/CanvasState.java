@@ -23,11 +23,13 @@ package grondag.canvas.apiimpl;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 
+import io.vram.frex.base.renderer.ao.AoFace;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasItemRenderContext;
-import grondag.canvas.light.AoVertexClampFunction;
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.perf.Timekeeper;
@@ -66,7 +68,7 @@ public class CanvasState {
 		CanvasItemRenderContext.reload();
 		ChunkRebuildCounters.reset();
 		ChunkColorCache.invalidate();
-		AoVertexClampFunction.reload();
+		AoFace.clampExteriorVertices(Configurator.clampExteriorVertices);
 
 		recompile();
 	}

@@ -38,6 +38,7 @@ import io.vram.frex.api.model.fluid.FluidModel;
 import io.vram.frex.api.renderloop.RenderReloadListener;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
+import io.vram.frex.base.renderer.ao.AoFace;
 
 import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.apiimpl.fluid.FluidHandler;
@@ -120,7 +121,7 @@ public class CanvasMod {
 
 		FluidModel.setReloadHandler(FluidHandler.HANDLER);
 		RenderReloadListener.register(CanvasState::reload);
-
+		AoFace.clampExteriorVertices(Configurator.clampExteriorVertices);
 		Compat.init();
 	}
 }

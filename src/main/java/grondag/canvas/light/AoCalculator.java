@@ -35,14 +35,15 @@ import io.vram.frex.api.math.PackedSectionPos;
 import io.vram.frex.api.model.util.ColorUtil;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.frex.api.model.util.PackedVector3f;
+import io.vram.frex.base.renderer.ao.AoFace;
 import io.vram.frex.base.renderer.ao.AoFaceCalc;
 import io.vram.frex.base.renderer.ao.AoFaceData;
+import io.vram.frex.base.renderer.ao.AoFace.Vertex2Float;
+import io.vram.frex.base.renderer.ao.AoFace.WeightFunction;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
 import grondag.canvas.config.Configurator;
-import grondag.canvas.light.AoFace.Vertex2Float;
-import grondag.canvas.light.AoFace.WeightFunction;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
 /**
