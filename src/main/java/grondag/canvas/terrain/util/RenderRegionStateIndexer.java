@@ -26,6 +26,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 
+import io.vram.frex.api.math.PackedSectionPos;
+
 /*
  * Static methods and definitions to efficiently
  * address positions within a render region.
@@ -143,7 +145,7 @@ public abstract class RenderRegionStateIndexer {
 		for (int x = -2; x <= 17; x++) {
 			for (int y = -2; y <= 17; y++) {
 				for (int z = -2; z <= 17; z++) {
-					final int fastIndex = (x + 2) | ((y + 2) << 5) | ((z + 2) << 10);
+					final int fastIndex = PackedSectionPos.pack(x, y, z);
 					final int cacheIndex = computeRegionIndex(x, y, z);
 					INDEX_LOOKUP[fastIndex] = cacheIndex;
 					REVERSE_INDEX_LOOKUP[cacheIndex] = fastIndex;
@@ -318,11 +320,6 @@ public abstract class RenderRegionStateIndexer {
 	}
 
 	/**
-	 * Add to make coordinates zero-based instead of starting at -2.
-	 */
-	private static final int ADDEND = 2 | (2 << 5) | (2 << 10);
-
-	/**
 	 * Returns an index of block position relative to the region origin.
 	 * Handles values that are within the padding distance, currently
 	 * -2 to 17, vs the 0-15 within a normal region.
@@ -337,23 +334,12 @@ public abstract class RenderRegionStateIndexer {
 	 * @return 0 to 7999, >= 4096 if position is outside the interior, -1 if inputs are invalid.
 	 */
 	public static int regionIndex(int x, int y, int z) {
-		final int index = x + (y << 5) + (z << 10) + ADDEND;
+		final int index = x + (y << 5) + (z << 10) + PackedSectionPos.PACKED_SECTION_ADDEND;
 		return (index & 32767) == index ? INDEX_LOOKUP[index] : -1;
 	}
 
-	/**
-	 * Takes a 5-bit per axis region index and a five-bit-per axis offset,
-	 * adds them and returns the compact index value consistent with
-	 * {@link #regionIndex(int, int, int)}.
-	 *
-	 * <p>Caller must ensure result of addition is in  -2 to 17 range.
-	 *
-	 * @param packedXyz5       must be in  -2 to 17 range (packed values 0-19)
-	 * @param signedXyzOffset5 must be in -1 to 1 (packed values 0-2)
-	 * @return equivalent to {@link #uncheckedRegionIndex(int, int, int)} with added values
-	 */
-	public static int fastOffsetRegionIndex(int packedXyz5, int signedXyzOffset5) {
-		return INDEX_LOOKUP[packedXyz5 + signedXyzOffset5 - 0b000010000100001];
+	public static int packedSectionPosToRegionIndex(int packedSectionPos) {
+		return INDEX_LOOKUP[packedSectionPos];
 	}
 
 	/**
@@ -361,7 +347,7 @@ public abstract class RenderRegionStateIndexer {
 	 * Values are +2 actual. (0-19 instead of -2 to 17).
 	 * Useful for extracting x, y, z values of a region index.
 	 */
-	public static int regionIndexToXyz5(int cacheIndex) {
+	public static int regionIndexToPackedSectionPos(int cacheIndex) {
 		return REVERSE_INDEX_LOOKUP[cacheIndex];
 	}
 
@@ -375,11 +361,11 @@ public abstract class RenderRegionStateIndexer {
 	 * @param z -1 to 1
 	 * @return
 	 */
-	public static int signedXyzOffset5(int x, int y, int z) {
+	public static int packedBlockOffset(int x, int y, int z) {
 		return (x + 1) | ((y + 1) << 5) | ((z + 1) << 10);
 	}
 
-	public static int signedXyzOffset5(Vec3i vec) {
-		return signedXyzOffset5(vec.getX(), vec.getY(), vec.getZ());
+	public static int packedBlockOffset(Vec3i vec) {
+		return packedBlockOffset(vec.getX(), vec.getY(), vec.getZ());
 	}
 }

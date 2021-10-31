@@ -25,7 +25,7 @@ import static grondag.canvas.terrain.util.RenderRegionStateIndexer.INTERIOR_STAT
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.REGION_PADDING;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.TOTAL_STATE_COUNT;
 import static grondag.canvas.terrain.util.RenderRegionStateIndexer.interiorIndex;
-import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToXyz5;
+import static grondag.canvas.terrain.util.RenderRegionStateIndexer.regionIndexToPackedSectionPos;
 
 import java.util.Arrays;
 
@@ -75,7 +75,7 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 
 		@Override
 		protected boolean closedAtRelativePos(BlockState blockState, int regionIndex) {
-			final int xyz5 = regionIndexToXyz5(regionIndex);
+			final int xyz5 = regionIndexToPackedSectionPos(regionIndex);
 			final int x = (xyz5 & 31) - REGION_PADDING;
 			final int y = ((xyz5 >> 5) & 31) - REGION_PADDING;
 			final int z = ((xyz5 >> 10) & 31) - REGION_PADDING;
@@ -209,7 +209,7 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 
 		if (result == Integer.MAX_VALUE) {
 			final BlockState state = states[cacheIndex];
-			final int packedXyz5 = regionIndexToXyz5(cacheIndex);
+			final int packedXyz5 = regionIndexToPackedSectionPos(cacheIndex);
 			final int x = (packedXyz5 & 31) - 2 + originX;
 			final int y = ((packedXyz5 >> 5) & 31) - 2 + originY;
 			final int z = (packedXyz5 >> 10) - 2 + originZ;
@@ -245,7 +245,7 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 			final BlockState state = states[cacheIndex];
 
 			if (state.getLightEmission() == 0) {
-				final int packedXyz5 = regionIndexToXyz5(cacheIndex);
+				final int packedXyz5 = regionIndexToPackedSectionPos(cacheIndex);
 				final int x = (packedXyz5 & 31) - 2 + originX;
 				final int y = ((packedXyz5 >> 5) & 31) - 2 + originY;
 				final int z = (packedXyz5 >> 10) - 2 + originZ;

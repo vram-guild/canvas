@@ -21,7 +21,6 @@
 package grondag.canvas.light;
 
 import static grondag.canvas.light.AoVertexClampFunction.clamp;
-import static grondag.canvas.terrain.util.RenderRegionStateIndexer.signedXyzOffset5;
 import static net.minecraft.core.Direction.DOWN;
 import static net.minecraft.core.Direction.EAST;
 import static net.minecraft.core.Direction.NORTH;
@@ -32,6 +31,7 @@ import static net.minecraft.core.Direction.WEST;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 
+import io.vram.frex.api.math.PackedSectionPos;
 import io.vram.frex.base.renderer.mesh.BaseQuadView;
 
 /**
@@ -119,6 +119,7 @@ enum AoFace {
 	final Vertex2Float depthFunc;
 	final Vertex2Float uFunc;
 	final Vertex2Float vFunc;
+
 	final int bottomOffset;
 	final int leftOffset;
 	final int topOffset;
@@ -140,15 +141,15 @@ enum AoFace {
 		final Vec3i topVec = top.getNormal();
 		final Vec3i rightVec = right.getNormal();
 
-		bottomOffset = signedXyzOffset5(bottomVec);
-		leftOffset = signedXyzOffset5(leftVec);
-		topOffset = signedXyzOffset5(topVec);
-		rightOffset = signedXyzOffset5(rightVec);
+		bottomOffset = PackedSectionPos.pack(bottomVec);
+		leftOffset = PackedSectionPos.pack(leftVec);
+		topOffset = PackedSectionPos.pack(topVec);
+		rightOffset = PackedSectionPos.pack(rightVec);
 
-		bottomLeftOffset = bottomOffset + leftOffset - 0b000010000100001;
-		bottomRightOffset = bottomOffset + rightOffset - 0b000010000100001;
-		topLeftOffset = topOffset + leftOffset - 0b000010000100001;
-		topRightOffset = topOffset + rightOffset - 0b000010000100001;
+		bottomLeftOffset = PackedSectionPos.add(bottomOffset, leftOffset);
+		bottomRightOffset = PackedSectionPos.add(bottomOffset, rightOffset);
+		topLeftOffset = PackedSectionPos.add(topOffset, leftOffset);
+		topRightOffset = PackedSectionPos.add(topOffset, rightOffset);
 
 		this.depthFunc = depthFunc;
 		this.weightFunc = weightFunc;
