@@ -450,7 +450,7 @@ public class RenderRegion implements TerrainExecutorTask {
 						}
 
 						final BakedModel model = blockRenderManager.getBlockModel(blockState);
-						context.renderBlock(blockState, searchPos, model.useAmbientOcclusion(), model);
+						context.renderBlock(blockState, searchPos, model);
 					}
 				}
 			}

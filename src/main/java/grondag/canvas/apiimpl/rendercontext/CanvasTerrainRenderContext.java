@@ -130,9 +130,9 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 		renderInner(model);
 	}
 
-	public void renderBlock(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BakedModel model) {
+	public void renderBlock(BlockState blockState, BlockPos blockPos, final BakedModel model) {
 		aoCalc.prepare(PackedSectionPos.packWithSectionMask(blockPos));
-		prepareForBlock(model, blockState, blockPos, defaultAo);
+		prepareForBlock(model, blockState, blockPos);
 		renderInner((BlockModel) model);
 	}
 
