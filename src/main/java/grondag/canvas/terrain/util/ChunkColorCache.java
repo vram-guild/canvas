@@ -70,7 +70,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 		return version < VERSION;
 	}
 
-	private Biome getBiome(int x, int y, int z) {
+	public Biome getBiome(int x, int y, int z) {
 		return ((BiomeManagerExt) world.getBiomeManager()).canvas_getBiome(x, y, z, this);
 	}
 

@@ -39,6 +39,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -269,10 +270,13 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 	public int getBlockTint(BlockPos blockPos, ColorResolver colorResolver) {
 		final int x = blockPos.getX();
 		final int z = blockPos.getZ();
+		return ChunkColorCache.get(getChunk(x >> 4, z >> 4)).getColor(x, blockPos.getY(), z, colorResolver);
+	}
 
-		final int result = ChunkColorCache.get(getChunk(x >> 4, z >> 4)).getColor(x, blockPos.getY(), z, colorResolver);
-
-		return result;
+	public Biome getBiome(BlockPos blockPos) {
+		final int x = blockPos.getX();
+		final int z = blockPos.getZ();
+		return ChunkColorCache.get(getChunk(x >> 4, z >> 4)).getBiome(x, blockPos.getY(), z);
 	}
 
 	/**

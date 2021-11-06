@@ -33,6 +33,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -105,6 +106,16 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 			@Override
 			public @Nullable Object blockEntityRenderData(BlockPos pos) {
 				return region.getBlockEntityRenderAttachment(pos);
+			}
+
+			@Override
+			public Biome getBiome(BlockPos pos) {
+				return region.getBiome(pos);
+			}
+
+			@Override
+			public boolean hasBiomeAccess() {
+				return true;
 			}
 		};
 	}
