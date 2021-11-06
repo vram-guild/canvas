@@ -34,14 +34,12 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
 
 import io.vram.frex.api.config.FrexFeature;
-import io.vram.frex.api.model.fluid.FluidModel;
 import io.vram.frex.api.renderloop.RenderReloadListener;
 import io.vram.frex.api.rendertype.RenderTypeExclusion;
 import io.vram.frex.api.rendertype.VanillaShaderInfo;
 import io.vram.frex.base.renderer.ao.AoFace;
 
 import grondag.canvas.apiimpl.CanvasState;
-import grondag.canvas.apiimpl.fluid.FluidHandler;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
@@ -119,7 +117,6 @@ public class CanvasMod {
 			return false;
 		});
 
-		FluidModel.setReloadHandler(FluidHandler.HANDLER);
 		RenderReloadListener.register(CanvasState::reload);
 		AoFace.clampExteriorVertices(Configurator.clampExteriorVertices);
 		Compat.init();
