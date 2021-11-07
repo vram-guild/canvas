@@ -403,6 +403,8 @@ public class RenderRegion implements TerrainExecutorTask {
 			ChunkRebuildCounters.startChunk();
 		}
 
+		context.renderBakeListeners();
+
 		final VertexCollectorList collectors = context.encoder.collectors;
 
 		final BlockPos.MutableBlockPos searchPos = context.searchPos;

@@ -33,6 +33,8 @@ import net.minecraft.ReportedException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -40,6 +42,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.math.PackedSectionPos;
 import io.vram.frex.api.model.BlockModel;
+import io.vram.frex.api.world.RenderRegionBakeListener.BlockStateRenderer;
+import io.vram.frex.api.world.RenderRegionBakeListener.RenderRegionContext;
 import io.vram.frex.base.renderer.ao.AoCalculator;
 import io.vram.frex.base.renderer.context.input.BaseBlockInputContext;
 import io.vram.frex.base.renderer.context.render.BlockRenderContext;
@@ -55,7 +59,7 @@ import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 /**
  * Context for non-terrain block rendering.
  */
-public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> {
+public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintGetter> implements BlockStateRenderer {
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
 	public final ObjectOpenHashSet<BlockEntity> addedBlockEntities = new ObjectOpenHashSet<>();
@@ -63,14 +67,17 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 
 	public final InputRegion region;
 	public final MatrixStack matrixStack = MatrixStack.cast(new PoseStack());
+	protected final RenderRegionContext<BlockAndTintGetter> bakedListenerContext;
 
 	public final TerrainQuadEncoder encoder;
 
+	@SuppressWarnings("unchecked")
 	public CanvasTerrainRenderContext() {
 		super();
 		region = new InputRegion(this);
 		inputContext.prepareForWorld(region, true, matrixStack);
 		encoder = new TerrainQuadEncoder(emitter, inputContext);
+		bakedListenerContext = (RenderRegionContext<BlockAndTintGetter>) inputContext;
 	}
 
 	private final AoCalculator aoCalc = new AoCalculator() {
@@ -95,29 +102,41 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 		}
 	};
 
+	protected class InputContext extends BaseBlockInputContext<BlockAndTintGetter> implements RenderRegionContext<BlockAndTintGetter> {
+		@Override
+		protected int fastBrightness(BlockPos pos) {
+			return region.cachedBrightness(pos);
+		}
+
+		@Override
+		public @Nullable Object blockEntityRenderData(BlockPos pos) {
+			return region.getBlockEntityRenderAttachment(pos);
+		}
+
+		@Override
+		public Biome getBiome(BlockPos pos) {
+			return region.getBiome(pos);
+		}
+
+		@Override
+		public boolean hasBiomeAccess() {
+			return true;
+		}
+
+		@Override
+		public BlockPos origin() {
+			return searchPos.set(region.originX(), region.originY(), region.originZ());
+		}
+
+		@Override
+		public MutableBlockPos originOffset(int x, int y, int z) {
+			return searchPos.set(region.originX() + x, region.originY() + y, region.originZ() + z);
+		}
+	}
+
 	@Override
-	protected BaseBlockInputContext<InputRegion> createInputContext() {
-		return new BaseBlockInputContext<>() {
-			@Override
-			protected int fastBrightness(BlockPos pos) {
-				return region.cachedBrightness(pos);
-			}
-
-			@Override
-			public @Nullable Object blockEntityRenderData(BlockPos pos) {
-				return region.getBlockEntityRenderAttachment(pos);
-			}
-
-			@Override
-			public Biome getBiome(BlockPos pos) {
-				return region.getBiome(pos);
-			}
-
-			@Override
-			public boolean hasBiomeAccess() {
-				return true;
-			}
-		};
+	protected InputContext createInputContext() {
+		return new InputContext();
 	}
 
 	public CanvasTerrainRenderContext prepareForRegion(PackedInputRegion protoRegion) {
@@ -133,6 +152,22 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 		}
 
 		return this;
+	}
+
+	public void renderBakeListeners() {
+		final var bakeListeners = region.bakeListeners;
+
+		if (!bakeListeners.isEmpty()) {
+			final int limit = bakeListeners.size();
+
+			for (int n = 0; n < limit; ++n) {
+				final var listener = bakeListeners.get(n);
+				inputContext.setWorld(listener.blockViewOverride(region));
+				listener.bake(bakedListenerContext, this);
+			}
+
+			inputContext.setWorld(region);
+		}
 	}
 
 	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
@@ -176,5 +211,13 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<InputRegion> 
 	@Override
 	protected void encodeQuad() {
 		encoder.encode();
+	}
+
+	@Override
+	public void bake(BlockPos pos, BlockState state) {
+		matrixStack.push();
+		matrixStack.translate(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15);
+		renderBlock(state, pos, BlockModel.get(state));
+		matrixStack.pop();
 	}
 }

@@ -45,6 +45,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 
+import io.vram.frex.api.world.RenderRegionBakeListener;
+
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.util.ChunkColorCache;
@@ -67,6 +69,7 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 	protected final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 	protected final Object[] renderData = new Object[INTERIOR_STATE_COUNT];
 	private final BlockState[] states = new BlockState[TOTAL_STATE_COUNT];
+	public final ObjectArrayList<RenderRegionBakeListener> bakeListeners = new ObjectArrayList<>();
 
 	public final RegionOcclusionCalculator occlusion = new RegionOcclusionCalculator() {
 		@Override
@@ -93,6 +96,9 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 	}
 
 	public void prepare(PackedInputRegion packedRegion) {
+		bakeListeners.clear();
+		bakeListeners.addAll(packedRegion.bakeListenerContext.listeners);
+
 		System.arraycopy(packedRegion.chunks, 0, chunks, 0, 16);
 		System.arraycopy(EMPTY_BLOCK_ENTITIES, 0, blockEntities, 0, INTERIOR_STATE_COUNT);
 		System.arraycopy(EMPTY_RENDER_DATA, 0, renderData, 0, INTERIOR_STATE_COUNT);

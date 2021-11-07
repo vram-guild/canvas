@@ -80,6 +80,8 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
 import io.vram.frex.api.world.BlockEntityRenderData;
+import io.vram.frex.api.world.RenderRegionBakeListener;
+import io.vram.frex.impl.event.ChunkRenderConditionContext;
 
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.terrain.util.ChunkPaletteCopier;
@@ -96,6 +98,7 @@ public class PackedInputRegion extends AbstractInputRegion {
 	private static final ArrayBlockingQueue<PackedInputRegion> POOL = new ArrayBlockingQueue<>(256);
 
 	public final ObjectArrayList<BlockEntity> blockEntities = new ObjectArrayList<>();
+	public final ChunkRenderConditionContext bakeListenerContext = new ChunkRenderConditionContext();
 
 	final BlockState[] states = new BlockState[EXTERIOR_STATE_COUNT];
 	final ShortArrayList renderDataPos = new ShortArrayList();
@@ -142,9 +145,12 @@ public class PackedInputRegion extends AbstractInputRegion {
 		final LevelChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
 		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, originY);
 
+		final ChunkRenderConditionContext bakeListenerContext = this.bakeListenerContext.prepare(world, originX, originY, originZ);
+		RenderRegionBakeListener.prepareInvocations(bakeListenerContext, bakeListenerContext.listeners);
+
 		final PackedInputRegion result;
 
-		if (mainSectionCopy == ChunkPaletteCopier.AIR_COPY) {
+		if (mainSectionCopy == ChunkPaletteCopier.AIR_COPY && bakeListenerContext.listeners.isEmpty()) {
 			release();
 			result = SignalInputRegion.EMPTY;
 		} else {
