@@ -79,7 +79,7 @@ public class TerrainEncoder {
 		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
 
 		final boolean aoDisabled = !Minecraft.useAmbientOcclusion();
-		final float[] aoData = quad.ao;
+		final int[] aoData = quad.ao;
 		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();
 
 		assert mat.preset() != MaterialConstants.PRESET_DEFAULT;
@@ -160,7 +160,7 @@ public class TerrainEncoder {
 			target[toIndex] = sectorId | normalFlagBits | tangentFlagBits | (xFract << 16);
 			target[toIndex + 1] = yFract | (zFract << 16);
 
-			final int ao = aoDisabled ? 0xFF000000 : (Math.round(aoData[i] * 255) << 24);
+			final int ao = aoDisabled ? 0xFF000000 : (aoData[i] << 24);
 			target[toIndex + 2] = xInt | (yInt << 8) | (zInt << 16) | ao;
 
 			target[toIndex + 3] = source[fromIndex + VERTEX_COLOR];
