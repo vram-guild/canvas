@@ -1,5 +1,5 @@
 {
-  "defaultMaterial": "canvas:emissive_no_diffuse",
+  "defaultMaterial": "frex:emissive_no_diffuse",
   "variants": {
 	"east=up,north=up,power=0,south=up,west=up": {
 	  "defaultMaterial": "fabric:standard"

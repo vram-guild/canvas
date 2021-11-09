@@ -6,7 +6,7 @@
 	  				"texture": "minecraft:textures/entity/zombie/drowned.png"
 	  			}
 	  		},
-		  	"material": "canvas:emissive_transform"
+		  	"material": "frex:emissive_transform"
 		}
   	]
 }

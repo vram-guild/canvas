@@ -6,7 +6,7 @@
 	  				"renderLayerName": "eyes"
 	  			}
 	  		},
-		  	"material": "canvas:emissive_transform"
+		  	"material": "frex:emissive_transform"
 		}
   	]
 }

@@ -3,7 +3,7 @@
 	"spriteMap": [
 	  {
 		"sprite": "minecraft:block/soul_campfire_fire",
-		"material": "canvas:emissive_no_diffuse"
+		"material": "frex:emissive_no_diffuse"
 	  },
 	  {
 		"sprite": "minecraft:block/soul_campfire_log_lit",
