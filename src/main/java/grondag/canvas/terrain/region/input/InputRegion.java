@@ -114,7 +114,7 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 		baseSectionIndex = packedRegion.baseSectionIndex;
 		chunkBaseZ = packedRegion.chunkBaseZ;
 
-		final var mainSection = getSection(0, 0, 0);
+		final var mainSection = getSection(1, 1, 1);
 
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {

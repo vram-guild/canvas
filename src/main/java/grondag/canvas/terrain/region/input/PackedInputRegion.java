@@ -132,11 +132,11 @@ public class PackedInputRegion extends AbstractInputRegion {
 		this.originY = originY;
 		this.originZ = originZ;
 
-		final int chunkBaseX = originX >> 4;
-		final int chunkBaseZ = originZ >> 4;
+		final int chunkBaseX = (originX >> 4) - 1;
+		final int chunkBaseZ = (originZ >> 4) - 1;
 
 		this.chunkBaseX = chunkBaseX;
-		baseSectionIndex = (originY - world.getMinBuildHeight()) >> 4;
+		baseSectionIndex = ((originY - world.getMinBuildHeight()) >> 4) - 1;
 		this.chunkBaseZ = chunkBaseZ;
 
 		final LevelChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
