@@ -81,7 +81,7 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 
 import io.vram.frex.api.world.BlockEntityRenderData;
 import io.vram.frex.api.world.RenderRegionBakeListener;
-import io.vram.frex.impl.event.ChunkRenderConditionContext;
+import io.vram.frex.impl.world.ChunkRenderConditionContext;
 
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.terrain.util.ChunkPaletteCopier;

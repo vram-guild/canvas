@@ -52,7 +52,7 @@ import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutorTask;
-import grondag.fermion.varia.Useful;
+import grondag.canvas.varia.CircleHacks;
 
 public class TerrainIterator implements TerrainExecutorTask {
 	public static final int IDLE = 0;
@@ -256,11 +256,11 @@ public class TerrainIterator implements TerrainExecutorTask {
 			final int y = above ? (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0 : worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
 			final int x = BlockPos.getX(cameraChunkOrigin);
 			final int z = BlockPos.getZ(cameraChunkOrigin);
-			final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
+			final int limit = CircleHacks.getLastDistanceSortedOffsetIndex(renderDistance);
 			final int entryFace = above ? FaceUtil.UP_FLAG : FaceUtil.DOWN_FLAG;
 
 			for (int i = 0; i < limit; ++i) {
-				final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
+				final Vec3i offset = CircleHacks.getDistanceSortedCircularOffset(i);
 				final RenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
 
 				if (region != null) {
@@ -452,7 +452,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final int y = BlockPos.getY(cameraChunkOrigin);
 		final int x = BlockPos.getX(cameraChunkOrigin);
 		final int z = BlockPos.getZ(cameraChunkOrigin);
-		final int limit = Useful.getLastDistanceSortedOffsetIndex(renderDistance);
+		final int limit = CircleHacks.getLastDistanceSortedOffsetIndex(renderDistance);
 		final int yMin = worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
 		final int yMax = (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0;
 
@@ -464,7 +464,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 				continue;
 			}
 
-			final Vec3i offset = Useful.getDistanceSortedCircularOffset(i);
+			final Vec3i offset = CircleHacks.getDistanceSortedCircularOffset(i);
 
 			final RenderRegion region = regionStorage.getOrCreateRegion(
 					(offset.getX() << 4) + x,
