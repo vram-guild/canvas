@@ -37,7 +37,6 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RunningTrimmedMean;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.world.entity.Entity;
@@ -49,13 +48,9 @@ public interface LevelRendererExt {
 
 	ClientLevel canvas_world();
 
-	TextureManager canvas_textureManager();
-
 	EntityRenderDispatcher canvas_entityRenderDispatcher();
 
 	RenderBuffers canvas_bufferBuilders();
-
-	int canvas_getAndIncrementFrameIndex();
 
 	RunningTrimmedMean canvas_chunkUpdateSmoother();
 

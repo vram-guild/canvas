@@ -191,7 +191,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 	 * also  be added to the existing raster.
 	 * or
 	 */
-	public void setupTerrain(Camera camera, int frameCounter, boolean shouldCullChunks) {
+	public void setupTerrain(Camera camera, boolean shouldCullChunks) {
 		final int renderDistance = worldRenderState.chunkRenderDistance();
 		final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
 		final TerrainIterator terrainIterator = worldRenderState.terrainIterator;
@@ -328,7 +328,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		ShaderDataManager.captureFogDistances();
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
-		setupTerrain(camera, wr.canvas_getAndIncrementFrameIndex(), shouldCullChunks(camera.getBlockPosition()));
+		setupTerrain(camera, shouldCullChunks(camera.getBlockPosition()));
 		eventContext.setFrustum(worldRenderState.terrainFrustum);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "after_setup_event");

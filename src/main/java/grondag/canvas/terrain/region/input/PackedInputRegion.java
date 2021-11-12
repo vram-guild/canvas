@@ -84,8 +84,6 @@ import io.vram.frex.api.world.RenderRegionBakeListener;
 import io.vram.frex.impl.world.ChunkRenderConditionContext;
 
 import grondag.canvas.perf.ChunkRebuildCounters;
-import grondag.canvas.terrain.util.ChunkPaletteCopier;
-import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
 /**
  * Serves as a container to capture world state data on the main thread as quickly as possible
@@ -104,7 +102,6 @@ public class PackedInputRegion extends AbstractInputRegion {
 	final ShortArrayList renderDataPos = new ShortArrayList();
 	final ObjectArrayList<Object> renderData = new ObjectArrayList<>();
 	final ShortArrayList blockEntityPos = new ShortArrayList();
-	PaletteCopy mainSectionCopy;
 
 	public static PackedInputRegion claim(ClientLevel world, BlockPos origin) {
 		final PackedInputRegion result = POOL.poll();
@@ -143,17 +140,17 @@ public class PackedInputRegion extends AbstractInputRegion {
 		this.chunkBaseZ = chunkBaseZ;
 
 		final LevelChunk mainChunk = world.getChunk(chunkBaseX + 1, chunkBaseZ + 1);
-		mainSectionCopy = ChunkPaletteCopier.captureCopy(mainChunk, originY);
 
 		final ChunkRenderConditionContext bakeListenerContext = this.bakeListenerContext.prepare(world, originX, originY, originZ);
 		RenderRegionBakeListener.prepareInvocations(bakeListenerContext, bakeListenerContext.listeners);
 
 		final PackedInputRegion result;
 
-		if (mainSectionCopy == ChunkPaletteCopier.AIR_COPY && bakeListenerContext.listeners.isEmpty()) {
+		if (mainChunk.isEmpty() && bakeListenerContext.listeners.isEmpty()) {
 			release();
 			result = SignalInputRegion.EMPTY;
 		} else {
+			// WIP: move this to input region?
 			captureBlockEntities(mainChunk);
 			chunks[1 | (1 << 2)] = mainChunk;
 			chunks[0 | (0 << 2)] = world.getChunk(chunkBaseX + 0, chunkBaseZ + 0);
@@ -165,6 +162,7 @@ public class PackedInputRegion extends AbstractInputRegion {
 			chunks[2 | (1 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 1);
 			chunks[2 | (2 << 2)] = world.getChunk(chunkBaseX + 2, chunkBaseZ + 2);
 
+			// WIP: move these to input region
 			captureCorners();
 			captureEdges();
 			captureFaces();
@@ -176,12 +174,6 @@ public class PackedInputRegion extends AbstractInputRegion {
 			ChunkRebuildCounters.completeCopy();
 		}
 
-		return result;
-	}
-
-	PaletteCopy takePaletteCopy() {
-		final PaletteCopy result = mainSectionCopy;
-		mainSectionCopy = null;
 		return result;
 	}
 
@@ -327,11 +319,6 @@ public class PackedInputRegion extends AbstractInputRegion {
 	}
 
 	public void release() {
-		if (mainSectionCopy != null) {
-			mainSectionCopy.release();
-			mainSectionCopy = null;
-		}
-
 		for (int x = 0; x < 3; x++) {
 			for (int z = 0; z < 3; z++) {
 				chunks[x | (z << 2)] = null;

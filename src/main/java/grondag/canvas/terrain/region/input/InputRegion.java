@@ -50,7 +50,6 @@ import io.vram.frex.api.world.RenderRegionBakeListener;
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.terrain.occlusion.geometry.RegionOcclusionCalculator;
 import grondag.canvas.terrain.util.ChunkColorCache;
-import grondag.canvas.terrain.util.ChunkPaletteCopier.PaletteCopy;
 
 // FIX: should not allow direct world access, esp from non-main threads
 public class InputRegion extends AbstractInputRegion implements BlockAndTintGetter {
@@ -115,17 +114,15 @@ public class InputRegion extends AbstractInputRegion implements BlockAndTintGett
 		baseSectionIndex = packedRegion.baseSectionIndex;
 		chunkBaseZ = packedRegion.chunkBaseZ;
 
-		final PaletteCopy pc = packedRegion.takePaletteCopy();
+		final var mainSection = getSection(0, 0, 0);
 
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {
 				for (int z = 0; z < 16; z++) {
-					states[interiorIndex(x, y, z)] = pc.apply(x | (y << 8) | (z << 4));
+					states[interiorIndex(x, y, z)] = mainSection.getBlockState(x, y, z);
 				}
 			}
 		}
-
-		pc.release();
 
 		System.arraycopy(packedRegion.states, 0, states, INTERIOR_STATE_COUNT, EXTERIOR_STATE_COUNT);
 

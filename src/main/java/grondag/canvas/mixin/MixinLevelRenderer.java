@@ -51,7 +51,6 @@ import net.minecraft.client.renderer.ViewArea;
 import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher.RenderChunk;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.world.entity.Entity;
@@ -69,9 +68,7 @@ import grondag.canvas.render.world.CanvasWorldRenderer;
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer implements LevelRendererExt {
 	@Shadow private ClientLevel level;
-	@Shadow private int frameId;
 	@Shadow private boolean generateClouds;
-	@Shadow private TextureManager textureManager;
 	@Shadow private EntityRenderDispatcher entityRenderDispatcher;
 	// PERF: prevent wasteful allocation of these - they are not all used with Canvas and take a lot of space
 	@Shadow private RenderBuffers renderBuffers;
@@ -102,7 +99,7 @@ public class MixinLevelRenderer implements LevelRendererExt {
 	private static boolean shouldWarnOnSetupTerrain = true;
 
 	@Inject(at = @At("HEAD"), method = "setupRender", cancellable = true)
-	private void onSetupRender(Camera camera, Frustum frustum, boolean bl, int i, boolean bl2, CallbackInfo ci) {
+	private void onSetupRender(Camera camera, Frustum frustum, boolean bl, boolean bl2, CallbackInfo ci) {
 		if (shouldWarnOnSetupTerrain) {
 			CanvasMod.LOG.warn("[Canvas] WorldRenderer.setupRender() called unexpectedly. This probably indicates a mod incompatibility.");
 			ci.cancel();
@@ -120,7 +117,7 @@ public class MixinLevelRenderer implements LevelRendererExt {
 		((CanvasWorldRenderer) (Object) this).scheduleRegionRender(x, y, z, urgent);
 	}
 
-	@Redirect(method = "allChanged()V", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Options;renderDistance:I", ordinal = 1))
+	@Redirect(method = "allChanged()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Options;getEffectiveRenderDistance()I", ordinal = 1))
 	private int onReloadZeroChunkStorage(Options options) {
 		return 0;
 	}
@@ -224,11 +221,6 @@ public class MixinLevelRenderer implements LevelRendererExt {
 	}
 
 	@Override
-	public TextureManager canvas_textureManager() {
-		return textureManager;
-	}
-
-	@Override
 	public EntityRenderDispatcher canvas_entityRenderDispatcher() {
 		return entityRenderDispatcher;
 	}
@@ -236,11 +228,6 @@ public class MixinLevelRenderer implements LevelRendererExt {
 	@Override
 	public RenderBuffers canvas_bufferBuilders() {
 		return renderBuffers;
-	}
-
-	@Override
-	public int canvas_getAndIncrementFrameIndex() {
-		return frameId++;
 	}
 
 	@Override

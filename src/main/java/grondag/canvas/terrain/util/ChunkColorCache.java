@@ -25,15 +25,14 @@ import java.util.function.Function;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeManager;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ChunkBiomeContainer;
 import net.minecraft.world.level.chunk.LevelChunk;
 
-import grondag.canvas.mixinterface.BiomeManagerExt;
 import grondag.canvas.mixinterface.LevelChunkExt;
 
 //FEAT: per-vertex blending (quality)
@@ -48,6 +47,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 	private final BiomeColorCache grassCache = new BiomeColorCache(BiomeColors.GRASS_COLOR_RESOLVER, c -> c.grassCache);
 	private final BiomeColorCache foliageCache = new BiomeColorCache(BiomeColors.FOLIAGE_COLOR_RESOLVER, c -> c.foliageCache);
 	private final BiomeColorCache waterCache = new BiomeColorCache(BiomeColors.WATER_COLOR_RESOLVER, c -> c.waterCache);
+	private final MutableBlockPos searchPos = new MutableBlockPos();
 
 	public ChunkColorCache(ClientLevel world, LevelChunk chunk) {
 		this.world = world;
@@ -71,7 +71,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 	}
 
 	public Biome getBiome(int x, int y, int z) {
-		return ((BiomeManagerExt) world.getBiomeManager()).canvas_getBiome(x, y, z, this);
+		return world.getBiomeManager().getBiome(searchPos.set(x, y, z));
 	}
 
 	private LevelChunk getChunk(int cx, int cz) {
@@ -87,11 +87,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 		final ChunkAccess chunk = getChunk(x >> 2, z >> 2);
 
 		if (chunk != null) {
-			final ChunkBiomeContainer ba = chunk.getBiomes();
-
-			if (ba != null) {
-				return chunk.getBiomes().getNoiseBiome(x, y, z);
-			}
+			return chunk.getNoiseBiome(x, y, z);
 		}
 
 		return world.getUncachedNoiseBiome(x, y, z);
