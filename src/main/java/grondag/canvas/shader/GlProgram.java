@@ -339,7 +339,7 @@ public class GlProgram {
 	}
 
 	public boolean containsUniformSpec(Uniform<?> uniform) {
-		return containsUniformSpec(uniform.searchString(), uniform.name);
+		return containsUniformSpec(uniform.searchString(), uniform.uniformName);
 	}
 
 	public boolean containsUniformSpec(String type, String name) {
@@ -352,12 +352,12 @@ public class GlProgram {
 		protected static final int FLAG_NEEDS_INITIALIZATION = 2;
 		protected final Consumer<T> initializer;
 		protected final UniformRefreshFrequency frequency;
-		private final String name;
+		private final String uniformName;
 		protected int flags = 0;
 		protected int unifID = -1;
 
 		protected Uniform(String name, Consumer<T> initializer, UniformRefreshFrequency frequency) {
-			this.name = name;
+			this.uniformName = name;
 			this.initializer = initializer;
 			this.frequency = frequency;
 			uniforms.add(this);
@@ -378,11 +378,11 @@ public class GlProgram {
 		}
 
 		private void load(int programID) {
-			this.unifID = GFX.getUniformLocation(programID, name);
+			this.unifID = GFX.getUniformLocation(programID, uniformName);
 
 			if (this.unifID == -1) {
 				if (Configurator.logMissingUniforms) {
-					CanvasMod.LOG.info(I18n.get("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
+					CanvasMod.LOG.info(I18n.get("debug.canvas.missing_uniform", uniformName, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
 				}
 
 				this.flags = 0;
@@ -409,7 +409,7 @@ public class GlProgram {
 				uploadInner();
 
 				if (!GFX.checkError()) {
-					CanvasMod.LOG.info(I18n.get("debug.canvas.missing_uniform", name, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
+					CanvasMod.LOG.info(I18n.get("debug.canvas.missing_uniform", uniformName, vertexShader.getShaderSourceId().toString(), fragmentShader.getShaderSourceId().toString()));
 					unifID = -1;
 				}
 			}
