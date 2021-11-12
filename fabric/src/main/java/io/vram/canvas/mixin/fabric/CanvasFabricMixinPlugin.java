@@ -51,7 +51,7 @@ public class CanvasFabricMixinPlugin implements IMixinConfigPlugin {
 	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
 		final var className = mixinClassName.substring(packagePrefixLen);
 
-		if (className.equals("MixinPackedInputRegion")) {
+		if (className.equals("MixinInputRegion")) {
 			return FabricLoader.getInstance().isModLoaded("fabric-rendering-data-attachment-v1");
 		} else {
 			return true;
