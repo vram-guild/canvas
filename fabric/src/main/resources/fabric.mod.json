@@ -12,7 +12,7 @@
 	"issues": "https://github.com/grondag/canvas/issues",
 	"sources": "https://github.com/grondag/canvas"
   },
-  "license": "Apache-2.0",
+  "license": "LGPL-3.0",
   "icon": "assets/canvas/canvas_icon.png",
   "environment": "client",
   "entrypoints": {
