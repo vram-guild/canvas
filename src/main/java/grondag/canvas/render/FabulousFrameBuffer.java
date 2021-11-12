@@ -40,7 +40,7 @@ public class FabulousFrameBuffer extends MainTarget {
 
 	@Override
 	public void destroyBuffers() {
-		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
+		RenderSystem.assertOnRenderThreadOrInit();
 		unbindRead();
 		unbindWrite();
 
@@ -49,7 +49,7 @@ public class FabulousFrameBuffer extends MainTarget {
 
 	@Override
 	public void createBuffers(int width, int height, boolean getError) {
-		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
+		RenderSystem.assertOnRenderThreadOrInit();
 		viewWidth = width;
 		viewHeight = height;
 		this.width = width;
