@@ -34,7 +34,7 @@ public class PrimaryFrameBuffer extends MainTarget {
 
 	@Override
 	public void destroyBuffers() {
-		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
+		RenderSystem.assertOnGameThreadOrInit();
 		unbindRead();
 		unbindWrite();
 
@@ -43,7 +43,7 @@ public class PrimaryFrameBuffer extends MainTarget {
 
 	@Override
 	public void createBuffers(int width, int height, boolean getError) {
-		RenderSystem.assertThread(RenderSystem::isOnRenderThreadOrInit);
+		RenderSystem.assertOnGameThreadOrInit();
 		viewWidth = width;
 		viewHeight = height;
 		this.width = width;

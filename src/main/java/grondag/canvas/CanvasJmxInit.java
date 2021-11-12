@@ -20,12 +20,13 @@
 
 package grondag.canvas;
 
+import io.vram.jmx.api.JmxInitializer;
+
 import grondag.canvas.config.Configurator;
-import grondag.jmx.api.JmxInitializer;
 
 public class CanvasJmxInit implements JmxInitializer {
 	@Override
 	public void onInitalizeJmx() {
-		grondag.jmx.Configurator.loadVanillaModels = Configurator.forceJmxModelLoading || grondag.jmx.Configurator.loadVanillaModels;
+		io.vram.jmx.Configurator.loadVanillaModels = Configurator.forceJmxModelLoading || io.vram.jmx.Configurator.loadVanillaModels;
 	}
 }
