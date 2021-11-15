@@ -22,7 +22,9 @@ package grondag.canvas.terrain.util;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.ImmutableList;
@@ -36,7 +38,7 @@ import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
  * distance-sorted execution.  Privilege is indicated by distance == -1
  * and privileged tasks run in order of submission.
  */
-public class DedicatedTerrainExecutor implements TerrainExecutor {
+public class DedicatedTerrainExecutor extends AbstractExecutorService implements TerrainExecutor {
 	private final PriorityBlockingQueue<TerrainExecutorTask> queue = new PriorityBlockingQueue<>(1024, new Comparator<TerrainExecutorTask>() {
 		@Override
 		public int compare(TerrainExecutorTask o1, TerrainExecutorTask o2) {
@@ -132,5 +134,30 @@ public class DedicatedTerrainExecutor implements TerrainExecutor {
 		}
 
 		target.add(report);
+	}
+
+	@Override
+	public void shutdown() {
+		throw new UnsupportedOperationException("Dedicated terrain executor used as generic service.");
+	}
+
+	@Override
+	public List<Runnable> shutdownNow() {
+		throw new UnsupportedOperationException("Dedicated terrain executor used as generic service.");
+	}
+
+	@Override
+	public boolean isShutdown() {
+		throw new UnsupportedOperationException("Dedicated terrain executor used as generic service.");
+	}
+
+	@Override
+	public boolean isTerminated() {
+		throw new UnsupportedOperationException("Dedicated terrain executor used as generic service.");
+	}
+
+	@Override
+	public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+		throw new UnsupportedOperationException("Dedicated terrain executor used as generic service.");
 	}
 }
