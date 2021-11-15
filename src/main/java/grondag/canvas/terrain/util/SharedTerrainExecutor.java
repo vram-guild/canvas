@@ -20,11 +20,14 @@
 
 package grondag.canvas.terrain.util;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import grondag.canvas.CanvasMod;
@@ -36,7 +39,7 @@ import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
  * distance-sorted execution.  Privilege is indicated by distance == -1
  * and privileged tasks run in order of submission.
  */
-public class SharedTerrainExecutor implements TerrainExecutor {
+public class SharedTerrainExecutor extends AbstractExecutorService implements TerrainExecutor {
 	private final PriorityBlockingQueue<TerrainExecutorTask> renderQueue = new PriorityBlockingQueue<>(4096, new Comparator<TerrainExecutorTask>() {
 		@Override
 		public int compare(TerrainExecutorTask o1, TerrainExecutorTask o2) {
@@ -51,11 +54,13 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 
 	private final AtomicInteger renderTaskCount = new AtomicInteger();
 	private final AtomicInteger serverTaskCount = new AtomicInteger();
+	private final AtomicInteger runningTaskCount = new AtomicInteger();
 
 	private int lastRenderTaskCount;
 	private int lastServerTaskCount;
 	private long nextTime;
 	private String report0 = "", report1 = "";
+	private boolean isShutdown = false;
 
 	SharedTerrainExecutor() {
 		assert poolSize >= 4;
@@ -128,7 +133,9 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 					final TerrainExecutorTask t = renderQueue.take();
 
 					if (t != null) {
+						runningTaskCount.incrementAndGet();
 						t.run(context);
+						runningTaskCount.decrementAndGet();
 					}
 				} catch (final InterruptedException e) {
 					// NOOP
@@ -147,7 +154,9 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 					final Runnable task = serverQueue.take();
 
 					if (task != null) {
+						runningTaskCount.incrementAndGet();
 						task.run();
+						runningTaskCount.decrementAndGet();
 					}
 				} catch (final InterruptedException e) {
 					// NOOP
@@ -169,10 +178,14 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 						final Runnable runnable = serverQueue.poll();
 
 						if (runnable != null) {
+							runningTaskCount.incrementAndGet();
 							runnable.run();
+							runningTaskCount.decrementAndGet();
 						}
 					} else {
+						runningTaskCount.incrementAndGet();
 						t.run(context);
+						runningTaskCount.decrementAndGet();
 					}
 
 					mixedSignal.acquire();
@@ -196,10 +209,14 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 						final TerrainExecutorTask t = renderQueue.poll();
 
 						if (t != null) {
+							runningTaskCount.incrementAndGet();
 							t.run(context);
+							runningTaskCount.decrementAndGet();
 						}
 					} else {
+						runningTaskCount.incrementAndGet();
 						runnable.run();
+						runningTaskCount.decrementAndGet();
 					}
 
 					mixedSignal.acquire();
@@ -234,5 +251,41 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 
 		target.add(report0);
 		target.add(report1);
+	}
+
+	@Override
+	public void shutdown() {
+		renderQueue.clear();
+		serverQueue.clear();
+		isShutdown = true;
+	}
+
+	@Override
+	public List<Runnable> shutdownNow() {
+		isShutdown = true;
+		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isShutdown() {
+		return isShutdown;
+	}
+
+	@Override
+	public boolean isTerminated() {
+		return isShutdown && runningTaskCount.get() == 0;
+	}
+
+	@Override
+	public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+		final long deadline = System.nanoTime() + unit.toNanos(timeout);
+
+		while (runningTaskCount.get() > 0) {
+			if (deadline <= System.nanoTime()) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

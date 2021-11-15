@@ -21,11 +21,11 @@
 package grondag.canvas.terrain.util;
 
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 import grondag.canvas.config.Configurator;
 
-public interface TerrainExecutor extends Executor {
+public interface TerrainExecutor extends ExecutorService {
 	TerrainExecutor INSTANCE = Configurator.useCombinedThreadPool ? new SharedTerrainExecutor() : new DedicatedTerrainExecutor();
 
 	void execute(TerrainExecutorTask task);
