@@ -39,6 +39,7 @@ public class PassConfig extends NamedConfig<PassConfig> {
 
 	// for computing size
 	public final int lod;
+	public final int layer;
 
 	//	// For blit operations
 	//	public final String sourceFrameBufferName;
@@ -69,6 +70,7 @@ public class PassConfig extends NamedConfig<PassConfig> {
 		toggleConfig = ctx.booleanConfigEntries.dependOn(config, "toggleConfig");
 
 		lod = config.getInt("lod", 0);
+		layer = config.getInt("layer", 0);
 
 		if (!config.containsKey("samplerImages")) {
 			samplerImages = new NamedDependency[0];
