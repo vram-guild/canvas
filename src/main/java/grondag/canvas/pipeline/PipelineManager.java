@@ -1,5 +1,5 @@
 /*
- * Copyright © Original Authors
+ * Copyright © Contributing Authors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -201,9 +201,10 @@ public class PipelineManager {
 				debugDepthShader.activate().size(w, h).lod(0).projection(orthoMatrix);
 			}
 		} else {
-			if (array) {
+			if(array) {
 				debugArrayShader.activate().size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
-			} else {
+			}
+			else {
 				debugShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
 			}
 		}

@@ -10,5 +10,5 @@ in vec2 _cvv_texcoord;
 out vec4 fragColor;
 
 void main() {
-    fragColor = textureLod(_cvu_input, vec3(_cvv_texcoord, frxu_layer), frxu_lod);
+	fragColor = textureLod(_cvu_input, vec3(_cvv_texcoord, frxu_layer), frxu_lod);
 }
