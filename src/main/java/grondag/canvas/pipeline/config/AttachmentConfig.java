@@ -30,6 +30,7 @@ import grondag.canvas.pipeline.config.util.NamedDependency;
 public class AttachmentConfig extends AbstractConfig {
 	public final NamedDependency<ImageConfig> image;
 	public final int lod;
+	public final int layer;
 	public final int clearColor;
 	public final boolean clear;
 	public final boolean isDepth;
@@ -42,12 +43,14 @@ public class AttachmentConfig extends AbstractConfig {
 		if (config == null) {
 			image = context.images.dependOn("__invalid__");
 			lod = 0;
+			layer = 0;
 			clear = false;
 			clearColor = 0;
 			clearDepth = 1.0f;
 		} else {
 			image = context.images.dependOn(config, "image");
 			lod = config.getInt("lod", 0);
+			layer = config.getInt("layer", 0);
 
 			if (isDepth) {
 				clear = config.containsKey("clearDepth");
@@ -65,6 +68,7 @@ public class AttachmentConfig extends AbstractConfig {
 		super(ctx);
 		image = context.images.dependOn(name);
 		lod = 0;
+		layer = 0;
 		clearColor = 0;
 		clear = false;
 		isDepth = false;
