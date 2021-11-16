@@ -55,6 +55,7 @@ public class PipelineManager {
 	}
 
 	static ProcessShader debugShader;
+	static ProcessShader debugArrayShader;
 	static ProcessShader debugDepthShader;
 	static ProcessShader debugDepthArrayShader;
 
@@ -200,7 +201,12 @@ public class PipelineManager {
 				debugDepthShader.activate().size(w, h).lod(0).projection(orthoMatrix);
 			}
 		} else {
-			debugShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
+			if(array) {
+				debugArrayShader.activate().size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
+			}
+			else {
+				debugShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
+			}
 		}
 
 		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
@@ -226,6 +232,7 @@ public class PipelineManager {
 		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY;
 
 		debugShader = new ProcessShader("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
+		debugArrayShader = new ProcessShader("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
 		debugDepthShader = new ProcessShader("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
 		debugDepthArrayShader = new ProcessShader("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
@@ -260,6 +267,7 @@ public class PipelineManager {
 
 	private static void tearDown() {
 		debugShader = ProcessShader.unload(debugShader);
+		debugArrayShader = ProcessShader.unload(debugArrayShader);
 		debugDepthShader = ProcessShader.unload(debugDepthShader);
 		debugDepthArrayShader = ProcessShader.unload(debugDepthArrayShader);
 
