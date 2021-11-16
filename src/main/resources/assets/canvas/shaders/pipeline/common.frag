@@ -115,7 +115,7 @@ vec4 p_writeBaseColorAndDepth() {
 
 	#if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_NORMAL
 		if (frx_fragEnableDiffuse) {
-			float df = pv_diffuse + (1.0 - pv_diffuse) * frx_fragEmissive;
+			float df = pv_diffuse + (1.0 - pv_diffuse) * frx_fragEmissive * 0.5f;
 
 			a *= vec4(df, df, df, 1.0);
 		}

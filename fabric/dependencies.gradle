@@ -43,7 +43,7 @@ dependencies {
 	modImplementation "org.anarres:jcpp:1.4.14"
 	
 	// The first would be sufficient but we want to bring in changes of underlying
-	modImplementation("io.vram:frex-fabric-${project.mc_tag}:${project.frex_version}.+") { transitive = false; changing = true; }
+	modImplementation("io.vram:frex-fabric-${project.mc_tag}:${project.frex_version}.+") { changing = true; }
 
 	modImplementation("io.vram:special-circumstances:${project.special_circumstances_version}.+") { transitive = false; changing = true;  }
 
@@ -71,7 +71,6 @@ dependencies {
     	include(fabricApi.module("fabric-resource-loader-v0", project.fabric_version))
     	include(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
     	include(fabricApi.module( "fabric-key-binding-api-v1", project.fabric_version))
-		// frex jar contains no code but prevents loader from loading older versions
 		include "io.vram:frex-fabric-${project.mc_tag}:${project.frex_version}.+"
 		include "io.vram:special-circumstances:${special_circumstances_version}.+"
 		include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
