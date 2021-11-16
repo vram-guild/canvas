@@ -66,7 +66,7 @@ class ProgramPass extends Pass {
 			CanvasTextureState.bindTexture(textures.texTargets[i], textures.texIds[i]);
 		}
 
-		shader.activate().lod(config.lod).size(width, height).projection(orthoMatrix);
+		shader.activate().lod(config.lod).layer(config.layer).size(width, height).projection(orthoMatrix);
 
 		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
 	}
