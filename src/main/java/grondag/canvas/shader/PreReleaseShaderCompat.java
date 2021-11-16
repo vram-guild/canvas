@@ -181,9 +181,9 @@ public class PreReleaseShaderCompat {
 			return source;
 		}
 
-		// An awful hack - rename thse so they aren't targeted by frx_normal replacement
+		// An awful hack - rename these so they aren't targeted by frx_normal replacement
 		source = StringUtils.replace(source, "frx_normalizeMappedUV", "_cv_aDirtyHackMappedUV");
-		source = StringUtils.replace(source, "frx_normalModelMatrix()", "_cv_aDirtyHackModelMatrix");
+		source = source.replaceAll("frx_normalModelMatrix(\\(\\))?", "_cv_aDirtyHackModelMatrix");
 
 		boolean found = false;
 

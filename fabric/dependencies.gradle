@@ -31,7 +31,7 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-	modRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modRuntimeOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	
 	modImplementation(fabricApi.module("fabric-api-base", project.fabric_version))
     modImplementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_version))
@@ -62,7 +62,7 @@ dependencies {
 	modImplementation("io.vram:special-circumstances:${special_circumstances_version}.+") { changing = true; }
 	
 	modCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
+	modRuntimeOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
 
 	modImplementation("io.vram:jmx-fabric-${project.mc_tag}:${project.jmx_version}.+") { transitive = false; changing = true; }
 
