@@ -63,7 +63,7 @@ public class BufferDebug {
 		int imageCount = 0;
 
 		for (final ImageConfig img : config.images) {
-			imageCount += img.lod + 1 * img.depth;
+			imageCount += (img.lod + 1) * img.depth;
 		}
 
 		glIds = new int[imageCount];
