@@ -25,8 +25,6 @@ import static io.vram.frex.base.renderer.util.EncoderUtil.colorizeQuad;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
@@ -66,7 +64,7 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 	public final ObjectOpenHashSet<BlockEntity> removedBlockEntities = new ObjectOpenHashSet<>();
 
 	public final InputRegion region;
-	public final MatrixStack matrixStack = MatrixStack.cast(new PoseStack());
+	public final MatrixStack matrixStack = MatrixStack.create();
 	protected final RenderRegionContext<BlockAndTintGetter> bakedListenerContext;
 
 	public final TerrainQuadEncoder encoder;
