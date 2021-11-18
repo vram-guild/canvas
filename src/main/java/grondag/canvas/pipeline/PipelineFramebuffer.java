@@ -107,15 +107,16 @@ public class PipelineFramebuffer {
 		}
 
 		if (config.depthAttachment != null) {
-			final Image img = Pipeline.getImage(config.depthAttachment.image.name);
+			final AttachmentConfig depthAc = config.depthAttachment;
+			final Image img = Pipeline.getImage(depthAc.image.name);
 
 			if (img == null) {
 				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because depth attachment %s was not found",
-						config.name, config.depthAttachment.image.name));
+						config.name, depthAc.image.name));
 			} else if (img.config.target == GFX.GL_TEXTURE_2D) {
-				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, img.config.target, img.glId(), 0);
+				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, img.config.target, img.glId(), depthAc.lod);
 			} else if (img.config.target == GFX.GL_TEXTURE_2D_ARRAY || img.config.target == GFX.GL_TEXTURE_3D) {
-				GFX.glFramebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, img.glId(), 0, 0);
+				GFX.glFramebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, img.glId(), depthAc.lod, depthAc.layer);
 			}
 		}
 
