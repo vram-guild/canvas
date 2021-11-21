@@ -343,7 +343,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 		assert secondary >= 0;
 		assert secondary <= RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
 		assert tertiary >= 0;
-		assert tertiary < RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
+		assert tertiary <= RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER;
 
 		return tertiary | (secondary << RenderRegionIndexer.CHUNK_DIAMETER_BITS) | (primary << (RenderRegionIndexer.CHUNK_DIAMETER_BITS * 2));
 	}
