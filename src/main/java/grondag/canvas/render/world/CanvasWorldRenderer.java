@@ -467,6 +467,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, renderProvider);
 
+			// PERF: Leash is drawn as triangle strips, and if present must be drawn per entity
+			// FEAT: Leash is not lit correctly in some pipelines, for same reason
+			if (renderProvider == immediate) {
+				immediate.endLastBatch();
+			}
+
 			FirstPersonModelHolder.renderHandler.setIsRenderingPlayer(false);
 
 			if (renderFirstPersonPlayer && worldRenderState.shadowsEnabled()) {
