@@ -35,8 +35,8 @@ public final class CombinedSpriteAnimation implements AutoCloseable {
 	private int x0, y0, x1, y1;
 
 	public CombinedSpriteAnimation(TextureAtlas owner, int x0, int y0, int x1, int y1, int lodCount) {
-		width = Mth.smallestEncompassingPowerOfTwo(x1- x0);
-		height = Mth.smallestEncompassingPowerOfTwo(y1- y0);
+		width = Mth.smallestEncompassingPowerOfTwo(x1 - x0);
+		height = Mth.smallestEncompassingPowerOfTwo(y1 - y0);
 		size = lodCount + 1;
 		images = new NativeImage[size];
 

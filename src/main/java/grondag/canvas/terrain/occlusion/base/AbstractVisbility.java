@@ -42,7 +42,8 @@ public abstract class AbstractVisbility<T extends AbstractVisbility<T, U, V, W>,
 
 	private int version;
 	private int pvrsVersion;
-	protected long lastCameraRegionOrigin;
+	// Set to improbable initial value to ensure initialization runs first time
+	protected long lastCameraRegionOrigin = Long.MIN_VALUE;
 
 	protected boolean shouldInvalidateNextPass = false;
 
