@@ -22,6 +22,7 @@ void main() {
 	frx_texcoord = in_uv;
 	frx_vertexColor = in_color;
 	frx_vertexNormal = in_normal;
+	frx_vertexTangent = in_tangent;
 	
 #ifdef VANILLA_LIGHTING
 	frx_vertexLight = vec3(clamp(in_lightmap.rg * 0.00390625, 0.03125, 0.96875), in_ao);

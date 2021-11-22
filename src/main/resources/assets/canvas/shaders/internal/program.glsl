@@ -41,7 +41,7 @@ flat in vec4 _cv_modelToCamera;
 #ifdef VERTEX_SHADER
 void _cv_setupProgram() {
 	if (_cvu_context[_CV_ATLAS_WIDTH] == 0) {
-		_cvu_program = texelFetch(_cvu_materialInfo, in_material);
+		_cvu_program = texelFetch(_cvu_materialInfo, _CV_MATERIAL_ID);
 		_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
 		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);
 	} else {

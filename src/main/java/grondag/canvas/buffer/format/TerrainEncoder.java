@@ -55,8 +55,7 @@ public class TerrainEncoder {
 
 	private static final CanvasVertexFormatElement REGION = new CanvasVertexFormatElement(VertexFormatElement.Type.USHORT, 4, "in_region", false, true);
 	private static final CanvasVertexFormatElement BLOCK_POS_AO = new CanvasVertexFormatElement(VertexFormatElement.Type.UBYTE, 4, "in_blockpos_ao", false, true);
-	private static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(
-			VertexFormatElement.Type.UBYTE, 2, "in_lightmap", false, true);
+	private static final CanvasVertexFormatElement LIGHTMAPS_2UB = new CanvasVertexFormatElement(VertexFormatElement.Type.UBYTE, 2, "in_lightmap", false, true);
 
 	// Would be nice to make this smaller but with less precision in position we start
 	// to see Z-fighting on iron bars, fire, etc. Iron bars require a resolution of 1/16000.
@@ -64,7 +63,10 @@ public class TerrainEncoder {
 	public static final CanvasVertexFormat TERRAIN_MATERIAL = new CanvasVertexFormat(
 			REGION,
 			BLOCK_POS_AO,
-			BASE_RGBA_4UB, BASE_TEX_2US, LIGHTMAPS_2UB, MATERIAL_1US, NORMAL_TANGENT_4B);
+			BASE_RGBA_4UB,
+			BASE_TEX_2US,
+			LIGHTMAPS_2UB, MATERIAL_1US,
+			NORMAL_TANGENT_4B);
 
 	private static final int TERRAIN_VERTEX_STRIDE = TERRAIN_MATERIAL.vertexStrideInts;
 
@@ -88,14 +90,15 @@ public class TerrainEncoder {
 		// don't retrieve if won't be used
 		final int faceNormal = quadNormalFlags == 0b1111 ? 0 : quad.packedFaceNormal();
 		// bit 16 is set if normal Z component is negative
-		int normalFlagBits = 0;
+		int normalSignBit = 0;
 		int packedNormal = 0;
 		int transformedNormal = 0;
 
 		final int quadTangetFlags = quad.tangentFlags();
 		final int faceTangent = quadTangetFlags == 0b1111 ? 0 : quad.packedFaceTanget();
 		// bit 15 is set if tangent Z component is negative
-		int tangentFlagBits = 0;
+		// bit 16 is set if tangent handedness is inverted
+		int tangentInverseSignBits = 0;
 		int packedTangent = 0;
 		int transformedTangent = 0;
 
@@ -121,7 +124,7 @@ public class TerrainEncoder {
 			if (p != packedNormal) {
 				packedNormal = p;
 				transformedNormal = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedNormal) : packedNormal;
-				normalFlagBits = (transformedNormal >>> 8) & 0x8000;
+				normalSignBit = (transformedNormal >>> 10) & 0x2000;
 				transformedNormal = transformedNormal & 0xFFFF;
 			}
 
@@ -131,7 +134,7 @@ public class TerrainEncoder {
 			if (t != packedTangent) {
 				packedTangent = p;
 				transformedTangent = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedTangent) : packedTangent;
-				tangentFlagBits = (transformedTangent >>> 9) & 0x4000;
+				tangentInverseSignBits = (transformedTangent >>> 9) & 0xC000;
 				transformedTangent = transformedTangent << 16;
 			}
 
@@ -157,7 +160,7 @@ public class TerrainEncoder {
 			yInt += ((sectorRelativeRegionOrigin >> 8) & 0xFF);
 			zInt += ((sectorRelativeRegionOrigin >> 16) & 0xFF);
 
-			target[toIndex] = sectorId | normalFlagBits | tangentFlagBits | (xFract << 16);
+			target[toIndex] = sectorId | normalSignBit | tangentInverseSignBits | (xFract << 16);
 			target[toIndex + 1] = yFract | (zFract << 16);
 
 			final int ao = aoDisabled ? 0xFF000000 : (aoData[i] << 24);
