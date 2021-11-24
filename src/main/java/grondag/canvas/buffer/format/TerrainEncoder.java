@@ -132,7 +132,7 @@ public class TerrainEncoder {
 			final int t = ((quadTangetFlags & vertexMask) == 0) ? faceTangent : source[baseSourceIndex + i + HEADER_FIRST_VERTEX_TANGENT];
 
 			if (t != packedTangent) {
-				packedTangent = p;
+				packedTangent = t;
 				transformedTangent = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedTangent) : packedTangent;
 				tangentInverseSignBits = (transformedTangent >>> 9) & 0xC000;
 				transformedTangent = transformedTangent << 16;
