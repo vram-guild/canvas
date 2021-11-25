@@ -45,7 +45,7 @@ void _cv_setupProgram() {
 		_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
 		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);
 	} else {
-		int i = in_material * 2;
+		int i = _CV_MATERIAL_ID * 2;
 		_cvu_program = texelFetch(_cvu_materialInfo, i);
 		_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
 		_cvv_spriteBounds = vec4(texelFetch(_cvu_materialInfo, i + 1)) / 32768.0;
