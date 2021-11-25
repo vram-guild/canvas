@@ -1,13 +1,13 @@
-pluginManagement {
-	repositories {
-		jcenter()
-		mavenCentral()
-		maven {
-			name = 'Fabric'
-			url = 'https://maven.fabricmc.net/'
-		}
-		gradlePluginPortal()
-	}
-}
+// VRAM STANDARD GRADLE SETTINGS FOR FABRIC 1.17
+// DO NOT MAKE CHANGES HERE - THEY WILL BE OVERWRITTEN BY AUTOMATED UPDATE
 
-rootProject.name = "canvas-fabric"
+pluginManagement {
+    repositories {
+      	mavenCentral()
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        gradlePluginPortal()
+    }
+}
