@@ -1,6 +1,21 @@
 readonly MC_VERSION="1.17"
 
 echo "GRUNTLE REFRESH FOR $MC_VERSION - IF THIS IS NOT A 1.17 BRANCH YOU HAVE DONE A BAD"
+
+if [[ $1 == 'auto' ]]; then
+  if ! grep -q gruntle .gitignore; then
+    echo "Auto-update requires .gitignore to exclude the gruntle folder. Please update .gitignore and retry."
+    exit 1
+  fi
+
+  if output=$(git status --porcelain) && [ -z "$output" ]; then
+    echo "Attempting auto-update. Git starting status is clean."
+  else
+    echo "Auto-update requires clean git status. Please commit or stash changes and retry."
+    exit 1
+  fi
+fi
+
 echo 'Checking for build updates...'
 # delete gruntle repo folder if exists from aborted run
 if [ -d "gruntle-master" ]; then
@@ -22,31 +37,5 @@ source gruntle/refresh.sh
 
 # remove scripts
 rm -rf gruntle
-
-# following are not yet tested!
-
-commit() {
-    echo "Commiting and pushing update"
-    git add *
-    git commit -m "Gruntle automatic update"
-    git push
-}
-
-if [[ $1 == 'auto' ]]; then
-  commit
-fi
-
-if [[ $1 == "publish" ]]; then
-  echo "Publishing jars"
-  fabric/gradlew publish
-fi
-
-if [[ $1 == "build" ]]; then
-  echo "Publishing jars"
-  fabric/gradlew publish
-  echo "Building and distributing"
-  fabric/gradlew build --rerunTasks
-  fabric/gradlew curseforge githubRelease publishModrinth
-fi
 
 echo 'Gruntle refresh complete'

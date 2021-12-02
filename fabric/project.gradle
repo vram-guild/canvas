@@ -16,8 +16,8 @@ dependencies {
 	modIncludeImplementation("io.vram:bitkit:1.0.1")
 	modIncludeImplementation("io.vram:special-circumstances:1.10.7")
 
-	modIncludeImplementation("io.vram:frex-fabric-mc117:6.0.188")
-	modIncludeImplementation("io.vram:jmx-fabric-mc117:1.22.223")
+	modIncludeImplementation("io.vram:frex-fabric-mc117:6.0.193")
+	modIncludeImplementation("io.vram:jmx-fabric-mc117:1.22.226")
 
 	modIncludeImplementation("me.shedaniel.cloth:cloth-config-fabric:5.1.40")
 
