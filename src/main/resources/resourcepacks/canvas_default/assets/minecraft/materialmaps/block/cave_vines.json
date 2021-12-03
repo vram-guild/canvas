@@ -1,0 +1,8 @@
+{
+  "defaultMaterial": "fabric:standard",
+  "variants": {
+	"berries=true": {
+	  "defaultMaterial": "canvas:warm_glow"
+	}
+  }
+}

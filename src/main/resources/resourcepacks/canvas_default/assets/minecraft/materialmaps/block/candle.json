@@ -1,0 +1,7 @@
+{
+  "variants": {
+	"lit=true": {
+	  "defaultMaterial": "canvas:luminance_glow"
+	}
+  }
+}
