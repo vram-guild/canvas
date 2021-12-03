@@ -1,6 +1,6 @@
 readonly MC_VERSION="1.17"
 
-echo "GRUNTLE REFRESH FOR $MC_VERSION - IF THIS IS NOT A 1.17 BRANCH YOU HAVE DONE A BAD"
+echo "GRUNTLE REFRESH FOR $MC_VERSION - IF THIS IS NOT A $MC_VERSION BRANCH YOU HAVE DONE A BAD"
 
 if [[ $1 == 'auto' ]]; then
   if ! grep -q gruntle .gitignore; then
