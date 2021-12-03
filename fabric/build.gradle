@@ -2,16 +2,22 @@
 // DO NOT MAKE CHANGES HERE - THEY WILL BE OVERWRITTEN BY AUTOMATED UPDATE
 
 plugins {
-	id 'fabric-loom' version '0.10.58'
+	id 'fabric-loom' version '0.10.62'
 	id 'eclipse'
 	id 'idea'
 	id 'maven-publish'
-	id 'com.github.breadmoirai.github-release' version '2.2.9'
+	id 'com.github.breadmoirai.github-release' version '2.2.12'
 	id 'org.cadixdev.licenser' version '0.6.1'
-	id 'org.ajoberstar.grgit' version '3.1.1'
+	id 'org.ajoberstar.grgit' version '4.1.1'
 	id 'com.matthewprenger.cursegradle' version '1.4.0'
 	id 'checkstyle'
 }
+
+ext.mc_tag = 'mc118'
+ext.minecraft_version = '1.18'
+ext.release_version = '1.18'
+ext.loader_version = '0.12.8'
+ext.fabric_version = '0.43.1+1.18'
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
@@ -25,7 +31,7 @@ repositories {
 	maven {url "https://maven.terraformersmc.com/releases/"}
 }
 
-ext.archivesBaseName = project.mod_name + "-fabric-" + project.mc_tag
+project.archivesBaseName = project.mod_name + "-fabric-" + project.mc_tag
 
 if (project.hasProperty('mod_version') && grgit != null) {
 	if(grgit.status().isClean()) {
@@ -73,7 +79,7 @@ loom {
 
 tasks.withType(JavaCompile) {
 	it.options.encoding = "UTF-8"
-	it.options.release = 16
+	it.options.release = 17
 }
 
 processResources {
@@ -93,9 +99,14 @@ eclipse {
 	}
 }
 
-tasks.withType(JavaCompile) {
-	it.options.encoding = "UTF-8"
-	it.options.release = 17
+license {
+	header rootProject.file(project.license_file)
+	include '**/*.java'
+}
+
+checkstyle {
+	configFile = rootProject.file(project.checkstyle_config)
+	toolVersion = "8.44"
 }
 
 jar {
@@ -171,10 +182,10 @@ githubRelease {
 	}
 
 	tagName project.minecraft_version + "-" + project.version
-	targetCommitish { org.ajoberstar.grgit.Grgit.open(dir: ".").branch.current().name }
+	targetCommitish { grgit.branch.current().name }
 	releaseName project.minecraft_version + "-" + project.version
 
-	FilenameFilter filter = { dir, filename -> filename.contains(project.version) && !filename.contains("-dev.jar") }
+	FilenameFilter filter = { dir, filename -> filename.contains(project.version) && !filename.contains("-dev.jar") && !filename.contains("SNAPSHOT") }
 	releaseAssets = jar.destinationDir.listFiles filter
 }
 
