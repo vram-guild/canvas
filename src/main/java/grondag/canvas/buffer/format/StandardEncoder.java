@@ -57,14 +57,15 @@ public class StandardEncoder {
 		// don't retrieve if won't be used
 		final int faceNormal = quadNormalFlags == 0b1111 ? 0 : quad.packedFaceNormal();
 		// bit 1 is set if normal Z component is negative
-		int normalFlagBits = 0;
+		int normalSignBit = 0;
 		int packedNormal = 0;
 		int transformedNormal = 0;
 
 		final int quadTangetFlags = quad.tangentFlags();
 		final int faceTangent = quadTangetFlags == 0b1111 ? 0 : quad.packedFaceTanget();
 		// bit 1 is set if tangent Z component is negative
-		int tangentFlagBits = 0;
+		int tangentSignBit = 0;
+		int tangentInverseBit = 0;
 		int packedTangent = 0;
 		int transformedTangent = 0;
 
@@ -84,7 +85,7 @@ public class StandardEncoder {
 			if (p != packedNormal) {
 				packedNormal = p;
 				transformedNormal = isContextPresent ? normalMatrix.f_transformPacked3f(packedNormal) : packedNormal;
-				normalFlagBits = (transformedNormal >>> 23) & 1;
+				normalSignBit = (transformedNormal >>> 23) & 1;
 				transformedNormal &= 0xFFFF;
 			}
 
@@ -93,7 +94,8 @@ public class StandardEncoder {
 			if (t != packedTangent) {
 				packedTangent = t;
 				transformedTangent = isContextPresent ? normalMatrix.f_transformPacked3f(packedTangent) : packedTangent;
-				tangentFlagBits = (transformedTangent >>> 23) & 1;
+				tangentSignBit = (transformedTangent >>> 23) & 1;
+				tangentInverseBit = (transformedTangent << 7) & 0x80000000;
 				transformedTangent = (transformedTangent & 0xFFFF) << 16;
 			}
 
@@ -115,9 +117,9 @@ public class StandardEncoder {
 				| ((source[fromIndex + VERTEX_V] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION << 16);
 
 			final int packedLight = source[fromIndex + VERTEX_LIGHTMAP];
-			final int blockLight = (packedLight & 0xFE) | normalFlagBits;
-			final int skyLight = ((packedLight >> 16) & 0xFE) | tangentFlagBits;
-			target[toIndex + 5] = blockLight | (skyLight << 8) | material;
+			final int blockLight = (packedLight & 0xFE) | normalSignBit;
+			final int skyLight = ((packedLight >> 16) & 0xFE) | tangentSignBit;
+			target[toIndex + 5] = blockLight | (skyLight << 8) | material | tangentInverseBit;
 
 			target[toIndex + 6] = transformedNormal | transformedTangent;
 		}

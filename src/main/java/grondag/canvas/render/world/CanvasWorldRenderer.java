@@ -553,7 +553,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		try (DrawableStream entityBuffer = immediate.prepareDrawable(TargetRenderState.MAIN);
 			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(TargetRenderState.MAIN);
-			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(TargetRenderState.MAIN)
+			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(TargetRenderState.MAIN);
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, entityBuffer, shadowExtrasBuffer);
@@ -569,6 +569,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			materialExtrasBuffer.draw(false);
 			materialExtrasBuffer.close();
 		}
+
+		// Nothing prevents entities from buffering quads that don't get drawn in shadow and they will
+		// never get drawn (for now) so we clear them out each frame.
+		materialExtrasImmediate.collectors.clear();
+		shadowExtrasImmediate.collectors.clear();
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
 

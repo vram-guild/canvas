@@ -6,6 +6,7 @@ in vec4 frx_vertex;
 in vec2 frx_texcoord;
 in vec4 frx_vertexColor;
 in vec3 frx_vertexNormal;
+in vec4 frx_vertexTangent;
 
 vec4 frx_sampleColor;
 vec4 frx_fragColor;

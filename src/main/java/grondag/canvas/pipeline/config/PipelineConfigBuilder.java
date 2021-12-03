@@ -251,7 +251,12 @@ public class PipelineConfigBuilder {
 	}
 
 	public static PipelineConfig build(ResourceLocation identifier) {
-		final PipelineConfigBuilder builder = load(identifier);
+		PipelineConfigBuilder builder = load(identifier);
+
+		if (builder == null && !PipelineConfig.DEFAULT_ID.equals(identifier)) {
+			builder = load(PipelineConfig.DEFAULT_ID);
+		}
+
 		return builder == null ? PipelineConfig.minimalConfig() : new PipelineConfig(builder);
 	}
 }

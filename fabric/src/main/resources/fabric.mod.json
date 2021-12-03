@@ -28,7 +28,7 @@
 	"jmx": [
 	  "grondag.canvas.CanvasJmxInit"
 	],
-	"frex_flawless_frames": [ 
+	"frex_flawless_frames": [
 	  "grondag.canvas.config.FlawlessFramesController"
 	]
   },
