@@ -22,6 +22,8 @@ package grondag.canvas.terrain.region;
 
 import java.util.function.Consumer;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -57,21 +59,30 @@ public class NeighborRegions {
 	}
 
 	public void forEachAvailable(Consumer<RenderRegion> operation) {
-		operation.accept(getNeighbor(FaceUtil.EAST_INDEX));
-		operation.accept(getNeighbor(FaceUtil.WEST_INDEX));
-		operation.accept(getNeighbor(FaceUtil.NORTH_INDEX));
-		operation.accept(getNeighbor(FaceUtil.SOUTH_INDEX));
+		var region = getNeighbor(FaceUtil.EAST_INDEX);
+		if (region != null) operation.accept(region);
+
+		region = getNeighbor(FaceUtil.WEST_INDEX);
+		if (region != null) operation.accept(region);
+
+		region = getNeighbor(FaceUtil.NORTH_INDEX);
+		if (region != null) operation.accept(region);
+
+		region = getNeighbor(FaceUtil.SOUTH_INDEX);
+		if (region != null) operation.accept(region);
 
 		if (!isTop) {
-			operation.accept(getNeighbor(FaceUtil.UP_INDEX));
+			region = getNeighbor(FaceUtil.UP_INDEX);
+			if (region != null) operation.accept(region);
 		}
 
 		if (!isBottom) {
-			operation.accept(getNeighbor(FaceUtil.DOWN_INDEX));
+			region = getNeighbor(FaceUtil.DOWN_INDEX);
+			if (region != null) operation.accept(region);
 		}
 	}
 
-	private RenderRegion getNeighbor(int faceIndex) {
+	private @Nullable RenderRegion getNeighbor(int faceIndex) {
 		RenderRegion region = neighbors[faceIndex];
 
 		if (region == null || region.isClosed()) {
@@ -84,7 +95,10 @@ public class NeighborRegions {
 			final BlockPos origin = owner.origin;
 			region = owner.storage.getOrCreateRegion(origin.getX() + face.getStepX() * 16, origin.getY() + face.getStepY() * 16, origin.getZ() + face.getStepZ() * 16);
 			neighbors[faceIndex] = region;
-			region.neighbors.attachOrConfirmVisitingNeighbor(FaceUtil.oppositeFaceIndex(faceIndex), owner);
+
+			if (region != null) {
+				region.neighbors.attachOrConfirmVisitingNeighbor(FaceUtil.oppositeFaceIndex(faceIndex), owner);
+			}
 		}
 
 		return region;
@@ -112,27 +126,33 @@ public class NeighborRegions {
 		final int openFlags = OcclusionResult.openFacesFlag(mutalOcclusionFaceFlags, owner.cameraVisibility.entryFaceFlags());
 
 		if ((openFlags & FaceUtil.EAST_FLAG) != 0) {
-			getNeighbor(FaceUtil.EAST_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.WEST_FLAG, mySquaredDist);
+			final var region = getNeighbor(FaceUtil.EAST_INDEX);
+			if (region != null) region.enqueueAsUnvistedCameraNeighbor(FaceUtil.WEST_FLAG, mySquaredDist);
 		}
 
 		if ((openFlags & FaceUtil.WEST_FLAG) != 0) {
-			getNeighbor(FaceUtil.WEST_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.EAST_FLAG, mySquaredDist);
+			final var region = getNeighbor(FaceUtil.WEST_INDEX);
+			if (region != null) region.enqueueAsUnvistedCameraNeighbor(FaceUtil.EAST_FLAG, mySquaredDist);
 		}
 
 		if ((openFlags & FaceUtil.NORTH_FLAG) != 0) {
-			getNeighbor(FaceUtil.NORTH_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.SOUTH_FLAG, mySquaredDist);
+			final var region = getNeighbor(FaceUtil.NORTH_INDEX);
+			if (region != null) region.enqueueAsUnvistedCameraNeighbor(FaceUtil.SOUTH_FLAG, mySquaredDist);
 		}
 
 		if ((openFlags & FaceUtil.SOUTH_FLAG) != 0) {
-			getNeighbor(FaceUtil.SOUTH_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.NORTH_FLAG, mySquaredDist);
+			final var region = getNeighbor(FaceUtil.SOUTH_INDEX);
+			if (region != null) region.enqueueAsUnvistedCameraNeighbor(FaceUtil.NORTH_FLAG, mySquaredDist);
 		}
 
 		if (!isTop && (openFlags & FaceUtil.UP_FLAG) != 0) {
-			getNeighbor(FaceUtil.UP_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.DOWN_FLAG, mySquaredDist);
+			final var region = getNeighbor(FaceUtil.UP_INDEX);
+			if (region != null) region.enqueueAsUnvistedCameraNeighbor(FaceUtil.DOWN_FLAG, mySquaredDist);
 		}
 
 		if (!isBottom && (openFlags & FaceUtil.DOWN_FLAG) != 0) {
-			getNeighbor(FaceUtil.DOWN_INDEX).enqueueAsUnvistedCameraNeighbor(FaceUtil.UP_FLAG, mySquaredDist);
+			final var region = getNeighbor(FaceUtil.DOWN_INDEX);
+			if (region != null) region.enqueueAsUnvistedCameraNeighbor(FaceUtil.UP_FLAG, mySquaredDist);
 		}
 	}
 
@@ -143,40 +163,49 @@ public class NeighborRegions {
 		final int mySquaredDist = owner.origin.squaredCameraChunkDistance();
 
 		var region = getNeighbor(FaceUtil.EAST_INDEX);
-		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+		if (region != null && region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
 		region = getNeighbor(FaceUtil.WEST_INDEX);
-		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+		if (region != null && region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
 		region = getNeighbor(FaceUtil.NORTH_INDEX);
-		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+		if (region != null && region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
 		region = getNeighbor(FaceUtil.SOUTH_INDEX);
-		if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+		if (region != null && region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 
 		if (!isTop) {
 			region = getNeighbor(FaceUtil.UP_INDEX);
-			if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+			if (region != null && region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 		}
 
 		if (!isBottom) {
 			region = getNeighbor(FaceUtil.DOWN_INDEX);
-			if (region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
+			if (region != null && region.origin.isFrontFacing(mySquaredDist)) region.cameraVisibility.addIfValid();
 		}
 	}
 
 	public void enqueueUnvistedShadowNeighbors() {
-		getNeighbor(FaceUtil.EAST_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(FaceUtil.WEST_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(FaceUtil.NORTH_INDEX).shadowVisibility.addIfValid();
-		getNeighbor(FaceUtil.SOUTH_INDEX).shadowVisibility.addIfValid();
+		var region = getNeighbor(FaceUtil.EAST_INDEX);
+		if (region != null) region.shadowVisibility.addIfValid();
+
+		region = getNeighbor(FaceUtil.WEST_INDEX);
+		if (region != null) region.shadowVisibility.addIfValid();
+
+		region = getNeighbor(FaceUtil.NORTH_INDEX);
+		if (region != null) region.shadowVisibility.addIfValid();
+
+		region = getNeighbor(FaceUtil.SOUTH_INDEX);
+		if (region != null) region.shadowVisibility.addIfValid();
 
 		if (!isTop) {
-			getNeighbor(FaceUtil.UP_INDEX).shadowVisibility.addIfValid();
+			region = getNeighbor(FaceUtil.UP_INDEX);
+			if (region != null) region.shadowVisibility.addIfValid();
 		}
 
 		if (!isBottom) {
-			getNeighbor(FaceUtil.DOWN_INDEX).shadowVisibility.addIfValid();
+			region = getNeighbor(FaceUtil.DOWN_INDEX);
+			if (region != null) region.shadowVisibility.addIfValid();
 		}
 	}
 }
