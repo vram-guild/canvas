@@ -152,7 +152,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error on server task. Impact unknown.", e);
 				}
 			}
 		}
@@ -179,7 +179,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error in shared thread pool. Impact unknown.", e);
 				}
 			}
 		}
@@ -206,7 +206,7 @@ public class SharedTerrainExecutor implements TerrainExecutor {
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error in shared thread pool. Impact unknown.", e);
 				}
 			}
 		}

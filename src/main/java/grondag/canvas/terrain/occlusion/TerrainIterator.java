@@ -35,6 +35,7 @@ import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.sc.unordered.SimpleUnorderedArrayList;
 
 import grondag.bitraster.PackedBox;
+import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
@@ -207,44 +208,51 @@ public class TerrainIterator implements TerrainExecutorTask {
 		assert state.get() == READY;
 		state.set(RUNNING);
 
-		worldRenderState.renderRegionStorage.updateRegionPositionAndVisibility();
-		worldRenderState.drawListCullingHlper.update();
+		try {
+			worldRenderState.renderRegionStorage.updateRegionPositionAndVisibility();
+			worldRenderState.drawListCullingHlper.update();
 
-		if (resetCameraOccluder) {
-			visibleRegions.clear();
-			primeCameraRegions();
-		}
-
-		updateRegions.clear();
-
-		if (Pipeline.advancedTerrainCulling() || FlawlessFrames.isActive()) {
-			iterateTerrain();
-		} else {
-			iterateTerrainSimply();
-		}
-
-		if (worldRenderState.shadowsEnabled()) {
-			if (resetShadowOccluder) {
-				clearShadowRegions();
-				primeShadowRegions();
+			if (resetCameraOccluder) {
+				visibleRegions.clear();
+				primeCameraRegions();
 			}
 
-			iterateShadows();
-		}
+			updateRegions.clear();
 
-		if (cancelled) {
-			state.set(IDLE);
-		} else {
-			assert state.get() == RUNNING;
-			state.set(COMPLETE);
+			if (Pipeline.advancedTerrainCulling() || FlawlessFrames.isActive()) {
+				iterateTerrain();
+			} else {
+				iterateTerrainSimply();
+			}
 
-			if (Configurator.debugOcclusionRaster) {
-				cameraVisibility.outputRaster();
+			if (worldRenderState.shadowsEnabled()) {
+				if (resetShadowOccluder) {
+					clearShadowRegions();
+					primeShadowRegions();
+				}
 
-				if (worldRenderState.shadowsEnabled()) {
-					shadowVisibility.outputRaster();
+				iterateShadows();
+			}
+
+			if (cancelled) {
+				state.set(IDLE);
+			} else {
+				assert state.get() == RUNNING;
+				state.set(COMPLETE);
+
+				if (Configurator.debugOcclusionRaster) {
+					cameraVisibility.outputRaster();
+
+					if (worldRenderState.shadowsEnabled()) {
+						shadowVisibility.outputRaster();
+					}
 				}
 			}
+		} catch (final Exception e) {
+			// If we have an error, is important that we set status back to IDLE so that we have a chance to restart.
+			CanvasMod.LOG.warn("Unhandled exception in terrain iteration. This is probably a bug and will cause incorrect world renderering.", e);
+			cancelled = true;
+			state.set(IDLE);
 		}
 	}
 
