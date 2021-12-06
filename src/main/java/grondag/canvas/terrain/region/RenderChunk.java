@@ -20,6 +20,8 @@
 
 package grondag.canvas.terrain.region;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.chunk.ChunkStatus;
@@ -111,7 +113,7 @@ public class RenderChunk {
 		}
 	}
 
-	synchronized RenderRegion getOrCreateRegion(int x, int y, int z) {
+	synchronized @Nullable RenderRegion getOrCreateRegion(int x, int y, int z) {
 		final int i = (y + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
 
 		if (i < 0 || i >= RenderRegionIndexer.MAX_Y_REGIONS) {

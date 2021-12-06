@@ -23,6 +23,8 @@ package grondag.canvas.terrain.region;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
 
 import grondag.canvas.render.world.WorldRenderState;
@@ -76,7 +78,7 @@ public class RenderRegionStorage {
 		return loadedRegionCount.get();
 	}
 
-	public RenderRegion getOrCreateRegion(int x, int y, int z) {
+	public @Nullable RenderRegion getOrCreateRegion(int x, int y, int z) {
 		return chunks[RenderRegionIndexer.chunkIndex(x, z)].getOrCreateRegion(x, y, z);
 	}
 
