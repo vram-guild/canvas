@@ -161,7 +161,7 @@ public class SharedTerrainExecutor extends AbstractExecutorService implements Te
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error on server task. Impact unknown.", e);
 				}
 			}
 		}
@@ -192,7 +192,7 @@ public class SharedTerrainExecutor extends AbstractExecutorService implements Te
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error in shared thread pool. Impact unknown.", e);
 				}
 			}
 		}
@@ -223,7 +223,7 @@ public class SharedTerrainExecutor extends AbstractExecutorService implements Te
 				} catch (final InterruptedException e) {
 					// NOOP
 				} catch (final Exception e) {
-					CanvasMod.LOG.error("Unhandled error during rendering. Impact unknown.", e);
+					CanvasMod.LOG.error("Unhandled error in shared thread pool. Impact unknown.", e);
 				}
 			}
 		}
