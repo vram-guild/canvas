@@ -45,6 +45,7 @@ import net.minecraft.util.Mth;
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.math.FastMatrix3f;
 import io.vram.frex.api.math.FastMatrix4f;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
 import grondag.canvas.buffer.input.VertexCollector;
@@ -103,6 +104,7 @@ public class TerrainEncoder {
 		int transformedTangent = 0;
 
 		final int material = mat.materialIndexer().index(quad.spriteId()) << 16;
+		final boolean unlit = mat.unlit();
 
 		final int[] target = buff.target();
 		final int baseSourceIndex = quad.vertexStart();
@@ -171,7 +173,8 @@ public class TerrainEncoder {
 			target[toIndex + 4] = (source[fromIndex + VERTEX_U] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION
 					| ((source[fromIndex + VERTEX_V] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION << 16);
 
-			final int packedLight = source[fromIndex + VERTEX_LIGHTMAP];
+			// TODO: should probably pass unlit as a flag vs forcing lightmap
+			final int packedLight = unlit ? MeshEncodingHelper.FULL_BRIGHTNESS : source[fromIndex + VERTEX_LIGHTMAP];
 			final int blockLight = packedLight & 0xFF;
 			final int skyLight = (packedLight >> 16) & 0xFF;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material;

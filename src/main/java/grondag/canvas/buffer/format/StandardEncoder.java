@@ -38,6 +38,7 @@ import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.context.input.AbsentInputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
+import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 import grondag.canvas.buffer.input.VertexCollector;
 import grondag.canvas.material.state.CanvasRenderMaterial;
@@ -52,6 +53,7 @@ public class StandardEncoder {
 		final boolean isContextPresent = inputContext != AbsentInputContext.INSTANCE;
 
 		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();
+		final boolean unlit = mat.unlit();
 
 		final int quadNormalFlags = quad.normalFlags();
 		// don't retrieve if won't be used
@@ -116,7 +118,8 @@ public class StandardEncoder {
 			target[toIndex + 4] = (source[fromIndex + VERTEX_U] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION
 				| ((source[fromIndex + VERTEX_V] + UV_ROUNDING_BIT) >> UV_EXTRA_PRECISION << 16);
 
-			final int packedLight = source[fromIndex + VERTEX_LIGHTMAP];
+			// TODO: should probably pass unlit as a flag vs forcing lightmap
+			final int packedLight = unlit ? MeshEncodingHelper.FULL_BRIGHTNESS : source[fromIndex + VERTEX_LIGHTMAP];
 			final int blockLight = (packedLight & 0xFE) | normalSignBit;
 			final int skyLight = ((packedLight >> 16) & 0xFE) | tangentSignBit;
 			target[toIndex + 5] = blockLight | (skyLight << 8) | material | tangentInverseBit;
