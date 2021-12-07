@@ -28,6 +28,7 @@ import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderStateShard.TextureStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderType.CompositeRenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -108,9 +109,12 @@ public class CanvasMod {
 
 			final var compositeState = ((CompositeRenderType) renderType).state;
 
-			// Excludes glint, end portal, and other specialized render layers that won't play nice with our current setup
-			// Excludes render layers with custom shaders
-			if (compositeState.texturingState != RenderStateShard.DEFAULT_TEXTURING || VanillaShaderInfo.get(compositeState.shaderState) == VanillaShaderInfo.MISSING) {
+			// Excludes glint, end portal, and other specialized render types that won't play nice with our current setup
+			// Excludes render types with custom shaders
+			// Excludes render types without a texture
+			if (compositeState.texturingState != RenderStateShard.DEFAULT_TEXTURING
+					|| !(compositeState.textureState instanceof TextureStateShard)
+					|| VanillaShaderInfo.get(compositeState.shaderState) == VanillaShaderInfo.MISSING) {
 				return true;
 			}
 
