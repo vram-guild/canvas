@@ -18,9 +18,9 @@ dependencies {
 	modIncludeImplementation("io.vram:special-circumstances:1.10.7")
 
 	// Included via JMX
-	//modIncludeImplementation("io.vram:frex-fabric-mc117:6.0.201")
-	modImplementation("io.vram:jmx-fabric-mc117:1.22.228")
-	include("io.vram:jmx-fabric-mc117:1.22.228:fat")
+	//modIncludeImplementation("io.vram:frex-fabric-mc117:6.0.203")
+	modImplementation("io.vram:jmx-fabric-mc117:1.22.229")
+	include("io.vram:jmx-fabric-mc117:1.22.229:fat")
 
 	modIncludeImplementation("me.shedaniel.cloth:cloth-config-fabric:5.1.40")
 
