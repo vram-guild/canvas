@@ -101,6 +101,8 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 		REGION_LOOKUP_LENGTH = index;
 	}
 
+	private static boolean shouldWarnForOutOfBounds = true;
+
 	private int version = 1;
 
 	@Override
@@ -146,11 +148,19 @@ public class CameraPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 			assert isSaneAddition(region, dist, index) : "Region ring index overrun into next (more distant) region.";
 			assert index >= iterationIndex || region.origin.isNear() || !region.getBuildState().canOcclude() : "Region added before PVS iteration pointer";
 
-			states[index] = state;
-			ringMap[dist] = index + 1;
+			if (index == Integer.MAX_VALUE) {
+				if (shouldWarnForOutOfBounds) {
+					shouldWarnForOutOfBounds = false;
+					CanvasMod.LOG.warn("Terrain iteration encountered region at " + region.origin.toString() + " with invalid squared chunk distance " + region.origin.squaredCameraChunkDistance());
+					CanvasMod.LOG.warn("This is probably a bug, possibly caused by mod interactions. World rendering may be incorrect. Subsequent warnings will be supressed.");
+				}
+			} else {
+				states[index] = state;
+				ringMap[dist] = index + 1;
 
-			if (index > maxIndex) {
-				maxIndex = index;
+				if (index > maxIndex) {
+					maxIndex = index;
+				}
 			}
 		}
 	}
