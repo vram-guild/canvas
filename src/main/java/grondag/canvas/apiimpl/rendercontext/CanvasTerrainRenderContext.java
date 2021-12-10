@@ -20,8 +20,6 @@
 
 package grondag.canvas.apiimpl.rendercontext;
 
-import static io.vram.frex.base.renderer.util.EncoderUtil.colorizeQuad;
-
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +43,6 @@ import io.vram.frex.api.world.RenderRegionBakeListener.RenderRegionContext;
 import io.vram.frex.base.renderer.ao.AoCalculator;
 import io.vram.frex.base.renderer.context.input.BaseBlockInputContext;
 import io.vram.frex.base.renderer.context.render.BlockRenderContext;
-import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
 import grondag.canvas.config.Configurator;
@@ -200,10 +197,10 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		} else if (Configurator.semiFlatLighting) {
 			aoCalc.computeFlat(emitter);
 		} else {
-			EncoderUtil.applyFlatLighting(emitter, inputContext.flatBrightness(emitter));
+			emitter.applyFlatLighting(inputContext.flatBrightness(emitter));
 		}
 
-		colorizeQuad(emitter, this.inputContext);
+		emitter.colorize(inputContext);
 	}
 
 	@Override
