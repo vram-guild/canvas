@@ -71,7 +71,13 @@ public class CanvasMod {
 		}
 
 		ConfigManager.init();
-		FrexFeature.registerFeatures(FrexFeature.UPDATE_MATERIAL_REGISTRATION);
+
+		FrexFeature.registerFeatures(
+			FrexFeature.UPDATE_MATERIAL_REGISTRATION,
+			FrexFeature.MATERIAL_SHADERS,
+			FrexFeature.HELD_ITEM_LIGHTS,
+			FrexFeature.VERTEX_TANGENT
+		);
 
 		if (Configurator.debugNativeMemoryAllocation) {
 			LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
