@@ -20,7 +20,7 @@ plugins {
 ext.mc_tag = 'mc117'
 ext.minecraft_version = '1.17.1'
 ext.release_version = '1.17.1'
-ext.loader_version = '0.12.9'
+ext.loader_version = '0.12.11'
 ext.fabric_version = '0.44.0+1.17'
 
 sourceCompatibility = JavaVersion.VERSION_16
