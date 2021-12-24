@@ -466,7 +466,7 @@ public class GlShader implements Shader {
 		// Enable conservative depth if available.
 		// Handle before #version so that #version is always first line as required
 		if (CanvasGlHelper.supportsArbConservativeDepth()) {
-			source = "#extension GL_ARB_conservative_depth enable\n" + source;
+			source = "#extension GL_ARB_conservative_depth: enable\n" + source;
 		}
 
 		// restore GLSL version, enable conservative depth
