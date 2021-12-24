@@ -288,6 +288,10 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "//#define PBR_ENABLED", "#define PBR_ENABLED");
 			}
 
+			if (!CanvasGlHelper.supportsArbConservativeDepth()) {
+				result = StringUtils.replace(result, "#define _CV_ARB_CONSERVATIVE_DEPTH", "//#define _CV_ARB_CONSERVATIVE_DEPTH");
+			}
+
 			if (!PreReleaseShaderCompat.needsFragmentShaderStubs()) {
 				result = StringUtils.replace(result, "#define _CV_FRAGMENT_COMPAT", "//#define _CV_FRAGMENT_COMPAT");
 			}
@@ -459,7 +463,13 @@ public class GlShader implements Shader {
 
 		source = builder.toString();
 
-		// restore GLSL version
+		// Enable conservative depth if available.
+		// Handle before #version so that #version is always first line as required
+		if (CanvasGlHelper.supportsArbConservativeDepth()) {
+			source = "#extension GL_ARB_conservative_depth enable\n" + source;
+		}
+
+		// restore GLSL version, enable conservative depth
 		source = "#version " + Pipeline.config().glslVersion + "\n" + source;
 
 		// strip commented preprocessor declarations

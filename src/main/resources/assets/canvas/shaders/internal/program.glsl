@@ -28,10 +28,16 @@ flat out vec4 _cvv_spriteBounds;
 flat in ivec4 _cvu_program;
 flat in vec4 _cvv_spriteBounds;
 
-#ifndef _CV_VERTEX_DEFAULT
+#define _CV_ARB_CONSERVATIVE_DEPTH 1 // We can't test the GL defintion GL_ARB_conservative_depth because it won't be present when our pre-processor runs.
+
+	#ifdef _CV_ARB_CONSERVATIVE_DEPTH
+layout (depth_unchanged) out float gl_FragDepth;
+	#endif
+
+	#ifndef _CV_VERTEX_DEFAULT
 flat in vec4 _cv_modelToWorld;
 flat in vec4 _cv_modelToCamera;
-#endif
+	#endif
 #endif
 
 #define _cv_vertexProgramId() _cvu_program.x
