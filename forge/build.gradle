@@ -1,0 +1,115 @@
+// VRAM STANDARD GRADLE BUILD FOR FORGE 1.18
+// DO NOT MAKE CHANGES HERE - THEY WILL BE OVERWRITTEN BY AUTOMATED UPDATE
+
+buildscript {
+	dependencies {
+		classpath 'org.kohsuke:github-api:1.135'
+	}
+}
+
+plugins {
+	id 'dev.architectury.loom' version '0.10.0-SNAPSHOT'
+	id 'maven-publish'
+	id 'org.cadixdev.licenser' version '0.6.1'
+	id 'org.ajoberstar.grgit' version '4.1.1'
+	id 'com.matthewprenger.cursegradle' version '1.4.0'
+	id 'checkstyle'
+	id 'com.modrinth.minotaur' version '1.2.1'
+	id "com.github.johnrengelman.shadow" version "7.0.0"
+}
+
+ext.platform_name = 'forge'
+ext.forge_version = '39.0.8'
+
+configurations {
+	bundle { transitive = false }
+	implementation.extendsFrom bundle
+}
+
+apply from: '../project_common.gradle'
+apply from: 'project.gradle'
+apply from: '../gruntle_common.gradle'
+
+dependencies {
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+	mappings loom.officialMojangMappings()
+}
+
+loom {
+	mixin.defaultRefmapName = project.mod_name + "-refmap.json"
+	silentMojangMappingsLicense()
+}
+
+processResources {
+	inputs.property "version", project.version
+
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version
+    }
+}
+
+if (project.build_fat_jar) {
+	shadowJar {
+	    configurations = [project.configurations.bundle]
+	    classifier "dev-shadow"
+	}
+
+	remapJar {
+	    input.set shadowJar.archiveFile
+	    dependsOn shadowJar
+	    classifier null
+	}
+
+	jar {
+	    classifier "dev"
+	}
+
+	build.dependsOn shadowJar
+}
+
+// Remainder unfortunately does not work in common script due to build script class path
+// limitations and so must be duplicated for each platform script.
+// Probably a way around it but Gradle has already exhausted my will to keep going.
+
+import org.kohsuke.github.GHReleaseBuilder
+import org.kohsuke.github.GitHub
+
+task github(dependsOn: build) {
+	onlyIf {
+		project.github_releases_token
+	}
+
+	doLast {
+		if (project.version.endsWith('LOCAL') || project.version.endsWith('SNAPSHOT')) {
+			println "Snapshot build will be local only - not pushed to github"
+		} else {
+			def github = GitHub.connectUsingOAuth(project.github_releases_token)
+			def repository = github.getRepository("${project.github_repository_owner}/${project.github_repository}")
+
+			def releaseBuilder = new GHReleaseBuilder(repository, project.platform_name + '-' + project.mc_tag + '-' + project.version)
+			releaseBuilder.name(project.platform_name + '-' + project.mc_tag + '-' + project.version)
+			releaseBuilder.commitish(grgit.branch.current().name)
+
+			def ghRelease = releaseBuilder.create()
+			ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"), "application/java-archive");
+			ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}-sources.jar"), "application/java-archive");
+		}
+	}
+}
+
+import com.modrinth.minotaur.TaskModrinthUpload
+
+task publishModrinth (type: TaskModrinthUpload){ // Make sure it runs after build!
+  if (project.hasProperty("modrinth_token") && project.hasProperty("modrinth_id")) {
+		token = project.modrinth_token
+		projectId = project.modrinth_id
+		versionName = project.platform_name + '-' + project.mc_tag + '-' + project.version
+		versionNumber = project.platform_name + '-' + project.mc_tag + '-' + project.version // Will fail if Modrinth has this version already
+		versionType = project.release_type
+		// On fabric, use 'remapJar' instead of 'jar'
+		uploadFile = remapJar // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
+		addGameVersion(project.minecraft_version) // Call this multiple times to add multiple game versions. There are tools that can help you generate the list of versions
+		addLoader(project.platform_name)
+	}
+}

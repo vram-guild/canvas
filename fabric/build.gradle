@@ -1,4 +1,4 @@
-// VRAM STANDARD GRADLE BUILD FOR FABRIC 1.17
+// VRAM STANDARD GRADLE BUILD FOR FABRIC 1.18
 // DO NOT MAKE CHANGES HERE - THEY WILL BE OVERWRITTEN BY AUTOMATED UPDATE
 
 buildscript {
@@ -17,49 +17,18 @@ plugins {
 	id 'com.modrinth.minotaur' version '1.2.1'
 }
 
-ext.mc_tag = 'mc118'
-ext.minecraft_version = '1.18.1'
-ext.release_version = '1.18.1'
+ext.platform_name = 'fabric'
 ext.loader_version = '0.12.11'
 ext.fabric_version = '0.44.0+1.18'
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
-repositories {
-	mavenLocal()
-	maven {url "https://maven.vram.io"}
-	maven {url "https://maven.shedaniel.me/"}
-	maven {url "https://maven.terraformersmc.com/releases/"}
-}
-
-project.archivesBaseName = project.mod_name + "-fabric-" + project.mc_tag
-
-if (project.hasProperty('mod_version') && grgit != null) {
-	if(grgit.status().isClean()) {
-		project.version = project.getProperty('mod_version') + '.' + grgit.log().size()
-	} else {
-		project.version = project.getProperty('mod_version') + '.' + (grgit.log().size() + 1) + '-SNAPSHOT'
-	}
-} else {
-	project.version = '99.0.0-LOCAL'
-}
-
-println "Building: ${group}:${project.archivesBaseName}:${project.version}"
-
-if (!project.hasProperty('license_file')) {
-	ext.license_file = '../HEADER'
-}
-
-if (!project.hasProperty('checkstyle_config')) {
-	ext.checkstyle_config = '../checkstyle.xml'
-}
+apply from: '../project_common.gradle'
+apply from: 'project.gradle'
+apply from: '../gruntle_common.gradle'
 
 dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 	mappings loom.officialMojangMappings()
 }
-
 
 // Hat tip to JellySquid
 configurations {
@@ -76,11 +45,6 @@ loom {
 	}
 }
 
-tasks.withType(JavaCompile) {
-	it.options.encoding = "UTF-8"
-	it.options.release = 17
-}
-
 processResources {
 	inputs.property "version", project.version
 
@@ -89,74 +53,35 @@ processResources {
 	}
 }
 
-// We define this outside of the eclipse block because eclipse has it's own "project" instance
-def eclipseName = project.mod_name + " fabric " + project.minecraft_version
-
-eclipse {
-	project {
-		name = eclipseName
+if (project.build_fat_jar) {
+	task remapMavenJar(type: net.fabricmc.loom.task.RemapJarTask, dependsOn: jar) {
+		input = jar.archiveFile
+		archiveFileName = "${archivesBaseName}-${project.version}-slim.jar"
+		addNestedDependencies = false
+		remapAccessWidener = true
 	}
-}
 
-license {
-	header rootProject.file(project.license_file)
-	include '**/*.java'
+	build.dependsOn remapMavenJar
 }
-
-checkstyle {
-	configFile = rootProject.file(project.checkstyle_config)
-	toolVersion = "8.44"
-}
-
-jar {
-	from "LICENSE"
-	manifest
-	{
-		attributes "Implementation-Title": "${project.archivesBaseName}"
-		attributes "Implementation-Version": "${project.version}"
-		attributes "Maven-Artifact": "${group}:${project.archivesBaseName}:${project.version}"
-		attributes "Built-On-Minecraft": "${minecraft_version}"
-		attributes "Built-On-Java": "${System.getProperty("java.vm.version")} (${System.getProperty("java.vm.vendor")})"
-	}
-}
-
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = "sources"
-	from sourceSets.main.allSource
-	manifest
-	{
-		attributes "Implementation-Title": "${project.archivesBaseName}" + "-sources"
-		attributes "Implementation-Version": "${project.version}"
-		attributes "Maven-Artifact": "${project.group}:${project.archivesBaseName}:${project.version}:sources"
-		attributes "Built-On-Minecraft": "${minecraft_version}"
-		attributes "Built-On-Java": "${System.getProperty("java.vm.version")} (${System.getProperty("java.vm.vendor")})"
-	}
-}
-
-task remapMavenJar(type: net.fabricmc.loom.task.RemapJarTask, dependsOn: jar) {
-	input = jar.archiveFile
-	archiveFileName = "${archivesBaseName}-${project.version}-slim.jar"
-	addNestedDependencies = false
-	remapAccessWidener = true
-}
-
-build.dependsOn remapMavenJar
 
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
 			artifactId = project.archivesBaseName;
 
-			artifact(remapMavenJar) {
-				builtBy remapMavenJar
-			}
+			if (project.build_fat_jar) {
+				artifact(remapMavenJar) {
+					builtBy remapMavenJar
+				}
 
-			artifact(remapJar) {
-				classifier = "fat"
-				builtBy remapJar
+				artifact(remapJar) {
+					classifier = "fat"
+					builtBy remapJar
+				}
+			} else {
+				artifact(remapJar) {
+					builtBy remapJar
+				}
 			}
 
 			artifact(sourcesJar) {
@@ -173,19 +98,23 @@ publishing {
 			println "Snapshot build will be local only - not pushed to public maven"
 		} else {
 	    maven {
-	        url = 'sftp://maven.vram.io:22'
-	        credentials {
-	        	if (project.hasProperty('maven_user')){
-				username = project.getProperty('maven_user')
-			}
-			if (project.hasProperty('maven_password')){
-				password = project.getProperty('maven_password')
-			}
-	        }
+        url = 'sftp://maven.vram.io:22'
+        credentials {
+        	if (project.hasProperty('maven_user')) {
+						username = project.getProperty('maven_user')
+					}
+					if (project.hasProperty('maven_password')) {
+						password = project.getProperty('maven_password')
+					}
+				}
 	    }
 		}
 	}
 }
+
+// Remainder unfortunately does not work in common script due to build script class path
+// limitations and so must be duplicated for each platform script.
+// Probably a way around it but Gradle has already exhausted my will to keep going.
 
 import org.kohsuke.github.GHReleaseBuilder
 import org.kohsuke.github.GitHub
@@ -202,74 +131,13 @@ task github(dependsOn: build) {
 			def github = GitHub.connectUsingOAuth(project.github_releases_token)
 			def repository = github.getRepository("${project.github_repository_owner}/${project.github_repository}")
 
-			def releaseBuilder = new GHReleaseBuilder(repository, version as String)
-			releaseBuilder.name(project.minecraft_version + "-" + project.version)
+			def releaseBuilder = new GHReleaseBuilder(repository, project.platform_name + '-' + project.mc_tag + '-' + project.version)
+			releaseBuilder.name(project.platform_name + '-' + project.mc_tag + '-' + project.version)
 			releaseBuilder.commitish(grgit.branch.current().name)
 
 			def ghRelease = releaseBuilder.create()
 			ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"), "application/java-archive");
 			ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}-sources.jar"), "application/java-archive");
-		}
-	}
-}
-
-curseforge {
-	if(project.hasProperty("curseforge_api_key")) {
-		apiKey = project.properties.curseforge_api_key
-	}
-
-	if(project.hasProperty("curseforge_id")) {
-		project {
-			id = project.properties.curseforge_id
-			releaseType = project.release_type
-			addGameVersion project.release_version
-			addGameVersion "Fabric"
-			changelog = "A changelog can be found at https://github.com/${github_repository_owner}/${github_repository}/commits"
-
-			mainArtifact(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")) {
-
-				if(project.hasProperty("required_dep_slugs") || project.hasProperty("embedded_lib_slugs") || project.hasProperty("optional_dep_slugs") || project.hasProperty("compatible_tool_slugs") || project.hasProperty("incompatible_slugs")) {
-					relations {
-						if(project.hasProperty("required_dep_slugs")) {
-							project.required_dep_slugs.split(", ").each { String slug ->
-								requiredDependency slug
-							}
-						}
-
-						if(project.hasProperty("embedded_lib_slugs")) {
-							project.embedded_lib_slugs.split(", ").each { String slug ->
-								embeddedLibrary slug
-							}
-						}
-
-						if(project.hasProperty("optional_dep_slugs")) {
-							project.optional_dep_slugs.split(", ").each { String slug ->
-								optionalDependency slug
-							}
-						}
-
-						if(project.hasProperty("compatible_tool_slugs")) {
-							project.compatible_tool_slugs.split(", ").each { String slug ->
-								tool slug
-							}
-						}
-
-						if(project.hasProperty("incompatible_slugs")) {
-							project.incompatible_slugs.split(", ").each { String slug ->
-								incompatible slug
-							}
-						}
-					}
-				}
-			}
-
-			afterEvaluate {
-				uploadTask.dependsOn remapJar
-			}
-		}
-
-		options {
-			forgeGradleIntegration = false
 		}
 	}
 }
@@ -280,14 +148,12 @@ task publishModrinth (type: TaskModrinthUpload){ // Make sure it runs after buil
 	if (project.hasProperty("modrinth_token") && project.hasProperty("modrinth_id")) {
 		token = project.modrinth_token
 		projectId = project.modrinth_id
-		versionName = 'fabric-' + project.mc_tag + '-' + project.version
-		versionNumber = 'fabric-' + project.mc_tag + '-' + project.version // Will fail if Modrinth has this version already
-		versionType = project.release_type.toUpperCase()
+		versionName = project.platform_name + '-' + project.mc_tag + '-' + project.version
+		versionNumber = project.platform_name + '-' + project.mc_tag + '-' + project.version // Will fail if Modrinth has this version already
+		versionType = project.release_type
 		// On fabric, use 'remapJar' instead of 'jar'
 		uploadFile = remapJar // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
 		addGameVersion(project.minecraft_version) // Call this multiple times to add multiple game versions. There are tools that can help you generate the list of versions
-		addLoader('fabric')
+		addLoader(project.platform_name)
 	}
 }
-
-apply from: 'project.gradle'

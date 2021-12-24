@@ -1,0 +1,141 @@
+ext.mc_tag = 'mc118'
+ext.minecraft_version = '1.18.1'
+ext.release_version = '1.18.1'
+
+project.archivesBaseName = project.mod_name + "-" + project.platform_name + "-" + project.mc_tag
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+repositories {
+	mavenLocal()
+	maven {url "https://maven.vram.io"}
+	maven {url "https://maven.shedaniel.me/"}
+	maven {url "https://maven.terraformersmc.com/releases/"}
+}
+
+if (project.hasProperty('mod_version') && grgit != null) {
+	if(grgit.status().isClean()) {
+		project.version = project.getProperty('mod_version') + '.' + grgit.log().size()
+	} else {
+		project.version = project.getProperty('mod_version') + '.' + (grgit.log().size() + 1) + '-SNAPSHOT'
+	}
+} else {
+	project.version = '99.0.0-LOCAL'
+}
+
+println "Building: ${group}:${project.archivesBaseName}:${project.version}"
+
+if (!project.hasProperty('license_file')) {
+	ext.license_file = '../HEADER'
+}
+
+license {
+	header rootProject.file(project.license_file)
+	include '**/*.java'
+}
+
+if (!project.hasProperty('checkstyle_config')) {
+	ext.checkstyle_config = '../checkstyle.xml'
+}
+
+checkstyle {
+	configFile = rootProject.file(project.checkstyle_config)
+	toolVersion = "8.44"
+}
+
+tasks.withType(JavaCompile) {
+	it.options.encoding = "UTF-8"
+	it.options.release = 16
+}
+
+// We define this outside of the eclipse block because eclipse has it's own "project" instance
+def eclipseName = project.mod_name + " " + project.platform_name + " " + project.minecraft_version
+
+eclipse {
+	project {
+		name = eclipseName
+	}
+}
+
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
+}
+
+jar {
+	// copy license notice to jar
+	from "LICENSE"
+
+	manifest {
+		attributes([
+			"Specification-Title": "${project.title}",
+			"Specification-Vendor": "${project.author}",
+			"Specification-Version": "${project.version}",
+			"Implementation-Title": "${project.archivesBaseName}",
+			"Implementation-Version": "${project.version}",
+			"Implementation-Vendor" : "${project.author}",
+			"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+		])
+   }
+}
+
+curseforge {
+	if (project.hasProperty("curseforge_api_key") && project.hasProperty('curseforge_id')) {
+		apiKey = project.properties.curseforge_api_key
+		project {
+			id = project.properties.curseforge_id
+			releaseType = project.release_type
+			addGameVersion project.release_version
+			addGameVersion project.platform_name.capitalize()
+			changelog = "A changelog can be found at https://github.com/${github_repository_owner}/${github_repository}/commits"
+
+			mainArtifact(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
+
+			if (project.hasProperty("required_dep_slugs") || project.hasProperty("embedded_lib_slugs") || project.hasProperty("optional_dep_slugs") || project.hasProperty("compatible_tool_slugs") || project.hasProperty("incompatible_slugs")) {
+				relations {
+					if (project.hasProperty("required_dep_slugs")) {
+						project.required_dep_slugs.split(", ").each { String slug ->
+							requiredDependency slug
+						}
+					}
+
+					if (project.hasProperty("embedded_lib_slugs")) {
+						project.embedded_lib_slugs.split(", ").each { String slug ->
+							embeddedLibrary slug
+						}
+					}
+
+					if (project.hasProperty("optional_dep_slugs")) {
+						project.optional_dep_slugs.split(", ").each { String slug ->
+							optionalDependency slug
+						}
+					}
+
+					if (project.hasProperty("compatible_tool_slugs")) {
+						project.compatible_tool_slugs.split(", ").each { String slug ->
+							tool slug
+						}
+					}
+
+					if (project.hasProperty("incompatible_slugs")) {
+						project.incompatible_slugs.split(", ").each { String slug ->
+							incompatible slug
+						}
+					}
+				}
+			}
+
+			afterEvaluate {
+				uploadTask.dependsOn remapJar
+			}
+		}
+
+		options {
+			forgeGradleIntegration = false
+			javaVersionAutoDetect = false
+		}
+	}
+}

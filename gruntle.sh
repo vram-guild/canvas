@@ -18,19 +18,19 @@ fi
 
 echo 'Checking for build updates...'
 # delete gruntle repo folder if exists from aborted run
-if [ -d "gruntle-master" ]; then
-  rm -rf gruntle-master
+if [ -d gruntle-${MC_VERSION} ]; then
+  rm -rf gruntle-${MC_VERSION}
 fi
 
 # download and unpack latest gruntle bundle
-curl https://github.com/vram-guild/gruntle/archive/refs/heads/master.zip -sSOJL
-unzip -q gruntle-master
+curl https://github.com/vram-guild/gruntle/archive/refs/heads/${MC_VERSION}.zip -sSOJL
+unzip -q gruntle-${MC_VERSION}
 
 # copy content for our branch and then remove bundle
 # this handles simple, file-based updates: checkstyle, standard gradle configs, etc.
-cp -R gruntle-master/$MC_VERSION/ .
-rm -rf gruntle-master
-rm gruntle-master.zip
+cp -R gruntle-${MC_VERSION}/bundle/ .
+rm -rf gruntle-${MC_VERSION}
+rm gruntle-${MC_VERSION}.zip
 
 # run latest refresh
 source gruntle/refresh.sh

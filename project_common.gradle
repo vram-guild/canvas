@@ -1,0 +1,20 @@
+
+project.group = 'io.vram'
+ext.author = 'Grondag'
+ext.title = 'Canvas Renderer'
+ext.mod_name = 'canvas'
+ext.mod_version = '1.0'
+
+ext.github_repository_owner = 'vram-guild'
+ext.github_repository = 'canvas'
+
+ext.curseforge_id = '318440'
+ext.modrinth_id = 'VOYxIjFI'
+ext.release_type = 'beta'
+
+ext.build_fat_jar = true
+ext.build_forge = false
+ext.accesswidener = 'src/main/resources/canvas.accesswidener'
+
+ext.optional_dep_slugs = "fabric-api, modmenu"
+ext.embedded_lib_slugs = "frex, jankson, jmx"
