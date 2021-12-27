@@ -19,7 +19,7 @@ dependencies {
 	modIncludeImplementation "org.anarres:jcpp:1.4.14"
 	modIncludeImplementation "blue.endless:jankson:1.2.1"
 
-	modIncludeImplementation("io.vram:bitraster:1.5.50")
+	modIncludeImplementation("io.vram:bitraster:1.5.53")
 
 	// Included via FREX/JMX
 	// modIncludeImplementation("io.vram:bitkit:1.0.1")

@@ -15,7 +15,7 @@ plugins {
 	id 'com.matthewprenger.cursegradle' version '1.4.0'
 	id 'checkstyle'
 	id 'com.modrinth.minotaur' version '1.2.1'
-	id "com.github.johnrengelman.shadow" version "7.0.0"
+	id "com.github.johnrengelman.shadow" version "7.0.0" apply false
 }
 
 ext.platform_name = 'forge'
@@ -50,6 +50,8 @@ processResources {
 }
 
 if (project.build_fat_jar) {
+	apply plugin: 'com.github.johnrengelman.shadow'
+
 	shadowJar {
 	    configurations = [project.configurations.bundle]
 	    classifier "dev-shadow"
@@ -66,6 +68,43 @@ if (project.build_fat_jar) {
 	}
 
 	build.dependsOn shadowJar
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			artifactId = project.archivesBaseName;
+
+			artifact(remapJar) {
+				builtBy remapJar
+			}
+			
+			artifact(sourcesJar) {
+				classifier = "sources"
+				builtBy remapSourcesJar
+			}
+		}
+	}
+
+	repositories {
+		mavenLocal()
+
+		if (project.version.endsWith('LOCAL') || project.version.endsWith('SNAPSHOT')) {
+			println "Snapshot build will be local only - not pushed to public maven"
+		} else {
+	    maven {
+        url = 'sftp://maven.vram.io:22'
+        credentials {
+        	if (project.hasProperty('maven_user')) {
+						username = project.getProperty('maven_user')
+					}
+					if (project.hasProperty('maven_password')) {
+						password = project.getProperty('maven_password')
+					}
+				}
+	    }
+		}
+	}
 }
 
 // Remainder unfortunately does not work in common script due to build script class path
