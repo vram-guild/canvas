@@ -27,9 +27,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.util.Mth;
 
+import io.vram.dtk.CircleUtil;
 import io.vram.frex.api.config.FlawlessFrames;
 import io.vram.frex.api.model.util.FaceUtil;
 import io.vram.sc.unordered.SimpleUnorderedArrayList;
@@ -53,7 +53,6 @@ import grondag.canvas.terrain.region.RenderRegion;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutorTask;
-import grondag.canvas.varia.CircleHacks;
 
 public class TerrainIterator implements TerrainExecutorTask {
 	public static final int IDLE = 0;
@@ -264,12 +263,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 			final int y = above ? (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0 : worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
 			final int x = BlockPos.getX(cameraChunkOrigin);
 			final int z = BlockPos.getZ(cameraChunkOrigin);
-			final int limit = CircleHacks.getLastDistanceSortedOffsetIndex(renderDistance);
+			final int limit = CircleUtil.getLastDistanceSortedOffsetIndex(renderDistance);
 			final int entryFace = above ? FaceUtil.UP_FLAG : FaceUtil.DOWN_FLAG;
 
 			for (int i = 0; i < limit; ++i) {
-				final Vec3i offset = CircleHacks.getDistanceSortedCircularOffset(i);
-				final RenderRegion region = regionStorage.getOrCreateRegion((offset.getX() << 4) + x, y, (offset.getZ() << 4) + z);
+				final var offset = CircleUtil.getDistanceSortedCircularOffset(i);
+				final RenderRegion region = regionStorage.getOrCreateRegion((offset.x() << 4) + x, y, (offset.y() << 4) + z);
 
 				if (region != null) {
 					if (Pipeline.advancedTerrainCulling()) {
@@ -460,7 +459,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final int y = BlockPos.getY(cameraChunkOrigin);
 		final int x = BlockPos.getX(cameraChunkOrigin);
 		final int z = BlockPos.getZ(cameraChunkOrigin);
-		final int limit = CircleHacks.getLastDistanceSortedOffsetIndex(renderDistance);
+		final int limit = CircleUtil.getLastDistanceSortedOffsetIndex(renderDistance);
 		final int yMin = worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
 		final int yMax = (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0;
 
@@ -472,12 +471,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 				continue;
 			}
 
-			final Vec3i offset = CircleHacks.getDistanceSortedCircularOffset(i);
+			final var offset = CircleUtil.getDistanceSortedCircularOffset(i);
 
 			final RenderRegion region = regionStorage.getOrCreateRegion(
-					(offset.getX() << 4) + x,
+					(offset.x() << 4) + x,
 					Mth.clamp((ySphere << 4) + y, yMin, yMax),
-					(offset.getZ() << 4) + z);
+					(offset.y() << 4) + z);
 
 			if (region != null) {
 				region.shadowVisibility.addIfValid();

@@ -3,7 +3,7 @@
 
 buildscript {
 	dependencies {
-		classpath 'org.kohsuke:github-api:1.135'
+		classpath 'org.kohsuke:github-api:1.301'
 	}
 }
 
@@ -78,7 +78,7 @@ publishing {
 			artifact(remapJar) {
 				builtBy remapJar
 			}
-			
+
 			artifact(sourcesJar) {
 				classifier = "sources"
 				builtBy remapSourcesJar

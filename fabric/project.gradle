@@ -20,13 +20,14 @@ dependencies {
 	modIncludeImplementation "blue.endless:jankson:1.2.1"
 
 	modIncludeImplementation("io.vram:bitraster:1.5.53")
+  modIncludeImplementation("io.vram:dtklib:1.0.3")
 
 	// Included via FREX/JMX
 	// modIncludeImplementation("io.vram:bitkit:1.0.1")
 	modIncludeImplementation("io.vram:special-circumstances:1.10.7")
 
 	// Included via JMX
-	// modIncludeImplementation("io.vram:frex-fabric-mc118:6.0.236")
+	// modIncludeImplementation("io.vram:frex-fabric-mc118:6.0.238")
 	modImplementation("io.vram:jmx-fabric-mc118:1.22.243")
 	include("io.vram:jmx-fabric-mc118:1.22.243:fat")
 

@@ -20,15 +20,13 @@
 
 package grondag.canvas.terrain.occlusion.shadow;
 
-import net.minecraft.core.Vec3i;
-
-import grondag.canvas.varia.CircleHacks;
+import io.vram.dtk.CircleUtil;
 
 public class RegionBoundingSphere {
 	/** Max visible range, in chunks. (Not block pos.) */
 	private int regionRenderDistance;
 	private int indexLimit;
-	private int[] yDist = new int[CircleHacks.DISTANCE_SORTED_CIRCULAR_OFFSETS_COUNT];
+	private int[] yDist = new int[CircleUtil.DISTANCE_SORTED_CIRCULAR_OFFSETS_COUNT];
 
 	public void update(int regionRenderDistance) {
 		if (regionRenderDistance != this.regionRenderDistance) {
@@ -36,13 +34,13 @@ public class RegionBoundingSphere {
 
 			final int maxSqDist = regionRenderDistance * regionRenderDistance;
 
-			final int indexLimit = CircleHacks.getLastDistanceSortedOffsetIndex(regionRenderDistance);
+			final int indexLimit = CircleUtil.getLastDistanceSortedOffsetIndex(regionRenderDistance);
 			this.indexLimit = indexLimit;
 
 			for (int i = 0; i < indexLimit; ++i) {
-				final Vec3i offset = CircleHacks.getDistanceSortedCircularOffset(i);
-				final int x = offset.getX();
-				final int z = offset.getZ();
+				final var offset = CircleUtil.getDistanceSortedCircularOffset(i);
+				final int x = offset.x();
+				final int z = offset.y();
 
 				final int ysq = maxSqDist - x * x - z * z;
 
