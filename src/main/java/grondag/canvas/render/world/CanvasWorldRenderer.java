@@ -583,6 +583,10 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		EntityRenderPostListener.invoke(eventContext);
 		eventContext.poseStack().popPose();
 
+		/* Some things that really want to be rendered before block destruction / outline render. */
+		immediate.endBatch(RenderType.endPortal());
+		immediate.endBatch(RenderType.endGateway());
+
 		bufferBuilders.outlineBufferSource().endOutlineBatch();
 
 		if (didRenderOutlines) {
