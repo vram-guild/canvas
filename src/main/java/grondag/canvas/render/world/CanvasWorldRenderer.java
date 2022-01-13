@@ -588,7 +588,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		immediate.endBatch(RenderType.endPortal());
 		immediate.endBatch(RenderType.endGateway());
 
-		outlineImmediate.endBatch();
+		outlineImmediate.endOutlineBatch();
 
 		if (didRenderOutlines) {
 			entityOutlineShader.process(tickDelta);
