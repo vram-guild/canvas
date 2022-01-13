@@ -134,6 +134,9 @@ accessible class net/minecraft/client/renderer/RenderStateShard$OverlayStateShar
 accessible class net/minecraft/client/renderer/RenderStateShard$TexturingStateShard
 accessible class net/minecraft/client/renderer/RenderStateShard$LineStateShard
 
+accessible class net/minecraft/client/renderer/OutlineBufferSource$EntityOutlineGenerator
+accessible method net/minecraft/client/renderer/OutlineBufferSource$EntityOutlineGenerator <init> (Lcom/mojang/blaze3d/vertex/VertexConsumer;IIII)V
+
 accessible method net/minecraft/client/renderer/culling/Frustum calculateFrustum (Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix4f;)V
 
 accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$InterpolationData

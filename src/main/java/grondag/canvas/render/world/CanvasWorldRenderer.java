@@ -53,7 +53,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.OutlineBufferSource;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RenderStateShard;
@@ -91,6 +90,7 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
+import grondag.canvas.buffer.input.CanvasOutlineImmediate;
 import grondag.canvas.buffer.render.StreamBufferAllocator;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.buffer.util.BufferSynchronizer;
@@ -131,11 +131,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 	private final RegionCullingFrustum entityCullingFrustum = new RegionCullingFrustum(worldRenderState);
 	private final RenderContextState contextState = new RenderContextState();
-	private CanvasImmediate worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
+	private CanvasImmediate worldRenderImmediate;
 	/** Contains the player model output for First Person Model, separate to draw in material pass only. */
-	private CanvasImmediate materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
+	private CanvasImmediate materialExtrasImmediate;
 	/** Contains the player model output when not in 3rd-person view, separate to draw in shadow render only. */
-	private CanvasImmediate shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
+	private CanvasImmediate shadowExtrasImmediate;
+	private CanvasOutlineImmediate outlineImmediate;
 	private final CanvasParticleRenderer particleRenderer = new CanvasParticleRenderer(entityCullingFrustum);
 	private final WorldRenderContextBase eventContext = new WorldRenderContextBase();
 
@@ -161,6 +162,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		worldRenderImmediate = new CanvasImmediate(new BufferBuilder(256), CanvasImmediate.entityBuilders(), contextState);
 		materialExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
 		shadowExtrasImmediate = new CanvasImmediate(new BufferBuilder(256), new Object2ObjectLinkedOpenHashMap<>(), contextState);
+		outlineImmediate = new CanvasOutlineImmediate(worldRenderImmediate);
 	}
 
 	public static CanvasWorldRenderer instance() {
@@ -451,13 +453,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 				}
 			} else if (canDrawEntityOutlines && mc.shouldEntityAppearGlowing(entity)) {
 				didRenderOutlines = true;
-				final OutlineBufferSource outlineVertexConsumerProvider = bufferBuilders.outlineBufferSource();
-				renderProvider = outlineVertexConsumerProvider;
+				renderProvider = outlineImmediate;
 				final int teamColor = entity.getTeamColor();
 				final int red = (teamColor >> 16 & 255);
 				final int green = (teamColor >> 8 & 255);
 				final int blue = teamColor & 255;
-				outlineVertexConsumerProvider.setColor(red, green, blue, 255);
+				outlineImmediate.setColor(red, green, blue, 255);
 			} else {
 				renderProvider = immediate;
 			}
@@ -587,7 +588,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		immediate.endBatch(RenderType.endPortal());
 		immediate.endBatch(RenderType.endGateway());
 
-		bufferBuilders.outlineBufferSource().endOutlineBatch();
+		outlineImmediate.endBatch();
 
 		if (didRenderOutlines) {
 			entityOutlineShader.process(tickDelta);
