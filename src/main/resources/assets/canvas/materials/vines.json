@@ -1,6 +1,6 @@
 {
-  "vertexSource": "canvas:shaders/material/leaves.vert",
-  "depthVertexSource": "canvas:shaders/material/leaves.vert",
+  "vertexSource": "canvas:shaders/material/vines.vert",
+  "depthVertexSource": "canvas:shaders/material/vines.vert",
   "disableAo": true,
   "disableDiffuse": true
 }
