@@ -1,0 +1,7 @@
+{
+  "vertexSource": "canvas:shaders/material/leaves.vert",
+  "depthVertexSource": "canvas:shaders/material/leaves.vert",
+  "fragmentSource": "canvas:shaders/material/warm_glow.frag",
+  "disableAo": true,
+  "disableDiffuse": true
+}

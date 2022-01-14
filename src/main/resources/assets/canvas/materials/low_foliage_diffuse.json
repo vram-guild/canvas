@@ -1,0 +1,5 @@
+{
+  "vertexSource": "canvas:shaders/material/low_foliage.vert",
+  "fragmentSource": "canvas:shaders/material/default.frag",
+  "depthVertexSource": "canvas:shaders/material/low_foliage.vert"
+}

@@ -1,8 +1,11 @@
 {
-  "defaultMaterial": "fabric:standard",
-  "variants": {
-	"berries=true": {
-	  "defaultMaterial": "canvas:warm_glow"
-	}
+  "defaultMaterial": "canvas:vines",
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/cave_vines_plant_lit",
+        "material": "canvas:warm_glow_vines"
+      }
+    ]
   }
 }
