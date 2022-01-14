@@ -36,6 +36,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 
+// WIP: change this an inject with cancel so that mods that hook in here don't break directly - esp C&B
+// WIP: move hooks upstream so that multi-consumer is available in more cases
 @Mixin(ModelBlockRenderer.class)
 public abstract class MixinModelBlockRenderer {
 	/**
