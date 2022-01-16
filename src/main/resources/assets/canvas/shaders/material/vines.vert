@@ -33,6 +33,6 @@ void frx_materialVertex() {
 	frx_vertex.z += sin(t * 19) * wind;
 
 	// clamp based on normals
-	frx_vertex.xz = mix(frx_vertex.xz, clamp(frx_vertex.xz, minPos, maxPos), abs(frx_normal.xz));
+	frx_vertex.xz = mix(frx_vertex.xz, clamp(frx_vertex.xz, minPos, maxPos), abs(frx_vertexNormal.xz));
 	#endif
 }

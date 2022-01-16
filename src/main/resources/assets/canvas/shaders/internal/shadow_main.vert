@@ -22,7 +22,8 @@ void main() {
 	frx_vertex = vec4(in_vertex, 1.0);
 	frx_texcoord = in_uv;
 	frx_vertexColor = in_color;
-	
+	frx_vertexNormal = in_normal;
+
 	_cv_setupProgram();
 	_cvv_flags = uint(_cvu_program.z);
 
