@@ -27,12 +27,16 @@ import org.lwjgl.system.Configuration;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderStateShard.TextureStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderType.CompositeRenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextComponent;
 
 import io.vram.frex.api.config.FrexFeature;
 import io.vram.frex.api.renderloop.RenderReloadListener;
@@ -57,6 +61,7 @@ import grondag.canvas.config.Configurator;
 public class CanvasMod {
 	public static final String MODID = "canvas";
 	public static final Logger LOG = LogManager.getLogger("Canvas");
+	public static final Style ERROR_STYLE = Style.EMPTY.withFont(Style.DEFAULT_FONT).withColor(0xFF6666);
 	public static KeyMapping DEBUG_TOGGLE = new KeyMapping("key.canvas.debug_toggle", Character.valueOf('`'), "key.canvas.category");
 	public static KeyMapping DEBUG_PREV = new KeyMapping("key.canvas.debug_prev", Character.valueOf('['), "key.canvas.category");
 	public static KeyMapping DEBUG_NEXT = new KeyMapping("key.canvas.debug_next", Character.valueOf(']'), "key.canvas.category");
@@ -130,5 +135,14 @@ public class CanvasMod {
 		RenderReloadListener.register(CanvasState::reload);
 		AoFace.clampExteriorVertices(Configurator.clampExteriorVertices);
 		Compat.init();
+	}
+
+	public static void displayClientError(String errorMessage) {
+		final LocalPlayer localPlayer = Minecraft.getInstance().player;
+
+		if (localPlayer != null) {
+			final TextComponent message = (TextComponent) new TextComponent("[Canvas] ").append(new TextComponent(errorMessage).setStyle(ERROR_STYLE));
+			localPlayer.displayClientMessage(message, false);
+		}
 	}
 }

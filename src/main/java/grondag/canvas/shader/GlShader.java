@@ -176,7 +176,9 @@ public class GlShader implements Shader {
 
 			if (Configurator.conciseErrors) {
 				if (!isErrorNoticeComplete) {
-					CanvasMod.LOG.error(I18n.get("error.canvas.fail_create_any_shader"));
+					final String errorMessage = I18n.get("error.canvas.fail_create_any_shader");
+					CanvasMod.LOG.error(errorMessage);
+					CanvasMod.displayClientError(errorMessage);
 					isErrorNoticeComplete = true;
 				}
 			} else {
