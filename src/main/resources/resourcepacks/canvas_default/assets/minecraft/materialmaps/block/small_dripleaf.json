@@ -1,0 +1,22 @@
+{
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/small_dripleaf_stem_bottom",
+		"material": "canvas:low_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/small_dripleaf_stem_top",
+		"material": "canvas:high_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/small_dripleaf_top",
+		"material": "canvas:high_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/small_dripleaf_side",
+		"material": "canvas:high_foliage"
+	  }
+	]
+  }
+}
