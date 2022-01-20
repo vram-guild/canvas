@@ -154,6 +154,7 @@ import io.vram.frex.api.light.ItemLight;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.mixinterface.DimensionTypeExt;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.varia.CelestialObjectFunction;
@@ -440,7 +441,8 @@ public class ShaderDataManager {
 			FLOAT_VECTOR_DATA.put(FOG_COLOR + 3, fogColor[3]);
 
 			if (skyLight) {
-				final boolean moonLight = computeSkylightFactor(tickTime);
+				final long trueTickTime = ((DimensionTypeExt) world.dimensionType()).canvas_fixedTime().orElse(tickTime);
+				final boolean moonLight = computeSkylightFactor(trueTickTime);
 
 				final float skyAngle = world.getSunAngle(tickDelta);
 

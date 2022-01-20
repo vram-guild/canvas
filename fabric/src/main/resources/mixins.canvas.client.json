@@ -13,6 +13,7 @@
 		"MixinChunkRenderDispatcher",
 		"MixinClientChunkCache",
 		"MixinCompiledChunk",
+		"MixinDimensionType",
 		"MixinRenderType",
 		"MixinCyclingOption",
 		"MixinDebugScreenOverlay",
