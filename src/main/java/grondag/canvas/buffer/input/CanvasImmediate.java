@@ -33,6 +33,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
 
 import io.vram.frex.api.buffer.VertexEmitter;
@@ -117,6 +118,9 @@ public class CanvasImmediate extends BufferSource {
 
 	public static SortedMap<RenderType, BufferBuilder> entityBuilders() {
 		return Util.make(new Object2ObjectLinkedOpenHashMap<>(), (object2ObjectLinkedOpenHashMap) -> {
+			// Shadows don't like sharing buffers with leash
+			assignBufferBuilder(object2ObjectLinkedOpenHashMap, EntityRenderDispatcher.SHADOW_RENDER_TYPE);
+
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.translucentNoCrumbling());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.armorGlint());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.armorEntityGlint());
