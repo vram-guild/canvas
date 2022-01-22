@@ -27,27 +27,6 @@ configurations {
 }
 
 apply from: '../project_common.gradle'
-apply from: 'project.gradle'
-apply from: '../gruntle_common.gradle'
-
-dependencies {
-	minecraft "com.mojang:minecraft:${minecraft_version}"
-	forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-	mappings loom.officialMojangMappings()
-}
-
-loom {
-	mixin.defaultRefmapName = project.mod_name + "-refmap.json"
-	silentMojangMappingsLicense()
-}
-
-processResources {
-	inputs.property "version", project.version
-
-    filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
-    }
-}
 
 if (project.build_fat_jar) {
 	apply plugin: 'com.github.johnrengelman.shadow'
@@ -68,6 +47,28 @@ if (project.build_fat_jar) {
 	}
 
 	build.dependsOn shadowJar
+}
+
+apply from: 'project.gradle'
+apply from: '../gruntle_common.gradle'
+
+dependencies {
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+	mappings loom.officialMojangMappings()
+}
+
+loom {
+	mixin.defaultRefmapName = project.mod_name + "-refmap.json"
+	silentMojangMappingsLicense()
+}
+
+processResources {
+	inputs.property "version", project.version
+
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version
+    }
 }
 
 publishing {
