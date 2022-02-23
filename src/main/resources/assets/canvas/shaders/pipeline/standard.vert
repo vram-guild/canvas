@@ -17,6 +17,9 @@ void frx_pipelineVertex() {
 	if (frx_isGui) {
 		gl_Position = frx_guiViewProjectionMatrix * frx_vertex;
 		frx_distance = length(gl_Position.xyz);
+#if HANDHELD_LIGHT_RADIUS != 0
+		_cvViewVertex = gl_Position;
+#endif
 	} else {
 		frx_vertex += frx_modelToCamera;
 		vec4 viewCoord = frx_viewMatrix * frx_vertex;
