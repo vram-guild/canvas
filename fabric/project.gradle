@@ -20,7 +20,7 @@ dependencies {
 	modIncludeImplementation "blue.endless:jankson:1.2.1"
 
 	modIncludeImplementation("io.vram:bitraster:1.5.53")
-  modIncludeImplementation("io.vram:dtklib:1.0.3")
+  modIncludeImplementation("io.vram:dtklib:1.0.4")
 
 	// Included via FREX/JMX
 	// modIncludeImplementation("io.vram:bitkit:1.0.4")
