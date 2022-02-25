@@ -138,6 +138,7 @@ public class CanvasMod {
 	}
 
 	public static void displayClientError(String errorMessage) {
+		@SuppressWarnings("resource")
 		final LocalPlayer localPlayer = Minecraft.getInstance().player;
 
 		if (localPlayer != null) {
