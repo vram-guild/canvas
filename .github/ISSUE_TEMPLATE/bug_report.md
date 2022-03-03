@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**System Informatinon**
+**System Information**
 
 - Minecraft Version: 
 - Canvas Version: 
