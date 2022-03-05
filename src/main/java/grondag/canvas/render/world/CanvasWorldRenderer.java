@@ -322,7 +322,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			RenderSystem.setShader(GameRenderer::getPositionShader);
 
 			// Mojang passes applyFog as a lambda here because they sometimes call it twice.
-			renderSky(viewMatrixStack, projectionMatrix, tickDelta, () -> {
+			renderSky(viewMatrixStack, projectionMatrix, tickDelta, camera, thickFog, () -> {
 				FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog);
 			});
 		}

@@ -26,6 +26,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.biome.Biome;
@@ -71,7 +72,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 	}
 
 	public Biome getBiome(int x, int y, int z) {
-		return world.getBiomeManager().getBiome(searchPos.set(x, y, z));
+		return world.getBiomeManager().getBiome(searchPos.set(x, y, z)).value();
 	}
 
 	private LevelChunk getChunk(int cx, int cz) {
@@ -83,7 +84,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 	}
 
 	@Override
-	public Biome getNoiseBiome(int x, int y, int z) {
+	public Holder<Biome> getNoiseBiome(int x, int y, int z) {
 		final ChunkAccess chunk = getChunk(x >> 2, z >> 2);
 
 		if (chunk != null) {

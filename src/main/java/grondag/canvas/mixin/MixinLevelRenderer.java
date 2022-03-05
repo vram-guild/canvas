@@ -156,6 +156,15 @@ public class MixinLevelRenderer implements LevelRendererExt {
 	}
 
 	/**
+	 * @author spiralhalo
+	 * @reason simplicity
+	 */
+	@Overwrite
+	public boolean isChunkCompiled(BlockPos blockPos) {
+		return ((CanvasWorldRenderer) (Object) this).worldRenderState.renderRegionStorage.getRegionIfExists(blockPos) != null;
+	}
+
+	/**
 	 * @author grondag
 	 * @reason prevent mishap
 	 */
