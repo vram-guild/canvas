@@ -23,11 +23,11 @@ package grondag.canvas.compat;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 
-import grondag.canvas.config.ConfigGui;
+import grondag.canvas.config.CanvasConfigScreen;
 
 public class ModMenuHelper implements ModMenuApi {
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-		return ConfigGui::display;
+		return CanvasConfigScreen::new;
 	}
 }

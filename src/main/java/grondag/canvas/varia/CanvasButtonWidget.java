@@ -25,12 +25,12 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-import grondag.canvas.config.ConfigGui;
+import grondag.canvas.config.CanvasConfigScreen;
 
 public class CanvasButtonWidget extends Button {
 	public static Screen parent;
 
 	public CanvasButtonWidget(int x, int y, int width, int height, Component text) {
-		super(x, y, width, height, text, button -> Minecraft.getInstance().setScreen(ConfigGui.display(parent)));
+		super(x, y, width, height, text, button -> Minecraft.getInstance().setScreen(new CanvasConfigScreen(parent)));
 	}
 }
