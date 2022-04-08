@@ -19,7 +19,7 @@ import net.minecraft.network.chat.TextComponent;
 
 import static grondag.canvas.config.widget.ResettableCheckbox.RESET_BUTTON_WIDTH;
 
-public abstract class ResettableSlider extends SpruceDoubleOption implements ResettableOption<Double> {
+public abstract class ResettableSlider<T> extends SpruceDoubleOption implements ResettableOption<T> {
 	private double defaultVal;
 	private SpruceWidget resetButton;
 
@@ -48,13 +48,13 @@ public abstract class ResettableSlider extends SpruceDoubleOption implements Res
 		resetButton.setActive(get() != defaultVal);
 	}
 
-	public static class IntSlider extends ResettableSlider {
+	public static class IntSlider extends ResettableSlider<Integer> {
 		IntSlider(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable Component tooltip) {
 			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.intValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": " + getter.get()), tooltip);
 		}
 	}
 
-	public static class FloatSlider extends ResettableSlider {
+	public static class FloatSlider extends ResettableSlider<Float> {
 		FloatSlider(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable Component tooltip) {
 			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(String.format("%s: %.1f", I18n.get(key), getter.get())), tooltip);
 		}
