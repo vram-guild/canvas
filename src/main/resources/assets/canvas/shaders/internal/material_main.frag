@@ -44,7 +44,7 @@ void main() {
 	frx_fragReflectance = 0.04;
 	frx_fragNormal = vec3(0.0, 0.0, 1.0);
 	frx_fragHeight = 0.0;
-	frx_fragRoughness = 0.0;
+	frx_fragRoughness = 1.0;
 	frx_fragAo = 1.0;
 #endif
 	
