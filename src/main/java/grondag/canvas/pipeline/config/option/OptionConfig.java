@@ -23,6 +23,8 @@ package grondag.canvas.pipeline.config.option;
 import java.util.List;
 
 import blue.endless.jankson.JsonObject;
+import dev.lambdaurora.spruceui.option.SpruceSeparatorOption;
+import dev.lambdaurora.spruceui.widget.container.SpruceOptionListWidget;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -103,12 +105,14 @@ public class OptionConfig extends AbstractConfig {
 		return valid;
 	}
 
-	public void addGuiEntries(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
-		final ConfigCategory category = builder.getOrCreateCategory(new TranslatableComponent(categoryKey));
+	public int addGuiEntries(SpruceOptionListWidget list) {
+		final int index = list.addSingleOptionEntry(new SpruceSeparatorOption(categoryKey, true,null));
 
 		for (final var entry : entries) {
-			category.addEntry(entry.buildEntry(entryBuilder));
+			list.addSingleOptionEntry(entry.buildEntry());
 		}
+
+		return index;
 	}
 
 	public String createSource() {

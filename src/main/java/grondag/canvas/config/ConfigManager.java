@@ -166,4 +166,11 @@ public class ConfigManager {
 			Minecraft.getInstance().levelRenderer.allChanged();
 		}
 	}
+
+	public static Component parseTooltip(String key) {
+		String translated = I18n.get(key);
+		translated = translated.replace(";", " ");
+		translated = translated.replace("  ", " ");
+		return new TextComponent(translated);
+	}
 }

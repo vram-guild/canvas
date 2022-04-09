@@ -24,6 +24,8 @@ import java.util.Locale;
 
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
+import dev.lambdaurora.spruceui.option.SpruceOption;
+import grondag.canvas.config.widget.StandardOption;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
@@ -48,14 +50,15 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 	}
 
 	@Override
-	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
-		return builder.startFloatField(new TranslatableComponent(nameKey), value)
-				.setMin(min)
-				.setMax(max)
-				.setDefaultValue(defaultVal)
-				.setTooltip(ConfigManager.parse(descriptionKey))
-				.setSaveConsumer(f -> value = f)
-				.build();
+	SpruceOption buildEntry() {
+		return StandardOption.floatOption(nameKey,
+				min,
+				max,
+				0.1f,
+				() -> value,
+				f -> value = f,
+				defaultVal,
+				ConfigManager.parseTooltip(descriptionKey));
 	}
 
 	@Override

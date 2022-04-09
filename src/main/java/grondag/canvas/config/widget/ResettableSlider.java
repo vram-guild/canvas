@@ -50,13 +50,13 @@ public abstract class ResettableSlider<T> extends SpruceDoubleOption implements 
 
 	public static class IntSlider extends ResettableSlider<Integer> {
 		IntSlider(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable Component tooltip) {
-			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.intValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": " + getter.get()), tooltip);
+			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.intValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": §b" + getter.get()), tooltip);
 		}
 	}
 
 	public static class FloatSlider extends ResettableSlider<Float> {
 		FloatSlider(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable Component tooltip) {
-			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(String.format("%s: %.1f", I18n.get(key), getter.get())), tooltip);
+			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(String.format("%s: §b%.1f", I18n.get(key), getter.get())), tooltip);
 		}
 	}
 }

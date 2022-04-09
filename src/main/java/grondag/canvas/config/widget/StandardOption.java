@@ -9,7 +9,7 @@ import dev.lambdaurora.spruceui.option.SpruceOption;
 
 import net.minecraft.network.chat.Component;
 
-public class Resettable {
+public class StandardOption {
 	private static class ExpandedSetter<T> implements Consumer<T> {
 		private ResettableOption<T> option;
 		private final Consumer<T> setter;
@@ -38,7 +38,14 @@ public class Resettable {
 
 	public static <T extends Enum<T>> SpruceOption enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, Class<T> enumType, @Nullable Component tooltip) {
 		final var expandedSetter = new ExpandedSetter<>(setter);
-		final var created = new ResettableEnum<T>(key, getter, expandedSetter, defaultVal, enumType, tooltip);
+		final var created = new ResettableEnum<T>(key, getter, expandedSetter, defaultVal, enumType.getEnumConstants(), tooltip);
+		expandedSetter.attach(created);
+		return created;
+	}
+
+	public static <T> SpruceOption enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable Component tooltip) {
+		final var expandedSetter = new ExpandedSetter<>(setter);
+		final var created = new ResettableEnum<T>(key, getter, expandedSetter, defaultVal, values, tooltip);
 		expandedSetter.attach(created);
 		return created;
 	}

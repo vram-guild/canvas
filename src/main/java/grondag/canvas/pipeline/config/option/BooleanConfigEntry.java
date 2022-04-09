@@ -24,10 +24,8 @@ import java.util.Locale;
 
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-
-import net.minecraft.network.chat.TranslatableComponent;
+import dev.lambdaurora.spruceui.option.SpruceOption;
+import grondag.canvas.config.widget.StandardOption;
 
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
@@ -44,12 +42,12 @@ public class BooleanConfigEntry extends OptionConfigEntry<BooleanConfigEntry> {
 	}
 
 	@Override
-	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
-		return builder.startBooleanToggle(new TranslatableComponent(nameKey), value)
-				.setDefaultValue(defaultVal)
-				.setTooltip(ConfigManager.parse(descriptionKey))
-				.setSaveConsumer(b -> value = b)
-				.build();
+	SpruceOption buildEntry() {
+		return StandardOption.booleanOption(nameKey,
+				() -> value,
+				b -> value = b,
+				defaultVal,
+				ConfigManager.parseTooltip(descriptionKey));
 	}
 
 	@Override

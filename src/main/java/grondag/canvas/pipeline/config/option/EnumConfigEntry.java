@@ -24,8 +24,8 @@ import java.util.Locale;
 
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import dev.lambdaurora.spruceui.option.SpruceOption;
+import grondag.canvas.config.widget.StandardOption;
 
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -54,13 +54,13 @@ public class EnumConfigEntry extends OptionConfigEntry<EnumConfigEntry> {
 	}
 
 	@Override
-	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
-		return builder.startSelector(new TranslatableComponent(nameKey), choices, value)
-				.setDefaultValue(defaultVal)
-				.setTooltip(ConfigManager.parse(descriptionKey))
-				.setNameProvider(o -> new TextComponent(o.toUpperCase(Locale.ROOT)))
-				.setSaveConsumer(v -> value = v)
-				.build();
+	SpruceOption buildEntry() {
+		return StandardOption.enumOption(nameKey,
+						() -> value,
+						s -> value = s,
+						defaultVal,
+						choices,
+						ConfigManager.parseTooltip(descriptionKey));
 	}
 
 	@Override

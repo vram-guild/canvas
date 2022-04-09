@@ -24,6 +24,8 @@ import java.util.Locale;
 
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
+import dev.lambdaurora.spruceui.option.SpruceOption;
+import grondag.canvas.config.widget.StandardOption;
 import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
@@ -48,22 +50,15 @@ public class IntConfigEntry extends OptionConfigEntry<IntConfigEntry> {
 	}
 
 	@Override
-	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
-		if (max - min <= 50) {
-			return builder.startIntSlider(new TranslatableComponent(nameKey), value, min, max)
-					.setDefaultValue(defaultVal)
-					.setTooltip(ConfigManager.parse(descriptionKey))
-					.setSaveConsumer(v -> value = v)
-					.build();
-		} else {
-			return builder.startIntField(new TranslatableComponent(nameKey), value)
-					.setMin(min)
-					.setMax(max)
-					.setDefaultValue(defaultVal)
-					.setTooltip(ConfigManager.parse(descriptionKey))
-					.setSaveConsumer(v -> value = v)
-					.build();
-		}
+	SpruceOption buildEntry() {
+		return StandardOption.intOption(nameKey,
+				min,
+				max,
+				1,
+				() -> value,
+				i -> value = i,
+				defaultVal,
+				ConfigManager.parseTooltip(descriptionKey));
 	}
 
 	@Override
