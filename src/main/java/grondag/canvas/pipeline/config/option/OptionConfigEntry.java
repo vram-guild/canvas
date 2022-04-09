@@ -24,8 +24,6 @@ import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import dev.lambdaurora.spruceui.option.SpruceOption;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.util.ConfigContext;

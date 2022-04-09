@@ -51,9 +51,8 @@ public class PipelineSelectionEntry extends SpruceOption {
 	@Override
 	public SpruceWidget createWidget(Position position, int width) {
 		final var $this = this;
-		this.buttonWidget = new SpruceButtonWidget(position, width, 20, new TranslatableComponent(pipeline.nameKey), b-> {
-			owner.onSelect($this);
-		}) {
+		this.buttonWidget = new SpruceButtonWidget(position, width, 20, new TranslatableComponent(pipeline.nameKey),
+			b -> owner.onSelect($this)) {
 			@Override
 			public void renderBackground(PoseStack poseStack, int i, int j, float f) {
 				final int x = getX();

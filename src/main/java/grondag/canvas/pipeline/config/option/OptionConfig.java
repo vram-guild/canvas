@@ -26,11 +26,7 @@ import blue.endless.jankson.JsonObject;
 import dev.lambdaurora.spruceui.option.SpruceSeparatorOption;
 import dev.lambdaurora.spruceui.widget.container.SpruceOptionListWidget;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import me.shedaniel.clothconfig2.api.ConfigBuilder;
-import me.shedaniel.clothconfig2.api.ConfigCategory;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.pipeline.config.util.AbstractConfig;
@@ -106,7 +102,7 @@ public class OptionConfig extends AbstractConfig {
 	}
 
 	public int addGuiEntries(SpruceOptionListWidget list) {
-		final int index = list.addSingleOptionEntry(new SpruceSeparatorOption(categoryKey, true,null));
+		final int index = list.addSingleOptionEntry(new SpruceSeparatorOption(categoryKey, true, null));
 
 		for (final var entry : entries) {
 			list.addSingleOptionEntry(entry.buildEntry());

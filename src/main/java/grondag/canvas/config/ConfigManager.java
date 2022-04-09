@@ -118,7 +118,7 @@ public class ConfigManager {
 		CanvasState.recompile();
 	}
 
-	static void saveConfig() {
+	private static void saveConfig() {
 		final ConfigData config = new ConfigData();
 
 		Configurator.writeToConfig(config);
@@ -167,6 +167,9 @@ public class ConfigManager {
 		}
 	}
 
+	/**
+	 * Legacy format compatibility.
+	 */
 	public static Component parseTooltip(String key) {
 		String translated = I18n.get(key);
 		translated = translated.replace(";", " ");

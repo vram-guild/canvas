@@ -1,11 +1,32 @@
+/*
+ * This file is part of Canvas Renderer and is licensed to the project under
+ * terms that are compatible with the GNU Lesser General Public License.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership and licensing.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package grondag.canvas.config.widget;
+
+import static grondag.canvas.config.widget.ResettableCheckbox.RESET_BUTTON_WIDTH;
 
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
-
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.widget.container.SpruceContainerWidget;
 import dev.lambdaurora.spruceui.option.SpruceCyclingOption;
@@ -16,9 +37,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 
-import static grondag.canvas.config.widget.ResettableCheckbox.RESET_BUTTON_WIDTH;
-
-public class ResettableEnum<T> extends SpruceCyclingOption implements ResettableOption<T>  {
+public class ResettableEnum<T> extends SpruceCyclingOption implements ResettableOption<T> {
 	private final T defaultVal;
 	private final Supplier<T> getter;
 	private final T[] values;
@@ -52,17 +71,7 @@ public class ResettableEnum<T> extends SpruceCyclingOption implements Resettable
 		resetButton.setActive(!getter.get().equals(defaultVal));
 	}
 
-	private static class EnumCycler<T> implements Consumer<Integer> {
-		private final Supplier<T> getter;
-		private final Consumer<T> setter;
-		private final T[] values;
-
-		public EnumCycler(Supplier<T> getter, Consumer<T> setter, T[] values) {
-			this.getter = getter;
-			this.setter = setter;
-			this.values = values;
-		}
-
+	private record EnumCycler<T>(Supplier<T> getter, Consumer<T> setter, T[] values) implements Consumer<Integer> {
 		@Override
 		public void accept(Integer i) {
 			final int current = search(values, getter.get());
@@ -72,12 +81,12 @@ public class ResettableEnum<T> extends SpruceCyclingOption implements Resettable
 	}
 
 	private static int search(Object[] values, Object key) {
-		for(int i = 0; i < values.length; i ++) {
+		for (int i = 0; i < values.length; i++) {
 			if (key.equals(values[i])) {
 				return i;
 			}
 		}
 
-		return  -1;
+		return -1;
 	}
 }

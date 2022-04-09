@@ -1,8 +1,30 @@
+/*
+ * This file is part of Canvas Renderer and is licensed to the project under
+ * terms that are compatible with the GNU Lesser General Public License.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership and licensing.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package grondag.canvas.config.widget;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+
 import net.minecraft.network.chat.Component;
 
 public class Buttons {
@@ -68,7 +90,7 @@ public class Buttons {
 			final int boxW = getHeight();
 			final int box = getHeight() / 2;
 
-//			fill(ps, x + width - boxW / 2 - box / 2, y + boxW / 2 - box / 2, x + width - boxW / 2 + box / 2, y + height - boxW / 2 + box / 2, 0xFFFFFFFF);
+			// fill(ps, x + width - boxW / 2 - box / 2, y + boxW / 2 - box / 2, x + width - boxW / 2 + box / 2, y + height - boxW / 2 + box / 2, 0xFFFFFFFF);
 
 			for (int i = 0; i < box / 2; i++) {
 				drawArrowShadow(ps, i, x, y, boxW, box);

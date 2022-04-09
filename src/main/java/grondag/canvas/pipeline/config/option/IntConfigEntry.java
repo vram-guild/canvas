@@ -25,12 +25,8 @@ import java.util.Locale;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import dev.lambdaurora.spruceui.option.SpruceOption;
+
 import grondag.canvas.config.widget.StandardOption;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-
-import net.minecraft.network.chat.TranslatableComponent;
-
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;

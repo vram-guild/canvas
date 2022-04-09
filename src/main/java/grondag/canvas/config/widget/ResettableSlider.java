@@ -1,11 +1,32 @@
+/*
+ * This file is part of Canvas Renderer and is licensed to the project under
+ * terms that are compatible with the GNU Lesser General Public License.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership and licensing.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package grondag.canvas.config.widget;
+
+import static grondag.canvas.config.widget.ResettableCheckbox.RESET_BUTTON_WIDTH;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
-
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
 import dev.lambdaurora.spruceui.option.SpruceDoubleOption;
@@ -16,8 +37,6 @@ import dev.lambdaurora.spruceui.widget.container.SpruceContainerWidget;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
-
-import static grondag.canvas.config.widget.ResettableCheckbox.RESET_BUTTON_WIDTH;
 
 public abstract class ResettableSlider<T> extends SpruceDoubleOption implements ResettableOption<T> {
 	private double defaultVal;
@@ -30,7 +49,7 @@ public abstract class ResettableSlider<T> extends SpruceDoubleOption implements 
 
 	@Override
 	public SpruceWidget createWidget(Position position, int width) {
-		SpruceSliderWidget slider = (SpruceSliderWidget)super.createWidget(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH);
+		SpruceSliderWidget slider = (SpruceSliderWidget) super.createWidget(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH);
 		// TO-DO Translatable
 		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, slider.getHeight(), new TextComponent("Reset"), e -> {
 			this.set(defaultVal);
