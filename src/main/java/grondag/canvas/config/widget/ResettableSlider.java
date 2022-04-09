@@ -22,6 +22,7 @@ package grondag.canvas.config.widget;
 
 import static grondag.canvas.config.widget.ResettableCheckbox.RESET_BUTTON_WIDTH;
 
+import java.text.DecimalFormat;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -39,7 +40,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 
 public abstract class ResettableSlider<T> extends SpruceDoubleOption implements ResettableOption<T> {
-	private double defaultVal;
+	private static final DecimalFormat DECIMAL = new DecimalFormat("0.0###");
+
+	private final double defaultVal;
 	private SpruceWidget resetButton;
 
 	ResettableSlider(String key, double min, double max, float step, Supplier<Double> getter, Consumer<Double> setter, double defaultVal, Function<SpruceDoubleOption, Component> displayStringGetter, @Nullable Component tooltip) {
@@ -50,8 +53,7 @@ public abstract class ResettableSlider<T> extends SpruceDoubleOption implements 
 	@Override
 	public SpruceWidget createWidget(Position position, int width) {
 		SpruceSliderWidget slider = (SpruceSliderWidget) super.createWidget(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH);
-		// TO-DO Translatable
-		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, slider.getHeight(), new TextComponent("Reset"), e -> {
+		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, slider.getHeight(), Buttons.RESET, e -> {
 			this.set(defaultVal);
 			slider.setIntValue((int) (getRatio(defaultVal) * 100d));
 		});
@@ -75,7 +77,7 @@ public abstract class ResettableSlider<T> extends SpruceDoubleOption implements 
 
 	public static class FloatSlider extends ResettableSlider<Float> {
 		FloatSlider(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable Component tooltip) {
-			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(String.format("%s: §b%.1f", I18n.get(key), getter.get())), tooltip);
+			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": §b" + DECIMAL.format(getter.get())), tooltip);
 		}
 	}
 }

@@ -36,7 +36,7 @@ public class PipelineSelectionEntry extends SpruceOption {
 	private final PipelineSelectionScreen owner;
 
 	private boolean selected = false;
-	private SpruceWidget buttonWidget;
+	private SpruceButtonWidget buttonWidget;
 
 	public PipelineSelectionEntry(PipelineDescription pipeline, PipelineSelectionScreen owner) {
 		super(pipeline.nameKey);
@@ -65,6 +65,8 @@ public class PipelineSelectionEntry extends SpruceOption {
 				hLine(poseStack, x, x + width - 1, y + height - 4, 0x33FFFFFF);
 			}
 		};
+
+		buttonWidget.setTooltip(new TranslatableComponent(pipeline.descriptionKey));
 
 		return buttonWidget;
 	}

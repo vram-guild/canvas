@@ -53,8 +53,7 @@ public class ResettableEnum<T> extends SpruceCyclingOption implements Resettable
 	@Override
 	public SpruceWidget createWidget(Position position, int width) {
 		final SpruceButtonWidget cycler = (SpruceButtonWidget) super.createWidget(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH);
-		// TO-DO Translatable
-		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, cycler.getHeight(), new TextComponent("Reset"), e -> {
+		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, cycler.getHeight(), Buttons.RESET, e -> {
 			int i = search(values, defaultVal) - search(values, getter.get());
 			this.cycle(((i - 1) + values.length) % values.length);
 			cycler.onPress();

@@ -39,9 +39,6 @@ dependencies {
 	include("io.vram:jmx-fabric-mc118:1.22.246:fat")
 
 	modIncludeImplementation("dev.lambdaurora:spruceui:3.3.3+1.18")
-	modIncludeImplementation("me.shedaniel.cloth:cloth-config-fabric:6.2.57") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
 
 	modCompileOnly "com.terraformersmc:modmenu:3.0.1"
 	modRuntimeOnly "com.terraformersmc:modmenu:3.0.1"

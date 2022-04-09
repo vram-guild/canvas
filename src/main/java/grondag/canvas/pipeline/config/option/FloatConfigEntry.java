@@ -50,7 +50,7 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 		return StandardOption.floatOption(nameKey,
 				min,
 				max,
-				0.1f,
+				0.005f,
 				() -> value,
 				f -> value = f,
 				defaultVal,

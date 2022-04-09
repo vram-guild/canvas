@@ -26,8 +26,12 @@ import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class Buttons {
+	public static final Component SAVE = new TranslatableComponent("config.canvas.save");
+	public static final Component RESET = new TranslatableComponent("config.canvas.reset");
+
 	public static int sideW = 0;
 
 	public static SpruceButtonWidget sideButton(Position p, int w, Component m, SpruceButtonWidget.PressAction a) {

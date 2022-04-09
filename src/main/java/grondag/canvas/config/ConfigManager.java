@@ -39,12 +39,19 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.CanvasState;
+import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 
 public class ConfigManager {
 	static final ConfigData DEFAULTS = new ConfigData();
 	public static final Gson GSON = new GsonBuilder().create();
 	public static final Jankson JANKSON = Jankson.builder().build();
+
+	enum Reload {
+		RELOAD_EVERYTHING,
+		RELOAD_PIPELINE,
+		DONT_RELOAD
+	}
 
 	static File configFile;
 	static File pipelineFile;
@@ -159,11 +166,13 @@ public class ConfigManager {
 	}
 
 	@SuppressWarnings("resource")
-	static void saveUserInput() {
+	static void saveUserInput(Reload reload) {
 		saveConfig();
 
-		if (Configurator.reload) {
-			Minecraft.getInstance().levelRenderer.allChanged();
+		switch (reload) {
+			case RELOAD_EVERYTHING -> Minecraft.getInstance().levelRenderer.allChanged();
+			case RELOAD_PIPELINE -> PipelineManager.reloadIfNeeded(true);
+			case DONT_RELOAD -> { }
 		}
 	}
 

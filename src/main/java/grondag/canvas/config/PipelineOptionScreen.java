@@ -20,6 +20,8 @@
 
 package grondag.canvas.config;
 
+import static grondag.canvas.config.ConfigManager.Reload.RELOAD_PIPELINE;
+
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.background.EmptyBackground;
 import dev.lambdaurora.spruceui.background.SimpleColorBackground;
@@ -32,6 +34,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -104,14 +107,13 @@ public class PipelineOptionScreen extends SpruceScreen {
 			}
 		}
 
-		// TO-DO Translatable
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, new TextComponent("Save & Quit"), b -> save()));
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, new TextComponent("Cancel"), b -> close()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, Buttons.SAVE, b -> save()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
 	}
 
 	private void savePipelineSelection(ResourceLocation newPipelineId) {
 		Configurator.pipelineId = newPipelineId.toString();
-		ConfigManager.saveUserInput();
+		ConfigManager.saveUserInput(RELOAD_PIPELINE);
 	}
 
 	private void save() {

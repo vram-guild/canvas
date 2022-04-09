@@ -21,6 +21,8 @@
 package grondag.canvas.config;
 
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
+import static grondag.canvas.config.ConfigManager.Reload.DONT_RELOAD;
+import static grondag.canvas.config.ConfigManager.Reload.RELOAD_EVERYTHING;
 
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.background.EmptyBackground;
@@ -34,7 +36,7 @@ import dev.lambdaurora.spruceui.widget.container.SpruceOptionListWidget;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
@@ -108,7 +110,10 @@ public class CanvasConfigScreen extends SpruceScreen {
 
 		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.semi_flat_lighting",
 				() -> editing.semiFlatLighting,
-				b -> editing.semiFlatLighting = b,
+				b -> {
+					reload |= Configurator.semiFlatLighting != b;
+					editing.semiFlatLighting = b;
+				},
 				DEFAULTS.semiFlatLighting,
 				ConfigManager.parseTooltip("config.canvas.help.semi_flat_lighting")));
 
@@ -117,7 +122,10 @@ public class CanvasConfigScreen extends SpruceScreen {
 
 		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.adjust_vanilla_geometry",
 				() -> editing.preventDepthFighting,
-				b -> editing.preventDepthFighting = b,
+				b -> {
+					reload |= Configurator.preventDepthFighting != b;
+					editing.preventDepthFighting = b;
+				},
 				DEFAULTS.preventDepthFighting,
 				ConfigManager.parseTooltip("config.canvas.help.adjust_vanilla_geometry")));
 
@@ -159,7 +167,10 @@ public class CanvasConfigScreen extends SpruceScreen {
 
 		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.safe_native_allocation",
 				() -> editing.safeNativeMemoryAllocation,
-				b -> editing.safeNativeMemoryAllocation = b,
+				b -> {
+					requiresRestart |= Configurator.safeNativeMemoryAllocation != b;
+					editing.safeNativeMemoryAllocation = b;
+				},
 				DEFAULTS.safeNativeMemoryAllocation,
 				ConfigManager.parseTooltip("config.canvas.help.safe_native_allocation")));
 
@@ -231,7 +242,10 @@ public class CanvasConfigScreen extends SpruceScreen {
 
 		list.addSingleOptionEntry(StandardOption.enumOption("config.canvas.value.transfer_buffer_mode",
 				() -> editing.transferBufferMode,
-				e -> editing.transferBufferMode = e,
+				e -> {
+					reload |= Configurator.transferBufferMode != e;
+					editing.transferBufferMode = e;
+				},
 				DEFAULTS.transferBufferMode,
 				TransferBuffers.Config.class,
 				ConfigManager.parseTooltip("config.canvas.help.transfer_buffer_mode")));
@@ -304,7 +318,10 @@ public class CanvasConfigScreen extends SpruceScreen {
 
 		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.debug_native_allocation",
 				() -> editing.debugNativeMemoryAllocation,
-				b -> editing.debugNativeMemoryAllocation = b,
+				b -> {
+					requiresRestart |= Configurator.debugNativeMemoryAllocation != b;
+					editing.debugNativeMemoryAllocation = b;
+				},
 				DEFAULTS.debugNativeMemoryAllocation,
 				ConfigManager.parseTooltip("config.canvas.help.debug_native_allocation")));
 
@@ -445,9 +462,8 @@ public class CanvasConfigScreen extends SpruceScreen {
 					Buttons::sideButton, e -> list.setScrollAmount(debugY)));
 		}
 
-		// TO-DO Translatable
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, new TextComponent("Save & Quit"), b -> save()));
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, new TextComponent("Cancel"), b -> close()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, Buttons.SAVE, b -> save()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
 	}
 
 	private void close() {
@@ -455,16 +471,17 @@ public class CanvasConfigScreen extends SpruceScreen {
 	}
 
 	private void save() {
+		// pipeline changes aren't handled here
+		editing.pipelineId = Configurator.pipelineId;
+
 		Configurator.readFromConfig(editing);
-		ConfigManager.saveUserInput();
 
-		if (reload) {
-			Configurator.reload = true;
-		}
-
-		if (reloadTimekeeper) {
+		// for now Config reload does reload everything including Timekeeper
+		if (reloadTimekeeper && !reload) {
 			Timekeeper.configOrPipelineReload();
 		}
+
+		ConfigManager.saveUserInput(reload ? RELOAD_EVERYTHING : DONT_RELOAD);
 
 		if (requiresRestart) {
 			this.minecraft.setScreen(new ConfigRestartScreen(this.parent));

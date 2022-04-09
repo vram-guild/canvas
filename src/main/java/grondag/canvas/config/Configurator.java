@@ -88,7 +88,6 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
-	static boolean reload = false;
 
 	// static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean hdLightmaps() {

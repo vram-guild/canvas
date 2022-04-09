@@ -32,7 +32,6 @@ import dev.lambdaurora.spruceui.widget.SpruceWidget;
 import dev.lambdaurora.spruceui.widget.container.SpruceContainerWidget;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 
 public class ResettableCheckbox extends SpruceCheckboxBooleanOption implements ResettableOption<Boolean> {
 	public static final int RESET_BUTTON_WIDTH = 48;
@@ -47,8 +46,7 @@ public class ResettableCheckbox extends SpruceCheckboxBooleanOption implements R
 	@Override
 	public SpruceWidget createWidget(Position position, int width) {
 		final SpruceCheckboxWidget checkbox = (SpruceCheckboxWidget) super.createWidget(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH);
-		// TO-DO Translatable
-		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, checkbox.getHeight(), new TextComponent("Reset"), e -> {
+		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, checkbox.getHeight(), Buttons.RESET, e -> {
 			if (this.get() != defaultVal) {
 				checkbox.onPress();
 			}

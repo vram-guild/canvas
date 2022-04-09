@@ -31,7 +31,7 @@ import dev.lambdaurora.spruceui.widget.container.SpruceOptionListWidget;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.TranslatableComponent;
 
 import grondag.canvas.pipeline.config.PipelineDescription;
@@ -71,17 +71,11 @@ public class PipelineSelectionScreen extends SpruceScreen {
 		list.setBackground(new SimpleColorBackground(0xAA000000));
 		addWidget(list);
 
-		// TO-DO Translatable
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 80 - 1, this.height - 35 + 6), 80 - 2, 20, new TextComponent("OK"), b -> save()));
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 80 - 2, 20, new TextComponent("Cancel"), b -> close()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 / 2, this.height - 35 + 6), 120, 20, CommonComponents.GUI_DONE, b -> save()));
 	}
 
 	private void save() {
 		parent.switchBack(selected.pipeline.id);
-	}
-
-	private void close() {
-		minecraft.setScreen(parent);
 	}
 
 	public void onSelect(PipelineSelectionEntry entry) {

@@ -29,7 +29,7 @@ import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.FormattedCharSequence;
 
 public class ConfigRestartScreen extends SpruceScreen {
@@ -37,8 +37,7 @@ public class ConfigRestartScreen extends SpruceScreen {
 	private final Screen parent;
 
 	public ConfigRestartScreen(Screen parent) {
-		// TO-DO Translatable
-		super(new TextComponent("Restart Required"));
+		super(new TranslatableComponent("config.canvas.restart.title"));
 		this.parent = parent;
 	}
 
@@ -47,13 +46,11 @@ public class ConfigRestartScreen extends SpruceScreen {
 		super.init();
 
 		if (lines == null) {
-			// TO-DO Translatable
-			this.lines = this.font.split(new TextComponent("One of your changes requires restarting Minecraft. Would you like to proceed?"), 320);
+			this.lines = this.font.split(new TranslatableComponent("config.canvas.restart.prompt"), 320);
 		}
 
-		// TO-DO Translatable
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60), 160 - 2, 20, new TextComponent("Exit Minecraft"), b -> restart()));
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60), 160 - 2, 20, new TextComponent("Ignore Restart"), b -> close()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60), 160 - 2, 20, new TranslatableComponent("config.canvas.restart.accept"), b -> restart()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60), 160 - 2, 20, new TranslatableComponent("config.canvas.restart.ignore"), b -> close()));
 	}
 
 	private void restart() {
