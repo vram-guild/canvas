@@ -35,6 +35,7 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 	public final float defaultVal;
 	public final float min;
 	public final float max;
+	public final float step;
 	private float value;
 
 	protected FloatConfigEntry(ConfigContext ctx, String name, JsonObject config) {
@@ -42,6 +43,7 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 		defaultVal = config.getFloat("default", Float.NaN);
 		min = config.getFloat("min", Float.NaN);
 		max = config.getFloat("max", Float.NaN);
+		step = config.getFloat("step", 0.01f);
 		value = defaultVal;
 	}
 
@@ -50,7 +52,7 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 		return StandardOption.floatOption(nameKey,
 				min,
 				max,
-				0.005f,
+				step,
 				() -> value,
 				f -> value = f,
 				defaultVal,

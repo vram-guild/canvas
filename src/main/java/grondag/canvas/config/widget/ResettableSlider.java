@@ -52,15 +52,16 @@ public abstract class ResettableSlider<T> extends SpruceDoubleOption implements 
 
 	@Override
 	public SpruceWidget createWidget(Position position, int width) {
-		SpruceSliderWidget slider = (SpruceSliderWidget) super.createWidget(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH);
-		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, slider.getHeight(), Buttons.RESET, e -> {
-			this.set(defaultVal);
-			slider.setIntValue((int) (getRatio(defaultVal) * 100d));
-		});
+		CustomSliderWidget slider = CustomSliderWidget.create(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH, this, step);
+		this.getOptionTooltip().ifPresent(slider::setTooltip);
+
+		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, slider.getHeight(), Buttons.RESET, e -> slider.setValue(defaultVal));
+		refreshResetButton();
+
 		SpruceContainerWidget container = new SpruceContainerWidget(position, width, slider.getHeight());
 		container.addChild(slider);
 		container.addChild(resetButton);
-		refreshResetButton();
+
 		return container;
 	}
 
@@ -78,6 +79,42 @@ public abstract class ResettableSlider<T> extends SpruceDoubleOption implements 
 	public static class FloatSlider extends ResettableSlider<Float> {
 		FloatSlider(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable Component tooltip) {
 			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": §b" + DECIMAL.format(getter.get())), tooltip);
+		}
+	}
+
+	private static class CustomSliderWidget extends SpruceSliderWidget {
+		private final double multiplier;
+		private final SpruceDoubleOption option;
+
+		private static CustomSliderWidget create(Position position, int width, SpruceDoubleOption option, double step) {
+			// guard against integer overflow because why not
+			final double multiplier = Math.min((option.getMax() - option.getMin()) / step, Math.floor(Integer.MAX_VALUE / option.getMax()));
+			return new CustomSliderWidget(position, width, 20, option, multiplier);
+		}
+
+		private CustomSliderWidget(Position position, int width, int height, SpruceDoubleOption option, double multiplier) {
+			super(position, width, height, TextComponent.EMPTY, option.getRatio(option.get()), slider -> option.set(option.getValue(slider.getValue())), multiplier, "");
+			this.multiplier = multiplier;
+			this.option = option;
+			this.updateMessage();
+		}
+
+		private void setValue(double value) {
+			// set approximate for visuals. can't set directly due to API limitation
+			setIntValue((int) Math.round(option.getRatio(value) * multiplier));
+
+			// set accurate
+			if (getValue() != value) {
+				option.set(value);
+				updateMessage();
+			}
+		}
+
+		@Override
+		protected void updateMessage() {
+			if (this.option != null) {
+				this.setMessage(this.option.getDisplayString());
+			}
 		}
 	}
 }
