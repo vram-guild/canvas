@@ -6,13 +6,13 @@
 #define _CV_FLAG_DISABLE_DIFFUSE    1 // 1 if diffuse shade should not be applied
 #define _CV_FLAG_DISABLE_AO         2 // 1 if ao shade should not be applied
 #define _CV_FLAG_CUTOUT_LOW         3 // low cutout bit
-#define _CV_FLAG_CUTOUT_HIGH 		4 // high cutout bit
-#define _CV_FLAG_CUTOUT_EXTRA		5
+#define _CV_FLAG_CUTOUT_HIGH        4 // high cutout bit
+#define _CV_FLAG_CUTOUT_EXTRA       5
 #define _CV_FLAG_UNMIPPED           6 // 1 if LOD disabled - only set in conjunction with cutout
 #define _CV_FLAG_HURT_OVERLAY       7 // 1 if should render red hurt overlay
 #define _CV_FLAG_FLASH_OVERLAY      8 // 1 if should render white flash overlay
 #define _CV_FLAG_ENABLE_FOG         9
-#define _CV_FLAG_GLINT			   10
+#define _CV_FLAG_GLINT              10
 
 #define _CV_CUTOUT_SHIFT 3u
 #define _CV_CUTOUT_MASK 3u

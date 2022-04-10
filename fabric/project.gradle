@@ -1,8 +1,8 @@
 // Hat tip to JellySquid
 configurations {
-    modIncludeImplementation
-    modImplementation.extendsFrom modIncludeImplementation
-    include.extendsFrom modIncludeImplementation
+	modIncludeImplementation
+	modImplementation.extendsFrom modIncludeImplementation
+	include.extendsFrom modIncludeImplementation
 }
 
 dependencies {
