@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
-import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -169,7 +168,7 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 						CanvasMod.LOG.info("Created atlas debug output folder" + atlasDir.toString());
 					}
 
-					final File file = new File(atlasDir.getAbsolutePath() + File.separator + StringUtils.replaceAll(location.toString(), "[_/]", "_"));
+					final File file = new File(atlasDir.getAbsolutePath() + File.separator + location.toString().replaceAll("[_/:]", "_"));
 					nativeImage.writeToFile(file);
 				} catch (final Exception e) {
 					CanvasMod.LOG.warn("Couldn't save atlas image", e);
