@@ -32,18 +32,18 @@ if (project.build_fat_jar) {
 	apply plugin: 'com.github.johnrengelman.shadow'
 
 	shadowJar {
-	    configurations = [project.configurations.bundle]
-	    classifier "dev-shadow"
+		configurations = [project.configurations.bundle]
+		classifier "dev-shadow"
 	}
 
 	remapJar {
-	    input.set shadowJar.archiveFile
-	    dependsOn shadowJar
-	    classifier null
+		input.set shadowJar.archiveFile
+		dependsOn shadowJar
+		classifier null
 	}
 
 	jar {
-	    classifier "dev"
+		classifier "dev"
 	}
 
 	build.dependsOn shadowJar
@@ -66,9 +66,9 @@ loom {
 processResources {
 	inputs.property "version", project.version
 
-    filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
-    }
+	filesMatching("META-INF/mods.toml") {
+		expand "version": project.version
+	}
 }
 
 publishing {
@@ -93,17 +93,17 @@ publishing {
 		if (project.version.endsWith('LOCAL') || project.version.endsWith('SNAPSHOT')) {
 			println "Snapshot build will be local only - not pushed to public maven"
 		} else {
-	    maven {
-        url = 'sftp://maven.vram.io:22'
-        credentials {
-        	if (project.hasProperty('maven_user')) {
+			maven {
+				url = 'sftp://maven.vram.io:22'
+				credentials {
+					if (project.hasProperty('maven_user')) {
 						username = project.getProperty('maven_user')
 					}
 					if (project.hasProperty('maven_password')) {
 						password = project.getProperty('maven_password')
 					}
 				}
-	    }
+			}
 		}
 	}
 }
