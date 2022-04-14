@@ -24,10 +24,10 @@ import java.util.Locale;
 
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
-import dev.lambdaurora.spruceui.option.SpruceOption;
 
 import grondag.canvas.config.ConfigManager;
-import grondag.canvas.config.widget.StandardOption;
+import grondag.canvas.config.builder.Option;
+import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
@@ -48,8 +48,8 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 	}
 
 	@Override
-	SpruceOption buildEntry() {
-		return StandardOption.floatOption(nameKey,
+	Option buildEntry(OptionSession optionSession) {
+		return optionSession.floatOption(nameKey,
 				min,
 				max,
 				step,

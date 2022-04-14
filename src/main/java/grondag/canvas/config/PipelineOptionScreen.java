@@ -39,7 +39,8 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
-import grondag.canvas.config.widget.Buttons;
+import grondag.canvas.config.builder.Buttons;
+import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.PipelineLoader;
@@ -81,6 +82,8 @@ public class PipelineOptionScreen extends SpruceScreen {
 	protected void init() {
 		super.init();
 
+		OptionSession optionSession = new OptionSession();
+
 		Buttons.sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
 		final int rightSideW = Math.min(Buttons.sideW, Math.max(0, this.width - 330 - Buttons.sideW));
 
@@ -100,15 +103,17 @@ public class PipelineOptionScreen extends SpruceScreen {
 			boolean top = true;
 
 			for (final OptionConfig cfg : configs) {
-				final int index = cfg.addGuiEntries(list);
+				final int index = cfg.addGuiEntries(optionSession, list);
 				final int categoryY = top ? 0 : list.children().get(index).getY() - list.getY() - 2;
 				top = false;
 				tabs.addSingleOptionEntry(new SpruceSimpleActionOption(cfg.categoryKey, Buttons::sideButton, e -> list.setScrollAmount(categoryY)));
 			}
 		}
 
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, Buttons.SAVE, b -> save()));
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
+		var saveButton = this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, Buttons.SAVE, b -> save()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
+
+		optionSession.setSaveButton(saveButton);
 	}
 
 	private void savePipelineSelection(ResourceLocation newPipelineId) {

@@ -24,10 +24,10 @@ import java.util.Locale;
 
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
-import dev.lambdaurora.spruceui.option.SpruceOption;
 
 import grondag.canvas.config.ConfigManager;
-import grondag.canvas.config.widget.StandardOption;
+import grondag.canvas.config.builder.Option;
+import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
@@ -42,8 +42,8 @@ public class BooleanConfigEntry extends OptionConfigEntry<BooleanConfigEntry> {
 	}
 
 	@Override
-	SpruceOption buildEntry() {
-		return StandardOption.booleanOption(nameKey,
+	Option buildEntry(OptionSession optionSession) {
+		return optionSession.booleanOption(nameKey,
 				() -> value,
 				b -> value = b,
 				defaultVal,

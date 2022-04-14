@@ -18,8 +18,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.config.widget;
+package grondag.canvas.config.builder;
 
-public interface ResettableOption<T> {
+import dev.lambdaurora.spruceui.option.SpruceOption;
+
+public interface Option<T> {
 	void refreshResetButton();
+	SpruceOption spruceOption();
 }

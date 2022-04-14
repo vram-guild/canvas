@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.resources.ResourceLocation;
 
+import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
@@ -101,11 +102,11 @@ public class OptionConfig extends AbstractConfig {
 		return valid;
 	}
 
-	public int addGuiEntries(SpruceOptionListWidget list) {
+	public int addGuiEntries(OptionSession optionSession, SpruceOptionListWidget list) {
 		final int index = list.addSingleOptionEntry(new SpruceSeparatorOption(categoryKey, true, null));
 
 		for (final var entry : entries) {
-			list.addSingleOptionEntry(entry.buildEntry());
+			list.addSingleOptionEntry(entry.buildEntry(optionSession).spruceOption());
 		}
 
 		return index;

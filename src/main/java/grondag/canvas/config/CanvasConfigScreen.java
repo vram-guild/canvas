@@ -41,8 +41,8 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.buffer.render.TransferBuffers;
-import grondag.canvas.config.widget.Buttons;
-import grondag.canvas.config.widget.StandardOption;
+import grondag.canvas.config.builder.Buttons;
+import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.perf.Timekeeper;
 
 public class CanvasConfigScreen extends SpruceScreen {
@@ -70,6 +70,8 @@ public class CanvasConfigScreen extends SpruceScreen {
 	protected void init() {
 		super.init();
 
+		OptionSession optionSession = new OptionSession();
+
 		Buttons.sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
 		final int rightSideW = Math.min(Buttons.sideW, Math.max(0, this.width - 330 - Buttons.sideW));
 
@@ -84,163 +86,163 @@ public class CanvasConfigScreen extends SpruceScreen {
 		// FEATURES
 		final int indexFeatures = list.addSingleOptionEntry(new SpruceSeparatorOption("config.canvas.category.features", true, null));
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.blend_fluid_colors",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.blend_fluid_colors",
 				() -> editing.blendFluidColors,
 				b -> {
 					reload |= Configurator.blendFluidColors != b;
 					editing.blendFluidColors = b;
 				},
 				DEFAULTS.blendFluidColors,
-				ConfigManager.parseTooltip("config.canvas.help.blend_fluid_colors")));
+				ConfigManager.parseTooltip("config.canvas.help.blend_fluid_colors")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.wavy_grass",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.wavy_grass",
 				() -> editing.wavyGrass,
 				b -> {
 					reload |= Configurator.wavyGrass != b;
 					editing.wavyGrass = b;
 				},
 				DEFAULTS.wavyGrass,
-				ConfigManager.parseTooltip("config.canvas.help.wavy_grass")));
+				ConfigManager.parseTooltip("config.canvas.help.wavy_grass")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.disable_vignette",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.disable_vignette",
 				() -> editing.disableVignette,
 				b -> editing.disableVignette = b,
 				DEFAULTS.disableVignette,
-				ConfigManager.parseTooltip("config.canvas.help.disable_vignette")));
+				ConfigManager.parseTooltip("config.canvas.help.disable_vignette")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.semi_flat_lighting",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.semi_flat_lighting",
 				() -> editing.semiFlatLighting,
 				b -> {
 					reload |= Configurator.semiFlatLighting != b;
 					editing.semiFlatLighting = b;
 				},
 				DEFAULTS.semiFlatLighting,
-				ConfigManager.parseTooltip("config.canvas.help.semi_flat_lighting")));
+				ConfigManager.parseTooltip("config.canvas.help.semi_flat_lighting")).spruceOption());
 
 		// TWEAKS
 		final int indexTweaks = list.addSingleOptionEntry(new SpruceSeparatorOption("config.canvas.category.tweaks", true, null));
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.adjust_vanilla_geometry",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.adjust_vanilla_geometry",
 				() -> editing.preventDepthFighting,
 				b -> {
 					reload |= Configurator.preventDepthFighting != b;
 					editing.preventDepthFighting = b;
 				},
 				DEFAULTS.preventDepthFighting,
-				ConfigManager.parseTooltip("config.canvas.help.adjust_vanilla_geometry")));
+				ConfigManager.parseTooltip("config.canvas.help.adjust_vanilla_geometry")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.clamp_exterior_vertices",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.clamp_exterior_vertices",
 				() -> editing.clampExteriorVertices,
 				b -> {
 					reload |= Configurator.clampExteriorVertices != b;
 					editing.clampExteriorVertices = b;
 				},
 				DEFAULTS.clampExteriorVertices,
-				new TranslatableComponent("config.canvas.help.clamp_exterior_vertices")));
+				new TranslatableComponent("config.canvas.help.clamp_exterior_vertices")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.fix_luminous_block_shade",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.fix_luminous_block_shade",
 				() -> editing.fixLuminousBlockShading,
 				b -> {
 					reload |= Configurator.fixLuminousBlockShading != b;
 					editing.fixLuminousBlockShading = b;
 				},
 				DEFAULTS.fixLuminousBlockShading,
-				ConfigManager.parseTooltip("config.canvas.help.fix_luminous_block_shade")));
+				ConfigManager.parseTooltip("config.canvas.help.fix_luminous_block_shade")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.advanced_terrain_culling",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.advanced_terrain_culling",
 				() -> editing.advancedTerrainCulling,
 				b -> {
 					reload |= Configurator.advancedTerrainCulling != b;
 					editing.advancedTerrainCulling = b;
 				},
 				DEFAULTS.advancedTerrainCulling,
-				ConfigManager.parseTooltip("config.canvas.help.advanced_terrain_culling")));
+				ConfigManager.parseTooltip("config.canvas.help.advanced_terrain_culling")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.terrain_setup_off_thread",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.terrain_setup_off_thread",
 				() -> editing.terrainSetupOffThread,
 				b -> {
 					reload |= Configurator.terrainSetupOffThread != b;
 					editing.terrainSetupOffThread = b;
 				},
 				DEFAULTS.terrainSetupOffThread,
-				ConfigManager.parseTooltip("config.canvas.help.terrain_setup_off_thread")));
+				ConfigManager.parseTooltip("config.canvas.help.terrain_setup_off_thread")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.safe_native_allocation",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.safe_native_allocation",
 				() -> editing.safeNativeMemoryAllocation,
 				b -> {
 					requiresRestart |= Configurator.safeNativeMemoryAllocation != b;
 					editing.safeNativeMemoryAllocation = b;
 				},
 				DEFAULTS.safeNativeMemoryAllocation,
-				ConfigManager.parseTooltip("config.canvas.help.safe_native_allocation")));
+				ConfigManager.parseTooltip("config.canvas.help.safe_native_allocation")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.cull_entity_render",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.cull_entity_render",
 				() -> editing.cullEntityRender,
 				b -> editing.cullEntityRender = b,
 				DEFAULTS.cullEntityRender,
-				ConfigManager.parseTooltip("config.canvas.help.cull_entity_render")));
+				ConfigManager.parseTooltip("config.canvas.help.cull_entity_render")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.greedy_render_thread",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.greedy_render_thread",
 				() -> editing.greedyRenderThread,
 				b -> editing.greedyRenderThread = b,
 				DEFAULTS.greedyRenderThread,
-				ConfigManager.parseTooltip("config.canvas.help.greedy_render_thread")));
+				ConfigManager.parseTooltip("config.canvas.help.greedy_render_thread")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.force_jmx_loading",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.force_jmx_loading",
 				() -> editing.forceJmxModelLoading,
 				b -> editing.forceJmxModelLoading = b,
 				DEFAULTS.forceJmxModelLoading,
-				ConfigManager.parseTooltip("config.canvas.help.force_jmx_loading")));
+				ConfigManager.parseTooltip("config.canvas.help.force_jmx_loading")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.reduce_resolution_on_mac",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.reduce_resolution_on_mac",
 				() -> editing.reduceResolutionOnMac,
 				b -> {
 					requiresRestart |= Configurator.reduceResolutionOnMac != b;
 					editing.reduceResolutionOnMac = b;
 				},
 				DEFAULTS.reduceResolutionOnMac,
-				ConfigManager.parseTooltip("config.canvas.help.reduce_resolution_on_mac")));
+				ConfigManager.parseTooltip("config.canvas.help.reduce_resolution_on_mac")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.intOption("config.canvas.value.static_frustum_padding",
+		list.addSingleOptionEntry(optionSession.intOption("config.canvas.value.static_frustum_padding",
 				0,
 				20,
 				1,
 				() -> editing.staticFrustumPadding,
 				i -> editing.staticFrustumPadding = i,
 				DEFAULTS.staticFrustumPadding,
-				ConfigManager.parseTooltip("config.canvas.help.static_frustum_padding")));
+				ConfigManager.parseTooltip("config.canvas.help.static_frustum_padding")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.intOption("config.canvas.value.dynamic_frustum_padding",
+		list.addSingleOptionEntry(optionSession.intOption("config.canvas.value.dynamic_frustum_padding",
 				0,
 				30,
 				1,
 				() -> editing.dynamicFrustumPadding,
 				i -> editing.dynamicFrustumPadding = i,
 				DEFAULTS.dynamicFrustumPadding,
-				ConfigManager.parseTooltip("config.canvas.help.dynamic_frustum_padding")));
+				ConfigManager.parseTooltip("config.canvas.help.dynamic_frustum_padding")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.cull_particles",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.cull_particles",
 				() -> editing.cullParticles,
 				b -> editing.cullParticles = b,
 				DEFAULTS.cullParticles,
-				ConfigManager.parseTooltip("config.canvas.help.cull_particles")));
+				ConfigManager.parseTooltip("config.canvas.help.cull_particles")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.enable_near_occluders",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.enable_near_occluders",
 				() -> editing.enableNearOccluders,
 				b -> editing.enableNearOccluders = b,
 				DEFAULTS.enableNearOccluders,
-				ConfigManager.parseTooltip("config.canvas.help.enable_near_occluders")));
+				ConfigManager.parseTooltip("config.canvas.help.enable_near_occluders")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.use_combined_thread_pool",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.use_combined_thread_pool",
 				() -> editing.useCombinedThreadPool,
 				b -> {
 					requiresRestart |= Configurator.useCombinedThreadPool != b;
 					editing.useCombinedThreadPool = b;
 				},
 				DEFAULTS.useCombinedThreadPool,
-				ConfigManager.parseTooltip("config.canvas.help.use_combined_thread_pool")));
+				ConfigManager.parseTooltip("config.canvas.help.use_combined_thread_pool")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.enumOption("config.canvas.value.transfer_buffer_mode",
+		list.addSingleOptionEntry(optionSession.enumOption("config.canvas.value.transfer_buffer_mode",
 				() -> editing.transferBufferMode,
 				e -> {
 					reload |= Configurator.transferBufferMode != e;
@@ -248,162 +250,162 @@ public class CanvasConfigScreen extends SpruceScreen {
 				},
 				DEFAULTS.transferBufferMode,
 				TransferBuffers.Config.class,
-				ConfigManager.parseTooltip("config.canvas.help.transfer_buffer_mode")));
+				ConfigManager.parseTooltip("config.canvas.help.transfer_buffer_mode")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.steady_debug_screen",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.steady_debug_screen",
 				() -> editing.steadyDebugScreen,
 				b -> editing.steadyDebugScreen = b,
 				DEFAULTS.steadyDebugScreen,
-				ConfigManager.parseTooltip("config.canvas.help.steady_debug_screen")));
+				ConfigManager.parseTooltip("config.canvas.help.steady_debug_screen")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.disable_unseen_sprite_animation",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.disable_unseen_sprite_animation",
 				() -> editing.disableUnseenSpriteAnimation,
 				b -> {
 					reload |= Configurator.disableUnseenSpriteAnimation != b;
 					editing.disableUnseenSpriteAnimation = b;
 				},
 				DEFAULTS.disableUnseenSpriteAnimation,
-				ConfigManager.parseTooltip("config.canvas.help.dis,able_unseen_sprite_animation")));
+				ConfigManager.parseTooltip("config.canvas.help.dis,able_unseen_sprite_animation")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.group_animated_sprites",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.group_animated_sprites",
 				() -> editing.groupAnimatedSprites,
 				b -> editing.groupAnimatedSprites = b,
 				DEFAULTS.groupAnimatedSprites,
-				ConfigManager.parseTooltip("config.canvas.help.group_animated_sprites")));
+				ConfigManager.parseTooltip("config.canvas.help.group_animated_sprites")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.cull_backfacing_terrain",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.cull_backfacing_terrain",
 				() -> editing.cullBackfacingTerrain,
 				b -> {
 					reload |= Configurator.cullBackfacingTerrain != b;
 					editing.cullBackfacingTerrain = b;
 				},
 				DEFAULTS.cullBackfacingTerrain,
-				ConfigManager.parseTooltip("config.canvas.help.cull_backfacing_terrain")));
+				ConfigManager.parseTooltip("config.canvas.help.cull_backfacing_terrain")).spruceOption());
 
 		// DEBUG
 		final int indexDebug = list.addSingleOptionEntry(new SpruceSeparatorOption("config.canvas.category.debug", true, null));
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.shader_debug",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.shader_debug",
 				() -> editing.shaderDebug,
 				b -> editing.shaderDebug = b,
 				DEFAULTS.shaderDebug,
-				ConfigManager.parseTooltip("config.canvas.help.shader_debug")));
+				ConfigManager.parseTooltip("config.canvas.help.shader_debug")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.preprocess_shader_source",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.preprocess_shader_source",
 				() -> editing.preprocessShaderSource,
 				b -> {
 					reload |= Configurator.preprocessShaderSource != b;
 					editing.preprocessShaderSource = b;
 				},
 				DEFAULTS.preprocessShaderSource,
-				ConfigManager.parseTooltip("config.canvas.help.preprocess_shader_source")));
+				ConfigManager.parseTooltip("config.canvas.help.preprocess_shader_source")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.concise_errors",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.concise_errors",
 				() -> editing.conciseErrors,
 				b -> editing.conciseErrors = b,
 				DEFAULTS.conciseErrors,
-				ConfigManager.parseTooltip("config.canvas.help.concise_errors")));
+				ConfigManager.parseTooltip("config.canvas.help.concise_errors")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.log_machine_info",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.log_machine_info",
 				() -> editing.logMachineInfo,
 				b -> editing.logMachineInfo = b,
 				DEFAULTS.logMachineInfo,
-				ConfigManager.parseTooltip("config.canvas.help.log_machine_info")));
+				ConfigManager.parseTooltip("config.canvas.help.log_machine_info")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.log_gl_state_changes",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.log_gl_state_changes",
 				() -> editing.logGlStateChanges,
 				b -> editing.logGlStateChanges = b,
 				DEFAULTS.logGlStateChanges,
-				ConfigManager.parseTooltip("config.canvas.help.log_gl_state_changes")));
+				ConfigManager.parseTooltip("config.canvas.help.log_gl_state_changes")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.debug_native_allocation",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.debug_native_allocation",
 				() -> editing.debugNativeMemoryAllocation,
 				b -> {
 					requiresRestart |= Configurator.debugNativeMemoryAllocation != b;
 					editing.debugNativeMemoryAllocation = b;
 				},
 				DEFAULTS.debugNativeMemoryAllocation,
-				ConfigManager.parseTooltip("config.canvas.help.debug_native_allocation")));
+				ConfigManager.parseTooltip("config.canvas.help.debug_native_allocation")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.debug_occlusion_raster",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.debug_occlusion_raster",
 				() -> editing.debugOcclusionRaster,
 				b -> editing.debugOcclusionRaster = b,
 				DEFAULTS.debugOcclusionRaster,
-				ConfigManager.parseTooltip("config.canvas.help.debug_occlusion_raster")));
+				ConfigManager.parseTooltip("config.canvas.help.debug_occlusion_raster")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.debug_occlusion_boxes",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.debug_occlusion_boxes",
 				() -> editing.debugOcclusionBoxes,
 				b -> editing.debugOcclusionBoxes = b,
 				DEFAULTS.debugOcclusionBoxes,
-				ConfigManager.parseTooltip("config.canvas.help.debug_occlusion_boxes")));
+				ConfigManager.parseTooltip("config.canvas.help.debug_occlusion_boxes")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.white_glass_occludes_terrain",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.white_glass_occludes_terrain",
 				() -> editing.renderWhiteGlassAsOccluder,
 				b -> {
 					reload |= Configurator.renderWhiteGlassAsOccluder != b;
 					editing.renderWhiteGlassAsOccluder = b;
 				},
 				DEFAULTS.renderWhiteGlassAsOccluder,
-				ConfigManager.parseTooltip("config.canvas.help.white_glass_occludes_terrain")));
+				ConfigManager.parseTooltip("config.canvas.help.white_glass_occludes_terrain")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.trace_occlusion_edge_cases",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.trace_occlusion_edge_cases",
 				() -> editing.traceOcclusionEdgeCases,
 				b -> editing.traceOcclusionEdgeCases = b,
 				DEFAULTS.traceOcclusionEdgeCases,
-				ConfigManager.parseTooltip("config.canvas.help.trace_occlusion_edge_cases")));
+				ConfigManager.parseTooltip("config.canvas.help.trace_occlusion_edge_cases")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.buffer_debug",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.buffer_debug",
 				() -> editing.enableBufferDebug,
 				b -> editing.enableBufferDebug = b,
 				DEFAULTS.enableBufferDebug,
-				ConfigManager.parseTooltip("config.canvas.help.buffer_debug")));
+				ConfigManager.parseTooltip("config.canvas.help.buffer_debug")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.lifecycle_debug",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.lifecycle_debug",
 				() -> editing.enableLifeCycleDebug,
 				b -> editing.enableLifeCycleDebug = b,
 				DEFAULTS.enableLifeCycleDebug,
-				ConfigManager.parseTooltip("config.canvas.help.lifecycle_debug")));
+				ConfigManager.parseTooltip("config.canvas.help.lifecycle_debug")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.log_missing_uniforms",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.log_missing_uniforms",
 				() -> editing.logMissingUniforms,
 				b -> editing.logMissingUniforms = b,
 				DEFAULTS.logMissingUniforms,
-				ConfigManager.parseTooltip("config.canvas.help.log_missing_uniforms")));
+				ConfigManager.parseTooltip("config.canvas.help.log_missing_uniforms")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.log_materials",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.log_materials",
 				() -> editing.logMaterials,
 				b -> editing.logMaterials = b,
 				DEFAULTS.logMaterials,
-				ConfigManager.parseTooltip("config.canvas.help.log_materials")));
+				ConfigManager.parseTooltip("config.canvas.help.log_materials")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.log_render_lag_spikes",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.log_render_lag_spikes",
 				() -> editing.logRenderLagSpikes,
 				b -> {
 					reloadTimekeeper |= Configurator.logRenderLagSpikes != b;
 					editing.logRenderLagSpikes = b;
 				},
 				DEFAULTS.logRenderLagSpikes,
-				ConfigManager.parseTooltip("config.canvas.help.log_render_lag_spikes")));
+				ConfigManager.parseTooltip("config.canvas.help.log_render_lag_spikes")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.intOption("config.canvas.value.render_lag_spike_fps",
+		list.addSingleOptionEntry(optionSession.intOption("config.canvas.value.render_lag_spike_fps",
 				30,
 				120,
 				1,
 				() -> editing.renderLagSpikeFps,
 				i -> editing.renderLagSpikeFps = i,
 				DEFAULTS.renderLagSpikeFps,
-				ConfigManager.parseTooltip("config.canvas.help.render_lag_spike_fps")));
+				ConfigManager.parseTooltip("config.canvas.help.render_lag_spike_fps")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.display_render_profiler",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.display_render_profiler",
 				() -> editing.displayRenderProfiler,
 				b -> {
 					reloadTimekeeper |= Configurator.displayRenderProfiler != b;
 					editing.displayRenderProfiler = b;
 				},
 				DEFAULTS.displayRenderProfiler,
-				ConfigManager.parseTooltip("config.canvas.help.display_render_profiler")));
+				ConfigManager.parseTooltip("config.canvas.help.display_render_profiler")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.enumOption("config.canvas.value.profiler_display_mode",
+		list.addSingleOptionEntry(optionSession.enumOption("config.canvas.value.profiler_display_mode",
 				() -> editing.profilerDisplayMode,
 				e -> {
 					reloadTimekeeper |= Configurator.profilerDisplayMode != e;
@@ -411,37 +413,37 @@ public class CanvasConfigScreen extends SpruceScreen {
 				},
 				DEFAULTS.profilerDisplayMode,
 				Timekeeper.Mode.class,
-				ConfigManager.parseTooltip("config.canvas.help.profiler_display_mode")));
+				ConfigManager.parseTooltip("config.canvas.help.profiler_display_mode")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.intOption("config.canvas.value.profiler_detail_level",
+		list.addSingleOptionEntry(optionSession.intOption("config.canvas.value.profiler_detail_level",
 				0,
 				2,
 				1,
 				() -> editing.profilerDetailLevel,
 				i -> editing.profilerDetailLevel = i,
 				DEFAULTS.profilerDetailLevel,
-				ConfigManager.parseTooltip("config.canvas.help.profiler_detail_level")));
+				ConfigManager.parseTooltip("config.canvas.help.profiler_detail_level")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.floatOption("config.canvas.value.profiler_overlay_scale",
+		list.addSingleOptionEntry(optionSession.floatOption("config.canvas.value.profiler_overlay_scale",
 				0.0f,
 				1.0f,
 				0.1f,
 				() -> editing.profilerOverlayScale,
 				f -> editing.profilerOverlayScale = f,
 				DEFAULTS.profilerOverlayScale,
-				ConfigManager.parseTooltip("config.canvas.help.profiler_overlay_scale")));
+				ConfigManager.parseTooltip("config.canvas.help.profiler_overlay_scale")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.debug_sprite_atlas",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.debug_sprite_atlas",
 				() -> editing.debugSpriteAtlas,
 				b -> editing.debugSpriteAtlas = b,
 				DEFAULTS.debugSpriteAtlas,
-				ConfigManager.parseTooltip("config.canvas.help.debug_sprite_atlas")));
+				ConfigManager.parseTooltip("config.canvas.help.debug_sprite_atlas")).spruceOption());
 
-		list.addSingleOptionEntry(StandardOption.booleanOption("config.canvas.value.trace_texture_load",
+		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.trace_texture_load",
 				() -> editing.traceTextureLoad,
 				b -> editing.traceTextureLoad = b,
 				DEFAULTS.traceTextureLoad,
-				ConfigManager.parseTooltip("config.canvas.help.trace_texture_load")));
+				ConfigManager.parseTooltip("config.canvas.help.trace_texture_load")).spruceOption());
 
 		if (Buttons.sideW > 0) {
 			final SpruceOptionListWidget tabs = new SpruceOptionListWidget(Position.of(1, list.getY()), Buttons.sideW, list.getHeight());
@@ -462,8 +464,10 @@ public class CanvasConfigScreen extends SpruceScreen {
 					Buttons::sideButton, e -> list.setScrollAmount(debugY)));
 		}
 
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, Buttons.SAVE, b -> save()));
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
+		var saveButton = this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, Buttons.SAVE, b -> save()));
+		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
+
+		optionSession.setSaveButton(saveButton);
 	}
 
 	private void close() {

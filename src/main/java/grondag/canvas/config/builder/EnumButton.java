@@ -18,15 +18,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.config.widget;
+package grondag.canvas.config.builder;
 
-import static grondag.canvas.config.widget.ResettableCheckbox.RESET_BUTTON_WIDTH;
+import static grondag.canvas.config.builder.Checkbox.RESET_BUTTON_WIDTH;
 
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
+import dev.lambdaurora.spruceui.option.SpruceOption;
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.widget.container.SpruceContainerWidget;
 import dev.lambdaurora.spruceui.option.SpruceCyclingOption;
@@ -37,13 +38,13 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 
-public class ResettableEnum<T> extends SpruceCyclingOption implements ResettableOption<T> {
+public class EnumButton<T> extends SpruceCyclingOption implements Option<T> {
 	private final T defaultVal;
 	private final Supplier<T> getter;
 	private final T[] values;
 	private SpruceWidget resetButton;
 
-	ResettableEnum(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable Component tooltip) {
+	EnumButton(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable Component tooltip) {
 		super(key, new EnumCycler<>(getter, setter, values), e -> new TextComponent(I18n.get(key) + ": §e" + getter.get().toString().toUpperCase(Locale.ROOT)), tooltip);
 		this.getter = getter;
 		this.values = values;
@@ -68,6 +69,11 @@ public class ResettableEnum<T> extends SpruceCyclingOption implements Resettable
 	@Override
 	public void refreshResetButton() {
 		resetButton.setActive(!getter.get().equals(defaultVal));
+	}
+
+	@Override
+	public SpruceOption spruceOption() {
+		return this;
 	}
 
 	private record EnumCycler<T>(Supplier<T> getter, Consumer<T> setter, T[] values) implements Consumer<Integer> {

@@ -18,9 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.config.widget;
+package grondag.canvas.config.builder;
 
-import static grondag.canvas.config.widget.ResettableCheckbox.RESET_BUTTON_WIDTH;
+import static grondag.canvas.config.builder.Checkbox.RESET_BUTTON_WIDTH;
 
 import java.text.DecimalFormat;
 import java.util.function.Consumer;
@@ -28,6 +28,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
+import dev.lambdaurora.spruceui.option.SpruceOption;
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
 import dev.lambdaurora.spruceui.option.SpruceDoubleOption;
@@ -39,13 +40,13 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 
-public abstract class ResettableSlider<T> extends SpruceDoubleOption implements ResettableOption<T> {
+public abstract class Slider<T> extends SpruceDoubleOption implements Option<T> {
 	private static final DecimalFormat DECIMAL = new DecimalFormat("0.0###");
 
 	private final double defaultVal;
 	private SpruceWidget resetButton;
 
-	ResettableSlider(String key, double min, double max, float step, Supplier<Double> getter, Consumer<Double> setter, double defaultVal, Function<SpruceDoubleOption, Component> displayStringGetter, @Nullable Component tooltip) {
+	Slider(String key, double min, double max, float step, Supplier<Double> getter, Consumer<Double> setter, double defaultVal, Function<SpruceDoubleOption, Component> displayStringGetter, @Nullable Component tooltip) {
 		super(key, min, max, step, getter, setter, displayStringGetter, tooltip);
 		this.defaultVal = defaultVal;
 	}
@@ -70,13 +71,18 @@ public abstract class ResettableSlider<T> extends SpruceDoubleOption implements 
 		resetButton.setActive(get() != defaultVal);
 	}
 
-	public static class IntSlider extends ResettableSlider<Integer> {
+	@Override
+	public SpruceOption spruceOption() {
+		return this;
+	}
+
+	public static class IntSlider extends Slider<Integer> {
 		IntSlider(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable Component tooltip) {
 			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.intValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": §b" + getter.get()), tooltip);
 		}
 	}
 
-	public static class FloatSlider extends ResettableSlider<Float> {
+	public static class FloatSlider extends Slider<Float> {
 		FloatSlider(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable Component tooltip) {
 			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": §b" + DECIMAL.format(getter.get())), tooltip);
 		}
