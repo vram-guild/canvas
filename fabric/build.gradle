@@ -19,7 +19,7 @@ plugins {
 
 ext.platform_name = 'fabric'
 ext.loader_version = '0.13.3'
-ext.fabric_version = '0.48.0+1.18.2'
+ext.fabric_version = '0.46.4+1.18'
 
 apply from: '../project_common.gradle'
 apply from: 'project.gradle'
@@ -32,9 +32,9 @@ dependencies {
 
 // Hat tip to JellySquid
 configurations {
-	modIncludeImplementation
-	modImplementation.extendsFrom modIncludeImplementation
-	include.extendsFrom modIncludeImplementation
+    modIncludeImplementation
+    modImplementation.extendsFrom modIncludeImplementation
+    include.extendsFrom modIncludeImplementation
 }
 
 loom {
@@ -97,17 +97,17 @@ publishing {
 		if (project.version.endsWith('LOCAL') || project.version.endsWith('SNAPSHOT')) {
 			println "Snapshot build will be local only - not pushed to public maven"
 		} else {
-			maven {
-				url = 'sftp://maven.vram.io:22'
-				credentials {
-					if (project.hasProperty('maven_user')) {
+	    maven {
+        url = 'sftp://maven.vram.io:22'
+        credentials {
+        	if (project.hasProperty('maven_user')) {
 						username = project.getProperty('maven_user')
 					}
 					if (project.hasProperty('maven_password')) {
 						password = project.getProperty('maven_password')
 					}
 				}
-			}
+	    }
 		}
 	}
 }

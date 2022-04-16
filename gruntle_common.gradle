@@ -79,7 +79,7 @@ jar {
 			"Implementation-Vendor" : "${project.author}",
 			"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
 		])
-	}
+   }
 }
 
 curseforge {
