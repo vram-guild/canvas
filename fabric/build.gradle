@@ -58,7 +58,6 @@ if (project.build_fat_jar) {
 		input = jar.archiveFile
 		archiveFileName = "${archivesBaseName}-${project.version}-slim.jar"
 		addNestedDependencies = false
-		remapAccessWidener = true
 	}
 
 	build.dependsOn remapMavenJar
