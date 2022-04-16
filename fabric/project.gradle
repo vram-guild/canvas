@@ -11,7 +11,6 @@ dependencies {
 
 	modIncludeImplementation(fabricApi.module("fabric-api-base", project.fabric_version))
 	modIncludeImplementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_version))
-	modIncludeImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
 	modIncludeImplementation(fabricApi.module("fabric-key-binding-api-v1", project.fabric_version))
 
 	modCompileOnly(fabricApi.module("fabric-rendering-data-attachment-v1", project.fabric_version))

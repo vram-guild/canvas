@@ -20,8 +20,6 @@
 
 package grondag.canvas.shader;
 
-import net.minecraft.client.Minecraft;
-
 import io.vram.sc.unordered.SimpleUnorderedArrayList;
 
 import grondag.canvas.CanvasMod;
@@ -38,7 +36,7 @@ public class GlProgramManager {
 
 	private final SimpleUnorderedArrayList<GlProgram> programs = new SimpleUnorderedArrayList<>();
 
-	public void onEndTick(Minecraft client) {
+	public void onEndTick() {
 		final int limit = programs.size();
 
 		for (int i = 0; i < limit; i++) {

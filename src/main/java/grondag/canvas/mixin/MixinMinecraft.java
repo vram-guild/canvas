@@ -36,6 +36,7 @@ import net.minecraft.util.thread.ReentrantBlockableEventLoop;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.render.world.CanvasWorldRenderer;
+import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.varia.CanvasGlHelper;
 
 @Mixin(Minecraft.class)
@@ -47,6 +48,11 @@ public abstract class MixinMinecraft extends ReentrantBlockableEventLoop<Runnabl
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void hookInit(CallbackInfo info) {
 		CanvasGlHelper.init();
+	}
+
+	@Inject(at = @At("RETURN"), method = "runTick")
+	private void afterTick(CallbackInfo info) {
+		GlProgramManager.INSTANCE.onEndTick();
 	}
 
 	@Redirect(at = @At(value = "INVOKE", target = "Ljava/lang/Thread;yield()V"), method = "runTick", require = 1, allow = 1)

@@ -25,7 +25,6 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
@@ -34,7 +33,6 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.config.PipelineLoader;
-import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.texture.MaterialIndexProvider;
 
 public class CanvasFabricMod implements ClientModInitializer {
@@ -69,8 +67,6 @@ public class CanvasFabricMod implements ClientModInitializer {
 				MaterialIndexProvider.reload();
 			}
 		});
-
-		ClientTickEvents.END_CLIENT_TICK.register(GlProgramManager.INSTANCE::onEndTick);
 	}
 
 	private static final ResourceLocation ID = new ResourceLocation("canvas:resource_reloader");
