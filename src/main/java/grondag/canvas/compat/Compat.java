@@ -41,6 +41,7 @@ public class Compat {
 	public static void init() {
 		WorldRenderStartListener.register(ctx -> {
 			LambDynLightsHolder.updateAll.accept(ctx.worldRenderer());
+			NEAHolder.worldRenderStart();
 		});
 
 		FrustumSetupListener.register(ctx -> {
