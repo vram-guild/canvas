@@ -110,7 +110,7 @@ public class PipelineOptionScreen extends SpruceScreen {
 			}
 		}
 
-		var saveButton = this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, Buttons.SAVE, b -> save()));
+		var saveButton = this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
 		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
 
 		optionSession.setSaveButton(saveButton);

@@ -35,13 +35,17 @@ import dev.lambdaurora.spruceui.option.SpruceDoubleOption;
 import dev.lambdaurora.spruceui.widget.SpruceSliderWidget;
 import dev.lambdaurora.spruceui.widget.SpruceWidget;
 import dev.lambdaurora.spruceui.widget.container.SpruceContainerWidget;
+import dev.lambdaurora.spruceui.widget.text.SpruceTextFieldWidget;
 
-import net.minecraft.client.resources.language.I18n;
+import com.mojang.blaze3d.vertex.PoseStack;
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public abstract class Slider<T> extends SpruceDoubleOption implements Option<T> {
 	private static final DecimalFormat DECIMAL = new DecimalFormat("0.0###");
+	private static final int INPUT_WIDTH = 56;
 
 	private final double defaultVal;
 	private SpruceWidget resetButton;
@@ -53,14 +57,26 @@ public abstract class Slider<T> extends SpruceDoubleOption implements Option<T> 
 
 	@Override
 	public SpruceWidget createWidget(Position position, int width) {
-		CustomSliderWidget slider = CustomSliderWidget.create(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH, this, step);
+		CustomSliderWidget slider = CustomSliderWidget.create(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH - INPUT_WIDTH - 2, this, step, new TranslatableComponent(key));
 		this.getOptionTooltip().ifPresent(slider::setTooltip);
 
-		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, slider.getHeight(), Buttons.RESET, e -> slider.setValue(defaultVal));
+		CustomTextWidget text = new CustomTextWidget(Position.of(position, width - RESET_BUTTON_WIDTH - INPUT_WIDTH, 0), INPUT_WIDTH, this);
+
+		text.linked = slider;
+		slider.linked = text;
+
+		final var _this = this;
+		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, slider.getHeight(), Buttons.RESET, e -> {
+			_this.set(defaultVal);
+			slider.resetDisplay(false);
+			// sometimes it's still focused, so forcing is required
+			text.resetDisplay(true);
+		});
 		refreshResetButton();
 
 		SpruceContainerWidget container = new SpruceContainerWidget(position, width, slider.getHeight());
 		container.addChild(slider);
+		container.addChild(text);
 		container.addChild(resetButton);
 
 		return container;
@@ -68,7 +84,7 @@ public abstract class Slider<T> extends SpruceDoubleOption implements Option<T> 
 
 	@Override
 	public void refreshResetButton() {
-		resetButton.setActive(get() != defaultVal);
+		if (resetButton != null) resetButton.setActive(get() != defaultVal);
 	}
 
 	@Override
@@ -78,49 +94,110 @@ public abstract class Slider<T> extends SpruceDoubleOption implements Option<T> 
 
 	public static class IntSlider extends Slider<Integer> {
 		IntSlider(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable Component tooltip) {
-			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.intValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": §b" + getter.get()), tooltip);
+			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.intValue()), defaultVal, e -> new TextComponent(getter.get().toString()), tooltip);
 		}
 	}
 
 	public static class FloatSlider extends Slider<Float> {
 		FloatSlider(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable Component tooltip) {
-			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(I18n.get(key) + ": §b" + DECIMAL.format(getter.get())), tooltip);
+			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(DECIMAL.format(e.get())), tooltip);
 		}
 	}
 
-	private static class CustomSliderWidget extends SpruceSliderWidget {
+	private interface LinkedWidget {
+		void resetDisplay(boolean forced);
+	}
+
+	private static class CustomSliderWidget extends SpruceSliderWidget implements LinkedWidget {
 		private final double multiplier;
 		private final SpruceDoubleOption option;
+		private LinkedWidget linked;
 
-		private static CustomSliderWidget create(Position position, int width, SpruceDoubleOption option, double step) {
+		private static CustomSliderWidget create(Position position, int width, SpruceDoubleOption option, double step, Component label) {
 			// guard against integer overflow because why not
 			final double multiplier = Math.min((option.getMax() - option.getMin()) / step, Math.floor(Integer.MAX_VALUE / option.getMax()));
-			return new CustomSliderWidget(position, width, 20, option, multiplier);
+			return new CustomSliderWidget(position, width, 20, option, multiplier, label);
 		}
 
-		private CustomSliderWidget(Position position, int width, int height, SpruceDoubleOption option, double multiplier) {
+		private CustomSliderWidget(Position position, int width, int height, SpruceDoubleOption option, double multiplier, Component label) {
 			super(position, width, height, TextComponent.EMPTY, option.getRatio(option.get()), slider -> option.set(option.getValue(slider.getValue())), multiplier, "");
 			this.multiplier = multiplier;
 			this.option = option;
-			this.updateMessage();
+			this.setMessage(label);
 		}
 
-		private void setValue(double value) {
-			// set approximate for visuals. can't set directly due to API limitation
-			setIntValue((int) Math.round(option.getRatio(value) * multiplier));
-
-			// set accurate
-			if (getValue() != value) {
-				option.set(value);
-				updateMessage();
-			}
+		@Override
+		public void resetDisplay(boolean forced) {
+			final double realValue = option.get();
+			// set approximate only due to API limitation. this can cause rounding error
+			setIntValue((int) Math.round(option.getRatio(realValue) * multiplier));
+			// prevent rounding error
+			option.set(realValue);
 		}
 
 		@Override
 		protected void updateMessage() {
-			if (this.option != null) {
-				this.setMessage(this.option.getDisplayString());
+			if (linked != null) linked.resetDisplay(false);
+		}
+	}
+
+	private static class CustomTextWidget extends SpruceTextFieldWidget implements LinkedWidget {
+		private final SpruceDoubleOption option;
+		private boolean lastFocus = isFocused();
+		private LinkedWidget linked;
+
+		private CustomTextWidget(Position position, int width, SpruceDoubleOption optionSource) {
+			super(position, width, 20, null);
+			option = optionSource;
+			resetDisplay(true);
+			setTextPredicate(this::inputPredicate);
+			setChangedListener(this::changedListener);
+		}
+
+		private boolean inputPredicate(String s) {
+			try {
+				if (s.equals("")) {
+					return true;
+				} else {
+					final double parsed = Double.parseDouble(s);
+					return parsed >= option.getMin() && parsed <= option.getMax();
+				}
+			} catch (Exception e) {
+				return false;
 			}
+		}
+
+		private void changedListener(String s) {
+			try {
+				double value = Double.parseDouble(s);
+
+				if (!option.getDisplayString().getString().equals(getText())) {
+					option.set(value);
+					if (linked != null) linked.resetDisplay(false);
+				}
+			} catch (Exception ignored) {
+				// NOOP
+			}
+		}
+
+		@Override
+		public void resetDisplay(boolean forced) {
+			// only reset if not focused to prevent cursor glitches
+			if (!isFocused() || forced) {
+				final String display = option.getDisplayString().getString();
+				// this can cause rounding error, but it will be the most precise value the user sees either way
+				if (!display.equals(getText())) setText(display);
+			}
+		}
+
+		@Override
+		protected void renderWidget(PoseStack matrices, int mouseX, int mouseY, float delta) {
+			if (lastFocus != isFocused()) {
+				resetDisplay(false);
+				lastFocus = isFocused();
+			}
+
+			super.renderWidget(matrices, mouseX, mouseY, delta);
 		}
 	}
 }

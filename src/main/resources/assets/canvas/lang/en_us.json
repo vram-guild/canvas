@@ -17,7 +17,6 @@
   "config.canvas.button": "Canvas",
   "config.canvas.title": "Canvas Renderer Configuration",
   "config.canvas.reset": "Reset",
-  "config.canvas.save": "Save & Quit",
   "config.canvas.restart.title": "Restart Required",
   "config.canvas.restart.prompt": "One of your changes requires restarting Minecraft. Would you like to proceed?",
   "config.canvas.restart.accept": "Exit Minecraft",

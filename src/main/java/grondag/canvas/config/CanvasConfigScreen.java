@@ -27,7 +27,6 @@ import static grondag.canvas.config.ConfigManager.Reload.RELOAD_EVERYTHING;
 import dev.lambdaurora.spruceui.Position;
 import dev.lambdaurora.spruceui.background.EmptyBackground;
 import dev.lambdaurora.spruceui.background.SimpleColorBackground;
-import dev.lambdaurora.spruceui.option.SpruceSeparatorOption;
 import dev.lambdaurora.spruceui.option.SpruceSimpleActionOption;
 import dev.lambdaurora.spruceui.screen.SpruceScreen;
 import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
@@ -42,6 +41,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.config.builder.Buttons;
+import grondag.canvas.config.builder.Categories;
 import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.perf.Timekeeper;
 
@@ -84,7 +84,7 @@ public class CanvasConfigScreen extends SpruceScreen {
 		}));
 
 		// FEATURES
-		final int indexFeatures = list.addSingleOptionEntry(new SpruceSeparatorOption("config.canvas.category.features", true, null));
+		final int indexFeatures = Categories.addTo(list, "config.canvas.category.features");
 
 		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.blend_fluid_colors",
 				() -> editing.blendFluidColors,
@@ -120,7 +120,7 @@ public class CanvasConfigScreen extends SpruceScreen {
 				ConfigManager.parseTooltip("config.canvas.help.semi_flat_lighting")).spruceOption());
 
 		// TWEAKS
-		final int indexTweaks = list.addSingleOptionEntry(new SpruceSeparatorOption("config.canvas.category.tweaks", true, null));
+		final int indexTweaks = Categories.addTo(list, "config.canvas.category.tweaks");
 
 		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.adjust_vanilla_geometry",
 				() -> editing.preventDepthFighting,
@@ -283,7 +283,7 @@ public class CanvasConfigScreen extends SpruceScreen {
 				ConfigManager.parseTooltip("config.canvas.help.cull_backfacing_terrain")).spruceOption());
 
 		// DEBUG
-		final int indexDebug = list.addSingleOptionEntry(new SpruceSeparatorOption("config.canvas.category.debug", true, null));
+		final int indexDebug = Categories.addTo(list, "config.canvas.category.debug");
 
 		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.shader_debug",
 				() -> editing.shaderDebug,
@@ -464,7 +464,7 @@ public class CanvasConfigScreen extends SpruceScreen {
 					Buttons::sideButton, e -> list.setScrollAmount(debugY)));
 		}
 
-		var saveButton = this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, Buttons.SAVE, b -> save()));
+		var saveButton = this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
 		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
 
 		optionSession.setSaveButton(saveButton);

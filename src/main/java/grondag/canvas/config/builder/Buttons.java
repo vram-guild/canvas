@@ -29,7 +29,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 
 public class Buttons {
-	public static final Component SAVE = new TranslatableComponent("config.canvas.save");
 	public static final Component RESET = new TranslatableComponent("config.canvas.reset");
 
 	public static int sideW = 0;
