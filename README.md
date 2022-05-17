@@ -5,12 +5,12 @@ Discord: https://discord.gg/7NaqR2e
 Curse: https://www.curseforge.com/minecraft/mc-mods/canvas-renderer
 
 ## License
-Except as noted in individual source files, all code in this mod, include shaders, is [licensed under the Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0). This means no warranty is provided.
+Except as noted in individual source files, all code in this mod, include shaders, is [licensed under the LGPL-3.0 License](https://www.gnu.org/licenses/lgpl-3.0.en.html). This means no warranty is provided.
 
 Some elements of code are adapted from or copied from other projects with compatible licensing.  The author has attempted to provide credit and/or appropriate notices in the code where applicable.
 
 ## Limitations
-Canvas is in EARLY ALPHA.  Expect it to break.  Currently terrain rendering works with shaders but item rendering does not. (It will.). Rendering for blocks in movement (falling blocks, blocks being moved by pistons, etc.) is WIP.  
+Canvas is in EARLY ALPHA.  Expect it to break.
 
 The FREX extensions, shader library, vertex formats, attribute bindings, and lighting options are subject to change - causing your code to break.  Sorry.  When there is a stable release I will avoid breaking changes in shipping versions.  Until then, experimentation is the norm.
 
@@ -35,100 +35,88 @@ More optimizations will be added after a stable release.
 ## Installing Canvas
 Add Canvas to the `mods` folder in your minecraft folder (`%appdata%/.minecraft/mods` on Windows) and make sure you have recent versions of [Fabric](https://fabricmc.net/) Loader and API, plus at least 4GB of memory allocated to Minecraft.  An in-game config menu is available in video options, or via Mod Menu if you have it installed.
 
-## List of Compatible Shaders
+## Compatible Shader Packs
 
-* [Lumi Lights (wip)](https://spiralhalo.github.io/)
+Third-party pipeline shaders:
+* [Lumi Lights](https://spiralhalo.github.io/)
+* [Forget-me-not](https://github.com/Poisoned-Honey/ForgetMeNot-Shaders)
+* [lomo (wip)](https://github.com/fewizz/lomo/)
+
+This list is updated infrequently.
+
+More releases can be found in [`#canvas-3rd-party-releases` channel](https://discord.com/channels/614624415631671316/752632870257950790) on the [discord server](https://discord.gg/7NaqR2e).
 
 # Developing With Canvas
 Before using Canvas, you should first understand RenderMaterials, Meshes, RenderContexts and other features defined by the Fabric Rendering API.  For that information, consult the [rendering article on the Fabric Wiki](https://fabricmc.net/wiki/rendering). Note: Fabric wiki is still WIP as of this writing but should be more complete "soon."
 
 You can also see [RenderBender](https://github.com/grondag/renderbender) for some (not very good) examples of usage.  Avoid duplicating those examples directly - they aren't especially performant or suitable for use at scale.  As soon as someone releases a model loader / library for Fabric Rendering API / FREX, that will almost certainly be a better approach.  
 
-### Overlay Sprites
-Canvas supports a max sprite depth of three - meaning you can add one or two overlay sprites to each quad.  For example, to add one overlay texture, choose a material with a sprite depth of two:
+## Attaching Shaders to Materials
 
-```java
-RenderMaterial mat = RendererAccess.INSTANCE.getRenderer().finder().spriteDepth(2)
-//select other material properties...
-.find();
-```
+Shaders can be attached to materials via json, which is the preferred way. Your materials are located in `materials/` within your namespaced resource location.
 
-Specify UV coordinates, blend mode and colors for your overlay sprites like so:
-```java
-  .blendMode(1, TRANSLUCENT)
-  .disableColorIndex(1, true)
-  .spriteBake(1, sprite, MutableQuadView.BAKE_LOCK_UV | MutableQuadView.BAKE_NORMALIZED)
-  .spriteColor(1, -1, -1, -1, -1)
-```
-
-Note that is doesn't make sense to use `BlockRenderLayer.SOLID` as the blend mode for overlay textures - it would cover up the texture beneath it.  Use `TRANSLUCENT` or one of the `CUTOUT` modes instead.
-
-It's likely Canvas will also support "decal" quads in the future, but overlay sprites will be more performant when model and texture geometry make them feasible. (Overlays can be rendered together in a single primitive and avoid the need to project the decal onto existing geometry.)
-
-### Attaching Shaders to Materials
-Shaders and their uniforms are bundled into a "pipeline" which can then be associated with a material, like so:
-
-```java
-  ExtendedRenderer er = (ExtendedRenderer) RendererAccess.INSTANCE.getRenderer();
-  Pipeline p = er.pipelineBuilder()
-      .vertexSource(new Identifier("renderbender", "shader/test.vert"))
-      .fragmentSource(new Identifier("renderbender", "shader/test.frag"))
-      .build();
-  RenderMaterial mat = er.materialFinder().pipeline(p).find();
-```
-
-Note the renderer must be cast to `ExtendedRenderer` to access these features.  If you need custom uniforms, you can add them via `PipelineBuilder`.
-
-The identifiers passed to `vertexSource` and `fragmentSource` should point to GLSL files in your resource pack.  The relative path and file extension must be included, and `shader/` is the suggested location.
-
-Your vertex and fragment shaders must have a `main` procedure. To ensure compatibility, shaders are limited to `#version 120` features, plus `GL_EXT_gpu_shader4`.
-
-## Vertex Shaders
-Your vertex shader will automatically include all the definitions and library routines in `common_lib.glsl` and `vertex_lib.glsl`, which both live in `assets/canvas/shader`.
-
-Your vertex shader must set `gl_Position`, `gl_ClipVertex`, and `gl_FogFragCoord` along with any `varying` variables needed in your fragment shader.  Canvas also needs to do its own prep for standard texturing and lighting here, assuming you need them. 
-
-The easiest way to do this is to call the setupVertex() library function that Canvas provides, and then add your own logic as needed, like so:
-
-```glsl
-void main() {
-    // do your custom stuff here!
-    setupVertex();
-    // or do it here!
+### assets/example/materials/test_material.json
+```json
+{
+	"vertexSource": "example:shaders/test.vert",
+	"fragmentSource": "example:shaders/test.frag"
 }
 ```
 
-## Fragment Shaders
-Your fragment shader will automatically include all the definitions and library routines in `common_lib.glsl` and `fragment_lib.glsl`, which both live in `assets/canvas/shader`.
+The paths in `vertexSource` and `fragmentSource` should point to GLSL files in your resources location.  The relative path and file extension must be included, and `shaders/` is the suggested location but not mandatory.
 
-Canvas handles all lighting - diffuse and ambient occlusion - in the fragment shader.  This means your colors will always be unmodified at the start of the fragment routine.
+Afterwards, you can map a blockstate (or entity, particle, etc) to your material using a material map located in `materialmaps/`, like so:
 
-Your fragment shader should set `gl_FragColor` or, in rare cases, call discard.  To get the lit and shaded color that would normally be output, call `diffuseColor()` and to apply the current distance fog use `fog()`.
+### assets/example/materialmaps/block/test_block.json
+```json
+{
+  "defaultMaterial": "example:test_material"
+}
+```
 
-Future versions of the fragment library will give more granular options for getting lit or unlit colors and for modifying colors before or after lighting.
+You can also load the material directly into java
 
+```java
+Renderer renderer = Renderer.get();
+
+// obtain the loaded material, done after resource reload
+RenderMaterial mat = renderer.materials().materialFromId(new ResourceLocation("example:test_material"));
+```
+
+Note that loading materials directly is only necessary for rendering custom meshes. For full blocks, entities, particles, or fluids, using material maps is the recommended way.
+
+Alternatively, materials can also be created directly in java, like so:
+
+```java
+Renderer renderer = Renderer.get();
+
+RenderMaterial mat = renderer.materials().materialFinder().shader(
+		new ResourceLocation("example", "shaders/test.vert"),
+		new ResourceLocation("example", "shaders/test.frag")
+	).find();
+```
+
+This can be more reliable in case you don't want your materials to be affected by resource packs or resource reload. In this case, material maps can't be utilized.
+
+## Writing Material Shaders
+
+Your vertex and fragment shaders must have a `frx_materialVertex` and `frx_materialFragment` procedures respectively. To ensure compatibility, shaders are limited to `#version 330` features.
+
+A detailed documentation of the available API can be found in the FREX source files:
+* [FREX Shader API Overview](https://github.com/vram-guild/frex/blob/1.18/common/src/main/resources/assets/frex/shaders/api/FREX%20Shader%20API.md)
+* [ FREX Shader API Header Files](https://github.com/vram-guild/frex/tree/1.18/common/src/main/resources/assets/frex/shaders/api)
 
 ## Adding Canvas to your project
 Add these maven repos to your build if not already present
 
 ```gradle
 repositories {
-    // where grondag's mods live
-    maven {
-	name = "dblsaiko"
-	url = "https://maven.dblsaiko.net/"
-    }
-    maven {
-	name = "Cotton"
-	url = "https://server.bbkr.space/artifactory/libs-release/"
-    }
-    // cloth config
-    maven { url "https://maven.shedaniel.me/" }
-    // REI, odds and ends
-    maven {
-	name = "CurseForge"
-	url = "https://minecraft.curseforge.com/api/maven"
-    }
+	// vram guild repo
+	maven {url "https://maven.vram.io"}
+	// cloth config
+	maven {url "https://maven.shedaniel.me/"}
+	// mod menu
+	maven {url "https://maven.terraformersmc.com/releases/"}
 }
 ```
 
@@ -136,10 +124,11 @@ And add Canvas to your dependencies
 
 ```gradle
 dependencies {
-	modCompileOnly "grondag:canvas-mc116:1.0.+"
+	modCompileOnly "io.vram:canvas-fabric-mc118:1.0.+"
+
+	// optional for testing in dev environment
+	modRuntimeOnly "io.vram:canvas-fabric-mc118:1.0.+"
 }
-
-
 ```
 
 Note that versions are subject to change - look at the repo to find latest.
