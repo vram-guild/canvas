@@ -58,7 +58,8 @@ public class ShadowOccluder extends AbstractOccluder {
 
 	private float maxRegionExtent;
 	private float r0, x0, y0, z0, r1, x1, y1, z1, r2, x2, y2, z2, r3, x3, y3, z3;
-	private int lastViewVersion;
+	private int cameraViewVersion;
+	private int shadowViewVersion;
 	private Vec3 lastCameraPos;
 	private grondag.bitraster.BoxOccluder.BoxTest clearTest;
 	private grondag.bitraster.BoxOccluder.BoxTest occludedTest;
@@ -68,7 +69,7 @@ public class ShadowOccluder extends AbstractOccluder {
 		super(new OrthoRasterizer(), rasterName);
 	}
 
-	public void copyState(TerrainFrustum occlusionFrustum) {
+	public void copyState(TerrainFrustum cameraFrustum) {
 		shadowViewMatrixExt.f_set(ShadowMatrixData.shadowViewMatrix);
 		shadowProjMatrixExt.f_set(ShadowMatrixData.maxCascadeProjMatrix());
 		maxRegionExtent = ShadowMatrixData.regionMaxExtent();
@@ -93,18 +94,21 @@ public class ShadowOccluder extends AbstractOccluder {
 		z3 = cascadeCentersAndRadii[14];
 		r3 = cascadeCentersAndRadii[15];
 
-		final boolean invalidateView;
-		if (lastViewVersion == occlusionFrustum.viewVersion()) {
+		boolean cameraStateChanged = cameraViewVersion != cameraFrustum.viewVersion();
+
+		if (cameraStateChanged) {
+			shadowViewVersion++;
+		} else {
 			final float lightSourceMovement = 1.0f - lastVersionedLightVector.dot(ShaderDataManager.skyLightVector);
 			// big sun movement, about 12 in-game minutes or 200 ticks
-			invalidateView = lightSourceMovement > 0.0025f;
-		} else {
-			invalidateView = false;
+			if (lightSourceMovement > 0.0025f) {
+				lastVersionedLightVector.load(ShaderDataManager.skyLightVector);
+				shadowViewVersion++;
+			}
 		}
 
-		if (invalidateView) lastVersionedLightVector.load(ShaderDataManager.skyLightVector);
-		lastViewVersion = invalidateView ? -1 : occlusionFrustum.viewVersion();
-		lastCameraPos = occlusionFrustum.lastCameraPos();
+		cameraViewVersion = cameraFrustum.viewVersion();
+		lastCameraPos = cameraFrustum.lastCameraPos();
 	}
 
 	@Override
@@ -121,7 +125,7 @@ public class ShadowOccluder extends AbstractOccluder {
 	 */
 	@Override
 	public boolean prepareScene() {
-		return super.prepareScene(lastViewVersion, lastCameraPos.x, lastCameraPos.y, lastCameraPos.z, shadowViewSetter, shadowProjSetter);
+		return super.prepareScene(shadowViewVersion, lastCameraPos.x, lastCameraPos.y, lastCameraPos.z, shadowViewSetter, shadowProjSetter);
 	}
 
 	/**
