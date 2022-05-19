@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-	id 'dev.architectury.loom' version '0.10.0-SNAPSHOT'
+	id 'dev.architectury.loom' version '0.11.0-SNAPSHOT'
 	id 'maven-publish'
 	id 'org.cadixdev.licenser' version '0.6.1'
 	id 'org.ajoberstar.grgit' version '4.1.1'
@@ -19,7 +19,7 @@ plugins {
 }
 
 ext.platform_name = 'forge'
-ext.forge_version = '39.0.8'
+ext.forge_version = '40.1.14'
 
 configurations {
 	bundle { transitive = false }
