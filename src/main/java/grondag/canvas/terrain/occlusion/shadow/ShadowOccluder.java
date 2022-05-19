@@ -93,16 +93,17 @@ public class ShadowOccluder extends AbstractOccluder {
 		z3 = cascadeCentersAndRadii[14];
 		r3 = cascadeCentersAndRadii[15];
 
+		final boolean invalidateView;
 		if (lastViewVersion == occlusionFrustum.viewVersion()) {
 			final float lightSourceMovement = 1.0f - lastVersionedLightVector.dot(ShaderDataManager.skyLightVector);
 			// big sun movement, about 12 in-game minutes or 200 ticks
-			if(lightSourceMovement > 0.0025f) {
-				lastVersionedLightVector.load(ShaderDataManager.skyLightVector);
-				invalidate();
-			}
+			invalidateView = lightSourceMovement > 0.0025f;
+		} else {
+			invalidateView = false;
 		}
 
-		lastViewVersion = occlusionFrustum.viewVersion();
+		if (invalidateView) lastVersionedLightVector.load(ShaderDataManager.skyLightVector);
+		lastViewVersion = invalidateView ? -1 : occlusionFrustum.viewVersion();
 		lastCameraPos = occlusionFrustum.lastCameraPos();
 	}
 
