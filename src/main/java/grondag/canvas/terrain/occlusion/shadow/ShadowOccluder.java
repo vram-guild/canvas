@@ -42,6 +42,7 @@ import grondag.bitraster.Matrix4L;
 import grondag.bitraster.OrthoRasterizer;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.render.frustum.TerrainFrustum;
+import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
@@ -52,6 +53,8 @@ public class ShadowOccluder extends AbstractOccluder {
 
 	public final Matrix4f shadowProjMatrix = new Matrix4f();
 	private final FastMatrix4f shadowProjMatrixExt = (FastMatrix4f) (Object) shadowProjMatrix;
+
+	private final Vector3f lastVersionedLightVector = new Vector3f();
 
 	private float maxRegionExtent;
 	private float r0, x0, y0, z0, r1, x1, y1, z1, r2, x2, y2, z2, r3, x3, y3, z3;
@@ -90,8 +93,18 @@ public class ShadowOccluder extends AbstractOccluder {
 		z3 = cascadeCentersAndRadii[14];
 		r3 = cascadeCentersAndRadii[15];
 
+		final boolean invalidateView;
+		if (lastViewVersion == occlusionFrustum.viewVersion()) {
+			final float lightSourceMovement = 1.0f - lastVersionedLightVector.dot(ShaderDataManager.skyLightVector);
+			// big sun movement, about 12 in-game minutes or 200 ticks
+			invalidateView = lightSourceMovement > 0.0025f;
+		} else {
+			invalidateView = false;
+		}
+
+		if (invalidateView) lastVersionedLightVector.load(ShaderDataManager.skyLightVector);
+		lastViewVersion = invalidateView ? -1 : occlusionFrustum.viewVersion();
 		lastCameraPos = occlusionFrustum.lastCameraPos();
-		lastViewVersion = occlusionFrustum.viewVersion();
 	}
 
 	@Override
