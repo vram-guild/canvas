@@ -138,7 +138,7 @@ public class CanvasConfigScreen extends SpruceScreen {
 					editing.clampExteriorVertices = b;
 				},
 				DEFAULTS.clampExteriorVertices,
-				new TranslatableComponent("config.canvas.help.clamp_exterior_vertices")).spruceOption());
+				ConfigManager.parseTooltip("config.canvas.help.clamp_exterior_vertices")).spruceOption());
 
 		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.fix_luminous_block_shade",
 				() -> editing.fixLuminousBlockShading,
@@ -265,7 +265,7 @@ public class CanvasConfigScreen extends SpruceScreen {
 					editing.disableUnseenSpriteAnimation = b;
 				},
 				DEFAULTS.disableUnseenSpriteAnimation,
-				ConfigManager.parseTooltip("config.canvas.help.dis,able_unseen_sprite_animation")).spruceOption());
+				ConfigManager.parseTooltip("config.canvas.help.disable_unseen_sprite_animation")).spruceOption());
 
 		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.group_animated_sprites",
 				() -> editing.groupAnimatedSprites,
