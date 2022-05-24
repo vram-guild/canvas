@@ -100,6 +100,7 @@ public class ShadowOccluder extends AbstractOccluder {
 			shadowViewVersion++;
 		} else {
 			final float lightSourceMovement = 1.0f - lastVersionedLightVector.dot(ShaderDataManager.skyLightVector);
+
 			// big sun movement, about 12 in-game minutes or 200 ticks
 			if (lightSourceMovement > 0.0025f) {
 				lastVersionedLightVector.load(ShaderDataManager.skyLightVector);

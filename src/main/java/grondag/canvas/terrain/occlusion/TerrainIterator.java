@@ -472,11 +472,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 			}
 
 			final var offset = CircleUtil.getDistanceSortedCircularOffset(i);
+			final var coord = shadowVisibility.alignPrimerCircle(offset, ySphere);
 
 			final RenderRegion region = regionStorage.getOrCreateRegion(
-					(offset.x() << 4) + x,
-					Mth.clamp((ySphere << 4) + y, yMin, yMax),
-					(offset.y() << 4) + z);
+					x + coord[0],
+					Mth.clamp(y + coord[1], yMin, yMax),
+					z + coord[2]);
 
 			if (region != null) {
 				region.shadowVisibility.addIfValid();
