@@ -459,28 +459,47 @@ public class TerrainIterator implements TerrainExecutorTask {
 		final int y = BlockPos.getY(cameraChunkOrigin);
 		final int x = BlockPos.getX(cameraChunkOrigin);
 		final int z = BlockPos.getZ(cameraChunkOrigin);
-		final int limit = CircleUtil.getLastDistanceSortedOffsetIndex(renderDistance);
 		final int yMin = worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
 		final int yMax = (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0;
 
-		for (int i = 0; i < limit; ++i) {
-			final int ySphere = regionBoundingSphere.getY(i);
+		// Since chunks are loaded from the camera, we want more primed regions for higher render distances
+		int primerRadius = Math.min(renderDistance, 4);
 
-			// values < 0 indicate regions not within render distance
-			if (ySphere < 0) {
-				continue;
+		while (true) {
+			final float radiusMult = primerRadius / (float) renderDistance;
+			final int limit = CircleUtil.getLastDistanceSortedOffsetIndex(primerRadius);
+
+			for (int i = 0; i < limit; ++i) {
+				// the region bounding sphere needs to be adjusted to current radius
+				final int ySphere = (/* floor */int) (regionBoundingSphere.getY(i) * radiusMult);
+
+				// values < 0 indicate regions not within render distance
+				if (ySphere < 0) {
+					continue;
+				}
+
+				final var offset = CircleUtil.getDistanceSortedCircularOffset(i);
+				final var coord = shadowVisibility.alignPrimerCircle(offset, ySphere);
+
+				final RenderRegion region = regionStorage.getOrCreateRegion(
+						x + coord[0],
+						Mth.clamp(y + coord[1], yMin, yMax),
+						z + coord[2]);
+
+				if (region != null) {
+					region.shadowVisibility.addIfValid();
+				}
 			}
 
-			final var offset = CircleUtil.getDistanceSortedCircularOffset(i);
-			final var coord = shadowVisibility.alignPrimerCircle(offset, ySphere);
-
-			final RenderRegion region = regionStorage.getOrCreateRegion(
-					x + coord[0],
-					Mth.clamp(y + coord[1], yMin, yMax),
-					z + coord[2]);
-
-			if (region != null) {
-				region.shadowVisibility.addIfValid();
+			if (primerRadius >= renderDistance) {
+				break;
+			} else {
+				// Primer radius doubles each time, minimizing amount of region priming per render distance
+				// 1~4 -> 1
+				// 5~8 -> 2
+				// 9~16 -> 3
+				// 17~32 -> 4 (despite the same amount of iterations, higher RD still yield more primed regions)
+				primerRadius = Math.min(renderDistance, primerRadius * 2);
 			}
 		}
 	}
