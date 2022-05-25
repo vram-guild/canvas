@@ -44,6 +44,7 @@ import grondag.canvas.config.builder.Buttons;
 import grondag.canvas.config.builder.Categories;
 import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.perf.Timekeeper;
+import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 public class CanvasConfigScreen extends SpruceScreen {
 	private boolean reload;
@@ -284,6 +285,25 @@ public class CanvasConfigScreen extends SpruceScreen {
 
 		// DEBUG
 		final int indexDebug = Categories.addTo(list, "config.canvas.category.debug");
+
+		list.addSingleOptionEntry(optionSession.enumOption("config.canvas.value.shadow_priming_strategy",
+				() -> editing.shadowPrimingStrategy,
+				e -> {
+					reload |= Configurator.shadowPrimingStrategy != e;
+					editing.shadowPrimingStrategy = e;
+				},
+				DEFAULTS.shadowPrimingStrategy,
+				TerrainIterator.ShadowPriming.class,
+				ConfigManager.parseTooltip("config.canvas.help.shadow_priming_strategy")).spruceOption());
+
+		list.addSingleOptionEntry(optionSession.intOption("config.canvas.value.shadow_max_distance",
+				4,
+				32,
+				1,
+				() -> editing.shadowMaxDistance,
+				i -> editing.shadowMaxDistance = i,
+				DEFAULTS.shadowMaxDistance,
+				ConfigManager.parseTooltip("config.canvas.help.shadow_max_distance")).spruceOption());
 
 		list.addSingleOptionEntry(optionSession.booleanOption("config.canvas.value.shader_debug",
 				() -> editing.shaderDebug,
