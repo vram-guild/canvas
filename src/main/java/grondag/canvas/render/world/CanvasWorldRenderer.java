@@ -578,7 +578,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
 
-		// Stuff here should probably expect identity matrix. If not, move matrix operations to relevant compat holders.
+		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
 		eventContext.poseStack().pushPose();
 		eventContext.poseStack().setIdentity();
 		EntityRenderPostListener.invoke(eventContext);
@@ -629,6 +629,10 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "outline");
 		final HitResult hitResult = mc.hitResult;
 
+		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
+		eventContext.poseStack().pushPose();
+		eventContext.poseStack().setIdentity();
+
 		if (BlockOutlinePreListener.invoke(eventContext, hitResult)) {
 			if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
 				final BlockPos blockOutlinePos = ((BlockHitResult) hitResult).getBlockPos();
@@ -638,19 +642,16 @@ public class CanvasWorldRenderer extends LevelRenderer {
 					// THIS IS WHEN LIGHTENING RENDERS IN VANILLA
 					final VertexConsumer blockOutlineConumer = immediate.getBuffer(RenderType.lines());
 
-					// Lines need to be drawn with identity matrix because transforms will be pre-applied at render time
-					eventContext.poseStack().pushPose();
-					eventContext.poseStack().setIdentity();
 					eventContext.prepareBlockOutline(camera.getEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 
 					if (BlockOutlineListener.invoke(eventContext, eventContext)) {
 						wr.canvas_drawBlockOutline(identityStack, blockOutlineConumer, camera.getEntity(), frameCameraX, frameCameraY, frameCameraZ, blockOutlinePos, blockOutlineState);
 					}
-
-					eventContext.poseStack().popPose();
 				}
 			}
 		}
+
+		eventContext.poseStack().popPose();
 
 		RenderState.disable();
 
@@ -662,6 +663,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			WorldRenderDraws.renderCullBoxes(worldRenderState.renderRegionStorage, frameCameraX, frameCameraY, frameCameraZ, tickDelta);
 		}
 
+		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
 		DebugRenderListener.invoke(eventContext);
 
 		// We still pass in the transformed stack because that is what debug renderer normally gets
@@ -739,8 +741,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
 
-		// Stuff here would usually want the render system matrix stack to have the view matrix applied.
+		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
+		eventContext.poseStack().pushPose();
+		eventContext.poseStack().setIdentity();
 		TranslucentPostListener.invoke(eventContext);
+		eventContext.poseStack().popPose();
 
 		// FEAT: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
