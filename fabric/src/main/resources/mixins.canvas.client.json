@@ -42,6 +42,7 @@
 		"MixinTextureAtlas",
 		"MixinTextureAtlasSprite",
 		"MixinTextureSheetParticle",
+		"MixinTropicalFishModelA",
 		"MixinUtil",
 		"MixinVideoSettingsScreen",
 		"MixinWindow"
