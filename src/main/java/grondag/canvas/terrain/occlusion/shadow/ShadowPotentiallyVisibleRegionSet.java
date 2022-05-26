@@ -28,6 +28,8 @@ import com.mojang.math.Vector3f;
 
 import net.minecraft.core.BlockPos;
 
+import io.vram.dtk.CircleUtil;
+
 import grondag.canvas.terrain.occlusion.base.PotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
@@ -151,6 +153,30 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 	private DistanceRankFunction distanceRankFunction = RANK_XYZ;
 
+	// Lightweight mutable vec3i alternative
+	private final int[] searcher = new int[3];
+
+	private int[] searcher(int x, int y, int z) {
+		searcher[0] = x;
+		searcher[1] = y;
+		searcher[2] = z;
+		return searcher;
+	}
+
+	// Aligns primed shadow region coords to the ends of the respective iteration axes, chunk multiplication included
+	private final PrimerAligner ALIGN_XPOS = (off, rad) -> searcher(-(rad << 4), off.x() << 4, off.y() << 4);
+	private final PrimerAligner ALIGN_XNEG = (off, rad) -> searcher((rad << 4), off.x() << 4, off.y() << 4);
+	private final PrimerAligner ALIGN_YPOS = (off, rad) -> searcher(off.x() << 4, -(rad << 4), off.y() << 4);
+	private final PrimerAligner ALIGN_YNEG = (off, rad) -> searcher(off.x() << 4, (rad << 4), off.y() << 4);
+	private final PrimerAligner ALIGN_ZPOS = (off, rad) -> searcher(off.x() << 4, off.y() << 4, -(rad << 4));
+	private final PrimerAligner ALIGN_ZNEG = (off, rad) -> searcher(off.x() << 4, off.y() << 4, (rad << 4));
+
+	private PrimerAligner primerAligner = ALIGN_XPOS;
+
+	public int[] alignPrimerCircle(CircleUtil.Offset circleOffset, int sphereRadius) {
+		return primerAligner.getAligned(circleOffset, sphereRadius);
+	}
+
 	public void setLightVectorAndRestart(Vector3f vec) {
 		setLightVectorAndRestart(vec.x(), vec.y(), vec.z());
 	}
@@ -181,6 +207,8 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 		if (ax > ay) {
 			if (ax > az) {
 				// X primary
+				primerAligner = x > 0 ? ALIGN_XNEG : ALIGN_XPOS;
+
 				if (ay > az) {
 					// ORDER XYZ
 					distanceRankFunction = RANK_XYZ;
@@ -196,6 +224,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 				}
 			} else {
 				// Z primary, because X > Y and Z >= X
+				primerAligner = z > 0 ? ALIGN_ZNEG : ALIGN_ZPOS;
 				// ORDER ZXY
 				distanceRankFunction = RANK_ZXY;
 				primary = z > 0 ? ZNEG : ZPOS;
@@ -206,6 +235,8 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 			// X cannot be primary
 			if (ay > az) {
 				// Y primary, XZ order undetermined
+				primerAligner = y > 0 ? ALIGN_YNEG : ALIGN_YPOS;
+
 				if (ax > az) {
 					// ORDER YXZ
 					distanceRankFunction = RANK_YXZ;
@@ -221,6 +252,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 				}
 			} else {
 				// Z primary, because Y >= X and Z >= Y
+				primerAligner = z > 0 ? ALIGN_ZNEG : ALIGN_ZPOS;
 				// ORDER ZYX
 				distanceRankFunction = RANK_ZYX;
 				primary = z > 0 ? ZNEG : ZPOS;
@@ -330,7 +362,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	 * @param rx chunk coordinate relative to xBase (0 to MAX_CHUNK_DIAMETER - 1)
 	 * @param ry chunk coordinate relative to Y_BLOCKPOS_OFFSET
 	 * @param rz chunk coordinate relative to zBase (0 to MAX_CHUNK_DIAMETER - 1)
-	 * @return index to region array, will be within {@link RenderRegionIndexer#REGION_INDEX_COUNT}
+	 * @return index to region array, will be within {@link RenderRegionIndexer#MAX_LOADED_CHUNK_DIAMETER}
 	 */
 	private static int index(int rx, int ry, int rz) {
 		assert ry < RenderRegionIndexer.MAX_Y_REGIONS;
@@ -371,4 +403,8 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	private static final DistanceRankFunction RANK_YZX = (x, y, z) -> rankIndex(y, z, x);
 	private static final DistanceRankFunction RANK_ZXY = (x, y, z) -> rankIndex(z, x, y);
 	private static final DistanceRankFunction RANK_ZYX = (x, y, z) -> rankIndex(z, y, x);
+
+	private interface PrimerAligner {
+		int[] getAligned(CircleUtil.Offset circleOffset, int sphereRadius);
+	}
 }

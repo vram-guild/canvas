@@ -24,12 +24,10 @@ import java.util.Locale;
 
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
-
-import net.minecraft.network.chat.TranslatableComponent;
 
 import grondag.canvas.config.ConfigManager;
+import grondag.canvas.config.builder.Option;
+import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
@@ -37,6 +35,7 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 	public final float defaultVal;
 	public final float min;
 	public final float max;
+	public final float step;
 	private float value;
 
 	protected FloatConfigEntry(ConfigContext ctx, String name, JsonObject config) {
@@ -44,18 +43,20 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 		defaultVal = config.getFloat("default", Float.NaN);
 		min = config.getFloat("min", Float.NaN);
 		max = config.getFloat("max", Float.NaN);
+		step = config.getFloat("step", 0.01f);
 		value = defaultVal;
 	}
 
 	@Override
-	AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder) {
-		return builder.startFloatField(new TranslatableComponent(nameKey), value)
-				.setMin(min)
-				.setMax(max)
-				.setDefaultValue(defaultVal)
-				.setTooltip(ConfigManager.parse(descriptionKey))
-				.setSaveConsumer(f -> value = f)
-				.build();
+	Option buildEntry(OptionSession optionSession) {
+		return optionSession.floatOption(nameKey,
+				min,
+				max,
+				step,
+				() -> value,
+				f -> value = f,
+				defaultVal,
+				ConfigManager.parseTooltip(descriptionKey));
 	}
 
 	@Override

@@ -18,19 +18,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.varia;
+package grondag.canvas.config.builder;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
+import dev.lambdaurora.spruceui.option.SpruceOption;
 
-import grondag.canvas.config.CanvasConfigScreen;
-
-public class CanvasButtonWidget extends Button {
-	public static Screen parent;
-
-	public CanvasButtonWidget(int x, int y, int width, int height, Component text) {
-		super(x, y, width, height, text, button -> Minecraft.getInstance().setScreen(new CanvasConfigScreen(parent)));
-	}
+public interface Option<T> {
+	void refreshResetButton();
+	SpruceOption spruceOption();
 }

@@ -22,6 +22,8 @@ package grondag.canvas.terrain.occlusion.shadow;
 
 import net.minecraft.core.BlockPos;
 
+import io.vram.dtk.CircleUtil;
+
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
@@ -63,6 +65,10 @@ public class ShadowVisibility extends AbstractVisbility<ShadowVisibility, Shadow
 		targetOccluder.setLightVector(ShaderDataManager.skyLightVector);
 
 		super.updateView(frustum, cameraRegionOrigin);
+	}
+
+	public int[] alignPrimerCircle(CircleUtil.Offset circleOffset, int sphereRadius) {
+		return pvrs.alignPrimerCircle(circleOffset, sphereRadius);
 	}
 
 	@Override

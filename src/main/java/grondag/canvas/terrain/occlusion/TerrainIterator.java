@@ -81,6 +81,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private volatile boolean cancelled = false;
 	private boolean resetCameraOccluder;
 	private boolean resetShadowOccluder;
+	// Chosen shadow regions priming strategy based on configuration
+	private ShadowPrimer shadowPrimer;
 
 	public TerrainIterator(WorldRenderState worldRenderState) {
 		this.worldRenderState = worldRenderState;
@@ -192,6 +194,12 @@ public class TerrainIterator implements TerrainExecutorTask {
 		shadowVisibility.invalidate();
 		visibleRegions.clear();
 		clearShadowRegions();
+
+		shadowPrimer = switch (Configurator.shadowPrimingStrategy) {
+			case PADDED -> paddedStrategy;
+			case TIERED -> tieredStrategy;
+			case NAIVE -> naiveStrategy;
+		};
 	}
 
 	public void idle() {
@@ -227,7 +235,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 			if (worldRenderState.shadowsEnabled()) {
 				if (resetShadowOccluder) {
 					clearShadowRegions();
-					primeShadowRegions();
+					shadowPrimer.primeShadowRegions();
 				}
 
 				iterateShadows();
@@ -454,35 +462,113 @@ public class TerrainIterator implements TerrainExecutorTask {
 		}
 	}
 
-	private void primeShadowRegions() {
-		final RenderRegionStorage regionStorage = worldRenderState.renderRegionStorage;
-		final int y = BlockPos.getY(cameraChunkOrigin);
-		final int x = BlockPos.getX(cameraChunkOrigin);
-		final int z = BlockPos.getZ(cameraChunkOrigin);
-		final int limit = CircleUtil.getLastDistanceSortedOffsetIndex(renderDistance);
-		final int yMin = worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
-		final int yMax = (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0;
+	private abstract class ShadowPrimer {
+		protected int effectiveDistance;
+		protected RenderRegionStorage regionStorage;
+		protected int y;
+		protected int x;
+		protected int z;
+		protected int yMin;
+		protected int yMax;
 
-		for (int i = 0; i < limit; ++i) {
-			final int ySphere = regionBoundingSphere.getY(i);
+		void primeShadowRegions() {
+			// TODO: account for local render distance being higher than server render distance without (e.g.) Bobby installed
+			effectiveDistance = Math.min(Configurator.shadowMaxDistance, renderDistance);
+			regionStorage = worldRenderState.renderRegionStorage;
+			y = BlockPos.getY(cameraChunkOrigin);
+			x = BlockPos.getX(cameraChunkOrigin);
+			z = BlockPos.getZ(cameraChunkOrigin);
+			yMin = worldRenderState.getWorld().getMinBuildHeight() & 0xFFFFFFF0;
+			yMax = (worldRenderState.getWorld().getMaxBuildHeight() - 1) & 0xFFFFFFF0;
 
-			// values < 0 indicate regions not within render distance
-			if (ySphere < 0) {
-				continue;
-			}
+			doPriming();
+		}
 
-			final var offset = CircleUtil.getDistanceSortedCircularOffset(i);
+		protected void primeShadowRadius(int radius) {
+			final float radiusMult = radius / (float) renderDistance; // renderDistance is correct here
+			final int limit = CircleUtil.getLastDistanceSortedOffsetIndex(radius);
 
-			final RenderRegion region = regionStorage.getOrCreateRegion(
-					(offset.x() << 4) + x,
-					Mth.clamp((ySphere << 4) + y, yMin, yMax),
-					(offset.y() << 4) + z);
+			for (int i = 0; i < limit; ++i) {
+				// the region bounding sphere needs to be adjusted to current radius
+				final int ySphere = (/* floor */int) (regionBoundingSphere.getY(i) * radiusMult);
 
-			if (region != null) {
-				region.shadowVisibility.addIfValid();
+				// values < 0 indicate regions not within render distance
+				if (ySphere < 0) {
+					continue;
+				}
+
+				final var offset = CircleUtil.getDistanceSortedCircularOffset(i);
+				final var coord = shadowVisibility.alignPrimerCircle(offset, ySphere);
+
+				final RenderRegion region = regionStorage.getOrCreateRegion(
+						x + coord[0],
+						Mth.clamp(y + coord[1], yMin, yMax),
+						z + coord[2]);
+
+				if (region != null) {
+					region.shadowVisibility.addIfValid();
+				}
 			}
 		}
+
+		protected abstract void doPriming();
 	}
+
+	public enum ShadowPriming {
+		PADDED,
+		TIERED,
+		NAIVE;
+	}
+
+	private final ShadowPrimer tieredStrategy = new ShadowPrimer() {
+		@Override
+		protected void doPriming() {
+			// Since chunks are loaded from the camera, we want more primed regions for higher render distances
+			// Since we prime multiple "tiers", this strategy is more resilient to gaps. TODO: consider using it for multiplayer? see concerns on effective distance above
+			int primerRadius = Math.min(effectiveDistance, 4);
+
+			while (true) {
+				primeShadowRadius(primerRadius);
+
+				if (primerRadius >= effectiveDistance) {
+					break;
+				} else {
+					// Primer radius doubles each time, minimizing amount of region priming per render distance
+					// 1~4 -> 1
+					// 5~8 -> 2
+					// 9~16 -> 3
+					// 17~32 -> 4 (despite the same amount of iterations, higher RD still yield more primed regions)
+					primerRadius = Math.min(effectiveDistance, primerRadius * 2);
+				}
+			}
+		}
+	};
+
+	private final ShadowPrimer paddedStrategy = new ShadowPrimer() {
+		@Override
+		protected void doPriming() {
+			// Larger render distance tend to have larger gaps at the edge so we apply the padding in a tiered way
+			// 1~4 -> 0
+			// 5~8 -> 1
+			// 9~16 -> 2
+			// 17~32 -> 3
+			final int padding = (int) (Math.log(effectiveDistance) / Math.log(2)) - 2;
+
+			primeShadowRadius(effectiveDistance - padding);
+
+			// Also prime nearby chunks because we're smarter than that
+			if (effectiveDistance - padding > 4) {
+				primeShadowRadius(4);
+			}
+		}
+	};
+
+	private final ShadowPrimer naiveStrategy = new ShadowPrimer() {
+		@Override
+		protected void doPriming() {
+			primeShadowRadius(effectiveDistance);
+		}
+	};
 
 	private void iterateShadows() {
 		final boolean flawless = FlawlessFrames.isActive();

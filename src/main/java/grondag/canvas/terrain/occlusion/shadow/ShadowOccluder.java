@@ -42,6 +42,7 @@ import grondag.bitraster.Matrix4L;
 import grondag.bitraster.OrthoRasterizer;
 import grondag.bitraster.PackedBox;
 import grondag.canvas.render.frustum.TerrainFrustum;
+import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.terrain.occlusion.base.AbstractOccluder;
 import grondag.canvas.terrain.region.RegionPosition;
@@ -53,9 +54,12 @@ public class ShadowOccluder extends AbstractOccluder {
 	public final Matrix4f shadowProjMatrix = new Matrix4f();
 	private final FastMatrix4f shadowProjMatrixExt = (FastMatrix4f) (Object) shadowProjMatrix;
 
+	private final Vector3f lastVersionedLightVector = new Vector3f();
+
 	private float maxRegionExtent;
 	private float r0, x0, y0, z0, r1, x1, y1, z1, r2, x2, y2, z2, r3, x3, y3, z3;
-	private int lastViewVersion;
+	private int cameraViewVersion;
+	private int shadowViewVersion;
 	private Vec3 lastCameraPos;
 	private grondag.bitraster.BoxOccluder.BoxTest clearTest;
 	private grondag.bitraster.BoxOccluder.BoxTest occludedTest;
@@ -65,7 +69,7 @@ public class ShadowOccluder extends AbstractOccluder {
 		super(new OrthoRasterizer(), rasterName);
 	}
 
-	public void copyState(TerrainFrustum occlusionFrustum) {
+	public void copyState(TerrainFrustum cameraFrustum) {
 		shadowViewMatrixExt.f_set(ShadowMatrixData.shadowViewMatrix);
 		shadowProjMatrixExt.f_set(ShadowMatrixData.maxCascadeProjMatrix());
 		maxRegionExtent = ShadowMatrixData.regionMaxExtent();
@@ -90,8 +94,22 @@ public class ShadowOccluder extends AbstractOccluder {
 		z3 = cascadeCentersAndRadii[14];
 		r3 = cascadeCentersAndRadii[15];
 
-		lastCameraPos = occlusionFrustum.lastCameraPos();
-		lastViewVersion = occlusionFrustum.viewVersion();
+		boolean cameraStateChanged = cameraViewVersion != cameraFrustum.viewVersion();
+
+		if (cameraStateChanged) {
+			shadowViewVersion++;
+		} else {
+			final float lightSourceMovement = 1.0f - lastVersionedLightVector.dot(ShaderDataManager.skyLightVector);
+
+			// big sun movement, about 12 in-game minutes or 200 ticks
+			if (lightSourceMovement > 0.0025f) {
+				lastVersionedLightVector.load(ShaderDataManager.skyLightVector);
+				shadowViewVersion++;
+			}
+		}
+
+		cameraViewVersion = cameraFrustum.viewVersion();
+		lastCameraPos = cameraFrustum.lastCameraPos();
 	}
 
 	@Override
@@ -108,7 +126,7 @@ public class ShadowOccluder extends AbstractOccluder {
 	 */
 	@Override
 	public boolean prepareScene() {
-		return super.prepareScene(lastViewVersion, lastCameraPos.x, lastCameraPos.y, lastCameraPos.z, shadowViewSetter, shadowProjSetter);
+		return super.prepareScene(shadowViewVersion, lastCameraPos.x, lastCameraPos.y, lastCameraPos.z, shadowViewSetter, shadowProjSetter);
 	}
 
 	/**

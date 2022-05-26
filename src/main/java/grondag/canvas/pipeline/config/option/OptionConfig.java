@@ -23,14 +23,13 @@ package grondag.canvas.pipeline.config.option;
 import java.util.List;
 
 import blue.endless.jankson.JsonObject;
+import dev.lambdaurora.spruceui.widget.container.SpruceOptionListWidget;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import me.shedaniel.clothconfig2.api.ConfigBuilder;
-import me.shedaniel.clothconfig2.api.ConfigCategory;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
+import grondag.canvas.config.builder.Categories;
+import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
@@ -103,12 +102,14 @@ public class OptionConfig extends AbstractConfig {
 		return valid;
 	}
 
-	public void addGuiEntries(ConfigBuilder builder, ConfigEntryBuilder entryBuilder) {
-		final ConfigCategory category = builder.getOrCreateCategory(new TranslatableComponent(categoryKey));
+	public int addGuiEntries(OptionSession optionSession, SpruceOptionListWidget list) {
+		final int index = Categories.addTo(list, categoryKey);
 
 		for (final var entry : entries) {
-			category.addEntry(entry.buildEntry(entryBuilder));
+			list.addSingleOptionEntry(entry.buildEntry(optionSession).spruceOption());
 		}
+
+		return index;
 	}
 
 	public String createSource() {

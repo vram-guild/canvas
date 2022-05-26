@@ -27,6 +27,7 @@ import net.minecraft.util.Mth;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 public class Configurator {
 	public static String pipelineId = DEFAULTS.pipelineId;
@@ -55,6 +56,9 @@ public class Configurator {
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean preprocessShaderSource = DEFAULTS.preprocessShaderSource;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
+	public static TerrainIterator.ShadowPriming shadowPrimingStrategy = DEFAULTS.shadowPrimingStrategy;
+	// TODO: this is only used in priming, use it elsewhere needed too.
+	public static int shadowMaxDistance = DEFAULTS.shadowMaxDistance;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -88,7 +92,6 @@ public class Configurator {
 	//    @Comment({"Enable fancy water and lava rendering.",
 	//        " This feature is currently work in progress and has no visible effect if enabled."})
 	public static boolean fancyFluids = false;
-	static boolean reload = false;
 
 	// static boolean hdLightmaps = DEFAULTS.hdLightmaps;
 	public static boolean hdLightmaps() {
@@ -139,6 +142,8 @@ public class Configurator {
 		steadyDebugScreen = config.steadyDebugScreen;
 
 		// lightmapDebug = config.lightmapDebug;
+		shadowPrimingStrategy = config.shadowPrimingStrategy;
+		shadowMaxDistance = config.shadowMaxDistance;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -200,6 +205,8 @@ public class Configurator {
 		config.steadyDebugScreen = steadyDebugScreen;
 
 		// config.lightmapDebug = lightmapDebug;
+		config.shadowPrimingStrategy = shadowPrimingStrategy;
+		config.shadowMaxDistance = shadowMaxDistance;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;

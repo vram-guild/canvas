@@ -23,10 +23,10 @@ package grondag.canvas.pipeline.config.option;
 import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.config.builder.Option;
+import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 import grondag.canvas.pipeline.config.util.NamedConfig;
@@ -41,7 +41,7 @@ public abstract class OptionConfigEntry<T extends OptionConfigEntry<T>> extends 
 		descriptionKey = JanksonHelper.asString(config.get("descriptionKey"));
 	}
 
-	abstract AbstractConfigListEntry<?> buildEntry(ConfigEntryBuilder builder);
+	abstract Option buildEntry(OptionSession optionSession);
 
 	abstract String createSource();
 

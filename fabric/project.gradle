@@ -5,6 +5,13 @@ configurations {
 	include.extendsFrom modIncludeImplementation
 }
 
+repositories {
+	maven {
+		name 'Gegy'
+		url 'https://maven.gegy.dev'
+	}
+}
+
 dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modRuntimeOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
@@ -30,9 +37,7 @@ dependencies {
 	modImplementation("io.vram:jmx-fabric-mc118:1.22.249")
 	include("io.vram:jmx-fabric-mc118:1.22.249:fat")
 
-	modIncludeImplementation("me.shedaniel.cloth:cloth-config-fabric:6.2.57") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
+	modIncludeImplementation("dev.lambdaurora:spruceui:3.3.3+1.18")
 
 	modCompileOnly "com.terraformersmc:modmenu:3.1.1"
 	modRuntimeOnly "com.terraformersmc:modmenu:3.1.1"
