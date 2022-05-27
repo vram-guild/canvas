@@ -181,7 +181,7 @@
   "config.canvas.value.steady_debug_screen": "Steady Debug Screen",
   "config.canvas.help.steady_debug_screen": "When enabled, F3 debug screen output is refreshed 20X per second;instead of every frame. Improves accuracy and;reduces variability of FPS measurement.",
   "config.canvas.value.advanced_terrain_culling": "Advanced Terrain Culling",
-  "config.canvas.help.advanced_terrain_culling": "Uses more CPU to avoid drawing terrain that isn't visible.;Improves FPS. Best for machines with 6+ fast CPU cores.;Ignored if shadowmap enabled.", 
+  "config.canvas.help.advanced_terrain_culling": "Uses more CPU to avoid drawing terrain that isn't visible.;Improves FPS. Best for machines with 6+ fast CPU cores.;Ignored if shadow map is enabled.",
   "config.canvas.value.disable_unseen_sprite_animation": "Disable Unseen Sprite Animation",
   "config.canvas.help.disable_unseen_sprite_animation": "When true, animated sprites not in view are not updated.;Improves frame rate.",
   "config.canvas.value.cull_backfacing_terrain": "Cull Backfacing Terrain",

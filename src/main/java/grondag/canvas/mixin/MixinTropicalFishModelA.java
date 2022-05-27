@@ -37,7 +37,7 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
  * The vanilla fish model has an excessively large tail despite the texture suggesting otherwise.
  * This causes the texture UV to exceed 1, and since we don't support that we just fix the model directly.
  *
- * The alternative is to extend the vertex UV format, but we couldn't do that for only a singular aquatic friend, could we?
+ * <p>The alternative is to extend the vertex UV format, but we couldn't do that for only a singular aquatic friend, could we?
  */
 @Mixin(TropicalFishModelA.class)
 public class MixinTropicalFishModelA {

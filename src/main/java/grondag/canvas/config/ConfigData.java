@@ -60,7 +60,7 @@ class ConfigData {
 	boolean clampExteriorVertices = true;
 	@Comment("Prevent Glowstone and other blocks that emit light from casting shade on nearby blocks.")
 	boolean fixLuminousBlockShading = true;
-	@Comment("Uses more CPU to avoid drawing terrain that isn't visible. Improves FPS. Best for machines with 6+ fast CPU cores. Ignored if shadowmap enabled.")
+	@Comment("Uses more CPU to avoid drawing terrain that isn't visible. Improves FPS. Best for machines with 6+ fast CPU cores. Ignored if shadow map is enabled.")
 	boolean advancedTerrainCulling = true;
 	@Comment("Terrain setup done off the main render thread. Increases FPS when moving. May see occasional flashes of blank chunks")
 	boolean terrainSetupOffThread = true;

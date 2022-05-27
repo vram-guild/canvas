@@ -20,6 +20,7 @@
 
 package grondag.canvas.config;
 
+import static grondag.canvas.config.ConfigManager.Reload.RELOAD_EVERYTHING;
 import static grondag.canvas.config.ConfigManager.Reload.RELOAD_PIPELINE;
 
 import dev.lambdaurora.spruceui.Position;
@@ -118,7 +119,8 @@ public class PipelineOptionScreen extends SpruceScreen {
 
 	private void savePipelineSelection(ResourceLocation newPipelineId) {
 		Configurator.pipelineId = newPipelineId.toString();
-		ConfigManager.saveUserInput(RELOAD_PIPELINE);
+		// When advanced terrain culling is *soft* disabled, better clear the region storage
+		ConfigManager.saveUserInput(Configurator.advancedTerrainCulling ? RELOAD_PIPELINE : RELOAD_EVERYTHING);
 	}
 
 	private void save() {
