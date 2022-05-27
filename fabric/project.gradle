@@ -33,14 +33,14 @@ dependencies {
 	modIncludeImplementation("io.vram:special-circumstances:1.10.7")
 
 	// Included via JMX
-	// modIncludeImplementation("io.vram:frex-fabric-mc118:6.0.254")
-	modImplementation("io.vram:jmx-fabric-mc118:1.22.249")
-	include("io.vram:jmx-fabric-mc118:1.22.249:fat")
+	// modIncludeImplementation("io.vram:frex-fabric-mc118:6.0.258")
+	modImplementation("io.vram:jmx-fabric-mc118:1.22.250")
+	include("io.vram:jmx-fabric-mc118:1.22.250:fat")
 
 	modIncludeImplementation("dev.lambdaurora:spruceui:3.3.3+1.18")
 
-	modCompileOnly "com.terraformersmc:modmenu:3.1.1"
-	modRuntimeOnly "com.terraformersmc:modmenu:3.1.1"
+	modCompileOnly "com.terraformersmc:modmenu:3.2.2"
+	modRuntimeOnly "com.terraformersmc:modmenu:3.2.2"
 }
 
 sourceSets {
