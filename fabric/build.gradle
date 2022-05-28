@@ -14,7 +14,7 @@ plugins {
 	id 'org.ajoberstar.grgit' version '4.1.1'
 	id 'com.matthewprenger.cursegradle' version '1.4.0'
 	id 'checkstyle'
-	id 'com.modrinth.minotaur' version '1.2.1'
+	id 'com.modrinth.minotaur' version '2.2.0'
 }
 
 ext.platform_name = 'fabric'
@@ -143,7 +143,7 @@ task github(dependsOn: build) {
 
 import com.modrinth.minotaur.TaskModrinthUpload
 
-task publishModrinth (type: TaskModrinthUpload){ // Make sure it runs after build!
+modrinth {
 	if (project.hasProperty("modrinth_token") && project.hasProperty("modrinth_id")) {
 		token = project.modrinth_token
 		projectId = project.modrinth_id
@@ -152,7 +152,7 @@ task publishModrinth (type: TaskModrinthUpload){ // Make sure it runs after buil
 		versionType = project.release_type
 		// On fabric, use 'remapJar' instead of 'jar'
 		uploadFile = remapJar // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
-		addGameVersion(project.minecraft_version) // Call this multiple times to add multiple game versions. There are tools that can help you generate the list of versions
-		addLoader(project.platform_name)
+		gameVersions = ["${project.minecraft_version}"]
+		loaders = ["${project.platform_name}"] // Must also be an array - no need to specify this if you're using Loom
 	}
 }
