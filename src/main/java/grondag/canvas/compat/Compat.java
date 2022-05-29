@@ -78,9 +78,12 @@ public class Compat {
 
 			// litematica overlay uses fabulous buffers so must run before translucent shader when active
 			// It expects view matrix to be pre-applied because it normally happens in weather render
-			// But Canvas already does that for unmanaged draws so no action needed.
 			if (ctx.advancedTranslucency()) {
+				// The view matrix is one pop away
+				ctx.poseStack().popPose();
 				MaliLibHolder.maliLibRenderWorldLast.render(ctx.poseStack(), ctx.projectionMatrix(), Minecraft.getInstance());
+				ctx.poseStack().pushPose();
+				ctx.poseStack().setIdentity();
 			}
 		});
 
