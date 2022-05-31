@@ -134,8 +134,8 @@ public class Configurator {
 		greedyRenderThread = config.greedyRenderThread;
 		forceJmxModelLoading = config.forceJmxModelLoading;
 		reduceResolutionOnMac = config.reduceResolutionOnMac;
-		dynamicFrustumPadding = Mth.clamp(config.dynamicFrustumPadding, 0, 20);
-		staticFrustumPadding = Mth.clamp(config.staticFrustumPadding, 0, 30);
+		dynamicFrustumPadding = Mth.clamp(config.dynamicFrustumPadding, 0, 30);
+		staticFrustumPadding = Mth.clamp(config.staticFrustumPadding, 0, 20);
 		cullParticles = config.cullParticles;
 		useCombinedThreadPool = config.useCombinedThreadPool;
 		transferBufferMode = config.transferBufferMode;
