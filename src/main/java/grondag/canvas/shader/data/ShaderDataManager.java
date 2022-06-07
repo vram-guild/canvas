@@ -22,6 +22,7 @@ package grondag.canvas.shader.data;
 
 import static grondag.canvas.shader.data.FloatData.AMBIENT_INTENSITY;
 import static grondag.canvas.shader.data.FloatData.ATMOSPHERIC_COLOR;
+import static grondag.canvas.shader.data.FloatData.DELTA_RENDER_SECONDS;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_BLUE;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_GREEN;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_RED;
@@ -48,9 +49,11 @@ import static grondag.canvas.shader.data.FloatData.SKYLIGHT_ILLUMINANCE;
 import static grondag.canvas.shader.data.FloatData.SKYLIGHT_TRANSITION_FACTOR;
 import static grondag.canvas.shader.data.FloatData.SKYLIGHT_VECTOR;
 import static grondag.canvas.shader.data.FloatData.SKY_ANGLE_RADIANS;
+import static grondag.canvas.shader.data.FloatData.SKY_FLASH_STRENGTH;
 import static grondag.canvas.shader.data.FloatData.SMOOTHED_EYE_LIGHT_BLOCK;
 import static grondag.canvas.shader.data.FloatData.SMOOTHED_EYE_LIGHT_SKY;
 import static grondag.canvas.shader.data.FloatData.SMOOTHED_RAIN_STRENGTH;
+import static grondag.canvas.shader.data.FloatData.SMOOTHED_THUNDER_STRENGTH;
 import static grondag.canvas.shader.data.FloatData.THUNDER_STRENGTH;
 import static grondag.canvas.shader.data.FloatData.VEC_CAMERA_POS;
 import static grondag.canvas.shader.data.FloatData.VEC_CAMERA_VIEW;
@@ -165,10 +168,12 @@ public class ShaderDataManager {
 	private static int worldFlags;
 	private static int playerFlags;
 	static long baseRenderTime = System.currentTimeMillis();
+	static long lastRenderTime = baseRenderTime;
 	static int renderFrames = 0;
 	static double smoothedEyeLightBlock = 0;
 	static double smoothedEyeLightSky = 0;
 	static double smoothedRainStrength = 0;
+	static double smoothedThunderStrength = 0;
 
 	/** Camera view vector in world space - normalized. */
 	public static final Vector3f cameraVector = new Vector3f();
@@ -316,15 +321,24 @@ public class ShaderDataManager {
 		}
 	}
 
-	private static void updateRain(ClientLevel world, float tickDelta) {
+	private static void updateRain(Minecraft client, ClientLevel world, float tickDelta) {
 		final float rain = world.getRainLevel(tickDelta);
+		final float thunder = world.getThunderLevel(tickDelta);
 		FLOAT_VECTOR_DATA.put(RAIN_STRENGTH, rain);
-		FLOAT_VECTOR_DATA.put(THUNDER_STRENGTH, world.getThunderLevel(tickDelta));
+		FLOAT_VECTOR_DATA.put(THUNDER_STRENGTH, thunder);
+
+		final float skyFlash = client.options.hideLightningFlashes ? 0.0f : ((float) world.getSkyFlashTime() - tickDelta);
+		FLOAT_VECTOR_DATA.put(SKY_FLASH_STRENGTH, skyFlash);
 
 		// Simple exponential smoothing
 		final double a = 1.0 - Math.pow(Math.E, -1.0 / Pipeline.config().rainSmoothingFrames);
 		smoothedRainStrength = smoothedRainStrength * (1f - a) + a * rain;
 		FLOAT_VECTOR_DATA.put(SMOOTHED_RAIN_STRENGTH, (float) smoothedRainStrength);
+
+		// Simple exponential smoothing
+		final double b = 1.0 - Math.pow(Math.E, -1.0 / Pipeline.config().thunderSmoothingFrames);
+		smoothedThunderStrength = smoothedThunderStrength * (1f - b) + b * thunder;
+		FLOAT_VECTOR_DATA.put(SMOOTHED_THUNDER_STRENGTH, (float) smoothedThunderStrength);
 	}
 
 	// FEAT: make configurable by dimension, add smoothing
@@ -369,6 +383,7 @@ public class ShaderDataManager {
 	 */
 	public static void reload() {
 		baseRenderTime = System.currentTimeMillis();
+		lastRenderTime = baseRenderTime;
 		renderFrames = 0;
 	}
 
@@ -391,7 +406,11 @@ public class ShaderDataManager {
 			return;
 		}
 
-		FLOAT_VECTOR_DATA.put(RENDER_SECONDS, (System.currentTimeMillis() - baseRenderTime) / 1000f);
+		long currentRenderTime = System.currentTimeMillis();
+		FLOAT_VECTOR_DATA.put(RENDER_SECONDS, (currentRenderTime - baseRenderTime) / 1000f);
+		FLOAT_VECTOR_DATA.put(DELTA_RENDER_SECONDS, (currentRenderTime - lastRenderTime) / 1000f);
+		lastRenderTime = currentRenderTime;
+
 		FLOAT_VECTOR_DATA.put(VIEW_DISTANCE, client.options.renderDistance * 16);
 
 		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS, cameraX);
@@ -547,7 +566,7 @@ public class ShaderDataManager {
 			worldFlags = FLAG_IS_SKY_DARKENED.setValue(world.effects().constantAmbientLight(), worldFlags);
 			worldFlags = FLAG_IS_THUNDERING.setValue(world.isThundering(), worldFlags);
 
-			updateRain(world, tickDelta);
+			updateRain(client, world, tickDelta);
 
 			ItemLight light = ItemLight.NONE;
 

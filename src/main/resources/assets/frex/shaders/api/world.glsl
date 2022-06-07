@@ -7,6 +7,7 @@
  ***************************************************************/
 
 #define frx_renderSeconds _cvu_world[_CV_WORLD_TIME].x
+#define _alpha_frx_dRenderSeconds _cvu_world[_CV_CAMERA_VIEW].w // Pending API
 #define frx_renderFrames _cvu_world_uint[_CV_RENDER_FRAMES]
 #define frx_worldDay _cvu_world[_CV_WORLD_TIME].z
 #define frx_worldTime _cvu_world[_CV_WORLD_TIME].y
@@ -17,11 +18,13 @@
 #define frx_skyLightIlluminance _cvu_world[_CV_SKYLIGHT_COLOR].w
 #define frx_skyLightAtmosphericColor _cvu_world[_CV_ATMOSPEHRIC_COLOR].xyz
 #define frx_skyLightTransitionFactor _cvu_world[_CV_ATMOSPEHRIC_COLOR].w
+#define _alpha_frx_skyFlashStrength _cvu_world[_CV_ENTITY_VIEW].w // Pending API
 #define frx_ambientIntensity _cvu_world[_CV_AMBIENT_LIGHT].a
 #define frx_emissiveColor vec4(_cvu_world[_CV_AMBIENT_LIGHT].rgb, 1.0)
-#define frx_rainGradient _cvu_world[_CV_CAMERA_VIEW].w
-#define frx_thunderGradient _cvu_world[_CV_EYE_POSITION].w
-#define frx_smoothedRainGradient _cvu_world[_CV_ENTITY_VIEW].w
+#define frx_rainGradient _cvu_world[_CV_WEATHER].x
+#define frx_thunderGradient _cvu_world[_CV_WEATHER].y
+#define frx_smoothedRainGradient _cvu_world[_CV_WEATHER].z
+#define _alpha_frx_smoothedThunderGradient _cvu_world[_CV_WEATHER].w // Pending API
 #define frx_vanillaClearColor _cvu_world[_CV_CLEAR_COLOR].rgb
 #define frx_worldHasSkylight int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> 0) & 1u)
 #define frx_worldIsOverworld int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> 1) & 1u)

@@ -25,10 +25,10 @@
 // w is effect strength
 #define _CV_LAST_CAMERA_POS 5
 
-// w is rain strength
+// w is delta render seconds
 #define _CV_CAMERA_VIEW 6
 
-// w is smoothed rain strength
+// w is sky flash strength
 #define _CV_ENTITY_VIEW 7
 
 // framebuffer width (pixels)
@@ -41,7 +41,7 @@
 // zw = smoothed block/sky
 #define _CV_EYE_BRIGHTNESS 9
 
-// w is thunder strength
+// w is EMPTY spare slot for now
 #define _CV_EYE_POSITION 10
 
 // w is sky rotation in radians
@@ -65,6 +65,12 @@
 // z = held light inner angle
 // w = held light outer angle
 #define _CV_RENDER_INFO 19
+
+// x = rain strength
+// y = thunder strength
+// z = smoothed rain strength
+// w = smoothed thunder strength
+#define _CV_WEATHER 20
 
 // UINT ARRAY
 #define _CV_RENDER_FRAMES 0

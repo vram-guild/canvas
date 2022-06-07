@@ -63,6 +63,7 @@ public class PipelineConfigBuilder {
 	public boolean smoothBrightnessBidirectionaly = false;
 	public int brightnessSmoothingFrames = 20;
 	public int rainSmoothingFrames = 500;
+	public int thunderSmoothingFrames = 500;
 	public boolean runVanillaClear = true;
 	public int glslVersion = 330;
 	public boolean enablePBR = false;
@@ -76,6 +77,7 @@ public class PipelineConfigBuilder {
 		runVanillaClear = configJson.getBoolean("runVanillaClear", runVanillaClear);
 		brightnessSmoothingFrames = configJson.getInt("brightnessSmoothingFrames", brightnessSmoothingFrames);
 		rainSmoothingFrames = configJson.getInt("rainSmoothingFrames", rainSmoothingFrames);
+		thunderSmoothingFrames = configJson.getInt("thunderSmoothingFrames", thunderSmoothingFrames);
 		glslVersion = configJson.getInt("glslVersion", glslVersion);
 		enablePBR = configJson.getBoolean("enablePBR", enablePBR);
 

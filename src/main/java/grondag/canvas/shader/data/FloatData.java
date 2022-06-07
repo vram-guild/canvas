@@ -63,14 +63,14 @@ public final class FloatData {
 	static final int NIGHT_VISION_STRENGTH = VEC_LAST_CAMERA_POS + 3;
 
 	// camera view vector in world space
-	// carries rain strength in spare slot
+	// carries delta render seconds in spare slot
 	static final int VEC_CAMERA_VIEW = 4 * 6;
-	static final int RAIN_STRENGTH = VEC_CAMERA_VIEW + 3;
+	static final int DELTA_RENDER_SECONDS = VEC_CAMERA_VIEW + 3;
 
 	// entity view vector in world space
-	// smoothed rain strength in spare slot
+	// carries sky flash strength in spare slot
 	static final int VEC_ENTITY_VIEW = 4 * 7;
-	static final int SMOOTHED_RAIN_STRENGTH = VEC_ENTITY_VIEW + 3;
+	static final int SKY_FLASH_STRENGTH = VEC_ENTITY_VIEW + 3;
 
 	static final int VEC_VIEW_PARAMS = 4 * 8;
 	static final int VIEW_WIDTH = VEC_VIEW_PARAMS;
@@ -84,9 +84,8 @@ public final class FloatData {
 	static final int SMOOTHED_EYE_LIGHT_BLOCK = EYE_BRIGHTNESS + 2;
 	static final int SMOOTHED_EYE_LIGHT_SKY = EYE_BRIGHTNESS + 3;
 
-	// thunder gradient in spare slot
+	// last slot is EMPTY spare slot for now
 	static final int EYE_POSITION = 4 * 10;
-	static final int THUNDER_STRENGTH = EYE_POSITION + 3;
 
 	static final int SKYLIGHT_VECTOR = 4 * 11;
 	static final int SKY_ANGLE_RADIANS = SKYLIGHT_VECTOR + 3;
@@ -107,4 +106,10 @@ public final class FloatData {
 	static final int FOG_END = VEC_RENDER_INFO + 1;
 	static final int HELD_LIGHT_INNER_ANGLE = VEC_RENDER_INFO + 2;
 	static final int HELD_LIGHT_OUTER_ANGLE = VEC_RENDER_INFO + 3;
+
+	static final int VEC_WEATHER = 4 * 20;
+	static final int RAIN_STRENGTH = VEC_WEATHER;
+	static final int THUNDER_STRENGTH = VEC_WEATHER + 1;
+	static final int SMOOTHED_RAIN_STRENGTH = VEC_WEATHER + 2;
+	static final int SMOOTHED_THUNDER_STRENGTH = VEC_WEATHER + 3;
 }

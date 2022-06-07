@@ -34,6 +34,7 @@ public class PipelineConfig {
 	public final boolean smoothBrightnessBidirectionaly;
 	public final int brightnessSmoothingFrames;
 	public final int rainSmoothingFrames;
+	public final int thunderSmoothingFrames;
 	public final boolean runVanillaClear;
 	public final int glslVersion;
 	public final boolean enablePBR;
@@ -63,6 +64,7 @@ public class PipelineConfig {
 		smoothBrightnessBidirectionaly = false;
 		brightnessSmoothingFrames = 20;
 		rainSmoothingFrames = 500;
+		thunderSmoothingFrames = 500;
 		runVanillaClear = true;
 		glslVersion = 330;
 		enablePBR = false;
@@ -89,6 +91,7 @@ public class PipelineConfig {
 		smoothBrightnessBidirectionaly = builder.smoothBrightnessBidirectionaly;
 		brightnessSmoothingFrames = builder.brightnessSmoothingFrames;
 		rainSmoothingFrames = builder.rainSmoothingFrames;
+		thunderSmoothingFrames = builder.thunderSmoothingFrames;
 		runVanillaClear = builder.runVanillaClear;
 		glslVersion = builder.glslVersion;
 		enablePBR = builder.enablePBR;
