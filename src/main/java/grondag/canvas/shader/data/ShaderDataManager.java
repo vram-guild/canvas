@@ -327,7 +327,7 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(RAIN_STRENGTH, rain);
 		FLOAT_VECTOR_DATA.put(THUNDER_STRENGTH, thunder);
 
-		final float skyFlash = client.options.hideLightningFlashes ? 0.0f : ((float) world.getSkyFlashTime() - tickDelta);
+		final float skyFlash = client.options.hideLightningFlashes ? 0.0f : Math.max(0.0f, world.getSkyFlashTime() - tickDelta);
 		FLOAT_VECTOR_DATA.put(SKY_FLASH_STRENGTH, skyFlash);
 
 		// Simple exponential smoothing
