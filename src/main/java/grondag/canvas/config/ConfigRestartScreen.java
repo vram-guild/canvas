@@ -22,23 +22,20 @@ package grondag.canvas.config;
 
 import java.util.List;
 
-import dev.lambdaurora.spruceui.Position;
-import dev.lambdaurora.spruceui.screen.SpruceScreen;
-import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.FormattedCharSequence;
 
-public class ConfigRestartScreen extends SpruceScreen {
+import grondag.canvas.config.gui.BaseScreen;
+
+public class ConfigRestartScreen extends BaseScreen {
 	private List<FormattedCharSequence> lines;
-	private final Screen parent;
 
 	public ConfigRestartScreen(Screen parent) {
-		super(new TranslatableComponent("config.canvas.restart.title"));
-		this.parent = parent;
+		super(parent, new TranslatableComponent("config.canvas.restart.title"));
 	}
 
 	@Override
@@ -49,8 +46,8 @@ public class ConfigRestartScreen extends SpruceScreen {
 			this.lines = this.font.split(new TranslatableComponent("config.canvas.restart.prompt"), 320);
 		}
 
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60), 160 - 2, 20, new TranslatableComponent("config.canvas.restart.accept"), b -> restart()));
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60), 160 - 2, 20, new TranslatableComponent("config.canvas.restart.ignore"), b -> close()));
+		this.addRenderableWidget(new Button(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, new TranslatableComponent("config.canvas.restart.accept"), b -> restart()));
+		this.addRenderableWidget(new Button(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, new TranslatableComponent("config.canvas.restart.ignore"), b -> close()));
 	}
 
 	private void restart() {
@@ -58,11 +55,10 @@ public class ConfigRestartScreen extends SpruceScreen {
 	}
 
 	private void close() {
-		this.minecraft.setScreen(this.parent);
+		onClose();
 	}
 
-	@Override
-	public void renderTitle(PoseStack matrices, int mouseX, int mouseY, float delta) {
+	public void renderTitle(PoseStack matrices) {
 		if (lines != null) {
 			drawCenteredString(matrices, this.font, this.title, this.width / 2, this.height / 2 - 100, 16777215);
 
@@ -72,5 +68,12 @@ public class ConfigRestartScreen extends SpruceScreen {
 				drawCenteredString(matrices, this.font, line, this.width / 2, this.height / 2 - 100 + 30 + 16 * (i++), 16777215);
 			}
 		}
+	}
+
+	@Override
+	public void render(PoseStack poseStack, int i, int j, float f) {
+		renderBackground(poseStack);
+		renderTitle(poseStack);
+		super.render(poseStack, i, j, f);
 	}
 }

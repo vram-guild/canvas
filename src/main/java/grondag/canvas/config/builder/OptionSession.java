@@ -25,16 +25,14 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import net.minecraft.client.gui.components.AbstractButton;
 import org.jetbrains.annotations.Nullable;
-import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
-
-import net.minecraft.network.chat.Component;
 
 public class OptionSession {
 	private static final int BUCKET_SIZE = 64;
 	private final LongArrayList flagBuckets = new LongArrayList();
 	private int nextIndex = 0;
-	private SpruceButtonWidget saveButton;
+	private AbstractButton saveButton;
 
 	public OptionSession() {
 	}
@@ -65,7 +63,7 @@ public class OptionSession {
 				changed |= flag != 0L;
 			}
 
-			saveButton.setActive(changed);
+			saveButton.active = changed;
 		}
 	}
 
@@ -78,13 +76,13 @@ public class OptionSession {
 		refreshSave();
 	}
 
-	public void setSaveButton(SpruceButtonWidget saveButton) {
+	public void setSaveButton(AbstractButton saveButton) {
 		this.saveButton = saveButton;
 		refreshSave();
 	}
 
 	private class OptionAttachment<T> implements Consumer<T> {
-		private Option<T> option;
+		private Option option;
 		private final Consumer<T> setter;
 		private final T initialValue;
 		private final int index;
@@ -95,7 +93,7 @@ public class OptionSession {
 			this.index = index;
 		}
 
-		private void attach(Option<T> option) {
+		private void attach(Option option) {
 			this.option = option;
 		}
 
@@ -107,37 +105,37 @@ public class OptionSession {
 		}
 	}
 
-	public Option booleanOption(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, boolean defaultVal, @Nullable Component tooltip) {
+	public Option booleanOption(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, boolean defaultVal, @Nullable String tooltipKey) {
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
-		final var created = new Checkbox(key, getter, attachment, defaultVal, tooltip);
+		final var created = new Toggle(key, getter, attachment, defaultVal, tooltipKey);
 		attachment.attach(created);
 		return created;
 	}
 
-	public <T extends Enum<T>> Option enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, Class<T> enumType, @Nullable Component tooltip) {
+	public <T extends Enum<T>> Option enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, Class<T> enumType, @Nullable String tooltipKey) {
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
-		final var created = new EnumButton<T>(key, getter, attachment, defaultVal, enumType.getEnumConstants(), tooltip);
+		final var created = new EnumButton<T>(key, getter, attachment, defaultVal, enumType.getEnumConstants(), tooltipKey);
 		attachment.attach(created);
 		return created;
 	}
 
-	public <T> Option enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable Component tooltip) {
+	public <T> Option enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable String tooltipKey) {
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
-		final var created = new EnumButton<T>(key, getter, attachment, defaultVal, values, tooltip);
+		final var created = new EnumButton<T>(key, getter, attachment, defaultVal, values, tooltipKey);
 		attachment.attach(created);
 		return created;
 	}
 
-	public Option intOption(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable Component tooltip) {
+	public Option intOption(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable String tooltipKey) {
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
-		final var created = new Slider.IntSlider(key, min, max, step, getter, attachment, defaultVal, tooltip);
+		final var created = new Slider.IntSlider(key, min, max, step, getter, attachment, defaultVal, tooltipKey);
 		attachment.attach(created);
 		return created;
 	}
 
-	public Option floatOption(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable Component tooltip) {
+	public Option floatOption(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable String tooltipKey) {
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
-		final var created = new Slider.FloatSlider(key, min, max, step, getter, attachment, defaultVal, tooltip);
+		final var created = new Slider.FloatSlider(key, min, max, step, getter, attachment, defaultVal, tooltipKey);
 		attachment.attach(created);
 		return created;
 	}

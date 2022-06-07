@@ -20,72 +20,54 @@
 
 package grondag.canvas.config.builder;
 
-import static grondag.canvas.config.builder.Checkbox.RESET_BUTTON_WIDTH;
-
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
-import dev.lambdaurora.spruceui.option.SpruceOption;
-import dev.lambdaurora.spruceui.Position;
-import dev.lambdaurora.spruceui.widget.container.SpruceContainerWidget;
-import dev.lambdaurora.spruceui.option.SpruceCyclingOption;
-import dev.lambdaurora.spruceui.widget.SpruceWidget;
-import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
 
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.network.chat.Component;
+import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.TextComponent;
 
-public class EnumButton<T> extends SpruceCyclingOption implements Option<T> {
-	private final T defaultVal;
-	private final Supplier<T> getter;
+public class EnumButton<T> extends OptionItem<T> {
 	private final T[] values;
-	private SpruceWidget resetButton;
+	private int cycleIndex;
+	private Button cycler;
 
-	EnumButton(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable Component tooltip) {
-		super(key, new EnumCycler<>(getter, setter, values), e -> new TextComponent(I18n.get(key) + ": §e" + getter.get().toString().toUpperCase(Locale.ROOT)), tooltip);
-		this.getter = getter;
+	EnumButton(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable String tooltipKey) {
+		super(key, getter, setter, defaultVal, tooltipKey);
 		this.values = values;
-		this.defaultVal = defaultVal;
+		cycleIndex = search(getter.get());
 	}
 
 	@Override
-	public SpruceWidget createWidget(Position position, int width) {
-		final SpruceButtonWidget cycler = (SpruceButtonWidget) super.createWidget(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH);
-		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, cycler.getHeight(), Buttons.RESET, e -> {
-			int i = search(values, defaultVal) - search(values, getter.get());
-			this.cycle(((i - 1) + values.length) % values.length);
-			cycler.onPress();
-		});
-		SpruceContainerWidget container = new SpruceContainerWidget(position, width, cycler.getHeight());
-		container.addChild(cycler);
-		container.addChild(resetButton);
-		refreshResetButton();
-		return container;
+	protected void doReset(AbstractButton button) {
+		cycleIndex = search(defaultVal);
+		set();
 	}
 
 	@Override
-	public void refreshResetButton() {
-		resetButton.setActive(!getter.get().equals(defaultVal));
+	protected void createSetterWidget(int x, int y, int width, int height) {
+		cycler = new Button(x, y, width, height, fullLabel(), this::onUserCycle);
+		add(cycler);
 	}
 
-	@Override
-	public SpruceOption spruceOption() {
-		return this;
+	private void onUserCycle(AbstractButton button) {
+		cycleIndex = (cycleIndex + 1) % values.length;
+		set();
 	}
 
-	private record EnumCycler<T>(Supplier<T> getter, Consumer<T> setter, T[] values) implements Consumer<Integer> {
-		@Override
-		public void accept(Integer i) {
-			final int current = search(values, getter.get());
-			final int next = (current + i) % values.length;
-			setter.accept(values[next]);
-		}
+	private void set() {
+		setter.accept(values[cycleIndex]);
+		cycler.setMessage(fullLabel());
 	}
 
-	private static int search(Object[] values, Object key) {
+	private TextComponent fullLabel() {
+		return label(values[cycleIndex].toString().toUpperCase(Locale.ROOT));
+	}
+
+	private int search(Object key) {
 		for (int i = 0; i < values.length; i++) {
 			if (key.equals(values[i])) {
 				return i;

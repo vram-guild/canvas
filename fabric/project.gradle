@@ -5,13 +5,6 @@ configurations {
 	include.extendsFrom modIncludeImplementation
 }
 
-repositories {
-	maven {
-		name 'Gegy'
-		url 'https://maven.gegy.dev'
-	}
-}
-
 dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modRuntimeOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
@@ -19,10 +12,6 @@ dependencies {
 	modIncludeImplementation(fabricApi.module("fabric-api-base", project.fabric_version))
 	modIncludeImplementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_version))
 	modIncludeImplementation(fabricApi.module("fabric-key-binding-api-v1", project.fabric_version))
-	// Following three needed for Spruce UI
-	modIncludeImplementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_version))
-	modIncludeImplementation(fabricApi.module("fabric-rendering-v1", project.fabric_version))
-	modIncludeImplementation(fabricApi.module("fabric-screen-api-v1", project.fabric_version))
 		
 	modCompileOnly(fabricApi.module("fabric-rendering-data-attachment-v1", project.fabric_version))
 
@@ -40,8 +29,6 @@ dependencies {
 	// modIncludeImplementation("io.vram:frex-fabric-mc118:6.0.258")
 	modImplementation("io.vram:jmx-fabric-mc118:1.22.250")
 	include("io.vram:jmx-fabric-mc118:1.22.250:fat")
-
-	modIncludeImplementation("dev.lambdaurora:spruceui:3.3.3+1.18")
 
 	modCompileOnly "com.terraformersmc:modmenu:3.2.2"
 	modRuntimeOnly "com.terraformersmc:modmenu:3.2.2"

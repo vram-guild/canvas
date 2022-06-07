@@ -25,7 +25,6 @@ import java.util.Locale;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 
-import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.builder.Option;
 import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.ConfigContext;
@@ -47,7 +46,7 @@ public class BooleanConfigEntry extends OptionConfigEntry<BooleanConfigEntry> {
 				() -> value,
 				b -> value = b,
 				defaultVal,
-				ConfigManager.parseTooltip(descriptionKey));
+				descriptionKey);
 	}
 
 	@Override
