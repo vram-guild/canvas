@@ -27,9 +27,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.VertexFormat;
-
-import grondag.canvas.varia.GFX;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 
 /**
  * BufferRenderer tends to assume nothing else has touched bindings
@@ -38,36 +36,12 @@ import grondag.canvas.varia.GFX;
  */
 @Mixin(BufferUploader.class)
 public class MixinBufferUploader {
-//	@Shadow private static int lastVertexArrayObject;
-//	@Shadow private static int lastVertexBufferObject;
-//	@Shadow private static int lastIndexBufferObject;
-//	@Shadow private static VertexFormat lastFormat;
-//
-//	private static void retoreBindings() {
-//		if (lastFormat != null) {
-//			GFX.bindVertexArray(lastVertexArrayObject);
-//			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, lastVertexBufferObject);
-//			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, lastIndexBufferObject);
-//		}
-//	}
-//
-//	@Inject(at = @At("HEAD"), method = "reset")
-//	private static void onReset(CallbackInfo ci) {
-//		retoreBindings();
-//	}
-//
-//	@Inject(at = @At("HEAD"), method = "invalidateElementArrayBufferBinding")
-//	private static void onInvalidateElementArrayBufferBinding(CallbackInfo ci) {
-//		retoreBindings();
-//	}
-//
-//	@Inject(at = @At("HEAD"), method = "_end")
-//	private static void onEnd(CallbackInfo ci) {
-//		retoreBindings();
-//	}
-//
-//	@Inject(at = @At("HEAD"), method = "_endInternal")
-//	private static void onEndInternal(CallbackInfo ci) {
-//		retoreBindings();
-//	}
+	@Shadow private static VertexBuffer lastImmediateBuffer;
+
+	@Inject(at = @At("HEAD"), method = "Lcom/mojang/blaze3d/vertex/BufferUploader;bindImmediateBuffer(Lcom/mojang/blaze3d/vertex/VertexBuffer;)V")
+	private static void onBindImmediateBuffer(CallbackInfo ci) {
+		if (lastImmediateBuffer != null) {
+			lastImmediateBuffer.bind();
+		}
+	}
 }
