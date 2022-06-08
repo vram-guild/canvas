@@ -25,15 +25,24 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.gui.components.AbstractButton;
 
+/**
+ * A persistent, cancellable option session. Keeps track of option values without saving them,
+ * and disables the Done button when nothing was changed.
+ */
 public class OptionSession {
 	private static final int BUCKET_SIZE = 64;
 	private final LongArrayList flagBuckets = new LongArrayList();
 	private int nextIndex = 0;
 	private AbstractButton saveButton;
+
+	// As long as the screen isn't destroyed, attachments are reused
+	// Necessary so options survive initialization, even though the widgets are recreated each time
+	private final Object2ObjectOpenHashMap<String, OptionAttachment<?>> attachments = new Object2ObjectOpenHashMap<>();
 
 	public OptionSession() {
 	}
@@ -107,37 +116,62 @@ public class OptionSession {
 	}
 
 	public Option booleanOption(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, boolean defaultVal, @Nullable String tooltipKey) {
+		if (attachments.containsKey(key)) {
+			return attachments.get(key).option;
+		}
+
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
 		final var created = new Toggle(key, getter, attachment, defaultVal, tooltipKey);
 		attachment.attach(created);
+		attachments.put(key, attachment);
 		return created;
 	}
 
 	public <T extends Enum<T>> Option enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, Class<T> enumType, @Nullable String tooltipKey) {
+		if (attachments.containsKey(key)) {
+			return attachments.get(key).option;
+		}
+
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
 		final var created = new EnumButton<T>(key, getter, attachment, defaultVal, enumType.getEnumConstants(), tooltipKey);
 		attachment.attach(created);
+		attachments.put(key, attachment);
 		return created;
 	}
 
 	public <T> Option enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable String tooltipKey) {
+		if (attachments.containsKey(key)) {
+			return attachments.get(key).option;
+		}
+
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
 		final var created = new EnumButton<T>(key, getter, attachment, defaultVal, values, tooltipKey);
 		attachment.attach(created);
+		attachments.put(key, attachment);
 		return created;
 	}
 
 	public Option intOption(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable String tooltipKey) {
+		if (attachments.containsKey(key)) {
+			return attachments.get(key).option;
+		}
+
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
 		final var created = new Slider.IntSlider(key, min, max, step, getter, attachment, defaultVal, tooltipKey);
 		attachment.attach(created);
+		attachments.put(key, attachment);
 		return created;
 	}
 
 	public Option floatOption(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable String tooltipKey) {
+		if (attachments.containsKey(key)) {
+			return attachments.get(key).option;
+		}
+
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
 		final var created = new Slider.FloatSlider(key, min, max, step, getter, attachment, defaultVal, tooltipKey);
 		attachment.attach(created);
+		attachments.put(key, attachment);
 		return created;
 	}
 }

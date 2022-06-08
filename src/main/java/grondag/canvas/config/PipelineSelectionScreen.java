@@ -25,15 +25,16 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.FormattedCharSequence;
 
 import grondag.canvas.config.gui.BaseScreen;
 import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
-import net.minecraft.util.FormattedCharSequence;
 
 public class PipelineSelectionScreen extends BaseScreen {
 	private static final Comparator<PipelineDescription> PIPELINE_SORTER = (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.name(), o2.name());

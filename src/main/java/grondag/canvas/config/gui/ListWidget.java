@@ -61,6 +61,7 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	public int addItem(ListItem item) {
 		int i = addEntry(item);
 
+		item.clearWidgets();
 		item.createWidget(getRowLeft(), getRowTop(i) + ITEM_SPACING / 2, getRowWidth(), ITEM_HEIGHT);
 
 		return i;

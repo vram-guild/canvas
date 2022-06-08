@@ -53,6 +53,7 @@ public class PipelineOptionScreen extends BaseScreen {
 	private final String pipelineName;
 	private final boolean isEmpty;
 	private final OptionConfig[] configs;
+	private final OptionSession optionSession = new OptionSession();
 	private ListWidget list;
 
 	public PipelineOptionScreen(Screen parent, ResourceLocation pipelineId) {
@@ -80,8 +81,6 @@ public class PipelineOptionScreen extends BaseScreen {
 	@Override
 	protected void init() {
 		super.init();
-
-		OptionSession optionSession = new OptionSession();
 
 		int sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
 		final int rightSideW = Math.min(sideW, Math.max(0, this.width - 330 - sideW));

@@ -53,6 +53,10 @@ public abstract class ListItem extends ContainerObjectSelectionList.Entry<ListIt
 		}
 	}
 
+	protected void clearWidgets() {
+		children.clear();
+	}
+
 	protected abstract void createWidget(int x, int y, int width, int height);
 
 	protected void add(AbstractWidget widget) {

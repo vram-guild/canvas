@@ -39,6 +39,7 @@ public class Toggle extends OptionItem<Boolean> implements Runnable {
 	@Override
 	protected void doReset(AbstractButton button) {
 		setter.accept(defaultVal);
+
 		if (checkbox != null) {
 			checkbox.changeValueSilently(defaultVal);
 		}

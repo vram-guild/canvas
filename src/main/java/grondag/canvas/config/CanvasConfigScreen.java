@@ -50,6 +50,7 @@ public class CanvasConfigScreen extends BaseScreen {
 	private boolean requiresRestart;
 
 	private final ConfigData editing;
+	private final OptionSession optionSession = new OptionSession();
 
 	private ListWidget list;
 
@@ -67,8 +68,6 @@ public class CanvasConfigScreen extends BaseScreen {
 	@Override
 	protected void init() {
 		super.init();
-
-		OptionSession optionSession = new OptionSession();
 
 		int sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
 		final int rightSideW = Math.min(sideW, Math.max(0, this.width - 330 - sideW));
