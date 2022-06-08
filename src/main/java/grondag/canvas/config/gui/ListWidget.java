@@ -28,7 +28,7 @@ import net.minecraft.util.FormattedCharSequence;
 
 public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	public static final int ITEM_HEIGHT = 20;
-	public static final int ITEM_SPACING = 4;
+	public static final int ITEM_SPACING = 2; // multiples of two
 
 	private final int rowWidth;
 
@@ -87,7 +87,7 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 		final int index = (int) (relativeY / itemHeight);
 		final int innerY = (int) relativeY - getChildScroll(index) - ITEM_SPACING / 2 - 1;
 
-		if (innerY < 1 || innerY > ITEM_HEIGHT) {
+		if (innerY < 2 || innerY > ITEM_HEIGHT + 1) {
 			// mouse within empty space between list items
 			return null;
 		}

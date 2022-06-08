@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 public class EnumButton<T> extends OptionItem<T> {
 	private final T[] values;
@@ -63,7 +63,7 @@ public class EnumButton<T> extends OptionItem<T> {
 		cycler.setMessage(fullLabel());
 	}
 
-	private TextComponent fullLabel() {
+	private Component fullLabel() {
 		return label(values[cycleIndex].toString().toUpperCase(Locale.ROOT));
 	}
 

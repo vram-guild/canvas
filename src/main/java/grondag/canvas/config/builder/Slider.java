@@ -26,12 +26,12 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.EditBox;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
 public class Slider<T> extends OptionItem<Double> {
@@ -142,7 +142,7 @@ public class Slider<T> extends OptionItem<Double> {
 			this.applyAction = action;
 		}
 
-	@Override
+		@Override
 		protected final void updateMessage() {
 			// We do this on the slider option
 		}

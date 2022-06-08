@@ -22,19 +22,20 @@ package grondag.canvas.config.gui;
 
 import java.util.List;
 
-import grondag.canvas.config.ConfigManager;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.util.FormattedCharSequence;
+
+import grondag.canvas.config.ConfigManager;
 
 public abstract class ListItem extends ContainerObjectSelectionList.Entry<ListItem> {
 	private final ObjectArrayList<AbstractWidget> children;
@@ -50,10 +51,6 @@ public abstract class ListItem extends ContainerObjectSelectionList.Entry<ListIt
 		} else {
 			this.tooltip = Minecraft.getInstance().font.split(ConfigManager.parseTooltip(tooltipKey), 200);
 		}
-	}
-
-	protected ListItem(String key) {
-		this(key, null);
 	}
 
 	protected abstract void createWidget(int x, int y, int width, int height);

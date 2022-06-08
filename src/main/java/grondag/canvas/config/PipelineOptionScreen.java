@@ -26,9 +26,7 @@ import static grondag.canvas.config.ConfigManager.Reload.RELOAD_PIPELINE;
 import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import grondag.canvas.config.gui.ActionItem;
-import grondag.canvas.config.gui.BaseScreen;
-import grondag.canvas.config.gui.ListWidget;
+
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
@@ -38,7 +36,11 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
-import grondag.canvas.config.builder.*;
+import grondag.canvas.config.builder.Buttons;
+import grondag.canvas.config.builder.OptionSession;
+import grondag.canvas.config.gui.ActionItem;
+import grondag.canvas.config.gui.BaseScreen;
+import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.PipelineLoader;
@@ -85,16 +87,14 @@ public class PipelineOptionScreen extends BaseScreen {
 		final int rightSideW = Math.min(sideW, Math.max(0, this.width - 330 - sideW));
 
 		list = new ListWidget(sideW + 2, 22 + 2, this.width - sideW - 4 - rightSideW, this.height - 35);
-//		list.setBackground(new SimpleColorBackground(0xAA000000));
 		addRenderableWidget(list);
 
-		list.addItem(new ActionItem(pipelineName,
+		list.addItem(new ActionItem(pipelineName, "config.canvas.help.pipeline",
 			(x, y, w, h, m, a) -> new Buttons.BrowseButton(x, y, w, h, new TextComponent(I18n.get("config.canvas.value.pipeline") + ": " + pipelineName), a),
 				() -> minecraft.setScreen(new PipelineSelectionScreen(this))));
 
 		if (configs.length > 0) {
 			final ListWidget tabs = new ListWidget(1, list.getY(), sideW, list.getHeight());
-//			tabs.setBackground(EmptyBackground.EMPTY_BACKGROUND);
 
 			boolean top = true;
 
@@ -137,7 +137,7 @@ public class PipelineOptionScreen extends BaseScreen {
 			List<FormattedCharSequence> tooltip = list.getTooltip(i, j);
 
 			if (tooltip != null) {
-				renderTooltip(poseStack, tooltip, i, j + 20);
+				renderTooltip(poseStack, tooltip, i, j + 30);
 			}
 		}
 	}

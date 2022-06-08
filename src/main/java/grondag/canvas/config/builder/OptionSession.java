@@ -25,8 +25,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-import net.minecraft.client.gui.components.AbstractButton;
 import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.client.gui.components.AbstractButton;
 
 public class OptionSession {
 	private static final int BUCKET_SIZE = 64;

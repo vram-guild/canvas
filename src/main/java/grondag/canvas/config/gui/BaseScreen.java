@@ -36,7 +36,7 @@ public abstract class BaseScreen extends Screen {
 	@Override
 	public void render(PoseStack poseStack, int i, int j, float f) {
 		this.renderBackground(poseStack);
-//		drawCenteredString(poseStack, this.font, this.title, this.width / 2, 15, 16777215);
+		// drawCenteredString(poseStack, this.font, this.title, this.width / 2, 15, 16777215);
 		super.render(poseStack, i, j, f);
 		drawCenteredString(poseStack, this.font, this.title, this.width / 2, 8, 16777215);
 		renderTooltips(poseStack, i, j);

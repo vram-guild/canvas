@@ -25,36 +25,34 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.client.gui.components.AbstractButton;
 
-public class Toggle extends EnumButton<String> {
-	Toggle(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, boolean defaultVal, @Nullable String tooltipKey) {
-		super(key, wrap(getter), wrap(setter), wrap(defaultVal), values(), tooltipKey);
+import grondag.canvas.config.gui.Checkbox;
+
+public class Toggle extends OptionItem<Boolean> implements Runnable {
+	private Checkbox checkbox;
+
+	public Toggle(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, Boolean defaultVal, @Nullable String tooltipKey) {
+		super(key, getter, setter, defaultVal, tooltipKey);
 	}
 
-	private static String[] values() {
-		return new String[] {wrap(true), wrap(false)};
-	}
-
-	private static Supplier<String> wrap(Supplier<Boolean> getter) {
-		return () -> wrap(getter.get());
-	}
-
-	private static Consumer<String> wrap(Consumer<Boolean> setter) {
-		return (string) -> {
-			if (string.equals(CommonComponents.GUI_YES.getString())) {
-				setter.accept(true);
-			} else {
-				setter.accept(false);
-			}
-		};
-	}
-
-	private static String wrap(boolean val) {
-		if (val) {
-			return CommonComponents.GUI_YES.getString();
-		} else {
-			return CommonComponents.GUI_NO.getString();
+	@Override
+	protected void doReset(AbstractButton button) {
+		setter.accept(defaultVal);
+		if (checkbox != null) {
+			checkbox.changeValueSilently(defaultVal);
 		}
+	}
+
+	@Override
+	protected void createSetterWidget(int x, int y, int width, int height) {
+		checkbox = new Checkbox(x, y, width, height, label(), this);
+		checkbox.changeValueSilently(getter.get());
+		add(checkbox);
+	}
+
+	@Override
+	public void run() {
+		setter.accept(checkbox.getValue());
 	}
 }

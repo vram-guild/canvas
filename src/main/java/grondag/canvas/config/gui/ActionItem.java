@@ -9,10 +9,14 @@ public class ActionItem extends ListItem {
 	private final Runnable action;
 	private Button button;
 
-	public ActionItem(String key, ButtonFactory factory, Runnable action) {
-		super(key);
+	public ActionItem(String key, String tooltipKey, ButtonFactory factory, Runnable action) {
+		super(key, tooltipKey);
 		this.factory = factory;
 		this.action = action;
+	}
+
+	public ActionItem(String key, ButtonFactory factory, Runnable action) {
+		this(key, null, factory, action);
 	}
 
 	@Override

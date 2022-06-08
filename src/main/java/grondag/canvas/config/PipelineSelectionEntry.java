@@ -37,7 +37,7 @@ public class PipelineSelectionEntry extends ListItem {
 	private Button buttonWidget;
 
 	public PipelineSelectionEntry(PipelineDescription pipeline, PipelineSelectionScreen owner) {
-		super(pipeline.nameKey);
+		super(pipeline.nameKey, pipeline.descriptionKey);
 		this.pipeline = pipeline;
 		this.owner = owner;
 	}
@@ -59,9 +59,9 @@ public class PipelineSelectionEntry extends ListItem {
 
 				if (selected) {
 					fill(poseStack, x, y, x + width, y + height - 3, 0x66FFFFFF);
-//					hLine(poseStack, x, x + width - 1, y, 0x66FFFFFF);
-//					vLine(poseStack, x, y, y + height - 4, 0x66FFFFFF);
-//					vLine(poseStack, x + width - 1, y, y + height - 4, 0x66FFFFFF);
+					// hLine(poseStack, x, x + width - 1, y, 0x66FFFFFF);
+					// vLine(poseStack, x, y, y + height - 4, 0x66FFFFFF);
+					// vLine(poseStack, x + width - 1, y, y + height - 4, 0x66FFFFFF);
 					hLine(poseStack, x, x + width - 1, y + height - 4, 0xFFFFFFFF);
 				} else {
 					hLine(poseStack, x, x + width - 1, y + height - 4, 0x33FFFFFF);
@@ -70,8 +70,6 @@ public class PipelineSelectionEntry extends ListItem {
 				renderTitle(poseStack, i, j, f);
 			}
 		};
-
-//		buttonWidget.setTooltip(new TranslatableComponent(pipeline.descriptionKey));
 
 		add(buttonWidget);
 	}

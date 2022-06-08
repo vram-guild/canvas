@@ -28,9 +28,6 @@ import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import grondag.canvas.config.gui.ActionItem;
-import grondag.canvas.config.gui.BaseScreen;
-import grondag.canvas.config.gui.ListWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
@@ -39,7 +36,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
 import grondag.canvas.buffer.render.TransferBuffers;
-import grondag.canvas.config.builder.*;
+import grondag.canvas.config.builder.Buttons;
+import grondag.canvas.config.builder.OptionSession;
+import grondag.canvas.config.gui.ActionItem;
+import grondag.canvas.config.gui.BaseScreen;
+import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
@@ -73,7 +74,6 @@ public class CanvasConfigScreen extends BaseScreen {
 		final int rightSideW = Math.min(sideW, Math.max(0, this.width - 330 - sideW));
 
 		list = new ListWidget(sideW + 2, 22 + 2, this.width - sideW - 4 - rightSideW, this.height - 35);
-//		list.setBackground(new SimpleColorBackground(0xAA000000));
 		addRenderableWidget(list);
 
 		list.addItem(new ActionItem("config.canvas.value.pipeline_config", Buttons.BrowseButton::new,
@@ -462,7 +462,6 @@ public class CanvasConfigScreen extends BaseScreen {
 
 		if (sideW > 0) {
 			final ListWidget tabs = new ListWidget(1, list.getY(), sideW, list.getHeight());
-//			tabs.setBackground(EmptyBackground.EMPTY_BACKGROUND);
 			addRenderableWidget(tabs);
 
 			final int featuresY = 0; // top
@@ -515,9 +514,9 @@ public class CanvasConfigScreen extends BaseScreen {
 			List<FormattedCharSequence> tooltip = list.getTooltip(i, j);
 
 			if (tooltip != null) {
-//				final int x = list.getRowLeft();
-//				final int y = list.getRowBottom(list.getChildIndexAt(i, j)) + 10;
-				renderTooltip(poseStack, tooltip, i, j + 20);
+				// final int x = list.getRowLeft();
+				// final int y = list.getRowBottom(list.getChildIndexAt(i, j)) + 10;
+				renderTooltip(poseStack, tooltip, i, j + 30);
 			}
 		}
 	}

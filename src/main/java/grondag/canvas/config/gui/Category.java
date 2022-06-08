@@ -26,16 +26,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 class Category extends ListItem {
 	private static final String NULL_KEY = "";
 	private static final Component NULL_TITLE = new TextComponent("");
+	public static final Style HEADER_STYLE = Style.EMPTY.withFont(Style.DEFAULT_FONT).withBold(true);
 
 	Category(String key) {
-		super(key);
+		super(key, null);
 	}
 
 	Category() {
@@ -44,7 +46,7 @@ class Category extends ListItem {
 
 	@Override
 	protected void createWidget(int x, int y, int width, int height) {
-		add(new CategoryWidget(x, y, width, key.equals(NULL_KEY) ? NULL_TITLE : new TextComponent("§l" + I18n.get(key))));
+		add(new CategoryWidget(x, y, width, key.equals(NULL_KEY) ? NULL_TITLE : new TranslatableComponent(key).withStyle(HEADER_STYLE)));
 	}
 
 	static class CategoryWidget extends AbstractWidget {
