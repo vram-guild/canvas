@@ -2,7 +2,6 @@ package grondag.canvas.config.gui;
 
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 
 public class ActionItem extends ListItem {
 	private final ButtonFactory factory;
@@ -21,7 +20,7 @@ public class ActionItem extends ListItem {
 
 	@Override
 	protected void createWidget(int x, int y, int width, int height) {
-		button = factory.createButton(x, y, width, height, new TranslatableComponent(key), b -> action.run());
+		button = factory.createButton(x, y, width, height, Component.translatable(key), b -> action.run());
 
 		add(button);
 	}

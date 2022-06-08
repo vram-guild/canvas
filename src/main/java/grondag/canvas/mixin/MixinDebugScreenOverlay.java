@@ -61,142 +61,142 @@ import grondag.canvas.varia.CanvasGlHelper;
 
 @Mixin(DebugScreenOverlay.class)
 public class MixinDebugScreenOverlay extends GuiComponent {
-	@Shadow private Font font;
-
-	private List<String> leftList, rightList;
-	private final BufferBuilder fillerBuffer = BufferBuilderExt.repeatableBuffer(0x1000);
-	private final AutoImmediate immediate = new AutoImmediate();
-	private long nextTime;
-	private boolean rebuildLists = true;
-
-	private static final int HEIGHT = 9;
-
-	@Inject(method = "drawGameInformation", require = 1, cancellable = true, at = @At("HEAD"))
-	private void beforeRenderLeftText(CallbackInfo ci) {
-		if (Configurator.steadyDebugScreen) {
-			final long time = System.currentTimeMillis();
-
-			if (time > nextTime) {
-				rebuildLists = true;
-				nextTime = time + 50;
-			} else {
-				ci.cancel();
-			}
-		} else {
-			rebuildLists = true;
-		}
-	}
-
+//	@Shadow private Font font;
+//
+//	private List<String> leftList, rightList;
+//	private final BufferBuilder fillerBuffer = BufferBuilderExt.repeatableBuffer(0x1000);
+//	private final AutoImmediate immediate = new AutoImmediate();
+//	private long nextTime;
+//	private boolean rebuildLists = true;
+//
+//	private static final int HEIGHT = 9;
+//
+//	@Inject(method = "drawGameInformation", require = 1, cancellable = true, at = @At("HEAD"))
+//	private void beforeRenderLeftText(CallbackInfo ci) {
+//		if (Configurator.steadyDebugScreen) {
+//			final long time = System.currentTimeMillis();
+//
+//			if (time > nextTime) {
+//				rebuildLists = true;
+//				nextTime = time + 50;
+//			} else {
+//				ci.cancel();
+//			}
+//		} else {
+//			rebuildLists = true;
+//		}
+//	}
+//
 	@Redirect(method = "getSystemInformation", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/platform/GlUtil;getOpenGLVersion()Ljava/lang/String;"), require = 1)
 	private String onGetGlDebugVersion() {
 		return GlUtil.getOpenGLVersion() + " (OGL " + CanvasGlHelper.maxGlVersion() + " available)";
 	}
-
-	@Redirect(method = "drawGameInformation", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I", remap = false), require = 1)
-	private int onGetLeftListSize(List<String> leftList) {
-		this.leftList = leftList;
-		return 0;
-	}
-
-	// Don't run at all if don't need to capture right list
-	@Inject(method = "drawSystemInformation", require = 1, cancellable = true, at = @At("HEAD"))
-	private void beforeRenderRightText(PoseStack matrixStack, CallbackInfo ci) {
-		if (!rebuildLists) {
-			// our remaining hooks don't get called if we cancel here, so draw if we cancel
-			drawLists(matrixStack);
-			ci.cancel();
-		}
-	}
-
-	// Capture right list and prevent draw
-	@Redirect(method = "drawSystemInformation", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I", remap = false), require = 1)
-	private int onGetRightListSize(List<String> rightList) {
-		this.rightList = rightList;
-		return 0;
-	}
-
-	@Inject(method = "drawSystemInformation", at = @At("RETURN"), cancellable = false, require = 1)
-	private void afterRenderRightText(PoseStack matrixStack, CallbackInfo ci) {
-		if (rebuildLists) {
-			immediate.clear();
-			fillerBuffer.discard();
-			buildLists(matrixStack);
-			rebuildLists = false;
-		}
-
-		drawLists(matrixStack);
-	}
-
-	private void drawLists(PoseStack matrixStack) {
-		RenderSystem.enableBlend();
-		RenderSystem.disableTexture();
-		RenderSystem.defaultBlendFunc();
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		BufferUploader.end(fillerBuffer);
-		RenderSystem.enableTexture();
-		RenderSystem.disableBlend();
-		immediate.drawRepeatable();
-	}
-
-	private void buildLists(PoseStack matrixStack) {
-		final Matrix4f matrix4f = matrixStack.last().pose();
-		final Font textRenderer = this.font;
-		final boolean rightToLeft = textRenderer.isBidirectional();
-
-		fillerBuffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
-		final int leftLimit = leftList.size();
-
-		for (int i = 0; i < leftLimit; ++i) {
-			final String string = leftList.get(i);
-
-			if (string == null || string.isEmpty()) {
-				continue;
-			}
-
-			final int top = 2 + HEIGHT * i;
-			final int x1 = 2 + textRenderer.width(string) + 1;
-			final int y0 = top - 1;
-			final int y1 = top + HEIGHT - 1;
-			fillerBuffer.vertex(matrix4f, 1, y1, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
-			fillerBuffer.vertex(matrix4f, x1, y1, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
-			fillerBuffer.vertex(matrix4f, x1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
-			fillerBuffer.vertex(matrix4f, 1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
-
-			textRenderer.drawInBatch(string, 2.0F, top, 0xE0E0E0, false, matrix4f, immediate, false, 0, 0xF000F0, rightToLeft);
-		}
-
-		final int rightLimit = rightList.size();
-		final int scaleWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth() - 2;
-
-		for (int i = 0; i < rightLimit; ++i) {
-			final String string = rightList.get(i);
-
-			if (string == null || string.isEmpty()) {
-				continue;
-			}
-
-			final int width = this.font.width(string);
-			final int left = scaleWidth - width;
-			final int top = 2 + HEIGHT * i;
-			final int x0 = left - 1;
-			final int x1 = left + width + 1;
-			final int y0 = top - 1;
-			final int y1 = top + HEIGHT - 1;
-
-			fillerBuffer.vertex(matrix4f, x0, y1, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
-			fillerBuffer.vertex(matrix4f, x1, y1, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
-			fillerBuffer.vertex(matrix4f, x1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
-			fillerBuffer.vertex(matrix4f, x0, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
-
-			textRenderer.drawInBatch(string, left, top, 0xE0E0E0, false, matrix4f, immediate, false, 0, 0xF000F0, rightToLeft);
-		}
-
-		fillerBuffer.end();
-		leftList = null;
-		rightList = null;
-	}
-
+//
+//	@Redirect(method = "drawGameInformation", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I", remap = false), require = 1)
+//	private int onGetLeftListSize(List<String> leftList) {
+//		this.leftList = leftList;
+//		return 0;
+//	}
+//
+//	// Don't run at all if don't need to capture right list
+//	@Inject(method = "drawSystemInformation", require = 1, cancellable = true, at = @At("HEAD"))
+//	private void beforeRenderRightText(PoseStack matrixStack, CallbackInfo ci) {
+//		if (!rebuildLists) {
+//			// our remaining hooks don't get called if we cancel here, so draw if we cancel
+//			drawLists(matrixStack);
+//			ci.cancel();
+//		}
+//	}
+//
+//	// Capture right list and prevent draw
+//	@Redirect(method = "drawSystemInformation", at = @At(value = "INVOKE", target = "Ljava/util/List;size()I", remap = false), require = 1)
+//	private int onGetRightListSize(List<String> rightList) {
+//		this.rightList = rightList;
+//		return 0;
+//	}
+//
+//	@Inject(method = "drawSystemInformation", at = @At("RETURN"), cancellable = false, require = 1)
+//	private void afterRenderRightText(PoseStack matrixStack, CallbackInfo ci) {
+//		if (rebuildLists) {
+//			immediate.clear();
+//			fillerBuffer.discard();
+//			buildLists(matrixStack);
+//			rebuildLists = false;
+//		}
+//
+//		drawLists(matrixStack);
+//	}
+//
+//	private void drawLists(PoseStack matrixStack) {
+//		RenderSystem.enableBlend();
+//		RenderSystem.disableTexture();
+//		RenderSystem.defaultBlendFunc();
+//		RenderSystem.setShader(GameRenderer::getPositionColorShader);
+//		BufferUploader.end(fillerBuffer);
+//		RenderSystem.enableTexture();
+//		RenderSystem.disableBlend();
+//		immediate.drawRepeatable();
+//	}
+//
+//	private void buildLists(PoseStack matrixStack) {
+//		final Matrix4f matrix4f = matrixStack.last().pose();
+//		final Font textRenderer = this.font;
+//		final boolean rightToLeft = textRenderer.isBidirectional();
+//
+//		fillerBuffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+//
+//		final int leftLimit = leftList.size();
+//
+//		for (int i = 0; i < leftLimit; ++i) {
+//			final String string = leftList.get(i);
+//
+//			if (string == null || string.isEmpty()) {
+//				continue;
+//			}
+//
+//			final int top = 2 + HEIGHT * i;
+//			final int x1 = 2 + textRenderer.width(string) + 1;
+//			final int y0 = top - 1;
+//			final int y1 = top + HEIGHT - 1;
+//			fillerBuffer.vertex(matrix4f, 1, y1, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
+//			fillerBuffer.vertex(matrix4f, x1, y1, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
+//			fillerBuffer.vertex(matrix4f, x1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
+//			fillerBuffer.vertex(matrix4f, 1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
+//
+//			textRenderer.drawInBatch(string, 2.0F, top, 0xE0E0E0, false, matrix4f, immediate, false, 0, 0xF000F0, rightToLeft);
+//		}
+//
+//		final int rightLimit = rightList.size();
+//		final int scaleWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth() - 2;
+//
+//		for (int i = 0; i < rightLimit; ++i) {
+//			final String string = rightList.get(i);
+//
+//			if (string == null || string.isEmpty()) {
+//				continue;
+//			}
+//
+//			final int width = this.font.width(string);
+//			final int left = scaleWidth - width;
+//			final int top = 2 + HEIGHT * i;
+//			final int x0 = left - 1;
+//			final int x1 = left + width + 1;
+//			final int y0 = top - 1;
+//			final int y1 = top + HEIGHT - 1;
+//
+//			fillerBuffer.vertex(matrix4f, x0, y1, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
+//			fillerBuffer.vertex(matrix4f, x1, y1, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
+//			fillerBuffer.vertex(matrix4f, x1, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
+//			fillerBuffer.vertex(matrix4f, x0, y0, 0.0F).color(0x50, 0x50, 0x50, 0x90).endVertex();
+//
+//			textRenderer.drawInBatch(string, left, top, 0xE0E0E0, false, matrix4f, immediate, false, 0, 0xF000F0, rightToLeft);
+//		}
+//
+//		fillerBuffer.end();
+//		leftList = null;
+//		rightList = null;
+//	}
+//
 	@Redirect(method = "getSystemInformation", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Lists;newArrayList([Ljava/lang/Object;)Ljava/util/ArrayList;", remap = false), require = 1)
 	private ArrayList<String> onGetSystemInformation(Object[] elements) {
 		final ArrayList<String> result = Lists.newArrayList((String[]) elements);

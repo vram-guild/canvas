@@ -31,6 +31,8 @@ import com.mojang.blaze3d.pipeline.MainTarget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.util.thread.ReentrantBlockableEventLoop;
 
 import grondag.canvas.config.Configurator;
@@ -62,9 +64,9 @@ public abstract class MixinMinecraft extends ReentrantBlockableEventLoop<Runnabl
 		}
 	}
 
-	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/RenderBuffers;)Lnet/minecraft/client/renderer/LevelRenderer;"))
-	private LevelRenderer onWorldRendererNew(Minecraft client, RenderBuffers bufferBuilders) {
-		return new CanvasWorldRenderer(client, bufferBuilders);
+	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;Lnet/minecraft/client/renderer/blockentity/BlockEntityRenderDispatcher;Lnet/minecraft/client/renderer/RenderBuffers;)Lnet/minecraft/client/renderer/LevelRenderer;"))
+	private LevelRenderer onWorldRendererNew(Minecraft minecraft, EntityRenderDispatcher entityRenderDispatcher, BlockEntityRenderDispatcher blockEntityRenderDispatcher, RenderBuffers renderBuffers) {
+		return new CanvasWorldRenderer(minecraft, entityRenderDispatcher, blockEntityRenderDispatcher, renderBuffers);
 	}
 
 	@Redirect(method = "<init>*", at = @At(value = "NEW", target = "(II)Lcom/mojang/blaze3d/pipeline/MainTarget;"))

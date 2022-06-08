@@ -20,16 +20,13 @@
 
 package grondag.canvas.pipeline.config;
 
-import java.util.Iterator;
+import java.io.InputStream;
 import java.util.function.Function;
 
 import blue.endless.jankson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import grondag.canvas.CanvasMod;
@@ -48,21 +45,18 @@ public class PipelineLoader {
 		hasLoadedOnce = true;
 		MAP.clear();
 
-		final Iterator<?> it = manager.listResources("pipelines", (stringx) -> {
+		manager.listResources("pipelines", (location) -> {
+			final String stringx = location.toString();
 			return stringx.endsWith(".json") || stringx.endsWith(".json5");
-		}).iterator();
-
-		while (it.hasNext()) {
-			final ResourceLocation id = (ResourceLocation) it.next();
-
-			try (Resource res = manager.getResource(id)) {
-				final JsonObject configJson = ConfigManager.JANKSON.load(res.getInputStream());
+		}).forEach((id, resource) -> {
+			try (InputStream inputStream = resource.open()) {
+				final JsonObject configJson = ConfigManager.JANKSON.load(inputStream);
 				final PipelineDescription p = new PipelineDescription(id, configJson);
 				MAP.put(id.toString(), p);
 			} catch (final Exception e) {
 				CanvasMod.LOG.warn(String.format("Unable to load pipeline configuration %s due to unhandled exception.", id), e);
 			}
-		}
+		});
 	}
 
 	private static final Object2ObjectOpenHashMap<String, PipelineDescription> MAP = new Object2ObjectOpenHashMap<>();
@@ -79,5 +73,5 @@ public class PipelineLoader {
 		return MAP.values().toArray(new PipelineDescription[MAP.size()]);
 	}
 
-	public static final Function<String, Component> NAME_TEXT_FUNCTION = s -> new TranslatableComponent(get(s).nameKey);
+	public static final Function<String, Component> NAME_TEXT_FUNCTION = s -> Component.translatable(get(s).nameKey);
 }

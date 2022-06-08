@@ -35,8 +35,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderType.CompositeRenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
 
 import io.vram.frex.api.config.FrexFeature;
 import io.vram.frex.api.renderloop.RenderReloadListener;
@@ -78,7 +78,6 @@ public class CanvasMod {
 		ConfigManager.init();
 
 		FrexFeature.registerFeatures(
-			FrexFeature.UPDATE_MATERIAL_REGISTRATION,
 			FrexFeature.MATERIAL_SHADERS,
 			FrexFeature.HELD_ITEM_LIGHTS,
 			FrexFeature.VERTEX_TANGENT
@@ -142,7 +141,7 @@ public class CanvasMod {
 		final LocalPlayer localPlayer = Minecraft.getInstance().player;
 
 		if (localPlayer != null) {
-			final TextComponent message = (TextComponent) new TextComponent("[Canvas] ").append(new TextComponent(errorMessage).setStyle(ERROR_STYLE));
+			final Component message = Component.literal("[Canvas] ").append(Component.literal(errorMessage).setStyle(ERROR_STYLE));
 			localPlayer.displayClientMessage(message, false);
 		}
 	}

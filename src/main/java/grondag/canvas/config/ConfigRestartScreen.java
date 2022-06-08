@@ -26,7 +26,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
 import grondag.canvas.config.gui.BaseScreen;
@@ -35,7 +35,7 @@ public class ConfigRestartScreen extends BaseScreen {
 	private List<FormattedCharSequence> lines;
 
 	public ConfigRestartScreen(Screen parent) {
-		super(parent, new TranslatableComponent("config.canvas.restart.title"));
+		super(parent, Component.translatable("config.canvas.restart.title"));
 	}
 
 	@Override
@@ -43,11 +43,11 @@ public class ConfigRestartScreen extends BaseScreen {
 		super.init();
 
 		if (lines == null) {
-			this.lines = this.font.split(new TranslatableComponent("config.canvas.restart.prompt"), 320);
+			this.lines = this.font.split(Component.translatable("config.canvas.restart.prompt"), 320);
 		}
 
-		this.addRenderableWidget(new Button(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, new TranslatableComponent("config.canvas.restart.accept"), b -> restart()));
-		this.addRenderableWidget(new Button(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, new TranslatableComponent("config.canvas.restart.ignore"), b -> close()));
+		this.addRenderableWidget(new Button(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.accept"), b -> restart()));
+		this.addRenderableWidget(new Button(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.ignore"), b -> close()));
 	}
 
 	private void restart() {

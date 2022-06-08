@@ -25,22 +25,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.CycleOption;
-import net.minecraft.client.Option;
+import net.minecraft.client.OptionInstance;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 
 import grondag.canvas.varia.CanvasButtonWidget;
 
-@Mixin(CycleOption.class)
+@Mixin(OptionInstance.class)
 public abstract class MixinCyclingOption {
 	@Inject(at = @At("HEAD"), method = "createButton", cancellable = true)
 	private void onCreateButton(Options options, int x, int y, int width, CallbackInfoReturnable<AbstractWidget> info) {
-		final CycleOption<?> self = (CycleOption<?>) (Object) this;
+		final OptionInstance<?> self = (OptionInstance<?>) (Object) this;
 
-		if (self == Option.GRAPHICS) {
-			info.setReturnValue(new CanvasButtonWidget(x, y, width, 20, new TranslatableComponent("config.canvas.button")));
+		if (self == options.graphicsMode()) {
+			info.setReturnValue(new CanvasButtonWidget(x, y, width, 20, Component.translatable("config.canvas.button")));
 		}
 	}
 }

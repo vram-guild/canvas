@@ -31,8 +31,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -47,7 +46,7 @@ import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 
 public class PipelineOptionScreen extends BaseScreen {
-	private static final TranslatableComponent EMPTY_TEXT = new TranslatableComponent("config.canvas.category.empty");
+	private static final Component EMPTY_TEXT = Component.translatable("config.canvas.category.empty");
 
 	private final ResourceLocation pipelineId;
 	private final String pipelineName;
@@ -57,7 +56,7 @@ public class PipelineOptionScreen extends BaseScreen {
 	private ListWidget list;
 
 	public PipelineOptionScreen(Screen parent, ResourceLocation pipelineId) {
-		super(parent, new TranslatableComponent("config.canvas.value.pipeline_config"));
+		super(parent, Component.translatable("config.canvas.value.pipeline_config"));
 		this.pipelineId = pipelineId;
 
 		final PipelineConfig config = PipelineConfigBuilder.build(pipelineId);
@@ -89,7 +88,7 @@ public class PipelineOptionScreen extends BaseScreen {
 		addRenderableWidget(list);
 
 		list.addItem(new ActionItem(pipelineName, "config.canvas.help.pipeline",
-			(x, y, w, h, m, a) -> new Buttons.BrowseButton(x, y, w, h, new TextComponent(I18n.get("config.canvas.value.pipeline") + ": " + pipelineName), a),
+			(x, y, w, h, m, a) -> new Buttons.BrowseButton(x, y, w, h, Component.literal(I18n.get("config.canvas.value.pipeline") + ": " + pipelineName), a),
 				() -> minecraft.setScreen(new PipelineSelectionScreen(this))));
 
 		if (configs.length > 0) {

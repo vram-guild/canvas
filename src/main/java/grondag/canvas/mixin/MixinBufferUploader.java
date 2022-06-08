@@ -38,36 +38,36 @@ import grondag.canvas.varia.GFX;
  */
 @Mixin(BufferUploader.class)
 public class MixinBufferUploader {
-	@Shadow private static int lastVertexArrayObject;
-	@Shadow private static int lastVertexBufferObject;
-	@Shadow private static int lastIndexBufferObject;
-	@Shadow private static VertexFormat lastFormat;
-
-	private static void retoreBindings() {
-		if (lastFormat != null) {
-			GFX.bindVertexArray(lastVertexArrayObject);
-			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, lastVertexBufferObject);
-			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, lastIndexBufferObject);
-		}
-	}
-
-	@Inject(at = @At("HEAD"), method = "reset")
-	private static void onReset(CallbackInfo ci) {
-		retoreBindings();
-	}
-
-	@Inject(at = @At("HEAD"), method = "invalidateElementArrayBufferBinding")
-	private static void onInvalidateElementArrayBufferBinding(CallbackInfo ci) {
-		retoreBindings();
-	}
-
-	@Inject(at = @At("HEAD"), method = "_end")
-	private static void onEnd(CallbackInfo ci) {
-		retoreBindings();
-	}
-
-	@Inject(at = @At("HEAD"), method = "_endInternal")
-	private static void onEndInternal(CallbackInfo ci) {
-		retoreBindings();
-	}
+//	@Shadow private static int lastVertexArrayObject;
+//	@Shadow private static int lastVertexBufferObject;
+//	@Shadow private static int lastIndexBufferObject;
+//	@Shadow private static VertexFormat lastFormat;
+//
+//	private static void retoreBindings() {
+//		if (lastFormat != null) {
+//			GFX.bindVertexArray(lastVertexArrayObject);
+//			GFX.bindBuffer(GFX.GL_ARRAY_BUFFER, lastVertexBufferObject);
+//			GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, lastIndexBufferObject);
+//		}
+//	}
+//
+//	@Inject(at = @At("HEAD"), method = "reset")
+//	private static void onReset(CallbackInfo ci) {
+//		retoreBindings();
+//	}
+//
+//	@Inject(at = @At("HEAD"), method = "invalidateElementArrayBufferBinding")
+//	private static void onInvalidateElementArrayBufferBinding(CallbackInfo ci) {
+//		retoreBindings();
+//	}
+//
+//	@Inject(at = @At("HEAD"), method = "_end")
+//	private static void onEnd(CallbackInfo ci) {
+//		retoreBindings();
+//	}
+//
+//	@Inject(at = @At("HEAD"), method = "_endInternal")
+//	private static void onEndInternal(CallbackInfo ci) {
+//		retoreBindings();
+//	}
 }

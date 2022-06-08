@@ -33,7 +33,7 @@ import grondag.canvas.mixinterface.DimensionTypeExt;
 @Mixin(DimensionType.class)
 public class MixinDimensionType implements DimensionTypeExt {
 	@Shadow @Final
-	OptionalLong fixedTime;
+	private OptionalLong fixedTime;
 
 	@Override
 	public OptionalLong canvas_fixedTime() {

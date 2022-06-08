@@ -28,12 +28,10 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 
 class Category extends ListItem {
 	private static final String NULL_KEY = "";
-	private static final Component NULL_TITLE = new TextComponent("");
+	private static final Component NULL_TITLE = Component.literal("");
 	public static final Style HEADER_STYLE = Style.EMPTY.withFont(Style.DEFAULT_FONT).withBold(true);
 
 	Category(String key) {
@@ -46,7 +44,7 @@ class Category extends ListItem {
 
 	@Override
 	protected void createWidget(int x, int y, int width, int height) {
-		add(new CategoryWidget(x, y, width, key.equals(NULL_KEY) ? NULL_TITLE : new TranslatableComponent(key).withStyle(HEADER_STYLE)));
+		add(new CategoryWidget(x, y, width, key.equals(NULL_KEY) ? NULL_TITLE : Component.translatable(key).withStyle(HEADER_STYLE)));
 	}
 
 	static class CategoryWidget extends AbstractWidget {

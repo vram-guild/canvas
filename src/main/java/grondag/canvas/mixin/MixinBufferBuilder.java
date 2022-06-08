@@ -44,66 +44,66 @@ import grondag.canvas.mixinterface.BufferBuilderExt;
  * We change state elsewhere so we save and restore this as needed.
  */
 @Mixin(BufferBuilder.class)
-public class MixinBufferBuilder implements BufferBuilderExt {
-	@Shadow private VertexFormat format;
-	@Shadow private ByteBuffer buffer;
-	@Shadow private int vertices;
-	@Shadow private int elementIndex;
-	@Shadow private boolean building;
-	@Shadow private int nextElementByte;
-	@Shadow private List<BufferBuilder.DrawState> drawStates;
-	@Shadow private int lastPoppedStateIndex;
-	@Shadow private int totalUploadedBytes;
-
-	@Shadow private void ensureCapacity(int i) { }
-
-	private ByteBuffer lastByteBuffer;
-	private IntBuffer intBuffer;
-	private boolean repeatableDraw = false;
-
-	@Override
-	public boolean canvas_canSupportDirect(VertexFormat expectedFormat) {
-		return building && format == expectedFormat && elementIndex == 0;
-	}
-
-	private IntBuffer getIntBuffer() {
-		if (buffer != lastByteBuffer) {
-			intBuffer = buffer.asIntBuffer();
-		}
-
-		return intBuffer;
-	}
-
-	@Override
-	public void canvas_putQuadDirect(int[] data) {
-		assert elementIndex == 0;
-		ensureCapacity(format.getVertexSize() * 4);
-		vertices += 4;
-		getIntBuffer().put(nextElementByte / 4, data);
-		nextElementByte += data.length * 4;
-	}
-
-	@Override
-	public void canvas_enableRepeatableDraw(boolean enable) {
-		repeatableDraw = enable;
-	}
-
-	@Inject(method = "popNextBuffer", require = 1, cancellable = true, at = @At("HEAD"))
-	private void onPopNextBuffer(CallbackInfoReturnable<Pair<BufferBuilder.DrawState, ByteBuffer>> ci) {
-		if (repeatableDraw) {
-			final BufferBuilder.DrawState drawArrayParameters = drawStates.get(lastPoppedStateIndex++);
-			buffer.position(totalUploadedBytes);
-			totalUploadedBytes += Mth.roundToward(drawArrayParameters.bufferSize(), 4);
-			buffer.limit(totalUploadedBytes);
-
-			if (lastPoppedStateIndex == drawStates.size() && vertices == 0) {
-				totalUploadedBytes = 0;
-				lastPoppedStateIndex = 0;
-			}
-
-			final ByteBuffer byteBuffer = buffer.slice();
-			buffer.clear();
-			ci.setReturnValue(Pair.of(drawArrayParameters, byteBuffer));
-		}
-	}
+public class MixinBufferBuilder /*implements BufferBuilderExt*/ {
+//	@Shadow private VertexFormat format;
+//	@Shadow private ByteBuffer buffer;
+//	@Shadow private int vertices;
+//	@Shadow private int elementIndex;
+//	@Shadow private boolean building;
+//	@Shadow private int nextElementByte;
+//	@Shadow private List<BufferBuilder.DrawState> drawStates;
+//	@Shadow private int lastPoppedStateIndex;
+//	@Shadow private int totalUploadedBytes;
+//
+//	@Shadow private void ensureCapacity(int i) { }
+//
+//	private ByteBuffer lastByteBuffer;
+//	private IntBuffer intBuffer;
+//	private boolean repeatableDraw = false;
+//
+//	@Override
+//	public boolean canvas_canSupportDirect(VertexFormat expectedFormat) {
+//		return building && format == expectedFormat && elementIndex == 0;
+//	}
+//
+//	private IntBuffer getIntBuffer() {
+//		if (buffer != lastByteBuffer) {
+//			intBuffer = buffer.asIntBuffer();
+//		}
+//
+//		return intBuffer;
+//	}
+//
+//	@Override
+//	public void canvas_putQuadDirect(int[] data) {
+//		assert elementIndex == 0;
+//		ensureCapacity(format.getVertexSize() * 4);
+//		vertices += 4;
+//		getIntBuffer().put(nextElementByte / 4, data);
+//		nextElementByte += data.length * 4;
+//	}
+//
+//	@Override
+//	public void canvas_enableRepeatableDraw(boolean enable) {
+//		repeatableDraw = enable;
+//	}
+//
+//	@Inject(method = "popNextBuffer", require = 1, cancellable = true, at = @At("HEAD"))
+//	private void onPopNextBuffer(CallbackInfoReturnable<Pair<BufferBuilder.DrawState, ByteBuffer>> ci) {
+//		if (repeatableDraw) {
+//			final BufferBuilder.DrawState drawArrayParameters = drawStates.get(lastPoppedStateIndex++);
+//			buffer.position(totalUploadedBytes);
+//			totalUploadedBytes += Mth.roundToward(drawArrayParameters.bufferSize(), 4);
+//			buffer.limit(totalUploadedBytes);
+//
+//			if (lastPoppedStateIndex == drawStates.size() && vertices == 0) {
+//				totalUploadedBytes = 0;
+//				lastPoppedStateIndex = 0;
+//			}
+//
+//			final ByteBuffer byteBuffer = buffer.slice();
+//			buffer.clear();
+//			ci.setReturnValue(Pair.of(drawArrayParameters, byteBuffer));
+//		}
+//	}
 }

@@ -73,7 +73,7 @@ public class SkyShadowRenderer {
 
 		canvasWorldRenderer.worldRenderState.renderShadowLayer(cascade);
 
-		if (Pipeline.config().skyShadow.allowEntities && Minecraft.getInstance().options.entityShadows) {
+		if (Pipeline.config().skyShadow.allowEntities && Minecraft.getInstance().options.entityShadows().get()) {
 			entityBuffer.draw(true);
 			shadowExtrasBuffer.draw(true);
 		}
@@ -82,15 +82,15 @@ public class SkyShadowRenderer {
 	/** Preserves entityShadows option state, overwriting it temporarily if needed to prevent vanilla from rendering shadows. */
 	public static void suppressEntityShadows(Minecraft mc) {
 		if (Pipeline.shadowsEnabled()) {
-			renderEntityShadows = mc.options.entityShadows;
-			mc.options.entityShadows = false;
+			renderEntityShadows = mc.options.entityShadows().get();
+			mc.options.entityShadows().set(false);
 		}
 	}
 
 	/** Restores entityShadows option state. */
 	public static void restoreEntityShadows(Minecraft mc) {
 		if (Pipeline.shadowsEnabled()) {
-			mc.options.entityShadows = renderEntityShadows;
+			mc.options.entityShadows().set(renderEntityShadows);
 		}
 	}
 

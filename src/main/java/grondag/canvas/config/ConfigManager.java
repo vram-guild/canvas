@@ -33,7 +33,6 @@ import com.google.gson.GsonBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -69,7 +68,7 @@ public class ConfigManager {
 	}
 
 	public static Component[] parse(String key) {
-		return Arrays.stream(I18n.get(key).split(";")).map(s -> new TextComponent(s)).collect(Collectors.toList()).toArray(new Component[0]);
+		return Arrays.stream(I18n.get(key).split(";")).map(s -> Component.literal(s)).collect(Collectors.toList()).toArray(new Component[0]);
 	}
 
 	public static void initPipelineOptions(OptionConfig[] options) {
@@ -183,6 +182,6 @@ public class ConfigManager {
 		String translated = I18n.get(key);
 		translated = translated.replace(";", " ");
 		translated = translated.replace("  ", " ");
-		return new TextComponent(translated);
+		return Component.literal(translated);
 	}
 }

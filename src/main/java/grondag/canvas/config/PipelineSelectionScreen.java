@@ -28,7 +28,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
 import grondag.canvas.config.gui.BaseScreen;
@@ -44,7 +44,7 @@ public class PipelineSelectionScreen extends BaseScreen {
 	private ListWidget list;
 
 	protected PipelineSelectionScreen(PipelineOptionScreen parent) {
-		super(parent, new TranslatableComponent("config.canvas.category.pipeline_selection"));
+		super(parent, Component.translatable("config.canvas.category.pipeline_selection"));
 		this.parent = parent;
 	}
 

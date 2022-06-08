@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Dynamic;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -44,11 +45,11 @@ public class MixinAnimatedTexture implements AnimatedTextureExt {
 
 	@Shadow int frame;
 	@Shadow int subFrame;
-	@Shadow List<TextureAtlasSprite.FrameInfo> frames;
-	@Shadow private int frameRowSize;
+	@Shadow @Final List<TextureAtlasSprite.FrameInfo> frames;
+	@Shadow @Final private int frameRowSize;
 
 	@Nullable
-	@Shadow private TextureAtlasSprite.InterpolationData interpolationData;
+	@Shadow @Final private TextureAtlasSprite.InterpolationData interpolationData;
 
 	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
 	private void beforeTick(CallbackInfo ci) {

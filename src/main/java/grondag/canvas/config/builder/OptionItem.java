@@ -10,14 +10,12 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 
 import grondag.canvas.config.gui.ListItem;
 
 public abstract class OptionItem<T> extends ListItem implements Option {
 	private static final int RESET_BUTTON_WIDTH = 48;
-	private static final Component RESET = new TranslatableComponent("config.canvas.reset");
+	private static final Component RESET = Component.translatable("config.canvas.reset");
 	private Button resetButton;
 	public static final Style VALUE_STYLE = Style.EMPTY.withFont(Style.DEFAULT_FONT).withColor(0xFFFF00);
 
@@ -35,11 +33,11 @@ public abstract class OptionItem<T> extends ListItem implements Option {
 	}
 
 	protected Component label(String value) {
-		return new TextComponent(label + ": ").append(new TextComponent(value).setStyle(VALUE_STYLE));
+		return Component.literal(label + ": ").append(Component.literal(value).setStyle(VALUE_STYLE));
 	}
 
 	protected Component label() {
-		return new TextComponent(label);
+		return Component.literal(label);
 	}
 
 	@Override

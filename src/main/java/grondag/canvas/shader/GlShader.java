@@ -26,11 +26,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -362,11 +364,11 @@ public class GlShader implements Shader {
 	protected static String loadShaderSource(ResourceManager resourceManager, ResourceLocation shaderSourceId) {
 		String result;
 
-		try (Resource resource = resourceManager.getResource(shaderSourceId)) {
-			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
+		try (InputStream inputStream = resourceManager.getResource(shaderSourceId).get().open()) {
+			try (Reader reader = new InputStreamReader(inputStream)) {
 				result = CharStreams.toString(reader);
 			}
-		} catch (final FileNotFoundException e) {
+		} catch (final FileNotFoundException | NoSuchElementException e) {
 			result = Pipeline.config().configSource(shaderSourceId);
 
 			if (result == null) {

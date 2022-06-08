@@ -327,7 +327,7 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(RAIN_STRENGTH, rain);
 		FLOAT_VECTOR_DATA.put(THUNDER_STRENGTH, thunder);
 
-		final float skyFlash = client.options.hideLightningFlashes ? 0.0f : Math.max(0.0f, world.getSkyFlashTime() - tickDelta);
+		final float skyFlash = client.options.hideLightningFlash().get() ? 0.0f : Math.max(0.0f, world.getSkyFlashTime() - tickDelta);
 		FLOAT_VECTOR_DATA.put(SKY_FLASH_STRENGTH, skyFlash);
 
 		// Simple exponential smoothing
@@ -411,7 +411,7 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(DELTA_RENDER_SECONDS, (currentRenderTime - lastRenderTime) / 1000f);
 		lastRenderTime = currentRenderTime;
 
-		FLOAT_VECTOR_DATA.put(VIEW_DISTANCE, client.options.renderDistance * 16);
+		FLOAT_VECTOR_DATA.put(VIEW_DISTANCE, client.options.renderDistance().get() * 16);
 
 		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS, cameraX);
 		FLOAT_VECTOR_DATA.put(VEC_LAST_CAMERA_POS + 1, cameraY);
@@ -438,7 +438,7 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(VIEW_WIDTH, PipelineManager.width());
 		FLOAT_VECTOR_DATA.put(VIEW_HEIGHT, PipelineManager.height());
 		FLOAT_VECTOR_DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
-		FLOAT_VECTOR_DATA.put(VIEW_BRIGHTNESS, (float) client.options.gamma);
+		FLOAT_VECTOR_DATA.put(VIEW_BRIGHTNESS, client.options.gamma().get().floatValue());
 
 		final ClientLevel world = client.level;
 
@@ -460,7 +460,7 @@ public class ShaderDataManager {
 			FLOAT_VECTOR_DATA.put(FOG_COLOR + 3, fogColor[3]);
 
 			if (skyLight) {
-				final long trueTickTime = ((DimensionTypeExt) world.dimensionType()).canvas_fixedTime().orElse(tickTime);
+				final long trueTickTime = ((DimensionTypeExt) (Object) world.dimensionType()).canvas_fixedTime().orElse(tickTime);
 				final boolean moonLight = computeSkylightFactor(trueTickTime);
 
 				final float skyAngle = world.getSunAngle(tickDelta);

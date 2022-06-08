@@ -23,7 +23,7 @@ package grondag.canvas.config;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 
 import grondag.canvas.config.builder.Buttons;
 import grondag.canvas.config.gui.ListItem;
@@ -49,7 +49,7 @@ public class PipelineSelectionEntry extends ListItem {
 	@Override
 	protected void createWidget(int x, int y, int width, int height) {
 		final var $this = this;
-		this.buttonWidget = new Buttons.CustomButton(x, y, width, 20, new TranslatableComponent(pipeline.nameKey),
+		this.buttonWidget = new Buttons.CustomButton(x, y, width, 20, Component.translatable(pipeline.nameKey),
 				b -> owner.onSelect($this)) {
 			@Override
 			public void renderButton(PoseStack poseStack, int i, int j, float f) {

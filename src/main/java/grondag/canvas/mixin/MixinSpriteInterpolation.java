@@ -21,6 +21,7 @@
 package grondag.canvas.mixin;
 
 import org.lwjgl.system.MemoryUtil;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -37,7 +38,7 @@ import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(TextureAtlasSprite.InterpolationData.class)
 public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
-	@Shadow private NativeImage[] activeFrame;
+	@Shadow @Final private NativeImage[] activeFrame;
 
 	@Shadow(aliases = {"this$0", "a", "field_21757"})
 	private TextureAtlasSprite parent;

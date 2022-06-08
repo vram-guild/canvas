@@ -102,7 +102,7 @@ public class WorldRenderState {
 
 	void computeDistances() {
 		@SuppressWarnings("resource")
-		int renderDistance = Minecraft.getInstance().options.renderDistance;
+		int renderDistance = Minecraft.getInstance().options.renderDistance().get();
 		chunkRenderDistance = renderDistance;
 		squaredChunkRenderDistance = renderDistance * renderDistance;
 		renderDistance += 2;

@@ -228,7 +228,7 @@ public class PipelineManager {
 			((LevelRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
 		}
 
-		mc.options.graphicsMode = Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY;
+		mc.options.graphicsMode().set(Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
 
 		debugShader = new ProcessShader("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
 		debugArrayShader = new ProcessShader("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");

@@ -45,7 +45,6 @@ import net.minecraft.Util;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Option;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.FogRenderer;
@@ -57,6 +56,7 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
@@ -145,8 +145,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 	private final LevelRendererExt vanillaWorldRenderer;
 
-	public CanvasWorldRenderer(Minecraft client, RenderBuffers bufferBuilders) {
-		super(client, bufferBuilders);
+	public CanvasWorldRenderer(Minecraft client, EntityRenderDispatcher entityRenderDispatcher, BlockEntityRenderDispatcher blockEntityRenderDispatcher, RenderBuffers bufferBuilders) {
+		super(client, entityRenderDispatcher, blockEntityRenderDispatcher, bufferBuilders);
 
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: CanvasWorldRenderer init");
@@ -210,7 +210,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		regionRebuildManager.processExternalBuildRequests();
 
-		Entity.setViewScale(Mth.clamp(mc.options.renderDistance / 8.0D, 1.0D, 2.5D));
+		Entity.setViewScale(Mth.clamp(mc.options.renderDistance().get() / 8.0D, 1.0D, 2.5D));
 
 		mc.getProfiler().popPush("update");
 
@@ -302,7 +302,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		// This does not actually render anything - what it does do is set the current clear color
 		// Color is captured via a mixin for use in shaders
-		FogRenderer.setupColor(camera, tickDelta, mc.level, mc.options.renderDistance, gameRenderer.getDarkenWorldAmount(tickDelta));
+		FogRenderer.setupColor(camera, tickDelta, mc.level, mc.options.renderDistance().get(), gameRenderer.getDarkenWorldAmount(tickDelta));
 		// We don't depend on this but call it here for compatibility
 		FogRenderer.levelFogColor();
 
@@ -313,9 +313,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		final float viewDistance = gameRenderer.getRenderDistance();
 		final boolean thickFog = mc.level.effects().isFoggyAt(Mth.floor(frameCameraX), Mth.floor(frameCameraY)) || mc.gui.getBossOverlay().shouldCreateWorldFog();
 
-		if (mc.options.renderDistance >= 4) {
+		if (mc.options.renderDistance().get() >= 4) {
 			// We call applyFog here to do some state capture - otherwise has no effect
-			FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog);
+			FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog, tickDelta);
 			ShaderDataManager.captureFogDistances();
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "sky");
 			// NB: fog / sky renderer normalcy get viewMatrixStack but we apply camera rotation in VertexBuffer mixin
@@ -323,12 +323,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 			// Mojang passes applyFog as a lambda here because they sometimes call it twice.
 			renderSky(viewMatrixStack, projectionMatrix, tickDelta, camera, thickFog, () -> {
-				FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog);
+				FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog, tickDelta);
 			});
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
-		FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog);
+		FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_TERRAIN, Math.max(viewDistance - 16.0F, 32.0F), thickFog, tickDelta);
 		ShaderDataManager.captureFogDistances();
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "terrain_setup");
@@ -339,10 +339,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		FrustumSetupListener.invoke(eventContext);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "updatechunks");
-		final int maxFps = mc.options.framerateLimit;
+		final int maxFps = mc.options.framerateLimit().get();
 		long maxFpsLimit;
 
-		if (maxFps == Option.FRAMERATE_LIMIT.getMaxValue()) {
+		// Hardcoded MC max framerate
+		if (maxFps == 260) {
 			maxFpsLimit = 0L;
 		} else {
 			maxFpsLimit = 1000000000 / maxFps;
@@ -846,7 +847,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			vanillaWorldRenderer.canvas_setupFabulousBuffers();
 		}
 
-		if (mc.options.renderDistance != worldRenderState.chunkRenderDistance()) {
+		if (mc.options.renderDistance().get() != worldRenderState.chunkRenderDistance()) {
 			allChanged();
 		}
 

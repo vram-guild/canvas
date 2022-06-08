@@ -242,7 +242,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			// depends on mvpMatrix being complete
 			extractPlanes();
 
-			viewDistanceSquared = Minecraft.getInstance().options.renderDistance * 16;
+			viewDistanceSquared = Minecraft.getInstance().options.renderDistance().get() * 16;
 			viewDistanceSquared *= viewDistanceSquared;
 
 			if (worldChangeCooldownTicks > 0.0f) {
@@ -260,11 +260,11 @@ public class TerrainFrustum extends CanvasFrustum {
 		int fovPadding = Configurator.terrainSetupOffThread ? Configurator.dynamicFrustumPadding : 0;
 
 		// avoid bobbing frust on hurt/nausea to avoid occlusion update - give sufficient padding
-		if (client.options.bobView) {
+		if (client.options.bobView().get()) {
 			fovPadding = Math.max(fovPadding, 5);
 		}
 
-		if (Mth.lerp(tickDelta, client.player.oPortalTime, client.player.portalTime) * client.options.screenEffectScale * client.options.screenEffectScale > 0) {
+		if (Mth.lerp(tickDelta, client.player.oPortalTime, client.player.portalTime) * client.options.screenEffectScale().get() * client.options.screenEffectScale().get() > 0) {
 			fovPadding = Math.max(fovPadding, 20);
 		}
 

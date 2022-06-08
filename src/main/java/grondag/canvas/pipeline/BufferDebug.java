@@ -28,7 +28,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -108,7 +108,7 @@ public class BufferDebug {
 	public static void render() {
 		while (CanvasMod.DEBUG_TOGGLE.consumeClick()) {
 			enabled = !enabled;
-			Minecraft.getInstance().player.displayClientMessage(new TextComponent("Buffer Debug Mode Toggle: " + (enabled ? "ON" : "OFF")), true);
+			Minecraft.getInstance().player.displayClientMessage(Component.literal("Buffer Debug Mode Toggle: " + (enabled ? "ON" : "OFF")), true);
 		}
 
 		if (!enabled) {
@@ -131,12 +131,12 @@ public class BufferDebug {
 
 		while (CanvasMod.DEBUG_PREV.consumeClick()) {
 			VIEWS[keyOption] = (VIEWS[keyOption] + viewCount - 1) % viewCount;
-			Minecraft.getInstance().player.displayClientMessage(new TextComponent(labels[VIEWS[keyOption]]), true);
+			Minecraft.getInstance().player.displayClientMessage(Component.literal(labels[VIEWS[keyOption]]), true);
 		}
 
 		while (CanvasMod.DEBUG_NEXT.consumeClick()) {
 			VIEWS[keyOption] = (VIEWS[keyOption] + viewCount + 1) % viewCount;
-			Minecraft.getInstance().player.displayClientMessage(new TextComponent(labels[VIEWS[keyOption]]), true);
+			Minecraft.getInstance().player.displayClientMessage(Component.literal(labels[VIEWS[keyOption]]), true);
 		}
 
 		final int n = VIEWS[keyOption];

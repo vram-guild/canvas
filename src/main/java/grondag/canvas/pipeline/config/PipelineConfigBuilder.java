@@ -21,6 +21,8 @@
 package grondag.canvas.pipeline.config;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.NoSuchElementException;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
@@ -196,27 +198,27 @@ public class PipelineConfigBuilder {
 			ResourceLocation target = queue.dequeue();
 
 			// Allow flexibility on JSON vs JSON5 extensions
-			if (!rm.hasResource(target)) {
+			if (rm.getResource(target).isEmpty()) {
 				if (target.getPath().endsWith("json5")) {
 					final var candidate = new ResourceLocation(target.getNamespace(), target.getPath().substring(0, target.getPath().length() - 1));
 
-					if (rm.hasResource(candidate)) {
+					if (rm.getResource(candidate).isPresent()) {
 						target = candidate;
 					}
 				} else if (target.getPath().endsWith("json")) {
 					final var candidate = new ResourceLocation(target.getNamespace(), target.getPath() + "5");
 
-					if (rm.hasResource(candidate)) {
+					if (rm.getResource(candidate).isPresent()) {
 						target = candidate;
 					}
 				}
 			}
 
-			try (Resource res = rm.getResource(target)) {
-				final JsonObject configJson = ConfigManager.JANKSON.load(res.getInputStream());
+			try (InputStream inputStream = rm.getResource(target).get().open()) {
+				final JsonObject configJson = ConfigManager.JANKSON.load(inputStream);
 				result.load(configJson);
 				getIncludes(configJson, included, queue);
-			} catch (final IOException e) {
+			} catch (final IOException | NoSuchElementException e) {
 				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to IOException: %s", target.toString(), e.getLocalizedMessage()));
 			} catch (final SyntaxError e) {
 				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to Syntax Error: %s", target.toString(), e.getLocalizedMessage()));

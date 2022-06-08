@@ -177,7 +177,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 		}
 
 		private int computeLocalBlendedColor(int xIn, int yIn, int zIn) {
-			final int radius = mc.options.biomeBlendRadius;
+			final int radius = mc.options.biomeBlendRadius().get();
 
 			if (radius == 0) {
 				return getLocalBaseColor(xIn, yIn, zIn);

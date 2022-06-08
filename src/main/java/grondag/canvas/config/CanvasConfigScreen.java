@@ -31,7 +31,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -55,7 +55,7 @@ public class CanvasConfigScreen extends BaseScreen {
 	private ListWidget list;
 
 	public CanvasConfigScreen(Screen parent) {
-		super(parent, new TranslatableComponent("config.canvas.title"));
+		super(parent, Component.translatable("config.canvas.title"));
 
 		reload = false;
 		reloadTimekeeper = false;
