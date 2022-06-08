@@ -23,42 +23,41 @@ package grondag.canvas.config;
 import static grondag.canvas.config.ConfigManager.Reload.RELOAD_EVERYTHING;
 import static grondag.canvas.config.ConfigManager.Reload.RELOAD_PIPELINE;
 
-import dev.lambdaurora.spruceui.Position;
-import dev.lambdaurora.spruceui.background.EmptyBackground;
-import dev.lambdaurora.spruceui.background.SimpleColorBackground;
-import dev.lambdaurora.spruceui.option.SpruceSimpleActionOption;
-import dev.lambdaurora.spruceui.screen.SpruceScreen;
-import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
-import dev.lambdaurora.spruceui.widget.container.SpruceOptionListWidget;
+import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 
 import grondag.canvas.config.builder.Buttons;
 import grondag.canvas.config.builder.OptionSession;
+import grondag.canvas.config.gui.ActionItem;
+import grondag.canvas.config.gui.BaseScreen;
+import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 
-public class PipelineOptionScreen extends SpruceScreen {
+public class PipelineOptionScreen extends BaseScreen {
 	private static final TranslatableComponent EMPTY_TEXT = new TranslatableComponent("config.canvas.category.empty");
 
 	private final ResourceLocation pipelineId;
 	private final String pipelineName;
 	private final boolean isEmpty;
 	private final OptionConfig[] configs;
-	private final Screen parent;
+	private final OptionSession optionSession = new OptionSession();
+	private ListWidget list;
 
 	public PipelineOptionScreen(Screen parent, ResourceLocation pipelineId) {
-		super(new TranslatableComponent("config.canvas.value.pipeline_config"));
-		this.parent = parent;
+		super(parent, new TranslatableComponent("config.canvas.value.pipeline_config"));
 		this.pipelineId = pipelineId;
 
 		final PipelineConfig config = PipelineConfigBuilder.build(pipelineId);
@@ -83,36 +82,35 @@ public class PipelineOptionScreen extends SpruceScreen {
 	protected void init() {
 		super.init();
 
-		OptionSession optionSession = new OptionSession();
+		int sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
+		final int rightSideW = Math.min(sideW, Math.max(0, this.width - 330 - sideW));
 
-		Buttons.sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
-		final int rightSideW = Math.min(Buttons.sideW, Math.max(0, this.width - 330 - Buttons.sideW));
+		list = new ListWidget(sideW + 2, 22 + 2, this.width - sideW - 4 - rightSideW, this.height - 35 - 22);
+		addRenderableWidget(list);
 
-		final SpruceOptionListWidget list = new SpruceOptionListWidget(Position.of(Buttons.sideW + 2, 22 + 2), this.width - Buttons.sideW - 4 - rightSideW, this.height - 35 - 22 - 2);
-		list.setBackground(new SimpleColorBackground(0xAA000000));
-		addWidget(list);
-
-		list.addSingleOptionEntry(new SpruceSimpleActionOption(pipelineName,
-			(p, w, m, a) -> Buttons.browseButton(p, w, new TextComponent(I18n.get("config.canvas.value.pipeline") + ": " + pipelineName), a),
-			b -> minecraft.setScreen(new PipelineSelectionScreen(this))));
+		list.addItem(new ActionItem(pipelineName, "config.canvas.help.pipeline",
+			(x, y, w, h, m, a) -> new Buttons.BrowseButton(x, y, w, h, new TextComponent(I18n.get("config.canvas.value.pipeline") + ": " + pipelineName), a),
+				() -> minecraft.setScreen(new PipelineSelectionScreen(this))));
 
 		if (configs.length > 0) {
-			final SpruceOptionListWidget tabs = new SpruceOptionListWidget(Position.of(1, list.getY()), Buttons.sideW, list.getHeight());
-			tabs.setBackground(EmptyBackground.EMPTY_BACKGROUND);
-			addWidget(tabs);
+			final ListWidget tabs = new ListWidget(1, list.getY(), sideW, list.getHeight(), true);
 
 			boolean top = true;
 
 			for (final OptionConfig cfg : configs) {
 				final int index = cfg.addGuiEntries(optionSession, list);
-				final int categoryY = top ? 0 : list.children().get(index).getY() - list.getY() - 2;
+				final int categoryY = top ? 0 : list.getChildScroll(index);
 				top = false;
-				tabs.addSingleOptionEntry(new SpruceSimpleActionOption(cfg.categoryKey, Buttons::sideButton, e -> list.setScrollAmount(categoryY)));
+				tabs.addItem(new ActionItem(cfg.categoryKey, Buttons.SidebarButton::new, () -> list.setScrollAmount(categoryY)));
+			}
+
+			if (sideW > 0) {
+				addRenderableWidget(tabs);
 			}
 		}
 
-		var saveButton = this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 + 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 - 1, this.height - 35 + 6), 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
+		var saveButton = this.addRenderableWidget(new Button(this.width / 2 + 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
+		this.addRenderableWidget(new Button(this.width / 2 - 120 - 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
 
 		optionSession.setSaveButton(saveButton);
 	}
@@ -129,15 +127,17 @@ public class PipelineOptionScreen extends SpruceScreen {
 	}
 
 	private void close() {
-		this.minecraft.setScreen(this.parent);
+		onClose();
 	}
 
 	@Override
-	public void renderTitle(PoseStack matrices, int mouseX, int mouseY, float delta) {
-		drawCenteredString(matrices, this.font, this.title, this.width / 2, 8, 16777215);
+	protected void renderTooltips(PoseStack poseStack, int i, int j) {
+		if (list != null) {
+			List<FormattedCharSequence> tooltip = list.getTooltip(i, j);
 
-		if (isEmpty) {
-			drawCenteredString(matrices, this.font, EMPTY_TEXT, this.width / 2, this.height / 2 - this.font.lineHeight / 2, 16777215);
+			if (tooltip != null) {
+				renderTooltip(poseStack, tooltip, i, j + 30);
+			}
 		}
 	}
 }

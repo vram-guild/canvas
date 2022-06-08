@@ -18,11 +18,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.config.builder;
+package grondag.canvas.config.gui;
 
-import grondag.canvas.config.gui.ListItem;
+import com.mojang.blaze3d.vertex.PoseStack;
 
-public interface Option {
-	void refreshResetButton();
-	ListItem listItem();
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+
+public abstract class BaseScreen extends Screen {
+	protected final Screen parent;
+
+	protected BaseScreen(Screen parent, Component component) {
+		super(component);
+		this.parent = parent;
+	}
+
+	@Override
+	public void render(PoseStack poseStack, int i, int j, float f) {
+		this.renderBackground(poseStack);
+		// drawCenteredString(poseStack, this.font, this.title, this.width / 2, 15, 16777215);
+		super.render(poseStack, i, j, f);
+		drawCenteredString(poseStack, this.font, this.title, this.width / 2, 8, 16777215);
+		renderTooltips(poseStack, i, j);
+	}
+
+	protected void renderTooltips(PoseStack poseStack, int i, int j) {
+	}
+
+	@Override
+	public void onClose() {
+		this.minecraft.setScreen(parent);
+	}
 }

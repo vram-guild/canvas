@@ -23,12 +23,11 @@ package grondag.canvas.pipeline.config.option;
 import java.util.List;
 
 import blue.endless.jankson.JsonObject;
-import dev.lambdaurora.spruceui.widget.container.SpruceOptionListWidget;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.resources.ResourceLocation;
 
-import grondag.canvas.config.builder.Categories;
+import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
@@ -102,11 +101,11 @@ public class OptionConfig extends AbstractConfig {
 		return valid;
 	}
 
-	public int addGuiEntries(OptionSession optionSession, SpruceOptionListWidget list) {
-		final int index = Categories.addTo(list, categoryKey);
+	public int addGuiEntries(OptionSession optionSession, ListWidget list) {
+		final int index = list.addCategory(categoryKey);
 
 		for (final var entry : entries) {
-			list.addSingleOptionEntry(entry.buildEntry(optionSession).spruceOption());
+			list.addItem(entry.buildEntry(optionSession).listItem());
 		}
 
 		return index;

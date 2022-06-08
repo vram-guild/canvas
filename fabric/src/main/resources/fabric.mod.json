@@ -1,49 +1,49 @@
 {
-  "schemaVersion": 1,
-  "id": "canvas",
-  "version": "${version}",
-  "name": "Canvas Renderer",
-  "description": "Minecraft Renderer for Fabric supporting the FREX API",
-  "authors": [
-	"Grondag"
-  ],
-  "contact": {
-	"homepage": "https://minecraft.curseforge.com/projects/canvas-renderer",
-	"issues": "https://github.com/grondag/canvas/issues",
-	"sources": "https://github.com/grondag/canvas"
-  },
-  "license": "LGPL-3.0",
-  "icon": "assets/canvas/canvas_icon.png",
-  "environment": "client",
-  "entrypoints": {
-	"client": [
-	  "io.vram.canvas.CanvasFabricMod"
+	"schemaVersion": 1,
+	"id": "canvas",
+	"version": "${version}",
+	"name": "Canvas Renderer",
+	"description": "Minecraft Renderer for Fabric supporting the FREX API",
+	"authors": [
+		"Grondag"
 	],
-	"preLaunch": [
-      "io.vram.canvas.CanvasFabricPreLaunch"
-    ],
-	"modmenu": [
-	  "grondag.canvas.compat.ModMenuHelper"
+	"contact": {
+		"homepage": "https://minecraft.curseforge.com/projects/canvas-renderer",
+		"issues": "https://github.com/grondag/canvas/issues",
+		"sources": "https://github.com/grondag/canvas"
+	},
+	"license": "LGPL-3.0",
+	"icon": "assets/canvas/canvas_icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"io.vram.canvas.CanvasFabricMod"
+		],
+		"preLaunch": [
+			"io.vram.canvas.CanvasFabricPreLaunch"
+		],
+		"modmenu": [
+			"grondag.canvas.compat.ModMenuHelper"
+		],
+		"jmx": [
+			"grondag.canvas.CanvasJmxInit"
+		],
+		"frex_flawless_frames": [
+			"grondag.canvas.config.FlawlessFramesController"
+		]
+	},
+	"mixins": [
+		"mixins.canvas.client.json",
+		"mixins.canvas.fabric.json"
 	],
-	"jmx": [
-	  "grondag.canvas.CanvasJmxInit"
-	],
-	"frex_flawless_frames": [
-	  "grondag.canvas.config.FlawlessFramesController"
-	]
-  },
-  "mixins": [
-	"mixins.canvas.client.json",
-	"mixins.canvas.fabric.json"
-  ],
-  "depends": {
+	"depends": {
 	"fabricloader": ">=0.14.6",
-    "minecraft": "1.18.2",
-    "java": ">=17"
-  },
-  "breaks": {
-	"sodium": "*",
-	"retino": "*"
-  },
-  "accessWidener": "canvas.accesswidener"
+		"minecraft": "1.18.2",
+		"java": ">=17"
+	},
+	"breaks": {
+		"sodium": "*",
+		"retino": "*"
+	},
+	"accessWidener": "canvas.accesswidener"
 }

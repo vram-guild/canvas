@@ -25,7 +25,6 @@ import java.util.Locale;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 
-import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.builder.Option;
 import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.pipeline.config.util.ConfigContext;
@@ -57,7 +56,7 @@ public class EnumConfigEntry extends OptionConfigEntry<EnumConfigEntry> {
 						s -> value = s,
 						defaultVal,
 						choices,
-						ConfigManager.parseTooltip(descriptionKey));
+						descriptionKey);
 	}
 
 	@Override

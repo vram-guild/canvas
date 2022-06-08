@@ -20,184 +20,203 @@
 
 package grondag.canvas.config.builder;
 
-import static grondag.canvas.config.builder.Checkbox.RESET_BUTTON_WIDTH;
-
 import java.text.DecimalFormat;
+import java.text.Format;
 import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
-import dev.lambdaurora.spruceui.option.SpruceOption;
-import dev.lambdaurora.spruceui.Position;
-import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
-import dev.lambdaurora.spruceui.option.SpruceDoubleOption;
-import dev.lambdaurora.spruceui.widget.SpruceSliderWidget;
-import dev.lambdaurora.spruceui.widget.SpruceWidget;
-import dev.lambdaurora.spruceui.widget.container.SpruceContainerWidget;
-import dev.lambdaurora.spruceui.widget.text.SpruceTextFieldWidget;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.Mth;
 
-public abstract class Slider<T> extends SpruceDoubleOption implements Option<T> {
+public class Slider<T> extends OptionItem<Double> {
+	private static final DecimalFormat INT = new DecimalFormat("0");
 	private static final DecimalFormat DECIMAL = new DecimalFormat("0.0###");
-	private static final int INPUT_WIDTH = 56;
-
-	private final double defaultVal;
-	private SpruceWidget resetButton;
-
-	Slider(String key, double min, double max, float step, Supplier<Double> getter, Consumer<Double> setter, double defaultVal, Function<SpruceDoubleOption, Component> displayStringGetter, @Nullable Component tooltip) {
-		super(key, min, max, step, getter, setter, displayStringGetter, tooltip);
-		this.defaultVal = defaultVal;
-	}
-
-	@Override
-	public SpruceWidget createWidget(Position position, int width) {
-		CustomSliderWidget slider = CustomSliderWidget.create(Position.of(position, 0, 0), width - RESET_BUTTON_WIDTH - INPUT_WIDTH - 2, this, step, new TranslatableComponent(key));
-		this.getOptionTooltip().ifPresent(slider::setTooltip);
-
-		CustomTextWidget text = new CustomTextWidget(Position.of(position, width - RESET_BUTTON_WIDTH - INPUT_WIDTH, 0), INPUT_WIDTH, this);
-
-		text.linked = slider;
-		slider.linked = text;
-
-		final var _this = this;
-		resetButton = new SpruceButtonWidget(Position.of(position, width - RESET_BUTTON_WIDTH + 2, 0), RESET_BUTTON_WIDTH - 2, slider.getHeight(), Buttons.RESET, e -> {
-			_this.set(defaultVal);
-			slider.resetDisplay(false);
-			// sometimes it's still focused, so forcing is required
-			text.resetDisplay(true);
-		});
-		refreshResetButton();
-
-		SpruceContainerWidget container = new SpruceContainerWidget(position, width, slider.getHeight());
-		container.addChild(slider);
-		container.addChild(text);
-		container.addChild(resetButton);
-
-		return container;
-	}
-
-	@Override
-	public void refreshResetButton() {
-		if (resetButton != null) resetButton.setActive(get() != defaultVal);
-	}
-
-	@Override
-	public SpruceOption spruceOption() {
-		return this;
-	}
+	private static final int INPUT_WIDTH = 60;
 
 	public static class IntSlider extends Slider<Integer> {
-		IntSlider(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable Component tooltip) {
-			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.intValue()), defaultVal, e -> new TextComponent(getter.get().toString()), tooltip);
+		IntSlider(String key, int min, int max, int step, Supplier<Integer> getter, Consumer<Integer> setter, int defaultVal, @Nullable String tooltipKey) {
+			super(key, min, max, step, INT, () -> getter.get().doubleValue(), d -> setter.accept(d.intValue()), defaultVal, tooltipKey);
+		}
+
+		@Override
+		protected boolean isInteger() {
+			return true;
 		}
 	}
 
 	public static class FloatSlider extends Slider<Float> {
-		FloatSlider(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable Component tooltip) {
-			super(key, min, max, step, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, e -> new TextComponent(DECIMAL.format(e.get())), tooltip);
+		FloatSlider(String key, float min, float max, float step, Supplier<Float> getter, Consumer<Float> setter, float defaultVal, @Nullable String tooltipKey) {
+			super(key, min, max, step, DECIMAL, () -> getter.get().doubleValue(), d -> setter.accept(d.floatValue()), defaultVal, tooltipKey);
 		}
 	}
 
-	private interface LinkedWidget {
-		void resetDisplay(boolean forced);
+	private final double min;
+	private final double max;
+	private final float step;
+	private final Format format;
+	private SliderWidget slider;
+	private NumberInput input;
+
+	Slider(String key, double min, double max, float step, Format format, Supplier<Double> getter, Consumer<Double> setter, double defaultVal, @Nullable String tooltipKey) {
+		super(key, getter, setter, defaultVal, tooltipKey);
+		this.min = min;
+		this.max = max;
+		this.step = step;
+		this.format = format;
 	}
 
-	private static class CustomSliderWidget extends SpruceSliderWidget implements LinkedWidget {
-		private final double multiplier;
-		private final SpruceDoubleOption option;
-		private LinkedWidget linked;
-
-		private static CustomSliderWidget create(Position position, int width, SpruceDoubleOption option, double step, Component label) {
-			// guard against integer overflow because why not
-			final double multiplier = Math.min((option.getMax() - option.getMin()) / step, Math.floor(Integer.MAX_VALUE / option.getMax()));
-			return new CustomSliderWidget(position, width, 20, option, multiplier, label);
-		}
-
-		private CustomSliderWidget(Position position, int width, int height, SpruceDoubleOption option, double multiplier, Component label) {
-			super(position, width, height, TextComponent.EMPTY, option.getRatio(option.get()), slider -> option.set(option.getValue(slider.getValue())), multiplier, "");
-			this.multiplier = multiplier;
-			this.option = option;
-			this.setMessage(label);
-		}
-
-		@Override
-		public void resetDisplay(boolean forced) {
-			final double realValue = option.get();
-			// set approximate only due to API limitation. this can cause rounding error
-			setIntValue((int) Math.round(option.getRatio(realValue) * multiplier));
-			// prevent rounding error
-			option.set(realValue);
-		}
-
-		@Override
-		protected void updateMessage() {
-			if (linked != null) linked.resetDisplay(false);
-		}
+	@Override
+	protected void doReset(AbstractButton button) {
+		setter.accept(defaultVal);
+		displaySlider();
+		displayEdit();
 	}
 
-	private static class CustomTextWidget extends SpruceTextFieldWidget implements LinkedWidget {
-		private final SpruceDoubleOption option;
-		private boolean lastFocus = isFocused();
-		private LinkedWidget linked;
+	protected boolean isInteger() {
+		return false;
+	}
 
-		private CustomTextWidget(Position position, int width, SpruceDoubleOption optionSource) {
-			super(position, width, 20, null);
-			option = optionSource;
-			resetDisplay(true);
-			setTextPredicate(this::inputPredicate);
-			setChangedListener(this::changedListener);
-		}
+	@Override
+	protected void createSetterWidget(int x, int y, int width, int height) {
+		slider = new SliderWidget(x, y, width - INPUT_WIDTH, height, label(), sliderRatio(getter.get()), this::applySlider);
+		input = new NumberInput(x + width - INPUT_WIDTH, y, INPUT_WIDTH, height, label(), isInteger(), min, max, this::applyInput);
+		displayEdit();
+		add(slider);
+		add(input);
+	}
 
-		private boolean inputPredicate(String s) {
+	private void applyInput() {
+		if (input != null) {
 			try {
-				if (s.equals("")) {
-					return true;
+				setter.accept(input.getNumericValue(min, max));
+			} catch (Throwable e) {
+				// NOOP
+			}
+
+			displaySlider();
+		}
+	}
+
+	private void applySlider() {
+		if (slider != null) {
+			setter.accept(sliderValue(slider.getRatio()));
+			displayEdit();
+		}
+	}
+
+	private void displaySlider() {
+		if (slider != null) {
+			slider.setRatio(sliderRatio(getter.get()));
+		}
+	}
+
+	private double sliderRatio(double value) {
+		return (value - min) / (max - min);
+	}
+
+	private double sliderValue(double ratio) {
+		return roundToStep(ratio * (max - min) + min);
+	}
+
+	private double roundToStep(double rawValue) {
+		return Math.round(rawValue / step) * step;
+	}
+
+	private void displayEdit() {
+		if (input != null) {
+			input.setText(format.format(getter.get()));
+		}
+	}
+
+	private static class SliderWidget extends AbstractSliderButton {
+		private final Runnable applyAction;
+
+		private SliderWidget(int x, int y, int width, int height, Component message, double defaultRatio, Runnable action) {
+			super(x, y, width, height, message, defaultRatio);
+			this.applyAction = action;
+		}
+
+		@Override
+		protected final void updateMessage() {
+			// We do this on the slider option
+		}
+
+		private void setRatio(double ratio) {
+			this.value = ratio;
+		}
+
+		private double getRatio() {
+			return this.value;
+		}
+
+		@Override
+		protected final void applyValue() {
+			applyAction.run();
+		}
+	}
+
+	private static class NumberInput extends EditBox implements Consumer<String>, Predicate<String> {
+		private final boolean integer;
+		private final Runnable changeAction;
+		private final double min;
+		private final double max;
+		private boolean suppressListener = false;
+
+		private NumberInput(int x, int y, int w, int h, Component message, boolean integer, double min, double max, Runnable changeAction) {
+			super(Minecraft.getInstance().font, x + 2, y + 1, w - 4, h - 2, message);
+			this.integer = integer;
+			this.changeAction = changeAction;
+			this.min = min;
+			this.max = max;
+			setFilter(this);
+			setResponder(this);
+		}
+
+		private void setText(String text) {
+			suppressListener = true;
+			setValue(text);
+			suppressListener = false;
+		}
+
+		@Override
+		public void accept(String s) {
+			if (!suppressListener) {
+				changeAction.run();
+			}
+		}
+
+		@Override
+		public boolean test(String s) {
+			if (s.equals("")) {
+				return true;
+			}
+
+			try {
+				if (integer) {
+					Integer.parseInt(s);
 				} else {
-					final double parsed = Double.parseDouble(s);
-					return parsed >= option.getMin() && parsed <= option.getMax();
+					Double.parseDouble(s);
 				}
-			} catch (Exception e) {
+
+				return true;
+			} catch (Throwable e) {
 				return false;
 			}
 		}
 
-		private void changedListener(String s) {
+		public double getNumericValue(double min, double max) {
 			try {
-				double value = Double.parseDouble(s);
-
-				if (!option.getDisplayString().getString().equals(getText())) {
-					option.set(value);
-					if (linked != null) linked.resetDisplay(false);
-				}
-			} catch (Exception ignored) {
-				// NOOP
+				return Mth.clamp(Double.parseDouble(getValue()), min, max);
+			} catch (Throwable e) {
+				return min;
 			}
-		}
-
-		@Override
-		public void resetDisplay(boolean forced) {
-			// only reset if not focused to prevent cursor glitches
-			if (!isFocused() || forced) {
-				final String display = option.getDisplayString().getString();
-				// this can cause rounding error, but it will be the most precise value the user sees either way
-				if (!display.equals(getText())) setText(display);
-			}
-		}
-
-		@Override
-		protected void renderWidget(PoseStack matrices, int mouseX, int mouseY, float delta) {
-			if (lastFocus != isFocused()) {
-				resetDisplay(false);
-				lastFocus = isFocused();
-			}
-
-			super.renderWidget(matrices, mouseX, mouseY, delta);
 		}
 	}
 }

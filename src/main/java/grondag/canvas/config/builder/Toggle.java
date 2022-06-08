@@ -20,60 +20,40 @@
 
 package grondag.canvas.config.builder;
 
-import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.network.chat.Component;
 
-public class EnumButton<T> extends OptionItem<T> {
-	private final T[] values;
-	private int cycleIndex;
-	private Button cycler;
+import grondag.canvas.config.gui.Checkbox;
 
-	EnumButton(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable String tooltipKey) {
+public class Toggle extends OptionItem<Boolean> implements Runnable {
+	private Checkbox checkbox;
+
+	public Toggle(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, Boolean defaultVal, @Nullable String tooltipKey) {
 		super(key, getter, setter, defaultVal, tooltipKey);
-		this.values = values;
-		cycleIndex = search(getter.get());
 	}
 
 	@Override
 	protected void doReset(AbstractButton button) {
-		cycleIndex = search(defaultVal);
-		set();
+		setter.accept(defaultVal);
+
+		if (checkbox != null) {
+			checkbox.changeValueSilently(defaultVal);
+		}
 	}
 
 	@Override
 	protected void createSetterWidget(int x, int y, int width, int height) {
-		cycler = new Button(x, y, width - 2, height, fullLabel(), this::onUserCycle);
-		add(cycler);
+		checkbox = new Checkbox(x, y, width, height, label(), this);
+		checkbox.changeValueSilently(getter.get());
+		add(checkbox);
 	}
 
-	private void onUserCycle(AbstractButton button) {
-		cycleIndex = (cycleIndex + 1) % values.length;
-		set();
-	}
-
-	private void set() {
-		setter.accept(values[cycleIndex]);
-		cycler.setMessage(fullLabel());
-	}
-
-	private Component fullLabel() {
-		return label(values[cycleIndex].toString().toUpperCase(Locale.ROOT));
-	}
-
-	private int search(Object key) {
-		for (int i = 0; i < values.length; i++) {
-			if (key.equals(values[i])) {
-				return i;
-			}
-		}
-
-		return -1;
+	@Override
+	public void run() {
+		setter.accept(checkbox.getValue());
 	}
 }

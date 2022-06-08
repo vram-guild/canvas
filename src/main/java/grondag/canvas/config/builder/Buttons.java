@@ -20,56 +20,59 @@
 
 package grondag.canvas.config.builder;
 
-import dev.lambdaurora.spruceui.Position;
-import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.Mth;
 
 public class Buttons {
-	public static final Component RESET = new TranslatableComponent("config.canvas.reset");
-
-	public static int sideW = 0;
-
-	public static SpruceButtonWidget sideButton(Position p, int w, Component m, SpruceButtonWidget.PressAction a) {
-		return new SidebarButton(Position.of(p, w / 2 - (Buttons.sideW - 16) / 2, 0), Buttons.sideW - 16, 20, m, a);
+	/**
+	 * Helps in deciphering button constructor params.
+	 */
+	public static Button create(int x, int y, int width, int height, Component message, Button.OnPress action) {
+		return new Button(x, y, width, height, message, action);
 	}
 
-	public static SpruceButtonWidget browseButton(Position p, int w, Component m, SpruceButtonWidget.PressAction a) {
-		return new BrowseButton(p, w, 20, m, a);
+	public static class CustomButton extends Button {
+		public CustomButton(int i, int j, int k, int l, Component component, OnPress onPress) {
+			super(i, j, k, l, component, onPress);
+		}
+
+		public void renderTitle(PoseStack poseStack, int i, int j, float f) {
+			int l = this.active ? 16777215 : 10526880;
+			Font font = Minecraft.getInstance().font;
+			drawCenteredString(poseStack, font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
+		}
 	}
 
-	public static class SidebarButton extends SpruceButtonWidget {
-		public SidebarButton(Position position, int width, int height, Component message, PressAction action) {
-			super(position, width, height, message, action);
+	public static class SidebarButton extends CustomButton {
+		public SidebarButton(int x, int y, int width, int height, Component message, Button.OnPress action) {
+			super(x, y, width, height, message, action);
 		}
 
 		@Override
-		public void renderBackground(PoseStack poseStack, int i, int j, float f) {
-			final int x = getX();
-			final int y = getY();
-
-			if (isFocusedOrHovered()) {
+		public void renderButton(PoseStack poseStack, int i, int j, float f) {
+			if (this.isHoveredOrFocused()) {
 				fill(poseStack, x, y, x + width, y + height - 3, 0x66FFFFFF);
 			}
 
 			hLine(poseStack, x, x + width - 1, y + height - 4, 0x99FFFFFF);
+
+			renderTitle(poseStack, i, j, f);
 		}
 	}
 
-	public static class MinimalistButton extends SpruceButtonWidget {
-		public MinimalistButton(Position position, int width, int height, Component message, PressAction action) {
-			super(position, width, height, message, action);
+	public static class MinimalistButton extends CustomButton {
+		public MinimalistButton(int x, int y, int width, int height, Component message, Button.OnPress action) {
+			super(x, y, width, height, message, action);
 		}
 
 		@Override
-		public void renderBackground(PoseStack poseStack, int i, int j, float f) {
-			final int x = getX();
-			final int y = getY();
-
-			if (isFocusedOrHovered()) {
+		public void renderButton(PoseStack poseStack, int i, int j, float f) {
+			if (isHoveredOrFocused()) {
 				fill(poseStack, x, y, x + width, y + height, 0x66FFFFFF);
 			}
 
@@ -77,19 +80,19 @@ public class Buttons {
 			hLine(poseStack, x, x + width - 1, y + height - 1, 0x99FFFFFF);
 			vLine(poseStack, x, y, y + height - 1, 0x99FFFFFF);
 			vLine(poseStack, x + width - 1, y, y + height - 1, 0x99FFFFFF);
+
+			renderTitle(poseStack, i, j, f);
 		}
 	}
 
-	public static class BrowseButton extends SpruceButtonWidget {
-		public BrowseButton(Position position, int width, int height, Component message, PressAction action) {
-			super(position, width, height, message, action);
+	public static class BrowseButton extends Button {
+		public BrowseButton(int x, int y, int width, int height, Component message, Button.OnPress action) {
+			super(x, y, width, height, message, action);
 		}
 
 		@Override
-		public void renderBackground(PoseStack ps, int ii, int j, float f) {
-			super.renderBackground(ps, ii, j, f);
-			final int x = getX();
-			final int y = getY();
+		public void renderButton(PoseStack ps, int ii, int j, float f) {
+			super.renderButton(ps, ii, j, f);
 			final int boxW = getHeight();
 			final int box = getHeight() / 2;
 

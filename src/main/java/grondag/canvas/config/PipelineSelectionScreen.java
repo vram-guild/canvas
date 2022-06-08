@@ -22,29 +22,29 @@ package grondag.canvas.config;
 
 import java.util.Arrays;
 import java.util.Comparator;
-
-import dev.lambdaurora.spruceui.Position;
-import dev.lambdaurora.spruceui.background.SimpleColorBackground;
-import dev.lambdaurora.spruceui.screen.SpruceScreen;
-import dev.lambdaurora.spruceui.widget.SpruceButtonWidget;
-import dev.lambdaurora.spruceui.widget.container.SpruceOptionListWidget;
+import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.FormattedCharSequence;
 
+import grondag.canvas.config.gui.BaseScreen;
+import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
 
-public class PipelineSelectionScreen extends SpruceScreen {
+public class PipelineSelectionScreen extends BaseScreen {
 	private static final Comparator<PipelineDescription> PIPELINE_SORTER = (o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.name(), o2.name());
 
 	private final PipelineOptionScreen parent;
 	private PipelineSelectionEntry selected;
+	private ListWidget list;
 
 	protected PipelineSelectionScreen(PipelineOptionScreen parent) {
-		super(new TranslatableComponent("config.canvas.category.pipeline_selection"));
+		super(parent, new TranslatableComponent("config.canvas.category.pipeline_selection"));
 		this.parent = parent;
 	}
 
@@ -54,28 +54,32 @@ public class PipelineSelectionScreen extends SpruceScreen {
 
 		final int listW = Math.min(330, this.width);
 
-		final SpruceOptionListWidget list = new SpruceOptionListWidget(Position.of(this.width / 2 - listW / 2, 22), listW, this.height - 35 - 22);
+		list = new ListWidget(this.width / 2 - listW / 2, 22, listW, this.height - 35 - 22);
 		final PipelineDescription[] pipelines = PipelineLoader.array();
 
 		Arrays.sort(pipelines, PIPELINE_SORTER);
 
 		for (PipelineDescription e: pipelines) {
 			final var entry = new PipelineSelectionEntry(e, this);
-			list.addSingleOptionEntry(entry);
+			list.addItem(entry);
 
 			if (e.id.toString().equals(Configurator.pipelineId)) {
 				changeSelection(entry);
 			}
 		}
 
-		list.setBackground(new SimpleColorBackground(0xAA000000));
-		addWidget(list);
+		addRenderableWidget(list);
 
-		this.addWidget(new SpruceButtonWidget(Position.of(this.width / 2 - 120 / 2, this.height - 35 + 6), 120, 20, CommonComponents.GUI_DONE, b -> save()));
+		this.addRenderableWidget(new Button(this.width / 2 - 120 / 2, this.height - 35 + 6, 120, 20, CommonComponents.GUI_DONE, b -> save()));
 	}
 
 	private void save() {
 		parent.switchBack(selected.pipeline.id);
+	}
+
+	@Override
+	public void onClose() {
+		save();
 	}
 
 	public void onSelect(PipelineSelectionEntry entry) {
@@ -93,7 +97,13 @@ public class PipelineSelectionScreen extends SpruceScreen {
 	}
 
 	@Override
-	public void renderTitle(PoseStack matrices, int mouseX, int mouseY, float delta) {
-		drawCenteredString(matrices, this.font, this.title, this.width / 2, 8, 16777215);
+	protected void renderTooltips(PoseStack poseStack, int i, int j) {
+		if (list != null) {
+			List<FormattedCharSequence> tooltip = list.getTooltip(i, j);
+
+			if (tooltip != null) {
+				renderTooltip(poseStack, tooltip, i, j + 30);
+			}
+		}
 	}
 }

@@ -27,7 +27,6 @@ import blue.endless.jankson.JsonPrimitive;
 
 import grondag.canvas.config.builder.Option;
 import grondag.canvas.config.builder.OptionSession;
-import grondag.canvas.config.ConfigManager;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
 
@@ -54,7 +53,7 @@ public class IntConfigEntry extends OptionConfigEntry<IntConfigEntry> {
 				() -> value,
 				i -> value = i,
 				defaultVal,
-				ConfigManager.parseTooltip(descriptionKey));
+				descriptionKey);
 	}
 
 	@Override
