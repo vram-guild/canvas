@@ -22,6 +22,9 @@ package grondag.canvas.config.gui;
 
 import java.util.List;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.util.FormattedCharSequence;
@@ -31,13 +34,50 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	public static final int ITEM_SPACING = 2; // multiples of two
 
 	private final int rowWidth;
+	private final boolean darkened;
 
-	public ListWidget(int x, int y, int width, int height) {
+	public ListWidget(int x, int y, int width, int height, boolean darkened) {
 		// The workings of these coordinates are arcane by nature
 		super(Minecraft.getInstance(), width, height + y, y, height, ITEM_HEIGHT + ITEM_SPACING);
+		setRenderBackground(false);
 		x0 = x;
 		x1 = x + width;
 		rowWidth = Math.min(300, width - 20);
+		this.darkened = darkened;
+	}
+
+	public ListWidget(int x, int y, int width, int height) {
+		this(x, y, width, height, false);
+	}
+
+	@Override
+	protected void renderBackground(PoseStack poseStack) {
+		if (darkened) {
+			fill(poseStack, x0, y0, x1, y1, 0x99000000);
+		}
+	}
+
+	@Override
+	public void render(PoseStack poseStack, int i, int j, float f) {
+		final double guiScale = Minecraft.getInstance().getWindow().getGuiScale();
+		final int x = x0;
+		final int y = y0;
+		final int width = x1 - x0;
+		final int height = y1 - y0;
+
+		RenderSystem.enableScissor((int) (guiScale * x), adaptY(y, height, guiScale), (int) (guiScale * width), (int) (guiScale * height));
+		super.render(poseStack, i, j, f);
+		RenderSystem.disableScissor();
+	}
+
+	/**
+	 * Magic taken directly from SpruceUI. MIT Licensed
+	 */
+	private static int adaptY(int y, int height, double guiScale) {
+		final var window = Minecraft.getInstance().getWindow();
+		final int tmpHeight = (int) (window.getHeight() / guiScale);
+		final int scaledHeight = window.getHeight() / guiScale > (double) tmpHeight ? tmpHeight + 1 : tmpHeight;
+		return (int) (guiScale * (scaledHeight - height - y));
 	}
 
 	@Override

@@ -93,7 +93,7 @@ public class PipelineOptionScreen extends BaseScreen {
 				() -> minecraft.setScreen(new PipelineSelectionScreen(this))));
 
 		if (configs.length > 0) {
-			final ListWidget tabs = new ListWidget(1, list.getY(), sideW, list.getHeight());
+			final ListWidget tabs = new ListWidget(1, list.getY(), sideW, list.getHeight(), true);
 
 			boolean top = true;
 

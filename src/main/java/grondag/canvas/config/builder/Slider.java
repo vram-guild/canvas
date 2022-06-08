@@ -169,7 +169,7 @@ public class Slider<T> extends OptionItem<Double> {
 		private boolean suppressListener = false;
 
 		private InputWidget(int x, int y, int w, int h, Component message, boolean integer, double min, double max, Runnable changeAction) {
-			super(Minecraft.getInstance().font, x + 2, y, w - 4, h, message);
+			super(Minecraft.getInstance().font, x + 2, y + 1, w - 4, h - 2, message);
 			this.integer = integer;
 			this.changeAction = changeAction;
 			this.min = min;

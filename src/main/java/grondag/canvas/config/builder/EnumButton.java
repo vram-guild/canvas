@@ -49,7 +49,7 @@ public class EnumButton<T> extends OptionItem<T> {
 
 	@Override
 	protected void createSetterWidget(int x, int y, int width, int height) {
-		cycler = new Button(x, y, width, height, fullLabel(), this::onUserCycle);
+		cycler = new Button(x, y, width - 2, height, fullLabel(), this::onUserCycle);
 		add(cycler);
 	}
 

@@ -460,7 +460,7 @@ public class CanvasConfigScreen extends BaseScreen {
 				"config.canvas.help.trace_texture_load").listItem());
 
 		if (sideW > 0) {
-			final ListWidget tabs = new ListWidget(1, list.getY(), sideW, list.getHeight());
+			final ListWidget tabs = new ListWidget(1, list.getY(), sideW, list.getHeight(), true);
 			addRenderableWidget(tabs);
 
 			final int featuresY = 0; // top
