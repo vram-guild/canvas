@@ -72,7 +72,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		int sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
 		final int rightSideW = Math.min(sideW, Math.max(0, this.width - 330 - sideW));
 
-		list = new ListWidget(sideW + 2, 22 + 2, this.width - sideW - 4 - rightSideW, this.height - 35);
+		list = new ListWidget(sideW + 2, 22 + 2, this.width - sideW - 4 - rightSideW, this.height - 35 - 22);
 		addRenderableWidget(list);
 
 		list.addItem(new ActionItem("config.canvas.value.pipeline_config", Buttons.BrowseButton::new,

@@ -54,7 +54,7 @@ public class PipelineSelectionScreen extends BaseScreen {
 
 		final int listW = Math.min(330, this.width);
 
-		list = new ListWidget(this.width / 2 - listW / 2, 22, listW, this.height - 35);
+		list = new ListWidget(this.width / 2 - listW / 2, 22, listW, this.height - 35 - 22);
 		final PipelineDescription[] pipelines = PipelineLoader.array();
 
 		Arrays.sort(pipelines, PIPELINE_SORTER);

@@ -33,6 +33,7 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 
 public class Slider<T> extends OptionItem<Double> {
 	private static final DecimalFormat INT = new DecimalFormat("0");
@@ -61,7 +62,7 @@ public class Slider<T> extends OptionItem<Double> {
 	private final float step;
 	private final Format format;
 	private SliderWidget slider;
-	private InputWidget input;
+	private NumberInput input;
 
 	Slider(String key, double min, double max, float step, Format format, Supplier<Double> getter, Consumer<Double> setter, double defaultVal, @Nullable String tooltipKey) {
 		super(key, getter, setter, defaultVal, tooltipKey);
@@ -85,7 +86,7 @@ public class Slider<T> extends OptionItem<Double> {
 	@Override
 	protected void createSetterWidget(int x, int y, int width, int height) {
 		slider = new SliderWidget(x, y, width - INPUT_WIDTH, height, label(), sliderRatio(getter.get()), this::applySlider);
-		input = new InputWidget(x + width - INPUT_WIDTH, y, INPUT_WIDTH, height, label(), isInteger(), min, max, this::applyInput);
+		input = new NumberInput(x + width - INPUT_WIDTH, y, INPUT_WIDTH, height, label(), isInteger(), min, max, this::applyInput);
 		displayEdit();
 		add(slider);
 		add(input);
@@ -94,7 +95,7 @@ public class Slider<T> extends OptionItem<Double> {
 	private void applyInput() {
 		if (input != null) {
 			try {
-				setter.accept(Double.parseDouble(input.getValue()));
+				setter.accept(input.getNumericValue(min, max));
 			} catch (Throwable e) {
 				// NOOP
 			}
@@ -161,14 +162,14 @@ public class Slider<T> extends OptionItem<Double> {
 		}
 	}
 
-	private static class InputWidget extends EditBox implements Consumer<String>, Predicate<String> {
+	private static class NumberInput extends EditBox implements Consumer<String>, Predicate<String> {
 		private final boolean integer;
 		private final Runnable changeAction;
 		private final double min;
 		private final double max;
 		private boolean suppressListener = false;
 
-		private InputWidget(int x, int y, int w, int h, Component message, boolean integer, double min, double max, Runnable changeAction) {
+		private NumberInput(int x, int y, int w, int h, Component message, boolean integer, double min, double max, Runnable changeAction) {
 			super(Minecraft.getInstance().font, x + 2, y + 1, w - 4, h - 2, message);
 			this.integer = integer;
 			this.changeAction = changeAction;
@@ -198,17 +199,23 @@ public class Slider<T> extends OptionItem<Double> {
 			}
 
 			try {
-				double value;
-
 				if (integer) {
-					value = Integer.parseInt(s);
+					Integer.parseInt(s);
 				} else {
-					value = Double.parseDouble(s);
+					Double.parseDouble(s);
 				}
 
-				return value >= min && value <= max;
+				return true;
 			} catch (Throwable e) {
 				return false;
+			}
+		}
+
+		public double getNumericValue(double min, double max) {
+			try {
+				return Mth.clamp(Double.parseDouble(getValue()), min, max);
+			} catch (Throwable e) {
+				return min;
 			}
 		}
 	}

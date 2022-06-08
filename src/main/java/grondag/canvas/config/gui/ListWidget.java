@@ -38,7 +38,7 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 
 	public ListWidget(int x, int y, int width, int height, boolean darkened) {
 		// The workings of these coordinates are arcane by nature
-		super(Minecraft.getInstance(), width, height + y, y, height, ITEM_HEIGHT + ITEM_SPACING);
+		super(Minecraft.getInstance(), width, height + y, y, height + y, ITEM_HEIGHT + ITEM_SPACING);
 		setRenderBackground(false);
 		x0 = x;
 		x1 = x + width;
@@ -60,9 +60,9 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	@Override
 	public void render(PoseStack poseStack, int i, int j, float f) {
 		final double guiScale = Minecraft.getInstance().getWindow().getGuiScale();
-		final int x = x0;
+		final int x = x0 - 1;
 		final int y = y0;
-		final int width = x1 - x0;
+		final int width = x1 - x0 + 2;
 		final int height = y1 - y0;
 
 		RenderSystem.enableScissor((int) (guiScale * x), adaptY(y, height, guiScale), (int) (guiScale * width), (int) (guiScale * height));
@@ -112,7 +112,7 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	}
 
 	public int getHeight() {
-		return y1;
+		return y1 - y0;
 	}
 
 	public int getChildScroll(int i) {
