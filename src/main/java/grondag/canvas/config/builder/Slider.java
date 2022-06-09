@@ -96,7 +96,7 @@ public class Slider<T> extends OptionItem<Double> {
 		if (input != null) {
 			try {
 				setter.accept(input.getNumericValue(min, max));
-			} catch (Throwable e) {
+			} catch (final Throwable e) {
 				// NOOP
 			}
 
@@ -165,10 +165,13 @@ public class Slider<T> extends OptionItem<Double> {
 	private static class NumberInput extends EditBox implements Consumer<String>, Predicate<String> {
 		private final boolean integer;
 		private final Runnable changeAction;
+		@SuppressWarnings("unused")
 		private final double min;
+		@SuppressWarnings("unused")
 		private final double max;
 		private boolean suppressListener = false;
 
+		@SuppressWarnings("resource")
 		private NumberInput(int x, int y, int w, int h, Component message, boolean integer, double min, double max, Runnable changeAction) {
 			super(Minecraft.getInstance().font, x + 2, y + 1, w - 4, h - 2, message);
 			this.integer = integer;
@@ -206,7 +209,7 @@ public class Slider<T> extends OptionItem<Double> {
 				}
 
 				return true;
-			} catch (Throwable e) {
+			} catch (final Throwable e) {
 				return false;
 			}
 		}
@@ -214,7 +217,7 @@ public class Slider<T> extends OptionItem<Double> {
 		public double getNumericValue(double min, double max) {
 			try {
 				return Mth.clamp(Double.parseDouble(getValue()), min, max);
-			} catch (Throwable e) {
+			} catch (final Throwable e) {
 				return min;
 			}
 		}

@@ -20,23 +20,25 @@
 
 package grondag.canvas.mixin;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.util.List;
+//import java.nio.ByteBuffer;
+//import java.nio.IntBuffer;
+//import java.util.List;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+//import org.spongepowered.asm.mixin.Shadow;
+//import org.spongepowered.asm.mixin.injection.At;
+//import org.spongepowered.asm.mixin.injection.Inject;
+//import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.datafixers.util.Pair;
+//import com.mojang.blaze3d.vertex.VertexFormat;
+//import com.mojang.datafixers.util.Pair;
 
-import net.minecraft.util.Mth;
+//import net.minecraft.util.Mth;
 
-import grondag.canvas.mixinterface.BufferBuilderExt;
+//import grondag.canvas.mixinterface.BufferBuilderExt;
+
+// WIP: restore or remove
 
 /**
  * BufferRenderer tends to assume nothing else has touched bindings

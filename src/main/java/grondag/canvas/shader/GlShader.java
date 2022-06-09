@@ -52,7 +52,6 @@ import org.lwjgl.system.NativeType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import io.vram.frex.api.config.ShaderConfig;

@@ -20,16 +20,18 @@
 
 package grondag.canvas.varia;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+//import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+//
+//import com.mojang.blaze3d.vertex.BufferBuilder;
+//import com.mojang.blaze3d.vertex.BufferUploader;
+//import com.mojang.blaze3d.vertex.VertexConsumer;
+//
+//import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//import net.minecraft.client.renderer.RenderType;
+//
+//import grondag.canvas.mixinterface.BufferBuilderExt;
 
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-import net.minecraft.client.renderer.RenderType;
-
-import grondag.canvas.mixinterface.BufferBuilderExt;
+// WIP: restore or remove
 
 /**
  * Meant primarily for text rendering, creates an Immediate vertex consumer

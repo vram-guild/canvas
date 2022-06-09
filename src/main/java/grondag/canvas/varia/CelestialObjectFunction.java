@@ -74,7 +74,7 @@ public interface CelestialObjectFunction {
 	// noon: fcfcfc
 	// midnight: b37676
 
-	public interface CelestialObjectInput {
+	interface CelestialObjectInput {
 		ClientLevel world();
 		float tickDelta();
 		double cameraX();

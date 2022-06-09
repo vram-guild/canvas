@@ -42,6 +42,7 @@ public abstract class ListItem extends ContainerObjectSelectionList.Entry<ListIt
 	protected final String key;
 	private final List<FormattedCharSequence> tooltip;
 
+	@SuppressWarnings("resource")
 	protected ListItem(String key, @Nullable String tooltipKey) {
 		this.key = key;
 		children = new ObjectArrayList<>(2);

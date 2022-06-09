@@ -69,7 +69,7 @@ public class CanvasConfigScreen extends BaseScreen {
 	protected void init() {
 		super.init();
 
-		int sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
+		final int sideW = (this.width - 330) >= 72 ? Math.min(120, this.width - 330) : 0;
 		final int rightSideW = Math.min(sideW, Math.max(0, this.width - 330 - sideW));
 
 		list = new ListWidget(sideW + 2, 22 + 2, this.width - sideW - 4 - rightSideW, this.height - 35 - 22);
@@ -79,6 +79,7 @@ public class CanvasConfigScreen extends BaseScreen {
 				() -> minecraft.setScreen(new PipelineOptionScreen(this, new ResourceLocation(Configurator.pipelineId)))));
 
 		// FEATURES
+		@SuppressWarnings("unused")
 		final int indexFeatures = list.addCategory("config.canvas.category.features");
 
 		list.addItem(optionSession.booleanOption("config.canvas.value.blend_fluid_colors",
@@ -477,7 +478,7 @@ public class CanvasConfigScreen extends BaseScreen {
 					Buttons.SidebarButton::new, () -> list.setScrollAmount(debugY)));
 		}
 
-		var saveButton = this.addRenderableWidget(new Button(this.width / 2 + 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
+		final var saveButton = this.addRenderableWidget(new Button(this.width / 2 + 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
 		this.addRenderableWidget(new Button(this.width / 2 - 120 - 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
 
 		optionSession.setSaveButton(saveButton);
@@ -510,7 +511,7 @@ public class CanvasConfigScreen extends BaseScreen {
 	@Override
 	protected void renderTooltips(PoseStack poseStack, int i, int j) {
 		if (list != null) {
-			List<FormattedCharSequence> tooltip = list.getTooltip(i, j);
+			final List<FormattedCharSequence> tooltip = list.getTooltip(i, j);
 
 			if (tooltip != null) {
 				// final int x = list.getRowLeft();

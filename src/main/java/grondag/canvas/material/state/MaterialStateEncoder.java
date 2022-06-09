@@ -20,7 +20,7 @@
 
 package grondag.canvas.material.state;
 
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.world.inventory.InventoryMenu;
 
 import io.vram.bitkit.BitPacker64;
 import io.vram.frex.api.material.MaterialConstants;
@@ -83,7 +83,7 @@ public abstract class MaterialStateEncoder {
 
 	static {
 		long translucentBits = R_TARGET.setValue(MaterialConstants.TARGET_TRANSLUCENT, 0);
-		translucentBits = R_TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
+		translucentBits = R_TEXTURE.setValue(TextureMaterialState.fromId(InventoryMenu.BLOCK_ATLAS).index, translucentBits);
 		translucentBits = R_BLUR.setValue(false, translucentBits);
 		translucentBits = R_TRANSPARENCY.setValue(MaterialConstants.TRANSPARENCY_TRANSLUCENT, translucentBits);
 		translucentBits = R_DEPTH_TEST.setValue(MaterialConstants.DEPTH_TEST_LEQUAL, translucentBits);
@@ -94,7 +94,7 @@ public abstract class MaterialStateEncoder {
 
 		TRANSLUCENT_TERRAIN_KEY = translucentBits;
 
-		translucentBits = R_TEXTURE.setValue(TextureMaterialState.fromId(TextureAtlas.LOCATION_BLOCKS).index, translucentBits);
+		translucentBits = R_TEXTURE.setValue(TextureMaterialState.fromId(InventoryMenu.BLOCK_ATLAS).index, translucentBits);
 		translucentBits = R_TARGET.setValue(MaterialConstants.TARGET_ENTITIES, translucentBits);
 
 		TRANSLUCENT_ENTITY_KEY = translucentBits;

@@ -39,7 +39,7 @@ import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.world.inventory.InventoryMenu;
 
 import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.material.MaterialFinder;
@@ -182,7 +182,7 @@ public class CanvasParticleRenderer {
 	}
 
 	private static final CanvasRenderMaterial RENDER_STATE_TERRAIN = (CanvasRenderMaterial) baseFinder()
-			.texture(TextureAtlas.LOCATION_BLOCKS)
+			.texture(InventoryMenu.BLOCK_ATLAS)
 			.transparency(MaterialConstants.TRANSPARENCY_DEFAULT)
 			.find();
 
@@ -193,7 +193,7 @@ public class CanvasParticleRenderer {
 	// MC has two but they are functionally identical
 	private static final CanvasRenderMaterial RENDER_STATE_OPAQUE_OR_LIT = (CanvasRenderMaterial) baseFinder()
 			.transparency(MaterialConstants.TRANSPARENCY_NONE)
-			.texture(TextureAtlas.LOCATION_PARTICLES)
+			.texture(InventoryMenu.BLOCK_ATLAS)
 			.find();
 
 	private static final CanvasRenderMaterial RENDER_STATE_OPAQUE_OR_LIT_EMISSIVE = (CanvasRenderMaterial) baseFinder().copyFrom(RENDER_STATE_OPAQUE_OR_LIT)
@@ -203,7 +203,7 @@ public class CanvasParticleRenderer {
 	private static final CanvasRenderMaterial RENDER_STATE_TRANSLUCENT = (CanvasRenderMaterial) baseFinder()
 			.cutout(MaterialConstants.CUTOUT_ZERO)
 			.transparency(MaterialConstants.TRANSPARENCY_TRANSLUCENT)
-			.texture(TextureAtlas.LOCATION_PARTICLES)
+			.texture(InventoryMenu.BLOCK_ATLAS)
 			.find();
 
 	private static final CanvasRenderMaterial RENDER_STATE_TRANSLUCENT_EMISSIVE = (CanvasRenderMaterial) baseFinder().copyFrom(RENDER_STATE_TRANSLUCENT)
