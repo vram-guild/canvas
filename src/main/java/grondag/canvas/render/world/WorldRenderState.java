@@ -120,7 +120,6 @@ public class WorldRenderState {
 		cameraVisibleRegions.clear();
 		clearDrawSpecs();
 		terrainIterator.reset();
-		terrainFrustum.onSetWorld(); // reset occlusion when dimension changes
 		renderRegionStorage.clear();
 		hasSkylight = world != null && world.dimensionType().hasSkyLight();
 		solidClusterRealm.clear();
