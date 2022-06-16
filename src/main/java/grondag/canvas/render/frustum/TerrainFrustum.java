@@ -61,8 +61,6 @@ public class TerrainFrustum extends CanvasFrustum {
 	private float lastCameraPitch = Float.MAX_VALUE;
 	private float lastCameraYaw = Float.MAX_VALUE;
 	private double fov;
-	// After changing dimension, need constant updating for a while until enough chunks load (TODO: more exact solution)
-	private float worldChangeCooldownTicks;
 
 	public void reload() {
 		lastCameraX = Double.MAX_VALUE;
@@ -89,10 +87,6 @@ public class TerrainFrustum extends CanvasFrustum {
 	 */
 	public int viewVersion() {
 		return viewVersion;
-	}
-
-	public void onSetWorld() {
-		worldChangeCooldownTicks = 200.0f;
 	}
 
 	public Vec3 lastCameraPos() {
@@ -222,7 +216,7 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		final boolean projMatrixUpdate = !projectionMatrixExt.f_equals(occlusionProjMat);
 
-		if (movedEnoughToInvalidateOcclusion || modelMatrixUpdate || projMatrixUpdate || worldChangeCooldownTicks > 0.0f) {
+		if (movedEnoughToInvalidateOcclusion || modelMatrixUpdate || projMatrixUpdate) {
 			++viewVersion;
 
 			lastCameraX = x;
@@ -245,9 +239,6 @@ public class TerrainFrustum extends CanvasFrustum {
 			viewDistanceSquared = Minecraft.getInstance().options.renderDistance * 16;
 			viewDistanceSquared *= viewDistanceSquared;
 
-			if (worldChangeCooldownTicks > 0.0f) {
-				worldChangeCooldownTicks -= tickDelta;
-			}
 
 			// compatibility with mods that expect vanilla frustum
 			super.prepare(x, y, z);
