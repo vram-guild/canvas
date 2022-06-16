@@ -63,9 +63,8 @@ public final class FloatData {
 	static final int NIGHT_VISION_STRENGTH = VEC_LAST_CAMERA_POS + 3;
 
 	// camera view vector in world space
-	// carries delta render seconds in spare slot
+	// last slot is EMPTY spare slot for now
 	static final int VEC_CAMERA_VIEW = 4 * 6;
-	static final int DELTA_RENDER_SECONDS = VEC_CAMERA_VIEW + 3;
 
 	// entity view vector in world space
 	// carries sky flash strength in spare slot

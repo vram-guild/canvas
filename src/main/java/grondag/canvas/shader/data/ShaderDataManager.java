@@ -22,7 +22,6 @@ package grondag.canvas.shader.data;
 
 import static grondag.canvas.shader.data.FloatData.AMBIENT_INTENSITY;
 import static grondag.canvas.shader.data.FloatData.ATMOSPHERIC_COLOR;
-import static grondag.canvas.shader.data.FloatData.DELTA_RENDER_SECONDS;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_BLUE;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_GREEN;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_RED;
@@ -168,7 +167,6 @@ public class ShaderDataManager {
 	private static int worldFlags;
 	private static int playerFlags;
 	static long baseRenderTime = System.currentTimeMillis();
-	static long lastRenderTime = baseRenderTime;
 	static int renderFrames = 0;
 	static double smoothedEyeLightBlock = 0;
 	static double smoothedEyeLightSky = 0;
@@ -383,7 +381,6 @@ public class ShaderDataManager {
 	 */
 	public static void reload() {
 		baseRenderTime = System.currentTimeMillis();
-		lastRenderTime = baseRenderTime;
 		renderFrames = 0;
 	}
 
@@ -408,8 +405,6 @@ public class ShaderDataManager {
 
 		long currentRenderTime = System.currentTimeMillis();
 		FLOAT_VECTOR_DATA.put(RENDER_SECONDS, (currentRenderTime - baseRenderTime) / 1000f);
-		FLOAT_VECTOR_DATA.put(DELTA_RENDER_SECONDS, (currentRenderTime - lastRenderTime) / 1000f);
-		lastRenderTime = currentRenderTime;
 
 		FLOAT_VECTOR_DATA.put(VIEW_DISTANCE, client.options.renderDistance * 16);
 
