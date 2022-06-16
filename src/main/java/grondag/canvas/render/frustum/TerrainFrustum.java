@@ -168,6 +168,10 @@ public class TerrainFrustum extends CanvasFrustum {
 		fov = src.fov;
 	}
 
+	public void invalidate() {
+		viewVersion++;
+	}
+
 	@SuppressWarnings("resource")
 	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, boolean nearOccludersPresent) {
 		final Vec3 cameraPos = camera.getPosition();

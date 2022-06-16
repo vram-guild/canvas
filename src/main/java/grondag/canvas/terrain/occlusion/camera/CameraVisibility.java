@@ -57,6 +57,13 @@ public class CameraVisibility extends AbstractVisbility<CameraVisibility, Camera
 		return occluder.frustumPositionVersion();
 	}
 
+	@Override
+	protected void invalidateOccluder() {
+		super.invalidateOccluder();
+		// the frustum needs to be invalidated too FOR SOME REASON otherwise the missing regions still won't render
+		occluder.invalidateFrustum();
+	}
+
 	public Vec3 frustumCameraPos() {
 		return occluder.frustumCameraPos();
 	}

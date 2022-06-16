@@ -63,6 +63,10 @@ public class CameraOccluder extends AbstractOccluder {
 		return occlusionFrustum.lastCameraPos();
 	}
 
+	public void invalidateFrustum() {
+		occlusionFrustum.invalidate();
+	}
+
 	@Override
 	public void prepareRegion(RegionPosition origin) {
 		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), origin.occlusionRange(), origin.squaredCameraChunkDistance());
