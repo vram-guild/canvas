@@ -243,7 +243,6 @@ public class TerrainFrustum extends CanvasFrustum {
 			viewDistanceSquared = Minecraft.getInstance().options.renderDistance().get() * 16;
 			viewDistanceSquared *= viewDistanceSquared;
 
-
 			// compatibility with mods that expect vanilla frustum
 			super.prepare(x, y, z);
 			super.calculateFrustum(modelMatrix, projectionMatrix);

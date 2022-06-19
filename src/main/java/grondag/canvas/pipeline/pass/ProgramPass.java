@@ -47,6 +47,9 @@ class ProgramPass extends Pass {
 			return;
 		}
 
+		width = config.width > 0 ? config.width : width;
+		height = config.height > 0 ? config.height : height;
+
 		fbo.bind();
 
 		final int lod = config.lod;
