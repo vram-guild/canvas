@@ -20,52 +20,7 @@
 
 package grondag.canvas.shader.data;
 
-import static grondag.canvas.shader.data.FloatData.AMBIENT_INTENSITY;
-import static grondag.canvas.shader.data.FloatData.ATMOSPHERIC_COLOR;
-import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_BLUE;
-import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_GREEN;
-import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_RED;
-import static grondag.canvas.shader.data.FloatData.EYE_LIGHT_BLOCK;
-import static grondag.canvas.shader.data.FloatData.EYE_LIGHT_SKY;
-import static grondag.canvas.shader.data.FloatData.EYE_POSITION;
-import static grondag.canvas.shader.data.FloatData.FLOAT_VECTOR_DATA;
-import static grondag.canvas.shader.data.FloatData.FOG_COLOR;
-import static grondag.canvas.shader.data.FloatData.FOG_END;
-import static grondag.canvas.shader.data.FloatData.FOG_START;
-import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_BLUE;
-import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_GREEN;
-import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_INNER_ANGLE;
-import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_INTENSITY;
-import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_OUTER_ANGLE;
-import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_RED;
-import static grondag.canvas.shader.data.FloatData.MOON_SIZE;
-import static grondag.canvas.shader.data.FloatData.NIGHT_VISION_STRENGTH;
-import static grondag.canvas.shader.data.FloatData.PLAYER_MOOD;
-import static grondag.canvas.shader.data.FloatData.RAIN_STRENGTH;
-import static grondag.canvas.shader.data.FloatData.RENDER_SECONDS;
-import static grondag.canvas.shader.data.FloatData.SKYLIGHT_COLOR;
-import static grondag.canvas.shader.data.FloatData.SKYLIGHT_ILLUMINANCE;
-import static grondag.canvas.shader.data.FloatData.SKYLIGHT_TRANSITION_FACTOR;
-import static grondag.canvas.shader.data.FloatData.SKYLIGHT_VECTOR;
-import static grondag.canvas.shader.data.FloatData.SKY_ANGLE_RADIANS;
-import static grondag.canvas.shader.data.FloatData.SKY_FLASH_STRENGTH;
-import static grondag.canvas.shader.data.FloatData.SMOOTHED_EYE_LIGHT_BLOCK;
-import static grondag.canvas.shader.data.FloatData.SMOOTHED_EYE_LIGHT_SKY;
-import static grondag.canvas.shader.data.FloatData.SMOOTHED_RAIN_STRENGTH;
-import static grondag.canvas.shader.data.FloatData.SMOOTHED_THUNDER_STRENGTH;
-import static grondag.canvas.shader.data.FloatData.THUNDER_STRENGTH;
-import static grondag.canvas.shader.data.FloatData.VEC_CAMERA_POS;
-import static grondag.canvas.shader.data.FloatData.VEC_CAMERA_VIEW;
-import static grondag.canvas.shader.data.FloatData.VEC_ENTITY_VIEW;
-import static grondag.canvas.shader.data.FloatData.VEC_LAST_CAMERA_POS;
-import static grondag.canvas.shader.data.FloatData.VEC_VANILLA_CLEAR_COLOR;
-import static grondag.canvas.shader.data.FloatData.VIEW_ASPECT;
-import static grondag.canvas.shader.data.FloatData.VIEW_BRIGHTNESS;
-import static grondag.canvas.shader.data.FloatData.VIEW_DISTANCE;
-import static grondag.canvas.shader.data.FloatData.VIEW_HEIGHT;
-import static grondag.canvas.shader.data.FloatData.VIEW_WIDTH;
-import static grondag.canvas.shader.data.FloatData.WORLD_DAYS;
-import static grondag.canvas.shader.data.FloatData.WORLD_TIME;
+import static grondag.canvas.shader.data.FloatData.*;
 import static grondag.canvas.shader.data.IntData.FLAG_ABSORPTION;
 import static grondag.canvas.shader.data.IntData.FLAG_BAD_OMEN;
 import static grondag.canvas.shader.data.IntData.FLAG_BLINDNESS;
@@ -75,6 +30,7 @@ import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_SNOW;
 import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_WATER;
 import static grondag.canvas.shader.data.IntData.FLAG_CONDUIT_POWER;
 import static grondag.canvas.shader.data.IntData.FLAG_CREATIVE;
+import static grondag.canvas.shader.data.IntData.FLAG_DARKNESS;
 import static grondag.canvas.shader.data.IntData.FLAG_DOLPHINS_GRACE;
 import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_FLUID;
 import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_LAVA;
@@ -177,6 +133,7 @@ public class ShaderDataManager {
 	static double smoothedEyeLightSky = 0;
 	static double smoothedRainStrength = 0;
 	static double smoothedThunderStrength = 0;
+	public static float darknessScale = 0f;
 
 	/** Camera view vector in world space - normalized. */
 	public static final Vector3f cameraVector = new Vector3f();
@@ -562,6 +519,8 @@ public class ShaderDataManager {
 			playerFlags = FLAG_DOLPHINS_GRACE.setValue(client.player.hasEffect(MobEffects.DOLPHINS_GRACE), playerFlags);
 			playerFlags = FLAG_BAD_OMEN.setValue(client.player.hasEffect(MobEffects.BAD_OMEN), playerFlags);
 			playerFlags = FLAG_HERO_OF_THE_VILLAGE.setValue(client.player.hasEffect(MobEffects.HERO_OF_THE_VILLAGE), playerFlags);
+			// is in world flags because player flags is full
+			worldFlags = FLAG_DARKNESS.setValue(player.hasEffect(MobEffects.DARKNESS), worldFlags);
 
 			if (world.dimension() == Level.OVERWORLD) {
 				worldFlags = FLAG_IS_OVERWORLD.setValue(true, worldFlags);
@@ -604,6 +563,7 @@ public class ShaderDataManager {
 
 			FLOAT_VECTOR_DATA.put(AMBIENT_INTENSITY, world.getSkyDarken(1.0F));
 			FLOAT_VECTOR_DATA.put(MOON_SIZE, world.getMoonBrightness());
+			FLOAT_VECTOR_DATA.put(DARKNESS_FACTOR, Mth.clamp(1.0f - darknessScale / 0.45f, 0.0f, 1.0f));
 
 			final float fluidModifier = client.player.getWaterVision();
 

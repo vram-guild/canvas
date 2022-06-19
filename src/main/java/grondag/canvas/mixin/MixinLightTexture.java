@@ -20,13 +20,16 @@
 
 package grondag.canvas.mixin;
 
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import net.minecraft.client.renderer.LightTexture;
 
 import grondag.canvas.shader.data.ShaderDataManager;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(LightTexture.class)
 public abstract class MixinLightTexture {
@@ -38,4 +41,13 @@ public abstract class MixinLightTexture {
 
 		return color;
 	}
+
+	@Redirect(method = "updateLightTexture", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LightTexture;calculateDarknessScale(Lnet/minecraft/world/entity/LivingEntity;FF)F"))
+	private float captureDarknessScale(LightTexture instance, LivingEntity livingEntity, float f, float g) {
+		ShaderDataManager.darknessScale = calculateDarknessScale(livingEntity, f, g);
+		return ShaderDataManager.darknessScale;
+	}
+
+	@Shadow
+	protected abstract float calculateDarknessScale(LivingEntity livingEntity, float f, float g);
 }

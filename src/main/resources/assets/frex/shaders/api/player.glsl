@@ -60,6 +60,8 @@
 #define frx_playerWet _CV_PLAYER_FLAG(20)
 #define frx_playerEyeInSnow _CV_PLAYER_FLAG(26)
 #define frx_playerIsFreezing _CV_PLAYER_FLAG(27)
+// Effects continuation since effect flags is full
+#define frx_effectDarkness _CV_PLAYER_FLAG(28)
 
 #define frx_playerMood _cvu_world[_CV_CAMERA_POS].w
 #define frx_eyePos _cvu_world[_CV_EYE_POSITION].xyz

@@ -68,6 +68,8 @@ public final class IntData {
 	static final BitPacker32<Void>.BooleanElement FLAG_CAMERA_IN_SNOW = WORLD_FLAGS.createBooleanElement();
 	static final BitPacker32<Void>.BooleanElement FLAG_EYE_IN_SNOW = WORLD_FLAGS.createBooleanElement();
 	static final BitPacker32<Void>.BooleanElement FLAG_IS_FREEZING = WORLD_FLAGS.createBooleanElement();
+	// Effect continuation because player flags is full
+	static final BitPacker32<Void>.BooleanElement FLAG_DARKNESS = WORLD_FLAGS.createBooleanElement();
 
 	static final BitPacker32<Void> PLAYER_FLAGS = new BitPacker32<>(null, null);
 	static final BitPacker32<Void>.BooleanElement FLAG_SPEED = PLAYER_FLAGS.createBooleanElement();
