@@ -71,12 +71,14 @@ import static grondag.canvas.shader.data.IntData.FLAG_BAD_OMEN;
 import static grondag.canvas.shader.data.IntData.FLAG_BLINDNESS;
 import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_FLUID;
 import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_LAVA;
+import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_SNOW;
 import static grondag.canvas.shader.data.IntData.FLAG_CAMERA_IN_WATER;
 import static grondag.canvas.shader.data.IntData.FLAG_CONDUIT_POWER;
 import static grondag.canvas.shader.data.IntData.FLAG_CREATIVE;
 import static grondag.canvas.shader.data.IntData.FLAG_DOLPHINS_GRACE;
 import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_FLUID;
 import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_LAVA;
+import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_SNOW;
 import static grondag.canvas.shader.data.IntData.FLAG_EYE_IN_WATER;
 import static grondag.canvas.shader.data.IntData.FLAG_FIRE_RESISTANCE;
 import static grondag.canvas.shader.data.IntData.FLAG_GLOWING;
@@ -89,6 +91,7 @@ import static grondag.canvas.shader.data.IntData.FLAG_INSTANT_DAMAGE;
 import static grondag.canvas.shader.data.IntData.FLAG_INSTANT_HEALTH;
 import static grondag.canvas.shader.data.IntData.FLAG_INVISIBILITY;
 import static grondag.canvas.shader.data.IntData.FLAG_IS_END;
+import static grondag.canvas.shader.data.IntData.FLAG_IS_FREEZING;
 import static grondag.canvas.shader.data.IntData.FLAG_IS_NETHER;
 import static grondag.canvas.shader.data.IntData.FLAG_IS_OVERWORLD;
 import static grondag.canvas.shader.data.IntData.FLAG_IS_RAINING;
@@ -147,6 +150,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
@@ -251,6 +256,7 @@ public class ShaderDataManager {
 				worldFlags = FLAG_EYE_IN_FLUID.setValue(false, worldFlags);
 				worldFlags = FLAG_EYE_IN_WATER.setValue(false, worldFlags);
 				worldFlags = FLAG_EYE_IN_LAVA.setValue(false, worldFlags);
+				worldFlags = FLAG_EYE_IN_SNOW.setValue(false, worldFlags);
 			}
 		}
 
@@ -291,6 +297,9 @@ public class ShaderDataManager {
 				}
 			}
 		}
+
+		final BlockState blockState = world.getBlockState(eyePos);
+		worldFlags = FLAG_EYE_IN_SNOW.setValue(blockState.is(Blocks.POWDER_SNOW), worldFlags);
 	}
 
 	private static void computeCameraFlags(ClientLevel world, Camera camera) {
@@ -312,10 +321,14 @@ public class ShaderDataManager {
 					}
 				}
 			}
+
+			final BlockState blockState = world.getBlockState(cameraBlockPos);
+			worldFlags = FLAG_CAMERA_IN_SNOW.setValue(blockState.is(Blocks.POWDER_SNOW), worldFlags);
 		} else {
 			worldFlags = FLAG_CAMERA_IN_FLUID.setValue(false, worldFlags);
 			worldFlags = FLAG_CAMERA_IN_WATER.setValue(false, worldFlags);
 			worldFlags = FLAG_CAMERA_IN_LAVA.setValue(false, worldFlags);
+			worldFlags = FLAG_CAMERA_IN_SNOW.setValue(false, worldFlags);
 		}
 	}
 
@@ -513,6 +526,7 @@ public class ShaderDataManager {
 			worldFlags = FLAG_SLEEPING.setValue(player.isSleeping(), worldFlags);
 			worldFlags = FLAG_SPRINTING.setValue(player.isSprinting(), worldFlags);
 			worldFlags = FLAG_WET.setValue(player.isInWaterRainOrBubble(), worldFlags);
+			worldFlags = FLAG_IS_FREEZING.setValue(player.isFreezing(), worldFlags);
 
 			final boolean nightVision = player != null && client.player.hasEffect(MobEffects.NIGHT_VISION);
 
