@@ -58,6 +58,8 @@
 #define frx_playerSleeping _CV_PLAYER_FLAG(18)
 #define frx_playerSprinting _CV_PLAYER_FLAG(19)
 #define frx_playerWet _CV_PLAYER_FLAG(20)
+#define frx_playerEyeInSnow _CV_PLAYER_FLAG(26)
+#define frx_playerIsFreezing _CV_PLAYER_FLAG(27)
 
 #define frx_playerMood _cvu_world[_CV_CAMERA_POS].w
 #define frx_eyePos _cvu_world[_CV_EYE_POSITION].xyz
