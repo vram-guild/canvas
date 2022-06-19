@@ -40,6 +40,10 @@ public class PassConfig extends NamedConfig<PassConfig> {
 	// for computing size
 	public final int lod;
 	public final int layer;
+	/** 0 if tied to window size. value before lod is applied */
+	public final int width;
+	/** 0 if tied to window size. value before lod is applied */
+	public final int height;
 
 	//	// For blit operations
 	//	public final String sourceFrameBufferName;
@@ -71,6 +75,8 @@ public class PassConfig extends NamedConfig<PassConfig> {
 
 		lod = config.getInt("lod", 0);
 		layer = config.getInt("layer", 0);
+		width = config.getInt("width", 0);
+		height = config.getInt("height", 0);
 
 		if (!config.containsKey("samplerImages")) {
 			samplerImages = new NamedDependency[0];

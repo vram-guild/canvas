@@ -80,9 +80,11 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 		lod = config.getInt("lod", 0);
 		pixelFormat = GlSymbolLookup.lookup(config, "pixelFormat", "RGBA");
 		pixelDataType = GlSymbolLookup.lookup(config, "pixelDataType", "UNSIGNED_BYTE");
-		width = config.getInt("size", 0);
 		depth = config.getInt("depth", 1);
-		height = width;
+
+		final int size = config.getInt("size", 0);
+		width = config.getInt("width", size);
+		height = config.getInt("height", size);
 
 		if (!config.containsKey("texParams")) {
 			texParamPairs = new int[0];
