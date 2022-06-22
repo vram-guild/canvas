@@ -29,6 +29,7 @@ import grondag.canvas.render.terrain.cluster.ClusteredDrawableStorage;
 import grondag.canvas.render.terrain.cluster.Slab;
 import grondag.canvas.render.terrain.cluster.VertexCluster;
 import grondag.canvas.render.terrain.cluster.VertexCluster.RegionAllocation.SlabAllocation;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.varia.GFX;
 
 public class ClusterDrawList {
@@ -101,7 +102,7 @@ public class ClusterDrawList {
 		int quadCount = 0;
 
 		for (final var list: map.values()) {
-			quadCount += DrawSpecBuilder.build(list, drawSpecs, owner.isShadowMap, Configurator.cullBackfacingTerrain);
+			quadCount += DrawSpecBuilder.build(list, drawSpecs, owner.isShadowMap, Configurator.cullBackfacingTerrain && (!owner.isShadowMap || Configurator.shadowFaceCulling != SkyShadowRenderer.Culling.NONE));
 		}
 
 		this.quadCount = quadCount;

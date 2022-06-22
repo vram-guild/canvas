@@ -27,6 +27,7 @@ import net.minecraft.util.Mth;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 public class Configurator {
@@ -57,8 +58,10 @@ public class Configurator {
 	public static boolean preprocessShaderSource = DEFAULTS.preprocessShaderSource;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static TerrainIterator.ShadowPriming shadowPrimingStrategy = DEFAULTS.shadowPrimingStrategy;
-	// TODO: this is only used in priming, use it elsewhere needed too.
+	// TODO: TEMPORARY, make into pipeline configuration
 	public static int shadowMaxDistance = DEFAULTS.shadowMaxDistance;
+	// TODO: TEMPORARY, make into pipeline configuration
+	public static SkyShadowRenderer.Culling shadowFaceCulling = DEFAULTS.shadowFaceCulling;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -144,6 +147,7 @@ public class Configurator {
 		// lightmapDebug = config.lightmapDebug;
 		shadowPrimingStrategy = config.shadowPrimingStrategy;
 		shadowMaxDistance = config.shadowMaxDistance;
+		shadowFaceCulling = config.shadowFaceCulling;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -207,6 +211,7 @@ public class Configurator {
 		// config.lightmapDebug = lightmapDebug;
 		config.shadowPrimingStrategy = shadowPrimingStrategy;
 		config.shadowMaxDistance = shadowMaxDistance;
+		config.shadowFaceCulling = shadowFaceCulling;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;

@@ -25,6 +25,7 @@ import blue.endless.jankson.Comment;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 class ConfigData {
@@ -82,8 +83,10 @@ class ConfigData {
 	boolean useCombinedThreadPool = false;
 	@Comment("Strategy used to prime shadow regions. Tiered has fewer gaps but is more expensive, while Padded is slightly cleverer than Naive.")
 	TerrainIterator.ShadowPriming shadowPrimingStrategy = TerrainIterator.ShadowPriming.PADDED;
-	@Comment("Maximum shadow render distance to be compared against render distance. TEMPORARY config meant to be promoted into pipeline options eventually.")
+	@Comment("Maximum shadow render distance to be compared against render distance. TEMPORARY, meant to become a pipeline configuration.")
 	int shadowMaxDistance = 32;
+	@Comment("Face culling mode for depth pass rendering. TEMPORARY, meant to become a pipeline configuration.")
+	SkyShadowRenderer.Culling shadowFaceCulling = SkyShadowRenderer.Culling.BACK;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
 	boolean steadyDebugScreen = true;
 	@Comment("When true, animated sprites not in view are not updated. Improves frame rate.")

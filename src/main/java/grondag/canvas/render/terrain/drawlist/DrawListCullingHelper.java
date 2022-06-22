@@ -24,6 +24,8 @@ import net.minecraft.core.BlockPos;
 
 import io.vram.frex.api.model.util.FaceUtil;
 
+import grondag.canvas.config.Configurator;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
 
@@ -55,9 +57,16 @@ public class DrawListCullingHelper {
 		northMinZ = z - 1;
 
 		shadowFlags = FaceUtil.UNASSIGNED_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.x() > 0 ? FaceUtil.EAST_FLAG : FaceUtil.WEST_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.y() > 0 ? FaceUtil.UP_FLAG : FaceUtil.DOWN_FLAG;
-		shadowFlags |= ShaderDataManager.skyLightVector.z() > 0 ? FaceUtil.SOUTH_FLAG : FaceUtil.NORTH_FLAG;
+
+		if (Configurator.shadowFaceCulling == SkyShadowRenderer.Culling.FRONT) {
+			shadowFlags |= ShaderDataManager.skyLightVector.x() <= 0 ? FaceUtil.EAST_FLAG : FaceUtil.WEST_FLAG;
+			shadowFlags |= ShaderDataManager.skyLightVector.y() <= 0 ? FaceUtil.UP_FLAG : FaceUtil.DOWN_FLAG;
+			shadowFlags |= ShaderDataManager.skyLightVector.z() <= 0 ? FaceUtil.SOUTH_FLAG : FaceUtil.NORTH_FLAG;
+		} else {
+			shadowFlags |= ShaderDataManager.skyLightVector.x() > 0 ? FaceUtil.EAST_FLAG : FaceUtil.WEST_FLAG;
+			shadowFlags |= ShaderDataManager.skyLightVector.y() > 0 ? FaceUtil.UP_FLAG : FaceUtil.DOWN_FLAG;
+			shadowFlags |= ShaderDataManager.skyLightVector.z() > 0 ? FaceUtil.SOUTH_FLAG : FaceUtil.NORTH_FLAG;
+		}
 	}
 
 	/** Flag 6 (unassigned) will always be set. */

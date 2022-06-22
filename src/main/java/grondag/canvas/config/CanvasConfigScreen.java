@@ -42,6 +42,7 @@ import grondag.canvas.config.gui.ActionItem;
 import grondag.canvas.config.gui.BaseScreen;
 import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.perf.Timekeeper;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 public class CanvasConfigScreen extends BaseScreen {
@@ -299,6 +300,16 @@ public class CanvasConfigScreen extends BaseScreen {
 				i -> editing.shadowMaxDistance = i,
 				DEFAULTS.shadowMaxDistance,
 				"config.canvas.help.shadow_max_distance").listItem());
+
+		list.addItem(optionSession.enumOption("config.canvas.value.shadow_face_culling",
+				() -> editing.shadowFaceCulling,
+				e -> {
+					reload |= Configurator.shadowFaceCulling != e;
+					editing.shadowFaceCulling = e;
+				},
+				DEFAULTS.shadowFaceCulling,
+				SkyShadowRenderer.Culling.class,
+				"config.canvas.help.shadow_face_culling").listItem());
 
 		list.addItem(optionSession.booleanOption("config.canvas.value.shader_debug",
 				() -> editing.shaderDebug,
