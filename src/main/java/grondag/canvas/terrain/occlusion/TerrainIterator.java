@@ -77,6 +77,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 	 */
 	private long cameraChunkOrigin;
 	private int renderDistance;
+	private int effectiveDistance;
 	private boolean chunkCullingEnabled = true;
 	private volatile boolean cancelled = false;
 	private boolean resetCameraOccluder;
@@ -108,6 +109,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 		cameraChunkOrigin = RenderRegionIndexer.blockPosToRegionOrigin(cameraBlockPos);
 		regionBoundingSphere.update(renderDistance);
 		this.renderDistance = renderDistance;
+		// TODO: account for local render distance being higher than server render distance without (e.g.) Bobby installed
+		effectiveDistance = Math.min(Configurator.shadowMaxDistance, renderDistance);
 		cameraVisibility.updateView(frustum, cameraChunkOrigin);
 
 		if (worldRenderState.shadowsEnabled()) {
@@ -463,7 +466,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 	}
 
 	private abstract class ShadowPrimer {
-		protected int effectiveDistance;
 		protected RenderRegionStorage regionStorage;
 		protected int y;
 		protected int x;
@@ -472,8 +474,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 		protected int yMax;
 
 		void primeShadowRegions() {
-			// TODO: account for local render distance being higher than server render distance without (e.g.) Bobby installed
-			effectiveDistance = Math.min(Configurator.shadowMaxDistance, renderDistance);
 			regionStorage = worldRenderState.renderRegionStorage;
 			y = BlockPos.getY(cameraChunkOrigin);
 			x = BlockPos.getX(cameraChunkOrigin);
@@ -573,6 +573,14 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private void iterateShadows() {
 		final boolean flawless = FlawlessFrames.isActive();
 
+		// this is for limiting shadow distance per canvas/pipeline configuration
+
+		// intentionally cube rather than sphere shaped
+		// final int blockDistance = effectiveDistance * 16;
+
+		// sphere shaped, faster but covers less area (? from testing it covers slightly wider area)
+		final int squaredChunkRadius = effectiveDistance * effectiveDistance;
+
 		while (!cancelled) {
 			final ShadowRegionVisibility state = shadowVisibility.next();
 
@@ -584,6 +592,14 @@ public class TerrainIterator implements TerrainExecutorTask {
 			assert region.origin.isPotentiallyVisibleFromSkylight();
 			assert region.renderChunk.areCornersLoaded();
 			assert !region.isClosed();
+
+			//	if (Math.abs(region.origin.cameraRelativeCenterX()) > blockDistance ||
+			//		Math.abs(region.origin.cameraRelativeCenterY()) > blockDistance ||
+			//		Math.abs(region.origin.cameraRelativeCenterZ()) > blockDistance) {
+
+			if (region.origin.squaredCameraChunkDistance() > squaredChunkRadius) {
+				continue;
+			}
 
 			// Use build data for visibility - render data lags in availability and should only be used for rendering
 			RegionBuildState buildState = region.getBuildState();
