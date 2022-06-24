@@ -19,7 +19,6 @@
 #define frx_skyLightTransitionFactor _cvu_world[_CV_ATMOSPEHRIC_COLOR].w
 #define frx_skyFlashStrength _cvu_world[_CV_ENTITY_VIEW].w
 #define frx_ambientIntensity _cvu_world[_CV_AMBIENT_LIGHT].a
-#define frx_darknessFactor _cvu_world[_CV_CAMERA_VIEW].w
 #define frx_emissiveColor vec4(_cvu_world[_CV_AMBIENT_LIGHT].rgb, 1.0)
 #define frx_rainGradient _cvu_world[_CV_WEATHER].x
 #define frx_thunderGradient _cvu_world[_CV_WEATHER].y
