@@ -5,6 +5,7 @@
  ***************************************************************/
 
 #define frx_effectModifier _cvu_world[_CV_LAST_CAMERA_POS].w
+#define frx_darknessEffectFactor _cvu_world[_CV_CAMERA_VIEW].w
 #define frx_heldLight _cvu_world[_CV_HELD_LIGHT_RGBI]
 #define frx_heldLightInnerRadius _cvu_world[_CV_RENDER_INFO].z
 #define frx_heldLightOuterRadius _cvu_world[_CV_RENDER_INFO].w
