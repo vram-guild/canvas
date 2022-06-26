@@ -178,6 +178,11 @@ public final class RenderState {
 
 		GFX.enable(GFX.GL_POLYGON_OFFSET_FILL);
 		GFX.polygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
+
+		switch (Configurator.shadowFaceCulling) {
+			case FRONT -> GFX.glCullFace(GFX.GL_FRONT);
+			case BACK -> GFX.glCullFace(GFX.GL_BACK);
+		}
 	}
 
 	private void enableMaterial(int x, int y, int z) {

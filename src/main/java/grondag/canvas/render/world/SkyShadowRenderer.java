@@ -25,7 +25,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 
 import grondag.canvas.buffer.util.DrawableStream;
-import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
@@ -47,18 +46,12 @@ public class SkyShadowRenderer {
 		active = true;
 		final int size = Pipeline.skyShadowSize;
 		RenderSystem.viewport(0, 0, size, size);
-
-		switch (Configurator.shadowFaceCulling) {
-			case FRONT -> GFX.glCullFace(GFX.GL_FRONT);
-			case BACK -> GFX.glCullFace(GFX.GL_BACK);
-		}
 	}
 
 	private static void end() {
 		assert active;
 		active = false;
 		RenderSystem.viewport(0, 0, PipelineManager.width(), PipelineManager.height());
-		GFX.glCullFace(GFX.GL_BACK);
 	}
 
 	public static boolean isActive() {
