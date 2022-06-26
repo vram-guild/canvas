@@ -547,17 +547,16 @@ public class TerrainIterator implements TerrainExecutorTask {
 	private final ShadowPrimer paddedStrategy = new ShadowPrimer() {
 		@Override
 		protected void doPriming() {
-			// Larger render distance tend to have larger gaps at the edge so we apply the padding in a tiered way
-			// 1~4 -> 0
-			// 5~8 -> 1
-			// 9~16 -> 2
-			// 17~32 -> 3
-			final int padding = (int) (Math.log(effectiveDistance) / Math.log(2)) - 2;
+			// prime edge
+			primeShadowRadius(effectiveDistance);
 
-			primeShadowRadius(effectiveDistance - padding);
+			// prime with padding to represent loading zone
+			if (effectiveDistance > 4) {
+				primeShadowRadius(effectiveDistance - 1);
+			}
 
-			// Also prime nearby chunks because we're smarter than that
-			if (effectiveDistance - padding > 4) {
+			// prime nearby chunks for quicker shadows before the chunks load
+			if (effectiveDistance > 5) {
 				primeShadowRadius(4);
 			}
 		}
@@ -595,7 +594,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			//	if (Math.abs(region.origin.cameraRelativeCenterX()) > blockDistance ||
 			//		Math.abs(region.origin.cameraRelativeCenterY()) > blockDistance ||
-			//		Math.abs(region.origin.cameraRelativeCenterZ()) > blockDistance) {
+			//		Math.abs(region.origin.cameraRelativeCenterZ()) > blockDistance)
 
 			if (region.origin.squaredCameraChunkDistance() > squaredChunkRadius) {
 				continue;
