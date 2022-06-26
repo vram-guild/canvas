@@ -311,6 +311,12 @@ public class CanvasConfigScreen extends BaseScreen {
 				SkyShadowRenderer.Culling.class,
 				"config.canvas.help.shadow_face_culling").listItem());
 
+		list.addItem(optionSession.booleanOption("config.canvas.value.static_shadow_center",
+				() -> editing.staticShadowCenter,
+				b -> editing.staticShadowCenter = b,
+				DEFAULTS.staticShadowCenter,
+				"config.canvas.help.static_shadow_center").listItem());
+
 		list.addItem(optionSession.booleanOption("config.canvas.value.shader_debug",
 				() -> editing.shaderDebug,
 				b -> editing.shaderDebug = b,

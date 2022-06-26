@@ -58,10 +58,11 @@ public class Configurator {
 	public static boolean preprocessShaderSource = DEFAULTS.preprocessShaderSource;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static TerrainIterator.ShadowPriming shadowPrimingStrategy = DEFAULTS.shadowPrimingStrategy;
-	// TODO: TEMPORARY, make into pipeline configuration
+	// TODO: TEMPORARY, make into pipeline configuration -> this could be the 0th cascade distance
 	public static int shadowMaxDistance = DEFAULTS.shadowMaxDistance;
-	// TODO: TEMPORARY, make into pipeline configuration
+	// TODO: TEMPORARY, make into pipeline configuration -> for now only BACK and NONE are good options btw
 	public static SkyShadowRenderer.Culling shadowFaceCulling = DEFAULTS.shadowFaceCulling;
+	public static boolean staticShadowCenter = DEFAULTS.staticShadowCenter;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -148,6 +149,7 @@ public class Configurator {
 		shadowPrimingStrategy = config.shadowPrimingStrategy;
 		shadowMaxDistance = config.shadowMaxDistance;
 		shadowFaceCulling = config.shadowFaceCulling;
+		staticShadowCenter = config.staticShadowCenter;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -212,6 +214,7 @@ public class Configurator {
 		config.shadowPrimingStrategy = shadowPrimingStrategy;
 		config.shadowMaxDistance = shadowMaxDistance;
 		config.shadowFaceCulling = shadowFaceCulling;
+		config.staticShadowCenter = staticShadowCenter;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;

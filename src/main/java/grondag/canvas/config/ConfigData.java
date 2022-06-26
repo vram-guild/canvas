@@ -87,6 +87,8 @@ class ConfigData {
 	int shadowMaxDistance = 32;
 	@Comment("Face culling mode for depth pass rendering. TEMPORARY, meant to become a pipeline configuration.")
 	SkyShadowRenderer.Culling shadowFaceCulling = SkyShadowRenderer.Culling.BACK;
+	@Comment("Center shadow map to the camera instead of the approximated center of the camera frustum.")
+	boolean staticShadowCenter = false;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
 	boolean steadyDebugScreen = true;
 	@Comment("When true, animated sprites not in view are not updated. Improves frame rate.")
