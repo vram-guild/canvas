@@ -580,8 +580,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 		// sphere shaped, faster but covers less area (? from testing it covers slightly wider area)
 		final int squaredChunkRadius = effectiveDistance * effectiveDistance;
 
-		final int squaredNearChunkRadius = Configurator.forceShadowNearCamera * Configurator.forceShadowNearCamera;
-
 		while (!cancelled) {
 			final ShadowRegionVisibility state = shadowVisibility.next();
 
@@ -663,12 +661,9 @@ public class TerrainIterator implements TerrainExecutorTask {
 			// If we get to here, region is not empty
 
 			shadowVisibility.prepareRegion(region.origin);
-
-			final boolean isForced = region.origin.squaredCameraChunkDistance() < squaredNearChunkRadius;
-
 			final int[] occlusionData = buildState.getOcclusionResult().occlusionData();
 
-			if (isForced || shadowVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX], 0)) {
+			if (shadowVisibility.isBoxVisible(occlusionData[RegionOcclusionCalculator.OCCLUSION_RESULT_RENDERABLE_BOUNDS_INDEX], 0)) {
 				region.neighbors.enqueueUnvistedShadowNeighbors();
 				addShadowRegion(region);
 				state.setOcclusionStatus(OcclusionStatus.REGION_VISIBLE);

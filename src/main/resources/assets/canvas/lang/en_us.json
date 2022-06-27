@@ -101,6 +101,8 @@
   "config.canvas.help.static_shadow_center": "Center shadow map to the camera instead of the approximated center of the frustum. Also increases range but reduces precision.",
   "config.canvas.value.shadow_depth_radius_padding": "Shadow Depth Radius Padding",
   "config.canvas.help.shadow_depth_radius_padding": "Increases shadow depth range while reducing precision. In chunks unit. EXPERIMENTAL, for development purpose.",
+  "config.canvas.value.disable_shadow_self_occlusion": "Disable Shadow Self-Occlusion",
+  "config.canvas.help.disable_shadow_self_occlusion": "Only use target occluder for shadow culling. WIP, temporary workaround for gaps in shadow map.",
   "config.canvas.value.shader_debug": "Enable Shader Debug Output",
   "config.canvas.help.shader_debug": "Output runtime per-material shader source.;For shader development debugging.",
   "config.canvas.value.shader_debug_lightmap": "Render Debug Lightmaps",

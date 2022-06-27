@@ -71,7 +71,7 @@ public class Configurator {
 	//     This is possibly fixable by improving the cascade picker during sampling.
 	public static int shadowDepthRadiusPadding = DEFAULTS.shadowDepthRadiusPadding;
 	// WIP: Temporary workaround, remove soon
-	public static int forceShadowNearCamera = DEFAULTS.forceShadowNearCamera;
+	public static boolean disableShadowSelfOcclusion = DEFAULTS.disableShadowSelfOcclusion;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -161,7 +161,7 @@ public class Configurator {
 		shadowFaceCulling = config.shadowFaceCulling;
 		staticShadowCenter = config.staticShadowCenter;
 		shadowDepthRadiusPadding = config.shadowDepthRadiusPadding;
-		forceShadowNearCamera = config.forceShadowNearCamera;
+		disableShadowSelfOcclusion = config.disableShadowSelfOcclusion;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -228,7 +228,7 @@ public class Configurator {
 		config.shadowFaceCulling = shadowFaceCulling;
 		config.staticShadowCenter = staticShadowCenter;
 		config.shadowDepthRadiusPadding = shadowDepthRadiusPadding;
-		config.forceShadowNearCamera = forceShadowNearCamera;
+		config.disableShadowSelfOcclusion = disableShadowSelfOcclusion;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;

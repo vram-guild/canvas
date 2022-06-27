@@ -93,8 +93,8 @@ class ConfigData {
 	boolean staticShadowCenter = false;
 	@Comment("Increases shadow depth range while reducing precision. In chunks unit.")
 	int shadowDepthRadiusPadding = 0;
-	@Comment("Force shadow rendering for regions near camera within this many chunks. EXPERIMENTAL, for finding the best default value or as temporary solution only.")
-	int forceShadowNearCamera = 0;
+	@Comment("Only use target occluder for shadow culling. WIP, temporary workaround for gaps in shadow map.")
+	boolean disableShadowSelfOcclusion = false;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
 	boolean steadyDebugScreen = true;
 	@Comment("When true, animated sprites not in view are not updated. Improves frame rate.")

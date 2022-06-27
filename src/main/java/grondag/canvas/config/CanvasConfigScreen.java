@@ -326,14 +326,11 @@ public class CanvasConfigScreen extends BaseScreen {
 				DEFAULTS.shadowDepthRadiusPadding,
 				"config.canvas.help.shadow_depth_radius_padding").listItem());
 
-		list.addItem(optionSession.intOption("config.canvas.value.enforce_shadow_near_light",
-				0,
-				8,
-				1,
-				() -> editing.forceShadowNearCamera,
-				i -> editing.forceShadowNearCamera = i,
-				DEFAULTS.forceShadowNearCamera,
-				"config.canvas.help.enforce_shadow_near_light").listItem());
+		list.addItem(optionSession.booleanOption("config.canvas.value.disable_shadow_self_occlusion",
+				() -> editing.disableShadowSelfOcclusion,
+				b -> editing.disableShadowSelfOcclusion = b,
+				DEFAULTS.disableShadowSelfOcclusion,
+				"config.canvas.help.disable_shadow_self_occlusion").listItem());
 
 		list.addItem(optionSession.booleanOption("config.canvas.value.shader_debug",
 				() -> editing.shaderDebug,
