@@ -89,10 +89,8 @@ class ConfigData {
 	int shadowMaxDistance = 32;
 	@Comment("Face culling mode for depth pass rendering. TEMPORARY, meant to become a pipeline configuration.")
 	SkyShadowRenderer.Culling shadowFaceCulling = SkyShadowRenderer.Culling.BACK;
-	@Comment("Center shadow map to the camera instead of the approximated center of the camera frustum.")
-	boolean staticShadowCenter = false;
-	@Comment("Increases shadow depth range while reducing precision. In chunks unit.")
-	int shadowDepthRadiusPadding = 0;
+	@Comment("Interpolate shadow map center to the approximated camera frustum centroid. Increases precision but may cause clipping.")
+	float shadowCenterFactor = 1.0f;
 	@Comment("Only use target occluder for shadow culling. WIP, temporary workaround for gaps in shadow map.")
 	boolean disableShadowSelfOcclusion = false;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")

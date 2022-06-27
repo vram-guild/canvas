@@ -106,7 +106,7 @@ public final class ShadowMatrixData {
 
 		// Half-way to view distance isn't the true center of the view frustum, but because
 		// the far corners aren't actually visible it is close enough for now.
-		final float halfDist = Configurator.staticShadowCenter ? 0.0f : viewDist * 0.5f;
+		final float halfDist = Configurator.shadowCenterFactor * viewDist * 0.5f;
 
 		// Bounding sphere/box distance for the largest cascade.  Relies on assumption the frustum
 		// will be wider than it is long, and if not then view distance should be adequate.
@@ -123,7 +123,6 @@ public final class ShadowMatrixData {
 		//
 
 		final int radius = (int) Math.ceil(Math.sqrt(viewDist * viewDist - halfDist * halfDist));
-		final int depthRadius = radius + Configurator.shadowDepthRadiusPadding * 16;
 
 		// Compute sky light vector transform - points towards the sun
 		shadowViewMatrix.setIdentity();
@@ -157,10 +156,10 @@ public final class ShadowMatrixData {
 
 			final int[] radii = Pipeline.config().skyShadow.cascadeRadii;
 
-			updateCascadeInfo(0, radius, halfDist, depthRadius, cdx, cdy);
-			updateCascadeInfo(1, radii[0], Configurator.staticShadowCenter ? 0.0f : radii[0], depthRadius, cdx, cdy);
-			updateCascadeInfo(2, radii[1], Configurator.staticShadowCenter ? 0.0f : radii[1], depthRadius, cdx, cdy);
-			updateCascadeInfo(3, radii[2], Configurator.staticShadowCenter ? 0.0f : radii[2], depthRadius, cdx, cdy);
+			updateCascadeInfo(0, radius, halfDist, radius, cdx, cdy);
+			updateCascadeInfo(1, radii[0], radii[0] * Configurator.shadowCenterFactor, radius, cdx, cdy);
+			updateCascadeInfo(2, radii[1], radii[1] * Configurator.shadowCenterFactor, radius, cdx, cdy);
+			updateCascadeInfo(3, radii[2], radii[2] * Configurator.shadowCenterFactor, radius, cdx, cdy);
 		}
 
 		lastCameraX = cameraXd;

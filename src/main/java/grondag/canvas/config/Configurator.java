@@ -62,14 +62,10 @@ public class Configurator {
 	public static int shadowMaxDistance = DEFAULTS.shadowMaxDistance;
 	// EXPERIMENTAL: for now only BACK and NONE are good options btw
 	public static SkyShadowRenderer.Culling shadowFaceCulling = DEFAULTS.shadowFaceCulling;
-	// TODO: TEMPORARY, make into pipeline configuration or mark EXPERIMENTAL
-	// NB: Enabling this is pretty much always good, but depth radius padding might be an alternative (see notes)
-	public static boolean staticShadowCenter = DEFAULTS.staticShadowCenter;
-	// Adds padding to the depth axis to reduce clipping due to optimization in the shadow matrices.
-	// EXPERIMENTAL: for testing only, remove after finding a proper solution
-	// NB: Cascade may fail because of OOB depth, despite the next cascade seemingly having the shadow information.
-	//     This is possibly fixable by improving the cascade picker during sampling.
-	public static int shadowDepthRadiusPadding = DEFAULTS.shadowDepthRadiusPadding;
+	// EXPERIMENTAL: interpolates shadow center between camera and camera frustum centroid
+	// NB: Cascade sometimes fail with fully centered shadow because of depth clipping, despite the next cascade seemingly
+	//     having the shadow information. This is possibly fixable by improving the cascade picker during sampling.
+	public static float shadowCenterFactor = DEFAULTS.shadowCenterFactor;
 	// WIP: Temporary workaround, remove soon
 	public static boolean disableShadowSelfOcclusion = DEFAULTS.disableShadowSelfOcclusion;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
@@ -159,8 +155,7 @@ public class Configurator {
 		shadowPrimingStrategy = config.shadowPrimingStrategy;
 		shadowMaxDistance = config.shadowMaxDistance;
 		shadowFaceCulling = config.shadowFaceCulling;
-		staticShadowCenter = config.staticShadowCenter;
-		shadowDepthRadiusPadding = config.shadowDepthRadiusPadding;
+		shadowCenterFactor = config.shadowCenterFactor;
 		disableShadowSelfOcclusion = config.disableShadowSelfOcclusion;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
@@ -226,8 +221,7 @@ public class Configurator {
 		config.shadowPrimingStrategy = shadowPrimingStrategy;
 		config.shadowMaxDistance = shadowMaxDistance;
 		config.shadowFaceCulling = shadowFaceCulling;
-		config.staticShadowCenter = staticShadowCenter;
-		config.shadowDepthRadiusPadding = shadowDepthRadiusPadding;
+		config.shadowCenterFactor = shadowCenterFactor;
 		config.disableShadowSelfOcclusion = disableShadowSelfOcclusion;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;

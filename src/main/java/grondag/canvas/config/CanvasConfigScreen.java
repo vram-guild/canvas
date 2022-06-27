@@ -311,20 +311,14 @@ public class CanvasConfigScreen extends BaseScreen {
 				SkyShadowRenderer.Culling.class,
 				"config.canvas.help.shadow_face_culling").listItem());
 
-		list.addItem(optionSession.booleanOption("config.canvas.value.static_shadow_center",
-				() -> editing.staticShadowCenter,
-				b -> editing.staticShadowCenter = b,
-				DEFAULTS.staticShadowCenter,
-				"config.canvas.help.static_shadow_center").listItem());
-
-		list.addItem(optionSession.intOption("config.canvas.value.shadow_depth_radius_padding",
-				0,
-				4,
-				1,
-				() -> editing.shadowDepthRadiusPadding,
-				i -> editing.shadowDepthRadiusPadding = i,
-				DEFAULTS.shadowDepthRadiusPadding,
-				"config.canvas.help.shadow_depth_radius_padding").listItem());
+		list.addItem(optionSession.floatOption("config.canvas.value.shadow_center_factor",
+				0.0f,
+				1.0f,
+				0.1f,
+				() -> editing.shadowCenterFactor,
+				f -> editing.shadowCenterFactor = f,
+				DEFAULTS.shadowCenterFactor,
+				"config.canvas.help.shadow_center_factor").listItem());
 
 		list.addItem(optionSession.booleanOption("config.canvas.value.disable_shadow_self_occlusion",
 				() -> editing.disableShadowSelfOcclusion,
