@@ -62,10 +62,16 @@ public class Configurator {
 	public static int shadowMaxDistance = DEFAULTS.shadowMaxDistance;
 	// TODO: TEMPORARY, make into pipeline configuration -> for now only BACK and NONE are good options btw
 	public static SkyShadowRenderer.Culling shadowFaceCulling = DEFAULTS.shadowFaceCulling;
+	// TODO: TEMPORARY, make into pipeline configuration or mark EXPERIMENTAL
+	// NB: Enabling this is pretty much always good, but depth radius padding might be an alternative (see notes)
 	public static boolean staticShadowCenter = DEFAULTS.staticShadowCenter;
-	// EXPERIMENTAL: for testing only, remove soon
-	// TODO: test padding for RD: 16 and RD: 32
+	// Adds padding to the depth axis to reduce clipping due to optimization in the shadow matrices.
+	// EXPERIMENTAL: for testing only, remove after finding a proper solution
+	// NB: Cascade may fail because of OOB depth, despite the next cascade seemingly having the shadow information.
+	//     This is possibly fixable by improving the cascade picker during sampling.
 	public static int shadowDepthRadiusPadding = DEFAULTS.shadowDepthRadiusPadding;
+	// EXPERIMENTAL: for testing only, remove soon
+	public static int forceShadowNearLight = DEFAULTS.forceShadowNearLight;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -155,6 +161,7 @@ public class Configurator {
 		shadowFaceCulling = config.shadowFaceCulling;
 		staticShadowCenter = config.staticShadowCenter;
 		shadowDepthRadiusPadding = config.shadowDepthRadiusPadding;
+		forceShadowNearLight = config.forceShadowNearLight;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -221,6 +228,7 @@ public class Configurator {
 		config.shadowFaceCulling = shadowFaceCulling;
 		config.staticShadowCenter = staticShadowCenter;
 		config.shadowDepthRadiusPadding = shadowDepthRadiusPadding;
+		config.forceShadowNearLight = forceShadowNearLight;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;

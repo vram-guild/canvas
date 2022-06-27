@@ -104,4 +104,8 @@ public class ShadowVisibility extends AbstractVisbility<ShadowVisibility, Shadow
 	public void occlude(int[] occlusionData) {
 		occluder.occlude(occlusionData);
 	}
+
+	public int primary(int shadowDistanceRank) {
+		return pvrs.primary(shadowDistanceRank);
+	}
 }
