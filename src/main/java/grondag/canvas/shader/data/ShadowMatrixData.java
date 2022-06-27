@@ -102,10 +102,10 @@ public final class ShadowMatrixData {
 		// This reduces the apparent warping of pixel size on surfaces nearest the viewer.
 
 		@SuppressWarnings("resource")
-		final float viewDist = Minecraft.getInstance().gameRenderer.getRenderDistance();
-
+		final float viewDist = Math.min(Configurator.shadowMaxDistance * 16, Minecraft.getInstance().gameRenderer.getRenderDistance());
 		// Half-way to view distance isn't the true center of the view frustum, but because
 		// the far corners aren't actually visible it is close enough for now.
+		// EXPERIMENTAL: allow adjusting magnitude of the effective shadow center
 		final float halfDist = Configurator.shadowCenterFactor * viewDist * 0.5f;
 
 		// Bounding sphere/box distance for the largest cascade.  Relies on assumption the frustum
