@@ -123,6 +123,7 @@ public final class ShadowMatrixData {
 		//
 
 		final int radius = (int) Math.ceil(Math.sqrt(viewDist * viewDist - halfDist * halfDist));
+		final int depthRadius = radius + Configurator.shadowDepthRadiusPadding * 16;
 
 		// Compute sky light vector transform - points towards the sun
 		shadowViewMatrix.setIdentity();
@@ -156,10 +157,10 @@ public final class ShadowMatrixData {
 
 			final int[] radii = Pipeline.config().skyShadow.cascadeRadii;
 
-			updateCascadeInfo(0, radius, halfDist, radius, cdx, cdy);
-			updateCascadeInfo(1, radii[0], Configurator.staticShadowCenter ? 0.0f : radii[0], radius, cdx, cdy);
-			updateCascadeInfo(2, radii[1], Configurator.staticShadowCenter ? 0.0f : radii[1], radius, cdx, cdy);
-			updateCascadeInfo(3, radii[2], Configurator.staticShadowCenter ? 0.0f : radii[2], radius, cdx, cdy);
+			updateCascadeInfo(0, radius, halfDist, depthRadius, cdx, cdy);
+			updateCascadeInfo(1, radii[0], Configurator.staticShadowCenter ? 0.0f : radii[0], depthRadius, cdx, cdy);
+			updateCascadeInfo(2, radii[1], Configurator.staticShadowCenter ? 0.0f : radii[1], depthRadius, cdx, cdy);
+			updateCascadeInfo(3, radii[2], Configurator.staticShadowCenter ? 0.0f : radii[2], depthRadius, cdx, cdy);
 		}
 
 		lastCameraX = cameraXd;

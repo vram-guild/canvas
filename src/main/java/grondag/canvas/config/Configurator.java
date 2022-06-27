@@ -63,6 +63,9 @@ public class Configurator {
 	// TODO: TEMPORARY, make into pipeline configuration -> for now only BACK and NONE are good options btw
 	public static SkyShadowRenderer.Culling shadowFaceCulling = DEFAULTS.shadowFaceCulling;
 	public static boolean staticShadowCenter = DEFAULTS.staticShadowCenter;
+	// EXPERIMENTAL: for testing only, remove soon
+	// TODO: test padding for RD: 16 and RD: 32
+	public static int shadowDepthRadiusPadding = DEFAULTS.shadowDepthRadiusPadding;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -150,6 +153,7 @@ public class Configurator {
 		shadowMaxDistance = config.shadowMaxDistance;
 		shadowFaceCulling = config.shadowFaceCulling;
 		staticShadowCenter = config.staticShadowCenter;
+		shadowDepthRadiusPadding = config.shadowDepthRadiusPadding;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -215,6 +219,7 @@ public class Configurator {
 		config.shadowMaxDistance = shadowMaxDistance;
 		config.shadowFaceCulling = shadowFaceCulling;
 		config.staticShadowCenter = staticShadowCenter;
+		config.shadowDepthRadiusPadding = shadowDepthRadiusPadding;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;

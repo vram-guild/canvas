@@ -317,6 +317,15 @@ public class CanvasConfigScreen extends BaseScreen {
 				DEFAULTS.staticShadowCenter,
 				"config.canvas.help.static_shadow_center").listItem());
 
+		list.addItem(optionSession.intOption("config.canvas.value.shadow_depth_radius_padding",
+				0,
+				4,
+				1,
+				() -> editing.shadowDepthRadiusPadding,
+				i -> editing.shadowDepthRadiusPadding = i,
+				DEFAULTS.shadowDepthRadiusPadding,
+				"config.canvas.help.shadow_depth_radius_padding").listItem());
+
 		list.addItem(optionSession.booleanOption("config.canvas.value.shader_debug",
 				() -> editing.shaderDebug,
 				b -> editing.shaderDebug = b,
