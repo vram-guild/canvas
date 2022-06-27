@@ -571,7 +571,6 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 	private void iterateShadows() {
 		final boolean flawless = FlawlessFrames.isActive();
-		int nearestPrimary = Integer.MAX_VALUE;
 
 		// this is for limiting shadow distance per canvas/pipeline configuration
 
@@ -580,6 +579,8 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 		// sphere shaped, faster but covers less area (? from testing it covers slightly wider area)
 		final int squaredChunkRadius = effectiveDistance * effectiveDistance;
+
+		final int squaredNearChunkRadius = Configurator.forceShadowNearCamera * Configurator.forceShadowNearCamera;
 
 		while (!cancelled) {
 			final ShadowRegionVisibility state = shadowVisibility.next();
@@ -663,18 +664,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 
 			shadowVisibility.prepareRegion(region.origin);
 
-			final int primaryIndex = shadowVisibility.primary(region.origin.shadowDistanceRank());
-
-			// primary index of the first state that isn't empty, assuming closes to the light
-			if (nearestPrimary == Integer.MAX_VALUE) {
-				nearestPrimary = primaryIndex;
-			}
-
-			final boolean isForced = Math.max(0, primaryIndex - nearestPrimary) < Configurator.forceShadowNearLight;
-
-			// debugging, NB: nearest primary seems to also be the minimum, but not 0
-			// minPrimary = Math.min(minPrimary, primaryIndex);
-			// maxPrimary = Math.max(maxPrimary, primaryIndex);
+			final boolean isForced = region.origin.squaredCameraChunkDistance() < squaredNearChunkRadius;
 
 			final int[] occlusionData = buildState.getOcclusionResult().occlusionData();
 

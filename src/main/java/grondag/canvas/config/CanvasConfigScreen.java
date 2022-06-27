@@ -330,9 +330,9 @@ public class CanvasConfigScreen extends BaseScreen {
 				0,
 				8,
 				1,
-				() -> editing.forceShadowNearLight,
-				i -> editing.forceShadowNearLight = i,
-				DEFAULTS.forceShadowNearLight,
+				() -> editing.forceShadowNearCamera,
+				i -> editing.forceShadowNearCamera = i,
+				DEFAULTS.forceShadowNearCamera,
 				"config.canvas.help.enforce_shadow_near_light").listItem());
 
 		list.addItem(optionSession.booleanOption("config.canvas.value.shader_debug",

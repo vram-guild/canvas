@@ -60,7 +60,7 @@ public class Configurator {
 	public static TerrainIterator.ShadowPriming shadowPrimingStrategy = DEFAULTS.shadowPrimingStrategy;
 	// TODO: TEMPORARY, make into pipeline configuration -> this could be the 0th cascade distance
 	public static int shadowMaxDistance = DEFAULTS.shadowMaxDistance;
-	// TODO: TEMPORARY, make into pipeline configuration -> for now only BACK and NONE are good options btw
+	// EXPERIMENTAL: for now only BACK and NONE are good options btw
 	public static SkyShadowRenderer.Culling shadowFaceCulling = DEFAULTS.shadowFaceCulling;
 	// TODO: TEMPORARY, make into pipeline configuration or mark EXPERIMENTAL
 	// NB: Enabling this is pretty much always good, but depth radius padding might be an alternative (see notes)
@@ -70,8 +70,8 @@ public class Configurator {
 	// NB: Cascade may fail because of OOB depth, despite the next cascade seemingly having the shadow information.
 	//     This is possibly fixable by improving the cascade picker during sampling.
 	public static int shadowDepthRadiusPadding = DEFAULTS.shadowDepthRadiusPadding;
-	// EXPERIMENTAL: for testing only, remove soon
-	public static int forceShadowNearLight = DEFAULTS.forceShadowNearLight;
+	// WIP: Temporary workaround, remove soon
+	public static int forceShadowNearCamera = DEFAULTS.forceShadowNearCamera;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -161,7 +161,7 @@ public class Configurator {
 		shadowFaceCulling = config.shadowFaceCulling;
 		staticShadowCenter = config.staticShadowCenter;
 		shadowDepthRadiusPadding = config.shadowDepthRadiusPadding;
-		forceShadowNearLight = config.forceShadowNearLight;
+		forceShadowNearCamera = config.forceShadowNearCamera;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -228,7 +228,7 @@ public class Configurator {
 		config.shadowFaceCulling = shadowFaceCulling;
 		config.staticShadowCenter = staticShadowCenter;
 		config.shadowDepthRadiusPadding = shadowDepthRadiusPadding;
-		config.forceShadowNearLight = forceShadowNearLight;
+		config.forceShadowNearCamera = forceShadowNearCamera;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;
