@@ -110,6 +110,7 @@ public class Configurator {
 	}
 
 	static void readFromConfig(ConfigData config) {
+		config.clearNulls();
 		pipelineId = config.pipelineId;
 
 		if (pipelineId == null || pipelineId.isEmpty()) {

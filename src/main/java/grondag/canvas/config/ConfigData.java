@@ -29,6 +29,8 @@ import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 class ConfigData {
+	public static final ConfigData DEFAULT_VALUES = new ConfigData();
+
 	@Comment("Renderer configuration. Determines appearance, performance and available options.")
 	public String pipelineId = PipelineConfig.DEFAULT_ID.toString();
 	@Comment("Glow effect around light sources.")
@@ -151,4 +153,23 @@ class ConfigData {
 	boolean debugSpriteAtlas = false;
 	@Comment("Log significant events of texture/sprite atlas loading. For debugging use. Will spam the log.")
 	boolean traceTextureLoad = false;
+
+	// GSON doesn't do this automatically
+	public void clearNulls() {
+		if (shadowPrimingStrategy == null) {
+			shadowPrimingStrategy = DEFAULT_VALUES.shadowPrimingStrategy;
+		}
+
+		if (shadowFaceCulling == null) {
+			shadowFaceCulling = DEFAULT_VALUES.shadowFaceCulling;
+		}
+
+		if (transferBufferMode == null) {
+			transferBufferMode = DEFAULT_VALUES.transferBufferMode;
+		}
+
+		if (profilerDisplayMode == null) {
+			profilerDisplayMode = DEFAULT_VALUES.profilerDisplayMode;
+		}
+	}
 }
