@@ -24,6 +24,7 @@ import net.minecraft.core.BlockPos;
 
 import io.vram.dtk.CircleUtil;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.render.frustum.TerrainFrustum;
 import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.shader.data.ShaderDataManager;
@@ -97,11 +98,15 @@ public class ShadowVisibility extends AbstractVisbility<ShadowVisibility, Shadow
 	@Override
 	public boolean isBoxVisible(int packedBox, int fuzz) {
 		// If can't shadow any terrain then consider it invisible
-		return targetOccluder.isBoxOccluded(packedBox) && occluder.isBoxVisible(packedBox, fuzz);
+		return targetOccluder.isBoxOccluded(packedBox) && (Configurator.disableShadowSelfOcclusion || occluder.isBoxVisible(packedBox, fuzz));
 	}
 
 	@Override
 	public void occlude(int[] occlusionData) {
 		occluder.occlude(occlusionData);
+	}
+
+	public int primary(int shadowDistanceRank) {
+		return pvrs.primary(shadowDistanceRank);
 	}
 }

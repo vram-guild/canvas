@@ -43,6 +43,7 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.texture.MaterialTexture;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.BinaryRenderState;
 import grondag.canvas.material.property.DecalRenderState;
 import grondag.canvas.material.property.DepthTestRenderState;
@@ -167,7 +168,7 @@ public final class RenderState {
 		// Decals aren't super common so left in for now.
 		decal.enable();
 
-		CULL_STATE.setEnabled(cull);
+		CULL_STATE.setEnabled(cull && Configurator.shadowFaceCulling != SkyShadowRenderer.Culling.NONE);
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
@@ -177,7 +178,11 @@ public final class RenderState {
 
 		GFX.enable(GFX.GL_POLYGON_OFFSET_FILL);
 		GFX.polygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
-		//GL46.glCullFace(GL46.GL_FRONT);
+
+		switch (Configurator.shadowFaceCulling) {
+			case FRONT -> GFX.glCullFace(GFX.GL_FRONT);
+			case BACK -> GFX.glCullFace(GFX.GL_BACK);
+		}
 	}
 
 	private void enableMaterial(int x, int y, int z) {

@@ -31,6 +31,12 @@ import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.varia.GFX;
 
 public class SkyShadowRenderer {
+	public enum Culling {
+		FRONT,
+		BACK,
+		NONE
+	}
+
 	private static boolean active = false;
 	private static boolean renderEntityShadows = false;
 	private static int cascade;

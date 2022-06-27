@@ -25,9 +25,12 @@ import blue.endless.jankson.Comment;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 class ConfigData {
+	public static final ConfigData DEFAULT_VALUES = new ConfigData();
+
 	@Comment("Renderer configuration. Determines appearance, performance and available options.")
 	public String pipelineId = PipelineConfig.DEFAULT_ID.toString();
 	@Comment("Glow effect around light sources.")
@@ -82,8 +85,14 @@ class ConfigData {
 	boolean useCombinedThreadPool = false;
 	@Comment("Strategy used to prime shadow regions. Tiered has fewer gaps but is more expensive, while Padded is slightly cleverer than Naive.")
 	TerrainIterator.ShadowPriming shadowPrimingStrategy = TerrainIterator.ShadowPriming.PADDED;
-	@Comment("Maximum shadow render distance to be compared against render distance. TEMPORARY config meant to be promoted into pipeline options eventually.")
+	@Comment("Maximum shadow render distance to be compared against render distance. TEMPORARY, meant to become a pipeline configuration.")
 	int shadowMaxDistance = 32;
+	@Comment("Face culling mode for depth pass rendering. TEMPORARY, meant to become a pipeline configuration.")
+	SkyShadowRenderer.Culling shadowFaceCulling = SkyShadowRenderer.Culling.BACK;
+	@Comment("Interpolate shadow map center to the approximated camera frustum centroid. Increases precision but may cause clipping.")
+	float shadowCenterFactor = 1.0f;
+	@Comment("Only use target occluder for shadow culling. WIP, temporary workaround for gaps in shadow map.")
+	boolean disableShadowSelfOcclusion = false;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
 	boolean steadyDebugScreen = true;
 	@Comment("When true, animated sprites not in view are not updated. Improves frame rate.")
@@ -144,4 +153,23 @@ class ConfigData {
 	boolean debugSpriteAtlas = false;
 	@Comment("Log significant events of texture/sprite atlas loading. For debugging use. Will spam the log.")
 	boolean traceTextureLoad = false;
+
+	// GSON doesn't do this automatically
+	public void clearNulls() {
+		if (shadowPrimingStrategy == null) {
+			shadowPrimingStrategy = DEFAULT_VALUES.shadowPrimingStrategy;
+		}
+
+		if (shadowFaceCulling == null) {
+			shadowFaceCulling = DEFAULT_VALUES.shadowFaceCulling;
+		}
+
+		if (transferBufferMode == null) {
+			transferBufferMode = DEFAULT_VALUES.transferBufferMode;
+		}
+
+		if (profilerDisplayMode == null) {
+			profilerDisplayMode = DEFAULT_VALUES.profilerDisplayMode;
+		}
+	}
 }
