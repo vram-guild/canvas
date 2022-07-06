@@ -26,16 +26,19 @@ import java.util.function.Function;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.BlockEntityMaterialMap;
 import io.vram.frex.api.material.EntityMaterialMap;
+import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.MaterialFinder;
 
 public class RenderContextState {
 	private EntityMaterialMap entityMap = null;
 	private BlockEntityMaterialMap blockEntityMap = null;
+	private MaterialMap materialMap = null;
 	private Entity entity;
 	private BlockState blockState;
 	private final MaterialFinder finder = MaterialFinder.newInstance();
@@ -43,6 +46,10 @@ public class RenderContextState {
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> defaultFunc = m -> m;
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> entityFunc = m -> (CanvasRenderMaterial) entityMap.getMapped(m, entity, finder);
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> blockEntityFunc = m -> (CanvasRenderMaterial) blockEntityMap.getMapped(m, blockState, finder);
+	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> itemFunc = m -> {
+		final var mapped = (CanvasRenderMaterial) materialMap.getMapped(null);
+		return mapped == null ? m : mapped;
+	};
 
 	private Function<CanvasRenderMaterial, CanvasRenderMaterial> activeFunc = defaultFunc;
 	private BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> guiFunc = GuiMode.NORMAL.func;
@@ -52,6 +59,7 @@ public class RenderContextState {
 			entityMap = null;
 			activeFunc = defaultFunc;
 		} else {
+			this.entity = entity;
 			entityMap = EntityMaterialMap.get(entity.getType());
 			activeFunc = entityFunc;
 		}
@@ -65,6 +73,21 @@ public class RenderContextState {
 			blockState = blockEntity.getBlockState();
 			blockEntityMap = BlockEntityMaterialMap.get(blockEntity.getType());
 			activeFunc = blockEntityFunc;
+		}
+	}
+
+	/**
+	 * For items with custom renderer.
+	 *
+	 * @param itemStack the item stack
+	 */
+	public void setCurrentItem(@Nullable ItemStack itemStack) {
+		if (itemStack == null) {
+			materialMap = null;
+			activeFunc = defaultFunc;
+		} else {
+			materialMap = MaterialMap.get(itemStack);
+			activeFunc = itemFunc;
 		}
 	}
 
