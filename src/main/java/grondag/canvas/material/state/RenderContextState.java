@@ -38,7 +38,7 @@ import io.vram.frex.api.material.MaterialFinder;
 public class RenderContextState {
 	private EntityMaterialMap entityMap = null;
 	private BlockEntityMaterialMap blockEntityMap = null;
-	private MaterialMap materialMap = null;
+	private MaterialMap itemMap = null;
 	private Entity entity;
 	private BlockState blockState;
 	private final MaterialFinder finder = MaterialFinder.newInstance();
@@ -47,11 +47,12 @@ public class RenderContextState {
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> entityFunc = m -> (CanvasRenderMaterial) entityMap.getMapped(m, entity, finder);
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> blockEntityFunc = m -> (CanvasRenderMaterial) blockEntityMap.getMapped(m, blockState, finder);
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> itemFunc = m -> {
-		final var mapped = (CanvasRenderMaterial) materialMap.getMapped(null);
+		final var mapped = (CanvasRenderMaterial) itemMap.getMapped(null);
 		return mapped == null ? m : mapped;
 	};
 
 	private Function<CanvasRenderMaterial, CanvasRenderMaterial> activeFunc = defaultFunc;
+	private Function<CanvasRenderMaterial, CanvasRenderMaterial> swapFunc = null;
 	private BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> guiFunc = GuiMode.NORMAL.func;
 
 	public void setCurrentEntity(@Nullable Entity entity) {
@@ -81,14 +82,16 @@ public class RenderContextState {
 	 *
 	 * @param itemStack the item stack
 	 */
-	public void setCurrentItem(@Nullable ItemStack itemStack) {
-		if (itemStack == null) {
-			materialMap = null;
-			activeFunc = defaultFunc;
-		} else {
-			materialMap = MaterialMap.get(itemStack);
-			activeFunc = itemFunc;
-		}
+	public void pushItemState(ItemStack itemStack) {
+		itemMap = MaterialMap.get(itemStack);
+		swapFunc = (activeFunc != itemFunc && activeFunc != defaultFunc) ? activeFunc : swapFunc; // preserve active function
+		activeFunc = itemFunc;
+	}
+
+	public void popItemState() {
+		itemMap = null;
+		activeFunc = (swapFunc != null && swapFunc != itemFunc) ? swapFunc : defaultFunc;
+		swapFunc = null;
 	}
 
 	public void guiMode(GuiMode guiMode) {
