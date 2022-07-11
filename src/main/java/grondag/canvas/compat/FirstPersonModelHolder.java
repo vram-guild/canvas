@@ -44,8 +44,8 @@ public class FirstPersonModelHolder {
 
 			try {
 				final Class<?> fpmCore = Class.forName("dev.tr7zw.firstperson.FirstPersonModelCore");
-				final Class<?> clazz = Class.forName("dev.tr7zw.firstperson.fabric.FabricWrapper");
-				final Method applyThirdPerson = clazz.getDeclaredMethod("applyThirdPerson", boolean.class);
+				final Class<?> fpmWrapper = Class.forName("dev.tr7zw.firstperson.MinecraftWrapper");
+				final Method applyThirdPerson = fpmWrapper.getDeclaredMethod("applyThirdPerson", boolean.class);
 				final MethodHandle applyThirdPersonHandle = lookup.unreflect(applyThirdPerson);
 				final Field isRenderingPlayer = fpmCore.getField("isRenderingPlayer");
 
@@ -61,7 +61,7 @@ public class FirstPersonModelHolder {
 					} catch (final Throwable e) {
 						CanvasMod.LOG.warn("Unable to deffer to FirstPersonModel due to exception: ", e);
 						CanvasMod.LOG.warn("Subsequent errors will be suppressed");
-						return (cameraHandler = DEFAULT_CAMERA).renderFirstPersonPlayer();
+						return (cameraHandler = DEFAULT_CAMERA).shouldApply();
 					}
 				};
 
@@ -82,10 +82,10 @@ public class FirstPersonModelHolder {
 	}
 
 	public interface CameraHandler {
-		boolean renderFirstPersonPlayer();
+		boolean shouldApply();
 	}
 
 	public interface RenderHandler {
-		void setIsRenderingPlayer(boolean b);
+		void setActive(boolean b);
 	}
 }

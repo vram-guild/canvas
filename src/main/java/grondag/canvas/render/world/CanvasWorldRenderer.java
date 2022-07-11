@@ -416,7 +416,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 
-			if (!entityRenderDispatcher.shouldRender(entity, entityCullingFrustum, frameCameraX, frameCameraY, frameCameraZ) && !entity.hasIndirectPassenger(mc.player)) {
+			if (!entityRenderDispatcher.shouldRender(entity, entityCullingFrustum, frameCameraX, frameCameraY, frameCameraZ)
+					&& !entity.hasIndirectPassenger(mc.player)) {
 				continue;
 			}
 
@@ -424,11 +425,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 				continue;
 			}
 
-			final boolean isFirstPersonPlayer = entity == camera.getEntity() && !camera.isDetached()
+			final boolean isFirstPersonPlayer = entity == camera.getEntity()
+					&& !camera.isDetached()
 					&& (!(camera.getEntity() instanceof LivingEntity) || !((LivingEntity) camera.getEntity()).isSleeping());
-			final boolean renderFirstPersonPlayer = isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.renderFirstPersonPlayer();
+			final boolean isRenderingFPM = isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.shouldApply();
 
-			if (isFirstPersonPlayer && !renderFirstPersonPlayer && !worldRenderState.shadowsEnabled()) {
+			if (isFirstPersonPlayer && !isRenderingFPM && !worldRenderState.shadowsEnabled()) {
 				continue;
 			}
 
@@ -442,11 +444,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 				entity.zOld = entity.getZ();
 			}
 
-			MultiBufferSource renderProvider;
+			final MultiBufferSource renderProvider;
 
 			if (isFirstPersonPlayer) {
-				if (renderFirstPersonPlayer) {
-					// TODO: utilize castShadow in entityFunc instead of using separate buffer
+				if (isRenderingFPM) {
+					// using mat.castShadows(false) don't work as it needs to be applied to held items, custom parts, etc
 					renderProvider = materialExtrasImmediate;
 				} else {
 					// only render as shadow
@@ -466,7 +468,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 			entityBlockContext.setPosAndWorldFromEntity(entity);
 
-			FirstPersonModelHolder.renderHandler.setIsRenderingPlayer(renderFirstPersonPlayer);
+			FirstPersonModelHolder.renderHandler.setActive(isRenderingFPM);
 
 			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, renderProvider);
@@ -477,9 +479,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 				immediate.endLastBatch();
 			}
 
-			FirstPersonModelHolder.renderHandler.setIsRenderingPlayer(false);
+			FirstPersonModelHolder.renderHandler.setActive(false);
 
-			if (renderFirstPersonPlayer && worldRenderState.shadowsEnabled()) {
+			if (isRenderingFPM && worldRenderState.shadowsEnabled()) {
 				// render unmodified player model as shadow
 				wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, shadowExtrasImmediate);
 			}
