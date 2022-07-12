@@ -71,6 +71,10 @@ public class IntConfigEntry extends OptionConfigEntry<IntConfigEntry> {
 		config.put(name, new JsonPrimitive(value));
 	}
 
+	public int value() {
+		return value;
+	}
+
 	@Override
 	public boolean validate() {
 		boolean valid = super.validate();

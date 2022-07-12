@@ -107,7 +107,7 @@ public class PipelineConfig {
 			optionMap.put(opt.includeToken, opt);
 		}
 
-		options = builder.options.toArray(new OptionConfig[builder.options.size()]);
+		options = builder.prebuiltOptions;
 
 		fabulous = builder.fabulous.toArray(new PassConfig[builder.fabulous.size()]);
 		images = builder.images.toArray(new ImageConfig[builder.images.size()]);
@@ -115,8 +115,6 @@ public class PipelineConfig {
 		framebuffers = builder.framebuffers.toArray(new FramebufferConfig[builder.framebuffers.size()]);
 		onWorldStart = builder.onWorldStart.toArray(new PassConfig[builder.onWorldStart.size()]);
 		afterRenderHand = builder.afterRenderHand.toArray(new PassConfig[builder.afterRenderHand.size()]);
-
-		ConfigManager.initPipelineOptions(options);
 	}
 
 	public String configSource(ResourceLocation id) {
