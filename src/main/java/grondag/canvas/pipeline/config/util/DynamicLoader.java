@@ -197,11 +197,11 @@ public class DynamicLoader {
 
 			for (JsonElement element : jsonMap) {
 				if (element instanceof JsonObject obj) {
-					final var condition = obj.get(Object.class, "condition");
+					final var condition = obj.get(JsonPrimitive.class, "condition");
 					final var value = obj.get(toType, "value");
 
 					if (condition != null && value != null) {
-						map.put(condition, value);
+						map.put(condition.getValue(), value);
 					}
 				}
 			}
@@ -222,28 +222,44 @@ public class DynamicLoader {
 
 		@Override
 		public Object value() {
-			var enumOption = ctx.enumConfigEntries.dependOn(optionKey);
+			final var enumOption = ctx.enumConfigEntries.dependOn(optionKey);
 
 			if (enumOption != null) {
-				return enumOption.value();
+				final var entry = enumOption.value();
+
+				if (entry != null) {
+					return entry.value();
+				}
 			}
 
-			var booleanOption = ctx.booleanConfigEntries.dependOn(optionKey);
+			final var booleanOption = ctx.booleanConfigEntries.dependOn(optionKey);
 
 			if (booleanOption != null) {
-				return booleanOption.value();
+				final var entry = booleanOption.value();
+
+				if (entry != null) {
+					return entry.value();
+				}
 			}
 
-			var intOption = ctx.intConfigEntries.dependOn(optionKey);
+			final var intOption = ctx.intConfigEntries.dependOn(optionKey);
 
 			if (intOption != null) {
-				return intOption.value();
+				final var entry = intOption.value();
+
+				if (entry != null) {
+					return entry.value();
+				}
 			}
 
-			var floatOption = ctx.floatConfigEntries.dependOn(optionKey);
+			final var floatOption = ctx.floatConfigEntries.dependOn(optionKey);
 
 			if (floatOption != null) {
-				return floatOption.value();
+				final var entry = floatOption.value();
+
+				if (entry != null) {
+					return entry.value();
+				}
 			}
 
 			return null;
