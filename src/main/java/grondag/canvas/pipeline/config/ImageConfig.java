@@ -77,10 +77,10 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 		super(ctx, config.get(String.class, "name"));
 		target = ctx.dynamic.getGlConst(config, "target", "TEXTURE_2D");
 		internalFormat = ctx.dynamic.getGlConst(config, "internalFormat", "RGBA8");
-		lod = ctx.dynamic.getInt(config,"lod", 0);
+		lod = ctx.dynamic.getInt(config, "lod", 0);
 		pixelFormat = ctx.dynamic.getGlConst(config, "pixelFormat", "RGBA");
 		pixelDataType = ctx.dynamic.getGlConst(config, "pixelDataType", "UNSIGNED_BYTE");
-		depth = ctx.dynamic.getInt(config,"depth", 1);
+		depth = ctx.dynamic.getInt(config, "depth", 1);
 
 		final int size = ctx.dynamic.getInt(config, "size", 0);
 		width = ctx.dynamic.getInt(config, "width", size);

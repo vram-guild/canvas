@@ -69,7 +69,7 @@ public class PipelineConfigBuilder {
 	public boolean runVanillaClear = true;
 	public int glslVersion = 330;
 	public boolean enablePBR = false;
-z`
+
 	public NamedDependency<FramebufferConfig> defaultFramebuffer;
 
 	public MaterialProgramConfig materialProgram;

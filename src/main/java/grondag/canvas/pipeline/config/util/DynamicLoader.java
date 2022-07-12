@@ -119,7 +119,7 @@ public class DynamicLoader {
 		if (element instanceof JsonPrimitive primitive) {
 			final Object value = primitive.getValue();
 
-			if (clazz.isAssignableFrom(value.getClass())){
+			if (clazz.isAssignableFrom(value.getClass())) {
 				return new ConstantResolver<>(clazz.cast(value));
 			} else if (value instanceof CharSequence stringVal) {
 				return createResolver(clazz, stringVal.toString());
@@ -168,7 +168,7 @@ public class DynamicLoader {
 		return null;
 	}
 
-	private static abstract class Dynamic<T> {
+	private abstract static class Dynamic<T> {
 		public abstract T value();
 	}
 
