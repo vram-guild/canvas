@@ -237,7 +237,7 @@ public class PipelineConfigBuilder {
 		}
 
 		final JsonArray array = JanksonHelper.getJsonArrayOrNull(configJson, "include", "Pipeline config error: 'include' must be an array.");
-		final int limit = array.size();
+		final int limit = array != null ? array.size() : 0;
 
 		for (int i = 0; i < limit; ++i) {
 			final String idString = JanksonHelper.asString(array.get(i));

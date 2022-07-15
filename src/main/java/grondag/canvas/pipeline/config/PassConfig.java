@@ -82,7 +82,7 @@ public class PassConfig extends NamedConfig<PassConfig> {
 			samplerImages = new NamedDependency[0];
 		} else {
 			final JsonArray names = config.get(JsonArray.class, "samplerImages");
-			final int limit = names.size();
+			final int limit = names != null ? names.size() : 0;
 			samplerImages = new NamedDependency[limit];
 
 			for (int i = 0; i < limit; ++i) {
@@ -101,9 +101,11 @@ public class PassConfig extends NamedConfig<PassConfig> {
 			valid &= img.validate("Pass %s invalid because samplerImage %s not found or invalid.", name, img.name);
 		}
 
-		if (program.value().samplerNames.length != samplerImages.length) {
+		final ProgramConfig programConfig = program.value();
+
+		if (programConfig != null && programConfig.samplerNames.length != samplerImages.length) {
 			CanvasMod.LOG.warn(String.format("Pass %s invalid because program %s expects %d samplers but the pass binds %d.",
-					name, program.name, program.value().samplerNames.length, samplerImages.length));
+					name, program.name, programConfig.samplerNames.length, samplerImages.length));
 		}
 
 		return valid;

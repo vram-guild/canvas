@@ -38,7 +38,7 @@ public class MaterialProgramConfig extends ProgramConfig {
 			samplerImages = new NamedDependency[0];
 		} else {
 			final JsonArray names = config.get(JsonArray.class, "samplerImages");
-			final int limit = names.size();
+			final int limit = names != null ? names.size() : 0;
 			samplerImages = new NamedDependency[limit];
 
 			for (int i = 0; i < limit; ++i) {
