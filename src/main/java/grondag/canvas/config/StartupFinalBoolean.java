@@ -1,19 +1,30 @@
 package grondag.canvas.config;
 
+import java.util.function.Supplier;
+
 /**
  * Config values that shouldn't change until the next MC restart.
  */
-public class StartupFinalBoolean {
+public class StartupFinalBoolean implements Supplier<Boolean> {
 	private boolean startedUp = false;
 	private boolean effective;
 
+	/**
+	 * Package-private variable represents current stored value.
+	 */
 	boolean current;
 
 	public StartupFinalBoolean(boolean currentValue) {
 		effective = current = currentValue;
 	}
 
-	public boolean effective() {
+	/**
+	 * Get effective value NOT current value.
+	 *
+	 * @return effective value.
+	 */
+	@Override
+	public Boolean get() {
 		assert startedUp : "Accessed startup persistent boolean before initialization.";
 		return effective;
 	}

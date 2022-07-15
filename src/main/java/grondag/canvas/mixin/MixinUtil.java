@@ -36,7 +36,7 @@ import grondag.canvas.terrain.util.TerrainExecutor;
 public class MixinUtil {
 	@Inject(at = @At("HEAD"), method = "backgroundExecutor", cancellable = true)
 	private static void onGetBackgroundExecutor(CallbackInfoReturnable<Executor> ci) {
-		if (Configurator.useCombinedThreadPool.effective()) {
+		if (Configurator.useCombinedThreadPool.get()) {
 			ci.setReturnValue(TerrainExecutor.INSTANCE);
 		}
 	}
