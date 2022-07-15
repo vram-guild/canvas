@@ -48,11 +48,11 @@ public class Configurator {
 	public static boolean cullEntityRender = DEFAULTS.cullEntityRender;
 	public static boolean greedyRenderThread = DEFAULTS.greedyRenderThread;
 	public static boolean forceJmxModelLoading = DEFAULTS.forceJmxModelLoading;
-	public static boolean reduceResolutionOnMac = DEFAULTS.reduceResolutionOnMac;
+	public static StartupFinalBoolean reduceResolutionOnMac = new StartupFinalBoolean(DEFAULTS.reduceResolutionOnMac);
 	public static int staticFrustumPadding = DEFAULTS.staticFrustumPadding;
 	public static int dynamicFrustumPadding = DEFAULTS.dynamicFrustumPadding;
 	public static boolean cullParticles = DEFAULTS.cullParticles;
-	public static boolean useCombinedThreadPool = DEFAULTS.useCombinedThreadPool;
+	public static StartupFinalBoolean useCombinedThreadPool = new StartupFinalBoolean(DEFAULTS.useCombinedThreadPool);
 	public static boolean shaderDebug = DEFAULTS.shaderDebug;
 	public static boolean preprocessShaderSource = DEFAULTS.preprocessShaderSource;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
@@ -62,8 +62,8 @@ public class Configurator {
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
-	public static boolean debugNativeMemoryAllocation = DEFAULTS.debugNativeMemoryAllocation;
-	public static boolean safeNativeMemoryAllocation = DEFAULTS.safeNativeMemoryAllocation;
+	public static StartupFinalBoolean debugNativeMemoryAllocation = new StartupFinalBoolean(DEFAULTS.debugNativeMemoryAllocation);
+	public static StartupFinalBoolean safeNativeMemoryAllocation = new StartupFinalBoolean(DEFAULTS.safeNativeMemoryAllocation);
 	public static boolean enablePerformanceTrace = DEFAULTS.enablePerformanceTrace;
 	public static boolean debugOcclusionRaster = DEFAULTS.debugOcclusionRaster;
 	public static boolean debugOcclusionBoxes = DEFAULTS.debugOcclusionBoxes;
@@ -103,6 +103,10 @@ public class Configurator {
 	}
 
 	static void readFromConfig(ConfigData config) {
+		readFromConfig(config, false);
+	}
+
+	static void readFromConfig(ConfigData config, boolean isStartup) {
 		pipelineId = config.pipelineId;
 
 		if (pipelineId == null || pipelineId.isEmpty()) {
@@ -129,15 +133,15 @@ public class Configurator {
 		fixLuminousBlockShading = config.fixLuminousBlockShading;
 		advancedTerrainCulling = config.advancedTerrainCulling;
 		terrainSetupOffThread = config.terrainSetupOffThread;
-		safeNativeMemoryAllocation = config.safeNativeMemoryAllocation;
+		safeNativeMemoryAllocation.set(config.safeNativeMemoryAllocation, isStartup);
 		cullEntityRender = config.cullEntityRender;
 		greedyRenderThread = config.greedyRenderThread;
 		forceJmxModelLoading = config.forceJmxModelLoading;
-		reduceResolutionOnMac = config.reduceResolutionOnMac;
+		reduceResolutionOnMac.set(config.reduceResolutionOnMac, isStartup);
 		dynamicFrustumPadding = Mth.clamp(config.dynamicFrustumPadding, 0, 30);
 		staticFrustumPadding = Mth.clamp(config.staticFrustumPadding, 0, 20);
 		cullParticles = config.cullParticles;
-		useCombinedThreadPool = config.useCombinedThreadPool;
+		useCombinedThreadPool.set(config.useCombinedThreadPool, isStartup);
 		transferBufferMode = config.transferBufferMode;
 		steadyDebugScreen = config.steadyDebugScreen;
 
@@ -147,7 +151,7 @@ public class Configurator {
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
-		debugNativeMemoryAllocation = config.debugNativeMemoryAllocation;
+		debugNativeMemoryAllocation.set(config.debugNativeMemoryAllocation, isStartup);
 		enablePerformanceTrace = config.enablePerformanceTrace;
 		debugOcclusionBoxes = config.debugOcclusionBoxes;
 		debugOcclusionRaster = config.debugOcclusionRaster;
@@ -192,15 +196,15 @@ public class Configurator {
 		config.advancedTerrainCulling = advancedTerrainCulling;
 		config.fixLuminousBlockShading = fixLuminousBlockShading;
 		config.terrainSetupOffThread = terrainSetupOffThread;
-		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation;
+		config.safeNativeMemoryAllocation = safeNativeMemoryAllocation.current;
 		config.cullEntityRender = cullEntityRender;
 		config.greedyRenderThread = greedyRenderThread;
 		config.forceJmxModelLoading = forceJmxModelLoading;
-		config.reduceResolutionOnMac = reduceResolutionOnMac;
+		config.reduceResolutionOnMac = reduceResolutionOnMac.current;
 		config.staticFrustumPadding = staticFrustumPadding;
 		config.dynamicFrustumPadding = dynamicFrustumPadding;
 		config.cullParticles = cullParticles;
-		config.useCombinedThreadPool = useCombinedThreadPool;
+		config.useCombinedThreadPool = useCombinedThreadPool.current;
 		config.transferBufferMode = transferBufferMode;
 		config.steadyDebugScreen = steadyDebugScreen;
 
@@ -210,7 +214,7 @@ public class Configurator {
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;
-		config.debugNativeMemoryAllocation = debugNativeMemoryAllocation;
+		config.debugNativeMemoryAllocation = debugNativeMemoryAllocation.current;
 		config.enablePerformanceTrace = enablePerformanceTrace;
 		config.debugOcclusionBoxes = debugOcclusionBoxes;
 		config.debugOcclusionRaster = debugOcclusionRaster;

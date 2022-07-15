@@ -166,7 +166,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.safe_native_allocation",
 				() -> editing.safeNativeMemoryAllocation,
 				b -> {
-					requiresRestart |= Configurator.safeNativeMemoryAllocation != b;
+					requiresRestart |= Configurator.safeNativeMemoryAllocation.effective() != b;
 					editing.safeNativeMemoryAllocation = b;
 				},
 				DEFAULTS.safeNativeMemoryAllocation,
@@ -193,7 +193,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.reduce_resolution_on_mac",
 				() -> editing.reduceResolutionOnMac,
 				b -> {
-					requiresRestart |= Configurator.reduceResolutionOnMac != b;
+					requiresRestart |= Configurator.reduceResolutionOnMac.effective() != b;
 					editing.reduceResolutionOnMac = b;
 				},
 				DEFAULTS.reduceResolutionOnMac,
@@ -232,7 +232,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.use_combined_thread_pool",
 				() -> editing.useCombinedThreadPool,
 				b -> {
-					requiresRestart |= Configurator.useCombinedThreadPool != b;
+					requiresRestart |= Configurator.useCombinedThreadPool.effective() != b;
 					editing.useCombinedThreadPool = b;
 				},
 				DEFAULTS.useCombinedThreadPool,
@@ -336,7 +336,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.debug_native_allocation",
 				() -> editing.debugNativeMemoryAllocation,
 				b -> {
-					requiresRestart |= Configurator.debugNativeMemoryAllocation != b;
+					requiresRestart |= Configurator.debugNativeMemoryAllocation.effective() != b;
 					editing.debugNativeMemoryAllocation = b;
 				},
 				DEFAULTS.debugNativeMemoryAllocation,

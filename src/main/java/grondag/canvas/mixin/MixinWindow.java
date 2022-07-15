@@ -46,7 +46,7 @@ public class MixinWindow {
 	private void onDefaultWindowHints() {
 		GLFW.glfwDefaultWindowHints();
 
-		if (Minecraft.ON_OSX && Configurator.reduceResolutionOnMac) {
+		if (Minecraft.ON_OSX && Configurator.reduceResolutionOnMac.effective()) {
 			GLFW.glfwWindowHint(GLFW.GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW.GLFW_FALSE);
 		}
 	}
@@ -54,7 +54,7 @@ public class MixinWindow {
 	@Inject (at = @At(value = "RETURN"), method = "refreshFramebufferSize")
 	private void afterRefreshFramebufferSize(CallbackInfo ci) {
 		// prevents mis-scaled startup screen
-		if (Minecraft.ON_OSX && Configurator.reduceResolutionOnMac) {
+		if (Minecraft.ON_OSX && Configurator.reduceResolutionOnMac.effective()) {
 			framebufferWidth /= 2;
 			framebufferHeight /= 2;
 		}
