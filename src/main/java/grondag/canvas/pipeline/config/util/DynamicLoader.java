@@ -35,8 +35,7 @@ import grondag.canvas.pipeline.config.option.FloatConfigEntry;
 import grondag.canvas.pipeline.config.option.IntConfigEntry;
 
 /**
- * Dynamic property loader. The dynamic resolvers are designed so that they may be stored for
- * deferred use, but the current implementation simply reads the resolved value immediately.
+ * Loads json values verbatim or resolves values of user pipeline options when requested.
  */
 public class DynamicLoader {
 	private final ConfigContext ctx;
@@ -47,109 +46,104 @@ public class DynamicLoader {
 
 	public String getString(JsonObject config, String key, String defaultVal) {
 		final JsonElement element = config.get(key);
-		final Dynamic<String> resolver = deserialize(String.class, element, defaultVal);
 
-		if (resolver != null) {
-			return resolver.value();
+		return getString(element, defaultVal);
+	}
+
+	public String getString(JsonElement element) {
+		return getString(element, "");
+	}
+
+	private String getString(JsonElement element, String defaultVal) {
+		if (element instanceof JsonPrimitive primitive && primitive.getValue() instanceof CharSequence) {
+			return primitive.asString();
+		} else {
+			return deserialize(String.class, element, defaultVal);
 		}
-
-		return defaultVal;
 	}
 
 	public boolean getBoolean(JsonObject config, String key, boolean defaultVal) {
 		final JsonElement element = config.get(key);
 
-		if (element instanceof JsonPrimitive primitive) {
-			defaultVal = primitive.asBoolean(defaultVal);
+		if (element instanceof JsonPrimitive primitive && primitive.getValue() instanceof Boolean) {
+			return primitive.asBoolean(defaultVal);
+		} else {
+			return deserialize(Boolean.class, element, defaultVal);
 		}
-
-		final Dynamic<Boolean> resolver = deserialize(Boolean.class, element, defaultVal);
-
-		if (resolver != null) {
-			return resolver.value();
-		}
-
-		return defaultVal;
 	}
 
 	public int getInt(JsonObject config, String key, int defaultVal) {
 		final JsonElement element = config.get(key);
 
-		if (element instanceof JsonPrimitive primitive) {
-			defaultVal = primitive.asInt(defaultVal);
+		if (element instanceof JsonPrimitive primitive && primitive.getValue() instanceof Number) {
+			return primitive.asInt(defaultVal);
+		} else {
+			return deserialize(Integer.class, element, defaultVal);
 		}
-
-		final Dynamic<Integer> resolver = deserialize(Integer.class, element, defaultVal);
-
-		if (resolver != null) {
-			return resolver.value();
-		}
-
-		return defaultVal;
 	}
 
 	public float getFloat (JsonObject config, String key, float defaultVal) {
 		final JsonElement element = config.get(key);
 
-		if (element instanceof JsonPrimitive primitive) {
-			defaultVal = primitive.asFloat(defaultVal);
+		if (element instanceof JsonPrimitive primitive && primitive.getValue() instanceof Number) {
+			return primitive.asFloat(defaultVal);
+		} else {
+			return deserialize(Float.class, element, defaultVal);
 		}
+	}
 
-		final Dynamic<Float> resolver = deserialize(Float.class, element, defaultVal);
+	public int getGlConst(JsonObject config, String key, String fallback) {
+		final String glEnum = getString(config, key, fallback);
+		return GlSymbolLookup.lookup(glEnum, fallback);
+	}
 
-		if (resolver != null) {
-			return resolver.value();
+	private <ForType> ForType deserialize(Class<ForType> clazz, JsonElement element, ForType defaultVal) {
+		if (element instanceof JsonObject obj) {
+			final String optionKey = obj.get(String.class, "useOption");
+
+			if (optionKey != null) {
+				return resolve(clazz, optionKey, defaultVal);
+			} else {
+				final Dynamic<ForType> resolver = deserializeMap(clazz, obj, defaultVal);
+
+				if (resolver != null) {
+					return resolver.value();
+				}
+			}
 		}
 
 		return defaultVal;
 	}
 
-	public int getGlConst(JsonObject config, String key, String fallback) {
-		final JsonElement element = config.get(key);
-		final Dynamic<String> resolver = deserialize(String.class, element, fallback);
-
-		if (resolver != null) {
-			return GlSymbolLookup.lookup(resolver.value(), fallback);
-		}
-
-		return GlSymbolLookup.lookup(fallback);
-	}
-
-	private <ForType> Dynamic<ForType> deserialize(Class<ForType> clazz, JsonElement element, ForType defaultVal) {
-		if (element instanceof JsonPrimitive primitive) {
-			final Object value = primitive.getValue();
-
-			if (clazz.isAssignableFrom(value.getClass())) {
-				return new ConstantResolver<>(clazz.cast(value));
-			} else if (value instanceof CharSequence stringVal) {
-				return createResolver(clazz, stringVal.toString());
-			}
-		} else if (element instanceof JsonObject obj) {
-			return deserializeMap(clazz, obj, defaultVal);
-		}
-
-		return null;
-	}
-
 	@SuppressWarnings("unchecked")
-	private <ForType> Dynamic<ForType> createResolver(Class<ForType> clazz, String optionKey) {
-		if (clazz.equals(String.class)) {
-			return (Dynamic<ForType>) new StringResolver(optionKey);
+	private <ForType> ForType resolve(Class<ForType> clazz, String optionKey, ForType defaultVal) {
+		if (clazz == String.class) {
+			var config = ctx.enumConfigEntries.get(optionKey);
+
+			if (config != null) {
+				return (ForType) config.value();
+			}
+		} else if (clazz == Boolean.class) {
+			var config = ctx.booleanConfigEntries.get(optionKey);
+
+			if (config != null) {
+				return (ForType) Boolean.valueOf(config.value());
+			}
+		} else if (clazz == Integer.class) {
+			var config = ctx.intConfigEntries.get(optionKey);
+
+			if (config != null) {
+				return (ForType) Integer.valueOf(config.value());
+			}
+		} else if (clazz == Float.class) {
+			var config = ctx.floatConfigEntries.get(optionKey);
+
+			if (config != null) {
+				return (ForType) Float.valueOf(config.value());
+			}
 		}
 
-		if (clazz.equals(Boolean.class)) {
-			return (Dynamic<ForType>) new BooleanResolver(optionKey);
-		}
-
-		if (clazz.equals(Integer.class)) {
-			return (Dynamic<ForType>) new IntResolver(optionKey);
-		}
-
-		if (clazz.equals(Float.class)) {
-			return (Dynamic<ForType>) new FloatResolver(optionKey);
-		}
-
-		return null;
+		return defaultVal;
 	}
 
 	private <ForType> MapResolver<ForType> deserializeMap(Class<ForType> clazz, JsonObject obj, ForType defaultVal) {
@@ -170,19 +164,6 @@ public class DynamicLoader {
 
 	private abstract static class Dynamic<T> {
 		public abstract T value();
-	}
-
-	private static class ConstantResolver<T> extends Dynamic<T> {
-		private final T value;
-
-		private ConstantResolver(T value) {
-			this.value = value;
-		}
-
-		@Override
-		public T value() {
-			return value;
-		}
 	}
 
 	private class MapResolver<ToType> extends Dynamic<ToType> {
@@ -222,123 +203,31 @@ public class DynamicLoader {
 
 		@Override
 		public Object value() {
-			final var enumOption = ctx.enumConfigEntries.dependOn(optionKey);
+			final var enumOption = ctx.enumConfigEntries.get(optionKey);
 
 			if (enumOption != null) {
-				final var entry = enumOption.value();
-
-				if (entry != null) {
-					return entry.value();
-				}
+				return enumOption.value();
 			}
 
-			final var booleanOption = ctx.booleanConfigEntries.dependOn(optionKey);
+			final var booleanOption = ctx.booleanConfigEntries.get(optionKey);
 
 			if (booleanOption != null) {
-				final var entry = booleanOption.value();
-
-				if (entry != null) {
-					return entry.value();
-				}
+				return booleanOption.value();
 			}
 
-			final var intOption = ctx.intConfigEntries.dependOn(optionKey);
+			final var intOption = ctx.intConfigEntries.get(optionKey);
 
 			if (intOption != null) {
-				final var entry = intOption.value();
-
-				if (entry != null) {
-					return entry.value();
-				}
+				return intOption.value();
 			}
 
-			final var floatOption = ctx.floatConfigEntries.dependOn(optionKey);
+			final var floatOption = ctx.floatConfigEntries.get(optionKey);
 
 			if (floatOption != null) {
-				final var entry = floatOption.value();
-
-				if (entry != null) {
-					return entry.value();
-				}
+				return floatOption.value();
 			}
 
 			return null;
-		}
-	}
-
-	private class StringResolver extends Dynamic<String> {
-		private final NamedDependency<EnumConfigEntry> optionEntry;
-
-		private StringResolver(String option) {
-			optionEntry = ctx.enumConfigEntries.dependOn(option);
-		}
-
-		@Override
-		public String value() {
-			final var option = optionEntry.value();
-
-			if (option == null) {
-				return null;
-			} else {
-				return option.value();
-			}
-		}
-	}
-
-	private class BooleanResolver extends Dynamic<Boolean> {
-		private final NamedDependency<BooleanConfigEntry> optionEntry;
-
-		private BooleanResolver(String option) {
-			optionEntry = ctx.booleanConfigEntries.dependOn(option);
-		}
-
-		@Override
-		public Boolean value() {
-			final var option = optionEntry.value();
-
-			if (option == null) {
-				return null;
-			} else {
-				return option.value();
-			}
-		}
-	}
-
-	private class IntResolver extends Dynamic<Integer> {
-		private final NamedDependency<IntConfigEntry> optionEntry;
-
-		private IntResolver(String option) {
-			optionEntry = ctx.intConfigEntries.dependOn(option);
-		}
-
-		@Override
-		public Integer value() {
-			final var option = optionEntry.value();
-
-			if (option == null) {
-				return null;
-			} else {
-				return option.value();
-			}
-		}
-	}
-
-	private class FloatResolver extends Dynamic<Float> {
-		private final NamedDependency<FloatConfigEntry> optionEntry;
-
-		private FloatResolver(String option) {
-			optionEntry = ctx.floatConfigEntries.dependOn(option);
-		}
-
-		@Override
-		public Float value() {
-			final var option = optionEntry.value();
-
-			if (option == null) {
-				return null;
-			} else {
-				return option.value();
-			}
 		}
 	}
 }
