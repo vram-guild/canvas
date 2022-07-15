@@ -29,10 +29,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
 import grondag.canvas.config.gui.BaseScreen;
 import grondag.canvas.config.gui.ListWidget;
+import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineDescription;
 import grondag.canvas.pipeline.config.PipelineLoader;
 
@@ -69,12 +71,19 @@ public class PipelineSelectionScreen extends BaseScreen {
 		}
 
 		addRenderableWidget(list);
-
-		this.addRenderableWidget(new Button(this.width / 2 - 120 / 2, this.height - 35 + 6, 120, 20, CommonComponents.GUI_DONE, b -> save()));
+		addRenderableWidget(new Button(this.width / 2 - 120 / 2, this.height - 35 + 6, 120, 20, CommonComponents.GUI_DONE, b -> save()));
 	}
 
 	private void save() {
-		parent.switchBack(selected.pipeline.id);
+		final ResourceLocation pipelineId;
+
+		if (selected == null) {
+			pipelineId = PipelineConfig.DEFAULT_ID;
+		} else {
+			pipelineId = selected.pipeline.id;
+		}
+
+		parent.switchBack(pipelineId);
 	}
 
 	@Override
