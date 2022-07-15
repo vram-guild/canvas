@@ -30,7 +30,7 @@ public class SkyConfig extends AbstractConfig {
 
 	SkyConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
-		defaultZenithAngle = config.getFloat("defaultZenithAngle", 0f);
+		defaultZenithAngle = ctx.dynamic.getFloat(config, "defaultZenithAngle", 0f);
 	}
 
 	@Override

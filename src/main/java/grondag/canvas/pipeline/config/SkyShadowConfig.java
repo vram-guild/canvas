@@ -22,7 +22,6 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonObject;
-import org.apache.commons.lang3.ObjectUtils;
 
 import net.minecraft.resources.ResourceLocation;
 
@@ -47,14 +46,14 @@ public class SkyShadowConfig extends AbstractConfig {
 
 	SkyShadowConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
-		framebuffer = ctx.frameBuffers.dependOn(config, "framebuffer");
-		vertexSource = JanksonHelper.asIdentifier(ObjectUtils.defaultIfNull(config.get("vertexSource"), config.get("vertexShader")));
-		fragmentSource = JanksonHelper.asIdentifier(ObjectUtils.defaultIfNull(config.get("fragmentSource"), config.get("fragmentShader")));
-		allowEntities = config.getBoolean("allowEntities", true);
-		allowParticles = config.getBoolean("allowParticles", true);
-		supportForwardRender = config.getBoolean("supportForwardRender", true);
-		offsetSlopeFactor = config.getFloat("offsetSlopeFactor", DEFAULT_SHADOW_SLOPE_FACTOR);
-		offsetBiasUnits = config.getFloat("offsetBiasUnits", DEFAULT_SHADOW_BIAS_UNITS);
+		framebuffer = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "framebuffer"));
+		vertexSource = ResourceLocation.tryParse(ctx.dynamic.getString(config, "vertexSource", ctx.dynamic.getString(config, "vertexShader")));
+		fragmentSource = ResourceLocation.tryParse(ctx.dynamic.getString(config, "fragmentSource", ctx.dynamic.getString(config, "fragmentShader")));
+		allowEntities = ctx.dynamic.getBoolean(config, "allowEntities", true);
+		allowParticles = ctx.dynamic.getBoolean(config, "allowParticles", true);
+		supportForwardRender = ctx.dynamic.getBoolean(config, "supportForwardRender", true);
+		offsetSlopeFactor = ctx.dynamic.getFloat(config, "offsetSlopeFactor", DEFAULT_SHADOW_SLOPE_FACTOR);
+		offsetBiasUnits = ctx.dynamic.getFloat(config, "offsetBiasUnits", DEFAULT_SHADOW_BIAS_UNITS);
 		samplerNames = readerSamplerNames(ctx, config, "shy shadows");
 
 		final JsonArray radii = JanksonHelper.getJsonArrayOrNull(config, "cascadeRadius", "Invalid pipeline skyShadow config: cascadeRadius must be an array.");
@@ -65,7 +64,7 @@ public class SkyShadowConfig extends AbstractConfig {
 			}
 
 			for (int i = 0; i < 3; ++i) {
-				final int r = radii.getInt(i, -1);
+				final int r = ctx.dynamic.getInt(radii.get(i), -1);
 
 				if (r <= 0) {
 					CanvasMod.LOG.warn("Invalid pipeline skyShadow config: cascadeRadius array must contain integers > 0.");

@@ -93,13 +93,13 @@ public class PipelineConfigBuilder {
 	}
 
 	public void load(JsonObject configJson) {
-		smoothBrightnessBidirectionaly = configJson.getBoolean("smoothBrightnessBidirectionaly", smoothBrightnessBidirectionaly);
-		runVanillaClear = configJson.getBoolean("runVanillaClear", runVanillaClear);
-		brightnessSmoothingFrames = configJson.getInt("brightnessSmoothingFrames", brightnessSmoothingFrames);
-		rainSmoothingFrames = configJson.getInt("rainSmoothingFrames", rainSmoothingFrames);
-		thunderSmoothingFrames = configJson.getInt("thunderSmoothingFrames", thunderSmoothingFrames);
-		glslVersion = configJson.getInt("glslVersion", glslVersion);
-		enablePBR = configJson.getBoolean("enablePBR", enablePBR);
+		smoothBrightnessBidirectionaly = context.dynamic.getBoolean(configJson, "smoothBrightnessBidirectionaly", smoothBrightnessBidirectionaly);
+		runVanillaClear = context.dynamic.getBoolean(configJson, "runVanillaClear", runVanillaClear);
+		brightnessSmoothingFrames = context.dynamic.getInt(configJson, "brightnessSmoothingFrames", brightnessSmoothingFrames);
+		rainSmoothingFrames = context.dynamic.getInt(configJson, "rainSmoothingFrames", rainSmoothingFrames);
+		thunderSmoothingFrames = context.dynamic.getInt(configJson, "thunderSmoothingFrames", thunderSmoothingFrames);
+		glslVersion = context.dynamic.getInt(configJson, "glslVersion", glslVersion);
+		enablePBR = context.dynamic.getBoolean(configJson, "enablePBR", enablePBR);
 
 		if (configJson.containsKey("materialProgram")) {
 			if (materialProgram == null) {
@@ -111,7 +111,7 @@ public class PipelineConfigBuilder {
 
 		if (configJson.containsKey("defaultFramebuffer")) {
 			if (defaultFramebuffer == null) {
-				defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
+				defaultFramebuffer = context.frameBuffers.dependOn(context.dynamic.getString(configJson, "defaultFramebuffer"));
 			} else {
 				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'defaultFramebuffer' ignored.");
 			}

@@ -27,12 +27,9 @@ import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
-import grondag.canvas.pipeline.config.option.BooleanConfigEntry;
-import grondag.canvas.pipeline.config.option.EnumConfigEntry;
-import grondag.canvas.pipeline.config.option.FloatConfigEntry;
-import grondag.canvas.pipeline.config.option.IntConfigEntry;
 
 /**
  * Loads json values verbatim or resolves values of user pipeline options when requested.
@@ -44,17 +41,39 @@ public class DynamicLoader {
 		ctx = context;
 	}
 
+	/**
+	 * Get a string verbatim or resolve dynamic string value.
+	 *
+	 * @param config source config object
+	 * @param key config key
+	 * @param defaultVal default string value if resolution fails or key not found
+	 * @return constant or resolved string value
+	 */
 	public String getString(JsonObject config, String key, String defaultVal) {
 		final JsonElement element = config.get(key);
 
-		return getString(element, defaultVal);
+		return getString(defaultVal, element);
 	}
 
-	public String getString(JsonElement element) {
-		return getString(element, "");
+	/**
+	 * Overload of {@link #getString(JsonObject, String, String)} with null default.
+	 */
+	public @Nullable String getString(JsonObject config, String key) {
+		return getString(config, key, null);
 	}
 
-	private String getString(JsonElement element, String defaultVal) {
+	/**
+	 * Read a Json element as a string constant or resolved dynamic string, or null if failed.
+	 *
+	 * @param element target Json element
+	 * @return resolved string value or null
+	 */
+	public @Nullable String getString(JsonElement element) {
+		return getString(null, element);
+	}
+
+	// Order of defaultVal reversed to not mistake it for json key
+	private String getString(String defaultVal, JsonElement element) {
 		if (element instanceof JsonPrimitive primitive && primitive.getValue() instanceof CharSequence) {
 			return primitive.asString();
 		} else {
@@ -62,6 +81,14 @@ public class DynamicLoader {
 		}
 	}
 
+	/**
+	 * Get a boolean verbatim or resolve dynamic boolean value.
+	 *
+	 * @param config source config object
+	 * @param key config key
+	 * @param defaultVal default boolean value if resolution fails or key not found
+	 * @return constant or resolved boolean value
+	 */
 	public boolean getBoolean(JsonObject config, String key, boolean defaultVal) {
 		final JsonElement element = config.get(key);
 
@@ -72,9 +99,27 @@ public class DynamicLoader {
 		}
 	}
 
+	/**
+	 * Get an integer verbatim or resolve dynamic integer value.
+	 *
+	 * @param config source config object
+	 * @param key config key
+	 * @param defaultVal default integer value if resolution fails or key not found
+	 * @return constant or resolved integer value
+	 */
 	public int getInt(JsonObject config, String key, int defaultVal) {
 		final JsonElement element = config.get(key);
+		return getInt(element, defaultVal);
+	}
 
+	/**
+	 * Read a Json element as an integer constant or resolved dynamic string.
+	 *
+	 * @param element target Json element
+	 * @param defaultVal default integer value if parsing or resolution fails
+	 * @return resolved integer value
+	 */
+	public int getInt(JsonElement element, int defaultVal) {
 		if (element instanceof JsonPrimitive primitive && primitive.getValue() instanceof Number) {
 			return primitive.asInt(defaultVal);
 		} else {
@@ -82,6 +127,14 @@ public class DynamicLoader {
 		}
 	}
 
+	/**
+	 * Get a float verbatim or resolve dynamic float value.
+	 *
+	 * @param config source config object
+	 * @param key config key
+	 * @param defaultVal default float value if resolution fails or key not found
+	 * @return constant or resolved float value
+	 */
 	public float getFloat (JsonObject config, String key, float defaultVal) {
 		final JsonElement element = config.get(key);
 
@@ -92,6 +145,14 @@ public class DynamicLoader {
 		}
 	}
 
+	/**
+	 * Get an GL enum int constant from a string constant or a resolved dynamic string.
+	 *
+	 * @param config source config object
+	 * @param key config key
+	 * @param fallback default GL enum in string form if resolution fails or key not found
+	 * @return GL enum integer constant
+	 */
 	public int getGlConst(JsonObject config, String key, String fallback) {
 		final String glEnum = getString(config, key, fallback);
 		return GlSymbolLookup.lookup(glEnum, fallback);
