@@ -58,22 +58,16 @@ public class ConfigRestartScreen extends BaseScreen {
 		onClose();
 	}
 
-	public void renderTitle(PoseStack matrices) {
-		if (lines != null) {
-			drawCenteredString(matrices, this.font, this.title, this.width / 2, this.height / 2 - 100, 16777215);
-
-			int i = 0;
-
-			for (FormattedCharSequence line : lines) {
-				drawCenteredString(matrices, this.font, line, this.width / 2, this.height / 2 - 100 + 30 + 16 * (i++), 16777215);
-			}
-		}
-	}
-
 	@Override
 	public void render(PoseStack poseStack, int i, int j, float f) {
-		renderBackground(poseStack);
-		renderTitle(poseStack);
 		super.render(poseStack, i, j, f);
+
+		if (lines != null) {
+			int row = 0;
+
+			for (FormattedCharSequence line : lines) {
+				drawCenteredString(poseStack, this.font, line, this.width / 2, this.height / 2 - 100 + 30 + 16 * (row++), 16777215);
+			}
+		}
 	}
 }
