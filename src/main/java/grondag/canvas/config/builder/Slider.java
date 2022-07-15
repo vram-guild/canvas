@@ -96,7 +96,7 @@ public class Slider<T> extends OptionItem<Double> {
 		if (input != null) {
 			try {
 				setter.accept(input.getNumericValue(min, max));
-			} catch (Throwable e) {
+			} catch (final Throwable e) {
 				// NOOP
 			}
 
@@ -131,7 +131,7 @@ public class Slider<T> extends OptionItem<Double> {
 
 	private void displayEdit() {
 		if (input != null) {
-			input.setText(format.format(getter.get()));
+			input.changeText(format.format(getter.get()));
 		}
 	}
 
@@ -165,7 +165,9 @@ public class Slider<T> extends OptionItem<Double> {
 	private static class NumberInput extends EditBox implements Consumer<String>, Predicate<String> {
 		private final boolean integer;
 		private final Runnable changeAction;
+		@SuppressWarnings("unused")
 		private final double min;
+		@SuppressWarnings("unused")
 		private final double max;
 		private boolean suppressListener = false;
 
@@ -179,7 +181,7 @@ public class Slider<T> extends OptionItem<Double> {
 			setResponder(this);
 		}
 
-		private void setText(String text) {
+		private void changeText(String text) {
 			suppressListener = true;
 			setValue(text);
 			suppressListener = false;
@@ -206,7 +208,7 @@ public class Slider<T> extends OptionItem<Double> {
 				}
 
 				return true;
-			} catch (Throwable e) {
+			} catch (final Throwable e) {
 				return false;
 			}
 		}
@@ -214,7 +216,7 @@ public class Slider<T> extends OptionItem<Double> {
 		public double getNumericValue(double min, double max) {
 			try {
 				return Mth.clamp(Double.parseDouble(getValue()), min, max);
-			} catch (Throwable e) {
+			} catch (final Throwable e) {
 				return min;
 			}
 		}

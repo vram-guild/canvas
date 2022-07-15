@@ -61,7 +61,7 @@ public class FirstPersonModelHolder {
 					} catch (final Throwable e) {
 						CanvasMod.LOG.warn("Unable to deffer to FirstPersonModel due to exception: ", e);
 						CanvasMod.LOG.warn("Subsequent errors will be suppressed");
-						return (cameraHandler = DEFAULT_CAMERA).renderFirstPersonPlayer();
+						return (cameraHandler = DEFAULT_CAMERA).shouldApply();
 					}
 				};
 
@@ -82,10 +82,10 @@ public class FirstPersonModelHolder {
 	}
 
 	public interface CameraHandler {
-		boolean renderFirstPersonPlayer();
+		boolean shouldApply();
 	}
 
 	public interface RenderHandler {
-		void setIsRenderingPlayer(boolean b);
+		void setActive(boolean b);
 	}
 }

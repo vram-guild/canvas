@@ -42,8 +42,9 @@ public class Buttons {
 		}
 
 		public void renderTitle(PoseStack poseStack, int i, int j, float f) {
-			int l = this.active ? 16777215 : 10526880;
-			Font font = Minecraft.getInstance().font;
+			final int l = this.active ? 16777215 : 10526880;
+			@SuppressWarnings("resource")
+			final Font font = Minecraft.getInstance().font;
 			drawCenteredString(poseStack, font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
 		}
 	}

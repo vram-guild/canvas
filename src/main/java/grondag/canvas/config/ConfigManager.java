@@ -43,7 +43,7 @@ import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 
 public class ConfigManager {
-	static final ConfigData DEFAULTS = new ConfigData();
+	static final ConfigData DEFAULTS = ConfigData.DEFAULT_VALUES;
 	public static final Gson GSON = new GsonBuilder().create();
 	public static final Jankson JANKSON = Jankson.builder().build();
 

@@ -76,14 +76,18 @@ public class CanvasItemRenderContext extends ItemRenderContext {
 	@Override
 	protected void renderCustomModel(BlockEntityWithoutLevelRenderer builtInRenderer, MultiBufferSource vertexConsumers) {
 		final ItemStack stack = inputContext.itemStack();
+		final RenderContextState context = (vertexConsumers instanceof CanvasImmediate immediate) ? immediate.contextState : null;
 
-		if (inputContext.isGui() && vertexConsumers instanceof CanvasImmediate) {
-			final RenderContextState context = ((CanvasImmediate) vertexConsumers).contextState;
-			context.guiMode(inputContext.isBlockItem() && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
-			builtInRenderer.renderByItem(stack, inputContext.mode(), inputContext.matrixStack().toVanilla(), vertexConsumers, inputContext.lightmap(), inputContext.overlay());
+		if (context != null) {
+			context.pushItemState(stack);
+			context.guiMode(inputContext.isGui() && inputContext.isBlockItem() && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
+		}
+
+		builtInRenderer.renderByItem(stack, inputContext.mode(), inputContext.matrixStack().toVanilla(), vertexConsumers, inputContext.lightmap(), inputContext.overlay());
+
+		if (context != null) {
+			context.popItemState();
 			context.guiMode(GuiMode.NORMAL);
-		} else {
-			builtInRenderer.renderByItem(stack, inputContext.mode(), inputContext.matrixStack().toVanilla(), vertexConsumers, inputContext.lightmap(), inputContext.overlay());
 		}
 	}
 }

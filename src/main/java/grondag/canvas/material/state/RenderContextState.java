@@ -26,16 +26,19 @@ import java.util.function.Function;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.BlockEntityMaterialMap;
 import io.vram.frex.api.material.EntityMaterialMap;
+import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.MaterialFinder;
 
 public class RenderContextState {
 	private EntityMaterialMap entityMap = null;
 	private BlockEntityMaterialMap blockEntityMap = null;
+	private MaterialMap itemMap = null;
 	private Entity entity;
 	private BlockState blockState;
 	private final MaterialFinder finder = MaterialFinder.newInstance();
@@ -43,8 +46,13 @@ public class RenderContextState {
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> defaultFunc = m -> m;
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> entityFunc = m -> (CanvasRenderMaterial) entityMap.getMapped(m, entity, finder);
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> blockEntityFunc = m -> (CanvasRenderMaterial) blockEntityMap.getMapped(m, blockState, finder);
+	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> itemFunc = m -> {
+		final var mapped = itemMap.getMapped(null);
+		return mapped == null ? m : (CanvasRenderMaterial) finder.copyFrom(mapped).foilOverlay(m.foilOverlay()).find();
+	};
 
 	private Function<CanvasRenderMaterial, CanvasRenderMaterial> activeFunc = defaultFunc;
+	private Function<CanvasRenderMaterial, CanvasRenderMaterial> swapFunc = null;
 	private BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> guiFunc = GuiMode.NORMAL.func;
 
 	public void setCurrentEntity(@Nullable Entity entity) {
@@ -52,6 +60,7 @@ public class RenderContextState {
 			entityMap = null;
 			activeFunc = defaultFunc;
 		} else {
+			this.entity = entity;
 			entityMap = EntityMaterialMap.get(entity.getType());
 			activeFunc = entityFunc;
 		}
@@ -66,6 +75,23 @@ public class RenderContextState {
 			blockEntityMap = BlockEntityMaterialMap.get(blockEntity.getType());
 			activeFunc = blockEntityFunc;
 		}
+	}
+
+	/**
+	 * For items with custom renderer.
+	 *
+	 * @param itemStack the item stack
+	 */
+	public void pushItemState(ItemStack itemStack) {
+		itemMap = MaterialMap.get(itemStack);
+		swapFunc = (activeFunc != itemFunc && activeFunc != defaultFunc) ? activeFunc : swapFunc; // preserve active function
+		activeFunc = itemFunc;
+	}
+
+	public void popItemState() {
+		itemMap = null;
+		activeFunc = (swapFunc != null && swapFunc != itemFunc) ? swapFunc : defaultFunc;
+		swapFunc = null;
 	}
 
 	public void guiMode(GuiMode guiMode) {

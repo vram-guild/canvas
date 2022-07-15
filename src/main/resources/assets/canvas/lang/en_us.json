@@ -94,7 +94,7 @@
   "config.canvas.value.shadow_priming_strategy": "Shadow Priming Strategy",
   "config.canvas.help.shadow_priming_strategy": "Strategy used to prime shadow regions. Tiered has fewer gaps but is more expensive, while Padded is slightly cleverer than Naive.",
   "config.canvas.value.shadow_max_distance": "Shadow Render Distance",
-  "config.canvas.help.shadow_max_distance": "Maximum shadow render distance to be compared against render distance. TEMPORARY config meant to be promoted into pipeline options eventually.",
+  "config.canvas.help.shadow_max_distance": "Maximum shadow render distance to be compared against render distance. TEMPORARY, meant to become a pipeline configuration.",
   "config.canvas.value.shader_debug": "Enable Shader Debug Output",
   "config.canvas.help.shader_debug": "Output runtime per-material shader source.;For shader development debugging.",
   "config.canvas.value.shader_debug_lightmap": "Render Debug Lightmaps",

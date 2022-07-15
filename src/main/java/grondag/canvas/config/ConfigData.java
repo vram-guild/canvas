@@ -28,6 +28,8 @@ import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 class ConfigData {
+	public static final ConfigData DEFAULT_VALUES = new ConfigData();
+
 	@Comment("Renderer configuration. Determines appearance, performance and available options.")
 	public String pipelineId = PipelineConfig.DEFAULT_ID.toString();
 	@Comment("Glow effect around light sources.")
@@ -82,7 +84,7 @@ class ConfigData {
 	boolean useCombinedThreadPool = false;
 	@Comment("Strategy used to prime shadow regions. Tiered has fewer gaps but is more expensive, while Padded is slightly cleverer than Naive.")
 	TerrainIterator.ShadowPriming shadowPrimingStrategy = TerrainIterator.ShadowPriming.PADDED;
-	@Comment("Maximum shadow render distance to be compared against render distance. TEMPORARY config meant to be promoted into pipeline options eventually.")
+	@Comment("Maximum shadow render distance to be compared against render distance. TEMPORARY, meant to become a pipeline configuration.")
 	int shadowMaxDistance = 32;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
 	boolean steadyDebugScreen = true;
@@ -144,4 +146,19 @@ class ConfigData {
 	boolean debugSpriteAtlas = false;
 	@Comment("Log significant events of texture/sprite atlas loading. For debugging use. Will spam the log.")
 	boolean traceTextureLoad = false;
+
+	// GSON doesn't do this automatically
+	public void clearNulls() {
+		if (shadowPrimingStrategy == null) {
+			shadowPrimingStrategy = DEFAULT_VALUES.shadowPrimingStrategy;
+		}
+
+		if (transferBufferMode == null) {
+			transferBufferMode = DEFAULT_VALUES.transferBufferMode;
+		}
+
+		if (profilerDisplayMode == null) {
+			profilerDisplayMode = DEFAULT_VALUES.profilerDisplayMode;
+		}
+	}
 }
