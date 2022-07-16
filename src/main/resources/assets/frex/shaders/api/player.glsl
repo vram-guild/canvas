@@ -5,6 +5,7 @@
  ***************************************************************/
 
 #define frx_effectModifier _cvu_world[_CV_LAST_CAMERA_POS].w
+#define frx_darknessEffectFactor 1
 #define frx_heldLight _cvu_world[_CV_HELD_LIGHT_RGBI]
 #define frx_heldLightInnerRadius _cvu_world[_CV_RENDER_INFO].z
 #define frx_heldLightOuterRadius _cvu_world[_CV_RENDER_INFO].w
@@ -42,6 +43,7 @@
 #define frx_effectDolphinsGrace _CV_PLAYER_EFFECT(29)
 #define frx_effectBadOmen _CV_PLAYER_EFFECT(30)
 #define frx_effectHeroOfTheVillage _CV_PLAYER_EFFECT(31)
+#define frx_effectDarkness 0
 
 #define _CV_PLAYER_FLAG(flagId) int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> flagId) & 1u)
 #define frx_playerEyeInFluid _CV_PLAYER_FLAG(7)
