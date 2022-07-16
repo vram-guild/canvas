@@ -196,16 +196,30 @@ public class DynamicLoader {
 				return (ForType) Boolean.valueOf(config.value());
 			}
 		} else if (clazz == Integer.class) {
-			var config = ctx.intConfigEntries.get(optionKey);
+			var intOption = ctx.intConfigEntries.get(optionKey);
 
-			if (config != null) {
-				return (ForType) Integer.valueOf(config.value());
+			if (intOption != null) {
+				return (ForType) Integer.valueOf(intOption.value());
+			}
+
+			// also try float options
+			var floatOption = ctx.floatConfigEntries.get(optionKey);
+
+			if (floatOption != null) {
+				return (ForType) Integer.valueOf((int) floatOption.value());
 			}
 		} else if (clazz == Float.class) {
-			var config = ctx.floatConfigEntries.get(optionKey);
+			var floatOption = ctx.floatConfigEntries.get(optionKey);
 
-			if (config != null) {
-				return (ForType) Float.valueOf(config.value());
+			if (floatOption != null) {
+				return (ForType) Float.valueOf(floatOption.value());
+			}
+
+			// also try int options
+			var intOption = ctx.intConfigEntries.get(optionKey);
+
+			if (intOption != null) {
+				return (ForType) Float.valueOf((float) intOption.value());
 			}
 		}
 
