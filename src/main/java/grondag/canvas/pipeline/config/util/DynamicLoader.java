@@ -161,6 +161,11 @@ public class DynamicLoader {
 	private <ForType> ForType deserialize(Class<ForType> clazz, JsonElement element, ForType defaultVal) {
 		if (element instanceof JsonObject obj) {
 			final String optionKey = obj.get(String.class, "useOption");
+			final ForType suppliedDefault = obj.get(clazz, "default");
+
+			if (suppliedDefault != null) {
+				defaultVal = suppliedDefault;
+			}
 
 			if (optionKey != null) {
 				return resolve(clazz, optionKey, defaultVal);
@@ -208,15 +213,14 @@ public class DynamicLoader {
 	}
 
 	private <ForType> MapResolver<ForType> deserializeMap(Class<ForType> clazz, JsonObject obj, ForType defaultVal) {
-		final ForType suppliedDefault = obj.get(clazz, "default");
-		final JsonObject optionMap = obj.getObject("optionMap");
+		final JsonObject optionMap = obj.getObject("useOptionMap");
 
 		if (optionMap != null) {
 			final String optionKey = optionMap.get(String.class, "option");
 			final JsonArray jsonMap = optionMap.get(JsonArray.class, "map");
 
 			if (optionKey != null && jsonMap != null) {
-				return new MapResolver<>(clazz, optionKey, jsonMap, suppliedDefault == null ? defaultVal : suppliedDefault);
+				return new MapResolver<>(clazz, optionKey, jsonMap, defaultVal);
 			}
 		}
 
