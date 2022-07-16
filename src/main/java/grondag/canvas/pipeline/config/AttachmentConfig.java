@@ -81,7 +81,7 @@ public class AttachmentConfig extends AbstractConfig {
 		}
 
 		final JsonArray array = configJson.get(JsonArray.class, "colorAttachments");
-		final int limit = array.size();
+		final int limit = array != null ? array.size() : 0;
 		final AttachmentConfig[] result = new AttachmentConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {

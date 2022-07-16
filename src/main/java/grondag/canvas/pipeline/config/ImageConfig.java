@@ -90,7 +90,7 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 			texParamPairs = new int[0];
 		} else {
 			final JsonArray params = config.get(JsonArray.class, "texParams");
-			final int limit = params.size();
+			final int limit = params != null ? params.size() : 0;
 			texParamPairs = new int[limit * 2];
 
 			int j = 0;

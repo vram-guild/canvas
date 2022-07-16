@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 import grondag.canvas.config.Configurator;
 
 public interface TerrainExecutor extends ExecutorService {
-	TerrainExecutor INSTANCE = Configurator.useCombinedThreadPool ? new SharedTerrainExecutor() : new DedicatedTerrainExecutor();
+	TerrainExecutor INSTANCE = Configurator.useCombinedThreadPool.get() ? new SharedTerrainExecutor() : new DedicatedTerrainExecutor();
 
 	void execute(TerrainExecutorTask task);
 

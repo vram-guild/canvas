@@ -161,7 +161,7 @@ public class ConfigManager {
 			CanvasMod.LOG.error("Unable to load config. Using default values.");
 		}
 
-		Configurator.readFromConfig(config);
+		Configurator.readFromConfig(config, true);
 	}
 
 	@SuppressWarnings("resource")

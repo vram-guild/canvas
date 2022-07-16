@@ -115,16 +115,20 @@ public class OptionSession {
 		}
 	}
 
-	public Option booleanOption(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, boolean defaultVal, @Nullable String tooltipKey) {
+	public Option booleanOption(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, Supplier<Boolean> effectiveGetter, boolean defaultVal, @Nullable String tooltipKey) {
 		if (attachments.containsKey(key)) {
 			return attachments.get(key).option;
 		}
 
 		final var attachment = new OptionAttachment<>(getter, setter, generateIndex());
-		final var created = new Toggle(key, getter, attachment, defaultVal, tooltipKey);
+		final var created = new Toggle(key, getter, attachment, effectiveGetter, defaultVal, tooltipKey);
 		attachment.attach(created);
 		attachments.put(key, attachment);
 		return created;
+	}
+
+	public Option booleanOption(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, boolean defaultVal, @Nullable String tooltipKey) {
+		return booleanOption(key, getter, setter, null, defaultVal, tooltipKey);
 	}
 
 	public <T extends Enum<T>> Option enumOption(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, Class<T> enumType, @Nullable String tooltipKey) {

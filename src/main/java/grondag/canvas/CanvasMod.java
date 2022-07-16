@@ -83,7 +83,7 @@ public class CanvasMod {
 			FrexFeature.VERTEX_TANGENT
 		);
 
-		if (Configurator.debugNativeMemoryAllocation) {
+		if (Configurator.debugNativeMemoryAllocation.get()) {
 			LOG.warn("Canvas is configured to enable native memory debug. This WILL cause slow performance and other issues.  Debug output will print at game exit.");
 			Configuration.DEBUG_MEMORY_ALLOCATOR.set(true);
 		}

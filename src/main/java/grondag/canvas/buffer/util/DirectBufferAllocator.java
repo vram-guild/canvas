@@ -104,7 +104,7 @@ public class DirectBufferAllocator {
 	private static final AtomicInteger totalBytes = new AtomicInteger();
 
 	public static DirectBufferReference claim(int bytes) {
-		final boolean safe = Configurator.safeNativeMemoryAllocation;
+		final boolean safe = Configurator.safeNativeMemoryAllocation.get();
 		final ByteBuffer buffer = safe ? BufferUtils.createByteBuffer(bytes) : MemoryUtil.memAlloc(bytes);
 
 		//openCount.incrementAndGet();
@@ -150,7 +150,7 @@ public class DirectBufferAllocator {
 	}
 
 	public static String debugString() {
-		final String type = Configurator.safeNativeMemoryAllocation ? "Heap" : "Off-heap";
+		final String type = Configurator.safeNativeMemoryAllocation.get() ? "Heap" : "Off-heap";
 
 		return String.format("%s buffers:%5.1fMb rate:%5.1fMb",
 				type,

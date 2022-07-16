@@ -51,7 +51,7 @@ public abstract class AbstractConfig {
 			return new String[0];
 		} else {
 			final JsonArray names = config.get(JsonArray.class, "samplers");
-			final int limit = names.size();
+			final int limit = names != null ? names.size() : 0;
 			final String[] samplerNames = new String[limit];
 
 			for (int i = 0; i < limit; ++i) {

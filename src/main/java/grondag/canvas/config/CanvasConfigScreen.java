@@ -167,9 +167,10 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.safe_native_allocation",
 				() -> editing.safeNativeMemoryAllocation,
 				b -> {
-					requiresRestart |= Configurator.safeNativeMemoryAllocation != b;
+					requiresRestart |= Configurator.safeNativeMemoryAllocation.get() != b;
 					editing.safeNativeMemoryAllocation = b;
 				},
+				Configurator.safeNativeMemoryAllocation,
 				DEFAULTS.safeNativeMemoryAllocation,
 				"config.canvas.help.safe_native_allocation").listItem());
 
@@ -194,9 +195,10 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.reduce_resolution_on_mac",
 				() -> editing.reduceResolutionOnMac,
 				b -> {
-					requiresRestart |= Configurator.reduceResolutionOnMac != b;
+					requiresRestart |= Configurator.reduceResolutionOnMac.get() != b;
 					editing.reduceResolutionOnMac = b;
 				},
+				Configurator.reduceResolutionOnMac,
 				DEFAULTS.reduceResolutionOnMac,
 				"config.canvas.help.reduce_resolution_on_mac").listItem());
 
@@ -233,9 +235,10 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.use_combined_thread_pool",
 				() -> editing.useCombinedThreadPool,
 				b -> {
-					requiresRestart |= Configurator.useCombinedThreadPool != b;
+					requiresRestart |= Configurator.useCombinedThreadPool.get() != b;
 					editing.useCombinedThreadPool = b;
 				},
+				Configurator.useCombinedThreadPool,
 				DEFAULTS.useCombinedThreadPool,
 				"config.canvas.help.use_combined_thread_pool").listItem());
 
@@ -362,9 +365,10 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.debug_native_allocation",
 				() -> editing.debugNativeMemoryAllocation,
 				b -> {
-					requiresRestart |= Configurator.debugNativeMemoryAllocation != b;
+					requiresRestart |= Configurator.debugNativeMemoryAllocation.get() != b;
 					editing.debugNativeMemoryAllocation = b;
 				},
+				Configurator.debugNativeMemoryAllocation,
 				DEFAULTS.debugNativeMemoryAllocation,
 				"config.canvas.help.debug_native_allocation").listItem());
 

@@ -31,9 +31,11 @@ import grondag.canvas.config.gui.Checkbox;
 
 public class Toggle extends OptionItem<Boolean> implements Runnable {
 	private Checkbox checkbox;
+	private final Supplier<Boolean> effectiveGetter;
 
-	public Toggle(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, Boolean defaultVal, @Nullable String tooltipKey) {
+	public Toggle(String key, Supplier<Boolean> getter, Consumer<Boolean> setter, @Nullable Supplier<Boolean> effectiveGetter, Boolean defaultVal, @Nullable String tooltipKey) {
 		super(key, getter, setter, defaultVal, tooltipKey);
+		this.effectiveGetter = effectiveGetter;
 	}
 
 	@Override
@@ -49,11 +51,19 @@ public class Toggle extends OptionItem<Boolean> implements Runnable {
 	protected void createSetterWidget(int x, int y, int width, int height) {
 		checkbox = new Checkbox(x, y, width, height, label(), this);
 		checkbox.changeValueSilently(getter.get());
+		refreshHighlight();
 		add(checkbox);
 	}
 
 	@Override
 	public void run() {
 		setter.accept(checkbox.getValue());
+		refreshHighlight();
+	}
+
+	private void refreshHighlight() {
+		if (effectiveGetter != null) {
+			checkbox.setHighlighted(effectiveGetter.get() != checkbox.getValue());
+		}
 	}
 }

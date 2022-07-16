@@ -84,9 +84,15 @@ public class SkyShadowConfig extends AbstractConfig {
 		valid &= assertAndWarn(vertexSource != null, "Invalid pipeline config - skyShadows 'vertexSource' missing or invalid.");
 		valid &= assertAndWarn(fragmentSource != null, "Invalid pipeline config - skyShadows 'fragmentSource' missing or invalid.");
 
-		if (valid) {
-			valid &= assertAndWarn(framebuffer.value().depthAttachment.image.value().target == GFX.GL_TEXTURE_2D_ARRAY,
-					"Invalid pipeline config - skyShadows depth image must be a 2D array texture.");
+		final FramebufferConfig framebufferConfig = framebuffer.value();
+
+		if (framebufferConfig != null) {
+			final var depthImage = framebufferConfig.depthAttachment.image.value();
+
+			if (depthImage != null) {
+				valid &= assertAndWarn(depthImage.target == GFX.GL_TEXTURE_2D_ARRAY,
+						"Invalid pipeline config - skyShadows depth image must be a 2D array texture.");
+			}
 		}
 
 		return valid;
