@@ -49,11 +49,18 @@ public class Compat {
 		});
 
 		EntityRenderPreListener.register(ctx -> {
+			FlywheelHolder.handler.beginFrame(ctx.world(), ctx.camera(), ctx.frustum());
 			LitematicaHolder.litematicaRenderSolids.accept(ctx.poseStack(), ctx.projectionMatrix());
 			//SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 		});
 
 		EntityRenderPostListener.register(ctx -> {
+			FlywheelHolder.handler.beginRenderLayer(ctx);
+			FlywheelHolder.handler.renderLayer(ctx, RenderType.solid());
+			FlywheelHolder.handler.renderLayer(ctx, RenderType.cutoutMipped());
+			FlywheelHolder.handler.renderLayer(ctx, RenderType.cutout());
+			FlywheelHolder.handler.endRenderLayer(ctx);
+
 			GOMLHolder.HANDLER.render(ctx);
 			CampanionHolder.HANDLER.render(ctx);
 			//SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
@@ -70,6 +77,10 @@ public class Compat {
 		});
 
 		TranslucentPostListener.register(ctx -> {
+			FlywheelHolder.handler.beginRenderLayer(ctx);
+			FlywheelHolder.handler.renderLayer(ctx, RenderType.translucent());
+			FlywheelHolder.handler.endRenderLayer(ctx);
+
 			JustMapHolder.justMapRender.renderWaypoints(ctx.poseStack(), ctx.camera(), ctx.tickDelta());
 			LitematicaHolder.litematicaRenderTranslucent.accept(ctx.poseStack(), ctx.projectionMatrix());
 			LitematicaHolder.litematicaRenderOverlay.accept(ctx.poseStack(), ctx.projectionMatrix());
