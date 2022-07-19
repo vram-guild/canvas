@@ -26,8 +26,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import com.jozufozu.flywheel.backend.Backend;
 import com.jozufozu.flywheel.backend.gl.GlStateTracker;
+import com.jozufozu.flywheel.backend.instancing.InstancedRenderDispatcher;
+import com.jozufozu.flywheel.backend.instancing.InstancedRenderRegistry;
 import com.jozufozu.flywheel.event.BeginFrameEvent;
+import com.jozufozu.flywheel.event.ReloadRenderersEvent;
 import com.jozufozu.flywheel.event.RenderLayerEvent;
 import com.jozufozu.flywheel.fabric.event.FlywheelEvents;
 import net.fabricmc.fabric.api.event.Event;
@@ -42,6 +46,7 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import io.vram.frex.api.renderloop.WorldRenderContext;
 
@@ -55,8 +60,13 @@ public class FlywheelHolder {
 
 	static {
 		if (FabricLoader.getInstance().isModLoaded("flywheel")) {
-			compatibleInit(); // boring modCompileOnly method
-			// reflectedInit(); // the alternative method
+			try {
+				compatibleInit(); // boring modCompileOnly method
+				// reflectedInit(); // the alternative method
+			} catch (final Throwable e) {
+				// what are the odds?
+				closeHandler(e);
+			}
 		}
 	}
 
@@ -91,7 +101,20 @@ public class FlywheelHolder {
 
 		@Override
 		public void refresh(ClientLevel level) {
-			// this should already be supported
+			Backend.refresh();
+			FlywheelEvents.RELOAD_RENDERERS.invoker().handleEvent(new ReloadRenderersEvent(level));
+		}
+
+		@Override
+		public boolean handleBEChunkRebuild(BlockEntity be) {
+			if (Backend.canUseInstancing(be.getLevel())) {
+				if (InstancedRenderRegistry.canInstance(be.getType()))
+					InstancedRenderDispatcher.getBlockEntities(be.getLevel()).queueAdd(be);
+
+				return !InstancedRenderRegistry.shouldSkipRender(be);
+			}
+
+			return true;
 		}
 	}
 
@@ -106,18 +129,17 @@ public class FlywheelHolder {
 
 			final Class<?> eventsClass = Class.forName("com.jozufozu.flywheel.fabric.event.FlywheelEvents");
 			final Field BEGIN_FRAME = eventsClass.getDeclaredField("BEGIN_FRAME");
-			// final Field RELOAD_RENDERERS = eventsClass.getDeclaredField("RELOAD_RENDERERS");
+			final Field RELOAD_RENDERERS = eventsClass.getDeclaredField("RELOAD_RENDERERS");
 
 			final Class<?> beginFrameEventClass = Class.forName("com.jozufozu.flywheel.event.BeginFrameEvent");
 			final Constructor<?> beginFrameEventConstructor = beginFrameEventClass.getDeclaredConstructor(ClientLevel.class, Camera.class, Frustum.class);
 
-			// final Class<?> backendClass = Class.forName("com.jozufozu.flywheel.backend.Backend");
-			// final Method backendRefreshMethod = backendClass.getDeclaredMethod("refresh");
-			// final MethodHandle refreshHandle = lookup.unreflect(backendRefreshMethod);
+			final Class<?> backendClass = Class.forName("com.jozufozu.flywheel.backend.Backend");
+			final Method backendRefreshMethod = backendClass.getDeclaredMethod("refresh");
+			final MethodHandle refreshHandle = lookup.unreflect(backendRefreshMethod);
 
-			// final Class<?> reloadEventClass = Class.forName("com.jozufozu.flywheel.event.ReloadRenderersEvent");
-			// final Constructor<?> reloadEventConstructor = reloadEventClass.getConstructor(ClientLevel.class);
-			// final MethodHandle reloadEventConstructorHandle = lookup.unreflectConstructor(reloadEventConstructor);
+			final Class<?> reloadEventClass = Class.forName("com.jozufozu.flywheel.event.ReloadRenderersEvent");
+			final Constructor<?> reloadEventConstructor = reloadEventClass.getConstructor(ClientLevel.class);
 
 			final Class<?> contextClass = Class.forName("com.jozufozu.flywheel.fabric.event.EventContext");
 			final Class<?> listenerClass = Class.forName("com.jozufozu.flywheel.fabric.event.EventContext$Listener");
@@ -128,7 +150,7 @@ public class FlywheelHolder {
 				@Override
 				public void beginFrame(ClientLevel level, Camera camera, Frustum frustum) {
 					try {
-						Object listener = ((Event<?>) BEGIN_FRAME.get(null)).invoker();
+						Object listener = listenerClass.cast(((Event<?>) BEGIN_FRAME.get(null)).invoker());
 						handleEventHandle.invoke(listener, beginFrameEventConstructor.newInstance(level, camera, frustum));
 					} catch (final Throwable e) {
 						closeHandler(e);
@@ -147,13 +169,19 @@ public class FlywheelHolder {
 
 				@Override
 				public void refresh(ClientLevel level) {
-					// try {
-					// 	Object listener = listenerClass.cast(((Event<?>) RELOAD_RENDERERS.get(null)).invoker());
-					// 	handleEventHandle.invokeExact(listener, reloadEventConstructorHandle.invokeExact(level));
-					// 	refreshHandle.invokeExact();
-					// } catch (final Throwable e) {
-					// 	quit(e);
-					// }
+					try {
+						refreshHandle.invokeExact();
+						Object listener = listenerClass.cast(((Event<?>) RELOAD_RENDERERS.get(null)).invoker());
+						handleEventHandle.invoke(listener, reloadEventConstructor.newInstance(level));
+					} catch (final Throwable e) {
+						closeHandler(e);
+					}
+				}
+
+				@Override
+				public boolean handleBEChunkRebuild(BlockEntity be) {
+					// WIP: implement, or don't use any of this
+					return true;
 				}
 			};
 
@@ -169,7 +197,7 @@ public class FlywheelHolder {
 		handler = DEFAULT_HANDLER;
 	}
 
-	interface FlywheelHandler {
+	public interface FlywheelHandler {
 		default void beginRenderLayer(WorldRenderContext ctx) {
 			// Flywheel uses its own shader, therefore we need to premultiply view matrix
 			ctx.poseStack().pushPose();
@@ -189,6 +217,8 @@ public class FlywheelHolder {
 
 		void renderLayer(LevelRenderer renderer, RenderType type, PoseStack stack, double camX, double camY, double camZ);
 		void refresh(ClientLevel level);
+
+		boolean handleBEChunkRebuild(BlockEntity be);
 	}
 
 	private static final class EmptyHandler implements FlywheelHandler {
@@ -210,6 +240,11 @@ public class FlywheelHolder {
 
 		@Override
 		public void refresh(ClientLevel level) {
+		}
+
+		@Override
+		public boolean handleBEChunkRebuild(BlockEntity be) {
+			return true;
 		}
 	}
 }

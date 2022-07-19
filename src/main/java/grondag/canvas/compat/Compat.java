@@ -35,6 +35,8 @@ import io.vram.frex.api.renderloop.WorldRenderLastListener;
 import io.vram.frex.api.renderloop.WorldRenderPostListener;
 import io.vram.frex.api.renderloop.WorldRenderStartListener;
 
+import grondag.canvas.render.world.CanvasWorldRenderer;
+
 public class Compat {
 	private Compat() { }
 
@@ -114,6 +116,7 @@ public class Compat {
 
 		RenderReloadListener.register(() -> {
 			LitematicaHolder.litematicaReload.run();
+			FlywheelHolder.handler.refresh(CanvasWorldRenderer.instance().worldRenderState.getWorld());
 		});
 	}
 }
