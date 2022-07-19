@@ -24,12 +24,14 @@ import org.jetbrains.annotations.Nullable;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
+import io.vram.frex.api.model.BlockModel;
 import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 import io.vram.frex.base.renderer.util.EncoderUtil;
 
 import grondag.canvas.buffer.format.StandardEncoder;
 import grondag.canvas.material.state.CanvasRenderMaterial;
+import grondag.canvas.render.world.CanvasWorldRenderer;
 
 public class StandardQuadEncoder extends BaseQuadEncoder {
 	public StandardQuadEncoder(BaseQuadEmitter emitter, InputContext inputContext) {
@@ -39,7 +41,15 @@ public class StandardQuadEncoder extends BaseQuadEncoder {
 	public void encode(@Nullable VertexConsumer defaultConsumer) {
 		trackAnimation(emitter);
 
-		if (collectors != null) {
+		boolean forceVirtualRender = false;
+
+		if (inputContext instanceof BlockModel.BlockInputContext blockContext) {
+			// If the renderer provides a consumer and virtual world, chances are it expects virtual rendering
+			forceVirtualRender = defaultConsumer != null
+					&& blockContext.blockView() != CanvasWorldRenderer.instance().worldRenderState.getWorld();
+		}
+
+		if (collectors != null && !forceVirtualRender) {
 			StandardEncoder.encodeQuad(emitter, inputContext, collectors.get((CanvasRenderMaterial) emitter.material()));
 		} else {
 			EncoderUtil.encodeQuad(emitter, inputContext, defaultConsumer);
