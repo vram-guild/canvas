@@ -52,6 +52,7 @@ import io.vram.frex.api.renderloop.WorldRenderContext;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.LevelRendererExt;
+import grondag.canvas.shader.data.MatrixData;
 
 // This is heck
 public class FlywheelHolder {
@@ -91,7 +92,15 @@ public class FlywheelHolder {
 				final LevelRendererExt ext = (LevelRendererExt) renderer;
 				RenderBuffers renderBuffers = ext.canvas_bufferBuilders();
 				GlStateTracker.State restoreState = GlStateTracker.getRestoreState();
-				FlywheelEvents.RENDER_LAYER.invoker().handleEvent(new RenderLayerEvent(ext.canvas_world(), type, stack, renderBuffers, camX, camY, camZ));
+
+				// RenderLayerEvent computes the View-Projection matrix during construction
+				stack.pushPose();
+				stack.mulPoseMatrix(MatrixData.viewMatrix);
+				var event = new RenderLayerEvent(ext.canvas_world(), type, stack, renderBuffers, camX, camY, camZ);
+				stack.popPose();
+
+				FlywheelEvents.RENDER_LAYER.invoker().handleEvent(event);
+
 				restoreState.restore();
 				// CanvasMod.LOG.warn("flywheel thing is invoked");
 			} catch (final Throwable e) {
@@ -198,16 +207,6 @@ public class FlywheelHolder {
 	}
 
 	public interface FlywheelHandler {
-		default void beginRenderLayer(WorldRenderContext ctx) {
-			// Flywheel uses its own shader, therefore we need to premultiply view matrix
-			ctx.poseStack().pushPose();
-			ctx.poseStack().mulPoseMatrix(RenderSystem.getModelViewMatrix());
-		}
-
-		default void endRenderLayer(WorldRenderContext ctx) {
-			ctx.poseStack().popPose();
-		}
-
 		void beginFrame(ClientLevel level, Camera camera, Frustum frustum);
 
 		default void renderLayer(WorldRenderContext ctx, RenderType  type) {
@@ -223,15 +222,11 @@ public class FlywheelHolder {
 
 	private static final class EmptyHandler implements FlywheelHandler {
 		@Override
-		public void beginRenderLayer(WorldRenderContext ctx) {
-		}
-
-		@Override
-		public void endRenderLayer(WorldRenderContext ctx) {
-		}
-
-		@Override
 		public void beginFrame(ClientLevel level, Camera camera, Frustum frustum) {
+		}
+
+		@Override
+		public void renderLayer(WorldRenderContext ctx, RenderType  type) {
 		}
 
 		@Override
