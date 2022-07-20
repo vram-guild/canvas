@@ -46,6 +46,7 @@ public class StandardQuadEncoder extends BaseQuadEncoder {
 		if (inputContext instanceof BlockModel.BlockInputContext blockContext) {
 			// If the renderer provides a consumer and virtual world, chances are it expects virtual rendering
 			forceVirtualRender = defaultConsumer != null
+					&& (collectors == null || defaultConsumer != collectors.emitter)
 					&& blockContext.blockView() != CanvasWorldRenderer.instance().worldRenderState.getWorld();
 		}
 

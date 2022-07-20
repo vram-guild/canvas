@@ -374,7 +374,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
+
+		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
+		eventContext.poseStack().pushPose();
+		eventContext.poseStack().setIdentity();
 		EntityRenderPreListener.invoke(eventContext);
+		eventContext.poseStack().popPose();
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "entities");
 		int entityCount = 0;
