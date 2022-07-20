@@ -375,6 +375,13 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
 
+		// Because we are passing identity stack to entity renders we need to
+		// apply the view transform to vanilla renders.
+		final PoseStack renderSystemModelViewStack = RenderSystem.getModelViewStack();
+		renderSystemModelViewStack.pushPose();
+		renderSystemModelViewStack.mulPoseMatrix(viewMatrixStack.last().pose());
+		RenderSystem.applyModelViewMatrix();
+
 		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
 		eventContext.poseStack().pushPose();
 		eventContext.poseStack().setIdentity();
@@ -407,13 +414,6 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		entityBlockContext.encoder.collectors = immediate.collectors;
 		blockContext.encoder.collectors = immediate.collectors;
 		SkyShadowRenderer.suppressEntityShadows(mc);
-
-		// Because we are passing identity stack to entity renders we need to
-		// apply the view transform to vanilla renders.
-		final PoseStack renderSystemModelViewStack = RenderSystem.getModelViewStack();
-		renderSystemModelViewStack.pushPose();
-		renderSystemModelViewStack.mulPoseMatrix(viewMatrixStack.last().pose());
-		RenderSystem.applyModelViewMatrix();
 
 		entityCullingFrustum.enableRegionCulling = Configurator.cullEntityRender;
 
@@ -693,6 +693,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// draw order is important and our sorting mechanism doesn't cover
 		immediate.endBatch(RenderType.waterMask());
 
+		bufferBuilders.bufferSource().endBatch();
 		bufferBuilders.crumblingBufferSource().endBatch();
 
 		visibleRegions.scheduleResort(cameraVec3d);
