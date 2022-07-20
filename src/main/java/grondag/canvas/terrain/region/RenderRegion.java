@@ -432,7 +432,8 @@ public class RenderRegion implements TerrainExecutorTask {
 				searchPos.set(xOrigin + x, yOrigin + y, zOrigin + z);
 
 				final boolean hasFluid = !fluidState.isEmpty();
-				final boolean hasBlock = blockState.getRenderShape() != RenderShape.INVISIBLE;
+				// Vanilla only checks not invisible, but filters non-model shape down the line
+				final boolean hasBlock = blockState.getRenderShape() == RenderShape.MODEL;
 
 				if (hasFluid || hasBlock) {
 					// Vanilla does a push/pop for each block but that creates needless allocation spam.

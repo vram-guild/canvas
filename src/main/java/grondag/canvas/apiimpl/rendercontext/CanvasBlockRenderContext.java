@@ -22,6 +22,15 @@ package grondag.canvas.apiimpl.rendercontext;
 
 import java.util.function.Supplier;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.state.BlockState;
+
 import io.vram.frex.base.renderer.context.render.SimpleBlockRenderContext;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
@@ -50,6 +59,13 @@ public class CanvasBlockRenderContext extends SimpleBlockRenderContext {
 	public CanvasBlockRenderContext() {
 		super();
 		encoder = new StandardQuadEncoder(emitter, inputContext);
+	}
+
+	@Override
+	public void render(ModelBlockRenderer vanillaRenderer, BlockAndTintGetter blockView, BakedModel model, BlockState state, BlockPos pos, PoseStack poseStack, VertexConsumer buffer, boolean checkSides, long seed, int overlay) {
+		super.render(vanillaRenderer, blockView, model, state, pos, poseStack, buffer, checkSides, seed, overlay);
+		// reset buffer state
+		defaultConsumer = null;
 	}
 
 	@Override
