@@ -157,7 +157,7 @@ public class DynamicLoader {
 
 	private <ForType> ForType deserialize(Class<ForType> clazz, JsonElement element, ForType defaultVal) {
 		if (element instanceof JsonObject obj) {
-			final String optionKey = obj.get(String.class, "optionSource");
+			final String optionKey = obj.get(String.class, "option");
 			final ForType suppliedDefault = obj.get(clazz, "default");
 
 			if (suppliedDefault != null) {
