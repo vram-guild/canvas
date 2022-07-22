@@ -85,7 +85,7 @@ public class AttachmentConfig extends AbstractConfig {
 		final AttachmentConfig[] result = new AttachmentConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new AttachmentConfig(ctx, (JsonObject) array.get(i), false);
+			result[i] = new AttachmentConfig(ctx, ctx.dynamic.getAttachment(array.get(i)), false);
 		}
 
 		return result;

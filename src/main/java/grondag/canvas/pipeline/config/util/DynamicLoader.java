@@ -155,6 +155,30 @@ public class DynamicLoader {
 		return GlSymbolLookup.lookup(glEnum, fallback);
 	}
 
+	/**
+	 * Special handler for framebuffer attachment object.
+	 *
+	 * @param config source config object
+	 * @param key config key
+	 * @return parsed Json object
+	 */
+	public JsonObject getAttachment(JsonObject config, String key) {
+		return getAttachment(config.get(key));
+	}
+
+	public JsonObject getAttachment(JsonElement element) {
+		if (element instanceof JsonObject attachment) {
+			// prioritize framebuffer attachment "primitive"
+			if (attachment.containsKey("image")) {
+				return attachment;
+			} else {
+				return deserialize(JsonObject.class, attachment, null);
+			}
+		} else {
+			return null;
+		}
+	}
+
 	private <ForType> ForType deserialize(Class<ForType> clazz, JsonElement element, ForType defaultVal) {
 		if (element instanceof JsonObject obj) {
 			final String optionKey = obj.get(String.class, "option");
@@ -184,7 +208,10 @@ public class DynamicLoader {
 
 	@SuppressWarnings("unchecked")
 	private <ForType> ForType resolve(Class<ForType> clazz, String optionKey) {
-		if (clazz == String.class) {
+		if (clazz == JsonObject.class) {
+			// not supported
+			return null;
+		} else if (clazz == String.class) {
 			var config = ctx.enumConfigEntries.get(optionKey);
 
 			if (config != null) {
