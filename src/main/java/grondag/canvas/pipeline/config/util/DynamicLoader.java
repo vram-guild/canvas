@@ -170,11 +170,7 @@ public class DynamicLoader {
 			if (optionKey != null) {
 				return resolve(clazz, optionKey, defaultVal);
 			} else {
-				final Dynamic<ForType> resolver = deserializeMap(clazz, obj, defaultVal);
-
-				if (resolver != null) {
-					return resolver.value();
-				}
+				return deserializeMap(clazz, obj, defaultVal);
 			}
 		}
 
@@ -226,7 +222,7 @@ public class DynamicLoader {
 		return defaultVal;
 	}
 
-	private <ForType> MapResolver<ForType> deserializeMap(Class<ForType> clazz, JsonObject obj, ForType defaultVal) {
+	private <ForType> ForType deserializeMap(Class<ForType> clazz, JsonObject obj, ForType defaultVal) {
 		final JsonObject optionMap = obj.getObject("useOptionMap");
 
 		if (optionMap != null) {
@@ -234,79 +230,55 @@ public class DynamicLoader {
 			final JsonArray jsonMap = optionMap.get(JsonArray.class, "map");
 
 			if (optionKey != null && jsonMap != null) {
-				return new MapResolver<>(clazz, optionKey, jsonMap, defaultVal);
+				return resolveMap(clazz, optionKey, jsonMap, defaultVal);
 			}
 		}
 
-		return null;
+		return defaultVal;
 	}
 
-	private abstract static class Dynamic<T> {
-		public abstract T value();
-	}
+	private <ToType> ToType resolveMap(Class<ToType> toType, String optionKey, JsonArray jsonMap, ToType defaultVal) {
+		var source = resolveOption(optionKey);
 
-	private class MapResolver<ToType> extends Dynamic<ToType> {
-		private final Dynamic<Object> source;
-		private final Map<Object, ToType> map;
-		private final ToType defaultVal;
+		for (JsonElement element : jsonMap) {
+			if (element instanceof JsonObject obj) {
+				final var condition = obj.get(JsonPrimitive.class, "condition");
+				final var value = obj.get(toType, "value");
 
-		private MapResolver(Class<ToType> toType, String optionKey, JsonArray jsonMap, ToType defaultVal) {
-			this.source = new WildcardResolver(optionKey);
-			this.defaultVal = defaultVal;
-			map = new Object2ObjectOpenHashMap<>(jsonMap.size());
-
-			for (JsonElement element : jsonMap) {
-				if (element instanceof JsonObject obj) {
-					final var condition = obj.get(JsonPrimitive.class, "condition");
-					final var value = obj.get(toType, "value");
-
-					if (condition != null && value != null) {
-						map.put(condition.getValue(), value);
-					}
+				if (condition != null && source.equals(condition.getValue())) {
+					return value == null ? defaultVal : value;
 				}
 			}
 		}
 
-		@Override
-		public ToType value() {
-			return map.getOrDefault(source.value(), defaultVal);
-		}
+		return defaultVal;
 	}
 
-	private class WildcardResolver extends Dynamic<Object> {
-		private final String optionKey;
+	public Object resolveOption(String optionKey) {
+		final var enumOption = ctx.enumConfigEntries.get(optionKey);
 
-		private WildcardResolver(String optionKey) {
-			this.optionKey = optionKey;
+		if (enumOption != null) {
+			return enumOption.value();
 		}
 
-		@Override
-		public Object value() {
-			final var enumOption = ctx.enumConfigEntries.get(optionKey);
+		final var booleanOption = ctx.booleanConfigEntries.get(optionKey);
 
-			if (enumOption != null) {
-				return enumOption.value();
-			}
-
-			final var booleanOption = ctx.booleanConfigEntries.get(optionKey);
-
-			if (booleanOption != null) {
-				return booleanOption.value();
-			}
-
-			final var intOption = ctx.intConfigEntries.get(optionKey);
-
-			if (intOption != null) {
-				return intOption.value();
-			}
-
-			final var floatOption = ctx.floatConfigEntries.get(optionKey);
-
-			if (floatOption != null) {
-				return floatOption.value();
-			}
-
-			return null;
+		if (booleanOption != null) {
+			return booleanOption.value();
 		}
+
+		final var intOption = ctx.intConfigEntries.get(optionKey);
+
+		if (intOption != null) {
+			return intOption.value();
+		}
+
+		final var floatOption = ctx.floatConfigEntries.get(optionKey);
+
+		if (floatOption != null) {
+			return floatOption.value();
+		}
+
+		return null;
 	}
 }
