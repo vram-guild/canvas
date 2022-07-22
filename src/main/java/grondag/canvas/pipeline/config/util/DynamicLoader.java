@@ -20,13 +20,10 @@
 
 package grondag.canvas.pipeline.config.util;
 
-import java.util.Map;
-
 import blue.endless.jankson.JsonArray;
 import blue.endless.jankson.JsonElement;
 import blue.endless.jankson.JsonObject;
 import blue.endless.jankson.JsonPrimitive;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import grondag.canvas.pipeline.GlSymbolLookup;
@@ -160,7 +157,7 @@ public class DynamicLoader {
 
 	private <ForType> ForType deserialize(Class<ForType> clazz, JsonElement element, ForType defaultVal) {
 		if (element instanceof JsonObject obj) {
-			final String optionKey = obj.get(String.class, "useOption");
+			final String optionKey = obj.get(String.class, "optionSource");
 			final ForType suppliedDefault = obj.get(clazz, "default");
 
 			if (suppliedDefault != null) {
@@ -223,35 +220,43 @@ public class DynamicLoader {
 	}
 
 	private <ForType> ForType deserializeMap(Class<ForType> clazz, JsonObject obj, ForType defaultVal) {
-		final JsonObject optionMap = obj.getObject("useOptionMap");
+		final JsonObject optionMap = obj.getObject("optionMap");
 
 		if (optionMap != null) {
-			final String optionKey = optionMap.get(String.class, "option");
-			final JsonArray jsonMap = optionMap.get(JsonArray.class, "map");
+			for (var e:optionMap.entrySet()) {
+				final String optionKey = e.getKey();
+				final JsonElement element = e.getValue();
 
-			if (optionKey != null && jsonMap != null) {
-				return resolveMap(clazz, optionKey, jsonMap, defaultVal);
+				if (optionKey != null && (element instanceof JsonArray jsonMap)) {
+					final ForType resolved = resolveSingleMap(clazz, optionKey, jsonMap);
+
+					// if we can't get a meaningful value we try another map
+					if (resolved != null) {
+						return resolved;
+					}
+				}
 			}
 		}
 
 		return defaultVal;
 	}
 
-	private <ToType> ToType resolveMap(Class<ToType> toType, String optionKey, JsonArray jsonMap, ToType defaultVal) {
+	private <ToType> ToType resolveSingleMap(Class<ToType> toType, String optionKey, JsonArray jsonMap) {
 		var source = resolveOption(optionKey);
 
 		for (JsonElement element : jsonMap) {
 			if (element instanceof JsonObject obj) {
-				final var condition = obj.get(JsonPrimitive.class, "condition");
-				final var value = obj.get(toType, "value");
+				final var from = obj.get(JsonPrimitive.class, "from");
+				final var to = obj.get(toType, "to");
 
-				if (condition != null && source.equals(condition.getValue())) {
-					return value == null ? defaultVal : value;
+				if (from != null && source.equals(from.getValue())) {
+					// condition met, return immediately
+					return to;
 				}
 			}
 		}
 
-		return defaultVal;
+		return null;
 	}
 
 	public Object resolveOption(String optionKey) {
