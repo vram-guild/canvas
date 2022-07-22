@@ -164,10 +164,18 @@ public class DynamicLoader {
 				defaultVal = suppliedDefault;
 			}
 
+			ForType resolved = null;
+
 			if (optionKey != null) {
-				return resolve(clazz, optionKey, defaultVal);
-			} else {
-				return deserializeMap(clazz, obj, defaultVal);
+				resolved = resolve(clazz, optionKey);
+			}
+
+			if (resolved == null) {
+				resolved = deserializeMap(clazz, obj);
+			}
+
+			if (resolved != null) {
+				return resolved;
 			}
 		}
 
@@ -175,7 +183,7 @@ public class DynamicLoader {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <ForType> ForType resolve(Class<ForType> clazz, String optionKey, ForType defaultVal) {
+	private <ForType> ForType resolve(Class<ForType> clazz, String optionKey) {
 		if (clazz == String.class) {
 			var config = ctx.enumConfigEntries.get(optionKey);
 
@@ -216,10 +224,10 @@ public class DynamicLoader {
 			}
 		}
 
-		return defaultVal;
+		return null;
 	}
 
-	private <ForType> ForType deserializeMap(Class<ForType> clazz, JsonObject obj, ForType defaultVal) {
+	private <ForType> ForType deserializeMap(Class<ForType> clazz, JsonObject obj) {
 		final JsonObject optionMap = obj.getObject("optionMap");
 
 		if (optionMap != null) {
@@ -238,7 +246,7 @@ public class DynamicLoader {
 			}
 		}
 
-		return defaultVal;
+		return null;
 	}
 
 	private <ToType> ToType resolveSingleMap(Class<ToType> toType, String optionKey, JsonArray jsonMap) {
