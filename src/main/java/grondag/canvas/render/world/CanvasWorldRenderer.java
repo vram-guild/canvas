@@ -693,7 +693,6 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// draw order is important and our sorting mechanism doesn't cover
 		immediate.endBatch(RenderType.waterMask());
 
-		bufferBuilders.bufferSource().endBatch();
 		bufferBuilders.crumblingBufferSource().endBatch();
 
 		visibleRegions.scheduleResort(cameraVec3d);
