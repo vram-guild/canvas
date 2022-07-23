@@ -483,13 +483,9 @@ public class CanvasConfigScreen extends BaseScreen {
 		}
 
 		final var saveButton = this.addRenderableWidget(new Button(this.width / 2 + 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
-		this.addRenderableWidget(new Button(this.width / 2 - 120 - 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
+		this.addRenderableWidget(new Button(this.width / 2 - 120 - 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> onClose()));
 
 		optionSession.setSaveButton(saveButton);
-	}
-
-	private void close() {
-		onClose();
 	}
 
 	private void save() {
@@ -508,7 +504,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		if (requiresRestart) {
 			this.minecraft.setScreen(new ConfigRestartScreen(this.parent));
 		} else {
-			close();
+			onClose();
 		}
 	}
 
