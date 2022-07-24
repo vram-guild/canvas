@@ -750,7 +750,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		RenderState.disable();
 		GlProgram.deactivate();
 
-		renderClouds(mc, profiler, identityStack, projectionMatrix, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+		// cloud rendering ignores RenderSystem view matrix
+		renderClouds(mc, profiler, viewMatrixStack, projectionMatrix, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
 
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
