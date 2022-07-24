@@ -20,8 +20,8 @@
 
 package grondag.canvas.render.world;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 
 import io.vram.frex.api.renderloop.EntityRenderPostListener;
 import io.vram.frex.api.renderloop.EntityRenderPreListener;
@@ -44,16 +44,21 @@ public class WorldEventHelper {
 	 */
 	public static boolean poseIsIdentity = false;
 
+	/**
+	 * Prevent creating new matrix by saving these I guess.
+	 */
+	private static final Matrix4f viewMatrix = new Matrix4f();
 	private static final Matrix3f normalMatrix = new Matrix3f();
 
 	static void startIdentity(WorldRenderContext ctx) {
+		viewMatrix.load(ctx.poseStack().last().pose());
 		normalMatrix.load(ctx.poseStack().last().normal());
 		ctx.poseStack().setIdentity();
 		poseIsIdentity = true;
 	}
 
 	static void endIdentity(WorldRenderContext ctx) {
-		ctx.poseStack().last().pose().load(RenderSystem.getModelViewMatrix());
+		ctx.poseStack().last().pose().load(viewMatrix);
 		ctx.poseStack().last().normal().load(normalMatrix);
 		poseIsIdentity = false;
 	}
