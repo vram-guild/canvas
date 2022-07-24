@@ -111,7 +111,7 @@ public class PipelineOptionScreen extends BaseScreen {
 		}
 
 		final var saveButton = this.addRenderableWidget(new Button(this.width / 2 + 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
-		this.addRenderableWidget(new Button(this.width / 2 - 120 - 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> close()));
+		this.addRenderableWidget(new Button(this.width / 2 - 120 - 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> onClose()));
 
 		optionSession.setSaveButton(saveButton);
 	}
@@ -124,10 +124,6 @@ public class PipelineOptionScreen extends BaseScreen {
 
 	private void save() {
 		ConfigManager.savePipelineOptions(configs);
-		close();
-	}
-
-	private void close() {
 		onClose();
 	}
 
