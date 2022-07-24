@@ -55,7 +55,7 @@ public abstract class AbstractConfig {
 			final String[] samplerNames = new String[limit];
 
 			for (int i = 0; i < limit; ++i) {
-				final String s = JanksonHelper.asString(names.get(i));
+				final String s = ctx.dynamic.getString(names.get(i));
 
 				if (s == null) {
 					CanvasMod.LOG.warn(String.format("Sampler name %s (%d of %d) for %s is not a valid string and was skipped.",

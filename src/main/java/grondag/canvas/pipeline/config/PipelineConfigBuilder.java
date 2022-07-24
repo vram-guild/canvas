@@ -51,6 +51,7 @@ public class PipelineConfigBuilder {
 	public final ObjectArrayList<ProgramConfig> programs = new ObjectArrayList<>();
 	public final ObjectArrayList<FramebufferConfig> framebuffers = new ObjectArrayList<>();
 	public final ObjectArrayList<OptionConfig> options = new ObjectArrayList<>();
+	public OptionConfig[] prebuiltOptions;
 
 	public final ObjectArrayList<PassConfig> onWorldStart = new ObjectArrayList<>();
 	public final ObjectArrayList<PassConfig> afterRenderHand = new ObjectArrayList<>();
@@ -73,14 +74,32 @@ public class PipelineConfigBuilder {
 
 	public MaterialProgramConfig materialProgram;
 
+	/**
+	 * Priority-pass loading. Loads options before anything else. This is necessary for the
+	 * current design of {@link grondag.canvas.pipeline.config.util.DynamicLoader}, at the cost
+	 * of reading the disk twice.
+	 *
+	 * @param configJson the json file being read
+	 */
+	public void loadPriority(JsonObject configJson) {
+		LoadHelper.loadList(context, configJson, "options", options, OptionConfig::new);
+	}
+
+	/**
+	 * Initialize the options immediately after all of them are loaded.
+	 */
+	private void afterLoadPriority() {
+		ConfigManager.initPipelineOptions(prebuiltOptions = options.toArray(new OptionConfig[options.size()]));
+	}
+
 	public void load(JsonObject configJson) {
-		smoothBrightnessBidirectionaly = configJson.getBoolean("smoothBrightnessBidirectionaly", smoothBrightnessBidirectionaly);
-		runVanillaClear = configJson.getBoolean("runVanillaClear", runVanillaClear);
-		brightnessSmoothingFrames = configJson.getInt("brightnessSmoothingFrames", brightnessSmoothingFrames);
-		rainSmoothingFrames = configJson.getInt("rainSmoothingFrames", rainSmoothingFrames);
-		thunderSmoothingFrames = configJson.getInt("thunderSmoothingFrames", thunderSmoothingFrames);
-		glslVersion = configJson.getInt("glslVersion", glslVersion);
-		enablePBR = configJson.getBoolean("enablePBR", enablePBR);
+		smoothBrightnessBidirectionaly = context.dynamic.getBoolean(configJson, "smoothBrightnessBidirectionaly", smoothBrightnessBidirectionaly);
+		runVanillaClear = context.dynamic.getBoolean(configJson, "runVanillaClear", runVanillaClear);
+		brightnessSmoothingFrames = context.dynamic.getInt(configJson, "brightnessSmoothingFrames", brightnessSmoothingFrames);
+		rainSmoothingFrames = context.dynamic.getInt(configJson, "rainSmoothingFrames", rainSmoothingFrames);
+		thunderSmoothingFrames = context.dynamic.getInt(configJson, "thunderSmoothingFrames", thunderSmoothingFrames);
+		glslVersion = context.dynamic.getInt(configJson, "glslVersion", glslVersion);
+		enablePBR = context.dynamic.getBoolean(configJson, "enablePBR", enablePBR);
 
 		if (configJson.containsKey("materialProgram")) {
 			if (materialProgram == null) {
@@ -92,7 +111,7 @@ public class PipelineConfigBuilder {
 
 		if (configJson.containsKey("defaultFramebuffer")) {
 			if (defaultFramebuffer == null) {
-				defaultFramebuffer = context.frameBuffers.dependOn(configJson, "defaultFramebuffer");
+				defaultFramebuffer = context.frameBuffers.dependOn(context.dynamic.getString(configJson, "defaultFramebuffer"));
 			} else {
 				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'defaultFramebuffer' ignored.");
 			}
@@ -145,7 +164,6 @@ public class PipelineConfigBuilder {
 		LoadHelper.loadList(context, configJson, "images", images, ImageConfig::new);
 		LoadHelper.loadList(context, configJson, "programs", programs, ProgramConfig::new);
 		LoadHelper.loadList(context, configJson, "framebuffers", framebuffers, FramebufferConfig::new);
-		LoadHelper.loadList(context, configJson, "options", options, OptionConfig::new);
 	}
 
 	public boolean validate() {
@@ -188,40 +206,29 @@ public class PipelineConfigBuilder {
 
 		final PipelineConfigBuilder result = new PipelineConfigBuilder();
 		final ObjectOpenHashSet<ResourceLocation> included = new ObjectOpenHashSet<>();
-		final ObjectArrayFIFOQueue<ResourceLocation> queue = new ObjectArrayFIFOQueue<>();
+		final ObjectArrayFIFOQueue<ResourceLocation> readQueue = new ObjectArrayFIFOQueue<>();
+		final ObjectArrayFIFOQueue<JsonObject> primaryLoadQueue = new ObjectArrayFIFOQueue<>();
+		final ObjectArrayFIFOQueue<JsonObject> secondLoadQueue = new ObjectArrayFIFOQueue<>();
 
-		queue.enqueue(id);
+		readQueue.enqueue(id);
 		included.add(id);
 
-		while (!queue.isEmpty()) {
-			ResourceLocation target = queue.dequeue();
+		while (!readQueue.isEmpty()) {
+			final ResourceLocation target = readQueue.dequeue();
+			readResource(target, readQueue, primaryLoadQueue, included, rm);
+		}
 
-			// Allow flexibility on JSON vs JSON5 extensions
-			if (rm.getResource(target).isEmpty()) {
-				if (target.getPath().endsWith("json5")) {
-					final var candidate = new ResourceLocation(target.getNamespace(), target.getPath().substring(0, target.getPath().length() - 1));
+		while (!primaryLoadQueue.isEmpty()) {
+			final JsonObject target = primaryLoadQueue.dequeue();
+			secondLoadQueue.enqueue(target);
+			result.loadPriority(target);
+		}
 
-					if (rm.getResource(candidate).isPresent()) {
-						target = candidate;
-					}
-				} else if (target.getPath().endsWith("json")) {
-					final var candidate = new ResourceLocation(target.getNamespace(), target.getPath() + "5");
+		result.afterLoadPriority();
 
-					if (rm.getResource(candidate).isPresent()) {
-						target = candidate;
-					}
-				}
-			}
-
-			try (InputStream inputStream = rm.getResource(target).get().open()) {
-				final JsonObject configJson = ConfigManager.JANKSON.load(inputStream);
-				result.load(configJson);
-				getIncludes(configJson, included, queue);
-			} catch (final IOException | NoSuchElementException e) {
-				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to IOException: %s", target.toString(), e.getLocalizedMessage()));
-			} catch (final SyntaxError e) {
-				CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to Syntax Error: %s", target.toString(), e.getLocalizedMessage()));
-			}
+		while (!secondLoadQueue.isEmpty()) {
+			final JsonObject target = secondLoadQueue.dequeue();
+			result.load(target);
 		}
 
 		if (result.validate()) {
@@ -229,6 +236,35 @@ public class PipelineConfigBuilder {
 		} else {
 			// fallback to minimal renderable pipeline if not valid
 			return null;
+		}
+	}
+
+	private static void readResource(ResourceLocation target, ObjectArrayFIFOQueue<ResourceLocation> queue, ObjectArrayFIFOQueue<JsonObject> loadQueue, ObjectOpenHashSet<ResourceLocation> included, ResourceManager rm) {
+		// Allow flexibility on JSON vs JSON5 extensions
+		if (rm.getResource(target).isEmpty()) {
+			if (target.getPath().endsWith("json5")) {
+				final var candidate = new ResourceLocation(target.getNamespace(), target.getPath().substring(0, target.getPath().length() - 1));
+
+				if (rm.getResource(candidate).isPresent()) {
+					target = candidate;
+				}
+			} else if (target.getPath().endsWith("json")) {
+				final var candidate = new ResourceLocation(target.getNamespace(), target.getPath() + "5");
+
+				if (rm.getResource(candidate).isPresent()) {
+					target = candidate;
+				}
+			}
+		}
+
+		try (InputStream inputStream = rm.getResource(target).get().open()) {
+			final JsonObject configJson = ConfigManager.JANKSON.load(inputStream);
+			loadQueue.enqueue(configJson);
+			getIncludes(configJson, included, queue);
+		} catch (final IOException | NoSuchElementException e) {
+			CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to IOException: %s", target.toString(), e.getLocalizedMessage()));
+		} catch (final SyntaxError e) {
+			CanvasMod.LOG.warn(String.format("Unable to load pipeline config resource %s due to Syntax Error: %s", target.toString(), e.getLocalizedMessage()));
 		}
 	}
 

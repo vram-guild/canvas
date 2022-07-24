@@ -46,12 +46,12 @@ public class DrawTargetsConfig extends AbstractConfig {
 
 	DrawTargetsConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
-		solidTerrain = ctx.frameBuffers.dependOn(config, "solidTerrain");
-		translucentTerrain = ctx.frameBuffers.dependOn(config, "translucentTerrain");
-		translucentEntity = ctx.frameBuffers.dependOn(config, "translucentEntity");
-		weather = ctx.frameBuffers.dependOn(config, "weather");
-		clouds = ctx.frameBuffers.dependOn(config, "clouds");
-		translucentParticles = ctx.frameBuffers.dependOn(config, "translucentParticles");
+		solidTerrain = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "solidTerrain"));
+		translucentTerrain = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "translucentTerrain"));
+		translucentEntity = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "translucentEntity"));
+		weather = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "weather"));
+		clouds = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "clouds"));
+		translucentParticles = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "translucentParticles"));
 	}
 
 	public static DrawTargetsConfig makeDefault(ConfigContext ctx) {

@@ -53,4 +53,6 @@ public class ConfigContext {
 	public final NamedDependencyMap<EnumConfigEntry> enumConfigEntries = new NamedDependencyMap<>();
 	public final NamedDependencyMap<FloatConfigEntry> floatConfigEntries = new NamedDependencyMap<>();
 	public final NamedDependencyMap<IntConfigEntry> intConfigEntries = new NamedDependencyMap<>();
+
+	public final DynamicLoader dynamic = new DynamicLoader(this);
 }

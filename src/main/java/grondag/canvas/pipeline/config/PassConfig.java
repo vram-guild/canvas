@@ -68,15 +68,15 @@ public class PassConfig extends NamedConfig<PassConfig> {
 
 	@SuppressWarnings("unchecked")
 	PassConfig (ConfigContext ctx, JsonObject config) {
-		super(ctx, JanksonHelper.asStringOrDefault(config.get("name"), JanksonHelper.asString(config.get("framebuffer"))));
-		framebuffer = ctx.frameBuffers.dependOn(config, "framebuffer");
-		program = ctx.programs.dependOn(config, "program");
-		toggleConfig = ctx.booleanConfigEntries.dependOn(config, "toggleConfig");
+		super(ctx, JanksonHelper.asStringOrDefault(config.get("name"), ctx.dynamic.getString(config, "framebuffer")));
+		framebuffer = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "framebuffer"));
+		program = ctx.programs.dependOn(ctx.dynamic.getString(config, "program"));
+		toggleConfig = ctx.booleanConfigEntries.dependOn(ctx.dynamic.getString(config, "toggleConfig"));
 
-		lod = config.getInt("lod", 0);
-		layer = config.getInt("layer", 0);
-		width = config.getInt("width", 0);
-		height = config.getInt("height", 0);
+		lod = ctx.dynamic.getInt(config, "lod", 0);
+		layer = ctx.dynamic.getInt(config, "layer", 0);
+		width = ctx.dynamic.getInt(config, "width", 0);
+		height = ctx.dynamic.getInt(config, "height", 0);
 
 		if (!config.containsKey("samplerImages")) {
 			samplerImages = new NamedDependency[0];
@@ -86,7 +86,7 @@ public class PassConfig extends NamedConfig<PassConfig> {
 			samplerImages = new NamedDependency[limit];
 
 			for (int i = 0; i < limit; ++i) {
-				samplerImages[i] = ctx.images.dependOn(names.get(i));
+				samplerImages[i] = ctx.images.dependOn(ctx.dynamic.getString(names.get(i)));
 			}
 		}
 	}

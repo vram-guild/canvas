@@ -75,16 +75,16 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 
 	ImageConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx, config.get(String.class, "name"));
-		target = GlSymbolLookup.lookup(config, "target", "TEXTURE_2D");
-		internalFormat = GlSymbolLookup.lookup(config, "internalFormat", "RGBA8");
-		lod = config.getInt("lod", 0);
-		pixelFormat = GlSymbolLookup.lookup(config, "pixelFormat", "RGBA");
-		pixelDataType = GlSymbolLookup.lookup(config, "pixelDataType", "UNSIGNED_BYTE");
-		depth = config.getInt("depth", 1);
+		target = ctx.dynamic.getGlConst(config, "target", "TEXTURE_2D");
+		internalFormat = ctx.dynamic.getGlConst(config, "internalFormat", "RGBA8");
+		lod = ctx.dynamic.getInt(config, "lod", 0);
+		pixelFormat = ctx.dynamic.getGlConst(config, "pixelFormat", "RGBA");
+		pixelDataType = ctx.dynamic.getGlConst(config, "pixelDataType", "UNSIGNED_BYTE");
+		depth = ctx.dynamic.getInt(config, "depth", 1);
 
-		final int size = config.getInt("size", 0);
-		width = config.getInt("width", size);
-		height = config.getInt("height", size);
+		final int size = ctx.dynamic.getInt(config, "size", 0);
+		width = ctx.dynamic.getInt(config, "width", size);
+		height = ctx.dynamic.getInt(config, "height", size);
 
 		if (!config.containsKey("texParams")) {
 			texParamPairs = new int[0];
@@ -97,8 +97,8 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 
 			for (int i = 0; i < limit; ++i) {
 				final JsonObject p = (JsonObject) params.get(i);
-				texParamPairs[j++] = GlSymbolLookup.lookup(p, "name", "NONE");
-				texParamPairs[j++] = GlSymbolLookup.lookup(p, "val", "NONE");
+				texParamPairs[j++] = ctx.dynamic.getGlConst(p, "name", "NONE");
+				texParamPairs[j++] = ctx.dynamic.getGlConst(p, "val", "NONE");
 			}
 		}
 	}
