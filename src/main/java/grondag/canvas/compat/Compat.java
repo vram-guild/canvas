@@ -35,6 +35,8 @@ import io.vram.frex.api.renderloop.WorldRenderLastListener;
 import io.vram.frex.api.renderloop.WorldRenderPostListener;
 import io.vram.frex.api.renderloop.WorldRenderStartListener;
 
+import grondag.canvas.render.world.WorldEventHelper;
+
 public class Compat {
 	private Compat() { }
 
@@ -48,17 +50,21 @@ public class Compat {
 			LitematicaHolder.litematicaTerrainSetup.accept(ctx.frustum());
 		});
 
+		/* [WorldEventHelper enabled] */
 		EntityRenderPreListener.register(ctx -> {
-			LitematicaHolder.litematicaRenderSolids.accept(ctx.poseStack(), ctx.projectionMatrix());
+			/* USES custom gl draw call */
+			WorldEventHelper.useViewStack(ctx, () -> LitematicaHolder.litematicaRenderSolids.accept(ctx.poseStack(), ctx.projectionMatrix()));
+
 			//SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 		});
 
+		/* [WorldEventHelper enabled] */
 		EntityRenderPostListener.register(ctx -> {
 			GOMLHolder.HANDLER.render(ctx);
 			CampanionHolder.HANDLER.render(ctx);
 			//SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 
-			// Expects an identity matrix stack
+			/* USES Blaze3D */
 			LitematicaHolder.litematicaEntityHandler.handle(ctx.poseStack(), ctx.tickDelta());
 
 			DynocapsHolder.handler.render(ctx.profiler(), ctx.poseStack(), (BufferSource) ctx.consumers(), ctx.camera().getPosition());
@@ -69,6 +75,7 @@ public class Compat {
 			BborHolder.render(ctx);
 		});
 
+		/* [WorldEventHelper enabled] */
 		TranslucentPostListener.register(ctx -> {
 			JustMapHolder.justMapRender.renderWaypoints(ctx.poseStack(), ctx.camera(), ctx.tickDelta());
 			LitematicaHolder.litematicaRenderTranslucent.accept(ctx.poseStack(), ctx.projectionMatrix());
@@ -76,14 +83,10 @@ public class Compat {
 			final Vec3 cameraPos = ctx.camera().getPosition();
 			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderType.translucent(), ctx.poseStack(), cameraPos.x(), cameraPos.y(), cameraPos.z());
 
-			// litematica overlay uses fabulous buffers so must run before translucent shader when active
-			// It expects view matrix to be pre-applied because it normally happens in weather render
 			if (ctx.advancedTranslucency()) {
-				// The view matrix is one pop away
-				ctx.poseStack().popPose();
-				MaliLibHolder.maliLibRenderWorldLast.render(ctx.poseStack(), ctx.projectionMatrix(), Minecraft.getInstance());
-				ctx.poseStack().pushPose();
-				ctx.poseStack().setIdentity();
+				/* litematica overlay uses fabulous buffers so must run before translucent shader when active
+				 * It expects view matrix to be pre-applied because it normally happens in weather render */
+				WorldEventHelper.useViewStack(ctx, () -> MaliLibHolder.maliLibRenderWorldLast.render(ctx.poseStack(), ctx.projectionMatrix(), Minecraft.getInstance()));
 			}
 		});
 
@@ -91,8 +94,8 @@ public class Compat {
 			BborHolder.deferred();
 			//SatinHolder.onWorldRenderedEvent.onWorldRendered(ctx.matrixStack(), ctx.camera(), ctx.tickDelta(), ctx.limitTime());
 
-			// litematica overlay expects to render on top of translucency when fabulous is off
 			if (!ctx.advancedTranslucency()) {
+				/* litematica overlay expects to render on top of translucency when fabulous is off */
 				MaliLibHolder.maliLibRenderWorldLast.render(ctx.poseStack(), ctx.projectionMatrix(), Minecraft.getInstance());
 			}
 		});

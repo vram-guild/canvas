@@ -76,10 +76,7 @@ import io.vram.frex.api.renderer.Renderer;
 import io.vram.frex.api.renderloop.BlockOutlineListener;
 import io.vram.frex.api.renderloop.BlockOutlinePreListener;
 import io.vram.frex.api.renderloop.DebugRenderListener;
-import io.vram.frex.api.renderloop.EntityRenderPostListener;
-import io.vram.frex.api.renderloop.EntityRenderPreListener;
 import io.vram.frex.api.renderloop.FrustumSetupListener;
-import io.vram.frex.api.renderloop.TranslucentPostListener;
 import io.vram.frex.api.renderloop.WorldRenderContextBase;
 import io.vram.frex.api.renderloop.WorldRenderLastListener;
 import io.vram.frex.api.renderloop.WorldRenderPostListener;
@@ -383,10 +380,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		RenderSystem.applyModelViewMatrix();
 
 		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
-		eventContext.poseStack().pushPose();
-		eventContext.poseStack().setIdentity();
-		EntityRenderPreListener.invoke(eventContext);
-		eventContext.poseStack().popPose();
+		WorldEventHelper.entityRenderPreListener(eventContext);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "entities");
 		int entityCount = 0;
@@ -586,10 +580,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_entities_event");
 
 		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
-		eventContext.poseStack().pushPose();
-		eventContext.poseStack().setIdentity();
-		EntityRenderPostListener.invoke(eventContext);
-		eventContext.poseStack().popPose();
+		WorldEventHelper.entityRenderPostListener(eventContext);
 
 		/* Some things that really want to be rendered before block destruction / outline render. */
 		immediate.endBatch(RenderType.endPortal());
@@ -637,8 +628,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		final HitResult hitResult = mc.hitResult;
 
 		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
-		eventContext.poseStack().pushPose();
-		eventContext.poseStack().setIdentity();
+		WorldEventHelper.startIdentity(eventContext);
 
 		if (BlockOutlinePreListener.invoke(eventContext, hitResult)) {
 			if (blockOutlines && hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
@@ -658,7 +648,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			}
 		}
 
-		eventContext.poseStack().popPose();
+		WorldEventHelper.endIdentity(eventContext);
 
 		RenderState.disable();
 
@@ -749,10 +739,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "after_translucent_event");
 
 		// Stuff here expects RenderSystem with identity, but since our consumer apply viewMatrix on render, we give them identity poseStack instead
-		eventContext.poseStack().pushPose();
-		eventContext.poseStack().setIdentity();
-		TranslucentPostListener.invoke(eventContext);
-		eventContext.poseStack().popPose();
+		WorldEventHelper.translucentPostListener(eventContext);
 
 		// FEAT: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
