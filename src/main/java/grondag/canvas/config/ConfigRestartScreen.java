@@ -47,15 +47,11 @@ public class ConfigRestartScreen extends BaseScreen {
 		}
 
 		this.addRenderableWidget(new Button(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.accept"), b -> restart()));
-		this.addRenderableWidget(new Button(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.ignore"), b -> close()));
+		this.addRenderableWidget(new Button(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.ignore"), b -> onClose()));
 	}
 
 	private void restart() {
 		this.minecraft.close();
-	}
-
-	private void close() {
-		onClose();
 	}
 
 	@Override
