@@ -31,10 +31,9 @@ import io.vram.frex.api.renderloop.WorldRenderContext;
  * Matrix insanity.
  *
  * Canvas always applies view matrix on shader regardless of terrain or entity render.
- * Therefore, all renders typically uses identity pose stack, and it works fine with Blaze3D
- * renders due to having internal view matrix that can be set by us. However, third party renders
- * that bypasses both Canvas and Blaze3D renders (i.e. uses their own shader program/matrix state
- * or GL draw calls) will fail without the appropriate compatibility.
+ * Therefore, it needs to use identity pose stack and sets RenderSystem to use proper view matrix so that vanilla
+ * renderers work as expected. However, third party renderers that use custom shader programs or draw calls
+ * will fail without the appropriate compatibility.
  *
  * Note that this class is NOT public API.
  */

@@ -52,7 +52,7 @@ public class Compat {
 
 		/* [WorldEventHelper enabled] */
 		EntityRenderPreListener.register(ctx -> {
-			/* USES custom gl draw call */
+			/* USES custom draw call */
 			WorldEventHelper.useViewStack(ctx, () -> LitematicaHolder.litematicaRenderSolids.accept(ctx.poseStack(), ctx.projectionMatrix()));
 
 			//SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
@@ -64,7 +64,7 @@ public class Compat {
 			CampanionHolder.HANDLER.render(ctx);
 			//SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 
-			/* USES Blaze3D */
+			/* USES vanilla renderer */
 			LitematicaHolder.litematicaEntityHandler.handle(ctx.poseStack(), ctx.tickDelta());
 
 			DynocapsHolder.handler.render(ctx.profiler(), ctx.poseStack(), (BufferSource) ctx.consumers(), ctx.camera().getPosition());
