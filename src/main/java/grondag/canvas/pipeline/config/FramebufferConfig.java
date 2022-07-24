@@ -36,7 +36,7 @@ public class FramebufferConfig extends NamedConfig<FramebufferConfig> {
 		colorAttachments = AttachmentConfig.deserialize(ctx, config);
 
 		if (config.containsKey("depthAttachment")) {
-			depthAttachment = new AttachmentConfig(ctx, config.getObject("depthAttachment"), true);
+			depthAttachment = new AttachmentConfig(ctx, ctx.dynamic.getAttachment(config, "depthAttachment"), true);
 		} else {
 			depthAttachment = null;
 		}

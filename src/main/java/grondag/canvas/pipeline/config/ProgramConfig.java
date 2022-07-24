@@ -36,8 +36,8 @@ public class ProgramConfig extends NamedConfig<ProgramConfig> {
 
 	ProgramConfig(ConfigContext ctx, JsonObject config, String name) {
 		super(ctx, name);
-		vertexSource = new ResourceLocation(config.get(String.class, "vertexSource"));
-		fragmentSource = new ResourceLocation(config.get(String.class, "fragmentSource"));
+		vertexSource = new ResourceLocation(ctx.dynamic.getString(config, "vertexSource", "canvas:missing_shader"));
+		fragmentSource = new ResourceLocation(ctx.dynamic.getString(config, "fragmentSource", "canvas:missing_shader"));
 		samplerNames = readerSamplerNames(ctx, config, "program " + name);
 		isBuiltIn = false;
 	}

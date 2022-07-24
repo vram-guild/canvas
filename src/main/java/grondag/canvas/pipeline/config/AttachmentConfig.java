@@ -48,17 +48,17 @@ public class AttachmentConfig extends AbstractConfig {
 			clearColor = 0;
 			clearDepth = 1.0f;
 		} else {
-			image = context.images.dependOn(config, "image");
-			lod = config.getInt("lod", 0);
-			layer = config.getInt("layer", 0);
+			image = context.images.dependOn(context.dynamic.getString(config, "image"));
+			lod = context.dynamic.getInt(config, "lod", 0);
+			layer = context.dynamic.getInt(config, "layer", 0);
 
 			if (isDepth) {
 				clear = config.containsKey("clearDepth");
-				clearDepth = config.getFloat("clearDepth", 1.0f);
+				clearDepth = context.dynamic.getFloat(config, "clearDepth", 1.0f);
 				clearColor = 0;
 			} else {
 				clear = config.containsKey("clearColor");
-				clearColor = config.getInt("clearColor", 0);
+				clearColor = context.dynamic.getInt(config, "clearColor", 0);
 				clearDepth = 1.0f;
 			}
 		}
@@ -85,7 +85,7 @@ public class AttachmentConfig extends AbstractConfig {
 		final AttachmentConfig[] result = new AttachmentConfig[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			result[i] = new AttachmentConfig(ctx, (JsonObject) array.get(i), false);
+			result[i] = new AttachmentConfig(ctx, ctx.dynamic.getAttachment(array.get(i)), false);
 		}
 
 		return result;

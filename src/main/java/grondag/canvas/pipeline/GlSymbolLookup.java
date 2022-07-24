@@ -68,6 +68,10 @@ public class GlSymbolLookup {
 			symbol = config.get(String.class, key);
 		}
 
+		return lookup(symbol, fallback);
+	}
+
+	public static int lookup(String symbol, String fallback) {
 		int result = GlSymbolLookup.lookup(symbol);
 
 		if (result == -1 && !symbol.equals(fallback)) {

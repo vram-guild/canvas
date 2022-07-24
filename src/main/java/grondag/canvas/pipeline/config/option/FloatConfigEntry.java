@@ -73,6 +73,10 @@ public class FloatConfigEntry extends OptionConfigEntry<FloatConfigEntry> {
 		config.put(name, new JsonPrimitive(value));
 	}
 
+	public float value() {
+		return value;
+	}
+
 	@Override
 	public boolean validate() {
 		boolean valid = super.validate();

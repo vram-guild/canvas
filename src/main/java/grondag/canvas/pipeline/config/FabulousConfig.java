@@ -35,11 +35,11 @@ public class FabulousConfig extends AbstractConfig {
 
 	FabulousConfig (ConfigContext ctx, JsonObject config) {
 		super(ctx);
-		entityFramebuffer = ctx.frameBuffers.dependOn(config, "entity");
-		particleFramebuffer = ctx.frameBuffers.dependOn(config, "particles");
-		weatherFramebuffer = ctx.frameBuffers.dependOn(config, "weather");
-		cloudsFramebuffer = ctx.frameBuffers.dependOn(config, "clouds");
-		translucentFramebuffer = ctx.frameBuffers.dependOn(config, "translucent");
+		entityFramebuffer = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "entity"));
+		particleFramebuffer = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "particles"));
+		weatherFramebuffer = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "weather"));
+		cloudsFramebuffer = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "clouds"));
+		translucentFramebuffer = ctx.frameBuffers.dependOn(ctx.dynamic.getString(config, "translucent"));
 	}
 
 	@Override
