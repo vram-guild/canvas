@@ -42,7 +42,7 @@ public class WorldEventHelper {
 	/**
 	 * When true, pose stack pose matrix is identity, while RenderSystem has the correct view matrix.
 	 */
-	public static boolean poseIsIdentity;
+	public static boolean poseIsIdentity = false;
 
 	private static final Matrix3f normalMatrix = new Matrix3f();
 
@@ -61,16 +61,15 @@ public class WorldEventHelper {
 	// Events not listed here hasn't been causing issues so far
 
 	static void entityRenderPreListener(WorldRenderContext ctx) {
-		// We don't correct matrix state now because renders that happen here typically use 3rd party render
-		EntityRenderPreListener.invoke(ctx);
+		useIdentityStack(ctx, () -> EntityRenderPreListener.invoke(ctx));
 	}
 
 	static void entityRenderPostListener(WorldRenderContext ctx) {
-		EntityRenderPostListener.invoke(ctx);
+		useIdentityStack(ctx, () -> EntityRenderPostListener.invoke(ctx));
 	}
 
 	static void translucentPostListener(WorldRenderContext ctx) {
-		TranslucentPostListener.invoke(ctx);
+		useIdentityStack(ctx, () -> TranslucentPostListener.invoke(ctx));
 	}
 
 	/**

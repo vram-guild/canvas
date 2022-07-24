@@ -50,22 +50,27 @@ public class Compat {
 			LitematicaHolder.litematicaTerrainSetup.accept(ctx.frustum());
 		});
 
+		// [WorldEventHelper]
 		EntityRenderPreListener.register(ctx -> {
-			/* USES custom draw call and expects view matrix */
-			LitematicaHolder.litematicaRenderSolids.accept(ctx.poseStack(), ctx.projectionMatrix());
+			WorldEventHelper.useViewStack(ctx, () -> {
+				/* USES custom draw call and expects view matrix */
+				LitematicaHolder.litematicaRenderSolids.accept(ctx.poseStack(), ctx.projectionMatrix());
+			});
 
 			//SatinHolder.beforeEntitiesRenderEvent.beforeEntitiesRender(ctx.camera(), ctx.frustum(), ctx.tickDelta());
 		});
 
+		// [WorldEventHelper]
 		EntityRenderPostListener.register(ctx -> {
 			GOMLHolder.HANDLER.render(ctx);
 			CampanionHolder.HANDLER.render(ctx);
 			//SatinHolder.onEntitiesRenderedEvent.onEntitiesRendered(ctx.camera(), ctx.frustum(), ctx.tickDelta());
-
-			/* USES vanilla renderer */
-			WorldEventHelper.useIdentityStack(ctx, () -> LitematicaHolder.litematicaEntityHandler.handle(ctx.poseStack(), ctx.tickDelta()));
-
 			DynocapsHolder.handler.render(ctx.profiler(), ctx.poseStack(), (BufferSource) ctx.consumers(), ctx.camera().getPosition());
+
+			WorldEventHelper.useIdentityStack(ctx, () -> {
+				/* USES vanilla renderer */
+				LitematicaHolder.litematicaEntityHandler.handle(ctx.poseStack(), ctx.tickDelta());
+			});
 		});
 
 		DebugRenderListener.register(ctx -> {
@@ -73,18 +78,22 @@ public class Compat {
 			BborHolder.render(ctx);
 		});
 
+		// [WorldEventHelper]
 		TranslucentPostListener.register(ctx -> {
 			JustMapHolder.justMapRender.renderWaypoints(ctx.poseStack(), ctx.camera(), ctx.tickDelta());
-			LitematicaHolder.litematicaRenderTranslucent.accept(ctx.poseStack(), ctx.projectionMatrix());
-			LitematicaHolder.litematicaRenderOverlay.accept(ctx.poseStack(), ctx.projectionMatrix());
 			final Vec3 cameraPos = ctx.camera().getPosition();
 			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderType.translucent(), ctx.poseStack(), cameraPos.x(), cameraPos.y(), cameraPos.z());
 
-			if (ctx.advancedTranslucency()) {
-				/* litematica overlay uses fabulous buffers so must run before translucent shader when active
-				 * It expects view matrix to be pre-applied because it normally happens in weather render */
-				MaliLibHolder.maliLibRenderWorldLast.render(ctx.poseStack(), ctx.projectionMatrix(), Minecraft.getInstance());
-			}
+			WorldEventHelper.useViewStack(ctx, () -> {
+				LitematicaHolder.litematicaRenderTranslucent.accept(ctx.poseStack(), ctx.projectionMatrix());
+				LitematicaHolder.litematicaRenderOverlay.accept(ctx.poseStack(), ctx.projectionMatrix());
+
+				if (ctx.advancedTranslucency()) {
+					/* litematica overlay uses fabulous buffers so must run before translucent shader when active
+					 * It expects view matrix to be pre-applied because it normally happens in weather render */
+					MaliLibHolder.maliLibRenderWorldLast.render(ctx.poseStack(), ctx.projectionMatrix(), Minecraft.getInstance());
+				}
+			});
 		});
 
 		WorldRenderLastListener.register(ctx -> {
