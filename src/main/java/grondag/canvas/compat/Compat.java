@@ -54,9 +54,12 @@ public class Compat {
 
 		// [WorldEventHelper]
 		EntityRenderPreListener.register(ctx -> {
-			FlywheelHolder.handler.renderLayer(ctx, RenderType.solid());
-			FlywheelHolder.handler.renderLayer(ctx, RenderType.cutoutMipped());
-			FlywheelHolder.handler.renderLayer(ctx, RenderType.cutout());
+			/* Can either use custom draw call or vanilla :') */
+			WorldEventHelper.useIdentityStack(ctx, () -> {
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.solid());
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.cutoutMipped());
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.cutout());
+			});
 
 			WorldEventHelper.useViewStack(ctx, () -> {
 				/* USES custom draw call and expects view matrix */
@@ -86,7 +89,10 @@ public class Compat {
 
 		// [WorldEventHelper]
 		TranslucentPostListener.register(ctx -> {
-			FlywheelHolder.handler.renderLayer(ctx, RenderType.translucent());
+			/* Can either use custom draw call or vanilla :') Vanilla rendering is mostly for overlays */
+			WorldEventHelper.useIdentityStack(ctx, () -> {
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.translucent());
+			});
 
 			JustMapHolder.justMapRender.renderWaypoints(ctx.poseStack(), ctx.camera(), ctx.tickDelta());
 			final Vec3 cameraPos = ctx.camera().getPosition();

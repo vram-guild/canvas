@@ -95,7 +95,7 @@ public class FlywheelHolder {
 
 				// RenderLayerEvent computes the View-Projection matrix during construction
 				stack.pushPose();
-				stack.mulPoseMatrix(MatrixData.viewMatrix);
+				stack.last().pose().load(MatrixData.viewMatrix);
 				var event = new RenderLayerEvent(ext.canvas_world(), type, stack, renderBuffers, camX, camY, camZ);
 				stack.popPose();
 
