@@ -683,6 +683,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// draw order is important and our sorting mechanism doesn't cover
 		immediate.endBatch(RenderType.waterMask());
 
+		// Mods may populate this buffer with solid renders
+		bufferBuilders.bufferSource().endBatch();
+
 		bufferBuilders.crumblingBufferSource().endBatch();
 
 		visibleRegions.scheduleResort(cameraVec3d);
@@ -744,23 +747,16 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// FEAT: need a new event here for weather/cloud targets that has matrix applies to render state
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
-		renderSystemModelViewStack.popPose();
-		RenderSystem.applyModelViewMatrix();
-
 		RenderState.disable();
 		GlProgram.deactivate();
 
-		renderClouds(mc, profiler, viewMatrixStack, projectionMatrix, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+		renderClouds(mc, profiler, identityStack, projectionMatrix, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
 
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "weather");
 
-		// Apply view transform locally for vanilla weather and world border rendering
-		renderSystemModelViewStack.pushPose();
-		renderSystemModelViewStack.mulPoseMatrix(viewMatrixStack.last().pose());
-		RenderSystem.applyModelViewMatrix();
-
+		// Weather and world border rendering
 		if (advancedTranslucency) {
 			RenderStateShard.WEATHER_TARGET.setupRenderState();
 			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
