@@ -48,7 +48,7 @@ public class RenderContextState {
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> blockEntityFunc = m -> (CanvasRenderMaterial) blockEntityMap.getMapped(m, blockState, finder);
 	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> itemFunc = m -> {
 		final var mapped = itemMap.getMapped(null);
-		return mapped == null ? m : (CanvasRenderMaterial) finder.copyFrom(mapped).foilOverlay(m.foilOverlay()).find();
+		return mapped == null ? m : (CanvasRenderMaterial) finder.copyFrom(mapped).foilOverlay(m.foilOverlay()).texture(m.texture()).find();
 	};
 
 	private Function<CanvasRenderMaterial, CanvasRenderMaterial> activeFunc = defaultFunc;
