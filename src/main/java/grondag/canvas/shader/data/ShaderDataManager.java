@@ -583,16 +583,21 @@ public class ShaderDataManager {
 				ItemStack stack = player.getMainHandItem();
 				light = ItemLight.get(stack);
 
+				// main hand
+				light = HeldItemLightListener.apply(player, stack, light);
+
 				if (light == ItemLight.NONE) {
 					stack = player.getOffhandItem();
 					light = ItemLight.get(stack);
+
+					// off-hand
+					light = HeldItemLightListener.apply(player, stack, light);
 				}
 
+				// listener could've changed worksInFluid attribute, so we check it last
 				if (!light.worksInFluid() && player.isUnderWater()) {
 					light = ItemLight.NONE;
 				}
-
-				light = HeldItemLightListener.apply(player, stack, light);
 			}
 
 			FLOAT_VECTOR_DATA.put(HELD_LIGHT_RED, light.red());
