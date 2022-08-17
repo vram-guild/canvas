@@ -79,8 +79,20 @@ public class CanvasItemRenderContext extends ItemRenderContext {
 		final RenderContextState context = (vertexConsumers instanceof CanvasImmediate immediate) ? immediate.contextState : null;
 
 		if (context != null) {
+			final GuiMode mode;
+
+			if (inputContext.isGui()) {
+				if (inputContext.isBlockItem() && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock) {
+					mode = GuiMode.GUI_FRONT_LIT;
+				} else {
+					mode = GuiMode.GUI_NORMAL;
+				}
+			} else {
+				mode = GuiMode.NORMAL;
+			}
+
 			context.pushItemState(stack);
-			context.guiMode(inputContext.isGui() && inputContext.isBlockItem() && ((BlockItem) stack.getItem()).getBlock() instanceof AbstractBannerBlock ? GuiMode.GUI_FRONT_LIT : GuiMode.NORMAL);
+			context.guiMode(mode);
 		}
 
 		builtInRenderer.renderByItem(stack, inputContext.mode(), inputContext.matrixStack().toVanilla(), vertexConsumers, inputContext.lightmap(), inputContext.overlay());
