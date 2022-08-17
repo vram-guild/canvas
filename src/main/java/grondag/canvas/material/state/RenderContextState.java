@@ -104,7 +104,8 @@ public class RenderContextState {
 
 	public enum GuiMode {
 		NORMAL((f, m) -> m),
-		GUI_FRONT_LIT((f, m) -> (CanvasRenderMaterial) f.copyFrom(m).disableDiffuse(true).find());
+		GUI_NORMAL((f, m) -> (CanvasRenderMaterial) f.copyFrom(m).fog(false).find()),
+		GUI_FRONT_LIT((f, m) -> (CanvasRenderMaterial) f.copyFrom(m).fog(false).disableDiffuse(true).find());
 
 		private final BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> func;
 
