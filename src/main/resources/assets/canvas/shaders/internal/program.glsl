@@ -1,6 +1,7 @@
 #include frex:shaders/lib/bitwise.glsl
 #include canvas:shaders/internal/world.glsl
 #include canvas:shaders/internal/vertex.glsl
+#include frex:shaders/api/view.glsl
 
 /******************************************************
   canvas:shaders/internal/program.glsl
@@ -53,7 +54,7 @@ void _cv_setupProgram() {
 	} else {
 		int i = _CV_MATERIAL_ID * 2;
 		_cvu_program = texelFetch(_cvu_materialInfo, i);
-		_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
+		_cvu_program.w = (frx_isGui || _cv_testCondition(_cvu_program.w)) ? 1 : 0;
 		_cvv_spriteBounds = vec4(texelFetch(_cvu_materialInfo, i + 1)) / 32768.0;
 	}
 }
