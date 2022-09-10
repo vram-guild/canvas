@@ -1,7 +1,6 @@
 #include frex:shaders/lib/bitwise.glsl
 #include canvas:shaders/internal/world.glsl
 #include canvas:shaders/internal/vertex.glsl
-#include frex:shaders/api/view.glsl
 
 /******************************************************
   canvas:shaders/internal/program.glsl
@@ -47,14 +46,16 @@ flat in vec4 _cv_modelToCamera;
 
 #ifdef VERTEX_SHADER
 void _cv_setupProgram() {
+	// always render conditional in GUI - items are otherwise impractical to work with
+	// and mods have other ways to suppress GUI rendering if really wanted
+	_cvu_program.w = (_cvu_model_origin_type == 2 || _cv_testCondition(_cvu_program.w)) ? 1 : 0;
+
 	if (_cvu_context[_CV_ATLAS_WIDTH] == 0) {
 		_cvu_program = texelFetch(_cvu_materialInfo, _CV_MATERIAL_ID);
-		_cvu_program.w = _cv_testCondition(_cvu_program.w) ? 1 : 0;
 		_cvv_spriteBounds = vec4(0.0, 0.0, 1.0, 1.0);
 	} else {
 		int i = _CV_MATERIAL_ID * 2;
 		_cvu_program = texelFetch(_cvu_materialInfo, i);
-		_cvu_program.w = (frx_isGui || _cv_testCondition(_cvu_program.w)) ? 1 : 0;
 		_cvv_spriteBounds = vec4(texelFetch(_cvu_materialInfo, i + 1)) / 32768.0;
 	}
 }
