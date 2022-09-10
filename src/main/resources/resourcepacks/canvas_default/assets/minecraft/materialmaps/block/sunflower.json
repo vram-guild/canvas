@@ -1,5 +1,5 @@
 {
-  "defaultMaterial": "fabric:standard",
+  "defaultMaterial": "frex:standard",
   "variants": {
 	"half=lower": {
 	  "defaultMaterial": "canvas:low_foliage"
