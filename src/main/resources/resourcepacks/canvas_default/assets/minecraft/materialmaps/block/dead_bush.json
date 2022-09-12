@@ -1,3 +1,10 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/dead_bush",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

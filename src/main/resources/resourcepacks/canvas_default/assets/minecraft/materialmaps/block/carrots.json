@@ -1,3 +1,22 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/carrots_stage0",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/carrots_stage1",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/carrots_stage2",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/carrots_stage3",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

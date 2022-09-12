@@ -1,11 +1,22 @@
 {
-  "defaultMaterial": "frex:standard",
-  "variants": {
-	"half=lower": {
-	  "defaultMaterial": "canvas:low_foliage"
-	},
-	"half=upper": {
-	  "defaultMaterial": "canvas:high_foliage"
-	}
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/sunflower_bottom",
+		"material": "canvas:low_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/sunflower_top",
+		"material": "canvas:high_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/sunflower_back",
+		"material": "canvas:high_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/sunflower_front",
+		"material": "canvas:high_foliage"
+	  }
+	]
   }
 }

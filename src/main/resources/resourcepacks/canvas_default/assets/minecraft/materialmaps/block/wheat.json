@@ -1,3 +1,38 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/wheat_stage0",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/wheat_stage1",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/wheat_stage2",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/wheat_stage3",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/wheat_stage4",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/wheat_stage5",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/wheat_stage6",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/wheat_stage7",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

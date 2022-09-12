@@ -1,3 +1,10 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/azure_bluet",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }
