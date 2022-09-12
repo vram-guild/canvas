@@ -51,9 +51,6 @@ import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
-/**
- * Context for non-terrain block rendering.
- */
 public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintGetter> implements BlockStateRenderer {
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
@@ -142,7 +139,6 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		encoder.animationBits.clear();
 
 		if (Configurator.lightSmoothing) {
-			//            final long start = counter.startRun();
 			LightSmoother.computeSmoothedBrightness(region);
 		}
 
@@ -177,7 +173,6 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		renderInner((BlockModel) model);
 	}
 
-	// PERF: don't pass in matrixStack each time, just change model matrix directly
 	private void renderInner(final BlockModel model) {
 		try {
 			model.renderAsBlock(this.inputContext, emitter());
