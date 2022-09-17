@@ -1,3 +1,4 @@
 {
+  "transform": true,
   "fragmentSource": "canvas:shaders/material/warm_glow.frag"
 }

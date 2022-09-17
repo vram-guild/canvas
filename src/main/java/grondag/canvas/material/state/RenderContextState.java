@@ -20,13 +20,11 @@
 
 package grondag.canvas.material.state;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -34,45 +32,34 @@ import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 
 public class RenderContextState {
-	private MaterialMap<Entity> entityMap = null;
-	private MaterialMap<BlockState> blockEntityMap = null;
-	private MaterialMap<ItemStack> itemMap = null;
-	private Entity entity;
-	private BlockState blockState;
+	@SuppressWarnings("rawtypes")
+	private MaterialMap activeMap = MaterialMap.IDENTITY;
+	@SuppressWarnings("rawtypes")
+	private MaterialMap swapMap = null;
+	private Object activeGameObject = null;
 	private final MaterialFinder finder = MaterialFinder.newInstance();
 
-	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> defaultFunc = m -> m;
-	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> entityFunc = m -> (CanvasRenderMaterial) entityMap.getMapped(m, entity, finder);
-	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> blockEntityFunc = m -> (CanvasRenderMaterial) blockEntityMap.getMapped(m, blockState, finder);
-	private final Function<CanvasRenderMaterial, CanvasRenderMaterial> itemFunc = m -> {
-		final var mapped = itemMap.getMapped(null);
-		return mapped == null ? m : (CanvasRenderMaterial) finder.copyFrom(mapped).foilOverlay(m.foilOverlay()).texture(m.texture()).find();
-	};
-
-	private Function<CanvasRenderMaterial, CanvasRenderMaterial> activeFunc = defaultFunc;
-	private Function<CanvasRenderMaterial, CanvasRenderMaterial> swapFunc = null;
-	private BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> guiFunc = GuiMode.NORMAL.func;
+	private MaterialMap<Entity> entityMap = MaterialMap.identity();
+	private MaterialMap<BlockState> blockEntityMap = MaterialMap.identity();
+	private MaterialMap<ItemStack> itemMap = MaterialMap.identity();
+	private GuiMode guiMode = GuiMode.NORMAL;
 
 	public void setCurrentEntity(@Nullable Entity entity) {
-		if (entity == null) {
-			entityMap = null;
-			activeFunc = defaultFunc;
-		} else {
-			this.entity = entity;
-			entityMap = MaterialMap.get(entity.getType());
-			activeFunc = entityFunc;
-		}
+		entityMap = entity == null ? MaterialMap.identity() : MaterialMap.get(entity.getType());
+		activeGameObject = entity;
+		activeMap = entityMap;
 	}
 
 	public void setCurrentBlockEntity(@Nullable BlockEntity blockEntity) {
 		if (blockEntity == null) {
-			blockEntityMap = null;
-			activeFunc = defaultFunc;
+			activeGameObject = Blocks.AIR.defaultBlockState();
+			blockEntityMap = MaterialMap.identity();
 		} else {
-			blockState = blockEntity.getBlockState();
+			activeGameObject = blockEntity.getBlockState();
 			blockEntityMap = MaterialMap.get(blockEntity.getType());
-			activeFunc = blockEntityFunc;
 		}
+
+		activeMap = blockEntityMap;
 	}
 
 	/**
@@ -81,34 +68,49 @@ public class RenderContextState {
 	 * @param itemStack the item stack
 	 */
 	public void pushItemState(ItemStack itemStack) {
+		assert swapMap == null;
 		itemMap = MaterialMap.get(itemStack);
-		swapFunc = (activeFunc != itemFunc && activeFunc != defaultFunc) ? activeFunc : swapFunc; // preserve active function
-		activeFunc = itemFunc;
+		swapMap = activeMap; // preserve active function
+		activeMap = itemMap;
 	}
 
 	public void popItemState() {
-		itemMap = null;
-		activeFunc = (swapFunc != null && swapFunc != itemFunc) ? swapFunc : defaultFunc;
-		swapFunc = null;
+		itemMap = MaterialMap.identity();
+		activeMap = swapMap;
+		swapMap = null;
 	}
 
 	public void guiMode(GuiMode guiMode) {
-		guiFunc = guiMode.func;
+		this.guiMode = guiMode;
 	}
 
+	@SuppressWarnings("unchecked")
 	public CanvasRenderMaterial mapMaterial(CanvasRenderMaterial mat) {
-		return guiFunc.apply(finder, activeFunc.apply(mat));
+		if (activeMap.isIdentity() && guiMode == GuiMode.NORMAL) {
+			return mat;
+		} else {
+			finder.copyFrom(mat);
+			activeMap.map(finder, activeGameObject);
+			guiMode.apply(finder);
+			return (CanvasRenderMaterial) finder.find();
+		}
 	}
 
 	public enum GuiMode {
-		NORMAL((f, m) -> m),
-		GUI_NORMAL((f, m) -> (CanvasRenderMaterial) f.copyFrom(m).fog(false).find()),
-		GUI_FRONT_LIT((f, m) -> (CanvasRenderMaterial) f.copyFrom(m).fog(false).disableDiffuse(true).find());
+		NORMAL() {
+			@Override void apply(MaterialFinder finder) { }
+		},
+		GUI_NORMAL() {
+			@Override void apply(MaterialFinder finder) {
+				finder.fog(false);
+			}
+		},
+		GUI_FRONT_LIT() {
+			@Override void apply(MaterialFinder finder) {
+				finder.fog(false).disableDiffuse(true);
+			}
+		};
 
-		private final BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> func;
-
-		GuiMode(BiFunction<MaterialFinder, CanvasRenderMaterial, CanvasRenderMaterial> func) {
-			this.func = func;
-		}
+		abstract void apply(MaterialFinder finder);
 	}
 }

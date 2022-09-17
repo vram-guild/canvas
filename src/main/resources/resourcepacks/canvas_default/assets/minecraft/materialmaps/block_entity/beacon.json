@@ -6,7 +6,7 @@
 	  				"renderLayerName": "beacon_beam"
 	  			}
 	  		},
-		  	"material": "frex:emissive_transform_no_shadow"
+		  	"material": "frex:emissive_no_shadow"
 		}
   	]
 }
