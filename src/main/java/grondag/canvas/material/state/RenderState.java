@@ -182,6 +182,7 @@ public final class RenderState {
 		switch (Configurator.shadowFaceCulling) {
 			case FRONT -> GFX.glCullFace(GFX.GL_FRONT);
 			case BACK -> GFX.glCullFace(GFX.GL_BACK);
+			case NONE -> { }
 		}
 	}
 

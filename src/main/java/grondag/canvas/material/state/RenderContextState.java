@@ -30,15 +30,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import io.vram.frex.api.material.BlockEntityMaterialMap;
-import io.vram.frex.api.material.EntityMaterialMap;
-import io.vram.frex.api.material.MaterialMap;
 import io.vram.frex.api.material.MaterialFinder;
+import io.vram.frex.api.material.MaterialMap;
 
 public class RenderContextState {
-	private EntityMaterialMap entityMap = null;
-	private BlockEntityMaterialMap blockEntityMap = null;
-	private MaterialMap itemMap = null;
+	private MaterialMap<Entity> entityMap = null;
+	private MaterialMap<BlockState> blockEntityMap = null;
+	private MaterialMap<ItemStack> itemMap = null;
 	private Entity entity;
 	private BlockState blockState;
 	private final MaterialFinder finder = MaterialFinder.newInstance();
@@ -61,7 +59,7 @@ public class RenderContextState {
 			activeFunc = defaultFunc;
 		} else {
 			this.entity = entity;
-			entityMap = EntityMaterialMap.get(entity.getType());
+			entityMap = MaterialMap.get(entity.getType());
 			activeFunc = entityFunc;
 		}
 	}
@@ -72,7 +70,7 @@ public class RenderContextState {
 			activeFunc = defaultFunc;
 		} else {
 			blockState = blockEntity.getBlockState();
-			blockEntityMap = BlockEntityMaterialMap.get(blockEntity.getType());
+			blockEntityMap = MaterialMap.get(blockEntity.getType());
 			activeFunc = blockEntityFunc;
 		}
 	}
