@@ -1,0 +1,6 @@
+{
+  "vertexSource": "abstract:shaders/material/leaves.vert",
+  "depthVertexSource": "abstract:shaders/material/leaves.vert",
+  "disableAo": true,
+  "disableDiffuse": false
+}

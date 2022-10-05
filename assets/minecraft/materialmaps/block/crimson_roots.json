@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/crimson_roots",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

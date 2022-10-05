@@ -1,0 +1,6 @@
+{
+  "vertexSource": "abstract:shaders/material/vines.vert",
+  "depthVertexSource": "abstract:shaders/material/vines.vert",
+  "disableAo": true,
+  "disableDiffuse": true
+}

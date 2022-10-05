@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/wither_rose",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  options: [
+    {
+      includeToken: "abstract:basic_light_config",
+      categoryKey: "config.abstract.category.features",
+      options: {
+        ao_shading_mode: {
+          choices: ["normal", "subtle_always", "subtle_block_light", "none"],
+          enum: true,
+          prefix: "AO_MODE_",
+          nameKey: "config.canvas.value.ao_shading",
+          descriptionKey: "config.canvas.help.ao_shading"
+        },
+        diffuse_shading_mode: {
+          choices: ["normal", "sky_only", "none"],
+          enum: true,
+          prefix: "DIFFUSE_MODE_",
+          nameKey: "config.canvas.value.diffuse_shading",
+          descriptionKey: "config.canvas.help.diffuse_shading"
+        }
+      }
+    }
+  ]
+}

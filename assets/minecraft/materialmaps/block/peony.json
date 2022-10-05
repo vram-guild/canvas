@@ -1,0 +1,14 @@
+{
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/peony_bottom",
+		"material": "abstract:low_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/peony_top",
+		"material": "abstract:high_foliage"
+	  }
+	]
+  }
+}

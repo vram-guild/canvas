@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/oak_sapling",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

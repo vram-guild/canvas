@@ -1,0 +1,22 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/potatoes_stage0",
+        "material": "abstract:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/potatoes_stage1",
+        "material": "abstract:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/potatoes_stage2",
+        "material": "abstract:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/potatoes_stage3",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

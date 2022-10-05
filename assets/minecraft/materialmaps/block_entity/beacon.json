@@ -1,0 +1,12 @@
+{
+ 	"map": [
+  		{
+			"predicate": {
+	  			"materialPredicate": {
+	  				"renderLayerName": "beacon_beam"
+	  			}
+	  		},
+		  	"material": "frex:emissive_no_shadow"
+		}
+  	]
+}

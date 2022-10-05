@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/fern",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

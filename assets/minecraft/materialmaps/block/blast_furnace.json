@@ -1,0 +1,10 @@
+{
+	"defaultMap": {
+		"spriteMap": [
+			{
+				"sprite": "minecraft:block/blast_furnace_front_on",
+				"material": "abstract:warm_glow"
+			}
+		]
+	}
+}

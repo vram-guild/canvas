@@ -1,0 +1,353 @@
+{
+  // When present, will force Minecraft to operate as if "fabulous" mode was selected.
+  // Normally this means translucent geometry will be drawn to different framebuffers
+  // and mc and mods expect five additional framebuffers will be available:
+  // 		mc_entity				- item entities
+  // 		mc_particles
+  // 		mc_weather
+  //    mc_clouds
+  //    mc_translucent  - terrain
+  //
+  // The main purpose of this setting is compatibility with mods that draw directly.
+  // These extra framebuffers which are visible to mods and some of them
+  // will target a specific buffer when fabulous mode is active.  If you want mods
+  // to draw direct translucency to separate buffers, configure this.  If you want them to
+  // target the default framebuffer set this false.
+  //
+  // The actual target for managed draws will be controlled by the stage configuration.
+  // These mappings will *only* affect unmanaged draws that directly target one of these buffers.
+  //
+  // The structure of these should match the default framebuffer and be compatible
+  // with direct draws.
+
+  // Canvas does *not* automatically do the necessary passes for fabulous mode
+  // to compsite the transparency layers. That must be configured in the pipeline
+  // - this offers maximum flexiblity for shader devs.
+  //
+  // The values here must be valid framebuffer names from the framebuffers block.
+  fabulousTargets: {
+    entity: "fab_entity",
+    particles: "fab_particles",
+    weather: "weather",
+    clouds: "clouds",
+    translucent: "fab_translucent"
+  },
+
+  programs: [
+    {
+      name: "fabulous",
+      // implements fabulous mode composite - same method as Mojang
+      vertexSource: "abstract:shaders/pipeline/post/simple_full_frame.vert",
+      fragmentSource: "abstract:shaders/pipeline/post/fabulous.frag",
+      samplers: [
+        "diffuseColor", "diffuseDepth",
+        "translucentColor", "translucentDepth",
+        "entityColor", "entityDepth",
+        "particleColor", "particleDepth",
+        "weatherColor", "weatherDepth",
+        "cloudsColor", "cloudsDepth"
+      ],
+    }
+  ],
+
+  // TODO: put where belongs
+	fabulous: {
+		passes: [
+			{
+				// faulous mode composite
+				name: "fabulous",
+				program: "fabulous",
+				framebuffer: "fab_composite",
+				samplerImages: [
+					"solid_main", "solid_depth",
+					"translucent_main", "translucent_depth",
+					"entity_main", "entity_depth",
+					"particles_main", "particles_depth",
+					"weather_main", "weather_depth",
+					"clouds_main", "clouds_depth"]
+			},
+			{
+				// TODO: reroute passes to reduce copying steps
+				// copy composite to main framebuffer
+				name: "fab_write",
+				program: "copy",
+				framebuffer: "default",
+				samplerImages: ["fab_composite"]
+			}
+		]
+	},
+
+  beforeWorldRender: {
+    passes: [
+      {
+        name: "clear_entity",
+        framebuffer: "entity",
+        program: "frex_clear"
+      }, {
+        name: "clear_particles",
+        framebuffer: "particles",
+        program: "frex_clear"
+      }, {
+        name: "clear_weather",
+        framebuffer: "weather",
+        program: "frex_clear"
+      }, {
+        name: "clear_clouds",
+        framebuffer: "clouds",
+        program: "frex_clear"
+      }, {
+        name: "clear_translucent",
+        framebuffer: "translucent",
+        program: "frex_clear"
+      }
+    ]
+  },
+
+  images: [
+    // color attachment for entity translucency
+    {
+      name: "entity_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // depth attachment for entity translucency
+    {
+      name: "entity_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for particle translucency
+    {
+      name: "particles_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // depth attachment for particle translucency
+    {
+      name: "particles_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for weather translucency
+    {
+      name: "weather_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // depth attachment for weather translucency
+    {
+      name: "weather_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for cloud translucency
+    {
+      name: "clouds_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // depth attachment for cloud translucency
+    {
+      name: "clouds_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // color attachment for terain translucency
+    {
+      name: "translucent_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // depth attachment for terain translucency
+    {
+      name: "translucent_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    },
+
+    // combined transparent layers with main - main attachments can't read/write self in same pass
+    {
+      name: "fab_composite",
+      lod: 0,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        // nearest because don't want filtering when copy back to main
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    }
+  ],
+
+  framebuffers: [
+    // Some of the fabulous framebuffers are duplicated without the emissive
+    // color attachment to provide compatiblity for mods that draw directly
+    // to the vanilla framebuffers. The base color attachments are the same.
+		{
+			name: "fab_entity",
+			depthAttachment: {image: "entity_depth"},
+			colorAttachments: [{image: "entity_main"}]
+		}, {
+			name: "fab_particles",
+			depthAttachment: {image: "particles_depth"},
+			colorAttachments: [{image: "particles_main"}]
+		}, {
+			name: "fab_translucent",
+			depthAttachment: {image: "translucent_depth"},
+			colorAttachments: [{image: "translucent_main"}]
+		}, {
+			name: "solid",
+			depthAttachment: {image: "solid_depth", clearDepth: 1.0},
+			colorAttachments: [
+				{image: "solid_main", clearColor: 0x00000000},
+				{image: "emissive", clearColor: 0x00000000}
+			]
+		}, {
+			name: "entity",
+			// depth not cleared because always copied from solid
+			depthAttachment: {image: "entity_depth"},
+			colorAttachments: [
+        // note the clear color doesn't cause automatic clearing - it determines
+        // what attachments get cleared (and to what color) when a clear pass is run.
+				{image: "entity_main", clearColor: 0x00000000},
+				// emissive not cleared here because shared - only cleared once on solid depth
+				{image: "emissive"}
+			]
+		}, {
+			name: "particles",
+			depthAttachment: {image: "particles_depth"},
+			colorAttachments: [
+				{image: "particles_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		}, {
+			name: "weather",
+			depthAttachment: {image: "weather_depth", clearDepth: 1.0},
+			colorAttachments: [
+				{image: "weather_main", clearColor: 0x00000000}
+			]
+		}, {
+			name: "clouds",
+			depthAttachment: {image: "clouds_depth", clearDepth: 1.0},
+			colorAttachments: [
+				{image: "clouds_main", clearColor: 0x00000000}
+			]
+		}, {
+			name: "translucent",
+			depthAttachment: {image: "translucent_depth"},
+			colorAttachments: [
+				{image: "translucent_main", clearColor: 0x00000000},
+				{image: "emissive"}
+			]
+		}, {
+			name: "fab_composite",
+			colorAttachments: [{image: "fab_composite", clearColor: 0x00000000}]
+		}
+	]
+}

@@ -1,0 +1,17 @@
+{
+  options: [
+    {
+      includeToken: "abstract:handheld_light_config",
+      categoryKey: "config.abstract.category.features",
+      options: {
+        handheld_light_radius: {
+          default: 10,
+          min: 0,
+          max: 14,
+          nameKey: "config.abstract.value.handheld_light_radius",
+          descriptionKey: "config.abstract.help.handheld_light_radius"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "vertexSource": "abstract:shaders/material/vines.vert",
+  "depthVertexSource": "abstract:shaders/material/vines.vert",
+  "fragmentSource": "abstract:shaders/material/warm_glow.frag",
+  "disableAo": true,
+  "disableDiffuse": true
+}

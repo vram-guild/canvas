@@ -1,0 +1,29 @@
+{
+	nameKey: "pipeline.abstract_basic.name",
+	descriptionKey: "pipeline.abstract_basic.desc",
+
+	materialProgram: {
+		vertexSource: "abstract:shaders/pipeline/standard.vert",
+		fragmentSource: "abstract:shaders/pipeline/basic.frag",
+		// glsl names for samplers additive to the FREX pre-defined samplers
+		samplers: ["cvu_glint"],
+		// image names for samplers additive to the FREX pre-defined samplers
+		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"]
+	},
+
+	drawTargets: {
+		solidTerrain: "default",
+		translucentTerrain: "default",
+		translucentEntity: "default",
+		weather: "default",
+		clouds: "default",
+		translucentParticles: "default"
+	},
+
+	include: [
+		"abstract:pipeline/base.json5",
+		"abstract:pipeline/basic_light_config.json5",
+		"abstract:pipeline/fog_config.json5",
+		"abstract:pipeline/handheld_light_config.json5"
+	]
+}

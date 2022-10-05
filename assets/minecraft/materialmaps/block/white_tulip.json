@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/white_tulip",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

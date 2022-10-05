@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/redstone_torch",
+		"material": "abstract:redstone"
+	  }
+	]
+  }
+}

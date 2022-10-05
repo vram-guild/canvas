@@ -1,0 +1,8 @@
+{
+  "defaultMaterial": "frex:emissive_no_diffuse",
+  "variants": {
+    "lit=false": {
+      "defaultMaterial": "frex:standard"
+    }
+  }
+}
