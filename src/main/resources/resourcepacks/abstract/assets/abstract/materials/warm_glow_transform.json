@@ -1,0 +1,5 @@
+{
+  "_DEPRECATED_": "Use warm_glow.json instead",
+  "transform": true,
+  "fragmentSource": "abstract:shaders/material/warm_glow.frag"
+}

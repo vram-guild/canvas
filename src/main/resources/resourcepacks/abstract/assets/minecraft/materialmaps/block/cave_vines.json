@@ -1,0 +1,11 @@
+{
+  "defaultMaterial": "abstract:vines",
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/cave_vines_lit",
+        "material": "abstract:warm_glow_vines"
+      }
+    ]
+  }
+}

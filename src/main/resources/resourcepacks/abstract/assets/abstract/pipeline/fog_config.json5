@@ -1,0 +1,21 @@
+{
+  options: [
+    {
+      includeToken: "abstract:fog_config",
+      categoryKey: "config.abstract.category.features",
+      options: {
+        fog_mode: {
+          // if omitted, block key will be used
+          define: "_CV_FOG_CONFIG",
+          default: "vanilla",
+          choices: ["vanilla", "subtle", "none"],
+          // causes each value to be listed with integer constants
+          enum: true,
+          prefix: "_CV_FOG_CONFIG_",
+          nameKey: "config.abstract.value.fog_mode",
+          descriptionKey: "config.abstract.help.fog_mode"
+        }
+      }
+    }
+  ]
+}

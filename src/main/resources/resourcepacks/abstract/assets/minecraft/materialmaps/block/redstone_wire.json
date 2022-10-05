@@ -1,0 +1,245 @@
+{
+  "defaultMaterial": "frex:emissive_no_diffuse",
+  "variants": {
+	"east=up,north=up,power=0,south=up,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=up,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=up,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=up,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=up,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=up,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=up,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=up,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=up,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=side,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=side,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=side,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=side,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=side,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=side,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=side,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=side,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=up,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=up,north=none,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=up,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=up,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=up,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=side,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=up,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=side,north=none,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=up,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=up,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=up,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=side,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=up,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=up,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=up,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=side,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=side,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=side,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=none,west=up": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=none,west=side": {
+	  "defaultMaterial": "fabric:standard"
+	},
+	"east=none,north=none,power=0,south=none,west=none": {
+	  "defaultMaterial": "fabric:standard"
+	}
+  }
+}

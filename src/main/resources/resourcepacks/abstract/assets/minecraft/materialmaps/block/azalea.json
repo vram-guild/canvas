@@ -1,0 +1,18 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/azalea_top",
+        "material": "abstract:low_foliage_diffuse"
+      },
+      {
+        "sprite": "minecraft:block/azalea_side",
+        "material": "abstract:low_foliage_diffuse"
+      },
+      {
+        "sprite": "minecraft:block/azalea_plant",
+        "material": "abstract:low_foliage_diffuse"
+      }
+    ]
+  }
+}

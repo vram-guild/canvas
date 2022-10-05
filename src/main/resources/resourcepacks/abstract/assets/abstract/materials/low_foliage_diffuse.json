@@ -1,0 +1,5 @@
+{
+  "vertexSource": "abstract:shaders/material/low_foliage.vert",
+  "fragmentSource": "abstract:shaders/material/default.frag",
+  "depthVertexSource": "abstract:shaders/material/low_foliage.vert"
+}

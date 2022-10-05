@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/warped_roots",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

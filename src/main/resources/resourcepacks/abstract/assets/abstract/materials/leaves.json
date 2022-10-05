@@ -1,0 +1,7 @@
+{
+  "vertexSource": "abstract:shaders/material/leaves.vert",
+  "fragmentSource": "abstract:shaders/material/default.frag",
+  "depthVertexSource": "abstract:shaders/material/leaves.vert",
+  "disableAo": false,
+  "disableDiffuse": false
+}

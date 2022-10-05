@@ -1,0 +1,67 @@
+{
+	// FREX ensures that pipeline configuration files support JSON5 extensions
+	// This means you can do some useful things you can't normally do:
+	//   Comments! (like this one)
+	//   unquoted keys
+	//   hexadecimal values
+	//   leading and trailing decimal points
+	//   positive sign
+
+	// ORDER OF EVENTS
+	// Canvas will call stages and draw to targets in the following sequence
+	// stage: beforeWorldRender
+	//
+
+	// When a descriptive attribute ends with ...Key that means the config loader_version
+	//  will attempt to use the value as a localization key.  For that to work,
+	// you'll need to include the key and it's translation in accompanying lang file(s).
+	// If you don't want to deal with localization, use literal strings -
+	// those will fail localization lookup and be used directly.
+
+	nameKey: "pipeline.abstract_standard.name",
+	descriptionKey: "pipeline.abstract_standard.desc",
+
+	materialProgram: {
+		vertexSource: "abstract:shaders/pipeline/standard.vert",
+		fragmentSource: "abstract:shaders/pipeline/standard.frag",
+		// glsl names for samplers additive to the FREX pre-defined samplers
+		samplers: ["cvu_glint"],
+		// image names for samplers additive to the FREX pre-defined samplers
+		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"]
+	},
+
+	drawTargets: {
+		solidTerrain: "solid",
+		translucentTerrain: "translucent",
+		translucentEntity: "entity",
+		weather: "weather",
+		clouds: "clouds",
+		// TODO: segregate solid particles
+		translucentParticles: "particles"
+	},
+
+	include: [
+		"abstract:pipeline/base.json5",
+		"abstract:pipeline/basic_light_config.json5",
+		"abstract:pipeline/fog_config.json5",
+		"abstract:pipeline/handheld_light_config.json5",
+		"abstract:pipeline/bloom.json5",
+		"abstract:pipeline/fabulous.json5"
+	],
+
+	// pixelFormat and pixelDataType should not matter because the textures
+	// are created without loading any pixel data.  You can specify them to deal
+	// with any driver strangeness or situations where the image will somehow
+	// also be loaded from memory.
+	images: [ ],
+
+	// Names in passes are informational and meant to support profiling, to be added later.
+	// If name is ommited, the name of the framebuffer will identify the pass in profiling.
+
+	// Happens before anything else, including Fabric event calls of the same name.
+	// Will be called every frame so long as a world is loaded for rendering.
+	// Few if any mods will draw after this - the view frustum isn't even set up yet.
+	// This is a good time to do unconditional clearing operations and other upkeep.
+	beforeWorldRender: {
+	}
+}

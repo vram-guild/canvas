@@ -1,0 +1,17 @@
+{
+  programs: [
+    {
+      // utility, does what it says on the tin
+      name: "copy",
+      vertexSource: "abstract:shaders/pipeline/post/simple_full_frame.vert",
+      fragmentSource: "abstract:shaders/pipeline/post/copy.frag",
+      samplers: ["_cvu_input"]
+    }, {
+      // copies from a specific level of detail, that's it
+      name: "copy_lod",
+      vertexSource: "abstract:shaders/pipeline/post/simple_full_frame.vert",
+      fragmentSource: "abstract:shaders/pipeline/post/copy_lod.frag",
+      samplers: ["_cvu_input"]
+    }
+  ]
+}

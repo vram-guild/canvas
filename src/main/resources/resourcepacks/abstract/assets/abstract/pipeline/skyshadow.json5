@@ -1,0 +1,94 @@
+{
+  options: [
+    {
+      includeToken: "abstract:shadow_debug",
+      categoryKey: "config.abstract.category.debug",
+      options: {
+        shadow_debug: {
+          default: false,
+          nameKey: "config.abstract.value.shadow_debug",
+          descriptionKey: "config.abstract.help.shadow_debug"
+        }
+      }
+    },
+    {
+      includeToken: "abstract:shadow_options",
+      categoryKey: "config.abstract.category.shadows",
+      options: {
+        shadow_filter_size: {
+          default: "medium",
+          choices: ["small", "medium", "large", "extra"],
+          enum: true,
+          prefix: "PCF_SIZE_",
+          nameKey: "config.abstract.value.shadow_filter_size",
+          descriptionKey: "config.abstract.help.shadow_filter_size"
+        }
+      }
+    }
+  ],
+
+  skyShadows: {
+		framebuffer: "shadow",
+		allowEntities: true,
+		allowParticles: true,
+		supportForwardRender: true,
+		vertexSource: "abstract:shaders/pipeline/shadow.vert",
+		fragmentSource: "abstract:shaders/pipeline/shadow.frag",
+    // first parameter to glPolygonOffset - variable slope factor
+    offsetSlopeFactor: 1.1,
+    // second parameter to glPolygonOffset - constant offset bias
+    offsetBiasUnits: 4.0,
+    // In-world radii of next-to-lowest to highest detail cascades.
+    // Each number is the distance from the camera to the center of
+    // the bounding box of the rendered volume and also the radius.
+    // These are automatically calculated for the largest (least-detail)
+    // cascade to contain the entire visible scene. These correspond
+    // to cascade indices 1, 2 and 3 in shader.
+    cascadeRadius: [32, 16, 8],
+    // glsl names for samplers additive to the FREX pre-defined samplers
+    samplers: [],
+    // image names for samplers additive to the FREX pre-defined samplers
+    samplerImages: []
+  },
+
+  images: [
+    // depth attachment for shadow map - an array texture with depth = 4
+    {
+      size: 1024,
+      // DO NOT CHANGE ANY SETTINGS BELOW
+
+      // You can bind the shadow map image array in process shaders - needed for deferred
+      // pipeline shadows. The binding target will always be TEXTURE_2D_ARRAY but you
+      // can control the sampler type in the shader code:
+      //
+      //   Use sampler2DArrayShadow for final map testing
+      //   to exploit hardware accumulation of shadow test results.
+      //
+      //   Use sampler2DArray for probing depth at specific points for PCSS
+      //   or Contact-Hardening Shadows.
+      //
+      // The same program can bind both types.
+      name: "shadow_map",
+      internalFormat: "DEPTH_COMPONENT32",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D_ARRAY",
+      depth: 4,
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_COMPARE_MODE", val: "COMPARE_REF_TO_TEXTURE"},
+        {name: "TEXTURE_COMPARE_FUNC", val: "LEQUAL"}
+      ]
+    }
+  ],
+
+  framebuffers: [
+    {
+			name: "shadow",
+			depthAttachment: {image: "shadow_map", clearDepth: 1.0}
+		}
+	]
+}

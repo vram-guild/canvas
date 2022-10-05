@@ -1,0 +1,6 @@
+{
+  "vertexSource": "abstract:shaders/material/high_foliage.vert",
+  "depthVertexSource": "abstract:shaders/material/high_foliage.vert",
+  "disableAo": true,
+  "disableDiffuse": true
+}
