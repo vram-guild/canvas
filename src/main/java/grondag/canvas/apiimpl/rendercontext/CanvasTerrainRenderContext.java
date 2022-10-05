@@ -161,9 +161,9 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		}
 	}
 
-	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
+	public void renderFluid(BlockState blockState, BlockPos blockPos, final BlockModel model) {
 		aoCalc.prepare(PackedSectionPos.packWithSectionMask(blockPos));
-		prepareForFluid(blockState, blockPos, defaultAo);
+		prepareForFluid(blockState, blockPos);
 		renderInner(model);
 	}
 
@@ -186,6 +186,8 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 
 	@Override
 	protected void shadeQuad() {
+		emitter.colorize(inputContext);
+
 		// needs to happen before offsets are applied
 		if (!emitter.material().disableAo() && Minecraft.useAmbientOcclusion()) {
 			aoCalc.compute(emitter);
@@ -194,8 +196,6 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		} else {
 			emitter.applyFlatLighting(inputContext.flatBrightness(emitter));
 		}
-
-		emitter.colorize(inputContext);
 	}
 
 	@Override

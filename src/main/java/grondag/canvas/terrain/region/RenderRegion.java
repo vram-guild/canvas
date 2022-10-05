@@ -440,7 +440,7 @@ public class RenderRegion implements TerrainExecutorTask {
 					modelMatrix.f_translate(x, y, z);
 
 					if (hasFluid) {
-						context.renderFluid(blockState, searchPos, false, FluidModel.get(fluidState.getType()));
+						context.renderFluid(blockState, searchPos, FluidModel.get(fluidState.getType()));
 					}
 
 					if (hasBlock) {
