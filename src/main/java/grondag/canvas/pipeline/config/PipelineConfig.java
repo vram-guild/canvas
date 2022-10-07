@@ -125,5 +125,5 @@ public class PipelineConfig {
 		return new PipelineConfig();
 	}
 
-	public static final ResourceLocation DEFAULT_ID = new ResourceLocation("canvas:pipelines/canvas_standard.json5");
+	public static final ResourceLocation DEFAULT_ID = new ResourceLocation("canvas:pipelines/canvas_basic.json5");
 }
