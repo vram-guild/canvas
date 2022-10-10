@@ -1,6 +1,6 @@
 {
-	nameKey: "pipeline.abstract_dev.name",
-	descriptionKey: "pipeline.abstract_dev.desc",
+	nameKey: "pipeline.abstract.name",
+	descriptionKey: "pipeline.abstract.desc",
 	enablePBR: true,
 
 	materialProgram: {
