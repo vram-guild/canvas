@@ -25,10 +25,6 @@
   "config.abstract.help.fog_mode": "Makes terrain fog a little less foggy or turns it off.",
   "config.abstract.value.handheld_light_radius": "Handheld Light Radius",
   "config.abstract.help.handheld_light_radius": "Max reach for hand-held lights. Zero disables.",
-  "pipeline.abstract_basic.name": "Abstract Basic",
-  "pipeline.abstract_basic.desc": "Vanilla-style rendering, best performance.",
-  "pipeline.abstract_standard.name": "Abstract Standard",
-  "pipeline.abstract_standard.desc": "Some aesthetic improvements with balanced performance",
-  "pipeline.abstract_dev.name": "Abstract Dev",
-  "pipeline.abstract_dev.desc": "Work-in progess features. May break, unsupported."
+  "pipeline.abstract.name": "Abstract (WIP)",
+  "pipeline.abstract.desc": "Work-in progess advanced pipeline. May break, unsupported."
 }
