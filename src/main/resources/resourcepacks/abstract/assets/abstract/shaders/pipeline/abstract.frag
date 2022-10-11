@@ -1,5 +1,4 @@
 #include abstract:shaders/pipeline/fog.glsl
-#include abstract:shaders/pipeline/varying.glsl
 #include abstract:shaders/pipeline/glint.glsl
 #include frex:shaders/lib/math.glsl
 #include frex:shaders/lib/color.glsl
@@ -15,7 +14,7 @@
 #include abstract:shaders/pipeline/shadow.glsl
 
 /******************************************************
-  abstract:shaders/pipeline/dev.frag
+  abstract:shaders/pipeline/abstract.frag
 ******************************************************/
 
 #define TARGET_BASECOLOR 0
