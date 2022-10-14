@@ -43,6 +43,7 @@ public class RenderContextState {
 	private MaterialMap<BlockState> blockEntityMap = MaterialMap.identity();
 	private MaterialMap<ItemStack> itemMap = MaterialMap.identity();
 	private GuiMode guiMode = GuiMode.NORMAL;
+	private boolean renderingItem = false;
 
 	public void setCurrentEntity(@Nullable Entity entity) {
 		entityMap = entity == null ? MaterialMap.identity() : MaterialMap.get(entity.getType());
@@ -72,12 +73,14 @@ public class RenderContextState {
 		itemMap = MaterialMap.get(itemStack);
 		swapMap = activeMap; // preserve active function
 		activeMap = itemMap;
+		renderingItem = true;
 	}
 
 	public void popItemState() {
 		itemMap = MaterialMap.identity();
 		activeMap = swapMap;
 		swapMap = null;
+		renderingItem = false;
 	}
 
 	public void guiMode(GuiMode guiMode) {
@@ -90,7 +93,14 @@ public class RenderContextState {
 			return mat;
 		} else {
 			finder.copyFrom(mat);
-			activeMap.map(finder, activeGameObject);
+
+			if (renderingItem) {
+				activeMap.map(finder, null);
+				finder.textureIndex(mat.textureIndex()); // custom item wants to retain custom texture
+			} else {
+				activeMap.map(finder, activeGameObject);
+			}
+
 			guiMode.apply(finder);
 			return (CanvasRenderMaterial) finder.find();
 		}
