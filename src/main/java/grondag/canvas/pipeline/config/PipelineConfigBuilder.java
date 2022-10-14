@@ -101,6 +101,11 @@ public class PipelineConfigBuilder {
 		glslVersion = context.dynamic.getInt(configJson, "glslVersion", glslVersion);
 		enablePBR = context.dynamic.getBoolean(configJson, "enablePBR", enablePBR);
 
+		if (glslVersion < 330) {
+			CanvasMod.LOG.warn("Invalid pipeline config - GLSL version " + glslVersion + " < 330 ignored.");
+			glslVersion = 330;
+		}
+
 		if (configJson.containsKey("materialProgram")) {
 			if (materialProgram == null) {
 				materialProgram = LoadHelper.loadObject(context, configJson, "materialProgram", MaterialProgramConfig::new);
