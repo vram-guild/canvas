@@ -21,6 +21,7 @@
 package grondag.canvas.shader;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.resources.ResourceLocation;
@@ -29,19 +30,32 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import io.vram.frex.api.renderer.Renderer;
 import io.vram.frex.base.renderer.BaseMaterialShaderManager;
 
+import grondag.canvas.material.property.TargetRenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.data.ShaderStrings;
 
 // PERF: emit switch statements on non-Mac
 public class GlMaterialShader extends GlShader {
-	GlMaterialShader(ResourceLocation shaderSource, int shaderType, ProgramType programType) {
+	/**
+	 * Target name if compiling separately, null otherwise.  Upper case.
+	 */
+	private final @Nullable String target;
+
+	GlMaterialShader(ResourceLocation shaderSource, int shaderType, ProgramType programType, int target) {
 		super(shaderSource, shaderType, programType);
+		this.target = Pipeline.config().materialProgram.compileByTarget ? TargetRenderState.fromIndex(target).name.toUpperCase() : null;
 	}
 
 	// all material shaders use the same source so only append extension to keep debug source file names of reasonable length
 	@Override
 	protected String debugSourceString() {
-		return programType.name + (shaderType == GL21.GL_FRAGMENT_SHADER ? ".frag" : ".vert");
+		String base = programType.name;
+
+		if (target != null) {
+			base = base + "_" + target.toLowerCase();
+		}
+
+		return base + (shaderType == GL21.GL_FRAGMENT_SHADER ? ".frag" : ".vert");
 	}
 
 	@Override
@@ -53,6 +67,19 @@ public class GlMaterialShader extends GlShader {
 		}
 
 		return super.preprocessSource(resourceManager, baseSource);
+	}
+
+	@Override
+	protected String getCombinedShaderSource() {
+		// Handle #define for compileByTarget pipeline configuration
+		// Must happen after super pre-process so that includes are expanded first
+		String result = super.getCombinedShaderSource();
+
+		if (target != null) {
+			result = StringUtils.replace(result, "#define MATERIAL_TARGET_UNKNOWN", "#define MATERIAL_TARGET_" + target);
+		}
+
+		return result;
 	}
 
 	private String preprocessFragmentSource(ResourceManager resourceManager, String baseSource) {

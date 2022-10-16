@@ -42,7 +42,6 @@ import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.ProcessShader;
 
 public class Pipeline {
-	private static boolean reload = true;
 	private static int lastWidth;
 	private static int lastHeight;
 	private static ProgramTextureData materialTextures;
@@ -123,20 +122,7 @@ public class Pipeline {
 		return materialTextures;
 	}
 
-	static boolean needsReload() {
-		return reload;
-	}
-
-	public static void reload() {
-		reload = true;
-	}
-
 	public static void close() {
-		closeInner();
-		reload = true;
-	}
-
-	private static void closeInner() {
 		for (final Pass pass : afterRenderHand) {
 			pass.close();
 		}
@@ -169,14 +155,13 @@ public class Pipeline {
 		}
 	}
 
-	static void activate(PrimaryFrameBuffer primary, int width, int height) {
+	static void activate(PrimaryFrameBuffer primary, int width, int height, boolean forceReload) {
 		assert RenderSystem.isOnRenderThread();
 
-		if (reload || lastWidth != width || lastHeight != height) {
-			reload = false;
+		if (forceReload || lastWidth != width || lastHeight != height) {
 			lastWidth = width;
 			lastHeight = height;
-			closeInner();
+			close();
 			activateInner(primary, width, height);
 		}
 	}

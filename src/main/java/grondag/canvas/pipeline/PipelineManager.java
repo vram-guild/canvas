@@ -24,11 +24,9 @@ import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.SimpleVertexCollector;
@@ -75,12 +73,8 @@ public class PipelineManager {
 		return h;
 	}
 
-	public static void reloadIfNeeded(boolean forceRecompile) {
-		if (Pipeline.needsReload()) {
-			init((PrimaryFrameBuffer) Minecraft.getInstance().getMainRenderTarget(), w, h);
-		}
-
-		handleRecompile(forceRecompile);
+	public static void reload() {
+		init((PrimaryFrameBuffer) Minecraft.getInstance().getMainRenderTarget(), w, h);
 	}
 
 	public static void beforeWorldRender() {
@@ -102,17 +96,6 @@ public class PipelineManager {
 		endFullFrameRender();
 
 		Pipeline.defaultFbo.bind();
-	}
-
-	public static void handleRecompile(boolean forceRecompile) {
-		while (CanvasMod.RECOMPILE.consumeClick()) {
-			forceRecompile = true;
-		}
-
-		if (forceRecompile) {
-			CanvasMod.LOG.info(I18n.get("info.canvas.recompile"));
-			CanvasState.recompile();
-		}
 	}
 
 	static void beginFullFrameRender() {
@@ -220,7 +203,7 @@ public class PipelineManager {
 		w = width;
 		h = height;
 
-		Pipeline.activate(primary, w, h);
+		Pipeline.activate(primary, w, h, true);
 
 		final Minecraft mc = Minecraft.getInstance();
 

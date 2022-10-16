@@ -4,12 +4,11 @@
 	enablePBR: true,
 
 	materialProgram: {
-		vertexSource: "abstract:shaders/pipeline/dev.vert",
-		fragmentSource: "abstract:shaders/pipeline/dev.frag",
-		// glsl names for samplers additive to the FREX pre-defined samplers
+		vertexSource: "abstract:shaders/pipeline/abstract.vert",
+		fragmentSource: "abstract:shaders/pipeline/abstract.frag",
 		samplers: ["cvu_glint"],
-		// image names for samplers additive to the FREX pre-defined samplers
-		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"]
+		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"],
+		compileByTarget: true
 	},
 
 	sky: {

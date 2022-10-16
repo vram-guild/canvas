@@ -83,9 +83,8 @@ public class GlShader implements Shader {
 		this.programType = programType;
 	}
 
-	public static void forceReloadErrors() {
+	static void forceReloadErrors() {
 		isErrorNoticeComplete = false;
-		clearDebugSource();
 	}
 
 	@SuppressWarnings("resource")
@@ -93,7 +92,7 @@ public class GlShader implements Shader {
 		return Minecraft.getInstance().gameDirectory.toPath().normalize().resolve("canvas_shader_debug");
 	}
 
-	private static void clearDebugSource() {
+	static void clearDebugSource() {
 		final Path path = shaderDebugPath();
 
 		try {
@@ -348,7 +347,7 @@ public class GlShader implements Shader {
 		return result;
 	}
 
-	private String getCombinedShaderSource() {
+	protected String getCombinedShaderSource() {
 		final ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
 		INCLUDED.clear();
 		String result = loadShaderSource(resourceManager, shaderSourceId);

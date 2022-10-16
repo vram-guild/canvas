@@ -56,6 +56,7 @@ import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialProgram;
+import grondag.canvas.shader.ProgramType;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
@@ -139,7 +140,8 @@ public final class RenderState {
 
 	private void enableDepthPass(int x, int y, int z, int cascade) {
 		final MatrixState matrixState = MatrixState.get();
-		final MaterialProgram depthShader = matrixState == MatrixState.REGION ? MaterialProgram.DEPTH_TERRAIN : MaterialProgram.DEPTH;
+		final ProgramType programType = matrixState == MatrixState.REGION ? ProgramType.MATERIAL_DEPTH_TERRAIN : ProgramType.MATERIAL_DEPTH;
+		final MaterialProgram depthShader = MaterialProgram.get(programType, target.index);
 
 		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
 			depthShader.setModelOrigin(x, y, z);
@@ -188,7 +190,8 @@ public final class RenderState {
 
 	private void enableMaterial(int x, int y, int z) {
 		final MatrixState matrixState = MatrixState.get();
-		final MaterialProgram shader = matrixState == MatrixState.REGION ? MaterialProgram.COLOR_TERRAIN : MaterialProgram.COLOR;
+		final ProgramType programType = matrixState == MatrixState.REGION ? ProgramType.MATERIAL_COLOR_TERRAIN : ProgramType.MATERIAL_COLOR;
+		final MaterialProgram shader = MaterialProgram.get(programType, target.index);
 
 		if (active == this && matrixState == currentMatrixState) {
 			shader.setModelOrigin(x, y, z);

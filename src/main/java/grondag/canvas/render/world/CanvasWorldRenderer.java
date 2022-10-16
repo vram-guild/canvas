@@ -84,6 +84,7 @@ import io.vram.frex.api.renderloop.WorldRenderStartListener;
 import io.vram.frex.base.renderer.BaseConditionManager;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
@@ -554,9 +555,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		RenderState.disable();
 
-		try (DrawableStream entityBuffer = immediate.prepareDrawable(TargetRenderState.MAIN);
-			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(TargetRenderState.MAIN);
-			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(TargetRenderState.MAIN);
+		try (DrawableStream entityBuffer = immediate.prepareDrawable(TargetRenderState.SOLID);
+			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(TargetRenderState.SOLID);
+			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(TargetRenderState.SOLID);
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, entityBuffer, shadowExtrasBuffer);
@@ -670,7 +671,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "draw_solid");
 
 		// Should generally not have anything here but draw in case content injected in hooks
-		immediate.drawCollectors(TargetRenderState.MAIN);
+		immediate.drawCollectors(TargetRenderState.SOLID);
 
 		// These should be empty and probably won't work, but prevent them from accumulating if somehow used.
 		immediate.endBatch(RenderType.armorGlint());
@@ -831,7 +832,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		BufferSynchronizer.checkPoint();
 		DirectBufferAllocator.update();
 		TransferBuffers.update();
-		PipelineManager.reloadIfNeeded(false);
+		CanvasState.recompileIfNeeded(false);
 		FlawlessFramesController.handleToggle();
 
 		if (wasFabulous != Pipeline.isFabulous()) {
@@ -873,7 +874,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 	@Override
 	public void allChanged() {
-		PipelineManager.reloadIfNeeded(true);
+		CanvasState.recompileIfNeeded(true);
 		createImmediates();
 
 		// cause injections to fire but disable all other vanilla logic
