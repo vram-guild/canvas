@@ -84,6 +84,7 @@ import io.vram.frex.api.renderloop.WorldRenderStartListener;
 import io.vram.frex.base.renderer.BaseConditionManager;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.CanvasPlatformHooks;
 import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
@@ -320,9 +321,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			RenderSystem.setShader(GameRenderer::getPositionShader);
 
 			// Mojang passes applyFog as a lambda here because they sometimes call it twice.
-			renderSky(viewMatrixStack, projectionMatrix, tickDelta, camera, thickFog, () -> {
-				FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog, tickDelta);
-			});
+			final Runnable fogSetup = () -> FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog, tickDelta);
+
+			if (!CanvasPlatformHooks.renderCustomSky(eventContext, fogSetup)) {
+				renderSky(viewMatrixStack, projectionMatrix, tickDelta, camera, thickFog, fogSetup);
+			}
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
@@ -753,7 +756,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		GlProgram.deactivate();
 
 		// cloud rendering ignores RenderSystem view matrix
-		renderClouds(mc, profiler, viewMatrixStack, projectionMatrix, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+		if (!CanvasPlatformHooks.renderCustomClouds(eventContext)) {
+			renderClouds(mc, profiler, viewMatrixStack, projectionMatrix, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+		}
 
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
@@ -762,7 +767,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// Weather and world border rendering
 		if (advancedTranslucency) {
 			RenderStateShard.WEATHER_TARGET.setupRenderState();
-			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+			renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
 			wr.canvas_renderWorldBorder(camera);
 			RenderStateShard.WEATHER_TARGET.clearRenderState();
 			PipelineManager.beFabulous();
@@ -770,7 +775,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			Pipeline.defaultFbo.bind();
 		} else {
 			GFX.depthMask(false);
-			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+			renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
 			wr.canvas_renderWorldBorder(camera);
 			GFX.depthMask(true);
 		}
@@ -797,6 +802,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		//RenderState.enablePrint = true;
 
 		Timekeeper.instance.swap(ProfilerGroup.AfterFabulous, "after world");
+	}
+
+	private void renderWeather(LightTexture lightmapTextureManager, float tickDelta, double frameCameraX, double frameCameraY, double frameCameraZ) {
+		if (!CanvasPlatformHooks.renderCustomWeather(eventContext)) {
+			vanillaWorldRenderer.canvas_renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+		}
 	}
 
 	private void renderClouds(Minecraft mc, ProfilerFiller profiler, PoseStack identityStack, Matrix4f projectionMatrix, float tickDelta, double cameraX, double cameraY, double cameraZ) {
