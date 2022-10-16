@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-	id 'fabric-loom' version '1.0.4'
+	id 'fabric-loom' version '1.0.9'
 	id 'maven-publish'
 	id 'org.cadixdev.licenser' version '0.6.1'
 	id 'org.ajoberstar.grgit' version '4.1.1'
@@ -19,7 +19,7 @@ plugins {
 
 ext.platform_name = 'fabric'
 ext.loader_version = '0.14.9'
-ext.fabric_version = '0.60.0+1.19.2'
+ext.fabric_version = '0.63.0+1.19.2'
 
 apply from: '../project_common.gradle'
 apply from: 'project.gradle'

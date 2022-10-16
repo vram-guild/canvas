@@ -14,6 +14,7 @@ dependencies {
 	modIncludeImplementation(fabricApi.module("fabric-key-binding-api-v1", project.fabric_version))
 
 	modCompileOnly(fabricApi.module("fabric-rendering-data-attachment-v1", project.fabric_version))
+	modCompileOnly(fabricApi.module("fabric-rendering-v1", project.fabric_version))
 
 	modIncludeImplementation "org.anarres:jcpp:1.4.14"
 	modIncludeImplementation "blue.endless:jankson:1.2.1"
@@ -27,8 +28,8 @@ dependencies {
 
 	// Included via JMX
 	// modIncludeImplementation("io.vram:frex-fabric-mc118:6.0.258")
-	modImplementation("io.vram:jmx-fabric-mc119:1.22.260")
-	include("io.vram:jmx-fabric-mc119:1.22.260:fat")
+	modImplementation("io.vram:jmx-fabric-mc119:1.22.261")
+	include("io.vram:jmx-fabric-mc119:1.22.261:fat")
 
 	modCompileOnly "com.terraformersmc:modmenu:4.0.6"
 	modRuntimeOnly "com.terraformersmc:modmenu:4.0.6"
