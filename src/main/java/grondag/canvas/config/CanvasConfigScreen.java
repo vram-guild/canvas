@@ -267,12 +267,6 @@ public class CanvasConfigScreen extends BaseScreen {
 				DEFAULTS.disableUnseenSpriteAnimation,
 				"config.canvas.help.disable_unseen_sprite_animation").listItem());
 
-		list.addItem(optionSession.booleanOption("config.canvas.value.group_animated_sprites",
-				() -> editing.groupAnimatedSprites,
-				b -> editing.groupAnimatedSprites = b,
-				DEFAULTS.groupAnimatedSprites,
-				"config.canvas.help.group_animated_sprites").listItem());
-
 		list.addItem(optionSession.booleanOption("config.canvas.value.cull_backfacing_terrain",
 				() -> editing.cullBackfacingTerrain,
 				b -> {

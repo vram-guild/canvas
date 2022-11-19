@@ -24,7 +24,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BooleanSupplier;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +31,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -40,11 +38,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.client.renderer.texture.Stitcher;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
 
 import io.vram.frex.impl.texture.TextureAtlasPreparationExt;
 
@@ -56,34 +52,19 @@ import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.render.world.CanvasWorldRenderer;
-import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(TextureAtlas.class)
 public abstract class MixinTextureAtlas extends AbstractTexture implements TextureAtlasExt {
 	@Shadow private ResourceLocation location;
-	@Shadow private Map<ResourceLocation, TextureAtlasSprite> texturesByName;
-	@Shadow private int maxSupportedTextureSize;
 	private int width, height;
 
 	private final BitSet animationBits = new BitSet();
 	private final BitSet perFrameBits = new BitSet();
 
-	private int animationMinX = Integer.MAX_VALUE;
-	private int animationMinY = Integer.MAX_VALUE;
-	private int animationMaxX = Integer.MIN_VALUE;
-	private int animationMaxY = Integer.MIN_VALUE;
-	private int lodCount = -1;
-	private CombinedSpriteAnimation combined = null;
-
-	@Inject(at = @At("HEAD"), method = "getLoadedSprites")
-	private void onGetLoadedSprites(ResourceManager resourceManager, Stitcher textureStitcher, int lodCount, CallbackInfoReturnable<List<TextureAtlasSprite>> ci) {
-		this.lodCount = lodCount;
-	}
-
 	@Inject(at = @At("HEAD"), method = "reload")
 	private void beforeReload(TextureAtlas.Preparations input, CallbackInfo ci) {
 		if (Configurator.traceTextureLoad) {
-			CanvasMod.LOG.info("Start of pre-upload handling for atlas " + location.toString());
+			CanvasMod.LOG.info("Start of reload for atlas " + location.toString());
 		}
 
 		final var dataExt = (TextureAtlasPreparationExt) input;
@@ -100,46 +81,21 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 				final BooleanSupplier getter = () -> animationBits.get(instanceIndex);
 				spriteExt.canvas_initializeAnimation(getter, instanceIndex);
 				++animationIndex;
-				animationMinX = Math.min(animationMinX, sprite.getX());
-				animationMinY = Math.min(animationMinY, sprite.getY());
-				animationMaxX = Math.max(animationMaxX, sprite.getX() + sprite.getWidth());
-				animationMaxY = Math.max(animationMaxY, sprite.getY() + sprite.getHeight());
 			}
 		}
 
 		// Safeguard for non-terrain animations added by mods - they will always be animated
 		animationBits.set(0, animationIndex);
-
-		if (Configurator.groupAnimatedSprites && animationMinX != Integer.MAX_VALUE) {
-			if (Configurator.traceTextureLoad) {
-				CanvasMod.LOG.info("Enabling combined animation for atlas " + location.toString());
-				CanvasMod.LOG.info(String.format("Combined dimensions are (%d, %d) to (%d, %d) with LOD count %d", animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount));
-			}
-
-			combined = new CombinedSpriteAnimation((TextureAtlas) (Object) this, animationMinX, animationMinY, animationMaxX, animationMaxY, lodCount);
-
-			for (final TextureAtlasSprite sprite : sprites) {
-				((SpriteExt) sprite).canvas_setCombinedAnimation(combined);
-			}
-		}
 	}
 
 	@Inject(at = @At("RETURN"), method = "reload")
 	private void afterReload(TextureAtlas.Preparations input, CallbackInfo ci) {
-		if (Configurator.traceTextureLoad) {
-			CanvasMod.LOG.info("Start of post-upload handling for atlas " + location.toString());
-		}
-
-		if (combined != null) {
-			if (Configurator.traceTextureLoad) {
-				CanvasMod.LOG.info("Beginning initial combined upload for atlas " + location.toString());
-			}
-
-			combined.uploadCombined();
-		}
-
 		if (Configurator.debugSpriteAtlas) {
 			outputAtlasImage();
+		}
+
+		if (Configurator.traceTextureLoad) {
+			CanvasMod.LOG.info("End of reload for atlas " + location.toString());
 		}
 	}
 
@@ -180,11 +136,6 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 	}
 
 	@Override
-	public int canvas_maxTextureSize() {
-		return maxSupportedTextureSize;
-	}
-
-	@Override
 	public void canvas_trackFrameAnimation(int animationIndex) {
 		perFrameBits.set(animationIndex);
 	}
@@ -192,10 +143,6 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 	@SuppressWarnings("resource")
 	@Inject(at = @At("HEAD"), method = "cycleAnimationFrames")
 	private void beforeTick(CallbackInfo ci) {
-		if (combined != null) {
-			combined.reset();
-		}
-
 		if (Configurator.disableUnseenSpriteAnimation && (TextureAtlas) (Object) this == TerrainRenderStates.SOLID.texture.spriteIndex().atlas()) {
 			animationBits.clear();
 			animationBits.or(perFrameBits);
@@ -210,13 +157,6 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 			blockBits.clear();
 
 			animationBits.or(CanvasWorldRenderer.instance().worldRenderState.terrainAnimationBits);
-		}
-	}
-
-	@Inject(at = @At("RETURN"), method = "cycleAnimationFrames")
-	private void afterTick(CallbackInfo ci) {
-		if (combined != null) {
-			combined.uploadCombined();
 		}
 	}
 }

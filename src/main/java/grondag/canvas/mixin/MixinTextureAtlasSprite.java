@@ -29,17 +29,13 @@ import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(TextureAtlasSprite.class)
 public class MixinTextureAtlasSprite implements SpriteExt {
 	@Shadow protected NativeImage[] mainImage;
 	@Shadow void upload(int i, int j, NativeImage[] nativeImages) { }
-	@Shadow private TextureAtlasSprite.AnimatedTexture animatedTexture;
 
 	private int animationIndex = -1;
 	private BooleanSupplier shouldAnimate = () -> true;
@@ -68,25 +64,5 @@ public class MixinTextureAtlasSprite implements SpriteExt {
 	@Override
 	public int canvas_animationIndex() {
 		return animationIndex;
-	}
-
-	@Override
-	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
-		@SuppressWarnings("resource")
-		final TextureAtlasSprite me = (TextureAtlasSprite) (Object) this;
-
-		if (animatedTexture != null || (me.getX() < combined.width && me.getY() < combined.height)) {
-			if (Configurator.traceTextureLoad) {
-				CanvasMod.LOG.info("Enabling combined animation upload for sprite " + ((TextureAtlasSprite) (Object) this).getName().toString());
-			}
-
-			for (final var img : mainImage) {
-				((CombinedAnimationConsumer) (Object) img).canvas_setCombinedAnimation(combined);
-			}
-
-			if (animatedTexture != null) {
-				((CombinedAnimationConsumer) animatedTexture).canvas_setCombinedAnimation(combined);
-			}
-		}
 	}
 }
