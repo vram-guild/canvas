@@ -41,6 +41,7 @@ import org.anarres.cpp.DefaultPreprocessorListener;
 import org.anarres.cpp.Preprocessor;
 import org.anarres.cpp.StringLexerSource;
 import org.anarres.cpp.Token;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL20C;
@@ -96,27 +97,7 @@ public class GlShader implements Shader {
 		final Path path = shaderDebugPath();
 
 		try {
-			File shaderDir = path.toFile();
-
-			if (shaderDir.exists()) {
-				final File[] files = shaderDir.listFiles();
-
-				for (final File f : files) {
-					f.delete();
-				}
-			}
-
-			shaderDir = path.resolve("failed").toFile();
-
-			if (shaderDir.exists()) {
-				final File[] files = shaderDir.listFiles();
-
-				for (final File f : files) {
-					f.delete();
-				}
-
-				shaderDir.delete();
-			}
+			FileUtils.deleteDirectory(path.toFile());
 		} catch (final Exception e) {
 			if (needsClearDebugOutputWarning) {
 				CanvasMod.LOG.error(I18n.get("error.canvas.fail_clear_shader_output", path), e);
@@ -250,16 +231,14 @@ public class GlShader implements Shader {
 
 		File shaderDir = path.toFile();
 
-		if (!shaderDir.exists()) {
-			shaderDir.mkdir();
+		if (shaderDir.mkdir()) {
 			CanvasMod.LOG.info("Created shader debug output folder" + shaderDir.toString());
 		}
 
 		if (error != null) {
 			shaderDir = path.resolve("failed").toFile();
 
-			if (!shaderDir.exists()) {
-				shaderDir.mkdir();
+			if (shaderDir.mkdir()) {
 				CanvasMod.LOG.info("Created shader debug output failure folder" + shaderDir.toString());
 			}
 
@@ -269,7 +248,6 @@ public class GlShader implements Shader {
 		if (shaderDir.exists()) {
 			try (FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + fileName, false)) {
 				writer.write(source);
-				writer.close();
 			} catch (final IOException e) {
 				if (needsDebugOutputWarning) {
 					CanvasMod.LOG.error(I18n.get("error.canvas.fail_create_shader_output", path), e);
@@ -452,7 +430,6 @@ public class GlShader implements Shader {
 		try {
 			for (;;) {
 				final Token tok = pp.token();
-				if (tok == null) break;
 				if (tok.getType() == Token.EOF) break;
 				builder.append(tok.getText());
 			}
