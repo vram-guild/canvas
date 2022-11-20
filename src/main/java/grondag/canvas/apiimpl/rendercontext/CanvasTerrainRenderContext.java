@@ -30,8 +30,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -89,8 +91,8 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		}
 
 		@Override
-		protected int cacheIndexFromSectionIndex(int packedSectorIndex) {
-			return RenderRegionStateIndexer.packedSectionPosToRegionIndex(packedSectorIndex);
+		protected int cacheIndexFromSectionIndex(int packedSectionPos) {
+			return RenderRegionStateIndexer.packedSectionPosToRegionIndex(packedSectionPos);
 		}
 	};
 
@@ -123,6 +125,13 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		@Override
 		public MutableBlockPos originOffset(int x, int y, int z) {
 			return searchPos.set(region.originX() + x, region.originY() + y, region.originZ() + z);
+		}
+
+		@Override
+		protected boolean shouldRenderFace(Direction face, BlockPos offsetPos) {
+			// We exploit the geometry analysis that happens during chunk baking to skip
+			// rendering of faces that cannot be visible because they are inside closed-off areas.
+			return !region.isClosed(region.blockIndex(offsetPos.getX(), offsetPos.getY(), offsetPos.getZ())) && Block.shouldRenderFace(blockState, blockView, blockPos, face, offsetPos);
 		}
 	}
 

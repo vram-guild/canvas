@@ -50,7 +50,7 @@ public abstract class AbstractInputRegion {
 		return isInMainChunk(pos.getX(), pos.getY(), pos.getZ());
 	}
 
-	final int blockIndex(int x, int y, int z) {
+	public final int blockIndex(int x, int y, int z) {
 		return regionIndex(x - originX, y - originY, z - originZ);
 	}
 
