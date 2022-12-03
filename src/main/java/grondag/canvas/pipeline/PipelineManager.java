@@ -56,6 +56,7 @@ public class PipelineManager {
 	static ProcessShader debugArrayShader;
 	static ProcessShader debugDepthShader;
 	static ProcessShader debugDepthArrayShader;
+	static ProcessShader debugCubeMapShader;
 
 	static StaticDrawBuffer drawBuffer;
 	static int h;
@@ -161,7 +162,7 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	static void renderDebug(int glId, int lod, int layer, boolean depth, boolean array) {
+	static void renderDebug(int glId, int lod, int layer, boolean depth, int target) {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
@@ -171,20 +172,20 @@ public class PipelineManager {
 		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);
 		//GlStateManager.disableTexture();
 
-		if (array) {
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, glId);
-		} else {
-			CanvasTextureState.bindTexture(glId);
-		}
+		CanvasTextureState.bindTexture(target, glId);
 
-		if (depth) {
-			if (array) {
+		boolean isLayered = target == GFX.GL_TEXTURE_2D_ARRAY;
+
+		if (target == GFX.GL_TEXTURE_CUBE_MAP) {
+			debugCubeMapShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
+		} else if (depth) {
+			if (isLayered) {
 				debugDepthArrayShader.activate().size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
 			} else {
 				debugDepthShader.activate().size(w, h).lod(0).projection(orthoMatrix);
 			}
 		} else {
-			if (array) {
+			if (isLayered) {
 				debugArrayShader.activate().size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
 			} else {
 				debugShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
@@ -217,6 +218,7 @@ public class PipelineManager {
 		debugArrayShader = new ProcessShader("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
 		debugDepthShader = new ProcessShader("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
 		debugDepthArrayShader = new ProcessShader("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
+		debugCubeMapShader = new ProcessShader("debug_cubemap", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 

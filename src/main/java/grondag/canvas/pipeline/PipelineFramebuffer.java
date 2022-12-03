@@ -101,7 +101,7 @@ public class PipelineFramebuffer {
 						config.name, ac.image.name));
 			} else if (img.config.target == GFX.GL_TEXTURE_2D) {
 				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0 + i, img.config.target, img.glId(), ac.lod);
-			} else if (img.config.target == GFX.GL_TEXTURE_2D_ARRAY || img.config.target == GFX.GL_TEXTURE_3D) {
+			} else if (img.config.target == GFX.GL_TEXTURE_2D_ARRAY || img.config.target == GFX.GL_TEXTURE_3D || img.config.target == GFX.GL_TEXTURE_CUBE_MAP) {
 				GFX.glFramebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0 + i, img.glId(), ac.lod, ac.layer);
 			}
 		}

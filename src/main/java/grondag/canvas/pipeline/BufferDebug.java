@@ -53,7 +53,7 @@ public class BufferDebug {
 	private static int[] layers;
 	private static String[] labels;
 	private static boolean[] isDepth;
-	private static boolean[] isArray;
+	private static int[] targets;
 
 	private static int keyOption;
 
@@ -71,7 +71,7 @@ public class BufferDebug {
 		labels = new String[imageCount];
 		layers = new int[imageCount];
 		isDepth = new boolean[imageCount];
-		isArray = new boolean[imageCount];
+		targets = new int[imageCount];
 
 		int i = 0;
 
@@ -85,7 +85,7 @@ public class BufferDebug {
 					lods[i] = lod;
 					layers[i] = layer;
 					isDepth[i] = img.pixelFormat == GFX.GL_DEPTH_COMPONENT;
-					isArray[i] = img.target == GFX.GL_TEXTURE_2D_ARRAY;
+					targets[i] = img.target;
 					++i;
 				}
 			}
@@ -140,7 +140,7 @@ public class BufferDebug {
 		}
 
 		final int n = VIEWS[keyOption];
-		PipelineManager.renderDebug(glIds[n], lods[n], layers[n], isDepth[n], isArray[n]);
+		PipelineManager.renderDebug(glIds[n], lods[n], layers[n], isDepth[n], targets[n]);
 	}
 
 	public static void renderOverlay(PoseStack matrices, Font fontRenderer) {
