@@ -3,7 +3,7 @@
 #include frex:shaders/api/view.glsl
 
 /******************************************************
-  canvas:shaders/pipeline/post/visualize_cubemap.frag
+  canvas:shaders/pipeline/post/visualize_cube_map.frag
 ******************************************************/
 uniform samplerCube _cvu_input;
 
@@ -21,5 +21,5 @@ void main() {
     vec4 far0  = frx_inverseViewProjectionMatrix * vec4(ndcFar,  1.0);
     vec3 far  = far0.xyz / far0.w;
 
-	fragColor = texture(_cvu_input, far - near);
+	fragColor = textureLod(_cvu_input, far - near, frxu_lod);
 }

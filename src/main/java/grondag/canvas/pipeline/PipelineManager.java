@@ -218,7 +218,7 @@ public class PipelineManager {
 		debugArrayShader = new ProcessShader("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
 		debugDepthShader = new ProcessShader("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
 		debugDepthArrayShader = new ProcessShader("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
-		debugCubeMapShader = new ProcessShader("debug_cubemap", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
+		debugCubeMapShader = new ProcessShader("debug_cube_map", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
 
