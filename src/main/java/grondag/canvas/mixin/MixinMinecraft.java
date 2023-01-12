@@ -40,6 +40,7 @@ import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.varia.CanvasGlHelper;
+import grondag.canvas.varia.GFX;
 
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft extends ReentrantBlockableEventLoop<Runnable> {
@@ -50,6 +51,7 @@ public abstract class MixinMinecraft extends ReentrantBlockableEventLoop<Runnabl
 	@Inject(at = @At("RETURN"), method = "<init>*")
 	private void hookInit(CallbackInfo info) {
 		CanvasGlHelper.init();
+		GFX.enable(GFX.GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	}
 
 	@Inject(at = @At("RETURN"), method = "runTick")
