@@ -31,35 +31,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import grondag.canvas.mixinterface.AnimatedTextureExt;
+import grondag.canvas.mixinterface.SpriteContentsExt;
 import grondag.canvas.mixinterface.SpriteExt;
 
-@Mixin(TextureAtlasSprite.AnimatedTexture.class)
+@Mixin(SpriteContents.AnimatedTexture.class)
 public class MixinAnimatedTexture implements AnimatedTextureExt {
 	@Shadow(aliases = {"this$0", "a", "field_28469"})
-	@Dynamic private TextureAtlasSprite parent;
-
-	@Shadow int frame;
-	@Shadow int subFrame;
-	@Shadow @Final List<TextureAtlasSprite.FrameInfo> frames;
+	@Dynamic private SpriteContents parent;
+	@Shadow @Final List<SpriteContents.FrameInfo> frames;
 	@Shadow @Final private int frameRowSize;
-
-	@Nullable
-	@Shadow @Final private TextureAtlasSprite.InterpolationData interpolationData;
-
-	@Inject(method = "tick", at = @At("HEAD"), cancellable = true)
-	private void beforeTick(CallbackInfo ci) {
-		if (!((SpriteExt) parent).canvas_shouldAnimate()) {
-			ci.cancel();
-		}
-	}
-
-	@Override
-	public TextureAtlasSprite.InterpolationData canvas_interpolation() {
-		return interpolationData;
-	}
 
 	@Override
 	public int canvas_frameCount() {
@@ -67,17 +51,7 @@ public class MixinAnimatedTexture implements AnimatedTextureExt {
 	}
 
 	@Override
-	public int canvas_frameIndex() {
-		return frame;
-	}
-
-	@Override
-	public int canvas_frameTicks() {
-		return subFrame;
-	}
-
-	@Override
-	public List<TextureAtlasSprite.FrameInfo> canvas_frames() {
+	public List<SpriteContents.FrameInfo> canvas_frames() {
 		return frames;
 	}
 }

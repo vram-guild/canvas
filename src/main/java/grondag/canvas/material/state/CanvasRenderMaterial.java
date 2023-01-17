@@ -37,6 +37,7 @@ import io.vram.frex.base.renderer.material.BaseRenderMaterial;
 import io.vram.frex.base.renderer.util.ResourceCache;
 
 import grondag.canvas.material.property.TextureMaterialState;
+import grondag.canvas.mixinterface.SpriteContentsExt;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.shader.MaterialShaderIndexer;
@@ -129,7 +130,7 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 	public void trackPerFrameAnimation(int spriteId) {
 		if (!this.discardsTexture() && texture().isAtlas()) {
 			// WIP: create and use sprite method on quad
-			final int animationIndex = ((SpriteExt) texture().spriteIndex().fromIndex(spriteId)).canvas_animationIndex();
+			final int animationIndex = ((SpriteContentsExt) texture().spriteIndex().fromIndex(spriteId).contents()).canvas_animationIndex();
 
 			if (animationIndex > 0) {
 				((TextureAtlasExt) texture().textureAsAtlas()).canvas_trackFrameAnimation(animationIndex);

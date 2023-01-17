@@ -20,6 +20,9 @@
 
 package grondag.canvas.mixin;
 
+import java.util.function.BooleanSupplier;
+
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,19 +30,48 @@ import org.spongepowered.asm.mixin.Shadow;
 import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.client.renderer.texture.SpriteContents;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.SpriteContentsExt;
-import grondag.canvas.mixinterface.SpriteExt;
 
-@Mixin(TextureAtlasSprite.class)
-public class MixinTextureAtlasSprite implements SpriteExt {
-	@Shadow @Final private SpriteContents contents;
-	@Shadow @Final int x;
-	@Shadow @Final int y;
+@Mixin(SpriteContents.class)
+public abstract class MixinSpriteContents implements SpriteContentsExt {
+	@Shadow NativeImage[] byMipLevel;
+	private BooleanSupplier shouldAnimate = () -> true;
+	private int animationIndex = -1;
+
+	@Shadow	abstract void upload(int i, int j, int k, int l, NativeImage[] nativeImages);
+
+	@Shadow @Final @Nullable private SpriteContents.AnimatedTexture animatedTexture;
 
 	@Override
-	public void canvas_upload(int xOffset, int yOffset, NativeImage[] images) {
-		((SpriteContentsExt) contents).canvas_upload(x, y, xOffset, yOffset, images);
+	public NativeImage[] canvas_images() {
+		return byMipLevel;
+	}
+
+	@Override
+	public void canvas_upload(int x, int y, int xOffset, int yOffset, NativeImage[] images) {
+		upload(x, y, xOffset, yOffset, images);
+	}
+
+	@Override
+	public void canvas_initializeAnimation(BooleanSupplier getter, int animationIndex) {
+		this.shouldAnimate = getter;
+		this.animationIndex = animationIndex;
+	}
+
+	@Override
+	public boolean canvas_shouldAnimate() {
+		return !Configurator.disableUnseenSpriteAnimation || shouldAnimate.getAsBoolean();
+	}
+
+	@Override
+	public int canvas_animationIndex() {
+		return animationIndex;
+	}
+
+	@Override
+	public boolean canvas_isAnimated() {
+		return animatedTexture != null;
 	}
 }

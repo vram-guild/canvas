@@ -18,28 +18,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.mixin;
+package grondag.canvas.mixinterface;
 
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import java.util.function.BooleanSupplier;
 
 import com.mojang.blaze3d.platform.NativeImage;
 
-import net.minecraft.client.renderer.texture.SpriteContents;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+public interface SpriteContentsExt {
+	NativeImage[] canvas_images();
 
-import grondag.canvas.mixinterface.SpriteContentsExt;
-import grondag.canvas.mixinterface.SpriteExt;
+	void canvas_upload(int x, int y, int xOffset, int yOffset, NativeImage[] images);
 
-@Mixin(TextureAtlasSprite.class)
-public class MixinTextureAtlasSprite implements SpriteExt {
-	@Shadow @Final private SpriteContents contents;
-	@Shadow @Final int x;
-	@Shadow @Final int y;
+	void canvas_initializeAnimation(BooleanSupplier getter, int animationIndex);
 
-	@Override
-	public void canvas_upload(int xOffset, int yOffset, NativeImage[] images) {
-		((SpriteContentsExt) contents).canvas_upload(x, y, xOffset, yOffset, images);
-	}
+	boolean canvas_shouldAnimate();
+
+	int canvas_animationIndex();
+
+	boolean canvas_isAnimated();
 }

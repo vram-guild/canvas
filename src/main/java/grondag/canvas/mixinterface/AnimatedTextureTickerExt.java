@@ -18,28 +18,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.mixin;
+package grondag.canvas.mixinterface;
 
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-
-import com.mojang.blaze3d.platform.NativeImage;
+import java.util.List;
 
 import net.minecraft.client.renderer.texture.SpriteContents;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
-import grondag.canvas.mixinterface.SpriteContentsExt;
-import grondag.canvas.mixinterface.SpriteExt;
+public interface AnimatedTextureTickerExt {
+	int canvas_frameIndex();
 
-@Mixin(TextureAtlasSprite.class)
-public class MixinTextureAtlasSprite implements SpriteExt {
-	@Shadow @Final private SpriteContents contents;
-	@Shadow @Final int x;
-	@Shadow @Final int y;
+	int canvas_frameTicks();
 
-	@Override
-	public void canvas_upload(int xOffset, int yOffset, NativeImage[] images) {
-		((SpriteContentsExt) contents).canvas_upload(x, y, xOffset, yOffset, images);
-	}
+	SpriteContents.InterpolationData canvas_interpolation();
+
+	int canvas_frameCount();
+
+	List<SpriteContents.FrameInfo> canvas_frames();
 }

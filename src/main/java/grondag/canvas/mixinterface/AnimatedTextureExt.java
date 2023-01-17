@@ -22,17 +22,10 @@ package grondag.canvas.mixinterface;
 
 import java.util.List;
 
-import net.minecraft.client.renderer.texture.TextureAtlasSprite.FrameInfo;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite.InterpolationData;
+import net.minecraft.client.renderer.texture.SpriteContents;
 
 public interface AnimatedTextureExt {
-	InterpolationData canvas_interpolation();
-
 	int canvas_frameCount();
 
-	int canvas_frameIndex();
-
-	int canvas_frameTicks();
-
-	List<FrameInfo> canvas_frames();
+	List<SpriteContents.FrameInfo> canvas_frames();
 }

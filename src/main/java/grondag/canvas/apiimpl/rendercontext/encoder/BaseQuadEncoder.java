@@ -28,6 +28,7 @@ import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.buffer.input.VertexCollectorList;
+import grondag.canvas.mixinterface.SpriteContentsExt;
 import grondag.canvas.mixinterface.SpriteExt;
 
 public abstract class BaseQuadEncoder {
@@ -48,7 +49,7 @@ public abstract class BaseQuadEncoder {
 
 		if (!mat.discardsTexture() && mat.texture().isAtlas()) {
 			// WIP: create and use sprite method on quad
-			final int animationIndex = ((SpriteExt) mat.texture().spriteIndex().fromIndex(quad.spriteId())).canvas_animationIndex();
+			final int animationIndex = ((SpriteContentsExt) mat.texture().spriteIndex().fromIndex(quad.spriteId()).contents()).canvas_animationIndex();
 
 			if (animationIndex >= 0) {
 				animationBits.set(animationIndex);

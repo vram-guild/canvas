@@ -25,13 +25,5 @@ import java.util.function.BooleanSupplier;
 import com.mojang.blaze3d.platform.NativeImage;
 
 public interface SpriteExt {
-	NativeImage[] canvas_images();
-
-	void canvas_upload(int i, int j, NativeImage[] images);
-
-	void canvas_initializeAnimation(BooleanSupplier getter, int animationIndex);
-
-	boolean canvas_shouldAnimate();
-
-	int canvas_animationIndex();
+	void canvas_upload(int xOffset, int yOffset, NativeImage[] images);
 }

@@ -28,18 +28,18 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import com.mojang.blaze3d.platform.NativeImage;
 
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.SpriteContents;
 
-import grondag.canvas.mixinterface.AnimatedTextureExt;
+import grondag.canvas.mixinterface.AnimatedTextureTickerExt;
 import grondag.canvas.mixinterface.NativeImageExt;
-import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.mixinterface.SpriteContentsExt;
 
-@Mixin(TextureAtlasSprite.InterpolationData.class)
+@Mixin(SpriteContents.InterpolationData.class)
 public class MixinSpriteInterpolation {
 	@Shadow @Final private NativeImage[] activeFrame;
 
 	@Shadow(aliases = {"this$0", "a", "field_21757"})
-	private TextureAtlasSprite parent;
+	private SpriteContents parent;
 
 	/**
 	 * Hat tip to JellySquid for the approach used here.
@@ -48,8 +48,8 @@ public class MixinSpriteInterpolation {
 	 * @reason Vanilla code is too slow
 	 */
 	@Overwrite
-	public void uploadInterpolatedFrame(TextureAtlasSprite.AnimatedTexture animation) {
-		final var animationExt = (AnimatedTextureExt) animation;
+	public void uploadInterpolatedFrame(int x, int y, SpriteContents.Ticker ticker) {
+		final var animationExt = (AnimatedTextureTickerExt) ticker;
 		final int frameIndex = animationExt.canvas_frameIndex();
 		final var frames = animationExt.canvas_frames();
 		final var currentFrame = frames.get(frameIndex);
@@ -61,7 +61,7 @@ public class MixinSpriteInterpolation {
 		}
 
 		final int frameCount = animationExt.canvas_frameCount();
-		final var parentExt = (SpriteExt) parent;
+		final var parentExt = (SpriteContentsExt) parent;
 
 		final float dt = 1.0F - (float) animationExt.canvas_frameTicks() / (float) currentFrame.time;
 
@@ -69,8 +69,8 @@ public class MixinSpriteInterpolation {
 		final int w1 = 256 - w0;
 
 		for (int layer = 0; layer < this.activeFrame.length; layer++) {
-			final int width = parent.getWidth() >> layer;
-			final int height = parent.getHeight() >> layer;
+			final int width = parent.width() >> layer;
+			final int height = parent.height() >> layer;
 
 			final int x0 = ((curIndex % frameCount) * width);
 			final int y0 = ((curIndex / frameCount) * height);
@@ -106,6 +106,6 @@ public class MixinSpriteInterpolation {
 			}
 		}
 
-		parentExt.canvas_upload(0, 0, this.activeFrame);
+		parentExt.canvas_upload(x, y, 0, 0, this.activeFrame);
 	}
 }

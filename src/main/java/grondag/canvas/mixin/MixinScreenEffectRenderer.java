@@ -29,14 +29,16 @@ import net.minecraft.client.renderer.ScreenEffectRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.ModelBakery;
 
+import grondag.canvas.mixinterface.SpriteContentsExt;
 import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
 
 @Mixin(ScreenEffectRenderer.class)
 public class MixinScreenEffectRenderer {
-	@Inject(method = "renderFire", at = @At("RETURN"), cancellable = true)
-	private static void onRenderFire(CallbackInfo ci) {
-		final TextureAtlasSprite sprite = ModelBakery.FIRE_1.sprite();
-		((TextureAtlasExt) sprite.atlas()).canvas_trackFrameAnimation(((SpriteExt) sprite).canvas_animationIndex());
-	}
+	// TODO: re-enable this
+	// @Inject(method = "renderFire", at = @At("RETURN"), cancellable = true)
+	// private static void onRenderFire(CallbackInfo ci) {
+	// 	final TextureAtlasSprite sprite = ModelBakery.FIRE_1.sprite();
+	// 	((TextureAtlasExt) sprite.atlas()).canvas_trackFrameAnimation(((SpriteContentsExt) sprite.contents()).canvas_animationIndex());
+	// }
 }

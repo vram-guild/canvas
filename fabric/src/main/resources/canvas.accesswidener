@@ -140,16 +140,16 @@ accessible class com/mojang/blaze3d/vertex/VertexMultiConsumer$Double
 
 accessible method net/minecraft/client/renderer/culling/Frustum calculateFrustum (Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V
 
-accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$InterpolationData
-accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$AnimatedTexture
+accessible class net/minecraft/client/renderer/texture/SpriteContents$InterpolationData
+accessible class net/minecraft/client/renderer/texture/SpriteContents$AnimatedTexture
 
-accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$FrameInfo
-accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$FrameInfo index I
-accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$FrameInfo time I
+accessible class net/minecraft/client/renderer/texture/SpriteContents$FrameInfo
+accessible field net/minecraft/client/renderer/texture/SpriteContents$FrameInfo index I
+accessible field net/minecraft/client/renderer/texture/SpriteContents$FrameInfo time I
+
+accessible class net/minecraft/client/renderer/texture/SpriteContents$Ticker
 
 accessible class net/minecraft/client/renderer/texture/Stitcher$Holder
-
-accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$Info metadata Lnet/minecraft/client/resources/metadata/animation/AnimationMetadataSection;
 
 accessible field net/minecraft/client/renderer/entity/EntityRenderDispatcher SHADOW_RENDER_TYPE Lnet/minecraft/client/renderer/RenderType;
 

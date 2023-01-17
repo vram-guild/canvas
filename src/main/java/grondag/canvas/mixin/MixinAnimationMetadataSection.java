@@ -39,18 +39,23 @@ import grondag.canvas.mixinterface.SimulatedFrame;
 
 @Mixin(AnimationMetadataSection.class)
 public class MixinAnimationMetadataSection implements AnimationMetadataSectionExt {
-	@Shadow private List<AnimationFrame> frames;
 	@Shadow private int frameWidth;
 	@Shadow private int frameHeight;
-	@Shadow private int defaultFrameTime;
-	@Shadow private boolean interpolatedFrames;
 
 	private int pngWidth, pngHeight;
 
-	@Inject(method = "getFrameSize", at = @At("HEAD"))
+	@Inject(method = "calculateFrameSize", at = @At("HEAD"))
 	private void beforeGetFrameSize(int pngWidth, int pngHeight, CallbackInfoReturnable<Pair<Integer, Integer>> ci) {
 		this.pngWidth = pngWidth;
 		this.pngHeight = pngHeight;
+	}
+
+	public int getFrameHeight(int defHeight) {
+		return frameHeight == -1 ? defHeight : frameHeight;
+	}
+
+	public int getFrameWidth(int defWidth) {
+		return frameWidth == -1 ? defWidth : frameWidth;
 	}
 
 	@Override
@@ -58,8 +63,8 @@ public class MixinAnimationMetadataSection implements AnimationMetadataSectionEx
 		// forecasts the outcome of Sprite.createAnimation()
 
 		final AnimationMetadataSection animationMetadata = (AnimationMetadataSection) (Object) this;
-		final int widthFrames = pngWidth / animationMetadata.getFrameWidth(spriteWidth);
-		final int heightFrames = pngHeight / animationMetadata.getFrameHeight(spriteHeight);
+		final int widthFrames = pngWidth / getFrameWidth(spriteWidth);
+		final int heightFrames = pngHeight / getFrameHeight(spriteHeight);
 		final int expectedFrames = widthFrames * heightFrames;
 		final var frames = new ObjectArrayList<SimulatedFrame>();
 

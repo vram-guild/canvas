@@ -23,7 +23,6 @@ package grondag.canvas.mixin;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.BitSet;
-import java.util.List;
 import java.util.function.BooleanSupplier;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,18 +37,17 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.client.renderer.texture.SpriteLoader;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
-
-import io.vram.frex.impl.texture.TextureAtlasPreparationExt;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasItemRenderContext;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.TerrainRenderStates;
-import grondag.canvas.mixinterface.SpriteExt;
+import grondag.canvas.mixinterface.SpriteContentsExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 
@@ -61,22 +59,20 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 	private final BitSet animationBits = new BitSet();
 	private final BitSet perFrameBits = new BitSet();
 
-	@Inject(at = @At("HEAD"), method = "reload")
-	private void beforeReload(TextureAtlas.Preparations input, CallbackInfo ci) {
+	@Inject(at = @At("HEAD"), method = "upload")
+	private void beforeReload(SpriteLoader.Preparations preparations, CallbackInfo ci) {
 		if (Configurator.traceTextureLoad) {
 			CanvasMod.LOG.info("Start of reload for atlas " + location.toString());
 		}
 
-		final var dataExt = (TextureAtlasPreparationExt) input;
-		width = dataExt.frex_atlasWidth();
-		height = dataExt.frex_atlasHeight();
+		width = preparations.width();
+		height = preparations.height();
 
 		int animationIndex = 0;
-		final List<TextureAtlasSprite> sprites = dataExt.frex_sprites();
 
-		for (final TextureAtlasSprite sprite : sprites) {
-			if (sprite.getAnimationTicker() != null) {
-				final var spriteExt = (SpriteExt) sprite;
+		for (final TextureAtlasSprite sprite : preparations.regions().values()) {
+			final var spriteExt = (SpriteContentsExt) sprite.contents();
+			if (!spriteExt.canvas_isAnimated()) {
 				final int instanceIndex = animationIndex;
 				final BooleanSupplier getter = () -> animationBits.get(instanceIndex);
 				spriteExt.canvas_initializeAnimation(getter, instanceIndex);
@@ -88,8 +84,8 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 		animationBits.set(0, animationIndex);
 	}
 
-	@Inject(at = @At("RETURN"), method = "reload")
-	private void afterReload(TextureAtlas.Preparations input, CallbackInfo ci) {
+	@Inject(at = @At("RETURN"), method = "upload")
+	private void afterReload(SpriteLoader.Preparations preparations, CallbackInfo ci) {
 		if (Configurator.debugSpriteAtlas) {
 			outputAtlasImage();
 		}
