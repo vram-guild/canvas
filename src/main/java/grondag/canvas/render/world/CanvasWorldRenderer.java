@@ -525,7 +525,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 				if (stage >= 0) {
 					final PoseStack.Pose xform = identityStack.last();
-					final VertexConsumer overlayConsumer = new SheetedDecalTextureGenerator(bufferBuilders.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(stage)), xform.pose(), xform.normal());
+					final VertexConsumer overlayConsumer = new SheetedDecalTextureGenerator(bufferBuilders.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(stage)), xform.pose(), xform.normal(), 1.0f);
 
 					outputConsumer = (renderLayer) -> {
 						final VertexConsumer baseConsumer = immediate.getBuffer(renderLayer);
@@ -620,7 +620,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 					identityStack.pushPose();
 					identityStack.translate(breakPos.getX() - frameCameraX, breakPos.getY() - frameCameraY, breakPos.getZ() - frameCameraZ);
 					final PoseStack.Pose xform = identityStack.last();
-					final VertexConsumer vertexConsumer2 = new SheetedDecalTextureGenerator(bufferBuilders.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(stage)), xform.pose(), xform.normal());
+					final VertexConsumer vertexConsumer2 = new SheetedDecalTextureGenerator(bufferBuilders.crumblingBufferSource().getBuffer(ModelBakery.DESTROY_TYPES.get(stage)), xform.pose(), xform.normal(), 1.0f);
 					mc.getBlockRenderer().renderBreakingTexture(world.getBlockState(breakPos), breakPos, world, identityStack, vertexConsumer2);
 					identityStack.popPose();
 				}

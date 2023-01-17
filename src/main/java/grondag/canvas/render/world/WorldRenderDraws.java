@@ -34,6 +34,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -193,7 +194,7 @@ public class WorldRenderDraws {
 		} catch (final Exception e) {
 			if (WorldRenderDraws.CAUGHT_BER_ERRORS.add(blockEntity.getType())) {
 				CanvasMod.LOG.warn(String.format("Unhandled exception rendering while rendering BlockEntity %s @ %s.  Stack trace follows. Subsequent errors will be suppressed.",
-						Registry.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType()).toString(), blockEntity.getBlockPos().toShortString()));
+						BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(blockEntity.getType()).toString(), blockEntity.getBlockPos().toShortString()));
 
 				// Passing this to .(warn) causes "Negative index in crash report handler" spam, so printing separately
 				e.printStackTrace();
