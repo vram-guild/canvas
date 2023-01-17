@@ -31,8 +31,8 @@ dependencies {
 	modImplementation("io.vram:jmx-fabric-mc119:1.22.263")
 	include("io.vram:jmx-fabric-mc119:1.22.263:fat")
 
-	modCompileOnly "com.terraformersmc:modmenu:4.0.6"
-	modRuntimeOnly "com.terraformersmc:modmenu:4.0.6"
+	modCompileOnly "com.terraformersmc:modmenu:5.0.2"
+	modRuntimeOnly "com.terraformersmc:modmenu:5.0.2"
 }
 
 sourceSets {

@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-	id 'dev.architectury.loom' version '0.12.0-SNAPSHOT'
+	id 'dev.architectury.loom' version '1.0.305'
 	id 'maven-publish'
 	id 'org.cadixdev.licenser' version '0.6.1'
 	id 'org.ajoberstar.grgit' version '4.1.1'
@@ -19,7 +19,7 @@ plugins {
 }
 
 ext.platform_name = 'forge'
-ext.forge_version = '43.1.24'
+ext.forge_version = '44.0.7'
 
 configurations {
 	bundle { transitive = false }
@@ -150,6 +150,6 @@ modrinth {
 		// On fabric, use 'remapJar' instead of 'jar'
 		uploadFile = remapJar // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
 		gameVersions = ["${project.minecraft_version}"]
-		loaders = ["${project.platform_name}"] // Must also be an array - no need to specify this if you're using Loom
+		loaders = ["forge"] // Must also be an array - no need to specify this if you're using Loom
 	}
 }

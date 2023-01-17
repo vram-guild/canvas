@@ -90,6 +90,11 @@ curseforge {
 			releaseType = project.release_type
 			addGameVersion project.release_version
 			addGameVersion project.platform_name.capitalize()
+
+			if (project.platform_name.equals("fabric")) {
+				addGameVersion "Quilt"
+			}
+
 			changelog = "A changelog can be found at https://github.com/${github_repository_owner}/${github_repository}/commits"
 
 			mainArtifact(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
