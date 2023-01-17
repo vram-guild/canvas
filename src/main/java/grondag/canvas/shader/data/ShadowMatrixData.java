@@ -32,14 +32,14 @@ import static grondag.canvas.shader.data.ShaderDataManager.cameraYd;
 import static grondag.canvas.shader.data.ShaderDataManager.cameraZd;
 import static grondag.canvas.shader.data.ShaderDataManager.skyLightVector;
 
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
-import com.mojang.math.Vector4f;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 
-import io.vram.frex.api.math.FastMatrix4f;
+import io.vram.frex.api.math.FrexMathUtil;
 
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
@@ -49,16 +49,12 @@ public final class ShadowMatrixData {
 	private ShadowMatrixData() { }
 
 	public static final Matrix4f shadowViewMatrix = new Matrix4f();
-	private static final FastMatrix4f shadowViewMatrixExt = (FastMatrix4f) (Object) shadowViewMatrix;
 	private static final Matrix4f shadowViewMatrixInv = new Matrix4f();
-	private static final FastMatrix4f shadowViewMatrixInvExt = (FastMatrix4f) (Object) shadowViewMatrixInv;
 
 	public static final int CASCADE_COUNT = 4;
 
 	private static final Matrix4f[] shadowProjMatrix = new Matrix4f[CASCADE_COUNT];
-	private static final FastMatrix4f[] shadowProjMatrixExt = new FastMatrix4f[CASCADE_COUNT];
 	private static final Matrix4f[] shadowViewProjMatrix = new Matrix4f[CASCADE_COUNT];
-	private static final FastMatrix4f[] shadowViewProjMatrixExt = new FastMatrix4f[CASCADE_COUNT];
 
 	public static final float[] cascadeCentersAndRadii = new float[16];
 
@@ -69,10 +65,7 @@ public final class ShadowMatrixData {
 	static {
 		for (int i = 0; i < CASCADE_COUNT; ++i) {
 			shadowProjMatrix[i] = new Matrix4f();
-			shadowProjMatrixExt[i] = (FastMatrix4f) (Object) shadowProjMatrix[i];
-
 			shadowViewProjMatrix[i] = new Matrix4f();
-			shadowViewProjMatrixExt[i] = (FastMatrix4f) (Object) shadowViewProjMatrix[i];
 		}
 	}
 
@@ -125,31 +118,31 @@ public final class ShadowMatrixData {
 		final int radius = (int) Math.ceil(Math.sqrt(viewDist * viewDist - halfDist * halfDist));
 
 		// Compute sky light vector transform - points towards the sun
-		shadowViewMatrix.setIdentity();
+		shadowViewMatrix.identity();
 		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
-		shadowViewMatrix.multiply(Vector3f.YP.rotationDegrees(-90));
-		shadowViewMatrix.multiply(Vector3f.ZP.rotationDegrees(skyOutput.zenithAngle));
-		shadowViewMatrix.multiply(Vector3f.XP.rotationDegrees(skyOutput.hourAngle));
+		shadowViewMatrix.rotateY((float) Math.toRadians(-90));
+		shadowViewMatrix.rotateZ((float) Math.toRadians(skyOutput.zenithAngle));
+		shadowViewMatrix.rotateX((float) Math.toRadians(skyOutput.hourAngle));
 		testVec.set(0, 1, 0, 0);
-		testVec.transform(shadowViewMatrix);
+		testVec.mul(shadowViewMatrix);
 		skyLightVector.set(testVec.x(), testVec.y(), testVec.z());
 
 		// Use the unit vector we just computed to create a view matrix from perspective of the sky light.
 		// Distance here isn't too picky, we need to ensure it is far enough away to contain any shadow-casting
 		// geometry but not far enough to lose much precision in the depth (Z) dimension.
-		shadowViewMatrixExt.f_setLookAt(
+		shadowViewMatrix.lookAt(
 			skyLightVector.x() * radius, skyLightVector.y() * radius, skyLightVector.z() * radius,
 			0, 0, 0,
 			0.0f, 0.0f, 1.0f);
 
 		// Compute inverse while we're here
-		shadowViewMatrixInvExt.f_set(shadowViewMatrixExt);
+		shadowViewMatrixInv.set(shadowViewMatrix);
 		shadowViewMatrixInv.invert();
 
 		if (Pipeline.config().skyShadow != null) {
 			// Compute how much camera has moved in view x/y space.
 			testVec.set((float) (cameraXd - lastCameraX), (float) (cameraYd - lastCameraY), (float) (cameraZd - lastCameraZ), 0.0f);
-			testVec.transform(shadowViewMatrix);
+			testVec.mul(shadowViewMatrix);
 
 			final float cdx = testVec.x();
 			final float cdy = testVec.y();
@@ -167,19 +160,19 @@ public final class ShadowMatrixData {
 		lastCameraZ = cameraZd;
 
 		testVec.set(8f, -8f, -8f, 0);
-		testVec.transform(shadowViewMatrix);
+		testVec.mul(shadowViewMatrix);
 		float rme = testVec.x() * testVec.x() + testVec.y() * testVec.y() + testVec.z() * testVec.z();
 
 		testVec.set(8f, -8f, 8f, 0);
-		testVec.transform(shadowViewMatrix);
+		testVec.mul(shadowViewMatrix);
 		rme = Math.max(rme, testVec.x() * testVec.x() + testVec.y() * testVec.y() + testVec.z() * testVec.z());
 
 		testVec.set(8f, 8f, -8f, 0);
-		testVec.transform(shadowViewMatrix);
+		testVec.mul(shadowViewMatrix);
 		rme = Math.max(rme, testVec.x() * testVec.x() + testVec.y() * testVec.y() + testVec.z() * testVec.z());
 
 		testVec.set(8f, 8f, 8f, 0);
-		testVec.transform(shadowViewMatrix);
+		testVec.mul(shadowViewMatrix);
 		rme = Math.max(rme, testVec.x() * testVec.x() + testVec.y() * testVec.y());
 
 		regionMaxExtent = (float) Math.sqrt(rme);
@@ -218,7 +211,7 @@ public final class ShadowMatrixData {
 
 		// Find the center of our projection.
 		testVec.set(cameraVector.x() * halfDist, cameraVector.y() * halfDist, cameraVector.z() * halfDist, 1.0f);
-		testVec.transform(shadowViewMatrix);
+		testVec.mul(shadowViewMatrix);
 
 		float cx = testVec.x();
 		float cy = testVec.y();
@@ -235,7 +228,7 @@ public final class ShadowMatrixData {
 
 		// Construct ortho matrix using bounding sphere/box computed above.
 		// Should give us a consistent size each frame, which helps prevent shimmering.
-		shadowProjMatrixExt[cascade].f_setOrtho(
+		shadowProjMatrix[cascade].ortho(
 			cx - radius, cx + radius,
 			cy - radius, cy + radius,
 			-(cz + depthRadius), -(cz - depthRadius));
@@ -261,19 +254,19 @@ public final class ShadowMatrixData {
 		computeShadowMatrices(camera, tickDelta, skyoutput);
 
 		// shadow perspective were computed earlier
-		shadowViewMatrixExt.f_writeToBuffer(SHADOW_VIEW * 16, MATRIX_DATA);
+		FrexMathUtil.writeToBuffer(shadowViewMatrix, SHADOW_VIEW * 16, MATRIX_DATA);
 
-		shadowViewMatrixInvExt.f_set(shadowViewMatrixExt);
+		shadowViewMatrixInv.set(shadowViewMatrix);
 		// reliable inversion of rotation matrix
 		shadowViewMatrixInv.transpose();
-		shadowViewMatrixInvExt.f_writeToBuffer(SHADOW_VIEW_INVERSE * 16, MATRIX_DATA);
+		FrexMathUtil.writeToBuffer(shadowViewMatrixInv, SHADOW_VIEW_INVERSE * 16, MATRIX_DATA);
 
 		for (int i = 0; i < CASCADE_COUNT; ++i) {
-			shadowProjMatrixExt[i].f_writeToBuffer((SHADOW_PROJ_0 + i) * 16, MATRIX_DATA);
+			FrexMathUtil.writeToBuffer(shadowProjMatrix[i], (SHADOW_PROJ_0 + i) * 16, MATRIX_DATA);
 
-			shadowViewProjMatrixExt[i].f_set(shadowProjMatrixExt[i]);
-			shadowViewProjMatrixExt[i].f_mul(shadowViewMatrixExt);
-			shadowViewProjMatrixExt[i].f_writeToBuffer((SHADOW_VIEW_PROJ_0 + i) * 16, MATRIX_DATA);
+			shadowViewProjMatrix[i].set(shadowProjMatrix[i]);
+			shadowViewProjMatrix[i].mul(shadowViewMatrix);
+			FrexMathUtil.writeToBuffer(shadowViewProjMatrix[i], (SHADOW_VIEW_PROJ_0 + i) * 16, MATRIX_DATA);
 		}
 	}
 

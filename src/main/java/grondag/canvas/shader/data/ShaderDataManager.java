@@ -134,10 +134,11 @@ import static grondag.canvas.shader.data.IntData.RENDER_FRAMES;
 import static grondag.canvas.shader.data.IntData.UINT_DATA;
 import static grondag.canvas.shader.data.IntData.WORLD_DATA_INDEX;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;

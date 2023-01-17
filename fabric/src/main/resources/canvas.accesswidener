@@ -138,7 +138,7 @@ accessible class net/minecraft/client/renderer/OutlineBufferSource$EntityOutline
 accessible method net/minecraft/client/renderer/OutlineBufferSource$EntityOutlineGenerator <init> (Lcom/mojang/blaze3d/vertex/VertexConsumer;IIII)V
 accessible class com/mojang/blaze3d/vertex/VertexMultiConsumer$Double
 
-accessible method net/minecraft/client/renderer/culling/Frustum calculateFrustum (Lcom/mojang/math/Matrix4f;Lcom/mojang/math/Matrix4f;)V
+accessible method net/minecraft/client/renderer/culling/Frustum calculateFrustum (Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V
 
 accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$InterpolationData
 accessible class net/minecraft/client/renderer/texture/TextureAtlasSprite$AnimatedTexture

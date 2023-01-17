@@ -20,7 +20,7 @@
 
 package grondag.canvas.pipeline.pass;
 
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.ProgramTextureData;
@@ -59,7 +59,7 @@ class ProgramPass extends Pass {
 			height >>= lod;
 		}
 
-		final Matrix4f orthoMatrix = Matrix4f.orthographic(width, -height, 1000.0F, 3000.0F);
+		final Matrix4f orthoMatrix = new Matrix4f().orthoSymmetric(width, -height, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, width, height);
 
 		final int slimit = textures.texIds.length;

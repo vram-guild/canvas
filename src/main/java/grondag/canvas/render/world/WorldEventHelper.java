@@ -20,8 +20,8 @@
 
 package grondag.canvas.render.world;
 
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 import io.vram.frex.api.renderloop.EntityRenderPostListener;
 import io.vram.frex.api.renderloop.EntityRenderPreListener;
@@ -51,15 +51,15 @@ public class WorldEventHelper {
 	private static final Matrix3f normalMatrix = new Matrix3f();
 
 	static void startIdentity(WorldRenderContext ctx) {
-		viewMatrix.load(ctx.poseStack().last().pose());
-		normalMatrix.load(ctx.poseStack().last().normal());
+		viewMatrix.set(ctx.poseStack().last().pose());
+		normalMatrix.set(ctx.poseStack().last().normal());
 		ctx.poseStack().setIdentity();
 		poseIsIdentity = true;
 	}
 
 	static void endIdentity(WorldRenderContext ctx) {
-		ctx.poseStack().last().pose().load(viewMatrix);
-		ctx.poseStack().last().normal().load(normalMatrix);
+		ctx.poseStack().last().pose().set(viewMatrix);
+		ctx.poseStack().last().normal().set(normalMatrix);
 		poseIsIdentity = false;
 	}
 

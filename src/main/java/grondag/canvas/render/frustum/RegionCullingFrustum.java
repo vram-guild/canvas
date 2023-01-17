@@ -20,7 +20,7 @@
 
 package grondag.canvas.render.frustum;
 
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;

@@ -26,16 +26,14 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryUtil;
 
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
-
 import net.minecraft.client.resources.language.I18n;
 
-import io.vram.frex.api.math.FastMatrix4f;
-import io.vram.frex.api.math.FastMatrix3f;
+import io.vram.frex.api.math.FrexMathUtil;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
@@ -1062,7 +1060,7 @@ public class GlProgram {
 				return;
 			}
 
-			((FastMatrix4f) (Object) matrix).f_writeToBuffer(0, uniformFloatBuffer);
+			FrexMathUtil.writeToBuffer(matrix, 0, uniformFloatBuffer);
 
 			setDirty();
 		}
@@ -1107,10 +1105,9 @@ public class GlProgram {
 				return;
 			}
 
-			final FastMatrix3f m = (FastMatrix3f) (Object) matrix;
-			((FastMatrix3f) (Object) lastValue).f_set(m);
+			lastValue.set(matrix);
 
-			m.f_writeToBuffer(uniformFloatBuffer);
+			FrexMathUtil.writeToBuffer(matrix, uniformFloatBuffer);
 
 			setDirty();
 		}

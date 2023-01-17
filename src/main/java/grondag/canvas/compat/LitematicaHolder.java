@@ -27,13 +27,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import com.google.common.util.concurrent.Runnables;
-
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
-
-import net.minecraft.client.renderer.culling.Frustum;
+import org.joml.Matrix4f;
 
 import net.fabricmc.loader.api.FabricLoader;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+
+import net.minecraft.client.renderer.culling.Frustum;
 
 import grondag.canvas.CanvasMod;
 

@@ -20,7 +20,7 @@
 
 package grondag.canvas.mixinterface;
 
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 
 public interface TextRendererExt {
 	void canvas_beginBatchDraw(Matrix4f fillMatrix4fIn);

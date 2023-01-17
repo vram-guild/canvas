@@ -20,8 +20,8 @@
 
 package grondag.canvas.render.frustum;
 
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector4f;
+import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
 import net.minecraft.client.Camera;
 import net.minecraft.world.phys.Vec3;
@@ -52,14 +52,14 @@ public class FastFrustum extends CanvasFrustum {
 
 		// near lower left
 		corner.set(-1f, -1f, -1f, 1f);
-		corner.transform(invProjMatrix);
+		corner.mul(invProjMatrix);
 
 		float nx0 = corner.x() / corner.w();
 		float ny0 = corner.y() / corner.w();
 		float nz0 = corner.z() / corner.w();
 
 		corner.set(nx0, ny0, nz0, 1f);
-		corner.transform(invViewMatrix);
+		corner.mul(invViewMatrix);
 
 		nx0 = corner.x();
 		ny0 = corner.y();
@@ -67,14 +67,14 @@ public class FastFrustum extends CanvasFrustum {
 
 		// near top right
 		corner.set(1f, 1f, -1f, 1f);
-		corner.transform(invProjMatrix);
+		corner.mul(invProjMatrix);
 
 		float nx1 = corner.x() / corner.w();
 		float ny1 = corner.y() / corner.w();
 		float nz1 = corner.z() / corner.w();
 
 		corner.set(nx1, ny1, nz1, 1f);
-		corner.transform(invViewMatrix);
+		corner.mul(invViewMatrix);
 
 		nx1 = corner.x();
 		ny1 = corner.y();
@@ -82,14 +82,14 @@ public class FastFrustum extends CanvasFrustum {
 
 		// far lower left
 		corner.set(-1f, -1f, 1f, 1f);
-		corner.transform(invProjMatrix);
+		corner.mul(invProjMatrix);
 
 		float fx0 = corner.x() / corner.w();
 		float fy0 = corner.y() / corner.w();
 		float fz0 = corner.z() / corner.w();
 
 		corner.set(fx0, fy0, fz0, 1f);
-		corner.transform(invViewMatrix);
+		corner.mul(invViewMatrix);
 
 		fx0 = corner.x();
 		fy0 = corner.y();
@@ -97,14 +97,14 @@ public class FastFrustum extends CanvasFrustum {
 
 		// far top right
 		corner.set(1f, 1f, 1f, 1f);
-		corner.transform(invProjMatrix);
+		corner.mul(invProjMatrix);
 
 		float fx1 = corner.x() / corner.w();
 		float fy1 = corner.y() / corner.w();
 		float fz1 = corner.z() / corner.w();
 
 		corner.set(fx1, fy1, fz1, 1f);
-		corner.transform(invViewMatrix);
+		corner.mul(invViewMatrix);
 
 		fx1 = corner.x();
 		fy1 = corner.y();
@@ -148,12 +148,12 @@ public class FastFrustum extends CanvasFrustum {
 		lastCameraY = vec.y;
 		lastCameraZ = vec.z;
 
-		modelMatrixExt.f_set(modelMatrix);
-		projectionMatrixExt.f_set(projectionMatrix);
+		modelMatrixExt.set(modelMatrix);
+		projectionMatrixExt.set(projectionMatrix);
 
-		mvpMatrixExt.f_setIdentity();
-		mvpMatrixExt.f_mul(projectionMatrixExt);
-		mvpMatrixExt.f_mul(modelMatrixExt);
+		mvpMatrixExt.setIdentity();
+		mvpMatrixExt.mul(projectionMatrixExt);
+		mvpMatrixExt.mul(modelMatrixExt);
 
 		// depends on mvpMatrix being complete
 		extractPlanes();

@@ -37,14 +37,16 @@ import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_X;
 import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Y;
 import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Z;
 
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 
 import io.vram.frex.api.material.MaterialConstants;
-import io.vram.frex.api.math.FastMatrix3f;
-import io.vram.frex.api.math.FastMatrix4f;
+import io.vram.frex.api.math.FrexMathUtil;
 import io.vram.frex.base.renderer.mesh.MeshEncodingHelper;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.TerrainQuadEncoder;
@@ -76,10 +78,10 @@ public class TerrainEncoder {
 		final var inputContext = encoder.inputContext();
 
 		final var matrixStack = inputContext.matrixStack();
-		final FastMatrix4f matrix = matrixStack.modelMatrix();
-		final FastMatrix3f normalMatrix = matrixStack.normalMatrix();
+		final Matrix4f matrix = matrixStack.modelMatrix();
+		final Matrix3f normalMatrix = matrixStack.normalMatrix();
 
-		final boolean isNormalMatrixUseful = !normalMatrix.f_isIdentity();
+		final boolean isNormalMatrixUseful = !FrexMathUtil.isIdentity(normalMatrix);
 
 		final boolean aoDisabled = !Minecraft.useAmbientOcclusion();
 		final int[] aoData = quad.ao;
@@ -125,7 +127,7 @@ public class TerrainEncoder {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				transformedNormal = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedNormal) : packedNormal;
+				transformedNormal = isNormalMatrixUseful ? FrexMathUtil.transformPacked3f(normalMatrix, packedNormal) : packedNormal;
 				normalSignBit = (transformedNormal >>> 10) & 0x2000;
 				transformedNormal = transformedNormal & 0xFFFF;
 			}
@@ -135,7 +137,7 @@ public class TerrainEncoder {
 
 			if (t != packedTangent) {
 				packedTangent = t;
-				transformedTangent = isNormalMatrixUseful ? normalMatrix.f_transformPacked3f(packedTangent) : packedTangent;
+				transformedTangent = isNormalMatrixUseful ? FrexMathUtil.transformPacked3f(normalMatrix, packedTangent) : packedTangent;
 				tangentInverseSignBits = (transformedTangent >>> 9) & 0xC000;
 				transformedTangent = transformedTangent << 16;
 			}
@@ -145,9 +147,9 @@ public class TerrainEncoder {
 			final float y = Float.intBitsToFloat(source[fromIndex + VERTEX_Y]);
 			final float z = Float.intBitsToFloat(source[fromIndex + VERTEX_Z]);
 
-			final float xOut = matrix.f_m00() * x + matrix.f_m10() * y + matrix.f_m20() * z + matrix.f_m30();
-			final float yOut = matrix.f_m01() * x + matrix.f_m11() * y + matrix.f_m21() * z + matrix.f_m31();
-			final float zOut = matrix.f_m02() * x + matrix.f_m12() * y + matrix.f_m22() * z + matrix.f_m32();
+			final float xOut = matrix.m00() * x + matrix.m10() * y + matrix.m20() * z + matrix.m30();
+			final float yOut = matrix.m01() * x + matrix.m11() * y + matrix.m21() * z + matrix.m31();
+			final float zOut = matrix.m02() * x + matrix.m12() * y + matrix.m22() * z + matrix.m32();
 
 			int xInt = Mth.floor(xOut);
 			int yInt = Mth.floor(yOut);

@@ -20,7 +20,7 @@
 
 package grondag.canvas.pipeline;
 
-import com.mojang.math.Matrix4f;
+import org.joml.Matrix4f;
 
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
@@ -166,7 +166,7 @@ public class PipelineManager {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
-		final Matrix4f orthoMatrix = Matrix4f.orthographic(w, -h, 1000.0F, 3000.0F);
+		final Matrix4f orthoMatrix = new Matrix4f().orthoSymmetric(w, -h, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);

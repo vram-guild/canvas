@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -44,8 +46,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
-import io.vram.frex.api.math.FastMatrix3f;
-import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.fluid.FluidModel;
 
@@ -414,9 +414,9 @@ public class RenderRegion implements TerrainExecutorTask {
 
 		final InputRegion region = context.region;
 		final MatrixStack matrixStack = context.matrixStack;
-		final FastMatrix4f modelMatrix = matrixStack.modelMatrix();
-		final FastMatrix3f normalMatrix = matrixStack.normalMatrix();
-		normalMatrix.f_setIdentity();
+		final Matrix4f modelMatrix = matrixStack.modelMatrix();
+		final Matrix3f normalMatrix = matrixStack.normalMatrix();
+		normalMatrix.identity();
 
 		final BlockRenderDispatcher blockRenderManager = Minecraft.getInstance().getBlockRenderer();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
@@ -436,8 +436,8 @@ public class RenderRegion implements TerrainExecutorTask {
 
 				if (hasFluid || hasBlock) {
 					// Vanilla does a push/pop for each block but that creates needless allocation spam.
-					modelMatrix.f_setIdentity();
-					modelMatrix.f_translate(x, y, z);
+					modelMatrix.identity();
+					modelMatrix.translate(x, y, z);
 
 					if (hasFluid) {
 						context.renderFluid(blockState, searchPos, FluidModel.get(fluidState.getType()));
@@ -448,7 +448,7 @@ public class RenderRegion implements TerrainExecutorTask {
 							final Vec3 vec3d = blockState.getOffset(region, searchPos);
 
 							if (vec3d != Vec3.ZERO) {
-								modelMatrix.f_translate((float) vec3d.x, (float) vec3d.y, (float) vec3d.z);
+								modelMatrix.translate((float) vec3d.x, (float) vec3d.y, (float) vec3d.z);
 							}
 						}
 

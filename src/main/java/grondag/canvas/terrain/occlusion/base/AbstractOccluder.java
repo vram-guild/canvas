@@ -25,13 +25,13 @@ import static grondag.bitraster.Constants.PIXEL_WIDTH;
 
 import java.io.File;
 
+import org.joml.Matrix4f;
+
 import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-
-import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.bitraster.AbstractRasterizer;
 import grondag.bitraster.BoxOccluder;
@@ -105,11 +105,11 @@ public abstract class AbstractOccluder extends BoxOccluder {
 	 */
 	public abstract void prepareRegion(RegionPosition origin);
 
-	protected static void copyMatrixF2L(FastMatrix4f src, Matrix4L dst) {
+	protected static void copyMatrixF2L(Matrix4f src, Matrix4L dst) {
 		dst.set(
-				src.f_m00(), src.f_m10(), src.f_m20(), src.f_m30(),
-				src.f_m01(), src.f_m11(), src.f_m21(), src.f_m31(),
-				src.f_m02(), src.f_m12(), src.f_m22(), src.f_m32(),
-				src.f_m03(), src.f_m13(), src.f_m23(), src.f_m33());
+				src.m00(), src.m10(), src.m20(), src.m30(),
+				src.m01(), src.m11(), src.m21(), src.m31(),
+				src.m02(), src.m12(), src.m22(), src.m32(),
+				src.m03(), src.m13(), src.m23(), src.m33());
 	}
 }

@@ -29,14 +29,12 @@ import static grondag.bitraster.Constants.WEST;
 
 import java.util.function.Consumer;
 
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
-import com.mojang.math.Vector4f;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-
-import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.bitraster.Matrix4L;
 import grondag.bitraster.OrthoRasterizer;
@@ -49,10 +47,7 @@ import grondag.canvas.terrain.region.RegionPosition;
 
 public class ShadowOccluder extends AbstractOccluder {
 	private final Matrix4f shadowViewMatrix = new Matrix4f();
-	private final FastMatrix4f shadowViewMatrixExt = (FastMatrix4f) (Object) shadowViewMatrix;
-
 	public final Matrix4f shadowProjMatrix = new Matrix4f();
-	private final FastMatrix4f shadowProjMatrixExt = (FastMatrix4f) (Object) shadowProjMatrix;
 
 	private final Vector3f lastVersionedLightVector = new Vector3f();
 
@@ -70,8 +65,8 @@ public class ShadowOccluder extends AbstractOccluder {
 	}
 
 	public void copyState(TerrainFrustum cameraFrustum) {
-		shadowViewMatrixExt.f_set(ShadowMatrixData.shadowViewMatrix);
-		shadowProjMatrixExt.f_set(ShadowMatrixData.maxCascadeProjMatrix());
+		shadowViewMatrix.set(ShadowMatrixData.shadowViewMatrix);
+		shadowProjMatrix.set(ShadowMatrixData.maxCascadeProjMatrix());
 		maxRegionExtent = ShadowMatrixData.regionMaxExtent();
 		final float[] cascadeCentersAndRadii = ShadowMatrixData.cascadeCentersAndRadii;
 		x0 = cascadeCentersAndRadii[0];
@@ -103,7 +98,7 @@ public class ShadowOccluder extends AbstractOccluder {
 
 			// big sun movement, about 12 in-game minutes or 200 ticks
 			if (lightSourceMovement > 0.0025f) {
-				lastVersionedLightVector.load(ShaderDataManager.skyLightVector);
+				lastVersionedLightVector.set(ShaderDataManager.skyLightVector);
 				shadowViewVersion++;
 			}
 		}
@@ -117,8 +112,8 @@ public class ShadowOccluder extends AbstractOccluder {
 		super.prepareRegion(origin.getX(), origin.getY(), origin.getZ(), PackedBox.RANGE_MID, origin.shadowDistanceRank());
 	}
 
-	private final Consumer<Matrix4L> shadowViewSetter = m -> copyMatrixF2L(shadowViewMatrixExt, m);
-	private final Consumer<Matrix4L> shadowProjSetter = m -> copyMatrixF2L(shadowProjMatrixExt, m);
+	private final Consumer<Matrix4L> shadowViewSetter = m -> copyMatrixF2L(shadowViewMatrix, m);
+	private final Consumer<Matrix4L> shadowProjSetter = m -> copyMatrixF2L(shadowProjMatrix, m);
 
 	/**
 	 * Check if needs redrawn and prep for redraw if so.
@@ -137,7 +132,7 @@ public class ShadowOccluder extends AbstractOccluder {
 		// Compute center position in light space
 		final Vector4f lightSpaceRegionCenter = new Vector4f();
 		lightSpaceRegionCenter.set(regionPosition.cameraRelativeCenterX(), regionPosition.cameraRelativeCenterY(), regionPosition.cameraRelativeCenterZ(), 1.0f);
-		lightSpaceRegionCenter.transform(ShadowMatrixData.shadowViewMatrix);
+		lightSpaceRegionCenter.mul(ShadowMatrixData.shadowViewMatrix);
 
 		final float centerX = lightSpaceRegionCenter.x();
 		final float centerY = lightSpaceRegionCenter.y();

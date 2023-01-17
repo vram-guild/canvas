@@ -20,8 +20,9 @@
 
 package grondag.canvas.render.frustum;
 
+import org.joml.Matrix4f;
+
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -31,7 +32,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 import io.vram.frex.api.config.FlawlessFrames;
-import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
@@ -47,7 +47,6 @@ public class TerrainFrustum extends CanvasFrustum {
 	private final GameRendererExt grx = (GameRendererExt) gr;
 	private final PoseStack occlusionsProjStack = new PoseStack();
 	private final Matrix4f occlusionProjMat = occlusionsProjStack.last().pose();
-	private final FastMatrix4f occlusionProjMatEx = (FastMatrix4f) (Object) occlusionProjMat;
 
 	private int viewDistanceSquared;
 	private int viewVersion;
@@ -116,9 +115,9 @@ public class TerrainFrustum extends CanvasFrustum {
 
 		viewDistanceSquared = src.viewDistanceSquared;
 
-		modelMatrixExt.f_set(src.modelMatrixExt);
-		projectionMatrixExt.f_set(src.projectionMatrixExt);
-		mvpMatrixExt.f_set(src.mvpMatrixExt);
+		modelMatrix.set(src.modelMatrix);
+		projectionMatrix.set(src.projectionMatrix);
+		mvpMatrix.set(src.mvpMatrix);
 
 		leftX = src.leftX;
 		leftY = src.leftY;
@@ -218,7 +217,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			modelMatrixUpdate = dPitch * dPitch + dYaw * dYaw >= paddingFov * paddingFov;
 		}
 
-		final boolean projMatrixUpdate = !projectionMatrixExt.f_equals(occlusionProjMat);
+		final boolean projMatrixUpdate = !projectionMatrix.equals(occlusionProjMat);
 
 		if (movedEnoughToInvalidateOcclusion || modelMatrixUpdate || projMatrixUpdate) {
 			++viewVersion;
@@ -230,12 +229,12 @@ public class TerrainFrustum extends CanvasFrustum {
 			lastCameraPitch = cameraPitch;
 			lastCameraYaw = cameraYaw;
 
-			modelMatrixExt.f_set(modelMatrix);
-			projectionMatrixExt.f_set(occlusionProjMat);
+			modelMatrix.set(modelMatrix);
+			projectionMatrix.set(occlusionProjMat);
 
-			mvpMatrixExt.f_setIdentity();
-			mvpMatrixExt.f_mul(projectionMatrixExt);
-			mvpMatrixExt.f_mul(modelMatrixExt);
+			mvpMatrix.identity();
+			mvpMatrix.mul(projectionMatrix);
+			mvpMatrix.mul(modelMatrix);
 
 			// depends on mvpMatrix being complete
 			extractPlanes();
@@ -282,16 +281,16 @@ public class TerrainFrustum extends CanvasFrustum {
 	}
 
 	private void computeProjectionMatrix(Camera camera, float tickDelta, double padding) {
-		occlusionProjMat.setIdentity();
+		occlusionProjMat.identity();
 
 		if (grx.canvas_zoom() != 1.0F) {
 			final float zoom = grx.canvas_zoom();
-			occlusionProjMatEx.f_translate(grx.canvas_zoomX(), -grx.canvas_zoomY(), 0.0F);
-			occlusionProjMatEx.f_scale(zoom, zoom, 1.0F);
+			occlusionProjMat.translate(grx.canvas_zoomX(), -grx.canvas_zoomY(), 0.0F);
+			occlusionProjMat.scale(zoom, zoom, 1.0F);
 		}
 
 		// PERF: WHY 4X ON FAR CLIPPING PLANE MOJANG?
-		occlusionProjMat.multiply(Matrix4f.perspective(fov + padding, client.getWindow().getWidth() / (float) client.getWindow().getHeight(), 0.05F, gr.getRenderDistance() * 4.0F));
+		occlusionProjMat.mul(new Matrix4f().perspective((float) (fov + padding), client.getWindow().getWidth() / (float) client.getWindow().getHeight(), 0.05F, gr.getRenderDistance() * 4.0F));
 	}
 
 	public final RegionVisibilityTest visibilityTest = p -> {

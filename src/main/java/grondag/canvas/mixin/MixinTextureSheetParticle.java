@@ -20,12 +20,12 @@
 
 package grondag.canvas.mixin;
 
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -45,8 +45,8 @@ public abstract class MixinTextureSheetParticle extends SingleQuadParticle {
 		super(clientWorld, d, e, f);
 	}
 
-	private static final Quaternion quat = new Quaternion(0, 0, 0, 0);
-	private static final Quaternion auxQuat = new Quaternion(0, 0, 0, 0);
+	private static final Quaternionf quat = new Quaternionf(0, 0, 0, 0);
+	private static final Quaternionf auxQuat = new Quaternionf(0, 0, 0, 0);
 	private static final Vector3f vec = new Vector3f();
 
 	// slightly faster math and less allocation
@@ -57,17 +57,17 @@ public abstract class MixinTextureSheetParticle extends SingleQuadParticle {
 		final float cy = (float) (Mth.lerp(tickDelta, yo, y) - vec3d.y());
 		final float cz = (float) (Mth.lerp(tickDelta, zo, z) - vec3d.z());
 
-		final Quaternion rotation;
+		final Quaternionf rotation;
 
 		if (roll == 0.0F) {
 			rotation = camera.rotation();
 		} else {
-			final Quaternion cr = camera.rotation();
+			final Quaternionf cr = camera.rotation();
 			rotation = quat;
-			rotation.set(cr.i(), cr.j(), cr.k(), cr.r());
+			rotation.set(cr.x(), cr.y(), cr.z(), cr.w());
 			final float adjustedAngle = Mth.lerp(tickDelta, oRoll, roll);
-			final Quaternion radialRotation = auxQuat;
-			FrexMathUtil.setRadialRotation(radialRotation, Vector3f.ZP, adjustedAngle);
+			final Quaternionf radialRotation = auxQuat;
+			radialRotation.rotateZ(adjustedAngle);
 			rotation.mul(radialRotation);
 		}
 

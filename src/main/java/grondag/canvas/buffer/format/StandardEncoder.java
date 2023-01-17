@@ -33,8 +33,10 @@ import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_X;
 import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Y;
 import static io.vram.frex.base.renderer.mesh.MeshEncodingHelper.VERTEX_Z;
 
-import io.vram.frex.api.math.FastMatrix3f;
-import io.vram.frex.api.math.FastMatrix4f;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
+
+import io.vram.frex.api.math.FrexMathUtil;
 import io.vram.frex.api.model.InputContext;
 import io.vram.frex.base.renderer.context.input.AbsentInputContext;
 import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
@@ -48,8 +50,8 @@ public class StandardEncoder {
 
 	public static void encodeQuad(BaseQuadEmitter quad, InputContext inputContext, VertexCollector buff) {
 		final var matrixStack = inputContext.matrixStack();
-		final FastMatrix4f matrix = matrixStack.modelMatrix();
-		final FastMatrix3f normalMatrix = matrixStack.normalMatrix();
+		final Matrix4f matrix = matrixStack.modelMatrix();
+		final Matrix3f normalMatrix = matrixStack.normalMatrix();
 		final boolean isContextPresent = inputContext != AbsentInputContext.INSTANCE;
 
 		final CanvasRenderMaterial mat = (CanvasRenderMaterial) quad.material();
@@ -86,7 +88,7 @@ public class StandardEncoder {
 
 			if (p != packedNormal) {
 				packedNormal = p;
-				transformedNormal = isContextPresent ? normalMatrix.f_transformPacked3f(packedNormal) : packedNormal;
+				transformedNormal = isContextPresent ? FrexMathUtil.transformPacked3f(normalMatrix, packedNormal) : packedNormal;
 				normalSignBit = (transformedNormal >>> 23) & 1;
 				transformedNormal &= 0xFFFF;
 			}
@@ -95,7 +97,7 @@ public class StandardEncoder {
 
 			if (t != packedTangent) {
 				packedTangent = t;
-				transformedTangent = isContextPresent ? normalMatrix.f_transformPacked3f(packedTangent) : packedTangent;
+				transformedTangent = isContextPresent ? FrexMathUtil.transformPacked3f(normalMatrix, packedTangent) : packedTangent;
 				tangentSignBit = (transformedTangent >>> 23) & 1;
 				tangentInverseBit = (transformedTangent << 7) & 0x80000000;
 				transformedTangent = (transformedTangent & 0xFFFF) << 16;
@@ -105,9 +107,9 @@ public class StandardEncoder {
 			final float y = Float.intBitsToFloat(source[fromIndex + VERTEX_Y]);
 			final float z = Float.intBitsToFloat(source[fromIndex + VERTEX_Z]);
 
-			final float xOut = matrix.f_m00() * x + matrix.f_m10() * y + matrix.f_m20() * z + matrix.f_m30();
-			final float yOut = matrix.f_m01() * x + matrix.f_m11() * y + matrix.f_m21() * z + matrix.f_m31();
-			final float zOut = matrix.f_m02() * x + matrix.f_m12() * y + matrix.f_m22() * z + matrix.f_m32();
+			final float xOut = matrix.m00() * x + matrix.m10() * y + matrix.m20() * z + matrix.m30();
+			final float yOut = matrix.m01() * x + matrix.m11() * y + matrix.m21() * z + matrix.m31();
+			final float zOut = matrix.m02() * x + matrix.m12() * y + matrix.m22() * z + matrix.m32();
 
 			target[toIndex] = Float.floatToRawIntBits(xOut);
 			target[toIndex + 1] = Float.floatToRawIntBits(yOut);

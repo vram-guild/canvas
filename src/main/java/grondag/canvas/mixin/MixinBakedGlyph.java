@@ -20,6 +20,8 @@
 
 package grondag.canvas.mixin;
 
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,12 +29,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
 
 import net.minecraft.client.gui.font.glyphs.BakedGlyph;
-
-import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.canvas.mixinterface.BufferBuilderExt;
 
@@ -72,12 +70,11 @@ public abstract class MixinBakedGlyph {
 				&& extBuilder.canvas_canSupportDirect(DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP)
 				&& RenderSystem.isOnRenderThread() // This last is because we are using static vars
 		) {
-			final FastMatrix4f matrix = FastMatrix4f.cast(matrix4f);
 			final int color = (int) (red * 255.0F) | ((int) (green * 255.0F) << 8) | ((int) (blue * 255.0F) << 16) | ((int) (alpha * 255.0F) << 24);
 			int i = 0;
 
 			pos.set(x0 + obqTop, top, 0.0F);
-			matrix.f_transform(pos);
+			matrix4f.transformDirection(pos); // TODO: check if this is the right transform
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());
@@ -87,7 +84,7 @@ public abstract class MixinBakedGlyph {
 			quadData[i++] = lightmap;
 
 			pos.set(x0 + obqBotom, bottom, 0.0F);
-			matrix.f_transform(pos);
+			matrix4f.transformDirection(pos);
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());
@@ -97,7 +94,7 @@ public abstract class MixinBakedGlyph {
 			quadData[i++] = lightmap;
 
 			pos.set(x1 + obqBotom, bottom, 0.0F);
-			matrix.f_transform(pos);
+			matrix4f.transformDirection(pos);
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());
@@ -107,7 +104,7 @@ public abstract class MixinBakedGlyph {
 			quadData[i++] = lightmap;
 
 			pos.set(x1 + obqTop, top, 0.0F);
-			matrix.f_transform(pos);
+			matrix4f.transformDirection(pos);
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());
