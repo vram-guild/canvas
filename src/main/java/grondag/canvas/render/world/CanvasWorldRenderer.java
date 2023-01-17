@@ -861,8 +861,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// Unmanaged draws that do direct drawing will expect the matrix stack to have camera rotation in it and may
 		// use it either to transform the render state or to transform vertices.
 		// For this reason we have two different stacks.
-		identityStack.last().pose().setIdentity();
-		identityStack.last().normal().setIdentity();
+		identityStack.last().pose().identity();
+		identityStack.last().normal().identity();
 
 		final Matrix4f viewMatrix = viewMatrixStack.last().pose();
 		worldRenderState.terrainFrustum.prepare(viewMatrix, tickDelta, camera, worldRenderState.terrainIterator.cameraVisibility.hasNearOccluders());
