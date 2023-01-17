@@ -31,6 +31,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
+import grondag.canvas.config.gui.BaseButton;
 import grondag.canvas.config.gui.ListItem;
 
 public abstract class OptionItem<T> extends ListItem implements Option {
@@ -66,7 +67,7 @@ public abstract class OptionItem<T> extends ListItem implements Option {
 	}
 
 	protected final void createWidget(int x, int y, int width, int height) {
-		resetButton = new Button(x + width - RESET_BUTTON_WIDTH, y, RESET_BUTTON_WIDTH, height, RESET, this::doReset);
+		resetButton = new BaseButton(x + width - RESET_BUTTON_WIDTH, y, RESET_BUTTON_WIDTH, height, RESET, this::doReset);
 		createSetterWidget(x, y, width - RESET_BUTTON_WIDTH, height);
 		add(resetButton);
 		refreshResetButton();

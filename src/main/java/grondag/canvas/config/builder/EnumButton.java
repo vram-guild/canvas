@@ -30,6 +30,8 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 
+import grondag.canvas.config.gui.BaseButton;
+
 public class EnumButton<T> extends OptionItem<T> {
 	private final T[] values;
 	private int cycleIndex;
@@ -49,7 +51,7 @@ public class EnumButton<T> extends OptionItem<T> {
 
 	@Override
 	protected void createSetterWidget(int x, int y, int width, int height) {
-		cycler = new Button(x, y, width - 2, height, fullLabel(), this::onUserCycle);
+		cycler = new BaseButton(x, y, width - 2, height, fullLabel(), this::onUserCycle);
 		add(cycler);
 	}
 

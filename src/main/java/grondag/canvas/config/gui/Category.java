@@ -60,12 +60,12 @@ class Category extends ListItem {
 		public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
 			if (title != NULL_TITLE) {
 				int titleWidth = this.client.font.width(this.title);
-				int titleX = x + (this.getWidth() / 2 - titleWidth / 2);
-				drawString(matrices, this.client.font, this.title, titleX, y, 0xffffffff);
+				int titleX = getX() + (this.getWidth() / 2 - titleWidth / 2);
+				drawString(matrices, this.client.font, this.title, titleX, getY(), 0xffffffff);
 
 				if (this.width > titleWidth) {
-					fill(matrices, x, y + 4, titleX - 5, y + 6, 0x66ffffff);
-					fill(matrices, titleX + titleWidth + 5, y + 4, x + this.getWidth(), y + 6, 0x66ffffff);
+					fill(matrices, getX(), getY() + 4, titleX - 5, getY() + 6, 0x66ffffff);
+					fill(matrices, titleX + titleWidth + 5, getY() + 4, getX() + this.getWidth(), getY() + 6, 0x66ffffff);
 				}
 			}
 		}
@@ -76,7 +76,7 @@ class Category extends ListItem {
 		}
 
 		@Override
-		public void updateNarration(NarrationElementOutput narrationElementOutput) {
+		protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
 			narrationElementOutput.add(NarratedElementType.TITLE, this.createNarrationMessage());
 		}
 	}

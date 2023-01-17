@@ -38,6 +38,7 @@ import net.minecraft.util.FormattedCharSequence;
 import grondag.canvas.config.builder.Buttons;
 import grondag.canvas.config.builder.OptionSession;
 import grondag.canvas.config.gui.ActionItem;
+import grondag.canvas.config.gui.BaseButton;
 import grondag.canvas.config.gui.BaseScreen;
 import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.pipeline.config.PipelineConfig;
@@ -110,8 +111,8 @@ public class PipelineOptionScreen extends BaseScreen {
 			}
 		}
 
-		final var saveButton = this.addRenderableWidget(new Button(this.width / 2 + 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
-		this.addRenderableWidget(new Button(this.width / 2 - 120 - 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> onClose()));
+		final var saveButton = this.addRenderableWidget(new BaseButton(this.width / 2 + 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_DONE, b -> save()));
+		this.addRenderableWidget(new BaseButton(this.width / 2 - 120 - 1, this.height - 35 + 6, 120 - 2, 20, CommonComponents.GUI_CANCEL, b -> onClose()));
 
 		optionSession.setSaveButton(saveButton);
 	}

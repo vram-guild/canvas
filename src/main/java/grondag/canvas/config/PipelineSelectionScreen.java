@@ -32,6 +32,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
+import grondag.canvas.config.gui.BaseButton;
 import grondag.canvas.config.gui.BaseScreen;
 import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.pipeline.config.PipelineConfig;
@@ -71,7 +72,7 @@ public class PipelineSelectionScreen extends BaseScreen {
 		}
 
 		addRenderableWidget(list);
-		addRenderableWidget(new Button(this.width / 2 - 120 / 2, this.height - 35 + 6, 120, 20, CommonComponents.GUI_DONE, b -> save()));
+		addRenderableWidget(new BaseButton(this.width / 2 - 120 / 2, this.height - 35 + 6, 120, 20, CommonComponents.GUI_DONE, b -> save()));
 	}
 
 	private void save() {

@@ -72,7 +72,7 @@ public abstract class ListItem extends ContainerObjectSelectionList.Entry<ListIt
 	@Override
 	public final void render(@NotNull PoseStack poseStack, int i, int scrollY, int left, int l, int m, int mouseX, int mouseY, boolean bl, float f) {
 		this.children.forEach((child) -> {
-			child.y = scrollY;
+			child.setY(scrollY);
 			child.render(poseStack, mouseX, mouseY, f);
 		});
 	}

@@ -31,6 +31,6 @@ public class CanvasButtonWidget extends Button {
 	public static Screen parent;
 
 	public CanvasButtonWidget(int x, int y, int width, int height, Component text) {
-		super(x, y, width, height, text, button -> Minecraft.getInstance().setScreen(new CanvasConfigScreen(parent)));
+		super(x, y, width, height, text, button -> Minecraft.getInstance().setScreen(new CanvasConfigScreen(parent)), DEFAULT_NARRATION);
 	}
 }

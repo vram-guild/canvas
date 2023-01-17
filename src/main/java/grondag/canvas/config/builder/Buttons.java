@@ -28,15 +28,17 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
+import grondag.canvas.config.gui.BaseButton;
+
 public class Buttons {
 	/**
 	 * Helps in deciphering button constructor params.
 	 */
 	public static Button create(int x, int y, int width, int height, Component message, Button.OnPress action) {
-		return new Button(x, y, width, height, message, action);
+		return new BaseButton(x, y, width, height, message, action);
 	}
 
-	public static class CustomButton extends Button {
+	public static class CustomButton extends BaseButton {
 		public CustomButton(int i, int j, int k, int l, Component component, OnPress onPress) {
 			super(i, j, k, l, component, onPress);
 		}
@@ -45,7 +47,7 @@ public class Buttons {
 			final int l = this.active ? 16777215 : 10526880;
 			@SuppressWarnings("resource")
 			final Font font = Minecraft.getInstance().font;
-			drawCenteredString(poseStack, font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
+			drawCenteredString(poseStack, font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
 		}
 	}
 
@@ -56,6 +58,9 @@ public class Buttons {
 
 		@Override
 		public void renderButton(PoseStack poseStack, int i, int j, float f) {
+			final int x = getX();
+			final int y = getY();
+
 			if (this.isHoveredOrFocused()) {
 				fill(poseStack, x, y, x + width, y + height - 3, 0x66FFFFFF);
 			}
@@ -73,6 +78,9 @@ public class Buttons {
 
 		@Override
 		public void renderButton(PoseStack poseStack, int i, int j, float f) {
+			final int x = getX();
+			final int y = getY();
+
 			if (isHoveredOrFocused()) {
 				fill(poseStack, x, y, x + width, y + height, 0x66FFFFFF);
 			}
@@ -86,7 +94,7 @@ public class Buttons {
 		}
 	}
 
-	public static class BrowseButton extends Button {
+	public static class BrowseButton extends BaseButton {
 		public BrowseButton(int x, int y, int width, int height, Component message, Button.OnPress action) {
 			super(x, y, width, height, message, action);
 		}
@@ -100,8 +108,8 @@ public class Buttons {
 			// fill(ps, x + width - boxW / 2 - box / 2, y + boxW / 2 - box / 2, x + width - boxW / 2 + box / 2, y + height - boxW / 2 + box / 2, 0xFFFFFFFF);
 
 			for (int i = 0; i < box / 2; i++) {
-				drawArrowShadow(ps, i, x, y, boxW, box);
-				drawArrow(ps, i, x, y, boxW, box);
+				drawArrowShadow(ps, i, getX(), getY(), boxW, box);
+				drawArrow(ps, i, getX(), getY(), boxW, box);
 			}
 		}
 

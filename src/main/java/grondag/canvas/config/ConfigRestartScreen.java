@@ -29,6 +29,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
+import grondag.canvas.config.gui.BaseButton;
 import grondag.canvas.config.gui.BaseScreen;
 
 public class ConfigRestartScreen extends BaseScreen {
@@ -46,8 +47,8 @@ public class ConfigRestartScreen extends BaseScreen {
 			this.lines = this.font.split(Component.translatable("config.canvas.restart.prompt"), 320);
 		}
 
-		this.addRenderableWidget(new Button(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.accept"), b -> restart()));
-		this.addRenderableWidget(new Button(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.ignore"), b -> onClose()));
+		this.addRenderableWidget(new BaseButton(this.width / 2 - 160 - 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.accept"), b -> restart()));
+		this.addRenderableWidget(new BaseButton(this.width / 2 + 1, this.height / 2 - 100 + lines.size() * 16 + 60, 160 - 2, 20, Component.translatable("config.canvas.restart.ignore"), b -> onClose()));
 	}
 
 	private void restart() {
