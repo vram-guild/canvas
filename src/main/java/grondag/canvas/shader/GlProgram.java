@@ -1060,7 +1060,7 @@ public class GlProgram {
 				return;
 			}
 
-			FrexMathUtil.writeToBuffer(matrix, 0, uniformFloatBuffer);
+			matrix.get(0, uniformFloatBuffer);
 
 			setDirty();
 		}
@@ -1107,7 +1107,7 @@ public class GlProgram {
 
 			lastValue.set(matrix);
 
-			FrexMathUtil.writeToBuffer(matrix, uniformFloatBuffer);
+			matrix.get(uniformFloatBuffer);
 
 			setDirty();
 		}

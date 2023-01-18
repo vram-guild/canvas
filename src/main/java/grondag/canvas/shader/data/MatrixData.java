@@ -40,47 +40,47 @@ public final class MatrixData {
 
 	static void update(PoseStack.Pose view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
 		// write values for prior frame before updating
-		FrexMathUtil.writeToBuffer(viewMatrix, VIEW_LAST * 16, MATRIX_DATA);
-		FrexMathUtil.writeToBuffer(projMatrix, PROJ_LAST * 16, MATRIX_DATA);
-		FrexMathUtil.writeToBuffer(viewProjMatrix, VP_LAST * 16, MATRIX_DATA);
-		FrexMathUtil.writeToBuffer(cleanProjMatrix, CLEAN_PROJ_LAST * 16, MATRIX_DATA);
-		FrexMathUtil.writeToBuffer(cleanViewProjMatrix, CLEAN_VP_LAST * 16, MATRIX_DATA);
+		viewMatrix.get(VIEW_LAST * 16, MATRIX_DATA);
+		projMatrix.get(PROJ_LAST * 16, MATRIX_DATA);
+		viewProjMatrix.get(VP_LAST * 16, MATRIX_DATA);
+		cleanProjMatrix.get(CLEAN_PROJ_LAST * 16, MATRIX_DATA);
+		cleanViewProjMatrix.get(CLEAN_VP_LAST * 16, MATRIX_DATA);
 
 		viewNormalMatrix.set(view.normal());
 
 		viewMatrix.set(view.pose());
-		FrexMathUtil.writeToBuffer(viewMatrix, VIEW * 16, MATRIX_DATA);
+		viewMatrix.get(VIEW * 16, MATRIX_DATA);
 		projMatrix.set(projectionMatrix);
-		FrexMathUtil.writeToBuffer(projMatrix, PROJ * 16, MATRIX_DATA);
+		projMatrix.get(PROJ * 16, MATRIX_DATA);
 
 		viewMatrixInv.set(viewMatrix);
 		// reliable inversion of rotation matrix
 		viewMatrixInv.transpose();
-		FrexMathUtil.writeToBuffer(viewMatrixInv, VIEW_INVERSE * 16, MATRIX_DATA);
+		viewMatrixInv.get(VIEW_INVERSE * 16, MATRIX_DATA);
 
 		projMatrixInv.set(projMatrix);
 		projMatrixInv.invert();
-		FrexMathUtil.writeToBuffer(projMatrixInv, PROJ_INVERSE * 16, MATRIX_DATA);
+		projMatrixInv.get(PROJ_INVERSE * 16, MATRIX_DATA);
 
 		viewProjMatrix.set(projMatrix);
 		viewProjMatrix.mul(viewMatrix);
-		FrexMathUtil.writeToBuffer(viewProjMatrix, VP * 16, MATRIX_DATA);
+		viewProjMatrix.get(VP * 16, MATRIX_DATA);
 
 		viewProjMatrixInv.set(viewMatrixInv);
 		viewProjMatrixInv.mul(projMatrixInv);
-		FrexMathUtil.writeToBuffer(viewProjMatrixInv, VP_INVERSE * 16, MATRIX_DATA);
+		viewProjMatrixInv.get(VP_INVERSE * 16, MATRIX_DATA);
 
 		computeCleanProjection(camera, tickDelta);
-		FrexMathUtil.writeToBuffer(cleanProjMatrix, CLEAN_PROJ * 16, MATRIX_DATA);
-		FrexMathUtil.writeToBuffer(cleanProjMatrixInv, CLEAN_PROJ_INVERSE * 16, MATRIX_DATA);
+		cleanProjMatrix.get(CLEAN_PROJ * 16, MATRIX_DATA);
+		cleanProjMatrixInv.get(CLEAN_PROJ_INVERSE * 16, MATRIX_DATA);
 
 		cleanViewProjMatrix.set(cleanProjMatrix);
 		cleanViewProjMatrix.mul(viewMatrix);
-		FrexMathUtil.writeToBuffer(cleanViewProjMatrix, CLEAN_VP * 16, MATRIX_DATA);
+		cleanViewProjMatrix.get(CLEAN_VP * 16, MATRIX_DATA);
 
 		cleanViewProjMatrixInv.set(viewMatrixInv);
 		cleanViewProjMatrixInv.mul(cleanProjMatrixInv);
-		FrexMathUtil.writeToBuffer(cleanViewProjMatrixInv, CLEAN_VP_INVERSE * 16, MATRIX_DATA);
+		cleanViewProjMatrixInv.get(CLEAN_VP_INVERSE * 16, MATRIX_DATA);
 
 		//cleanFrustum.prepare(viewMatrix, tickDelta, camera, cleanProjMatrix);
 		//cleanFrustum.computeCircumCenter(viewMatrixInv, cleanProjMatrixInv);

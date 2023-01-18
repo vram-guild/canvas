@@ -255,19 +255,19 @@ public final class ShadowMatrixData {
 		computeShadowMatrices(camera, tickDelta, skyoutput);
 
 		// shadow perspective were computed earlier
-		FrexMathUtil.writeToBuffer(shadowViewMatrix, SHADOW_VIEW * 16, MATRIX_DATA);
+		shadowViewMatrix.get(SHADOW_VIEW * 16, MATRIX_DATA);
 
 		shadowViewMatrixInv.set(shadowViewMatrix);
 		// reliable inversion of rotation matrix
 		shadowViewMatrixInv.transpose();
-		FrexMathUtil.writeToBuffer(shadowViewMatrixInv, SHADOW_VIEW_INVERSE * 16, MATRIX_DATA);
+		shadowViewMatrixInv.get(SHADOW_VIEW_INVERSE * 16, MATRIX_DATA);
 
 		for (int i = 0; i < CASCADE_COUNT; ++i) {
-			FrexMathUtil.writeToBuffer(shadowProjMatrix[i], (SHADOW_PROJ_0 + i) * 16, MATRIX_DATA);
+			shadowProjMatrix[i].get((SHADOW_PROJ_0 + i) * 16, MATRIX_DATA);
 
 			shadowViewProjMatrix[i].set(shadowProjMatrix[i]);
 			shadowViewProjMatrix[i].mul(shadowViewMatrix);
-			FrexMathUtil.writeToBuffer(shadowViewProjMatrix[i], (SHADOW_VIEW_PROJ_0 + i) * 16, MATRIX_DATA);
+			shadowViewProjMatrix[i].get((SHADOW_VIEW_PROJ_0 + i) * 16, MATRIX_DATA);
 		}
 	}
 

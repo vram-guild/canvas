@@ -45,8 +45,7 @@ public class TerrainFrustum extends CanvasFrustum {
 	private final Minecraft client = Minecraft.getInstance();
 	private final GameRenderer gr = client.gameRenderer;
 	private final GameRendererExt grx = (GameRendererExt) gr;
-	private final PoseStack occlusionsProjStack = new PoseStack();
-	private final Matrix4f occlusionProjMat = occlusionsProjStack.last().pose();
+	private final Matrix4f occlusionProjMat = new Matrix4f();
 
 	private int viewDistanceSquared;
 	private int viewVersion;

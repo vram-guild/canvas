@@ -59,7 +59,7 @@ class ProgramPass extends Pass {
 			height >>= lod;
 		}
 
-		final Matrix4f orthoMatrix = new Matrix4f().orthoSymmetric(width, -height, 1000.0F, 3000.0F);
+		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0, width, height, 0, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, width, height);
 
 		final int slimit = textures.texIds.length;
