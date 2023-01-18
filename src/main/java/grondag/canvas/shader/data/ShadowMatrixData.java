@@ -33,7 +33,6 @@ import static grondag.canvas.shader.data.ShaderDataManager.cameraZd;
 import static grondag.canvas.shader.data.ShaderDataManager.skyLightVector;
 
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import net.minecraft.client.Camera;
@@ -65,6 +64,7 @@ public final class ShadowMatrixData {
 	static {
 		for (int i = 0; i < CASCADE_COUNT; ++i) {
 			shadowProjMatrix[i] = new Matrix4f();
+
 			shadowViewProjMatrix[i] = new Matrix4f();
 		}
 	}
@@ -120,6 +120,7 @@ public final class ShadowMatrixData {
 		// Compute sky light vector transform - points towards the sun
 		shadowViewMatrix.identity();
 		// FEAT: allow this to be configured by dimension - default value has north-south axis of rotation
+		// TODO: validate handedness
 		shadowViewMatrix.rotateY((float) Math.toRadians(-90));
 		shadowViewMatrix.rotateZ((float) Math.toRadians(skyOutput.zenithAngle));
 		shadowViewMatrix.rotateX((float) Math.toRadians(skyOutput.hourAngle));
@@ -130,7 +131,7 @@ public final class ShadowMatrixData {
 		// Use the unit vector we just computed to create a view matrix from perspective of the sky light.
 		// Distance here isn't too picky, we need to ensure it is far enough away to contain any shadow-casting
 		// geometry but not far enough to lose much precision in the depth (Z) dimension.
-		shadowViewMatrix.lookAt(
+		shadowViewMatrix.setLookAt(
 			skyLightVector.x() * radius, skyLightVector.y() * radius, skyLightVector.z() * radius,
 			0, 0, 0,
 			0.0f, 0.0f, 1.0f);
@@ -228,7 +229,7 @@ public final class ShadowMatrixData {
 
 		// Construct ortho matrix using bounding sphere/box computed above.
 		// Should give us a consistent size each frame, which helps prevent shimmering.
-		shadowProjMatrix[cascade].ortho(
+		shadowProjMatrix[cascade].setOrtho(
 			cx - radius, cx + radius,
 			cy - radius, cy + radius,
 			-(cz + depthRadius), -(cz - depthRadius));

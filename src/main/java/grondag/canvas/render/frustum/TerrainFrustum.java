@@ -290,7 +290,7 @@ public class TerrainFrustum extends CanvasFrustum {
 		}
 
 		// PERF: WHY 4X ON FAR CLIPPING PLANE MOJANG?
-		occlusionProjMat.mul(new Matrix4f().perspective((float) (fov + padding), client.getWindow().getWidth() / (float) client.getWindow().getHeight(), 0.05F, gr.getRenderDistance() * 4.0F));
+		occlusionProjMat.perspective((float) Math.toRadians(fov + padding), (float) client.getWindow().getWidth() / (float) client.getWindow().getHeight(), 0.05F, gr.getRenderDistance() * 4.0F);
 	}
 
 	public final RegionVisibilityTest visibilityTest = p -> {

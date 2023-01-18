@@ -74,7 +74,7 @@ public abstract class MixinBakedGlyph {
 			int i = 0;
 
 			pos.set(x0 + obqTop, top, 0.0F);
-			matrix4f.transformDirection(pos); // TODO: check if this is the right transform
+			matrix4f.transformDirection(pos);
 			quadData[i++] = Float.floatToRawIntBits(pos.x());
 			quadData[i++] = Float.floatToRawIntBits(pos.y());
 			quadData[i++] = Float.floatToRawIntBits(pos.z());

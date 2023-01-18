@@ -64,10 +64,11 @@ public abstract class MixinTextureSheetParticle extends SingleQuadParticle {
 		} else {
 			final Quaternionf cr = camera.rotation();
 			rotation = quat;
-			rotation.set(cr.x(), cr.y(), cr.z(), cr.w());
+			rotation.set(cr);
 			final float adjustedAngle = Mth.lerp(tickDelta, oRoll, roll);
 			final Quaternionf radialRotation = auxQuat;
-			radialRotation.rotateZ(adjustedAngle);
+			// TODO: validate handedness?
+			radialRotation.rotationZ(adjustedAngle);
 			rotation.mul(radialRotation);
 		}
 

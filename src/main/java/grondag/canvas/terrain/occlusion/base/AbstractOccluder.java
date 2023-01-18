@@ -85,7 +85,7 @@ public abstract class AbstractOccluder extends BoxOccluder {
 
 	/**
 	 * Convenience for {@link #prepareRegion(RegionPosition)} followed
-	 * by {@link #isBoxVisible(int)} with full box. Use when known this
+	 * by {@link #isBoxVisible(int, int)} Visible(int)} with full box. Use when known this
 	 * will be the only test. Otherwise more efficient to call {@link #prepareRegion(RegionPosition)} 1X.
 	 */
 	public final boolean isEmptyRegionVisible(BlockPos origin, int fuzz) {

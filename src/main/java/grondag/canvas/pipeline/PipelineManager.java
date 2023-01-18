@@ -166,7 +166,8 @@ public class PipelineManager {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
-		final Matrix4f orthoMatrix = new Matrix4f().orthoSymmetric(w, -h, 1000.0F, 3000.0F);
+		//TODO: validate
+		final Matrix4f orthoMatrix = new Matrix4f().setOrthoSymmetric(w, -h, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);

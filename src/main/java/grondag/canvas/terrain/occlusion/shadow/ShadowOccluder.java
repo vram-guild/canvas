@@ -47,6 +47,7 @@ import grondag.canvas.terrain.region.RegionPosition;
 
 public class ShadowOccluder extends AbstractOccluder {
 	private final Matrix4f shadowViewMatrix = new Matrix4f();
+
 	public final Matrix4f shadowProjMatrix = new Matrix4f();
 
 	private final Vector3f lastVersionedLightVector = new Vector3f();

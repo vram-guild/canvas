@@ -38,12 +38,6 @@ import grondag.canvas.mixinterface.GameRendererExt;
 public final class MatrixData {
 	private MatrixData() { }
 
-	private static final Matrix3f IDENTITY = new Matrix3f();
-
-	static {
-		IDENTITY.identity();
-	}
-
 	static void update(PoseStack.Pose view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
 		// write values for prior frame before updating
 		FrexMathUtil.writeToBuffer(viewMatrix, VIEW_LAST * 16, MATRIX_DATA);
@@ -107,7 +101,7 @@ public final class MatrixData {
 			cleanProjMatrix.scale(zoom, zoom, 1.0F);
 		}
 
-		cleanProjMatrix.mul(new Matrix4f().perspective((float) gx.canvas_getFov(camera, tickDelta, true), (float) mc.getWindow().getWidth() / (float) mc.getWindow().getHeight(), 0.05F, mc.gameRenderer.getRenderDistance()));
+		cleanProjMatrix.perspective((float) Math.toRadians(gx.canvas_getFov(camera, tickDelta, true)), (float) mc.getWindow().getWidth() / (float) mc.getWindow().getHeight(), 0.05F, mc.gameRenderer.getRenderDistance() * 4.0f);
 
 		cleanProjMatrixInv.set(cleanProjMatrix);
 		cleanProjMatrixInv.invert();

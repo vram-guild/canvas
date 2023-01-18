@@ -58,9 +58,7 @@ public abstract class CanvasFrustum extends Frustum {
 	}
 
 	protected static Matrix4f dummyMatrix() {
-		final Matrix4f dummy = new Matrix4f();
-		dummy.identity();
-		return dummy;
+		return new Matrix4f();
 	}
 
 	public final Matrix4f projectionMatrix() {
