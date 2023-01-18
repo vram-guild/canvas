@@ -142,13 +142,13 @@ public class FastFrustum extends CanvasFrustum {
 		circumCenterZ = ncz + centerFactor * (fcz - ncz);
 	}
 
-	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, Matrix4f projectionMatrix) {
+	public void prepare(Matrix4f viewMatrix, float tickDelta, Camera camera, Matrix4f projectionMatrix) {
 		final Vec3 vec = camera.getPosition();
 		lastCameraX = vec.x;
 		lastCameraY = vec.y;
 		lastCameraZ = vec.z;
 
-		modelMatrix.set(modelMatrix);
+		modelMatrix.set(viewMatrix);
 		projectionMatrix.set(projectionMatrix);
 
 		mvpMatrix.identity();

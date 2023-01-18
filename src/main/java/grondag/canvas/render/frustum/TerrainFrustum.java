@@ -171,7 +171,7 @@ public class TerrainFrustum extends CanvasFrustum {
 	}
 
 	@SuppressWarnings("resource")
-	public void prepare(Matrix4f modelMatrix, float tickDelta, Camera camera, boolean nearOccludersPresent) {
+	public void prepare(Matrix4f viewMatrix, float tickDelta, Camera camera, boolean nearOccludersPresent) {
 		final Vec3 cameraPos = camera.getPosition();
 		final double x = cameraPos.x;
 		final double y = cameraPos.y;
@@ -228,7 +228,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			lastCameraPitch = cameraPitch;
 			lastCameraYaw = cameraYaw;
 
-			modelMatrix.set(modelMatrix);
+			modelMatrix.set(viewMatrix);
 			projectionMatrix.set(occlusionProjMat);
 
 			mvpMatrix.identity();
