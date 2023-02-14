@@ -52,8 +52,15 @@ public class CanvasTextureState {
 		}
 	}
 
-	public static int getActiveBoundTexture() {
-		return BOUND_TEXTURES[activeTextureUnit];
+	public static int getBoundTexture(int textureUnit) {
+		return BOUND_TEXTURES[textureUnit - GFX.GL_TEXTURE0];
+	}
+
+	public static void ensureTextureOfTextureUnit(int textureUnit, int target, int texture) {
+		if(getBoundTexture(textureUnit) != texture) {
+			activeTextureUnit(textureUnit);
+			bindTexture(target, texture);
+		}
 	}
 
 	public static void activeTextureUnit(int textureUnit) {
