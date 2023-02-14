@@ -57,7 +57,7 @@ public class CanvasTextureState {
 	}
 
 	public static void ensureTextureOfTextureUnit(int textureUnit, int target, int texture) {
-		if(getBoundTexture(textureUnit) != texture) {
+		if (getBoundTexture(textureUnit) != texture) {
 			activeTextureUnit(textureUnit);
 			bindTexture(target, texture);
 		}

@@ -166,10 +166,8 @@ public class PipelineManager {
 		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0.0F, (float)w, (float)h, 0.0F, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
-		CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0);
-		//GlStateManager.disableTexture();
 
-		CanvasTextureState.bindTexture(target, glId);
+		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0, target, glId);
 
 		boolean isLayered = target == GFX.GL_TEXTURE_2D_ARRAY;
 
