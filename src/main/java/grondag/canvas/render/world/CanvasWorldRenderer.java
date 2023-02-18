@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
+import grondag.canvas.compat.FlywheelHolder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -628,6 +629,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		}
 
 		blockContext.encoder.collectors = immediate.collectors;
+		FlywheelHolder.handler.renderCrumbling(world, camera, identityStack);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "outline");
 		final HitResult hitResult = mc.hitResult;

@@ -19,15 +19,23 @@ plugins {
 
 ext.platform_name = 'fabric'
 ext.loader_version = '0.14.11'
-ext.fabric_version = '0.68.0+1.19.2'
+ext.fabric_version = '0.73.2+1.19.2'
 
 apply from: '../project_common.gradle'
 apply from: 'project.gradle'
 apply from: '../gruntle_common.gradle'
 
+repositories {
+	maven {
+		name "tterrag maven"
+		url "https://maven.tterrag.com/"
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 	mappings loom.officialMojangMappings()
+	modCompileOnly "com.jozufozu.flywheel:flywheel-fabric-1.19.2:0.6.8.a-4"
 }
 
 // Hat tip to JellySquid

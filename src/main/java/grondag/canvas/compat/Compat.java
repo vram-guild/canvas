@@ -20,6 +20,7 @@
 
 package grondag.canvas.compat;
 
+import grondag.canvas.render.world.CanvasWorldRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -47,11 +48,17 @@ public class Compat {
 		});
 
 		FrustumSetupListener.register(ctx -> {
+			FlywheelHolder.handler.beginFrame(ctx.world(), ctx.camera(), ctx.frustum());
 			LitematicaHolder.litematicaTerrainSetup.accept(ctx.frustum());
 		});
 
 		// [WorldEventHelper]
 		EntityRenderPreListener.register(ctx -> {
+			WorldEventHelper.useIdentityStack(ctx, () -> {
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.solid());
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.cutoutMipped());
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.cutout());
+			});
 			WorldEventHelper.useViewStack(ctx, () -> {
 				/* USES custom draw call and expects view matrix */
 				LitematicaHolder.litematicaRenderSolids.accept(ctx.poseStack(), ctx.projectionMatrix());
@@ -80,6 +87,9 @@ public class Compat {
 
 		// [WorldEventHelper]
 		TranslucentPostListener.register(ctx -> {
+			WorldEventHelper.useIdentityStack(ctx, () -> {
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.translucent());
+			});
 			JustMapHolder.justMapRender.renderWaypoints(ctx.poseStack(), ctx.camera(), ctx.tickDelta());
 			final Vec3 cameraPos = ctx.camera().getPosition();
 			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderType.translucent(), ctx.poseStack(), cameraPos.x(), cameraPos.y(), cameraPos.z());
@@ -112,6 +122,7 @@ public class Compat {
 
 		RenderReloadListener.register(() -> {
 			LitematicaHolder.litematicaReload.run();
+			FlywheelHolder.handler.refresh(CanvasWorldRenderer.instance().worldRenderState.getWorld());
 		});
 	}
 }
