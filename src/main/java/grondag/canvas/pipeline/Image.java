@@ -61,10 +61,12 @@ public class Image {
 				GFX.texParameter(config.target, params[i], params[++i]);
 			}
 
-			GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LEVEL, config.lod);
-			GFX.texParameter(config.target, GFX.GL_TEXTURE_MIN_LOD, 0);
-			GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LOD, config.lod);
-			GFX.texParameter(config.target, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
+			if(config.lod > 0) {
+				GFX.texParameter(config.target, GFX.GL_TEXTURE_MIN_LOD, 0);
+				GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LOD, config.lod);
+				GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LEVEL, config.lod);
+				GFX.texParameter(config.target, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
+			}
 
 			for (int i = 0; i <= config.lod; ++i) {
 				if (config.target == GFX.GL_TEXTURE_3D) {
