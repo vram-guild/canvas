@@ -133,7 +133,7 @@ public class GlShader implements Shader {
 
 			source = getSource();
 
-			safeShaderSource(glId, source);
+			GFX.shaderSource(glId, new String[] { source });
 			GFX.glCompileShader(glId);
 
 			if (GFX.glGetShaderi(glId, GFX.GL_COMPILE_STATUS) == GFX.GL_FALSE) {
@@ -193,31 +193,6 @@ public class GlShader implements Shader {
 			}
 
 			GFX.objectLabel(GFX.GL_SHADER, glId, name);
-		}
-	}
-
-	/**
-	 * Identical in function to {@link GL20C#glShaderSource(int, CharSequence)} but
-	 * passes a null pointer for string length to force the driver to rely on the null
-	 * terminator for string length.  This is a workaround for an apparent flaw with some
-	 * AMD drivers that don't receive or interpret the length correctly, resulting in
-	 * an access violation when the driver tries to read past the string memory.
-	 *
-	 * <p>Hat tip to fewizz for the find and the fix.
-	 */
-	private static void safeShaderSource(@NativeType("GLuint") int glId, @NativeType("GLchar const **") CharSequence source) {
-		final MemoryStack stack = stackGet();
-		final int stackPointer = stack.getPointer();
-
-		try {
-			final ByteBuffer sourceBuffer = MemoryUtil.memUTF8(source, true);
-			final PointerBuffer pointers = stack.mallocPointer(1);
-			pointers.put(sourceBuffer);
-
-			GL21.nglShaderSource(glId, 1, pointers.address0(), 0);
-			org.lwjgl.system.APIUtil.apiArrayFree(pointers.address0(), 1);
-		} finally {
-			stack.setPointer(stackPointer);
 		}
 	}
 
