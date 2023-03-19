@@ -61,40 +61,25 @@ public class Image {
 				GFX.texParameter(config.target, params[i], params[++i]);
 			}
 
-			if (config.target == GFX.GL_TEXTURE_2D_ARRAY || config.target == GFX.GL_TEXTURE_3D) {
-				GFX.texImage3D(config.target, 0, config.internalFormat, width, height, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-			} else if (config.target == GFX.GL_TEXTURE_CUBE_MAP) {
-				for (int face = 0; face < 6; ++face) {
-					GFX.texImage2D(GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, config.internalFormat, width, height, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-				}
-			} else {
-				assert config.target == GFX.GL_TEXTURE_2D;
-				GFX.texImage2D(config.target, 0, config.internalFormat, width, height, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			if(config.lod > 0) {
+				GFX.texParameter(config.target, GFX.GL_TEXTURE_MIN_LOD, 0);
+				GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LOD, config.lod);
+				GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LEVEL, config.lod);
+				GFX.texParameter(config.target, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
 			}
 
-			if (config.lod > 0) {
-				setupLod();
-			}
-		}
-	}
-
-	private void setupLod() {
-		GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LEVEL, config.lod);
-		GFX.texParameter(config.target, GFX.GL_TEXTURE_MIN_LOD, 0);
-		GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LOD, config.lod);
-		GFX.texParameter(config.target, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
-
-		for (int i = 1; i <= config.lod; ++i) {
-			if (config.target == GFX.GL_TEXTURE_3D) {
-				GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-			} else if (config.target == GFX.GL_TEXTURE_2D_ARRAY) {
-				GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-			} else if (config.target == GFX.GL_TEXTURE_CUBE_MAP) {
-				for (int face = 0; face < 6; ++face) {
-					GFX.texImage2D(GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			for (int i = 0; i <= config.lod; ++i) {
+				if (config.target == GFX.GL_TEXTURE_3D) {
+					GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				} else if (config.target == GFX.GL_TEXTURE_2D_ARRAY) {
+					GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				} else if (config.target == GFX.GL_TEXTURE_CUBE_MAP) {
+					for (int face = 0; face < 6; ++face) {
+						GFX.texImage2D(GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+					}
+				} else {
+					GFX.texImage2D(config.target, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 				}
-			} else {
-				GFX.texImage2D(config.target, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 			}
 		}
 	}
