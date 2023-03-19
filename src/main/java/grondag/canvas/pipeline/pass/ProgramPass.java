@@ -65,8 +65,7 @@ class ProgramPass extends Pass {
 		final int slimit = textures.texIds.length;
 
 		for (int i = 0; i < slimit; ++i) {
-			CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0 + i);
-			CanvasTextureState.bindTexture(textures.texTargets[i], textures.texIds[i]);
+			CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0 + i, textures.texTargets[i], textures.texIds[i]);
 		}
 
 		shader.activate().lod(config.lod).layer(config.layer).size(width, height).projection(orthoMatrix);
