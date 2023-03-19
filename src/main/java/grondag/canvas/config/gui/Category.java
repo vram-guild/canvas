@@ -57,7 +57,7 @@ class Category extends ListItem {
 		}
 
 		@Override
-		public void render(PoseStack matrices, int mouseX, int mouseY, float delta) {
+		public void renderWidget(PoseStack matrices, int mouseX, int mouseY, float delta) {
 			if (title != NULL_TITLE) {
 				int titleWidth = this.client.font.width(this.title);
 				int titleX = getX() + (this.getWidth() / 2 - titleWidth / 2);

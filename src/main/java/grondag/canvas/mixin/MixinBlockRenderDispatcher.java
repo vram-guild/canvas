@@ -32,6 +32,7 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
@@ -58,7 +59,7 @@ public abstract class MixinBlockRenderDispatcher {
 					CanvasEntityBlockRenderContext.get().render(modelRenderer, bakedModel, state, poseStack, consumers, overlay, light);
 					break;
 				case ENTITYBLOCK_ANIMATED:
-					blockEntityRenderer.renderByItem(new ItemStack(state.getBlock()), ItemTransforms.TransformType.NONE, poseStack, consumers, light, overlay);
+					blockEntityRenderer.renderByItem(new ItemStack(state.getBlock()), ItemDisplayContext.NONE, poseStack, consumers, light, overlay);
 					break;
 				default:
 					break;

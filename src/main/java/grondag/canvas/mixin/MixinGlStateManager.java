@@ -717,24 +717,6 @@ public abstract class MixinGlStateManager {
 	 * @reason nukem from space - it's only way to be sure
 	 */
 	@Overwrite(remap = false)
-	public static void _enableTexture() {
-		// NOOP
-	}
-
-	/**
-	 * @author grondag
-	 * @reason nukem from space - it's only way to be sure
-	 */
-	@Overwrite(remap = false)
-	public static void _disableTexture() {
-		// NOOP
-	}
-
-	/**
-	 * @author grondag
-	 * @reason nukem from space - it's only way to be sure
-	 */
-	@Overwrite(remap = false)
 	public static void _texParameter(int target, int pname, float param) {
 		GFX.texParameter(target, pname, param);
 	}
@@ -800,15 +782,6 @@ public abstract class MixinGlStateManager {
 	@Overwrite(remap = false)
 	public static void _bindTexture(int texture) {
 		CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D, texture);
-	}
-
-	/**
-	 * @author grondag
-	 * @reason nukem from space - it's only way to be sure
-	 */
-	@Overwrite(remap = false)
-	public static int _getTextureId(int i) {
-		return CanvasTextureState.getTextureId(i);
 	}
 
 	/**

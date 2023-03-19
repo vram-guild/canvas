@@ -52,7 +52,7 @@ public class PipelineSelectionEntry extends ListItem {
 		this.buttonWidget = new Buttons.CustomButton(x, y, width, 20, Component.translatable(pipeline.nameKey),
 				b -> owner.onSelect($this)) {
 			@Override
-			public void renderButton(PoseStack poseStack, int i, int j, float f) {
+			public void renderWidget(PoseStack poseStack, int i, int j, float f) {
 				if (isHoveredOrFocused() && !selected) {
 					fill(poseStack, x, y, x + width, y + height - 3, 0x33FFFFFF);
 				}

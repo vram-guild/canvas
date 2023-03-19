@@ -108,7 +108,7 @@ public class MixinLevelRenderer implements LevelRendererExt {
 	}
 
 	@Inject(at = @At("HEAD"), method = "renderDebug", cancellable = true)
-	private void onRenderDebug(Camera camera, CallbackInfo ci) {
+	private void onRenderDebug(PoseStack poseStack, MultiBufferSource multiBufferSource, Camera camera, CallbackInfo ci) {
 		ci.cancel();
 	}
 

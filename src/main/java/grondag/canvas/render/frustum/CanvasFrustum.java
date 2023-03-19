@@ -26,6 +26,8 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 
+import grondag.canvas.varia.MathHelper;
+
 /**
  * Plane equation derivations based on:
  * "Fast Extraction of Viewing Frustum Planes from the World- View-Projection Matrix"
@@ -125,7 +127,7 @@ public abstract class CanvasFrustum extends Frustum {
 		float y = a31 + a01;
 		float z = a32 + a02;
 		float w = a33 + a03;
-		float mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
+		float mag = -MathHelper.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;
@@ -146,7 +148,7 @@ public abstract class CanvasFrustum extends Frustum {
 		y = a31 - a01;
 		z = a32 - a02;
 		w = a33 - a03;
-		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
+		mag = -MathHelper.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;
@@ -167,7 +169,7 @@ public abstract class CanvasFrustum extends Frustum {
 		y = a31 - a11;
 		z = a32 - a12;
 		w = a33 - a13;
-		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
+		mag = -MathHelper.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;
@@ -188,7 +190,7 @@ public abstract class CanvasFrustum extends Frustum {
 		y = a31 + a11;
 		z = a32 + a12;
 		w = a33 + a13;
-		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
+		mag = -MathHelper.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;
@@ -209,7 +211,7 @@ public abstract class CanvasFrustum extends Frustum {
 		y = a31 + matrix.m12();
 		z = a32 + matrix.m22();
 		w = a33 + matrix.m32();
-		mag = -Mth.fastInvSqrt(x * x + y * y + z * z);
+		mag = -MathHelper.fastInvSqrt(x * x + y * y + z * z);
 		x *= mag;
 		y *= mag;
 		z *= mag;

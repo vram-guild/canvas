@@ -28,11 +28,11 @@ dependencies {
 
 	// Included via JMX
 	// modIncludeImplementation("io.vram:frex-fabric-mc118:6.0.258")
-	modImplementation("io.vram:jmx-fabric-mc119:1.22.264")
-	include("io.vram:jmx-fabric-mc119:1.22.264:fat")
+	modImplementation("io.vram:jmx-fabric-mc119:1.22.265")
+	include("io.vram:jmx-fabric-mc119:1.22.265:fat")
 
-	modCompileOnly "com.terraformersmc:modmenu:5.0.2"
-	modRuntimeOnly "com.terraformersmc:modmenu:5.0.2"
+	modCompileOnly "com.terraformersmc:modmenu:6.1.0-rc.4"
+	modRuntimeOnly "com.terraformersmc:modmenu:6.1.0-rc.4"
 }
 
 sourceSets {

@@ -122,6 +122,7 @@ import grondag.canvas.terrain.region.RegionRebuildManager;
 import grondag.canvas.terrain.region.RenderRegionStorage;
 import grondag.canvas.terrain.util.TerrainExecutor;
 import grondag.canvas.varia.GFX;
+import grondag.canvas.varia.MathHelper;
 
 public class CanvasWorldRenderer extends LevelRenderer {
 	private static CanvasWorldRenderer instance;
@@ -355,7 +356,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		// No idea what the 3/2 is for - looks like a hack
 		final long updateBudget = wr.canvas_chunkUpdateSmoother().registerValueAndGetMean(usedTime) * 3L / 2L;
-		final long clampedBudget = Mth.clamp(updateBudget, maxFpsLimit, 33333333L);
+		final long clampedBudget = MathHelper.clamp(updateBudget, maxFpsLimit, 33333333L);
 
 		worldRenderState.regionBuilder().upload();
 		worldRenderState.regionRebuildManager.processScheduledRegions(frameStartNanos + clampedBudget);

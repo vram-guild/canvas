@@ -57,7 +57,7 @@ public class Buttons {
 		}
 
 		@Override
-		public void renderButton(PoseStack poseStack, int i, int j, float f) {
+		public void renderWidget(PoseStack poseStack, int i, int j, float f) {
 			final int x = getX();
 			final int y = getY();
 
@@ -77,7 +77,7 @@ public class Buttons {
 		}
 
 		@Override
-		public void renderButton(PoseStack poseStack, int i, int j, float f) {
+		public void renderWidget(PoseStack poseStack, int i, int j, float f) {
 			final int x = getX();
 			final int y = getY();
 
@@ -100,8 +100,8 @@ public class Buttons {
 		}
 
 		@Override
-		public void renderButton(PoseStack ps, int ii, int j, float f) {
-			super.renderButton(ps, ii, j, f);
+		public void renderWidget(PoseStack ps, int ii, int j, float f) {
+			super.renderWidget(ps, ii, j, f);
 			final int boxW = getHeight();
 			final int box = getHeight() / 2;
 

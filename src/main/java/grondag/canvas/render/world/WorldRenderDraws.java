@@ -112,7 +112,7 @@ public class WorldRenderDraws {
 		final BufferBuilder bufferBuilder = tessellator.getBuilder();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		RenderSystem.setShaderColor(1, 1, 1, 1);
-		RenderSystem.disableTexture();
+		// RenderSystem.disableTexture();
 		RenderSystem.disableBlend();
 		RenderSystem.disableCull();
 
@@ -162,7 +162,7 @@ public class WorldRenderDraws {
 
 		GFX.enableDepthTest();
 		RenderSystem.enableBlend();
-		RenderSystem.enableTexture();
+		// RenderSystem.enableTexture();
 		RenderSystem.enableCull();
 	}
 

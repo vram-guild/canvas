@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 import net.fabricmc.fabric.api.event.Event;
@@ -46,7 +47,7 @@ class SimpleDrawersHolder {
 				final Class<?> clazz = Class.forName("me.benfah.simpledrawers.callback.RedirectModelCallback");
 				final Object instance = ((Event<?>) clazz.getDeclaredField("EVENT").get(null)).invoker();
 
-				final Method onRender = clazz.getDeclaredMethod("onRender", ItemStack.class, ItemTransforms.TransformType.class, boolean.class, BakedModel.class);
+				final Method onRender = clazz.getDeclaredMethod("onRender", ItemStack.class, ItemDisplayContext.class, boolean.class, BakedModel.class);
 				final MethodHandle onRenderHandler = lookup.unreflect(onRender);
 				final MethodHandle boundOnRenderHandler = onRenderHandler.bindTo(instance);
 
@@ -72,6 +73,6 @@ class SimpleDrawersHolder {
 	}
 
 	interface ItemModelHandler {
-		BakedModel onRender(ItemStack stack, ItemTransforms.TransformType renderMode, boolean leftHanded, BakedModel model);
+		BakedModel onRender(ItemStack stack, ItemDisplayContext renderMode, boolean leftHanded, BakedModel model);
 	}
 }

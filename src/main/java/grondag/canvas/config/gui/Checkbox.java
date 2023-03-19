@@ -55,7 +55,7 @@ public class Checkbox extends BaseButton {
 	}
 
 	@Override
-	public void renderButton(PoseStack poseStack, int i, int j, float f) {
+	public void renderWidget(PoseStack poseStack, int i, int j, float f) {
 		final Minecraft minecraft = Minecraft.getInstance();
 		final Font font = minecraft.font;
 		final Component message;
@@ -73,7 +73,7 @@ public class Checkbox extends BaseButton {
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 		blit(poseStack, this.getX(), this.getY(), this.isFocused() ? 20.0F : 0.0F, this.value ? 20.0F : 0.0F, 20, this.height, 64, 64);
-		this.renderBg(poseStack, minecraft, i, j);
+		// this.renderBg(poseStack, minecraft, i, j);
 		drawString(poseStack, font, message, this.getX() + 24, this.getY() + (this.height - 8) / 2, 14737632 | Mth.ceil(this.alpha * 255.0F) << 24);
 	}
 

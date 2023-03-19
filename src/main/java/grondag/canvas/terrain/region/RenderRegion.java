@@ -444,7 +444,7 @@ public class RenderRegion implements TerrainExecutorTask {
 					}
 
 					if (hasBlock) {
-						if (blockState.getOffsetType() != Block.OffsetType.NONE) {
+						if (blockState.hasOffsetFunction()) {
 							final Vec3 vec3d = blockState.getOffset(region, searchPos);
 
 							if (vec3d != Vec3.ZERO) {
