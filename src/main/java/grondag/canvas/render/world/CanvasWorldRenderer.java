@@ -96,6 +96,7 @@ import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.compat.FirstPersonModelHolder;
+import grondag.canvas.compat.PlayerAnimatorHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.FlawlessFramesController;
 import grondag.canvas.material.property.TargetRenderState;
@@ -431,9 +432,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			final boolean isFirstPersonPlayer = entity == camera.getEntity()
 					&& !camera.isDetached()
 					&& (!(camera.getEntity() instanceof LivingEntity) || !((LivingEntity) camera.getEntity()).isSleeping());
-			final boolean isRenderingFPM = isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.shouldApply();
 
-			if (isFirstPersonPlayer && !isRenderingFPM && !worldRenderState.shadowsEnabled()) {
+			final boolean isRenderingPlayerEntityInFP = PlayerAnimatorHolder.handlerB.isFakeThirdPerson(camera.getEntity()) ||
+					(isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.shouldApply());
+
+			if (isFirstPersonPlayer && !isRenderingPlayerEntityInFP && !worldRenderState.shadowsEnabled()) {
 				continue;
 			}
 
@@ -450,8 +453,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			final MultiBufferSource renderProvider;
 
 			if (isFirstPersonPlayer) {
-				if (isRenderingFPM) {
-					// using mat.castShadows(false) don't work as it needs to be applied to held items, custom parts, etc
+				if (isRenderingPlayerEntityInFP) {
+					// render shadow separately; using mat.castShadows(false) don't work as it needs to be applied to held items, custom parts, etc
 					renderProvider = materialExtrasImmediate;
 				} else {
 					// only render as shadow
@@ -471,7 +474,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 			entityBlockContext.setPosAndWorldFromEntity(entity);
 
-			FirstPersonModelHolder.renderHandler.setActive(isRenderingFPM);
+			// These mods enable partial player model rendering in first person
+			PlayerAnimatorHolder.handlerA.setFirstPerson(isFirstPersonPlayer && isRenderingPlayerEntityInFP);
+			FirstPersonModelHolder.renderHandler.setActive(isRenderingPlayerEntityInFP);
 
 			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, renderProvider);
@@ -482,10 +487,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 				immediate.endLastBatch();
 			}
 
-			FirstPersonModelHolder.renderHandler.setActive(false);
+			if (isRenderingPlayerEntityInFP && worldRenderState.shadowsEnabled()) {
+				// Disable partial player model rendering to render full model shadow
+				PlayerAnimatorHolder.handlerA.setFirstPerson(false);
+				FirstPersonModelHolder.renderHandler.setActive(false);
 
-			if (isRenderingFPM && worldRenderState.shadowsEnabled()) {
-				// render unmodified player model as shadow
 				wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, shadowExtrasImmediate);
 			}
 		}
