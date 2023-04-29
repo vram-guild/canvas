@@ -24,7 +24,6 @@ import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
@@ -62,7 +61,7 @@ public class ConfigRestartScreen extends BaseScreen {
 		if (lines != null) {
 			int row = 0;
 
-			for (FormattedCharSequence line : lines) {
+			for (final FormattedCharSequence line : lines) {
 				drawCenteredString(poseStack, this.font, line, this.width / 2, this.height / 2 - 100 + 30 + 16 * (row++), 16777215);
 			}
 		}

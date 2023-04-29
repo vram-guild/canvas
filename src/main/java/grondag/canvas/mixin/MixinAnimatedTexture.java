@@ -22,21 +22,14 @@ package grondag.canvas.mixin;
 
 import java.util.List;
 
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.renderer.texture.SpriteContents;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import grondag.canvas.mixinterface.AnimatedTextureExt;
-import grondag.canvas.mixinterface.SpriteContentsExt;
-import grondag.canvas.mixinterface.SpriteExt;
 
 @Mixin(SpriteContents.AnimatedTexture.class)
 public class MixinAnimatedTexture implements AnimatedTextureExt {

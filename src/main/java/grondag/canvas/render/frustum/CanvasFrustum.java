@@ -23,7 +23,6 @@ package grondag.canvas.render.frustum;
 import org.joml.Matrix4f;
 
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 
 import grondag.canvas.varia.MathHelper;

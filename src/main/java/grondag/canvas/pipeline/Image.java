@@ -61,7 +61,7 @@ public class Image {
 				GFX.texParameter(config.target, params[i], params[++i]);
 			}
 
-			if(config.lod > 0) {
+			if (config.lod > 0) {
 				GFX.texParameter(config.target, GFX.GL_TEXTURE_MIN_LOD, 0);
 				GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LOD, config.lod);
 				GFX.texParameter(config.target, GFX.GL_TEXTURE_MAX_LEVEL, config.lod);

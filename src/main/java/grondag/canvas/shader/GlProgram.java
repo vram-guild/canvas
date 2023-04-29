@@ -33,8 +33,6 @@ import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.resources.language.I18n;
 
-import io.vram.frex.api.math.FrexMathUtil;
-
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormat;
 import grondag.canvas.config.Configurator;

@@ -38,7 +38,6 @@ import io.vram.frex.base.renderer.util.ResourceCache;
 
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.mixinterface.SpriteContentsExt;
-import grondag.canvas.mixinterface.SpriteExt;
 import grondag.canvas.mixinterface.TextureAtlasExt;
 import grondag.canvas.shader.MaterialShaderIndexer;
 import grondag.canvas.shader.ProgramType;

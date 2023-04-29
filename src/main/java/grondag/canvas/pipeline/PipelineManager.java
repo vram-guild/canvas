@@ -163,13 +163,13 @@ public class PipelineManager {
 
 		drawBuffer.bind();
 		//TODO: validate
-		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0.0F, (float)w, (float)h, 0.0F, 1000.0F, 3000.0F);
+		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0.0F, w, h, 0.0F, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
 
 		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0, target, glId);
 
-		boolean isLayered = target == GFX.GL_TEXTURE_2D_ARRAY;
+		final boolean isLayered = target == GFX.GL_TEXTURE_2D_ARRAY;
 
 		if (target == GFX.GL_TEXTURE_CUBE_MAP) {
 			debugCubeMapShader.activate().size(w, h).lod(lod).projection(orthoMatrix);

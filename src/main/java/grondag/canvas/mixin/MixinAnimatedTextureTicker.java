@@ -42,7 +42,6 @@ public class MixinAnimatedTextureTicker implements AnimatedTextureTickerExt {
 		return subFrame;
 	}
 
-
 	@Inject(method = "tickAndUpload", at = @At("HEAD"), cancellable = true)
 	private void beforeTick(CallbackInfo ci) {
 		if (!((SpriteContentsExt) parent).canvas_shouldAnimate()) {

@@ -661,8 +661,9 @@ public class GFX extends GL46C {
 
 		try {
 			final PointerBuffer pointers = stack.mallocPointer(source.length);
-			final ByteBuffer sourceBuffers[] = new ByteBuffer[source.length];
-			for(int i = 0; i < source.length; ++i) {
+			final ByteBuffer[] sourceBuffers = new ByteBuffer[source.length];
+
+			for (int i = 0; i < source.length; ++i) {
 				sourceBuffers[i] = MemoryUtil.memUTF8(source[i], true);
 				pointers.put(sourceBuffers[i]);
 			}
@@ -672,6 +673,7 @@ public class GFX extends GL46C {
 		} finally {
 			stack.setPointer(stackPointer);
 		}
+
 		assert logError("glShaderSource");
 	}
 

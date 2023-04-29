@@ -24,12 +24,13 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
+import org.joml.Matrix4f;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
 
 import net.fabricmc.loader.api.FabricLoader;
-import org.joml.Matrix4f;
 
 import grondag.canvas.CanvasMod;
 

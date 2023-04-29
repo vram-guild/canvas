@@ -40,7 +40,6 @@
     "MixinSpriteContents",
     "MixinSpriteInterpolation",
     "MixinTextureAtlas",
-    "MixinTextureAtlasSprite",
     "MixinTextureSheetParticle",
     "MixinTropicalFishModelA",
     "MixinUtil",
