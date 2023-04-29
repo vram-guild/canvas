@@ -20,8 +20,6 @@
 
 package grondag.canvas.mixinterface;
 
-import java.util.function.BooleanSupplier;
-
 import com.mojang.blaze3d.platform.NativeImage;
 
 public interface SpriteExt {

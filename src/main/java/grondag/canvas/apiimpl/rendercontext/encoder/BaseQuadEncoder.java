@@ -29,7 +29,6 @@ import io.vram.frex.base.renderer.mesh.BaseQuadEmitter;
 
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.mixinterface.SpriteContentsExt;
-import grondag.canvas.mixinterface.SpriteExt;
 
 public abstract class BaseQuadEncoder {
 	protected final BaseQuadEmitter emitter;

@@ -163,7 +163,7 @@ public class PipelineManager {
 
 		drawBuffer.bind();
 		//TODO: validate
-		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0.0F, (float)w, (float)h, 0.0F, 1000.0F, 3000.0F);
+		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0.0F, (float) w, (float) h, 0.0F, 1000.0F, 3000.0F);
 		GFX.viewport(0, 0, w, h);
 		Pipeline.defaultFbo.bind();
 

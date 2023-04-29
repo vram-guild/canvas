@@ -72,6 +72,7 @@ public abstract class MixinTextureAtlas extends AbstractTexture implements Textu
 
 		for (final TextureAtlasSprite sprite : preparations.regions().values()) {
 			final var spriteExt = (SpriteContentsExt) sprite.contents();
+
 			if (spriteExt.canvas_isAnimated()) {
 				final int instanceIndex = animationIndex;
 				final BooleanSupplier getter = () -> animationBits.get(instanceIndex);

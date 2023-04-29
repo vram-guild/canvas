@@ -29,11 +29,11 @@ import java.util.function.Consumer;
 import com.google.common.util.concurrent.Runnables;
 import org.joml.Matrix4f;
 
-import net.fabricmc.loader.api.FabricLoader;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.renderer.culling.Frustum;
+
+import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 

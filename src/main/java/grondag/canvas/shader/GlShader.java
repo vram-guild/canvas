@@ -20,8 +20,6 @@
 
 package grondag.canvas.shader;
 
-import static org.lwjgl.system.MemoryStack.stackGet;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -29,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
@@ -43,12 +40,7 @@ import org.anarres.cpp.StringLexerSource;
 import org.anarres.cpp.Token;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL21;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.NativeType;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;

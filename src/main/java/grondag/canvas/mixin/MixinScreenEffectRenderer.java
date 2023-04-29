@@ -21,17 +21,8 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.renderer.ScreenEffectRenderer;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.ModelBakery;
-
-import grondag.canvas.mixinterface.SpriteContentsExt;
-import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.mixinterface.TextureAtlasExt;
 
 @Mixin(ScreenEffectRenderer.class)
 public class MixinScreenEffectRenderer {

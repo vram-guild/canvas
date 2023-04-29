@@ -38,8 +38,6 @@ import org.joml.Vector4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 
-import io.vram.frex.api.math.FrexMathUtil;
-
 import grondag.canvas.config.Configurator;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;

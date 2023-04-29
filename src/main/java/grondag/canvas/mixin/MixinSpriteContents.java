@@ -40,7 +40,7 @@ public abstract class MixinSpriteContents implements SpriteContentsExt {
 	private BooleanSupplier shouldAnimate = () -> true;
 	private int animationIndex = -1;
 
-	@Shadow	abstract void upload(int i, int j, int k, int l, NativeImage[] nativeImages);
+	@Shadow abstract void upload(int i, int j, int k, int l, NativeImage[] nativeImages);
 
 	@Shadow @Final @Nullable private SpriteContents.AnimatedTexture animatedTexture;
 
