@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+    This configuration file was written by the eclipse-cs plugin configuration editor
+-->
+<!--
+    Checkstyle-Configuration: vram
+    Description: none
+-->
+<module name="Checker">
+  <property name="severity" value="warning"/>
+  <property name="localeCountry" value="US"/>
+  <property name="localeLanguage" value="en"/>
+  <property name="charset" value="UTF-8"/>
+  <property name="fileExtensions" value="java"/>
+  <property name="tabWidth" value="4"/>
+  <module name="TreeWalker">
+    <module name="AvoidStarImport"/>
+    <module name="IllegalImport"/>
+    <module name="RedundantImport"/>
+    <module name="UnusedImports"/>
+    <module name="ImportOrder">
+      <property name="option" value="top"/>
+      <property name="groups" value="java,javax,*,com.mojang,net.minecraft,net.fabricmc,io.vram,io.grondag,grondag"/>
+      <property name="ordered" value="false"/>
+      <property name="separated" value="true"/>
+      <property name="sortStaticImportsAlphabetically" value="true"/>
+    </module>
+    <module name="LeftCurly"/>
+    <module name="RightCurly"/>
+    <module name="NeedBraces">
+      <property name="allowSingleLineStatement" value="true"/>
+      <property name="tokens" value="LITERAL_IF,LITERAL_FOR,LITERAL_WHILE"/>
+    </module>
+    <module name="NeedBraces">
+      <property name="tokens" value="LITERAL_ELSE,LITERAL_DO"/>
+    </module>
+    <module name="EmptyLineSeparator">
+      <property name="allowNoEmptyLineBetweenFields" value="true"/>
+      <property name="allowMultipleEmptyLines" value="false"/>
+      <property name="tokens" value="PACKAGE_DEF,IMPORT,STATIC_IMPORT,CLASS_DEF,INTERFACE_DEF,ENUM_DEF,STATIC_INIT,INSTANCE_INIT,CTOR_DEF"/>
+    </module>
+    <module name="OperatorWrap"/>
+    <module name="SeparatorWrap">
+      <property name="option" value="nl"/>
+      <property name="tokens" value="DOT,ELLIPSIS,AT"/>
+    </module>
+    <module name="SeparatorWrap">
+      <property name="tokens" value="COMMA,SEMI"/>
+    </module>
+    <module name="Indentation"/>
+    <module name="ParenPad"/>
+    <module name="NoWhitespaceBefore"/>
+    <module name="NoWhitespaceAfter">
+      <property name="tokens" value="AT,INC,DEC,UNARY_MINUS,UNARY_PLUS,BNOT,LNOT,DOT,ARRAY_DECLARATOR,INDEX_OP"/>
+    </module>
+    <module name="WhitespaceAfter"/>
+    <module name="WhitespaceAround">
+      <property name="tokens" value="ASSIGN,BAND,BAND_ASSIGN,BOR,BOR_ASSIGN,BSR,BSR_ASSIGN,BXOR,BXOR_ASSIGN,COLON,DIV_ASSIGN,DO_WHILE,EQUAL,GE,GT,LAMBDA,LAND,LCURLY,LE,LITERAL_CATCH,LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_FOR,LITERAL_IF,LITERAL_RETURN,LITERAL_SWITCH,LITERAL_SYNCHRONIZED,LITERAL_TRY,LITERAL_WHILE,LOR,LT,MINUS_ASSIGN,MOD,MOD_ASSIGN,NOT_EQUAL,PLUS_ASSIGN,QUESTION,RCURLY,SL,SLIST,SL_ASSIGN,SR,SR_ASSIGN,STAR,STAR_ASSIGN,LITERAL_ASSERT,TYPE_EXTENSION_AND"/>
+    </module>
+    <module name="SingleSpaceSeparator"/>
+    <module name="GenericWhitespace"/>
+    <module name="CommentsIndentation"/>
+    <module name="ArrayTypeStyle"/>
+    <module name="DefaultComesLast">
+      <property name="skipIfLastAndSharedWithCase" value="true"/>
+    </module>
+    <module name="SimplifyBooleanExpression"/>
+    <module name="SimplifyBooleanReturn"/>
+    <module name="StringLiteralEquality"/>
+    <module name="ModifierOrder"/>
+    <module name="RedundantModifier"/>
+    <module name="AnnotationLocation">
+      <property name="allowSamelineMultipleAnnotations" value="true"/>
+    </module>
+    <module name="MissingOverride"/>
+    <module name="EmptyCatchBlock"/>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="^\t* ([^*]|\*[^ /])"/>
+      <property name="message" value="non-tab indentation"/>
+    </module>
+    <module name="OuterTypeFilename"/>
+    <module name="PackageDeclaration"/>
+    <module name="JavadocParagraph"/>
+    <module name="JavadocStyle"/>
+    <module name="AtclauseOrder">
+      <property name="tagOrder" value="@param,@return,@throws,@deprecated"/>
+    </module>
+  </module>
+  <module name="NewlineAtEndOfFile"/>
+  <module name="RegexpSingleline">
+    <property name="format" value="\s+$"/>
+    <property name="message" value="trailing whitespace"/>
+  </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="\n[\t ]*\r?\n[\t ]*\r?\n"/>
+    <property name="message" value="adjacent blank lines"/>
+  </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="\{[\t ]*\r?\n[\t ]*\r?\n"/>
+    <property name="message" value="blank line after '{'"/>
+  </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="\n[\t ]*\r?\n[\t ]*\}"/>
+    <property name="message" value="blank line before '}'"/>
+  </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="(?&lt;=\n)([\t]+)(?:[^/\r\n \t][^\r\n]*|/[^/\r\n][^\r\n]*|[^/\r\n][^\r\n]*(\r?\n\1//[^\r\n]*)+)\r?\n\1(|(if|do|while|for|try)[^\r\n]+)\{[\t ]*\r?\n"/>
+    <property name="message" value="missing blank line before block at same indentation level"/>
+  </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="(?&lt;=\n)([\t]+)\}\r?\n\1(?:[^\r\n\}cd]|c[^\r\na]|ca[^\r\ns]|d[^\r\ne]|de[^\r\nf])"/>
+    <property name="message" value="missing blank line after block at same indentation level"/>
+  </module>
+</module>
