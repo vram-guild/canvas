@@ -433,8 +433,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 					&& !camera.isDetached()
 					&& (!(camera.getEntity() instanceof LivingEntity) || !((LivingEntity) camera.getEntity()).isSleeping());
 
-			final boolean isRenderingPlayerEntityInFP = PlayerAnimatorHolder.handlerB.isFakeThirdPerson(camera.getEntity()) ||
-					(isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.shouldApply());
+			final boolean isRenderingPlayerEntityInFP = PlayerAnimatorHolder.handlerB.isFakeThirdPerson(camera.getEntity())
+					|| (isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.shouldApply());
 
 			if (isFirstPersonPlayer && !isRenderingPlayerEntityInFP && !worldRenderState.shadowsEnabled()) {
 				continue;

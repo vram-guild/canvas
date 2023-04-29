@@ -24,9 +24,9 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
-import net.fabricmc.loader.api.FabricLoader;
-
 import net.minecraft.world.entity.Entity;
+
+import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 
@@ -35,7 +35,7 @@ public class PlayerAnimatorHolder {
 	public static fakeTPHanlder handlerB;
 
 	private static void reset() {
-		handlerA = (b) -> {};
+		handlerA = (b) -> { };
 		handlerB = (e) -> false;
 	}
 
