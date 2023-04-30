@@ -149,8 +149,6 @@ public class GlProgram {
 	}
 
 	public final void activate() {
-		final boolean created = needsLoad;
-
 		if (needsLoad) {
 			load();
 			needsLoad = false;
@@ -160,19 +158,9 @@ public class GlProgram {
 			return;
 		}
 
-		activateInner();
-	}
-
-	private void activateInner() {
-		if (isErrored) {
-			return;
-		}
-
-		GFX.useProgram(progID);
-
-		if (!GFX.checkError()) {
-			isErrored = true;
+		if (GFX.useProgram(progID) && !GFX.checkError()) {
 			CanvasMod.LOG.warn(String.format("Unable to activate program with shaders %s and %s.  Program was disabled.", vertexShader.getShaderSourceId(), fragmentShader.getShaderSourceId()));
+			isErrored = true;
 			return;
 		}
 

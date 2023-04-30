@@ -492,14 +492,18 @@ public class GFX extends GL46C {
 	private static int activeProgramID = 0;
 
 	/**
-	 * Clears error state prior to run and does not clear it after.
+	 * Clears error state prior to run and does not clear it after. Returns true if program was actually activated.
 	 */
-	public static void useProgram(int program) {
+	public static boolean useProgram(int program) {
 		glGetError();
+
 		if(activeProgramID != program) {
 			glUseProgram(program);
 			activeProgramID = program;
+			return true;
 		}
+
+		return false;
 	}
 
 	public static void linkProgram(int program) {
