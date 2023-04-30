@@ -39,7 +39,7 @@ import grondag.canvas.pipeline.config.ProgramConfig;
 import grondag.canvas.pipeline.config.SkyShadowConfig;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.PrimaryFrameBuffer;
-import grondag.canvas.shader.ProcessShader;
+import grondag.canvas.shader.ProcessProgram;
 
 public class Pipeline {
 	private static int lastWidth;
@@ -87,7 +87,7 @@ public class Pipeline {
 	public static PipelineFramebuffer translucentParticlesFbo;
 
 	private static final Object2ObjectOpenHashMap<String, Image> IMAGES = new Object2ObjectOpenHashMap<>();
-	private static final Object2ObjectOpenHashMap<String, ProcessShader> SHADERS = new Object2ObjectOpenHashMap<>();
+	private static final Object2ObjectOpenHashMap<String, ProcessProgram> PROGRAMS = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<String, PipelineFramebuffer> FRAMEBUFFERS = new Object2ObjectOpenHashMap<>();
 
 	private static PipelineConfig config;
@@ -110,8 +110,8 @@ public class Pipeline {
 		return IMAGES.get(name);
 	}
 
-	public static ProcessShader getShader(String name) {
-		return SHADERS.get(name);
+	public static ProcessProgram getProgram(String name) {
+		return PROGRAMS.get(name);
 	}
 
 	public static PipelineFramebuffer getFramebuffer(String name) {
@@ -140,7 +140,7 @@ public class Pipeline {
 		fabulous = new Pass[0];
 
 		if (!FRAMEBUFFERS.isEmpty()) {
-			FRAMEBUFFERS.values().forEach(shader -> shader.close());
+			FRAMEBUFFERS.values().forEach(framebuffer -> framebuffer.close());
 			FRAMEBUFFERS.clear();
 		}
 
@@ -149,9 +149,9 @@ public class Pipeline {
 			IMAGES.clear();
 		}
 
-		if (!SHADERS.isEmpty()) {
-			SHADERS.values().forEach(shader -> shader.unload());
-			SHADERS.clear();
+		if (!PROGRAMS.isEmpty()) {
+			PROGRAMS.values().forEach(program -> program.unload());
+			PROGRAMS.clear();
 		}
 	}
 
@@ -180,12 +180,12 @@ public class Pipeline {
 		}
 
 		for (final ProgramConfig program : config.programs) {
-			if (SHADERS.containsKey(program.name)) {
+			if (PROGRAMS.containsKey(program.name)) {
 				CanvasMod.LOG.warn(String.format("Duplicate pipeline shader definition encountered with name %s. Duplicate was skipped.", program.name));
 				continue;
 			}
 
-			SHADERS.put(program.name, new ProcessShader(program.name, program.vertexSource, program.fragmentSource, program.samplerNames));
+			PROGRAMS.put(program.name, new ProcessProgram(program.name, program.vertexSource, program.fragmentSource, program.samplerNames));
 		}
 
 		for (final FramebufferConfig buffer : config.framebuffers) {
