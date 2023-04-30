@@ -27,7 +27,7 @@
 		// glsl names for samplers additive to the FREX pre-defined samplers
 		samplers: ["cvu_glint"],
 		// image names for samplers additive to the FREX pre-defined samplers
-		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"]
+		samplerImages: ["minecraft:textures/misc/enchanted_glint_item.png"]
 	},
 
 	drawTargets: {

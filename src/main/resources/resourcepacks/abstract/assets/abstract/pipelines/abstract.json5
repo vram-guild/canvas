@@ -7,7 +7,7 @@
 		vertexSource: "abstract:shaders/pipeline/abstract.vert",
 		fragmentSource: "abstract:shaders/pipeline/abstract.frag",
 		samplers: ["cvu_glint"],
-		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"],
+		samplerImages: ["minecraft:textures/misc/enchanted_glint_item.png"],
 		compileByTarget: true
 	},
 
