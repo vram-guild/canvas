@@ -20,8 +20,10 @@
 
 package grondag.canvas.shader;
 
+import java.util.Set;
+
 public class SamplerTypeHelper {
-	public static final String[] samplerTypes = new String[]{
+	public static final Set<String> SAMPLER_TYPES = Set.of(
 		// float samplers
 		"sampler1D",
 		"sampler2D",
@@ -68,14 +70,14 @@ public class SamplerTypeHelper {
 		"sampler2DRectShadow",
 		"sampler1DArrayShadow",
 		"sampler2DArrayShadow",
-		"samplerCubeArrayShadow",
-	};
+		"samplerCubeArrayShadow"
+	);
 
 	public static String getSamplerType(GlProgram program, String samplerName) {
-		for (final String type:samplerTypes) {
-			if (program.containsUniformSpec(type, samplerName)) {
-				return type;
-			}
+		String type = program.typeofUniformSpec(samplerName);
+
+		if (type != null && SAMPLER_TYPES.contains(type)) {
+			return type;
 		}
 
 		return "sampler2D";

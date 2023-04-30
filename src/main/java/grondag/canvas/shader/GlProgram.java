@@ -343,6 +343,16 @@ public class GlProgram {
 				|| fragmentShader.containsUniformSpec(type, name);
 	}
 
+	public String typeofUniformSpec(String name) {
+		final String vertexType = vertexShader.typeofUniformSpec(name);
+
+		if (vertexType == null) {
+			return fragmentShader.typeofUniformSpec(name);
+		}
+
+		return vertexType;
+	}
+
 	public abstract class Uniform<T extends Uniform<T>> {
 		protected static final int FLAG_NEEDS_UPLOAD = 1;
 		protected static final int FLAG_NEEDS_INITIALIZATION = 2;
