@@ -1,4 +1,4 @@
-readonly MC_VERSION="1.19"
+readonly MC_VERSION="1.19.3"
 
 echo "GRUNTLE REFRESH FOR $MC_VERSION - IF THIS IS NOT A $MC_VERSION BRANCH YOU HAVE DONE A BAD"
 
@@ -28,7 +28,7 @@ unzip -q gruntle-${MC_VERSION}
 
 # copy content for our branch and then remove bundle
 # this handles simple, file-based updates: checkstyle, standard gradle configs, etc.
-cp -R gruntle-${MC_VERSION}/bundle/ .
+cp -R gruntle-${MC_VERSION}/bundle/* .
 rm -rf gruntle-${MC_VERSION}
 rm gruntle-${MC_VERSION}.zip
 

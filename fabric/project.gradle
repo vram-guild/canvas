@@ -22,17 +22,14 @@ dependencies {
 	modIncludeImplementation("io.vram:bitraster:1.5.53")
 	modIncludeImplementation("io.vram:dtklib:1.0.6")
 
-	// Included via FREX/JMX
-	// modIncludeImplementation("io.vram:bitkit:1.0.4")
+	modIncludeImplementation("io.vram:bitkit:1.0.4")
 	modIncludeImplementation("io.vram:special-circumstances:1.10.7")
 
-	// Included via JMX
-	// modIncludeImplementation("io.vram:frex-fabric-mc118:6.0.258")
-	modImplementation("io.vram:jmx-fabric-mc119:2.0.267")
-	include("io.vram:jmx-fabric-mc119:2.0.267:fat")
+	modIncludeImplementation("io.vram:frex-fabric:19.3.322")
+	modIncludeImplementation("io.vram:jmx-fabric:19.3.269")
 
-	modCompileOnly "com.terraformersmc:modmenu:5.0.2"
-	modRuntimeOnly "com.terraformersmc:modmenu:5.0.2"
+	modCompileOnly "com.terraformersmc:modmenu:5.0.0"
+	modRuntimeOnly "com.terraformersmc:modmenu:5.0.0"
 }
 
 sourceSets {
