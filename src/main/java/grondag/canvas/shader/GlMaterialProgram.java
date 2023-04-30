@@ -48,7 +48,7 @@ public class GlMaterialProgram extends GlProgram {
 	private final UniformArrayi contextInfo;
 	private final Uniform1i modelOriginType;
 	private final UniformMatrix4f guiViewProjMatrix;
-	private final ObjectArrayList<UniformSampler> configuredSamplers;
+	private final ObjectArrayList<Uniform1i> configuredSamplers;
 
 	private static final FloatBuffer MODEL_ORIGIN = BufferUtils.createFloatBuffer(8);
 	private static final BitPacker32<Void> CONTEXT_FLAGS = new BitPacker32<>(null, null);
@@ -177,8 +177,7 @@ public class GlMaterialProgram extends GlProgram {
 		for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
 			final int texId = i;
 			final String samplerName = Pipeline.config().materialProgram.samplerNames[i];
-			final String samplerType = SamplerTypeHelper.getSamplerType(this, samplerName);
-			configuredSamplers.add((UniformSampler) uniformSampler(samplerType, samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.PROGRAM_SAMPLERS - GL21.GL_TEXTURE0 + texId)));
+			configuredSamplers.add(uniformSampler(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.PROGRAM_SAMPLERS - GL21.GL_TEXTURE0 + texId)));
 		}
 	}
 }

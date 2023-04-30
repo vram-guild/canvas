@@ -111,8 +111,8 @@ public class GlProgram {
 		return new UniformArray4f(name, initializer, frequency, size);
 	}
 
-	public Uniform1i uniformSampler(String type, String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
-		return new UniformSampler(type, name, initializer, frequency);
+	public Uniform1i uniformSampler(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
+		return new Uniform1i(name, initializer, frequency);
 	}
 
 	public Uniform1i uniform1i(String name, UniformRefreshFrequency frequency, Consumer<Uniform1i> initializer) {
@@ -222,28 +222,6 @@ public class GlProgram {
 		return new UniformMatrix3f(name, initializer, frequency);
 	}
 
-	private void findActiveUniforms() {
-		activeUniforms.clear();
-		renderTickUpdates.clear();
-		gameTickUpdates.clear();
-
-		final int limit = uniforms.size();
-
-		for (int i = 0; i < limit; ++i) {
-			final Uniform<?> u = uniforms.get(i);
-
-			if (containsUniformSpec(u)) {
-				activeUniforms.add(u);
-
-				if (u.frequency == UniformRefreshFrequency.PER_FRAME) {
-					renderTickUpdates.add(u);
-				} else if (u.frequency == UniformRefreshFrequency.PER_TICK) {
-					gameTickUpdates.add(u);
-				}
-			}
-		}
-	}
-
 	public void load() {
 		isErrored = true;
 
@@ -269,13 +247,26 @@ public class GlProgram {
 		}
 
 		if (!isErrored) {
-			findActiveUniforms();
-			final int limit = activeUniforms.size();
+			activeUniforms.clear();
+			renderTickUpdates.clear();
+			gameTickUpdates.clear();
 
-			for (int i = 0; i < limit; i++) {
-				activeUniforms.get(i).load(progID);
+			final int limit = uniforms.size();
+
+			for (int i = 0; i < limit; ++i) {
+				final Uniform<?> u = uniforms.get(i);
+
+				if (u.load(progID)) {
+					activeUniforms.add(u);
+
+					if (u.frequency == UniformRefreshFrequency.PER_FRAME) {
+						renderTickUpdates.add(u);
+					} else if (u.frequency == UniformRefreshFrequency.PER_TICK) {
+						gameTickUpdates.add(u);
+					}
+				}
 			}
-
+			
 			GlProgramManager.INSTANCE.add(this);
 		}
 	}
@@ -334,15 +325,6 @@ public class GlProgram {
 		}
 	}
 
-	public boolean containsUniformSpec(Uniform<?> uniform) {
-		return containsUniformSpec(uniform.searchString(), uniform.uniformName);
-	}
-
-	public boolean containsUniformSpec(String type, String name) {
-		return vertexShader.containsUniformSpec(type, name)
-				|| fragmentShader.containsUniformSpec(type, name);
-	}
-
 	public abstract class Uniform<T extends Uniform<T>> {
 		protected static final int FLAG_NEEDS_UPLOAD = 1;
 		protected static final int FLAG_NEEDS_INITIALIZATION = 2;
@@ -373,7 +355,7 @@ public class GlProgram {
 			this.unifID = -1;
 		}
 
-		private void load(int programID) {
+		private boolean load(int programID) {
 			this.unifID = GFX.getUniformLocation(programID, uniformName);
 
 			if (this.unifID == -1) {
@@ -382,11 +364,15 @@ public class GlProgram {
 				}
 
 				this.flags = 0;
+
+				return false;
 			} else {
 				// dirty flag will be reset before uniforms are loaded
 				hasDirty = true;
 				this.flags = FLAG_NEEDS_INITIALIZATION | FLAG_NEEDS_UPLOAD;
 			}
+
+			return true;
 		}
 
 		@SuppressWarnings("unchecked")
@@ -414,8 +400,6 @@ public class GlProgram {
 		}
 
 		protected abstract void uploadInner();
-
-		public abstract String searchString();
 	}
 
 	protected abstract class UniformFloat<T extends Uniform<T>> extends Uniform<T> {
@@ -447,11 +431,6 @@ public class GlProgram {
 		protected void uploadInner() {
 			GFX.uniform1fv(unifID, uniformFloatBuffer);
 		}
-
-		@Override
-		public String searchString() {
-			return "float";
-		}
 	}
 
 	public class Uniform2f extends UniformFloat<Uniform2f> {
@@ -478,11 +457,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniform2fv(unifID, uniformFloatBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "vec2";
 		}
 	}
 
@@ -515,11 +489,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniform3fv(unifID, uniformFloatBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "vec3";
 		}
 	}
 
@@ -557,11 +526,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniform4fv(unifID, uniformFloatBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "vec4";
 		}
 	}
 
@@ -601,11 +565,6 @@ public class GlProgram {
 				externalFloatBuffer = null;
 			}
 		}
-
-		@Override
-		public String searchString() {
-			return "float\\s*\\[\\s*[0-9]+\\s*]";
-		}
 	}
 
 	public class UniformArray4f extends UniformFloat<UniformArray4f> {
@@ -628,11 +587,6 @@ public class GlProgram {
 				GFX.uniform4fv(unifID, uniformFloatBuffer);
 				uniformFloatBuffer = null;
 			}
-		}
-
-		@Override
-		public String searchString() {
-			return "vec4\\s*\\[\\s*[0-9]+\\s*]";
 		}
 
 		public void set(float[] v) {
@@ -669,25 +623,6 @@ public class GlProgram {
 		protected void uploadInner() {
 			GFX.uniform1iv(unifID, uniformIntBuffer);
 		}
-
-		@Override
-		public String searchString() {
-			return "int";
-		}
-	}
-
-	public class UniformSampler extends Uniform1i {
-		private final String type;
-
-		public UniformSampler(String type, String name, Consumer<Uniform1i> initializer, UniformRefreshFrequency frequency) {
-			super(name, initializer, frequency);
-			this.type = type;
-		}
-
-		@Override
-		public String searchString() {
-			return type;
-		}
 	}
 
 	public class Uniform2i extends UniformInt<Uniform2i> {
@@ -714,11 +649,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniform2iv(unifID, uniformIntBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "ivec2";
 		}
 	}
 
@@ -751,11 +681,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniform3iv(unifID, uniformIntBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "ivec3";
 		}
 	}
 
@@ -794,11 +719,6 @@ public class GlProgram {
 		protected void uploadInner() {
 			GFX.uniform4iv(unifID, uniformIntBuffer);
 		}
-
-		@Override
-		public String searchString() {
-			return "ivec4";
-		}
 	}
 
 	public class UniformArrayi extends UniformInt<UniformArrayi> {
@@ -825,11 +745,6 @@ public class GlProgram {
 		protected void uploadInner() {
 			GFX.uniform1iv(unifID, uniformIntBuffer);
 		}
-
-		@Override
-		public String searchString() {
-			return "int\\s*\\[\\s*[0-9]+\\s*]";
-		}
 	}
 
 	public class Uniform1ui extends UniformInt<Uniform1ui> {
@@ -851,11 +766,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniform1uiv(unifID, uniformIntBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "uint";
 		}
 	}
 
@@ -883,11 +793,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniform2uiv(unifID, uniformIntBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "uvec2";
 		}
 	}
 
@@ -920,11 +825,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniform3uiv(unifID, uniformIntBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "uvec3";
 		}
 	}
 
@@ -963,11 +863,6 @@ public class GlProgram {
 		protected void uploadInner() {
 			GFX.uniform4uiv(unifID, uniformIntBuffer);
 		}
-
-		@Override
-		public String searchString() {
-			return "uvec4";
-		}
 	}
 
 	public class UniformArrayui extends UniformInt<UniformArrayui> {
@@ -997,11 +892,6 @@ public class GlProgram {
 			final IntBuffer source = externalBuffer == null ? uniformIntBuffer : externalBuffer;
 			externalBuffer = null;
 			GFX.uniform1uiv(unifID, source);
-		}
-
-		@Override
-		public String searchString() {
-			return "uint\\s*\\[\\s*[0-9]+\\s*]";
 		}
 
 		public void setExternal(IntBuffer buff) {
@@ -1039,11 +929,6 @@ public class GlProgram {
 				GFX.uniformMatrix4fv(unifID, false, uniformFloatBuffer);
 			}
 		}
-
-		@Override
-		public String searchString() {
-			return "mat4\\s*\\[\\s*[0-9]+\\s*]";
-		}
 	}
 
 	public class UniformMatrix4f extends Uniform<UniformMatrix4f> {
@@ -1068,11 +953,6 @@ public class GlProgram {
 			if (uniformFloatBuffer != null) {
 				GFX.uniformMatrix4fv(unifID, false, uniformFloatBuffer);
 			}
-		}
-
-		@Override
-		public String searchString() {
-			return "mat4";
 		}
 	}
 
@@ -1113,11 +993,6 @@ public class GlProgram {
 		@Override
 		protected void uploadInner() {
 			GFX.uniformMatrix3fv(unifID, false, uniformFloatBuffer);
-		}
-
-		@Override
-		public String searchString() {
-			return "mat3";
 		}
 	}
 
