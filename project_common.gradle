@@ -3,7 +3,11 @@ project.group = 'io.vram'
 ext.author = 'Grondag'
 ext.title = 'Canvas Renderer'
 ext.mod_name = 'canvas'
-ext.mod_version = '3.0'
+// Token below will cause mod version to be automatically updated
+// by gruntle build script to match MC minor/patch version
+// and should be present for all grondag/VRAM mods specific to MC version.
+// @track_minecraft_version
+ext.mod_version = '19.4'
 
 ext.github_repository_owner = 'vram-guild'
 ext.github_repository = 'canvas'

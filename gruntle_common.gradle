@@ -1,8 +1,7 @@
-ext.mc_tag = 'mc119'
 ext.minecraft_version = '1.19.4'
 ext.release_version = '1.19.4'
 
-project.archivesBaseName = project.mod_name + "-" + project.platform_name + "-" + project.mc_tag
+project.archivesBaseName = project.mod_name + "-" + project.platform_name
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17

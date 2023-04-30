@@ -37,8 +37,8 @@
 		"mixins.canvas.fabric.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.14.11",
-		"minecraft": "1.19.4",
+		"fabricloader": ">=0.14.19",
+		"minecraft": ">=1.19.4",
 		"java": ">=17"
 	},
 	"breaks": {

@@ -24,8 +24,8 @@ dependencies {
 
 	modIncludeImplementation("io.vram:bitkit:1.0.4")
 	modIncludeImplementation("io.vram:special-circumstances:1.10.7")
-	modIncludeImplementation("io.vram:frex-fabric-mc119:8.0.327")
-	modIncludeImplementation("io.vram:jmx-fabric-mc119:3.0.272")
+	modIncludeImplementation("io.vram:frex-fabric:19.4.329")
+	modIncludeImplementation("io.vram:jmx-fabric:19.4.274")
 
 	modCompileOnly "com.terraformersmc:modmenu:6.2.1"
 	modRuntimeOnly "com.terraformersmc:modmenu:6.2.1"
