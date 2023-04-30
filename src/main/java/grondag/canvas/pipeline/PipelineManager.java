@@ -41,7 +41,7 @@ import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.GlProgram;
-import grondag.canvas.shader.ProcessShader;
+import grondag.canvas.shader.ProcessProgram;
 import grondag.canvas.varia.GFX;
 
 //PERF: handle VAO properly here before re-enabling VAO
@@ -52,11 +52,11 @@ public class PipelineManager {
 		}
 	}
 
-	static ProcessShader debugShader;
-	static ProcessShader debugArrayShader;
-	static ProcessShader debugDepthShader;
-	static ProcessShader debugDepthArrayShader;
-	static ProcessShader debugCubeMapShader;
+	static ProcessProgram debugProgram;
+	static ProcessProgram debugArrayProgram;
+	static ProcessProgram debugDepthProgram;
+	static ProcessProgram debugDepthArrayProgram;
+	static ProcessProgram debugCubeMapProgram;
 
 	static StaticDrawBuffer drawBuffer;
 	static int h;
@@ -172,18 +172,23 @@ public class PipelineManager {
 		boolean isLayered = target == GFX.GL_TEXTURE_2D_ARRAY;
 
 		if (target == GFX.GL_TEXTURE_CUBE_MAP) {
-			debugCubeMapShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
+			debugCubeMapProgram.activate();
+			debugCubeMapProgram.size(w, h).lod(lod).projection(orthoMatrix);
 		} else if (depth) {
 			if (isLayered) {
-				debugDepthArrayShader.activate().size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
+				debugDepthArrayProgram.activate();
+				debugDepthArrayProgram.size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
 			} else {
-				debugDepthShader.activate().size(w, h).lod(0).projection(orthoMatrix);
+				debugDepthProgram.activate();
+				debugDepthProgram.size(w, h).lod(0).projection(orthoMatrix);
 			}
 		} else {
 			if (isLayered) {
-				debugArrayShader.activate().size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
+				debugArrayProgram.activate();
+				debugArrayProgram.size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
 			} else {
-				debugShader.activate().size(w, h).lod(lod).projection(orthoMatrix);
+				debugProgram.activate();
+				debugProgram.size(w, h).lod(lod).projection(orthoMatrix);
 			}
 		}
 
@@ -209,11 +214,11 @@ public class PipelineManager {
 
 		mc.options.graphicsMode().set(Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
 
-		debugShader = new ProcessShader("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
-		debugArrayShader = new ProcessShader("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
-		debugDepthShader = new ProcessShader("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
-		debugDepthArrayShader = new ProcessShader("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
-		debugCubeMapShader = new ProcessShader("debug_cube_map", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
+		debugProgram = new ProcessProgram("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
+		debugArrayProgram = new ProcessProgram("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
+		debugDepthProgram = new ProcessProgram("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
+		debugDepthArrayProgram = new ProcessProgram("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
+		debugCubeMapProgram = new ProcessProgram("debug_cube_map", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
 
 		Pipeline.defaultFbo.bind();
 		CanvasTextureState.bindTexture(0);
@@ -246,11 +251,11 @@ public class PipelineManager {
 	}
 
 	private static void tearDown() {
-		debugShader = ProcessShader.unload(debugShader);
-		debugArrayShader = ProcessShader.unload(debugArrayShader);
-		debugDepthShader = ProcessShader.unload(debugDepthShader);
-		debugDepthArrayShader = ProcessShader.unload(debugDepthArrayShader);
-		debugCubeMapShader = ProcessShader.unload(debugCubeMapShader);
+		debugProgram = ProcessProgram.unload(debugProgram);
+		debugArrayProgram = ProcessProgram.unload(debugArrayProgram);
+		debugDepthProgram = ProcessProgram.unload(debugDepthProgram);
+		debugDepthArrayProgram = ProcessProgram.unload(debugDepthArrayProgram);
+		debugCubeMapProgram = ProcessProgram.unload(debugCubeMapProgram);
 
 		if (drawBuffer != null) {
 			drawBuffer.release();
