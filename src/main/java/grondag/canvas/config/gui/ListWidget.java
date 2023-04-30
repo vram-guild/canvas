@@ -26,6 +26,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -40,6 +41,7 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 		// The workings of these coordinates are arcane by nature
 		super(Minecraft.getInstance(), width, height + y, y, height + y, ITEM_HEIGHT + ITEM_SPACING);
 		setRenderBackground(false);
+		setRenderTopAndBottom(false);
 		x0 = x;
 		x1 = x + width;
 		rowWidth = Math.min(300, width - 20);
@@ -59,15 +61,13 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 
 	@Override
 	public void render(PoseStack poseStack, int i, int j, float f) {
-		final double guiScale = Minecraft.getInstance().getWindow().getGuiScale();
-		final int x = x0 - 1;
-		final int y = y0;
-		final int width = x1 - x0 + 2;
-		final int height = y1 - y0;
-
-		RenderSystem.enableScissor((int) (guiScale * x), adaptY(y, height, guiScale), (int) (guiScale * width), (int) (guiScale * height));
 		super.render(poseStack, i, j, f);
-		RenderSystem.disableScissor();
+
+		// Render top and bottom shadow over items but not scroll bar
+		final boolean hasScrollBar = this.getMaxScroll() > 0;
+		final int limit = hasScrollBar ? this.getScrollbarPosition() : this.x1;
+		fillGradient(poseStack, this.x0, this.y0, limit, this.y0 + 4, -16777216, 0);
+		fillGradient(poseStack, this.x0, this.y1 - 4, limit, this.y1, 0, -16777216);
 	}
 
 	/**
