@@ -51,8 +51,7 @@ public class ProcessProgram extends GlProgram {
 		int tex = 0;
 		for (final String samplerName : samplers) {
 			final int n = tex++;
-			final String samplerType = SamplerTypeHelper.getSamplerType(this, samplerName);
-			uniformSampler(samplerType, samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
+			uniformSampler(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
 		}
 	}
 
