@@ -1,6 +1,6 @@
 {
   "pack": {
-	"pack_format": 9,
+	"pack_format": 12,
 	"description": "Shaders that are WIP or don't match vanilla"
   }
 }
