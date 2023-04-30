@@ -489,12 +489,17 @@ public class GFX extends GL46C {
 		return result;
 	}
 
+	private static int activeProgramID = 0;
+
 	/**
 	 * Clears error state prior to run and does not clear it after.
 	 */
 	public static void useProgram(int program) {
 		glGetError();
-		glUseProgram(program);
+		if(activeProgramID != program) {
+			glUseProgram(program);
+			activeProgramID = program;
+		}
 	}
 
 	public static void linkProgram(int program) {

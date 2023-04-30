@@ -116,7 +116,7 @@ public class PipelineManager {
 		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0, GFX.GL_TEXTURE_2D, oldTex0);
 		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE1, GFX.GL_TEXTURE_2D, oldTex1);
 
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 		GFX.restoreProjectionMatrix();
 		GFX.depthMask(true);
 		GFX.enableDepthTest();

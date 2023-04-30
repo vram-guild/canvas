@@ -46,8 +46,6 @@ public class GlProgram {
 			CanvasMod.LOG.info("Lifecycle Event: GlProgram static init");
 		}
 	}
-
-	private static GlProgram activeProgram;
 	private final String name;
 	private final Shader vertexShader;
 	private final Shader fragmentShader;
@@ -70,17 +68,6 @@ public class GlProgram {
 		this.programType = programType;
 		vertexFormat = format;
 		ShaderUniforms.COMMON_UNIFORM_SETUP.accept(this);
-	}
-
-	public static void deactivate() {
-		if (activeProgram != null) {
-			activeProgram = null;
-			GFX.useProgram(0);
-		}
-	}
-
-	public static GlProgram activeProgram() {
-		return activeProgram;
 	}
 
 	public int programId() {
@@ -173,13 +160,7 @@ public class GlProgram {
 			return;
 		}
 
-		if (activeProgram != this) {
-			activeProgram = this;
-			activateInner();
-
-			// Label needs to be set after binding the program
-			if (created) GFX.objectLabel(GFX.GL_PROGRAM, programId(), "PRO " + name);
-		}
+		activateInner();
 	}
 
 	private void activateInner() {
@@ -247,6 +228,8 @@ public class GlProgram {
 		}
 
 		if (!isErrored) {
+			GFX.objectLabel(GFX.GL_PROGRAM, programId(), "PRO " + name);
+
 			activeUniforms.clear();
 			renderTickUpdates.clear();
 			gameTickUpdates.clear();
