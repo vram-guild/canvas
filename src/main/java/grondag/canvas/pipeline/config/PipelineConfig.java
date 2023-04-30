@@ -47,6 +47,7 @@ public class PipelineConfig {
 	public final PassConfig[] onWorldStart;
 	public final PassConfig[] afterRenderHand;
 	public final PassConfig[] fabulous;
+	public final PassConfig[] onResize;
 
 	@Nullable public final FabulousConfig fabulosity;
 	@Nullable public final DrawTargetsConfig drawTargets;
@@ -73,6 +74,7 @@ public class PipelineConfig {
 		onWorldStart = new PassConfig[0];
 		afterRenderHand = new PassConfig[0];
 		fabulous = new PassConfig[0];
+		onResize = new PassConfig[0];
 		images = new ImageConfig[] { ImageConfig.defaultMain(context), ImageConfig.defaultDepth(context) };
 		framebuffers = new FramebufferConfig[] { FramebufferConfig.makeDefault(context) };
 		options = new OptionConfig[0];
@@ -114,6 +116,7 @@ public class PipelineConfig {
 		framebuffers = builder.framebuffers.toArray(new FramebufferConfig[builder.framebuffers.size()]);
 		onWorldStart = builder.onWorldStart.toArray(new PassConfig[builder.onWorldStart.size()]);
 		afterRenderHand = builder.afterRenderHand.toArray(new PassConfig[builder.afterRenderHand.size()]);
+		onResize = builder.onResize.toArray(new PassConfig[builder.onResize.size()]);
 	}
 
 	public String configSource(ResourceLocation id) {

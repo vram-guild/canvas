@@ -158,6 +158,20 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
+	public static void onResize() {
+		beginFullFrameRender();
+
+		drawBuffer.bind();
+
+		for (final Pass pass : Pipeline.onResize) {
+			if (pass.isEnabled()) {
+				pass.run(w, h);
+			}
+		}
+
+		endFullFrameRender();
+	}
+
 	static void renderDebug(int glId, int lod, int layer, boolean depth, int target) {
 		beginFullFrameRender();
 
@@ -240,6 +254,8 @@ public class PipelineManager {
 		drawBuffer.upload();
 
 		collector.clear(); // releases storage
+
+		onResize();
 	}
 
 	private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {

@@ -48,6 +48,7 @@ public class Pipeline {
 	static Pass[] onWorldRenderStart = { };
 	static Pass[] afterRenderHand = { };
 	static Pass[] fabulous = { };
+	static Pass[] onResize = { };
 
 	private static boolean isFabulous = false;
 
@@ -135,9 +136,14 @@ public class Pipeline {
 			pass.close();
 		}
 
+		for (final Pass pass : onResize) {
+			pass.close();
+		}
+
 		afterRenderHand = new Pass[0];
 		onWorldRenderStart = new Pass[0];
 		fabulous = new Pass[0];
+		onResize = new Pass[0];
 
 		if (!FRAMEBUFFERS.isEmpty()) {
 			FRAMEBUFFERS.values().forEach(framebuffer -> framebuffer.close());
@@ -300,6 +306,7 @@ public class Pipeline {
 
 		onWorldRenderStart = buildPasses(config, config.onWorldStart);
 		afterRenderHand = buildPasses(config, config.afterRenderHand);
+		onResize = buildPasses(config, config.onResize);
 	}
 
 	private static Pass[] buildPasses(PipelineConfig cfg, PassConfig[] configs) {
