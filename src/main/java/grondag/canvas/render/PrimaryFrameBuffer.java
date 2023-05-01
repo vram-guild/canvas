@@ -41,6 +41,14 @@ public class PrimaryFrameBuffer extends MainTarget {
 		//NB: pipeline manager handles close
 	}
 
+	protected void createFrameBuffer(int width, int height) {
+		this.width = width;
+		this.viewWidth = width;
+		this.height = height;
+		this.viewHeight = height;
+		PipelineManager.init(this, width, height);
+	}
+
 	@Override
 	public void createBuffers(int width, int height, boolean getError) {
 		RenderSystem.assertOnGameThreadOrInit();
@@ -52,7 +60,7 @@ public class PrimaryFrameBuffer extends MainTarget {
 		// UGLY - throwing away what seems to be a spurious INVALID_VALUE error here
 		GlStateManager._getError();
 
-		PipelineManager.init(this, width, height);
+		PipelineManager.onResize(this, width, height);
 
 		checkStatus();
 		unbindRead();

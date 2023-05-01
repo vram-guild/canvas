@@ -158,7 +158,22 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	public static void onResize() {
+	public static void onResize(PrimaryFrameBuffer primary, int new_w, int new_h) {
+		if(w == new_w && h == new_h) return;
+
+		w = new_w;
+		h = new_h;
+
+		Pipeline.onResize(primary, w, h);
+
+		final Minecraft mc = Minecraft.getInstance();
+
+		if (mc.levelRenderer != null) {
+			((LevelRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
+		}
+
+		if(drawBuffer == null) return;
+
 		beginFullFrameRender();
 
 		drawBuffer.bind();
@@ -215,27 +230,18 @@ public class PipelineManager {
 		Pipeline.close();
 		tearDown();
 
-		w = width;
-		h = height;
+		Pipeline.activate(primary, width, height);
 
-		Pipeline.activate(primary, w, h, true);
-
-		final Minecraft mc = Minecraft.getInstance();
-
-		if (mc.levelRenderer != null) {
-			((LevelRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
+		Minecraft mc = Minecraft.getInstance();
+		if(mc.getGpuWarnlistManager() != null) {
+			mc.options.graphicsMode().set(Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
 		}
-
-		mc.options.graphicsMode().set(Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
 
 		debugProgram = new ProcessProgram("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
 		debugArrayProgram = new ProcessProgram("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
 		debugDepthProgram = new ProcessProgram("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
 		debugDepthArrayProgram = new ProcessProgram("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
 		debugCubeMapProgram = new ProcessProgram("debug_cube_map", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
-
-		Pipeline.defaultFbo.bind();
-		CanvasTextureState.bindTexture(0);
 
 		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.missing(), new int[64]);
 
@@ -255,7 +261,8 @@ public class PipelineManager {
 
 		collector.clear(); // releases storage
 
-		onResize();
+		Pipeline.defaultFbo.bind();
+		CanvasTextureState.bindTexture(0);
 	}
 
 	private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {

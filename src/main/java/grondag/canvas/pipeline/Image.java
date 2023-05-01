@@ -33,8 +33,8 @@ import grondag.canvas.varia.GFX;
 public class Image {
 	public final ImageConfig config;
 	protected int glId = -1;
-	public final int width;
-	public final int height;
+	public int width;
+	public int height;
 
 	Image(ImageConfig config, int width, int height) {
 		this.config = config;
@@ -68,18 +68,23 @@ public class Image {
 				GFX.texParameter(config.target, GFX.GL_TEXTURE_LOD_BIAS, 0.0F);
 			}
 
-			for (int i = 0; i <= config.lod; ++i) {
-				if (config.target == GFX.GL_TEXTURE_3D) {
-					GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-				} else if (config.target == GFX.GL_TEXTURE_2D_ARRAY) {
-					GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-				} else if (config.target == GFX.GL_TEXTURE_CUBE_MAP) {
-					for (int face = 0; face < 6; ++face) {
-						GFX.texImage2D(GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
-					}
-				} else {
-					GFX.texImage2D(config.target, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			allocate();
+		}
+	}
+
+	void allocate() {
+		CanvasTextureState.bindTexture(config.target, glId);
+		for (int i = 0; i <= config.lod; ++i) {
+			if (config.target == GFX.GL_TEXTURE_3D) {
+				GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			} else if (config.target == GFX.GL_TEXTURE_2D_ARRAY) {
+				GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+			} else if (config.target == GFX.GL_TEXTURE_CUBE_MAP) {
+				for (int face = 0; face < 6; ++face) {
+					GFX.texImage2D(GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 				}
+			} else {
+				GFX.texImage2D(config.target, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 			}
 		}
 	}
