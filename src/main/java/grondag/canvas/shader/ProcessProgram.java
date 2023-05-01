@@ -65,37 +65,29 @@ public class ProcessProgram extends GlProgram {
 	}
 
 	public ProcessProgram size(int w, int h) {
-		if (GlProgram.activeProgram() == this) {
-			size.set(w, h);
-			size.upload();
-		}
+		size.set(w, h);
+		size.upload();
 
 		return this;
 	}
 
 	public ProcessProgram lod(int lod) {
-		if (GlProgram.activeProgram() == this) {
-			this.lod.set(lod);
-			this.lod.upload();
-		}
+		this.lod.set(lod);
+		this.lod.upload();
 
 		return this;
 	}
 
 	public ProcessProgram layer(int layer) {
-		if (GlProgram.activeProgram() == this) {
-			this.layer.set(layer);
-			this.layer.upload();
-		}
+		this.layer.set(layer);
+		this.layer.upload();
 
 		return this;
 	}
 
 	public ProcessProgram projection(Matrix4f matrix) {
-		if (GlProgram.activeProgram() == this) {
-			projMatrix.set(matrix);
-			projMatrix.upload();
-		}
+		projMatrix.set(matrix);
+		projMatrix.upload();
 
 		return this;
 	}

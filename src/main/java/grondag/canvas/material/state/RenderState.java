@@ -314,7 +314,7 @@ public final class RenderState {
 		GFX.glDisable(GFX.GL_POLYGON_OFFSET_FILL);
 		GFX.glCullFace(GFX.GL_BACK);
 
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 		DecalRenderState.disable();
 		TransparencyRenderState.disable();
 		DepthTestRenderState.disable();

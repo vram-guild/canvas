@@ -760,7 +760,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
 		RenderState.disable();
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 
 		// cloud rendering ignores RenderSystem view matrix
 		if (!CanvasPlatformHooks.renderCustomClouds(eventContext)) {
