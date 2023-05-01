@@ -110,7 +110,6 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.IntData;
 import grondag.canvas.shader.data.MatrixData;
@@ -760,7 +759,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
 		RenderState.disable();
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 
 		// cloud rendering ignores RenderSystem view matrix
 		if (!CanvasPlatformHooks.renderCustomClouds(eventContext)) {

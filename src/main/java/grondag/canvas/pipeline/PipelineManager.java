@@ -38,7 +38,6 @@ import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.PrimaryFrameBuffer;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessProgram;
 import grondag.canvas.varia.GFX;
 

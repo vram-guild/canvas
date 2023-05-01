@@ -20,11 +20,12 @@
 
 package grondag.canvas.pipeline;
 
+import static net.minecraft.client.renderer.entity.ItemRenderer.ENCHANTED_GLINT_ITEM;
+
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
-import net.minecraft.client.renderer.texture.SimpleTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
@@ -67,17 +68,14 @@ public class ProgramTextureData {
 
 	private static AbstractTexture tryLoadResourceTexture(ResourceLocation identifier) {
 		final TextureManager textureManager = Minecraft.getInstance().getTextureManager();
-		final AbstractTexture existingTexture = textureManager.getTexture(identifier);
 
-		if (existingTexture != null) {
-			return existingTexture;
-		} else {
-			// NB: `registerTexture` will replace the texture with MissingSprite if not found. This is useful for
-			//     pipeline developers.
-			//     Additionally, TextureManager will handle removing missing textures on resource reload.
-			final SimpleTexture resourceTexture = new SimpleTexture(identifier);
-			textureManager.register(identifier, resourceTexture);
-			return textureManager.getTexture(identifier);
+		// backwards compatibility
+		if (identifier.equals(OLD_GLINT_TEXTURE) && textureManager.getTexture(identifier, null) == null) {
+			return textureManager.getTexture(ENCHANTED_GLINT_ITEM);
 		}
+
+		return textureManager.getTexture(identifier);
 	}
+
+	private static final ResourceLocation OLD_GLINT_TEXTURE = new ResourceLocation("minecraft:textures/misc/enchanted_item_glint.png");
 }
