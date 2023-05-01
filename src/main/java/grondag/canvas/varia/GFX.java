@@ -497,7 +497,7 @@ public class GFX extends GL46C {
 	public static boolean useProgram(int program) {
 		glGetError();
 
-		if(activeProgramID != program) {
+		if (activeProgramID != program) {
 			glUseProgram(program);
 			activeProgramID = program;
 			return true;

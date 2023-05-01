@@ -28,7 +28,6 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.data.UniformRefreshFrequency;
 
 public class ProcessProgram extends GlProgram {
-
 	private final Uniform2i size;
 	private final Uniform1i lod;
 	private final Uniform1i layer;
@@ -49,6 +48,7 @@ public class ProcessProgram extends GlProgram {
 		this.projMatrix = uniformMatrix4f("frxu_frameProjectionMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 
 		int tex = 0;
+
 		for (final String samplerName : samplers) {
 			final int n = tex++;
 			uniformSampler(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));

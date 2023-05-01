@@ -54,7 +54,6 @@ import grondag.canvas.material.property.WriteMaskRenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.world.SkyShadowRenderer;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.shader.data.MatrixState;

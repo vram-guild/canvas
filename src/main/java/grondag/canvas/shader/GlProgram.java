@@ -46,6 +46,7 @@ public class GlProgram {
 			CanvasMod.LOG.info("Lifecycle Event: GlProgram static init");
 		}
 	}
+
 	private final String name;
 	private final Shader vertexShader;
 	private final Shader fragmentShader;
@@ -237,7 +238,7 @@ public class GlProgram {
 					}
 				}
 			}
-			
+
 			GlProgramManager.INSTANCE.add(this);
 		}
 	}
