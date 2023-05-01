@@ -56,6 +56,7 @@ public class PipelineConfigBuilder {
 	public final ObjectArrayList<PassConfig> onWorldStart = new ObjectArrayList<>();
 	public final ObjectArrayList<PassConfig> afterRenderHand = new ObjectArrayList<>();
 	public final ObjectArrayList<PassConfig> fabulous = new ObjectArrayList<>();
+	public final ObjectArrayList<PassConfig> onInit = new ObjectArrayList<>();
 	public final ObjectArrayList<PassConfig> onResize = new ObjectArrayList<>();
 
 	@Nullable public FabulousConfig fabulosity;
@@ -166,6 +167,7 @@ public class PipelineConfigBuilder {
 		LoadHelper.loadSubList(context, configJson, "fabulous", "passes", fabulous, PassConfig::new);
 		LoadHelper.loadSubList(context, configJson, "beforeWorldRender", "passes", onWorldStart, PassConfig::new);
 		LoadHelper.loadSubList(context, configJson, "afterRenderHand", "passes", afterRenderHand, PassConfig::new);
+		LoadHelper.loadSubList(context, configJson, "onInit", "passes", onInit, PassConfig::new);
 		LoadHelper.loadSubList(context, configJson, "onResize", "passes", onResize, PassConfig::new);
 
 		LoadHelper.loadList(context, configJson, "images", images, ImageConfig::new);

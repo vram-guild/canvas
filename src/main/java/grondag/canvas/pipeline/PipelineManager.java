@@ -62,8 +62,6 @@ public class PipelineManager {
 	private static int oldTex0;
 	private static int oldTex1;
 
-	private static boolean active = false;
-
 	public static int width() {
 		return w;
 	}
@@ -76,84 +74,96 @@ public class PipelineManager {
 		init((PrimaryFrameBuffer) Minecraft.getInstance().getMainRenderTarget(), w, h);
 	}
 
+	public static void init(PrimaryFrameBuffer primary, int width, int height) {
+		Pipeline.close();
+		tearDown();
+
+		Pipeline.activate(primary, width, height);
+
+		debugProgram = new ProcessProgram("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
+		debugArrayProgram = new ProcessProgram("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
+		debugDepthProgram = new ProcessProgram("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
+		debugDepthArrayProgram = new ProcessProgram("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
+		debugCubeMapProgram = new ProcessProgram("debug_cube_map", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
+
+		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.missing(), new int[64]);
+
+		final int[] v = collector.target();
+		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 0);
+		addVertex(1f, 0f, 0.2f, 1f, 1f, v, 5);
+		addVertex(1f, 1f, 0.2f, 1f, 0f, v, 10);
+		addVertex(1f, 1f, 0.2f, 1f, 0f, v, 15);
+		addVertex(0f, 1f, 0.2f, 0f, 0f, v, 20);
+		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 25);
+		collector.commit(30);
+
+		final TransferBuffer transfer = TransferBuffers.claim(collector.byteSize());
+		collector.toBuffer(transfer, 0);
+		drawBuffer = new StaticDrawBuffer(CanvasVertexFormats.PROCESS_VERTEX_UV, transfer);
+		drawBuffer.upload();
+
+		collector.clear(); // releases storage
+
+		renderFullFramePasses(Pipeline.onInit);
+		renderFullFramePasses(Pipeline.onResize);
+	}
+
+	private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {
+		target[index] = Float.floatToRawIntBits(x);
+		target[++index] = Float.floatToRawIntBits(y);
+		target[++index] = Float.floatToRawIntBits(z);
+		target[++index] = Float.floatToRawIntBits(u);
+		target[++index] = Float.floatToRawIntBits(v);
+	}
+
+	public static void onResize(PrimaryFrameBuffer primary, int newWidth, int newHeight) {
+		if(w == newWidth && h == newHeight) return;
+
+		w = newWidth;
+		h = newHeight;
+
+		Pipeline.onResize(primary, w, h);
+
+		renderFullFramePasses(Pipeline.onResize);
+	}
+
 	public static void beforeWorldRender() {
-		assert !active;
-
-		beginFullFrameRender();
-
-		drawBuffer.bind();
-
-		for (final Pass pass : Pipeline.onWorldRenderStart) {
-			if (pass.isEnabled()) {
-				Timekeeper.instance.swap(Timekeeper.ProfilerGroup.BeforeWorld, pass.getName());
-				pass.run(w, h);
-			}
-		}
-
-		Timekeeper.instance.completePass();
-
-		endFullFrameRender();
-
+		renderFullFramePasses(Pipeline.onWorldRenderStart, Timekeeper.ProfilerGroup.BeforeWorld);
 		Pipeline.defaultFbo.bind();
 	}
 
-	static void beginFullFrameRender() {
-		oldTex1 = CanvasTextureState.getBoundTexture(GFX.GL_TEXTURE1);
-		oldTex0 = CanvasTextureState.getBoundTexture(GFX.GL_TEXTURE0);
-
-		GFX.depthMask(false);
-		GFX.disableBlend();
-		GFX.disableCull();
-		GFX.disableDepthTest();
-		GFX.backupProjectionMatrix();
-	}
-
-	static void endFullFrameRender() {
-		GFX.bindVertexArray(0);
-
-		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0, GFX.GL_TEXTURE_2D, oldTex0);
-		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE1, GFX.GL_TEXTURE_2D, oldTex1);
-
-		GlProgram.deactivate();
-		GFX.restoreProjectionMatrix();
-		GFX.depthMask(true);
-		GFX.enableDepthTest();
-		GFX.enableCull();
-		GFX.viewport(0, 0, w, h);
+	public static void beFabulous() {
+		renderFullFramePasses(Pipeline.fabulous, Timekeeper.ProfilerGroup.Fabulous);
 	}
 
 	public static void afterRenderHand() {
+		renderFullFramePasses(Pipeline.afterRenderHand, Timekeeper.ProfilerGroup.AfterHand);
+	}
+
+	static void renderFullFramePasses(Pass[] passes, Timekeeper.ProfilerGroup profilerGroup) {
 		beginFullFrameRender();
 
 		drawBuffer.bind();
 
-		for (final Pass pass : Pipeline.afterRenderHand) {
+		for (final Pass pass : passes) {
 			if (pass.isEnabled()) {
-				Timekeeper.instance.swap(Timekeeper.ProfilerGroup.AfterHand, pass.getName());
+				if(profilerGroup != null) {
+					Timekeeper.instance.swap(profilerGroup, pass.getName());
+				}
+
 				pass.run(w, h);
 			}
 		}
 
-		Timekeeper.instance.completePass();
+		if(profilerGroup != null) {
+			Timekeeper.instance.completePass();
+		}
 
 		endFullFrameRender();
 	}
 
-	public static void beFabulous() {
-		beginFullFrameRender();
-
-		drawBuffer.bind();
-
-		for (final Pass pass : Pipeline.fabulous) {
-			if (pass.isEnabled()) {
-				Timekeeper.instance.swap(Timekeeper.ProfilerGroup.Fabulous, pass.getName());
-				pass.run(w, h);
-			}
-		}
-
-		Timekeeper.instance.completePass();
-
-		endFullFrameRender();
+	static void renderFullFramePasses(Pass[] passes) {
+		renderFullFramePasses(passes, null);
 	}
 
 	static void renderDebug(int glId, int lod, int layer, boolean depth, int target) {
@@ -195,70 +205,29 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	public static void init(PrimaryFrameBuffer primary, int width, int height) {
-		Pipeline.close();
-		tearDown();
+	static void beginFullFrameRender() {
+		oldTex1 = CanvasTextureState.getBoundTexture(GFX.GL_TEXTURE1);
+		oldTex0 = CanvasTextureState.getBoundTexture(GFX.GL_TEXTURE0);
 
-		Pipeline.activate(primary, width, height);
-
-		debugProgram = new ProcessProgram("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
-		debugArrayProgram = new ProcessProgram("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
-		debugDepthProgram = new ProcessProgram("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
-		debugDepthArrayProgram = new ProcessProgram("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
-		debugCubeMapProgram = new ProcessProgram("debug_cube_map", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
-
-		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.missing(), new int[64]);
-
-		final int[] v = collector.target();
-		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 0);
-		addVertex(1f, 0f, 0.2f, 1f, 1f, v, 5);
-		addVertex(1f, 1f, 0.2f, 1f, 0f, v, 10);
-		addVertex(1f, 1f, 0.2f, 1f, 0f, v, 15);
-		addVertex(0f, 1f, 0.2f, 0f, 0f, v, 20);
-		addVertex(0f, 0f, 0.2f, 0f, 1f, v, 25);
-		collector.commit(30);
-
-		final TransferBuffer transfer = TransferBuffers.claim(collector.byteSize());
-		collector.toBuffer(transfer, 0);
-		drawBuffer = new StaticDrawBuffer(CanvasVertexFormats.PROCESS_VERTEX_UV, transfer);
-		drawBuffer.upload();
-
-		collector.clear(); // releases storage
-
-		onResizePasses();
+		GFX.depthMask(false);
+		GFX.disableBlend();
+		GFX.disableCull();
+		GFX.disableDepthTest();
+		GFX.backupProjectionMatrix();
 	}
 
-	public static void onResize(PrimaryFrameBuffer primary, int newWidth, int newHeight) {
-		if(w == newWidth && h == newHeight) return;
+	static void endFullFrameRender() {
+		GFX.bindVertexArray(0);
 
-		w = newWidth;
-		h = newHeight;
+		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0, GFX.GL_TEXTURE_2D, oldTex0);
+		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE1, GFX.GL_TEXTURE_2D, oldTex1);
 
-		Pipeline.onResize(primary, w, h);
-
-		onResizePasses();
-	}
-
-	public static void onResizePasses() {
-		beginFullFrameRender();
-
-		drawBuffer.bind();
-
-		for (final Pass pass : Pipeline.onResize) {
-			if (pass.isEnabled()) {
-				pass.run(w, h);
-			}
-		}
-
-		endFullFrameRender();
-	}
-
-	private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {
-		target[index] = Float.floatToRawIntBits(x);
-		target[++index] = Float.floatToRawIntBits(y);
-		target[++index] = Float.floatToRawIntBits(z);
-		target[++index] = Float.floatToRawIntBits(u);
-		target[++index] = Float.floatToRawIntBits(v);
+		GlProgram.deactivate();
+		GFX.restoreProjectionMatrix();
+		GFX.depthMask(true);
+		GFX.enableDepthTest();
+		GFX.enableCull();
+		GFX.viewport(0, 0, w, h);
 	}
 
 	private static void tearDown() {

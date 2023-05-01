@@ -20,6 +20,8 @@
 
 package grondag.canvas.pipeline;
 
+import java.util.function.Consumer;
+
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -40,6 +42,7 @@ import grondag.canvas.pipeline.config.ProgramConfig;
 import grondag.canvas.pipeline.config.SkyShadowConfig;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.PrimaryFrameBuffer;
+import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessProgram;
 
 public class Pipeline {
@@ -48,6 +51,7 @@ public class Pipeline {
 	static Pass[] onWorldRenderStart = { };
 	static Pass[] afterRenderHand = { };
 	static Pass[] fabulous = { };
+	static Pass[] onInit = { };
 	static Pass[] onResize = { };
 
 	private static boolean isFabulous = false;
@@ -124,39 +128,26 @@ public class Pipeline {
 	}
 
 	public static void close() {
-		for (final Pass pass : afterRenderHand) {
-			pass.close();
-		}
-
-		for (final Pass pass : onWorldRenderStart) {
-			pass.close();
-		}
-
-		for (final Pass pass : fabulous) {
-			pass.close();
-		}
-
-		for (final Pass pass : onResize) {
-			pass.close();
-		}
+		forEachPass(Pass::close);
 
 		afterRenderHand = new Pass[0];
 		onWorldRenderStart = new Pass[0];
 		fabulous = new Pass[0];
+		onInit = new Pass[0];
 		onResize = new Pass[0];
 
 		if (!FRAMEBUFFERS.isEmpty()) {
-			FRAMEBUFFERS.values().forEach(framebuffer -> framebuffer.close());
+			FRAMEBUFFERS.values().forEach(PipelineFramebuffer::close);
 			FRAMEBUFFERS.clear();
 		}
 
 		if (!IMAGES.isEmpty()) {
-			IMAGES.values().forEach(img -> img.close());
+			IMAGES.values().forEach(Image::close);
 			IMAGES.clear();
 		}
 
 		if (!PROGRAMS.isEmpty()) {
-			PROGRAMS.values().forEach(prog -> prog.unload());
+			PROGRAMS.values().forEach(GlProgram::unload);
 			PROGRAMS.clear();
 		}
 	}
@@ -235,11 +226,7 @@ public class Pipeline {
 			fabTranslucentColor = getImage(fc.translucentFramebuffer.value().colorAttachments[0].image.name).glId();
 			fabTranslucentDepth = getImage(fc.translucentFramebuffer.value().depthAttachment.image.name).glId();
 
-			fabulous = new Pass[config.fabulous.length];
-
-			for (int i = 0; i < config.fabulous.length; ++i) {
-				fabulous[i] = Pass.create(config.fabulous[i]);
-			}
+			fabulous = buildPasses(config, config.fabulous);
 		} else {
 			fabEntityColor = 0;
 			fabEntityDepth = 0;
@@ -262,6 +249,7 @@ public class Pipeline {
 
 		onWorldRenderStart = buildPasses(config, config.onWorldStart);
 		afterRenderHand = buildPasses(config, config.afterRenderHand);
+		onInit = buildPasses(config, config.onInit);
 		onResize = buildPasses(config, config.onResize);
 
 		BufferDebug.init(config);
@@ -277,21 +265,7 @@ public class Pipeline {
 
 		initFramebuffers(primary);
 
-		for (final Pass pass : afterRenderHand) {
-			pass.loadFramebuffer();
-		}
-
-		for (final Pass pass : onWorldRenderStart) {
-			pass.loadFramebuffer();
-		}
-
-		for (final Pass pass : fabulous) {
-			pass.loadFramebuffer();
-		}
-
-		for (final Pass pass : onResize) {
-			pass.loadFramebuffer();
-		}
+		forEachPass(Pass::loadFramebuffer);
 	}
 
 	static void initFramebuffers(PrimaryFrameBuffer primary) {
@@ -352,7 +326,30 @@ public class Pipeline {
 		return passes.toArray(new Pass[passes.size()]);
 	}
 
+	private static void forEachPass(Consumer<Pass> consumer) {
+		for (final Pass pass : afterRenderHand) {
+			consumer.accept(pass);
+		}
+
+		for (final Pass pass : onWorldRenderStart) {
+			consumer.accept(pass);
+		}
+
+		for (final Pass pass : fabulous) {
+			consumer.accept(pass);
+		}
+
+		for (final Pass pass : onInit) {
+			consumer.accept(pass);
+		}
+
+		for (final Pass pass : onResize) {
+			consumer.accept(pass);
+		}
+	}
+
 	public static boolean isFabulous() {
 		return isFabulous;
 	}
+
 }
