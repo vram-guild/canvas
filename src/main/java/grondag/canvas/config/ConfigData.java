@@ -25,6 +25,7 @@ import blue.endless.jankson.Comment;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 class ConfigData {
@@ -86,12 +87,16 @@ class ConfigData {
 	TerrainIterator.ShadowPriming shadowPrimingStrategy = TerrainIterator.ShadowPriming.PADDED;
 	@Comment("Maximum shadow render distance to be compared against render distance. TEMPORARY, meant to become a pipeline configuration.")
 	int shadowMaxDistance = 32;
+	@Comment("Face culling mode for depth pass rendering. TEMPORARY, meant to become a pipeline configuration.")
+	SkyShadowRenderer.Culling shadowFaceCulling = SkyShadowRenderer.Culling.BACK;
+	@Comment("Interpolate shadow map center to the approximated camera frustum centroid. Increases precision but may cause clipping.")
+	float shadowCenterFactor = 1.0f;
+	@Comment("Only use target occluder for shadow culling. WIP, temporary workaround for gaps in shadow map.")
+	boolean disableShadowSelfOcclusion = false;
 	@Comment("When enabled, F3 debug screen output is refreshed 20X per second instead of every frame. Improves accuracy and reduces variability of FPS measurement.")
 	boolean steadyDebugScreen = true;
 	@Comment("When true, animated sprites not in view are not updated. Improves frame rate.")
 	boolean disableUnseenSpriteAnimation = true;
-	@Comment("When true, sprite atlas texture stitching is changed to group animated sprites. Improves frame rate. Changes take effect on next resource reload.")
-	boolean groupAnimatedSprites = true;
 	@Comment("When true, terrain facing away from the camera is not rendered.  Usually improves frame rate.")
 	boolean cullBackfacingTerrain = true;
 	@Comment("Enabling may help performance by drawing fewer regions but some regions may flicker as you move around nearby blocks.")
@@ -151,6 +156,10 @@ class ConfigData {
 	public void clearNulls() {
 		if (shadowPrimingStrategy == null) {
 			shadowPrimingStrategy = DEFAULT_VALUES.shadowPrimingStrategy;
+		}
+
+		if (shadowFaceCulling == null) {
+			shadowFaceCulling = DEFAULT_VALUES.shadowFaceCulling;
 		}
 
 		if (transferBufferMode == null) {

@@ -25,7 +25,7 @@ import java.util.List;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite.FrameInfo;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite.InterpolationData;
 
-public interface AnimatedTextureExt extends CombinedAnimationConsumer {
+public interface AnimatedTextureExt {
 	InterpolationData canvas_interpolation();
 
 	int canvas_frameCount();

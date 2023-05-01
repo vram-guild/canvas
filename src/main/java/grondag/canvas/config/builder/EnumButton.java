@@ -38,12 +38,12 @@ public class EnumButton<T> extends OptionItem<T> {
 	EnumButton(String key, Supplier<T> getter, Consumer<T> setter, T defaultVal, T[] values, @Nullable String tooltipKey) {
 		super(key, getter, setter, defaultVal, tooltipKey);
 		this.values = values;
-		cycleIndex = search(getter.get());
+		cycleIndex = search(getter.get(), 0);
 	}
 
 	@Override
 	protected void doReset(AbstractButton button) {
-		cycleIndex = search(defaultVal);
+		cycleIndex = search(defaultVal, 0);
 		set();
 	}
 
@@ -67,13 +67,13 @@ public class EnumButton<T> extends OptionItem<T> {
 		return label(values[cycleIndex].toString().toUpperCase(Locale.ROOT));
 	}
 
-	private int search(Object key) {
+	private int search(Object key, int fallback) {
 		for (int i = 0; i < values.length; i++) {
 			if (key.equals(values[i])) {
 				return i;
 			}
 		}
 
-		return -1;
+		return fallback;
 	}
 }

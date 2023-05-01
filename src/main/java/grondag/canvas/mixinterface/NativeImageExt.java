@@ -20,6 +20,6 @@
 
 package grondag.canvas.mixinterface;
 
-public interface NativeImageExt extends CombinedAnimationConsumer {
+public interface NativeImageExt {
 	long canvas_pointer();
 }

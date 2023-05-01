@@ -33,31 +33,38 @@ import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.perf.Timekeeper;
-import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.shader.GlMaterialProgramManager;
 import grondag.canvas.shader.GlProgramManager;
-import grondag.canvas.shader.GlShader;
 import grondag.canvas.shader.GlShaderManager;
+import grondag.canvas.shader.MaterialProgram;
 import grondag.canvas.shader.PreReleaseShaderCompat;
 import grondag.canvas.shader.data.ShaderDataManager;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 
 public class CanvasState {
-	public static void recompile() {
-		PipelineLoader.reload(Minecraft.getInstance().getResourceManager());
-		Pipeline.reload();
-		PreReleaseShaderCompat.reload();
-		GlShader.forceReloadErrors();
-		GlShaderManager.INSTANCE.reload();
-		GlProgramManager.INSTANCE.reload();
-		GlMaterialProgramManager.INSTANCE.reload();
-		// LightmapHdTexture.reload();
-		// LightmapHd.reload();
-		TextureMaterialState.reload();
-		ShaderDataManager.reload();
-		Timekeeper.configOrPipelineReload();
+	public static void recompileIfNeeded(boolean forceRecompile) {
+		while (CanvasMod.RECOMPILE.consumeClick()) {
+			forceRecompile = true;
+		}
+
+		if (forceRecompile) {
+			CanvasMod.LOG.info(I18n.get("info.canvas.recompile"));
+			PipelineLoader.reload(Minecraft.getInstance().getResourceManager());
+			PipelineManager.reload();
+			PreReleaseShaderCompat.reload();
+			MaterialProgram.reload();
+			GlShaderManager.INSTANCE.reload();
+			GlProgramManager.INSTANCE.reload();
+			GlMaterialProgramManager.INSTANCE.reload();
+			// LightmapHdTexture.reload();
+			// LightmapHd.reload();
+			TextureMaterialState.reload();
+			ShaderDataManager.reload();
+			Timekeeper.configOrPipelineReload();
+		}
 	}
 
 	public static void reload() {
@@ -70,6 +77,6 @@ public class CanvasState {
 		ChunkColorCache.invalidate();
 		AoFace.clampExteriorVertices(Configurator.clampExteriorVertices);
 
-		recompile();
+		recompileIfNeeded(true);
 	}
 }

@@ -1,3 +1,10 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/nether_sprouts",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

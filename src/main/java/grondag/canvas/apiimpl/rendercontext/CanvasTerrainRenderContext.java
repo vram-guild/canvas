@@ -30,8 +30,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -51,9 +53,6 @@ import grondag.canvas.terrain.region.input.InputRegion;
 import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.RenderRegionStateIndexer;
 
-/**
- * Context for non-terrain block rendering.
- */
 public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintGetter> implements BlockStateRenderer {
 	// Reused each build to prevent needless allocation
 	public final ObjectOpenHashSet<BlockEntity> nonCullBlockEntities = new ObjectOpenHashSet<>();
@@ -92,8 +91,8 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		}
 
 		@Override
-		protected int cacheIndexFromSectionIndex(int packedSectorIndex) {
-			return RenderRegionStateIndexer.packedSectionPosToRegionIndex(packedSectorIndex);
+		protected int cacheIndexFromSectionIndex(int packedSectionPos) {
+			return RenderRegionStateIndexer.packedSectionPosToRegionIndex(packedSectionPos);
 		}
 	};
 
@@ -127,6 +126,13 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		public MutableBlockPos originOffset(int x, int y, int z) {
 			return searchPos.set(region.originX() + x, region.originY() + y, region.originZ() + z);
 		}
+
+		@Override
+		protected boolean shouldRenderFace(Direction face, BlockPos offsetPos) {
+			// We exploit the geometry analysis that happens during chunk baking to skip
+			// rendering of faces that cannot be visible because they are inside closed-off areas.
+			return !region.isClosed(region.blockIndex(offsetPos.getX(), offsetPos.getY(), offsetPos.getZ())) && Block.shouldRenderFace(blockState, blockView, blockPos, face, offsetPos);
+		}
 	}
 
 	@Override
@@ -142,7 +148,6 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		encoder.animationBits.clear();
 
 		if (Configurator.lightSmoothing) {
-			//            final long start = counter.startRun();
 			LightSmoother.computeSmoothedBrightness(region);
 		}
 
@@ -165,9 +170,9 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		}
 	}
 
-	public void renderFluid(BlockState blockState, BlockPos blockPos, boolean defaultAo, final BlockModel model) {
+	public void renderFluid(BlockState blockState, BlockPos blockPos, final BlockModel model) {
 		aoCalc.prepare(PackedSectionPos.packWithSectionMask(blockPos));
-		prepareForFluid(blockState, blockPos, defaultAo);
+		prepareForFluid(blockState, blockPos);
 		renderInner(model);
 	}
 
@@ -177,7 +182,6 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		renderInner((BlockModel) model);
 	}
 
-	// PERF: don't pass in matrixStack each time, just change model matrix directly
 	private void renderInner(final BlockModel model) {
 		try {
 			model.renderAsBlock(this.inputContext, emitter());
@@ -191,6 +195,8 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 
 	@Override
 	protected void shadeQuad() {
+		emitter.colorize(inputContext);
+
 		// needs to happen before offsets are applied
 		if (!emitter.material().disableAo() && Minecraft.useAmbientOcclusion()) {
 			aoCalc.compute(emitter);
@@ -199,8 +205,6 @@ public class CanvasTerrainRenderContext extends BlockRenderContext<BlockAndTintG
 		} else {
 			emitter.applyFlatLighting(inputContext.flatBrightness(emitter));
 		}
-
-		emitter.colorize(inputContext);
 	}
 
 	@Override

@@ -1,0 +1,38 @@
+{
+	nameKey: "pipeline.abstract.name",
+	descriptionKey: "pipeline.abstract.desc",
+	enablePBR: true,
+
+	materialProgram: {
+		vertexSource: "abstract:shaders/pipeline/abstract.vert",
+		fragmentSource: "abstract:shaders/pipeline/abstract.frag",
+		samplers: ["cvu_glint"],
+		samplerImages: ["minecraft:textures/misc/enchanted_item_glint.png"],
+		compileByTarget: true
+	},
+
+	sky: {
+		// Used when dimension/celestial object does not specify
+		defaultZenithAngle: 15
+	},
+
+	drawTargets: {
+		solidTerrain: "solid",
+		translucentTerrain: "translucent",
+		translucentEntity: "entity",
+		weather: "weather",
+		clouds: "clouds",
+		// TODO: segregate solid particles
+		translucentParticles: "particles"
+	},
+
+	include: [
+		"abstract:pipeline/base.json5",
+		"abstract:pipeline/basic_light_config.json5",
+		"abstract:pipeline/fog_config.json5",
+		"abstract:pipeline/handheld_light_config.json5",
+		"abstract:pipeline/skyshadow.json5",
+		"abstract:pipeline/bloom.json5",
+		"abstract:pipeline/fabulous.json5"
+	]
+}

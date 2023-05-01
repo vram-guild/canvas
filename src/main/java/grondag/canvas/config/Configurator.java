@@ -27,6 +27,7 @@ import net.minecraft.util.Mth;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.config.PipelineConfig;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 public class Configurator {
@@ -57,8 +58,16 @@ public class Configurator {
 	public static boolean preprocessShaderSource = DEFAULTS.preprocessShaderSource;
 	// public static boolean lightmapDebug = DEFAULTS.lightmapDebug;
 	public static TerrainIterator.ShadowPriming shadowPrimingStrategy = DEFAULTS.shadowPrimingStrategy;
-	// TODO: this is only used in priming, use it elsewhere needed too.
+	// TODO: TEMPORARY, make into pipeline configuration -> this could be the 0th cascade distance
 	public static int shadowMaxDistance = DEFAULTS.shadowMaxDistance;
+	// EXPERIMENTAL: for now only BACK and NONE are good options btw
+	public static SkyShadowRenderer.Culling shadowFaceCulling = DEFAULTS.shadowFaceCulling;
+	// EXPERIMENTAL: interpolates shadow center between camera and camera frustum centroid
+	// NB: Cascade sometimes fail with fully centered shadow because of depth clipping, despite the next cascade seemingly
+	//     having the shadow information. This is possibly fixable by improving the cascade picker during sampling.
+	public static float shadowCenterFactor = DEFAULTS.shadowCenterFactor;
+	// WIP: Temporary workaround, remove soon
+	public static boolean disableShadowSelfOcclusion = DEFAULTS.disableShadowSelfOcclusion;
 	public static boolean conciseErrors = DEFAULTS.conciseErrors;
 	public static boolean logMachineInfo = DEFAULTS.logMachineInfo;
 	public static boolean logGlStateChanges = DEFAULTS.logGlStateChanges;
@@ -83,7 +92,6 @@ public class Configurator {
 	public static TransferBuffers.Config transferBufferMode = DEFAULTS.transferBufferMode;
 	public static boolean steadyDebugScreen = DEFAULTS.steadyDebugScreen;
 	public static boolean disableUnseenSpriteAnimation = DEFAULTS.disableUnseenSpriteAnimation;
-	public static boolean groupAnimatedSprites = DEFAULTS.groupAnimatedSprites;
 	public static boolean cullBackfacingTerrain = DEFAULTS.cullBackfacingTerrain;
 	public static boolean debugSpriteAtlas = DEFAULTS.debugSpriteAtlas;
 	public static boolean traceTextureLoad = DEFAULTS.traceTextureLoad;
@@ -150,6 +158,9 @@ public class Configurator {
 		// lightmapDebug = config.lightmapDebug;
 		shadowPrimingStrategy = config.shadowPrimingStrategy;
 		shadowMaxDistance = config.shadowMaxDistance;
+		shadowFaceCulling = config.shadowFaceCulling;
+		shadowCenterFactor = config.shadowCenterFactor;
+		disableShadowSelfOcclusion = config.disableShadowSelfOcclusion;
 		conciseErrors = config.conciseErrors;
 		logMachineInfo = config.logMachineInfo;
 		logGlStateChanges = config.logGlStateChanges;
@@ -171,7 +182,6 @@ public class Configurator {
 		profilerOverlayScale = config.profilerOverlayScale;
 		enableNearOccluders = config.enableNearOccluders;
 		disableUnseenSpriteAnimation = config.disableUnseenSpriteAnimation;
-		groupAnimatedSprites = config.groupAnimatedSprites;
 		cullBackfacingTerrain = config.cullBackfacingTerrain;
 		debugSpriteAtlas = config.debugSpriteAtlas;
 		traceTextureLoad = config.traceTextureLoad;
@@ -213,6 +223,9 @@ public class Configurator {
 		// config.lightmapDebug = lightmapDebug;
 		config.shadowPrimingStrategy = shadowPrimingStrategy;
 		config.shadowMaxDistance = shadowMaxDistance;
+		config.shadowFaceCulling = shadowFaceCulling;
+		config.shadowCenterFactor = shadowCenterFactor;
+		config.disableShadowSelfOcclusion = disableShadowSelfOcclusion;
 		config.conciseErrors = conciseErrors;
 		config.logMachineInfo = logMachineInfo;
 		config.logGlStateChanges = logGlStateChanges;
@@ -234,7 +247,6 @@ public class Configurator {
 		config.profilerOverlayScale = profilerOverlayScale;
 		config.enableNearOccluders = enableNearOccluders;
 		config.disableUnseenSpriteAnimation = disableUnseenSpriteAnimation;
-		config.groupAnimatedSprites = groupAnimatedSprites;
 		config.cullBackfacingTerrain = cullBackfacingTerrain;
 		config.debugSpriteAtlas = debugSpriteAtlas;
 		config.traceTextureLoad = traceTextureLoad;

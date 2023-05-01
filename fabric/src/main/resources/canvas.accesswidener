@@ -154,3 +154,5 @@ accessible field net/minecraft/client/renderer/texture/TextureAtlasSprite$Info m
 accessible field net/minecraft/client/renderer/entity/EntityRenderDispatcher SHADOW_RENDER_TYPE Lnet/minecraft/client/renderer/RenderType;
 
 accessible field net/minecraft/client/renderer/ShaderInstance name Ljava/lang/String;
+
+extendable method com/mojang/blaze3d/pipeline/MainTarget createFrameBuffer (II)V

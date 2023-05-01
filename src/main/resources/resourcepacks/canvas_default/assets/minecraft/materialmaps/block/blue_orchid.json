@@ -1,3 +1,10 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/blue_orchid",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

@@ -1,3 +1,10 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/oxeye_daisy",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

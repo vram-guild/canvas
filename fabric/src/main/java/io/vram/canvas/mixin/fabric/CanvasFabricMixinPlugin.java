@@ -23,8 +23,6 @@ package io.vram.canvas.mixin.fabric;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -33,9 +31,6 @@ import net.fabricmc.loader.api.FabricLoader;
 
 public class CanvasFabricMixinPlugin implements IMixinConfigPlugin {
 	private final int packagePrefixLen = "io.vram.canvas.mixin.fabric.".length();
-
-	@SuppressWarnings("unused")
-	private final Logger log = LogManager.getLogger("Canvas");
 
 	@Override
 	public void onLoad(String mixinPackage) {
@@ -53,6 +48,8 @@ public class CanvasFabricMixinPlugin implements IMixinConfigPlugin {
 
 		if (className.equals("MixinInputRegion")) {
 			return FabricLoader.getInstance().isModLoaded("fabric-rendering-data-attachment-v1");
+		} else if (className.equals("MixinPlatformHooks")) {
+			return FabricLoader.getInstance().isModLoaded("fabric-rendering-v1");
 		} else {
 			return true;
 		}

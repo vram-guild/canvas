@@ -26,18 +26,18 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.ProgramTextureData;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.render.CanvasTextureState;
-import grondag.canvas.shader.ProcessShader;
+import grondag.canvas.shader.ProcessProgram;
 import grondag.canvas.varia.GFX;
 
 class ProgramPass extends Pass {
 	final ProgramTextureData textures;
 
-	ProcessShader shader;
+	ProcessProgram program;
 
 	ProgramPass(PassConfig config) {
 		super(config);
 
-		shader = Pipeline.getShader(config.program.name);
+		program = Pipeline.getProgram(config.program.name);
 		textures = new ProgramTextureData(config.samplerImages);
 	}
 
@@ -65,11 +65,11 @@ class ProgramPass extends Pass {
 		final int slimit = textures.texIds.length;
 
 		for (int i = 0; i < slimit; ++i) {
-			CanvasTextureState.activeTextureUnit(GFX.GL_TEXTURE0 + i);
-			CanvasTextureState.bindTexture(textures.texTargets[i], textures.texIds[i]);
+			CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0 + i, textures.texTargets[i], textures.texIds[i]);
 		}
 
-		shader.activate().lod(config.lod).layer(config.layer).size(width, height).projection(orthoMatrix);
+		program.activate();
+		program.lod(config.lod).layer(config.layer).size(width, height).projection(orthoMatrix);
 
 		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
 	}

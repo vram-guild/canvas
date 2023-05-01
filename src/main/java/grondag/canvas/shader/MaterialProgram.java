@@ -20,21 +20,25 @@
 
 package grondag.canvas.shader;
 
+import io.vram.bitkit.BitKit;
+import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.texture.SpriteIndex;
 
 public final class MaterialProgram {
 	public final ProgramType programType;
+	public final int target;
 	private GlMaterialProgram program;
 
-	private MaterialProgram(ProgramType programType) {
+	private MaterialProgram(ProgramType programType, int target) {
 		this.programType = programType;
+		this.target = target;
 	}
 
 	private GlMaterialProgram getOrCreate() {
 		GlMaterialProgram result = program;
 
 		if (result == null) {
-			result = GlMaterialProgramManager.INSTANCE.getOrCreateMaterialProgram(programType);
+			result = GlMaterialProgramManager.INSTANCE.getOrCreateMaterialProgram(programType, target);
 			program = result;
 		}
 
@@ -57,15 +61,33 @@ public final class MaterialProgram {
 		program.updateContextInfo(atlasInfo, targetIndex);
 	}
 
-	public void reload() {
-		if (program != null) {
-			program.unload();
-			program = null;
-		}
+	private static final int PROGRAM_TYPE_INDEX_BITS = BitKit.bitLength(ProgramType.values().length - 1);
+	private static final int TARGET_INDEX_BITS = BitKit.bitLength(MaterialConstants.TARGET_COUNT - 1);
+	public static final int MAX_MATERIAL_PROGRAM_INDEX = (1 << (PROGRAM_TYPE_INDEX_BITS + TARGET_INDEX_BITS)) - 1;
+
+	static int index(ProgramType programType, int target) {
+		return programType.ordinal() | (target << PROGRAM_TYPE_INDEX_BITS);
 	}
 
-	public static final MaterialProgram COLOR = new MaterialProgram(ProgramType.MATERIAL_COLOR);
-	public static final MaterialProgram COLOR_TERRAIN = new MaterialProgram(ProgramType.MATERIAL_COLOR_TERRAIN);
-	public static final MaterialProgram DEPTH = new MaterialProgram(ProgramType.MATERIAL_DEPTH);
-	public static final MaterialProgram DEPTH_TERRAIN = new MaterialProgram(ProgramType.MATERIAL_DEPTH_TERRAIN);
+	private static final MaterialProgram[] VALUES = new MaterialProgram[MAX_MATERIAL_PROGRAM_INDEX];
+
+	public static MaterialProgram get(ProgramType programType, int target) {
+		final var index = index(programType, target);
+		var result = VALUES[index];
+
+		if (result == null) {
+			result = new MaterialProgram(programType, target);
+			VALUES[index] = result;
+		}
+
+		return result;
+	}
+
+	public static void reload() {
+		for (final var val : VALUES) {
+			if (val != null) {
+				val.program = null;
+			}
+		}
+	}
 }

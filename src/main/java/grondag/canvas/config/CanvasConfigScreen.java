@@ -42,6 +42,7 @@ import grondag.canvas.config.gui.ActionItem;
 import grondag.canvas.config.gui.BaseScreen;
 import grondag.canvas.config.gui.ListWidget;
 import grondag.canvas.perf.Timekeeper;
+import grondag.canvas.render.world.SkyShadowRenderer;
 import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 public class CanvasConfigScreen extends BaseScreen {
@@ -266,12 +267,6 @@ public class CanvasConfigScreen extends BaseScreen {
 				DEFAULTS.disableUnseenSpriteAnimation,
 				"config.canvas.help.disable_unseen_sprite_animation").listItem());
 
-		list.addItem(optionSession.booleanOption("config.canvas.value.group_animated_sprites",
-				() -> editing.groupAnimatedSprites,
-				b -> editing.groupAnimatedSprites = b,
-				DEFAULTS.groupAnimatedSprites,
-				"config.canvas.help.group_animated_sprites").listItem());
-
 		list.addItem(optionSession.booleanOption("config.canvas.value.cull_backfacing_terrain",
 				() -> editing.cullBackfacingTerrain,
 				b -> {
@@ -302,6 +297,31 @@ public class CanvasConfigScreen extends BaseScreen {
 				i -> editing.shadowMaxDistance = i,
 				DEFAULTS.shadowMaxDistance,
 				"config.canvas.help.shadow_max_distance").listItem());
+
+		list.addItem(optionSession.enumOption("config.canvas.value.shadow_face_culling",
+				() -> editing.shadowFaceCulling,
+				e -> {
+					reload |= Configurator.shadowFaceCulling != e;
+					editing.shadowFaceCulling = e;
+				},
+				DEFAULTS.shadowFaceCulling,
+				SkyShadowRenderer.Culling.class,
+				"config.canvas.help.shadow_face_culling").listItem());
+
+		list.addItem(optionSession.floatOption("config.canvas.value.shadow_center_factor",
+				0.0f,
+				1.0f,
+				0.1f,
+				() -> editing.shadowCenterFactor,
+				f -> editing.shadowCenterFactor = f,
+				DEFAULTS.shadowCenterFactor,
+				"config.canvas.help.shadow_center_factor").listItem());
+
+		list.addItem(optionSession.booleanOption("config.canvas.value.disable_shadow_self_occlusion",
+				() -> editing.disableShadowSelfOcclusion,
+				b -> editing.disableShadowSelfOcclusion = b,
+				DEFAULTS.disableShadowSelfOcclusion,
+				"config.canvas.help.disable_shadow_self_occlusion").listItem());
 
 		list.addItem(optionSession.booleanOption("config.canvas.value.shader_debug",
 				() -> editing.shaderDebug,

@@ -31,9 +31,9 @@ import grondag.canvas.pipeline.Pipeline;
 
 @SuppressWarnings("resource")
 public class TargetRenderState implements Predicate<RenderState> {
-	public static final TargetRenderState MAIN = new TargetRenderState(
-		MaterialConstants.TARGET_MAIN,
-		"main",
+	public static final TargetRenderState SOLID = new TargetRenderState(
+		MaterialConstants.TARGET_SOLID,
+		"solid",
 		() -> {
 			Pipeline.solidTerrainFbo.bind();
 		},
@@ -111,7 +111,7 @@ public class TargetRenderState implements Predicate<RenderState> {
 	private static final TargetRenderState[] VALUES = new TargetRenderState[MaterialConstants.TARGET_COUNT];
 
 	static {
-		VALUES[MaterialConstants.TARGET_MAIN] = MAIN;
+		VALUES[MaterialConstants.TARGET_SOLID] = SOLID;
 		VALUES[MaterialConstants.TARGET_OUTLINE] = OUTLINE;
 		VALUES[MaterialConstants.TARGET_TRANSLUCENT] = TRANSLUCENT;
 		VALUES[MaterialConstants.TARGET_PARTICLES] = PARTICLES;

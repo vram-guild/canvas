@@ -44,8 +44,8 @@ public class FirstPersonModelHolder {
 
 			try {
 				final Class<?> fpmCore = Class.forName("dev.tr7zw.firstperson.FirstPersonModelCore");
-				final Class<?> clazz = Class.forName("dev.tr7zw.firstperson.fabric.FabricWrapper");
-				final Method applyThirdPerson = clazz.getDeclaredMethod("applyThirdPerson", boolean.class);
+				final Class<?> fpmWrapper = Class.forName("dev.tr7zw.firstperson.MinecraftWrapper");
+				final Method applyThirdPerson = fpmWrapper.getDeclaredMethod("applyThirdPerson", boolean.class);
 				final MethodHandle applyThirdPersonHandle = lookup.unreflect(applyThirdPerson);
 				final Field isRenderingPlayer = fpmCore.getField("isRenderingPlayer");
 

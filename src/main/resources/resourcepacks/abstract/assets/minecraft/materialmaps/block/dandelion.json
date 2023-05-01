@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/dandelion",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

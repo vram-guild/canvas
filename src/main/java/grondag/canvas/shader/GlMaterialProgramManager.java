@@ -20,10 +20,13 @@
 
 package grondag.canvas.shader;
 
+import java.util.Arrays;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.buffer.format.TerrainEncoder;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.terrain.TerrainSectorMap;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.shader.data.ShaderUniforms;
@@ -33,22 +36,31 @@ import grondag.canvas.varia.GFX;
 public final class GlMaterialProgramManager {
 	public static final GlMaterialProgramManager INSTANCE = new GlMaterialProgramManager();
 
+	private boolean compileByTarget = false;
+
 	private GlMaterialProgramManager() {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: GlShaderManager init");
 		}
 	}
 
-	private final GlMaterialProgram[] materialPrograms = new GlMaterialProgram[ProgramType.values().length];
+	private final GlMaterialProgram[] materialPrograms = new GlMaterialProgram[MaterialProgram.MAX_MATERIAL_PROGRAM_INDEX];
 
-	GlMaterialProgram getOrCreateMaterialProgram(ProgramType programType) {
+	GlMaterialProgram getOrCreateMaterialProgram(ProgramType programType, int target) {
 		assert programType != ProgramType.PROCESS;
-		final int key = programType.ordinal();
+
+		// Ignore target if don't need separate compilation units by target
+		if (!compileByTarget) {
+			target = 0;
+		}
+
+		final int key = MaterialProgram.index(programType, target);
+
 		GlMaterialProgram result = materialPrograms[key];
 
 		if (result == null) {
-			final Shader vs = new GlMaterialShader(programType.vertexSource, GFX.GL_VERTEX_SHADER, programType);
-			final Shader fs = new GlMaterialShader(programType.fragmentSource, GFX.GL_FRAGMENT_SHADER, programType);
+			final Shader vs = new GlMaterialShader(programType.vertexSource, GFX.GL_VERTEX_SHADER, programType, target);
+			final Shader fs = new GlMaterialShader(programType.fragmentSource, GFX.GL_FRAGMENT_SHADER, programType, target);
 			result = new GlMaterialProgram(vs, fs, programType.isTerrain ? TerrainEncoder.TERRAIN_MATERIAL : CanvasVertexFormats.STANDARD_MATERIAL_FORMAT, programType);
 			ShaderUniforms.MATERIAL_UNIFORM_SETUP.accept(result);
 
@@ -67,6 +79,11 @@ public final class GlMaterialProgramManager {
 			if (prog != null) {
 				prog.forceReload();
 			}
+		}
+
+		if (Pipeline.config().materialProgram.compileByTarget != compileByTarget) {
+			Arrays.fill(materialPrograms, null);
+			compileByTarget = Pipeline.config().materialProgram.compileByTarget;
 		}
 	}
 }

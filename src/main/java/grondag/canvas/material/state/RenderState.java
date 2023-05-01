@@ -43,6 +43,7 @@ import io.vram.frex.api.material.MaterialConstants;
 import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.texture.MaterialTexture;
 
+import grondag.canvas.config.Configurator;
 import grondag.canvas.material.property.BinaryRenderState;
 import grondag.canvas.material.property.DecalRenderState;
 import grondag.canvas.material.property.DepthTestRenderState;
@@ -53,8 +54,8 @@ import grondag.canvas.material.property.WriteMaskRenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.world.SkyShadowRenderer;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialProgram;
+import grondag.canvas.shader.ProgramType;
 import grondag.canvas.shader.data.MatrixState;
 import grondag.canvas.texture.MaterialIndexTexture;
 import grondag.canvas.texture.TextureData;
@@ -138,7 +139,8 @@ public final class RenderState {
 
 	private void enableDepthPass(int x, int y, int z, int cascade) {
 		final MatrixState matrixState = MatrixState.get();
-		final MaterialProgram depthShader = matrixState == MatrixState.REGION ? MaterialProgram.DEPTH_TERRAIN : MaterialProgram.DEPTH;
+		final ProgramType programType = matrixState == MatrixState.REGION ? ProgramType.MATERIAL_DEPTH_TERRAIN : ProgramType.MATERIAL_DEPTH;
+		final MaterialProgram depthShader = MaterialProgram.get(programType, target.index);
 
 		if (shadowActive == this && shadowCurrentMatrixState == matrixState) {
 			depthShader.setModelOrigin(x, y, z);
@@ -167,7 +169,7 @@ public final class RenderState {
 		// Decals aren't super common so left in for now.
 		decal.enable();
 
-		CULL_STATE.setEnabled(cull);
+		CULL_STATE.setEnabled(cull && Configurator.shadowFaceCulling != SkyShadowRenderer.Culling.NONE);
 		LIGHTMAP_STATE.setEnabled(true);
 		LINE_STATE.setEnabled(lines);
 
@@ -177,12 +179,18 @@ public final class RenderState {
 
 		GFX.enable(GFX.GL_POLYGON_OFFSET_FILL);
 		GFX.polygonOffset(Pipeline.shadowSlopeFactor, Pipeline.shadowBiasUnits);
-		//GL46.glCullFace(GL46.GL_FRONT);
+
+		switch (Configurator.shadowFaceCulling) {
+			case FRONT -> GFX.glCullFace(GFX.GL_FRONT);
+			case BACK -> GFX.glCullFace(GFX.GL_BACK);
+			case NONE -> { }
+		}
 	}
 
 	private void enableMaterial(int x, int y, int z) {
 		final MatrixState matrixState = MatrixState.get();
-		final MaterialProgram shader = matrixState == MatrixState.REGION ? MaterialProgram.COLOR_TERRAIN : MaterialProgram.COLOR;
+		final ProgramType programType = matrixState == MatrixState.REGION ? ProgramType.MATERIAL_COLOR_TERRAIN : ProgramType.MATERIAL_COLOR;
+		final MaterialProgram shader = MaterialProgram.get(programType, target.index);
 
 		if (active == this && matrixState == currentMatrixState) {
 			shader.setModelOrigin(x, y, z);
@@ -204,11 +212,9 @@ public final class RenderState {
 		texture.materialIndexProvider().enable();
 
 		if (Pipeline.shadowMapDepth != -1) {
-			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			CanvasTextureState.ensureTextureOfTextureUnit(TextureData.SHADOWMAP, GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			CanvasTextureState.ensureTextureOfTextureUnit(TextureData.SHADOWMAP_TEXTURE, GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 
-			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP_TEXTURE);
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
 			// Was seeing stray invalid operations errors in GL without.
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
@@ -219,8 +225,7 @@ public final class RenderState {
 			for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
 				final int bindTarget = Pipeline.materialTextures().texTargets[i];
 				final int bind = Pipeline.materialTextures().texIds[i];
-				CanvasTextureState.activeTextureUnit(TextureData.PROGRAM_SAMPLERS + i);
-				CanvasTextureState.bindTexture(bindTarget, bind);
+				CanvasTextureState.ensureTextureOfTextureUnit(TextureData.PROGRAM_SAMPLERS + i, bindTarget, bind);
 			}
 
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
@@ -308,7 +313,7 @@ public final class RenderState {
 		GFX.glDisable(GFX.GL_POLYGON_OFFSET_FILL);
 		GFX.glCullFace(GFX.GL_BACK);
 
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 		DecalRenderState.disable();
 		TransparencyRenderState.disable();
 		DepthTestRenderState.disable();

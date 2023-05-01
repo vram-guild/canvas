@@ -37,8 +37,6 @@
 		"MixinScreenEffectRenderer",
 		"MixinSimpleTexture",
 		"MixinSpriteInterpolation",
-		"MixinStitcher",
-		"MixinStitcherRegion",
 		"MixinTextureAtlas",
 		"MixinTextureAtlasSprite",
 		"MixinTextureSheetParticle",

@@ -60,6 +60,7 @@ public class CanvasParticleRenderer {
 	private CanvasRenderMaterial baseMat;
 	private CanvasRenderMaterial emissiveMat;
 	private final RegionCullingFrustum cullingFrustum;
+	private final MaterialFinder finder = MaterialFinder.newInstance();
 
 	public CanvasParticleRenderer(RegionCullingFrustum cullingFrustum) {
 		this.cullingFrustum = cullingFrustum;
@@ -101,9 +102,10 @@ public class CanvasParticleRenderer {
 
 				try {
 					if (baseMat != null) {
+						finder.copyFrom(baseMat);
+						MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).map(finder, particle);
 						// FEAT: enhanced material maps for particles - shaders for animation in particular
-						final var mat = MaterialMap.getForParticle(((ParticleExt) particle).canvas_particleType()).getMapped(null);
-						collectors.emitter.defaultMaterial(mat == null || !mat.emissive() ? baseMat : emissiveMat);
+						collectors.emitter.defaultMaterial(finder.emissive() ? emissiveMat : baseMat);
 					}
 
 					particle.render(consumer, camera, tickDelta);

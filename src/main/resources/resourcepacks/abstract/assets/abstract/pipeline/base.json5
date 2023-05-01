@@ -1,0 +1,71 @@
+{
+  smoothBrightnessBidirectionaly: false,
+  // If true, the renderer will call the GL.clear() method on the default framebuffer using the
+  // vanilla clear color when vanilla would normally do it,
+  // If you are implementing a custom sky color or if this interferes with the pipeline in
+  // some other way you can turn it off.  There's a small risk of incompatibility with mods
+  // that try to hook into that GL call.
+  runVanillaClear: true,
+  brightnessSmoothingFrames: 20,
+  rainSmoothingFrames: 500,
+  glslVersion: 330,
+
+  images: [
+    // color attachment for solid draws
+    {
+      name: "solid_main",
+      lod: 0,
+      internalFormat: "RGBA8",
+      pixelFormat: "RGBA",
+      pixelDataType: "UNSIGNED_BYTE",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // depth attachment for solid draws
+    {
+      name: "solid_depth",
+      lod: 0,
+      internalFormat: "DEPTH_COMPONENT",
+      pixelFormat: "DEPTH_COMPONENT",
+      pixelDataType: "FLOAT",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_COMPARE_MODE", val: "NONE"}
+      ]
+    }
+  ],
+
+  // Framebuffer that will be visible to the game and to mods as the primary framebuffer.
+	// Should generally keep it the same as vanilla has it and avoid using it except as a
+	// sink for unmanaged draws and for final output.
+	// Canvas will make no managed draws to this framebuffer unless requested.
+	defaultFramebuffer: "default",
+
+	framebuffers: [
+		{
+			name: "default",
+			depthAttachment: {image: "solid_depth"},
+			colorAttachments: [{image: "solid_main"}]
+		}
+	],
+
+  beforeWorldRender: {
+    passes: [
+      {
+        name: "clear_main",
+        framebuffer: "solid",
+        program: "frex_clear"
+      }
+    ]
+  }
+}

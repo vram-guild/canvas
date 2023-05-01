@@ -34,9 +34,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import grondag.canvas.mixinterface.AnimatedTextureExt;
-import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(TextureAtlasSprite.AnimatedTexture.class)
 public class MixinAnimatedTexture implements AnimatedTextureExt {
@@ -81,12 +79,5 @@ public class MixinAnimatedTexture implements AnimatedTextureExt {
 	@Override
 	public List<TextureAtlasSprite.FrameInfo> canvas_frames() {
 		return frames;
-	}
-
-	@Override
-	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
-		if (interpolationData != null) {
-			((CombinedAnimationConsumer) (Object) interpolationData).canvas_setCombinedAnimation(combined);
-		}
 	}
 }

@@ -21,6 +21,7 @@
 package grondag.canvas.mixin;
 
 import org.lwjgl.system.MemoryUtil;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,10 +31,8 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 import grondag.canvas.mixinterface.AnimatedTextureExt;
-import grondag.canvas.mixinterface.CombinedAnimationConsumer;
 import grondag.canvas.mixinterface.NativeImageExt;
 import grondag.canvas.mixinterface.SpriteExt;
-import grondag.canvas.texture.CombinedSpriteAnimation;
 
 @Mixin(TextureAtlasSprite.InterpolationData.class)
 public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
@@ -108,12 +107,5 @@ public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
 		}
 
 		parentExt.canvas_upload(0, 0, this.activeFrame);
-	}
-
-	@Override
-	public void canvas_setCombinedAnimation(CombinedSpriteAnimation combined) {
-		for (final var img : activeFrame) {
-			((CombinedAnimationConsumer) (Object) img).canvas_setCombinedAnimation(combined);
-		}
 	}
 }

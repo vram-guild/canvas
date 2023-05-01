@@ -21,7 +21,5 @@
 package grondag.canvas.mixinterface;
 
 public interface TextureAtlasExt {
-	int canvas_maxTextureSize();
-
 	void canvas_trackFrameAnimation(int animationIndex);
 }

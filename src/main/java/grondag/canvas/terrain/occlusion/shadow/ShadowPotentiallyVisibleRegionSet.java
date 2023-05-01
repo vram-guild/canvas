@@ -380,6 +380,10 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 		return tertiary | (secondary << RenderRegionIndexer.CHUNK_DIAMETER_BITS) | (primary << (RenderRegionIndexer.CHUNK_DIAMETER_BITS * 2));
 	}
 
+	public int primary(int shadowDistanceRank) {
+		return shadowDistanceRank >> (RenderRegionIndexer.CHUNK_DIAMETER_BITS * 2);
+	}
+
 	private interface AxisIterator {
 		boolean next();
 

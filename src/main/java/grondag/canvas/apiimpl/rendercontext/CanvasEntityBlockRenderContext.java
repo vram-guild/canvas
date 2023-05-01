@@ -61,6 +61,12 @@ public class CanvasEntityBlockRenderContext extends EntityBlockRenderContext {
 	}
 
 	@Override
+	protected void shadeQuad() {
+		emitter.applyFlatLighting(inputContext.flatBrightness(emitter));
+		emitter.colorize(inputContext);
+	}
+
+	@Override
 	protected void encodeQuad() {
 		encoder.encode(defaultConsumer);
 	}

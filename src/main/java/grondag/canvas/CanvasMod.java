@@ -78,7 +78,6 @@ public class CanvasMod {
 		ConfigManager.init();
 
 		FrexFeature.registerFeatures(
-			FrexFeature.UPDATE_MATERIAL_REGISTRATION,
 			FrexFeature.MATERIAL_SHADERS,
 			FrexFeature.HELD_ITEM_LIGHTS,
 			FrexFeature.VERTEX_TANGENT

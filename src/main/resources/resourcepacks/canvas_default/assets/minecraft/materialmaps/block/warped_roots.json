@@ -1,3 +1,10 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/warped_roots",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

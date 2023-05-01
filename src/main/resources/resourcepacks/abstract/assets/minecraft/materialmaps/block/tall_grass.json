@@ -1,0 +1,14 @@
+{
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/tall_grass_bottom",
+		"material": "abstract:low_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/tall_grass_top",
+		"material": "abstract:high_foliage"
+	  }
+	]
+  }
+}

@@ -20,17 +20,16 @@
 
 package grondag.canvas.shader;
 
-import static org.lwjgl.system.MemoryStack.stackGet;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,18 +38,13 @@ import org.anarres.cpp.DefaultPreprocessorListener;
 import org.anarres.cpp.Preprocessor;
 import org.anarres.cpp.StringLexerSource;
 import org.anarres.cpp.Token;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL21;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.NativeType;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import io.vram.frex.api.config.ShaderConfig;
@@ -82,9 +76,8 @@ public class GlShader implements Shader {
 		this.programType = programType;
 	}
 
-	public static void forceReloadErrors() {
+	static void forceReloadErrors() {
 		isErrorNoticeComplete = false;
-		clearDebugSource();
 	}
 
 	@SuppressWarnings("resource")
@@ -92,31 +85,11 @@ public class GlShader implements Shader {
 		return Minecraft.getInstance().gameDirectory.toPath().normalize().resolve("canvas_shader_debug");
 	}
 
-	private static void clearDebugSource() {
+	static void clearDebugSource() {
 		final Path path = shaderDebugPath();
 
 		try {
-			File shaderDir = path.toFile();
-
-			if (shaderDir.exists()) {
-				final File[] files = shaderDir.listFiles();
-
-				for (final File f : files) {
-					f.delete();
-				}
-			}
-
-			shaderDir = path.resolve("failed").toFile();
-
-			if (shaderDir.exists()) {
-				final File[] files = shaderDir.listFiles();
-
-				for (final File f : files) {
-					f.delete();
-				}
-
-				shaderDir.delete();
-			}
+			FileUtils.deleteDirectory(path.toFile());
 		} catch (final Exception e) {
 			if (needsClearDebugOutputWarning) {
 				CanvasMod.LOG.error(I18n.get("error.canvas.fail_clear_shader_output", path), e);
@@ -152,7 +125,7 @@ public class GlShader implements Shader {
 
 			source = getSource();
 
-			safeShaderSource(glId, source);
+			GFX.shaderSource(glId, new String[] { source });
 			GFX.glCompileShader(glId);
 
 			if (GFX.glGetShaderi(glId, GFX.GL_COMPILE_STATUS) == GFX.GL_FALSE) {
@@ -215,31 +188,6 @@ public class GlShader implements Shader {
 		}
 	}
 
-	/**
-	 * Identical in function to {@link GL20C#glShaderSource(int, CharSequence)} but
-	 * passes a null pointer for string length to force the driver to rely on the null
-	 * terminator for string length.  This is a workaround for an apparent flaw with some
-	 * AMD drivers that don't receive or interpret the length correctly, resulting in
-	 * an access violation when the driver tries to read past the string memory.
-	 *
-	 * <p>Hat tip to fewizz for the find and the fix.
-	 */
-	private static void safeShaderSource(@NativeType("GLuint") int glId, @NativeType("GLchar const **") CharSequence source) {
-		final MemoryStack stack = stackGet();
-		final int stackPointer = stack.getPointer();
-
-		try {
-			final ByteBuffer sourceBuffer = MemoryUtil.memUTF8(source, true);
-			final PointerBuffer pointers = stack.mallocPointer(1);
-			pointers.put(sourceBuffer);
-
-			GL21.nglShaderSource(glId, 1, pointers.address0(), 0);
-			org.lwjgl.system.APIUtil.apiArrayFree(pointers.address0(), 1);
-		} finally {
-			stack.setPointer(stackPointer);
-		}
-	}
-
 	protected String debugSourceString() {
 		return shaderSourceId.getPath().toString().replace("/", "-").replace(":", "-");
 	}
@@ -250,16 +198,14 @@ public class GlShader implements Shader {
 
 		File shaderDir = path.toFile();
 
-		if (!shaderDir.exists()) {
-			shaderDir.mkdir();
+		if (shaderDir.mkdir()) {
 			CanvasMod.LOG.info("Created shader debug output folder" + shaderDir.toString());
 		}
 
 		if (error != null) {
 			shaderDir = path.resolve("failed").toFile();
 
-			if (!shaderDir.exists()) {
-				shaderDir.mkdir();
+			if (shaderDir.mkdir()) {
 				CanvasMod.LOG.info("Created shader debug output failure folder" + shaderDir.toString());
 			}
 
@@ -269,7 +215,6 @@ public class GlShader implements Shader {
 		if (shaderDir.exists()) {
 			try (FileWriter writer = new FileWriter(shaderDir.getAbsolutePath() + File.separator + fileName, false)) {
 				writer.write(source);
-				writer.close();
 			} catch (final IOException e) {
 				if (needsDebugOutputWarning) {
 					CanvasMod.LOG.error(I18n.get("error.canvas.fail_create_shader_output", path), e);
@@ -347,7 +292,7 @@ public class GlShader implements Shader {
 		return result;
 	}
 
-	private String getCombinedShaderSource() {
+	protected String getCombinedShaderSource() {
 		final ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
 		INCLUDED.clear();
 		String result = loadShaderSource(resourceManager, shaderSourceId);
@@ -362,11 +307,11 @@ public class GlShader implements Shader {
 	protected static String loadShaderSource(ResourceManager resourceManager, ResourceLocation shaderSourceId) {
 		String result;
 
-		try (Resource resource = resourceManager.getResource(shaderSourceId)) {
-			try (Reader reader = new InputStreamReader(resource.getInputStream())) {
+		try (InputStream inputStream = resourceManager.getResource(shaderSourceId).get().open()) {
+			try (Reader reader = new InputStreamReader(inputStream)) {
 				result = CharStreams.toString(reader);
 			}
-		} catch (final FileNotFoundException e) {
+		} catch (final FileNotFoundException | NoSuchElementException e) {
 			result = Pipeline.config().configSource(shaderSourceId);
 
 			if (result == null) {
@@ -428,6 +373,19 @@ public class GlShader implements Shader {
 	}
 
 	@Override
+	public String typeofUniformSpec(String name) {
+		final String regex = "(?m)^\\s*uniform\\s(\\w*)\\s+" + name + "\\s*;";
+		final Pattern pattern = Pattern.compile(regex);
+		final var matcher = pattern.matcher(getSource());
+
+		if (matcher.find() && matcher.groupCount() > 0) {
+			return matcher.group(1);
+		}
+
+		return null;
+	}
+
+	@Override
 	public ResourceLocation getShaderSourceId() {
 		return shaderSourceId;
 	}
@@ -452,7 +410,6 @@ public class GlShader implements Shader {
 		try {
 			for (;;) {
 				final Token tok = pp.token();
-				if (tok == null) break;
 				if (tok.getType() == Token.EOF) break;
 				builder.append(tok.getText());
 			}

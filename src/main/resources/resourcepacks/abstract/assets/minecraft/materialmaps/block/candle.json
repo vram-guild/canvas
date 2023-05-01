@@ -1,0 +1,7 @@
+{
+  "variants": {
+	"lit=true": {
+	  "defaultMaterial": "abstract:luminance_glow"
+	}
+  }
+}

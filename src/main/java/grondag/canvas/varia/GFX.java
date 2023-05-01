@@ -20,6 +20,7 @@
 
 package grondag.canvas.varia;
 
+import static org.lwjgl.system.MemoryStack.stackGet;
 import static org.lwjgl.system.MemoryUtil.memAddress;
 
 import java.nio.ByteBuffer;
@@ -29,7 +30,10 @@ import java.nio.IntBuffer;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL46C;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -485,12 +489,21 @@ public class GFX extends GL46C {
 		return result;
 	}
 
+	private static int activeProgramID = 0;
+
 	/**
-	 * Clears error state prior to run and does not clear it after.
+	 * Clears error state prior to run and does not clear it after. Returns true if program was actually activated.
 	 */
-	public static void useProgram(int program) {
+	public static boolean useProgram(int program) {
 		glGetError();
-		glUseProgram(program);
+
+		if (activeProgramID != program) {
+			glUseProgram(program);
+			activeProgramID = program;
+			return true;
+		}
+
+		return false;
 	}
 
 	public static void linkProgram(int program) {
@@ -642,8 +655,34 @@ public class GFX extends GL46C {
 		return result;
 	}
 
+	/**
+	 * Identical in function to {@link GL20C#glShaderSource(int, CharSequence)} but
+	 * passes a null pointer for string length to force the driver to rely on the null
+	 * terminator for string length.  This is a workaround for an apparent flaw with some
+	 * AMD drivers that don't receive or interpret the length correctly, resulting in
+	 * an access violation when the driver tries to read past the string memory.
+	 *
+	 * <p>Hat tip to fewizz for the find and the fix.
+	 */
 	public static void shaderSource(int shader, CharSequence[] source) {
-		glShaderSource(shader, source);
+		final MemoryStack stack = stackGet();
+		final int stackPointer = stack.getPointer();
+
+		try {
+			final PointerBuffer pointers = stack.mallocPointer(source.length);
+			final ByteBuffer[] sourceBuffers = new ByteBuffer[source.length];
+
+			for (int i = 0; i < source.length; ++i) {
+				sourceBuffers[i] = MemoryUtil.memUTF8(source[i], true);
+				pointers.put(sourceBuffers[i]);
+			}
+
+			nglShaderSource(shader, source.length, pointers.address0(), 0);
+			org.lwjgl.system.APIUtil.apiArrayFree(pointers.address0(), source.length);
+		} finally {
+			stack.setPointer(stackPointer);
+		}
+
 		assert logError("glShaderSource");
 	}
 

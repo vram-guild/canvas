@@ -1,0 +1,22 @@
+{
+  "defaultMap": {
+	"spriteMap": [
+	  {
+		"sprite": "minecraft:block/sunflower_bottom",
+		"material": "abstract:low_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/sunflower_top",
+		"material": "abstract:high_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/sunflower_back",
+		"material": "abstract:high_foliage"
+	  },
+	  {
+		"sprite": "minecraft:block/sunflower_front",
+		"material": "abstract:high_foliage"
+	  }
+	]
+  }
+}

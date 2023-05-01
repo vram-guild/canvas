@@ -1,0 +1,340 @@
+{
+  options: [
+    {
+      includeToken: "abstract:bloom_config",
+      categoryKey: "config.abstract.category.bloom",
+      options: {
+        bloom_toggle: {
+          default: true,
+          nameKey: "config.abstract.value.bloom_toggle",
+          descriptionKey: "config.abstract.help.bloom_toggle"
+        },
+        bloom_intensity: {
+          default: 0.1,
+          min: 0.01,
+          max: 0.8,
+          nameKey: "config.abstract.value.bloom_intensity",
+          descriptionKey: "config.abstract.help.bloom_intensity"
+        },
+        bloom_downsample_dist: {
+          default: 1.0,
+          min: 0.1,
+          max: 2.0,
+          nameKey: "config.abstract.value.bloom_downsample_scale",
+          descriptionKey: "config.abstract.help.bloom_downsample_scale"
+        },
+        bloom_upsample_dist: {
+          default: 0.1,
+          min: 0.02,
+          max: 1.0,
+          nameKey: "config.abstract.value.bloom_upsample_scale",
+          descriptionKey: "config.abstract.help.bloom_upsample_scale"
+        },
+        bloom_cutoff: {
+          default: 0.02,
+          min: 0.005,
+          max: 0.1,
+          nameKey: "config.abstract.value.bloom_cutoff",
+          descriptionKey: "config.abstract.help.bloom_cutoff"
+        }
+      }
+    }
+  ],
+
+  include: [
+		"abstract:pipeline/copy.json5"
+	],
+
+  programs: [
+    {
+      // copies colored pixels from main color buffer if marked emissive
+      name: "emissive_color",
+      vertexSource: "abstract:shaders/pipeline/post/simple_full_frame.vert",
+      fragmentSource: "abstract:shaders/pipeline/post/emissive_color.frag",
+      samplers: ["_cvu_base", "_cvu_emissive"]
+    }, {
+      // combines final bloom image and main color buffer
+      name: "bloom",
+      vertexSource: "abstract:shaders/pipeline/post/simple_full_frame.vert",
+      fragmentSource: "abstract:shaders/pipeline/post/bloom.frag",
+      samplers: ["_cvu_base", "_cvu_bloom"]
+    }, {
+      // uses a fancy sampling algo for higher quality, not a conventional mipmap
+      name: "downsample",
+      vertexSource: "abstract:shaders/pipeline/post/simple_full_frame.vert",
+      fragmentSource: "abstract:shaders/pipeline/post/downsample.frag",
+      samplers: ["_cvu_input"]
+    }, {
+      // less fancy (but still slightly fancy) upsample of downsample outputs
+      name: "upsample_first",
+      vertexSource: "abstract:shaders/pipeline/post/simple_full_frame.vert",
+      fragmentSource: "abstract:shaders/pipeline/post/upsample_first.frag",
+      samplers: ["_cvu_input"]
+    }, {
+      name: "upsample",
+      // same as upsample_first but combines with next lower level of detail
+      vertexSource: "abstract:shaders/pipeline/post/simple_full_frame.vert",
+      fragmentSource: "abstract:shaders/pipeline/post/upsample.frag",
+      samplers: ["_cvu_input", "cvu_prior"]
+    }
+  ],
+
+  afterRenderHand: {
+		passes: [
+			{
+				// copy MC fbo color attachment - need it at end for combine step
+				name: "main_copy",
+				program: "copy",
+				framebuffer: "main_copy",
+				samplerImages: ["solid_main"],
+        toggleConfig: "bloom_toggle"
+			}, {
+				// select emissive portions for blur
+				name: "emissive_color",
+				program: "emissive_color",
+				framebuffer: "emissive_color",
+				samplerImages: ["solid_main", "emissive"],
+        toggleConfig: "bloom_toggle"
+			}, {
+				// build bloom mipmaps, blurring as part of downscale
+				name: "bloom_downsample_0",
+				program: "downsample",
+				framebuffer: "bloom_downsample_0",
+				samplerImages: ["emissive_color"],
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_downsample_1",
+				program: "downsample",
+				framebuffer: "bloom_downsample_1",
+				samplerImages: ["bloom_downsample"],
+				lod: 1,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_downsample_2",
+				program: "downsample",
+				framebuffer: "bloom_downsample_2",
+				samplerImages: ["bloom_downsample"],
+				lod: 2,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_downsample_3",
+				program: "downsample",
+				framebuffer: "bloom_downsample_3",
+				samplerImages: ["bloom_downsample"],
+				lod: 3,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_downsample_4",
+				program: "downsample",
+				framebuffer: "bloom_downsample_4",
+				samplerImages: ["bloom_downsample"],
+				lod: 4,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_downsample_5",
+				program: "downsample",
+				framebuffer: "bloom_downsample_5",
+				samplerImages: ["bloom_downsample"],
+				lod: 5,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_downsample_6",
+				program: "downsample",
+				framebuffer: "bloom_downsample_6",
+				samplerImages: ["bloom_downsample"],
+				lod: 6,
+        toggleConfig: "bloom_toggle"
+			}, {
+				// upscale bloom mipmaps, bluring again as we go
+				name: "bloom_upsample_6",
+				program: "upsample_first",
+				framebuffer: "bloom_upsample_6",
+				samplerImages: ["bloom_downsample"],
+				lod: 6,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_upsample_5",
+				program: "upsample",
+				framebuffer: "bloom_upsample_5",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 5,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_upsample_4",
+				program: "upsample",
+				framebuffer: "bloom_upsample_4",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 4,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_upsample_3",
+				program: "upsample",
+				framebuffer: "bloom_upsample_3",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 3,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_upsample_2",
+				program: "upsample",
+				framebuffer: "bloom_upsample_2",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 2,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_upsample_1",
+				program: "upsample",
+				framebuffer: "bloom_upsample_1",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 1,
+        toggleConfig: "bloom_toggle"
+			}, {
+				name: "bloom_upsample_0",
+				program: "upsample",
+				framebuffer: "bloom_upsample_0",
+				samplerImages: ["bloom_downsample", "bloom_upsample"],
+				lod: 0,
+        toggleConfig: "bloom_toggle"
+			}, {
+				// Switch back to MC main color to draw combined color + bloom
+				// Framebuffer attachment shouldn't draw to self so use copy created earlier
+				name: "bloom",
+				program: "bloom",
+				framebuffer: "bloom",
+				samplerImages: ["main_copy", "bloom_upsample"],
+        toggleConfig: "bloom_toggle"
+			}
+		]
+	},
+
+  images: [
+    // attached as secondary in managed draws to capture emissive layer
+    {
+      name: "emissive",
+      lod: 0,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // result of applying the emissive map to base color - source for the downsample/upsample
+    {
+      name: "emissive_color",
+      lod: 0,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // needed to combine bloom result with main - attachment can't read/write self in same pass
+    {
+      name: "main_copy",
+      lod: 0,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        // nearest because don't want filtering when copy back from main
+        {name: "TEXTURE_MIN_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "NEAREST"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    // these next two hold the cascade of bloom images that are blurred
+    {
+      name: "bloom_downsample",
+      lod: 6,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR_MIPMAP_NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    },
+
+    {
+      name: "bloom_upsample",
+      lod: 6,
+      internalFormat: "RGBA8",
+      target: "TEXTURE_2D",
+      texParams: [
+        {name: "TEXTURE_MIN_FILTER", val: "LINEAR_MIPMAP_NEAREST"},
+        {name: "TEXTURE_MAG_FILTER", val: "LINEAR"},
+        {name: "TEXTURE_WRAP_S", val: "CLAMP_TO_EDGE"},
+        {name: "TEXTURE_WRAP_T", val: "CLAMP_TO_EDGE"}
+      ]
+    }
+  ],
+
+  framebuffers: [
+    {
+			// TODO: should be able to remove this now
+			name: "emissive",
+			colorAttachments: [{image: "emissive", clearColor: 0x00000000}]
+		}, {
+			name: "main_copy",
+			colorAttachments: [{image: "main_copy"}]
+		}, {
+			name: "emissive_color",
+			colorAttachments: [{image: "emissive_color"}]
+		}, {
+			name: "bloom_downsample_0",
+			colorAttachments: [{image: "bloom_downsample"}]
+		}, {
+			name: "bloom_downsample_1",
+			colorAttachments: [{image: "bloom_downsample", lod: 1}]
+		}, {
+			name: "bloom_downsample_2",
+			colorAttachments: [{image: "bloom_downsample", lod: 2}]
+		}, {
+			name: "bloom_downsample_3",
+			colorAttachments: [{image: "bloom_downsample", lod: 3}]
+		}, {
+			name: "bloom_downsample_4",
+			colorAttachments: [{image: "bloom_downsample", lod: 4}]
+		}, {
+			name: "bloom_downsample_5",
+			colorAttachments: [{image: "bloom_downsample", lod: 5}]
+		}, {
+			name: "bloom_downsample_6",
+			colorAttachments: [{image: "bloom_downsample", lod: 6}]
+		}, {
+			name: "bloom_upsample_6",
+			colorAttachments: [{image: "bloom_upsample", lod: 6}]
+		}, {
+			name: "bloom_upsample_5",
+			colorAttachments: [{image: "bloom_upsample", lod: 5}]
+		}, {
+			name: "bloom_upsample_4",
+			colorAttachments: [{image: "bloom_upsample", lod: 4}]
+		}, {
+			name: "bloom_upsample_3",
+			colorAttachments: [{image: "bloom_upsample", lod: 3}]
+		}, {
+			name: "bloom_upsample_2",
+			colorAttachments: [{image: "bloom_upsample", lod: 2}]
+		}, {
+			name: "bloom_upsample_1",
+			colorAttachments: [{image: "bloom_upsample", lod: 1}]
+		}, {
+			name: "bloom_upsample_0",
+			colorAttachments: [{image: "bloom_upsample"}]
+		}, {
+			// TODO: just use main fb instead?
+			name: "bloom",
+			colorAttachments: [{image: "solid_main"}]
+		}
+	]
+}

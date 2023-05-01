@@ -50,7 +50,8 @@ public class CanvasFabricMod implements ClientModInitializer {
 		KeyBindingHelper.registerKeyBinding(CanvasMod.PROFILER_TOGGLE);
 
 		FabricLoader.getInstance().getModContainer(CanvasMod.MODID).ifPresent(modContainer -> {
-			ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("canvas:canvas_default"), modContainer, ResourcePackActivationType.DEFAULT_ENABLED);
+			ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("canvas:abstract"), modContainer, ResourcePackActivationType.DEFAULT_ENABLED);
+			ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("canvas:canvas_default"), modContainer, ResourcePackActivationType.NORMAL);
 			ResourceManagerHelper.registerBuiltinResourcePack(new ResourceLocation("canvas:canvas_extras"), modContainer, ResourcePackActivationType.NORMAL);
 			//ResourceManagerHelper.registerBuiltinResourcePack(new Identifier("canvas:development"), "resourcepacks/canvas_wip", modContainer, false);
 		});

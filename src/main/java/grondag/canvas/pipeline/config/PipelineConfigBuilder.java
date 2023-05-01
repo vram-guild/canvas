@@ -55,6 +55,8 @@ public class PipelineConfigBuilder {
 	public final ObjectArrayList<PassConfig> onWorldStart = new ObjectArrayList<>();
 	public final ObjectArrayList<PassConfig> afterRenderHand = new ObjectArrayList<>();
 	public final ObjectArrayList<PassConfig> fabulous = new ObjectArrayList<>();
+	public final ObjectArrayList<PassConfig> onInit = new ObjectArrayList<>();
+	public final ObjectArrayList<PassConfig> onResize = new ObjectArrayList<>();
 
 	@Nullable public FabulousConfig fabulosity;
 	@Nullable public DrawTargetsConfig drawTargets;
@@ -99,6 +101,11 @@ public class PipelineConfigBuilder {
 		thunderSmoothingFrames = context.dynamic.getInt(configJson, "thunderSmoothingFrames", thunderSmoothingFrames);
 		glslVersion = context.dynamic.getInt(configJson, "glslVersion", glslVersion);
 		enablePBR = context.dynamic.getBoolean(configJson, "enablePBR", enablePBR);
+
+		if (glslVersion < 330) {
+			CanvasMod.LOG.warn("Invalid pipeline config - GLSL version " + glslVersion + " < 330 ignored.");
+			glslVersion = 330;
+		}
 
 		if (configJson.containsKey("materialProgram")) {
 			if (materialProgram == null) {
@@ -159,6 +166,8 @@ public class PipelineConfigBuilder {
 		LoadHelper.loadSubList(context, configJson, "fabulous", "passes", fabulous, PassConfig::new);
 		LoadHelper.loadSubList(context, configJson, "beforeWorldRender", "passes", onWorldStart, PassConfig::new);
 		LoadHelper.loadSubList(context, configJson, "afterRenderHand", "passes", afterRenderHand, PassConfig::new);
+		LoadHelper.loadSubList(context, configJson, "onInit", "passes", onInit, PassConfig::new);
+		LoadHelper.loadSubList(context, configJson, "onResize", "passes", onResize, PassConfig::new);
 
 		LoadHelper.loadList(context, configJson, "images", images, ImageConfig::new);
 		LoadHelper.loadList(context, configJson, "programs", programs, ProgramConfig::new);

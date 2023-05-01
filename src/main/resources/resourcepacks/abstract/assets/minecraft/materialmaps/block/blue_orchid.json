@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/blue_orchid",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

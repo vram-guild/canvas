@@ -1,3 +1,22 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/beetroots_stage0",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/beetroots_stage1",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/beetroots_stage2",
+        "material": "canvas:low_foliage"
+      },
+      {
+        "sprite": "minecraft:block/beetroots_stage3",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

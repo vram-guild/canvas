@@ -57,6 +57,7 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
@@ -84,6 +85,8 @@ import io.vram.frex.api.renderloop.WorldRenderStartListener;
 import io.vram.frex.base.renderer.BaseConditionManager;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.CanvasPlatformHooks;
+import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.buffer.input.CanvasImmediate;
@@ -94,6 +97,7 @@ import grondag.canvas.buffer.util.BufferSynchronizer;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.compat.FirstPersonModelHolder;
+import grondag.canvas.compat.PlayerAnimatorHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.FlawlessFramesController;
 import grondag.canvas.material.property.TargetRenderState;
@@ -107,7 +111,6 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.IntData;
 import grondag.canvas.shader.data.MatrixData;
@@ -319,9 +322,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			RenderSystem.setShader(GameRenderer::getPositionShader);
 
 			// Mojang passes applyFog as a lambda here because they sometimes call it twice.
-			renderSky(viewMatrixStack, projectionMatrix, tickDelta, camera, thickFog, () -> {
-				FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog);
-			});
+			final Runnable fogSetup = () -> FogRenderer.setupFog(camera, FogRenderer.FogMode.FOG_SKY, viewDistance, thickFog, tickDelta);
+
+			if (!CanvasPlatformHooks.renderCustomSky(eventContext, fogSetup)) {
+				renderSky(viewMatrixStack, projectionMatrix, tickDelta, camera, thickFog, fogSetup);
+			}
 		}
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "fog");
@@ -426,9 +431,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			final boolean isFirstPersonPlayer = entity == camera.getEntity()
 					&& !camera.isDetached()
 					&& (!(camera.getEntity() instanceof LivingEntity) || !((LivingEntity) camera.getEntity()).isSleeping());
-			final boolean isRenderingFPM = isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.shouldApply();
 
-			if (isFirstPersonPlayer && !isRenderingFPM && !worldRenderState.shadowsEnabled()) {
+			final boolean isRenderingPlayerEntityInFP = PlayerAnimatorHolder.handlerB.isFakeThirdPerson(camera.getEntity())
+					|| (isFirstPersonPlayer && FirstPersonModelHolder.cameraHandler.shouldApply());
+
+			if (isFirstPersonPlayer && !isRenderingPlayerEntityInFP && !worldRenderState.shadowsEnabled()) {
 				continue;
 			}
 
@@ -445,8 +452,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			final MultiBufferSource renderProvider;
 
 			if (isFirstPersonPlayer) {
-				if (isRenderingFPM) {
-					// using mat.castShadows(false) don't work as it needs to be applied to held items, custom parts, etc
+				if (isRenderingPlayerEntityInFP) {
+					// render shadow separately; using mat.castShadows(false) don't work as it needs to be applied to held items, custom parts, etc
 					renderProvider = materialExtrasImmediate;
 				} else {
 					// only render as shadow
@@ -466,7 +473,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 			entityBlockContext.setPosAndWorldFromEntity(entity);
 
-			FirstPersonModelHolder.renderHandler.setActive(isRenderingFPM);
+			// These mods enable partial player model rendering in first person
+			PlayerAnimatorHolder.handlerA.setFirstPerson(isFirstPersonPlayer && isRenderingPlayerEntityInFP);
+			FirstPersonModelHolder.renderHandler.setActive(isRenderingPlayerEntityInFP);
 
 			// Item entity translucent typically gets drawn here in vanilla because there's no dedicated buffer for it
 			wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, renderProvider);
@@ -477,10 +486,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 				immediate.endLastBatch();
 			}
 
-			FirstPersonModelHolder.renderHandler.setActive(false);
+			if (isRenderingPlayerEntityInFP && worldRenderState.shadowsEnabled()) {
+				// Disable partial player model rendering to render full model shadow
+				PlayerAnimatorHolder.handlerA.setFirstPerson(false);
+				FirstPersonModelHolder.renderHandler.setActive(false);
 
-			if (isRenderingFPM && worldRenderState.shadowsEnabled()) {
-				// render unmodified player model as shadow
 				wr.canvas_renderEntity(entity, frameCameraX, frameCameraY, frameCameraZ, tickDelta, identityStack, shadowExtrasImmediate);
 			}
 		}
@@ -553,9 +563,9 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		RenderState.disable();
 
-		try (DrawableStream entityBuffer = immediate.prepareDrawable(TargetRenderState.MAIN);
-			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(TargetRenderState.MAIN);
-			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(TargetRenderState.MAIN);
+		try (DrawableStream entityBuffer = immediate.prepareDrawable(TargetRenderState.SOLID);
+			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(TargetRenderState.SOLID);
+			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(TargetRenderState.SOLID);
 		) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.ShadowMap, "shadow_map");
 			SkyShadowRenderer.render(this, entityBuffer, shadowExtrasBuffer);
@@ -669,7 +679,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "draw_solid");
 
 		// Should generally not have anything here but draw in case content injected in hooks
-		immediate.drawCollectors(TargetRenderState.MAIN);
+		immediate.drawCollectors(TargetRenderState.SOLID);
 
 		// These should be empty and probably won't work, but prevent them from accumulating if somehow used.
 		immediate.endBatch(RenderType.armorGlint());
@@ -748,10 +758,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
 		RenderState.disable();
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 
 		// cloud rendering ignores RenderSystem view matrix
-		renderClouds(mc, profiler, viewMatrixStack, projectionMatrix, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+		if (!CanvasPlatformHooks.renderCustomClouds(eventContext)) {
+			renderClouds(mc, profiler, viewMatrixStack, projectionMatrix, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+		}
 
 		// WIP: need to properly target the designated buffer here in both clouds and weather
 		// also need to ensure works with non-fabulous pipelines
@@ -760,7 +772,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// Weather and world border rendering
 		if (advancedTranslucency) {
 			RenderStateShard.WEATHER_TARGET.setupRenderState();
-			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+			renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
 			wr.canvas_renderWorldBorder(camera);
 			RenderStateShard.WEATHER_TARGET.clearRenderState();
 			PipelineManager.beFabulous();
@@ -768,7 +780,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			Pipeline.defaultFbo.bind();
 		} else {
 			GFX.depthMask(false);
-			wr.canvas_renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+			renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
 			wr.canvas_renderWorldBorder(camera);
 			GFX.depthMask(true);
 		}
@@ -795,6 +807,12 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		//RenderState.enablePrint = true;
 
 		Timekeeper.instance.swap(ProfilerGroup.AfterFabulous, "after world");
+	}
+
+	private void renderWeather(LightTexture lightmapTextureManager, float tickDelta, double frameCameraX, double frameCameraY, double frameCameraZ) {
+		if (!CanvasPlatformHooks.renderCustomWeather(eventContext)) {
+			vanillaWorldRenderer.canvas_renderWeather(lightmapTextureManager, tickDelta, frameCameraX, frameCameraY, frameCameraZ);
+		}
 	}
 
 	private void renderClouds(Minecraft mc, ProfilerFiller profiler, PoseStack identityStack, Matrix4f projectionMatrix, float tickDelta, double cameraX, double cameraY, double cameraZ) {
@@ -830,7 +848,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		BufferSynchronizer.checkPoint();
 		DirectBufferAllocator.update();
 		TransferBuffers.update();
-		PipelineManager.reloadIfNeeded(false);
+		CanvasState.recompileIfNeeded(false);
 		FlawlessFramesController.handleToggle();
 
 		if (wasFabulous != Pipeline.isFabulous()) {
@@ -872,14 +890,13 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 	@Override
 	public void allChanged() {
-		PipelineManager.reloadIfNeeded(true);
 		createImmediates();
 
 		// cause injections to fire but disable all other vanilla logic
 		// by setting world to null temporarily
 		final ClientLevel swapWorld = vanillaWorldRenderer.canvas_world();
 		vanillaWorldRenderer.canvas_setWorldNoSideEffects(null);
-		super.allChanged();
+		super.allChanged(); // FREX RenderLoad event will be raised
 		vanillaWorldRenderer.canvas_setWorldNoSideEffects(swapWorld);
 
 		// has the logic from super.reload() that requires private access

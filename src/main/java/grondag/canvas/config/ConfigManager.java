@@ -39,7 +39,6 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.CanvasState;
-import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.option.OptionConfig;
 
 public class ConfigManager {
@@ -122,7 +121,7 @@ public class ConfigManager {
 			CanvasMod.LOG.error("Error loading pipeline config. Using default values.");
 		}
 
-		CanvasState.recompile();
+		CanvasState.recompileIfNeeded(true);
 	}
 
 	private static void saveConfig() {
@@ -165,13 +164,12 @@ public class ConfigManager {
 		Configurator.readFromConfig(config, true);
 	}
 
-	@SuppressWarnings("resource")
 	static void saveUserInput(Reload reload) {
 		saveConfig();
 
 		switch (reload) {
 			case RELOAD_EVERYTHING -> Minecraft.getInstance().levelRenderer.allChanged();
-			case RELOAD_PIPELINE -> PipelineManager.reloadIfNeeded(true);
+			case RELOAD_PIPELINE -> CanvasState.recompileIfNeeded(true);
 			case DONT_RELOAD -> { }
 		}
 	}

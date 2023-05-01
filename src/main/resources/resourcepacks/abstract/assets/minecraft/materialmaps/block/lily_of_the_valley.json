@@ -1,0 +1,10 @@
+{
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/lily_of_the_valley",
+        "material": "abstract:low_foliage"
+      }
+    ]
+  }
+}

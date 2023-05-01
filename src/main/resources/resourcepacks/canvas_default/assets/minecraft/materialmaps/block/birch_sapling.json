@@ -1,3 +1,10 @@
 {
-  "defaultMaterial": "canvas:low_foliage"
+  "defaultMap": {
+    "spriteMap": [
+      {
+        "sprite": "minecraft:block/birch_sapling",
+        "material": "canvas:low_foliage"
+      }
+    ]
+  }
 }

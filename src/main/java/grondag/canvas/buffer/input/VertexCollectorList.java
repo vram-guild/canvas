@@ -77,13 +77,11 @@ public class VertexCollectorList {
 		public Emitter emit() {
 			final CanvasRenderMaterial mat = (CanvasRenderMaterial) material();
 
-			if (mat.condition().compute()) {
-				complete();
-				StandardEncoder.encodeQuad(this, AbsentInputContext.INSTANCE, get(mat));
+			complete();
+			StandardEncoder.encodeQuad(this, AbsentInputContext.INSTANCE, get(mat));
 
-				if (Configurator.disableUnseenSpriteAnimation) {
-					mat.trackPerFrameAnimation(this.spriteId());
-				}
+			if (Configurator.disableUnseenSpriteAnimation) {
+				mat.trackPerFrameAnimation(this.spriteId());
 			}
 
 			clear();
