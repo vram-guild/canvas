@@ -23,10 +23,13 @@ package grondag.canvas.pipeline;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import net.minecraft.client.GraphicsStatus;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.mixinterface.LevelRendererExt;
 import grondag.canvas.pipeline.config.FabulousConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
@@ -164,6 +167,12 @@ public class Pipeline {
 
 		isFabulous = config.fabulosity != null;
 
+		Minecraft mc = Minecraft.getInstance();
+
+		if(mc.getGpuWarnlistManager() != null) {
+			mc.options.graphicsMode().set(isFabulous ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
+		}
+
 		for (final ImageConfig img : config.images) {
 			if (IMAGES.containsKey(img.name)) {
 				CanvasMod.LOG.warn(String.format("Duplicate pipeline image definition encountered with name %s. Duplicate was skipped.", img.name));
@@ -182,10 +191,10 @@ public class Pipeline {
 			PROGRAMS.put(program.name, new ProcessProgram(program.name, program.vertexSource, program.fragmentSource, program.samplerNames));
 		}
 
-		initFramebuffers(primary);
-
 		defaultColor = getImage(config.defaultFramebuffer.value().colorAttachments[0].image.name).glId();
 		defaultDepth = getImage(config.defaultFramebuffer.value().depthAttachment.image.name).glId();
+
+		initFramebuffers(primary);
 
 		if (config.skyShadow != null) {
 			final Image sd = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name);
@@ -264,13 +273,7 @@ public class Pipeline {
 			FRAMEBUFFERS.clear();
 		}
 
-		IMAGES.forEach((s, image) -> {
-			if (image.config.width == 0 && image.config.height == 0) {
-				image.width = width;
-				image.height = height;
-				image.allocate();
-			}
-		});
+		IMAGES.forEach((s, image) -> image.reallocateIfWindowSizeDependent(width, height));
 
 		initFramebuffers(primary);
 
@@ -330,6 +333,12 @@ public class Pipeline {
 			fabWeatherFbo = 0;
 			fabCloudsFbo = 0;
 			fabTranslucentFbo = 0;
+		}
+
+		Minecraft mc = Minecraft.getInstance();
+
+		if (mc.levelRenderer != null) {
+			((LevelRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
 		}
 	}
 

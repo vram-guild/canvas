@@ -22,7 +22,6 @@ package grondag.canvas.pipeline;
 
 import org.joml.Matrix4f;
 
-import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
@@ -35,7 +34,6 @@ import grondag.canvas.buffer.render.TransferBuffer;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.material.state.RenderState;
-import grondag.canvas.mixinterface.LevelRendererExt;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
@@ -158,35 +156,6 @@ public class PipelineManager {
 		endFullFrameRender();
 	}
 
-	public static void onResize(PrimaryFrameBuffer primary, int new_w, int new_h) {
-		if(w == new_w && h == new_h) return;
-
-		w = new_w;
-		h = new_h;
-
-		Pipeline.onResize(primary, w, h);
-
-		final Minecraft mc = Minecraft.getInstance();
-
-		if (mc.levelRenderer != null) {
-			((LevelRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
-		}
-
-		if(drawBuffer == null) return;
-
-		beginFullFrameRender();
-
-		drawBuffer.bind();
-
-		for (final Pass pass : Pipeline.onResize) {
-			if (pass.isEnabled()) {
-				pass.run(w, h);
-			}
-		}
-
-		endFullFrameRender();
-	}
-
 	static void renderDebug(int glId, int lod, int layer, boolean depth, int target) {
 		beginFullFrameRender();
 
@@ -232,11 +201,6 @@ public class PipelineManager {
 
 		Pipeline.activate(primary, width, height);
 
-		Minecraft mc = Minecraft.getInstance();
-		if(mc.getGpuWarnlistManager() != null) {
-			mc.options.graphicsMode().set(Pipeline.isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
-		}
-
 		debugProgram = new ProcessProgram("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
 		debugArrayProgram = new ProcessProgram("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
 		debugDepthProgram = new ProcessProgram("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
@@ -261,8 +225,32 @@ public class PipelineManager {
 
 		collector.clear(); // releases storage
 
-		Pipeline.defaultFbo.bind();
-		CanvasTextureState.bindTexture(0);
+		onResizePasses();
+	}
+
+	public static void onResize(PrimaryFrameBuffer primary, int newWidth, int newHeight) {
+		if(w == newWidth && h == newHeight) return;
+
+		w = newWidth;
+		h = newHeight;
+
+		Pipeline.onResize(primary, w, h);
+
+		onResizePasses();
+	}
+
+	public static void onResizePasses() {
+		beginFullFrameRender();
+
+		drawBuffer.bind();
+
+		for (final Pass pass : Pipeline.onResize) {
+			if (pass.isEnabled()) {
+				pass.run(w, h);
+			}
+		}
+
+		endFullFrameRender();
 	}
 
 	private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {
