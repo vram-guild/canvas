@@ -891,14 +891,13 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 	@Override
 	public void allChanged() {
-		CanvasState.recompileIfNeeded(true);
 		createImmediates();
 
 		// cause injections to fire but disable all other vanilla logic
 		// by setting world to null temporarily
 		final ClientLevel swapWorld = vanillaWorldRenderer.canvas_world();
 		vanillaWorldRenderer.canvas_setWorldNoSideEffects(null);
-		super.allChanged();
+		super.allChanged(); // FREX RenderLoad event will be raised
 		vanillaWorldRenderer.canvas_setWorldNoSideEffects(swapWorld);
 
 		// has the logic from super.reload() that requires private access
