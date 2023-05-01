@@ -20,7 +20,7 @@
 
 package grondag.canvas.shader;
 
-import org.joml.Matrix4f;
+import com.mojang.math.Matrix4f;
 
 import net.minecraft.resources.ResourceLocation;
 
