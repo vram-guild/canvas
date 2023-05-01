@@ -373,6 +373,19 @@ public class GlShader implements Shader {
 	}
 
 	@Override
+	public String typeofUniformSpec(String name) {
+		final String regex = "(?m)^\\s*uniform\\s(\\w*)\\s+" + name + "\\s*;";
+		final Pattern pattern = Pattern.compile(regex);
+		final var matcher = pattern.matcher(getSource());
+
+		if (matcher.find() && matcher.groupCount() > 0) {
+			return matcher.group(1);
+		}
+
+		return null;
+	}
+
+	@Override
 	public ResourceLocation getShaderSourceId() {
 		return shaderSourceId;
 	}

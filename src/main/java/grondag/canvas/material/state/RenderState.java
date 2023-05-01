@@ -54,7 +54,6 @@ import grondag.canvas.material.property.WriteMaskRenderState;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.world.SkyShadowRenderer;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.MaterialProgram;
 import grondag.canvas.shader.ProgramType;
 import grondag.canvas.shader.data.MatrixState;
@@ -213,11 +212,9 @@ public final class RenderState {
 		texture.materialIndexProvider().enable();
 
 		if (Pipeline.shadowMapDepth != -1) {
-			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP);
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			CanvasTextureState.ensureTextureOfTextureUnit(TextureData.SHADOWMAP, GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+			CanvasTextureState.ensureTextureOfTextureUnit(TextureData.SHADOWMAP_TEXTURE, GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 
-			CanvasTextureState.activeTextureUnit(TextureData.SHADOWMAP_TEXTURE);
-			CanvasTextureState.bindTexture(GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
 			// Was seeing stray invalid operations errors in GL without.
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
@@ -228,8 +225,7 @@ public final class RenderState {
 			for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
 				final int bindTarget = Pipeline.materialTextures().texTargets[i];
 				final int bind = Pipeline.materialTextures().texIds[i];
-				CanvasTextureState.activeTextureUnit(TextureData.PROGRAM_SAMPLERS + i);
-				CanvasTextureState.bindTexture(bindTarget, bind);
+				CanvasTextureState.ensureTextureOfTextureUnit(TextureData.PROGRAM_SAMPLERS + i, bindTarget, bind);
 			}
 
 			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
@@ -317,7 +313,7 @@ public final class RenderState {
 		GFX.glDisable(GFX.GL_POLYGON_OFFSET_FILL);
 		GFX.glCullFace(GFX.GL_BACK);
 
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 		DecalRenderState.disable();
 		TransparencyRenderState.disable();
 		DepthTestRenderState.disable();

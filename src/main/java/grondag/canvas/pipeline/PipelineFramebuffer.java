@@ -42,7 +42,7 @@ public class PipelineFramebuffer {
 	private static final int B = 2;
 	private static final int A = 3;
 
-	PipelineFramebuffer(FramebufferConfig config, int width, int height) {
+	PipelineFramebuffer(FramebufferConfig config) {
 		this.config = config;
 
 		final int count = config.colorAttachments.length;
@@ -69,16 +69,7 @@ public class PipelineFramebuffer {
 
 		clearMask = (colorClearFlags != 0) ? 1 : 0;
 
-		open(width, height);
-	}
-
-	public int glId() {
-		return fboGlId;
-	}
-
-	void open(int width, int height) {
 		fboGlId = GFX.genFramebuffer();
-
 		GFX.bindFramebuffer(GFX.GL_FRAMEBUFFER, fboGlId);
 		GFX.objectLabel(GFX.GL_FRAMEBUFFER, fboGlId, "FBO " + config.name);
 
@@ -98,7 +89,7 @@ public class PipelineFramebuffer {
 
 			if (img == null) {
 				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because color attachment %s was not found",
-						config.name, ac.image.name));
+					config.name, ac.image.name));
 			} else if (img.config.target == GFX.GL_TEXTURE_2D) {
 				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0 + i, img.config.target, img.glId(), ac.lod);
 			} else if (img.config.target == GFX.GL_TEXTURE_2D_ARRAY || img.config.target == GFX.GL_TEXTURE_3D) {
@@ -114,7 +105,7 @@ public class PipelineFramebuffer {
 
 			if (img == null) {
 				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because depth attachment %s was not found",
-						config.name, depthAc.image.name));
+					config.name, depthAc.image.name));
 			} else if (img.config.target == GFX.GL_TEXTURE_2D) {
 				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, img.config.target, img.glId(), depthAc.lod);
 			} else if (img.config.target == GFX.GL_TEXTURE_2D_ARRAY || img.config.target == GFX.GL_TEXTURE_3D) {
@@ -127,6 +118,10 @@ public class PipelineFramebuffer {
 		if (check != GFX.GL_FRAMEBUFFER_COMPLETE) {
 			CanvasMod.LOG.warn("Framebuffer " + config.name + " has invalid status " + check + " " + GlSymbolLookup.reverseLookup(check));
 		}
+	}
+
+	public int glId() {
+		return fboGlId;
 	}
 
 	public void clear() {
