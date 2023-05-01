@@ -41,6 +41,7 @@ public class PrimaryFrameBuffer extends MainTarget {
 		//NB: pipeline manager handles close
 	}
 
+	@Override
 	protected void createFrameBuffer(int width, int height) {
 		this.width = width;
 		this.viewWidth = width;
