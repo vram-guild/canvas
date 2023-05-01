@@ -44,6 +44,12 @@ public interface Shader {
 	boolean containsUniformSpec(String type, String name);
 
 	/**
+	 * @param name Uniform name
+	 * @return the uniform type, or null if the uniform is not found
+	 */
+	String typeofUniformSpec(String name);
+
+	/**
 	 * @return The shader source location, typically for debugging
 	 */
 	ResourceLocation getShaderSourceId();

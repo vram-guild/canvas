@@ -28,7 +28,6 @@ import grondag.canvas.buffer.format.CanvasVertexFormats;
 import grondag.canvas.shader.data.UniformRefreshFrequency;
 
 public class ProcessProgram extends GlProgram {
-
 	private final Uniform2i size;
 	private final Uniform1i lod;
 	private final Uniform1i layer;
@@ -49,6 +48,7 @@ public class ProcessProgram extends GlProgram {
 		this.projMatrix = uniformMatrix4f("frxu_frameProjectionMatrix", UniformRefreshFrequency.ON_LOAD, u -> { });
 
 		int tex = 0;
+
 		for (final String samplerName : samplers) {
 			final int n = tex++;
 			uniformSampler(samplerName, UniformRefreshFrequency.ON_LOAD, u -> u.set(n));
@@ -65,37 +65,29 @@ public class ProcessProgram extends GlProgram {
 	}
 
 	public ProcessProgram size(int w, int h) {
-		if (GlProgram.activeProgram() == this) {
-			size.set(w, h);
-			size.upload();
-		}
+		size.set(w, h);
+		size.upload();
 
 		return this;
 	}
 
 	public ProcessProgram lod(int lod) {
-		if (GlProgram.activeProgram() == this) {
-			this.lod.set(lod);
-			this.lod.upload();
-		}
+		this.lod.set(lod);
+		this.lod.upload();
 
 		return this;
 	}
 
 	public ProcessProgram layer(int layer) {
-		if (GlProgram.activeProgram() == this) {
-			this.layer.set(layer);
-			this.layer.upload();
-		}
+		this.layer.set(layer);
+		this.layer.upload();
 
 		return this;
 	}
 
 	public ProcessProgram projection(Matrix4f matrix) {
-		if (GlProgram.activeProgram() == this) {
-			projMatrix.set(matrix);
-			projMatrix.upload();
-		}
+		projMatrix.set(matrix);
+		projMatrix.upload();
 
 		return this;
 	}

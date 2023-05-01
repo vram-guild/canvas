@@ -110,7 +110,6 @@ import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.render.frustum.RegionCullingFrustum;
 import grondag.canvas.render.terrain.cluster.ClusterTaskManager;
-import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.GlProgramManager;
 import grondag.canvas.shader.data.IntData;
 import grondag.canvas.shader.data.MatrixData;
@@ -759,7 +758,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		// TODO: move the Mallib world last to the new event when fabulous is on
 
 		RenderState.disable();
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 
 		// cloud rendering ignores RenderSystem view matrix
 		if (!CanvasPlatformHooks.renderCustomClouds(eventContext)) {
@@ -891,14 +890,13 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 	@Override
 	public void allChanged() {
-		CanvasState.recompileIfNeeded(true);
 		createImmediates();
 
 		// cause injections to fire but disable all other vanilla logic
 		// by setting world to null temporarily
 		final ClientLevel swapWorld = vanillaWorldRenderer.canvas_world();
 		vanillaWorldRenderer.canvas_setWorldNoSideEffects(null);
-		super.allChanged();
+		super.allChanged(); // FREX RenderLoad event will be raised
 		vanillaWorldRenderer.canvas_setWorldNoSideEffects(swapWorld);
 
 		// has the logic from super.reload() that requires private access

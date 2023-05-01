@@ -61,7 +61,7 @@ public class ConfigRestartScreen extends BaseScreen {
 		if (lines != null) {
 			int row = 0;
 
-			for (FormattedCharSequence line : lines) {
+			for (final FormattedCharSequence line : lines) {
 				drawCenteredString(poseStack, this.font, line, this.width / 2, this.height / 2 - 100 + 30 + 16 * (row++), 16777215);
 			}
 		}
