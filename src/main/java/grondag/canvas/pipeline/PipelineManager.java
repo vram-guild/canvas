@@ -116,7 +116,7 @@ public class PipelineManager {
 	}
 
 	public static void onResize(PrimaryFrameBuffer primary, int newWidth, int newHeight) {
-		if(w == newWidth && h == newHeight) return;
+		if (w == newWidth && h == newHeight) return;
 
 		w = newWidth;
 		h = newHeight;
@@ -146,7 +146,7 @@ public class PipelineManager {
 
 		for (final Pass pass : passes) {
 			if (pass.isEnabled()) {
-				if(profilerGroup != null) {
+				if (profilerGroup != null) {
 					Timekeeper.instance.swap(profilerGroup, pass.getName());
 				}
 
@@ -154,7 +154,7 @@ public class PipelineManager {
 			}
 		}
 
-		if(profilerGroup != null) {
+		if (profilerGroup != null) {
 			Timekeeper.instance.completePass();
 		}
 
@@ -221,7 +221,7 @@ public class PipelineManager {
 		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0, GFX.GL_TEXTURE_2D, oldTex0);
 		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE1, GFX.GL_TEXTURE_2D, oldTex1);
 
-		GlProgram.deactivate();
+		GFX.useProgram(0);
 		GFX.restoreProjectionMatrix();
 		GFX.depthMask(true);
 		GFX.enableDepthTest();

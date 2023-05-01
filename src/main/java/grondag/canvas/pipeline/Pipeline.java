@@ -46,7 +46,6 @@ import grondag.canvas.shader.GlProgram;
 import grondag.canvas.shader.ProcessProgram;
 
 public class Pipeline {
-
 	private static ProgramTextureData materialTextures;
 	static Pass[] onWorldRenderStart = { };
 	static Pass[] afterRenderHand = { };
@@ -160,7 +159,7 @@ public class Pipeline {
 
 		Minecraft mc = Minecraft.getInstance();
 
-		if(mc.getGpuWarnlistManager() != null) {
+		if (mc.getGpuWarnlistManager() != null) {
 			mc.options.graphicsMode().set(isFabulous ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
 		}
 
@@ -351,5 +350,4 @@ public class Pipeline {
 	public static boolean isFabulous() {
 		return isFabulous;
 	}
-
 }

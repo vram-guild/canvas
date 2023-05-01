@@ -64,12 +64,13 @@ public class Image {
 	}
 
 	public void reallocateIfWindowSizeDependent(int width, int height) {
-		if(config.width != 0 && config.height != 0) return;
+		if (config.width != 0 && config.height != 0) return;
 
-		if(config.width == 0) {
+		if (config.width == 0) {
 			this.width = width;
 		}
-		if(config.height == 0) {
+
+		if (config.height == 0) {
 			this.height = height;
 		}
 
@@ -82,6 +83,7 @@ public class Image {
 
 	void allocate() {
 		CanvasTextureState.bindTexture(config.target, glId);
+
 		for (int i = 0; i <= config.lod; ++i) {
 			if (config.target == GFX.GL_TEXTURE_3D) {
 				GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
