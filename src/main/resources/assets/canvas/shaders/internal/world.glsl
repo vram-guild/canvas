@@ -25,7 +25,7 @@
 // w is effect strength
 #define _CV_LAST_CAMERA_POS 5
 
-// w is darkness scale
+// w is UNUSED here, darkness scale in 1.19+
 #define _CV_CAMERA_VIEW 6
 
 // w is sky flash strength
