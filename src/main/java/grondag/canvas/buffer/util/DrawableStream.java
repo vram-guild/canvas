@@ -93,8 +93,8 @@ public class DrawableStream implements AutoCloseable {
 
 				state.enable();
 				final int elementCount = vertexCount / 4 * 6;
-				final RenderSystem.AutoStorageIndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(Mode.QUADS);
-				indexBuffer.bind(elementCount); // can cause runtime exception?
+				final RenderSystem.AutoStorageIndexBuffer indexBuffer = RenderSystem.getSequentialBuffer(Mode.QUADS, elementCount);
+				GFX.bindBuffer(GFX.GL_ELEMENT_ARRAY_BUFFER, indexBuffer.name());
 				final int elementType = indexBuffer.type().asGLType;
 				GFX.drawElementsBaseVertex(Mode.QUADS.asGLMode, elementCount, elementType, 0L, startIndex);
 			}

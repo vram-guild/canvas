@@ -35,7 +35,7 @@ import grondag.canvas.mixinterface.NativeImageExt;
 import grondag.canvas.mixinterface.SpriteExt;
 
 @Mixin(TextureAtlasSprite.InterpolationData.class)
-public class MixinSpriteInterpolation implements CombinedAnimationConsumer {
+public class MixinSpriteInterpolation {
 	@Shadow private NativeImage[] activeFrame;
 
 	@Shadow(aliases = {"this$0", "a", "field_21757"})

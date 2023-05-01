@@ -160,7 +160,7 @@ public class Pipeline {
 		Minecraft mc = Minecraft.getInstance();
 
 		if (mc.getGpuWarnlistManager() != null) {
-			mc.options.graphicsMode().set(isFabulous ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
+			mc.options.graphicsMode = (isFabulous ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
 		}
 
 		for (final ImageConfig img : config.images) {

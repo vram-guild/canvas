@@ -307,7 +307,7 @@ public class GlShader implements Shader {
 	protected static String loadShaderSource(ResourceManager resourceManager, ResourceLocation shaderSourceId) {
 		String result;
 
-		try (InputStream inputStream = resourceManager.getResource(shaderSourceId).get().open()) {
+		try (InputStream inputStream = resourceManager.getResource(shaderSourceId).getInputStream()) {
 			try (Reader reader = new InputStreamReader(inputStream)) {
 				result = CharStreams.toString(reader);
 			}
