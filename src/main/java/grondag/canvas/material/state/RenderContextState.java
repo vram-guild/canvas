@@ -66,13 +66,10 @@ public class RenderContextState {
 		states.pop();
 	}
 
+	/**
+	 * Prevent sorrow. Not usually necessary, but we are living in Modlandia.
+	 */
 	public void clear() {
-		if (states.empty()) {
-			System.out.println("what was that for?");
-		} else {
-			System.out.println("we dodged a landmine!");
-		}
-
 		states.clear();
 	}
 
