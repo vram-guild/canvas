@@ -39,8 +39,7 @@ void glintify(inout vec4 a, float glint) {
 		vec2 translation = vec2(-tx, ty);
 
 		vec2 uv = (rotation * vec4(frx_normalizeMappedUV(frx_texcoord) * scale, 0.0, 1.0)).xy + translation;
-		//vec3 glint = mix(texture(cvu_glint_item, uv).rgb, texture(cvu_glint_entity, uv).rgb, float(frx_matGlintEntity));
-		vec3 glint = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), float(frx_matGlintEntity));
+		vec3 glint = mix(texture(cvu_glint_item, uv).rgb, texture(cvu_glint_entity, uv).rgb, float(frx_matGlintEntity));
 
 		// emulate GL_SRC_COLOR sfactor
 		a.rgb = clamp(a.rgb + glint * glint * str, 0.0, 1.0);
