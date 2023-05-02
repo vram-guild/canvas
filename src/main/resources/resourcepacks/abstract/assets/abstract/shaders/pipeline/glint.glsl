@@ -12,6 +12,9 @@ uniform sampler2D cvu_glint;
 
 void glintify(inout vec4 a, float glint) {
 	if (glint == 1.0) {
+		const float str = _CV_GLINT_STRENGTH.x;
+		const float speed = _CV_GLINT_STRENGTH.y;
+
 		// vanilla scale factor for entity, works in most scenario
 		const float scale = 0.16;
 
@@ -28,7 +31,7 @@ void glintify(inout vec4 a, float glint) {
 		0.0,                                0.0,                                0.0,                                1.0);
 
 		// vanilla translation factor
-		float time = frx_renderSeconds * 8.;
+		float time = frx_renderSeconds * 8. * speed;
 		float tx = mod(time, 110.) / 110.;
 		float ty = mod(time, 30.) / 30.;
 		vec2 translation = vec2(-tx, ty);
@@ -37,6 +40,6 @@ void glintify(inout vec4 a, float glint) {
 		vec4 glint = vec4(texture(cvu_glint, uv).rgb, 0.0);
 
 		// emulate GL_SRC_COLOR sfactor
-		a = clamp(a + glint * glint, 0.0, 1.0);
+		a = clamp(a + glint * glint * str, 0.0, 1.0);
 	}
 }
