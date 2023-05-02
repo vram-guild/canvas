@@ -28,13 +28,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
+
+import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 
 // WIP: move hooks upstream so that multi-consumer is available in more cases
 @Mixin(ModelBlockRenderer.class)
