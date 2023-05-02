@@ -9,6 +9,7 @@
     "MixinAnimatedTextureTicker",
     "MixinAnimationMetadataSection",
     "MixinBakedGlyph",
+    "MixinBlockEntityRenderDispatcher",
     "MixinBlockRenderDispatcher",
     "MixinBufferBuilder",
     "MixinBufferUploader",

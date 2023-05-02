@@ -442,8 +442,6 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 			++entityCount;
 
-			contextState.setCurrentEntity(entity);
-
 			if (entity.tickCount == 0) {
 				entity.xOld = entity.getX();
 				entity.yOld = entity.getY();
@@ -496,7 +494,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			}
 		}
 
-		contextState.setCurrentEntity(null);
+		contextState.clear();
 		SkyShadowRenderer.restoreEntityShadows(mc);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "blockentities");
@@ -524,7 +522,6 @@ public class CanvasWorldRenderer extends LevelRenderer {
 				}
 
 				MultiBufferSource outputConsumer = immediate;
-				contextState.setCurrentBlockEntity(blockEntity);
 
 				identityStack.pushPose();
 				identityStack.translate(blockPos.getX() - frameCameraX, blockPos.getY() - frameCameraY, blockPos.getZ() - frameCameraZ);
@@ -551,7 +548,6 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			while (globalBERs.hasNext()) {
 				final BlockEntity blockEntity2 = globalBERs.next();
 				final BlockPos blockPos2 = blockEntity2.getBlockPos();
-				contextState.setCurrentBlockEntity(blockEntity2);
 				identityStack.pushPose();
 				identityStack.translate(blockPos2.getX() - frameCameraX, blockPos2.getY() - frameCameraY, blockPos2.getZ() - frameCameraZ);
 				++blockEntityCount;
@@ -560,7 +556,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			}
 		}
 
-		contextState.setCurrentBlockEntity(null);
+		contextState.clear();
 
 		RenderState.disable();
 
