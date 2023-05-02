@@ -156,6 +156,7 @@ import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
+import io.vram.frex.api.config.ShaderConfig;
 import io.vram.frex.api.light.HeldItemLightListener;
 import io.vram.frex.api.light.ItemLight;
 
@@ -224,6 +225,8 @@ public class ShaderDataManager {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: WorldDataManager static init");
 		}
+
+		ShaderConfig.registerShaderConfigSupplier(AccessibilityData.id, AccessibilityData::shaderSource);
 	}
 
 	public static void captureClearColor(float r, float g, float b) {

@@ -20,47 +20,36 @@
 
 package grondag.canvas.material.state;
 
-import org.jetbrains.annotations.Nullable;
+import java.util.Stack;
+
+import javax.annotation.Nonnull;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.material.MaterialMap;
 
 public class RenderContextState {
-	@SuppressWarnings("rawtypes")
-	private MaterialMap activeMap = MaterialMap.IDENTITY;
-	@SuppressWarnings("rawtypes")
-	private MaterialMap swapMap = null;
-	private Object activeGameObject = null;
 	private final MaterialFinder finder = MaterialFinder.newInstance();
-
-	private MaterialMap<Entity> entityMap = MaterialMap.identity();
-	private MaterialMap<BlockState> blockEntityMap = MaterialMap.identity();
-	private MaterialMap<ItemStack> itemMap = MaterialMap.identity();
 	private GuiMode guiMode = GuiMode.NORMAL;
-	private boolean renderingItem = false;
 
-	public void setCurrentEntity(@Nullable Entity entity) {
-		entityMap = entity == null ? MaterialMap.identity() : MaterialMap.get(entity.getType());
-		activeGameObject = entity;
-		activeMap = entityMap;
+	// PERF: use int states and bitwise operation
+	private record State (MaterialMap map, Object searchObj) { }
+
+	// PERF: use array with failsafe
+	private final Stack<State> states = new Stack<>();
+
+	public RenderContextState() {
 	}
 
-	public void setCurrentBlockEntity(@Nullable BlockEntity blockEntity) {
-		if (blockEntity == null) {
-			activeGameObject = Blocks.AIR.defaultBlockState();
-			blockEntityMap = MaterialMap.identity();
-		} else {
-			activeGameObject = blockEntity.getBlockState();
-			blockEntityMap = MaterialMap.get(blockEntity.getType());
-		}
+	public void push(@Nonnull Entity entity) {
+		states.push(new State(MaterialMap.get(entity.getType()), entity));
+	}
 
-		activeMap = blockEntityMap;
+	public void push(@Nonnull BlockEntity blockEntity) {
+		states.push(new State(MaterialMap.get(blockEntity.getType()), blockEntity.getBlockState()));
 	}
 
 	/**
@@ -68,19 +57,19 @@ public class RenderContextState {
 	 *
 	 * @param itemStack the item stack
 	 */
-	public void pushItemState(ItemStack itemStack) {
-		assert swapMap == null;
-		itemMap = MaterialMap.get(itemStack);
-		swapMap = activeMap; // preserve active function
-		activeMap = itemMap;
-		renderingItem = true;
+	public void push(@Nonnull ItemStack itemStack) {
+		states.push(new State(MaterialMap.get(itemStack), null));
 	}
 
-	public void popItemState() {
-		itemMap = MaterialMap.identity();
-		activeMap = swapMap;
-		swapMap = null;
-		renderingItem = false;
+	public void pop() {
+		states.pop();
+	}
+
+	/**
+	 * Prevent unwanted state/overflow due to conflicting hooks, etc.
+	 */
+	public void clear() {
+		states.clear();
 	}
 
 	public void guiMode(GuiMode guiMode) {
@@ -89,16 +78,18 @@ public class RenderContextState {
 
 	@SuppressWarnings("unchecked")
 	public CanvasRenderMaterial mapMaterial(CanvasRenderMaterial mat) {
-		if (activeMap.isIdentity() && guiMode == GuiMode.NORMAL) {
+		if (states.empty() && guiMode == GuiMode.NORMAL) {
 			return mat;
 		} else {
 			finder.copyFrom(mat);
 
-			if (renderingItem) {
-				activeMap.map(finder, null);
-				finder.textureIndex(mat.textureIndex()); // custom item wants to retain custom texture
-			} else {
-				activeMap.map(finder, activeGameObject);
+			if (!states.empty()) {
+				final State state = states.peek();
+				state.map.map(finder, state.searchObj);
+
+				if (state.searchObj == null) {
+					finder.textureIndex(mat.textureIndex());
+				}
 			}
 
 			guiMode.apply(finder);
