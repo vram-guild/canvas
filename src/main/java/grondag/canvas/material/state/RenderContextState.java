@@ -67,7 +67,7 @@ public class RenderContextState {
 	}
 
 	/**
-	 * Prevent sorrow. Not usually necessary, but we are living in Modlandia.
+	 * Prevent unwanted state/overflow due to conflicting hooks, etc.
 	 */
 	public void clear() {
 		states.clear();

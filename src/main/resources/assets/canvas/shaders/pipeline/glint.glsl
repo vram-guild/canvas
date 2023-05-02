@@ -1,7 +1,7 @@
-
-#include frex:shaders/api/sampler.glsl
+#include frex:shaders/api/accessibility.glsl
 #include frex:shaders/api/fragment.glsl
 #include frex:shaders/api/material.glsl
+#include frex:shaders/api/sampler.glsl
 #include frex:shaders/api/world.glsl
 #include frex:shaders/lib/math.glsl
 
@@ -14,9 +14,6 @@ uniform sampler2D cvu_glint_entity;
 
 void glintify(inout vec4 a, float glint) {
 	if (glint == 1.0) {
-		const float str = _CV_GLINT_STRENGTH.x;
-		const float speed = _CV_GLINT_STRENGTH.y;
-
 		// vanilla scale factor for entity, works in most scenario
 		const float scale = 0.16;
 
@@ -33,7 +30,7 @@ void glintify(inout vec4 a, float glint) {
 		0.0,                                0.0,                                0.0,                                1.0);
 
 		// vanilla translation factor
-		float time = frx_renderSeconds * 8. * speed;
+		float time = frx_renderSeconds * 8. * frx_glintSpeed;
 		float tx = mod(time, 110.) / 110.;
 		float ty = mod(time, 30.) / 30.;
 		vec2 translation = vec2(-tx, ty);
@@ -42,6 +39,6 @@ void glintify(inout vec4 a, float glint) {
 		vec3 glint = mix(texture(cvu_glint_item, uv).rgb, texture(cvu_glint_entity, uv).rgb, float(frx_matGlintEntity));
 
 		// emulate GL_SRC_COLOR sfactor
-		a.rgb = clamp(a.rgb + glint * glint * str, 0.0, 1.0);
+		a.rgb = clamp(a.rgb + glint * glint * frx_glintStrength, 0.0, 1.0);
 	}
 }

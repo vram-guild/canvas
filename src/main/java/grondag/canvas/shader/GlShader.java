@@ -272,10 +272,6 @@ public class GlShader implements Shader {
 			final double glintStrength = Minecraft.getInstance().options.glintStrength().get();
 			final double glintSpeed = Minecraft.getInstance().options.glintSpeed().get();
 
-			if (glintStrength != 1.0d || glintSpeed != 1.0d) {
-				result = StringUtils.replace(result, "_CV_GLINT_STRENGTH vec2(1.0)", "_CV_GLINT_STRENGTH vec2(" + glintStrength + ", " + glintSpeed + ")");
-			}
-
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialConstants.MAX_SHADERS);
 
 			// prepend GLSL version

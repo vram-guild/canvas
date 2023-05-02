@@ -26,34 +26,35 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.OptionInstance;
+import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.AccessibilityOptionsScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.SimpleOptionsSubScreen;
+import net.minecraft.network.chat.Component;
 
 import grondag.canvas.apiimpl.CanvasState;
+import grondag.canvas.shader.data.AccessibilityData;
 
 @Mixin(AccessibilityOptionsScreen.class)
-public class MixinAccessibilityOptionsScreen {
-	private double canvas_prevGlintSpeed = 0.5d;
-	private double canvas_prevGlintStrength = 0.75d;
-
-	@Inject(at = @At("HEAD"), method = "init")
-	void onInit(CallbackInfo ci) {
-		final var mc = Minecraft.getInstance();
-		canvas_prevGlintSpeed = mc.options.glintSpeed().get();
-		canvas_prevGlintStrength = mc.options.glintStrength().get();
+public class MixinAccessibilityOptionsScreen extends SimpleOptionsSubScreen {
+	public MixinAccessibilityOptionsScreen(Screen screen, Options options, Component component, OptionInstance<?>[] optionInstances) {
+		super(screen, options, component, optionInstances);
 	}
 
 	@Inject(at = @At("HEAD"), method = "method_31384")
-	void onClose(CallbackInfo ci) {
-		final var mc = Minecraft.getInstance();
+	void onClosing(CallbackInfo ci) {
+		canvas_onClose();
+	}
 
-		if (mc.level == null) {
-			return;
-		}
+	@Override
+	public void onClose() {
+		canvas_onClose();
+		super.onClose();
+	}
 
-		final double glintSpeed = mc.options.glintSpeed().get();
-		final double glintStrength = mc.options.glintStrength().get();
-
-		if (canvas_prevGlintSpeed != glintSpeed || glintStrength != canvas_prevGlintStrength) {
+	private static void canvas_onClose() {
+		if (AccessibilityData.checkChanged() && Minecraft.getInstance().level != null) {
 			CanvasState.recompileIfNeeded(true);
 		}
 	}
