@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,11 +45,13 @@ public class RenderContextState {
 	private MaterialMap<ItemStack> itemMap = MaterialMap.identity();
 	private GuiMode guiMode = GuiMode.NORMAL;
 	private boolean renderingItem = false;
+	private boolean glintEntity = false;
 
 	public void setCurrentEntity(@Nullable Entity entity) {
 		entityMap = entity == null ? MaterialMap.identity() : MaterialMap.get(entity.getType());
 		activeGameObject = entity;
 		activeMap = entityMap;
+		glintEntity = entity != null;
 	}
 
 	public void setCurrentBlockEntity(@Nullable BlockEntity blockEntity) {
@@ -74,6 +77,7 @@ public class RenderContextState {
 		swapMap = activeMap; // preserve active function
 		activeMap = itemMap;
 		renderingItem = true;
+		glintEntity = itemStack.is(Items.TRIDENT);
 	}
 
 	public void popItemState() {
@@ -90,6 +94,10 @@ public class RenderContextState {
 	@SuppressWarnings("unchecked")
 	public CanvasRenderMaterial mapMaterial(CanvasRenderMaterial mat) {
 		if (activeMap.isIdentity() && guiMode == GuiMode.NORMAL) {
+			if (mat.foilOverlay() && glintEntity) {
+				return (CanvasRenderMaterial) finder.copyFrom(mat).glintEntity(true).find();
+			}
+
 			return mat;
 		} else {
 			finder.copyFrom(mat);
@@ -101,6 +109,7 @@ public class RenderContextState {
 				activeMap.map(finder, activeGameObject);
 			}
 
+			finder.glintEntity(glintEntity);
 			guiMode.apply(finder);
 			return (CanvasRenderMaterial) finder.find();
 		}

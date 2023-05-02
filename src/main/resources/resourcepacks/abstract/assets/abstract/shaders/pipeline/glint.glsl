@@ -1,6 +1,7 @@
 
 #include frex:shaders/api/sampler.glsl
 #include frex:shaders/api/fragment.glsl
+#include frex:shaders/api/material.glsl
 #include frex:shaders/api/world.glsl
 #include frex:shaders/lib/math.glsl
 
@@ -8,7 +9,8 @@
   abstract:shaders/pipeline/glint.glsl
 ******************************************************/
 
-uniform sampler2D cvu_glint;
+uniform sampler2D cvu_glint_item;
+uniform sampler2D cvu_glint_entity;
 
 void glintify(inout vec4 a, float glint) {
 	if (glint == 1.0) {
@@ -37,9 +39,9 @@ void glintify(inout vec4 a, float glint) {
 		vec2 translation = vec2(-tx, ty);
 
 		vec2 uv = (rotation * vec4(frx_normalizeMappedUV(frx_texcoord) * scale, 0.0, 1.0)).xy + translation;
-		vec4 glint = vec4(texture(cvu_glint, uv).rgb, 0.0);
+		vec3 glint = mix(texture(cvu_glint_item, uv).rgb, texture(cvu_glint_entity, uv).rgb, float(frx_matGlintEntity));
 
 		// emulate GL_SRC_COLOR sfactor
-		a = clamp(a + glint * glint * str, 0.0, 1.0);
+		a.rgb = clamp(a.rgb + glint * glint * str, 0.0, 1.0);
 	}
 }
