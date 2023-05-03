@@ -21,7 +21,6 @@
 package grondag.canvas.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -29,31 +28,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import grondag.canvas.buffer.input.CanvasImmediate;
-import grondag.canvas.mixinterface.EntityRenderDispatcherExt;
 
-@Mixin(EntityRenderDispatcher.class)
-public abstract class MixinEntityRenderDispatcher implements EntityRenderDispatcherExt {
-	@Shadow private static RenderType SHADOW_RENDER_TYPE;
-
-	@Override
-	public RenderType canvas_shadowLayer() {
-		return SHADOW_RENDER_TYPE;
-	}
-
+@Mixin(BlockEntityRenderDispatcher.class)
+public class MixinBlockEntityRenderDispatcher {
 	@Inject(at = @At("HEAD"), method = "render")
-	private void beginRender(Entity entity, double d, double e, double f, float g, float h, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
+	private void beginRender(BlockEntity blockEntity, float f, PoseStack poseStack, MultiBufferSource multiBufferSource, CallbackInfo ci) {
 		if (multiBufferSource instanceof CanvasImmediate immediate) {
-			immediate.contextState.push(entity);
+			immediate.contextState.push(blockEntity);
 		}
 	}
 
 	@Inject(at = @At("RETURN"), method = "render")
-	private void endRender(Entity entity, double d, double e, double f, float g, float h, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, CallbackInfo ci) {
+	private void endRender(BlockEntity blockEntity, float f, PoseStack poseStack, MultiBufferSource multiBufferSource, CallbackInfo ci) {
 		if (multiBufferSource instanceof CanvasImmediate immediate) {
 			immediate.contextState.pop();
 		}

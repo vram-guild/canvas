@@ -13,4 +13,5 @@
 #define frx_matHurt _CV_GET_FLAG(_CV_FLAG_HURT_OVERLAY)
 #define frx_matFlash _CV_GET_FLAG(_CV_FLAG_FLASH_OVERLAY)
 #define frx_matGlint _CV_GET_FLAG(_CV_FLAG_GLINT)
+#define frx_matGlintEntity _CV_GET_FLAG(_CV_FLAG_GLINT_ENTITY)
 #define frx_matExposure 0.0

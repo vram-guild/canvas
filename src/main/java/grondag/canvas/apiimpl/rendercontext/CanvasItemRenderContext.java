@@ -91,14 +91,14 @@ public class CanvasItemRenderContext extends ItemRenderContext {
 				mode = GuiMode.NORMAL;
 			}
 
-			context.pushItemState(stack);
+			context.push(stack);
 			context.guiMode(mode);
 		}
 
 		builtInRenderer.renderByItem(stack, inputContext.mode(), inputContext.matrixStack().toVanilla(), vertexConsumers, inputContext.lightmap(), inputContext.overlay());
 
 		if (context != null) {
-			context.popItemState();
+			context.pop();
 			context.guiMode(GuiMode.NORMAL);
 		}
 	}
