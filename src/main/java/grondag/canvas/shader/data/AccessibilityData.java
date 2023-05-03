@@ -30,10 +30,6 @@ public class AccessibilityData {
 	static double distortionEffects = 1.0;
 	static boolean hideLightningFlashes = false;
 	static double darknessPulsing = 1.0;
-	static boolean highContrast = false;
-	static double damageTilt = 1.0;
-	static double glintStrength = 0.75;
-	static double glintSpeed = 0.5;
 
 	static String cache = null;
 
@@ -44,10 +40,6 @@ public class AccessibilityData {
 		valid = valid && distortionEffects == mc.options.screenEffectScale().get();
 		valid = valid && hideLightningFlashes == mc.options.hideLightningFlash().get();
 		valid = valid && darknessPulsing == mc.options.darknessEffectScale().get();
-		valid = valid && highContrast == mc.options.highContrast().get();
-		valid = valid && damageTilt == mc.options.damageTiltStrength().get();
-		valid = valid && glintStrength == mc.options.glintStrength().get();
-		valid = valid && glintSpeed == mc.options.glintSpeed().get();
 
 		if (!valid) {
 			generateString();
@@ -63,19 +55,11 @@ public class AccessibilityData {
 		distortionEffects = mc.options.screenEffectScale().get();
 		hideLightningFlashes = mc.options.hideLightningFlash().get();
 		darknessPulsing = mc.options.darknessEffectScale().get();
-		highContrast = mc.options.highContrast().get();
-		damageTilt = mc.options.damageTiltStrength().get();
-		glintStrength = mc.options.glintStrength().get();
-		glintSpeed = mc.options.glintSpeed().get();
 
 		cache = "#define frx_fovEffects " + fovEffects + "\n"
 				+ "#define frx_distortionEffects " + distortionEffects + "\n"
 				+ "#define frx_hideLightningFlashes " + (hideLightningFlashes ? 1 : 0) + "\n"
-				+ "#define frx_darknessPulsing " + darknessPulsing + "\n"
-				+ "#define frx_highContrast " + (highContrast ? 1 : 0) + "\n"
-				+ "#define frx_damageTilt " + damageTilt + "\n"
-				+ "#define frx_glintStrength " + glintStrength + "\n"
-				+ "#define frx_glintSpeed " + glintSpeed + "\n";
+				+ "#define frx_darknessPulsing " + darknessPulsing + "\n";
 	}
 
 	static String shaderSource() {

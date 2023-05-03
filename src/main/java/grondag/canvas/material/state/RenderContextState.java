@@ -37,7 +37,7 @@ public class RenderContextState {
 	private GuiMode guiMode = GuiMode.NORMAL;
 
 	// PERF: use int states and bitwise operation
-	private record State (MaterialMap map, Object searchObj, boolean glintEntity) { }
+	private record State (MaterialMap map, Object searchObj) { }
 
 	// PERF: use array with failsafe
 	private final Stack<State> states = new Stack<>();
@@ -46,11 +46,11 @@ public class RenderContextState {
 	}
 
 	public void push(@Nonnull Entity entity) {
-		states.push(new State(MaterialMap.get(entity.getType()), entity, true));
+		states.push(new State(MaterialMap.get(entity.getType()), entity));
 	}
 
 	public void push(@Nonnull BlockEntity blockEntity) {
-		states.push(new State(MaterialMap.get(blockEntity.getType()), blockEntity.getBlockState(), true));
+		states.push(new State(MaterialMap.get(blockEntity.getType()), blockEntity.getBlockState()));
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class RenderContextState {
 	 * @param itemStack the item stack
 	 */
 	public void push(@Nonnull ItemStack itemStack) {
-		states.push(new State(MaterialMap.get(itemStack), null, itemStack.is(Items.TRIDENT)));
+		states.push(new State(MaterialMap.get(itemStack), null));
 	}
 
 	public void pop() {
@@ -87,7 +87,6 @@ public class RenderContextState {
 			if (!states.empty()) {
 				final State state = states.peek();
 				state.map.map(finder, state.searchObj);
-				finder.glintEntity(state.glintEntity);
 
 				if (state.searchObj == null) {
 					finder.textureIndex(mat.textureIndex());
