@@ -33,73 +33,73 @@ import grondag.canvas.pipeline.Pipeline;
 public enum TargetRenderState implements Predicate<RenderState> {
 	SOLID(
 		MaterialConstants.TARGET_SOLID,
-		"solid",
-		() -> {
-			Pipeline.solidTerrainFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
+			"solid",
+			() -> {
+				Pipeline.solidTerrainFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
 	),
 	OUTLINE(
 		MaterialConstants.TARGET_OUTLINE,
-		"outline",
-		() -> {
-			Minecraft.getInstance().levelRenderer.entityTarget().bindWrite(false);
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
+			"outline",
+			() -> {
+				Minecraft.getInstance().levelRenderer.entityTarget().bindWrite(false);
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
 	),
 	TRANSLUCENT(
 		MaterialConstants.TARGET_TRANSLUCENT,
-		"translucent",
-		() -> {
-			Pipeline.translucentTerrainFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
+			"translucent",
+			() -> {
+				Pipeline.translucentTerrainFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
 	),
 	PARTICLES(
 		MaterialConstants.TARGET_PARTICLES,
-		"particles",
-		() -> {
-			Pipeline.translucentParticlesFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
+			"particles",
+			() -> {
+				Pipeline.translucentParticlesFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
 	),
 	WEATHER(
 		MaterialConstants.TARGET_WEATHER,
-		"weather",
-		() -> {
-			Pipeline.weatherFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
+			"weather",
+			() -> {
+				Pipeline.weatherFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
 	),
 	CLOUDS(
 		MaterialConstants.TARGET_CLOUDS,
-		"clouds",
-		() -> {
-			Pipeline.cloudsFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
+			"clouds",
+			() -> {
+				Pipeline.cloudsFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
 	),
 	ENTITIES(
 		MaterialConstants.TARGET_ENTITIES,
-		"entities",
-		() -> {
-			Pipeline.translucentEntityFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
+			"entities",
+			() -> {
+				Pipeline.translucentEntityFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
 	);
 
 	private static final TargetRenderState[] VALUES = values();
