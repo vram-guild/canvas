@@ -13,7 +13,6 @@
 #define _CV_FLAG_FLASH_OVERLAY      8 // 1 if should render white flash overlay
 #define _CV_FLAG_ENABLE_FOG         9
 #define _CV_FLAG_GLINT              10
-#define _CV_FLAG_GLINT_ENTITY       11
 
 #define _CV_CUTOUT_SHIFT 3u
 #define _CV_CUTOUT_MASK 3u
