@@ -20,14 +20,18 @@
 
 package grondag.canvas.render;
 
-import com.mojang.blaze3d.pipeline.MainTarget;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import grondag.canvas.pipeline.PipelineManager;
 
-public class FabulousFrameBuffer extends MainTarget {
+public class FabulousFrameBuffer extends RenderTarget {
 	public FabulousFrameBuffer(int fboId, int colorId, int depthId) {
-		super(PipelineManager.width(), PipelineManager.height());
+		super(true /* useDepth */);
+
+		this.width = this.viewWidth = PipelineManager.width();
+		this.height = this.viewHeight = PipelineManager.height();
+
 		setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
 
 		frameBufferId = fboId;
@@ -50,10 +54,9 @@ public class FabulousFrameBuffer extends MainTarget {
 	@Override
 	public void createBuffers(int width, int height, boolean getError) {
 		RenderSystem.assertOnRenderThreadOrInit();
-		viewWidth = width;
-		viewHeight = height;
-		this.width = width;
-		this.height = height;
+
+		this.width = this.viewWidth = width;
+		this.height = this.viewHeight = height;
 
 		// rest is handled in init that accepts IDs from pipeline
 	}
