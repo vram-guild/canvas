@@ -77,7 +77,6 @@ public abstract class MaterialStateEncoder {
 	private static final BitPacker64<Void>.BooleanElement M_FLASH_OVERLAY = MATERIAL_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement M_FOG = MATERIAL_PACKER.createBooleanElement();
 	private static final BitPacker64<Void>.BooleanElement M_ENABLE_GLINT = MATERIAL_PACKER.createBooleanElement();
-	private static final BitPacker64<Void>.BooleanElement M_GLINT_ENTITY = MATERIAL_PACKER.createBooleanElement();
 
 	private static final long TRANSLUCENT_TERRAIN_KEY;
 	private static final long TRANSLUCENT_ENTITY_KEY;
@@ -131,7 +130,6 @@ public abstract class MaterialStateEncoder {
 		result = MaterialStateEncoder.M_FLASH_OVERLAY.setValue(mat.flashOverlay(), result);
 		result = MaterialStateEncoder.M_FOG.setValue(mat.fog(), result);
 		result = MaterialStateEncoder.M_ENABLE_GLINT.setValue(mat.foilOverlay(), result);
-		result = MaterialStateEncoder.M_GLINT_ENTITY.setValue(mat.glintEntity(), result);
 		result = MaterialStateEncoder.M_HURT_OVERLAY.setValue(mat.hurtOverlay(), result);
 		result = MaterialStateEncoder.M_PRESET.setValue(mat.preset(), result);
 		result = MaterialStateEncoder.M_SHADER.setValue(mat.shaderIndex(), result);
