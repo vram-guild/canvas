@@ -47,7 +47,7 @@ This list is updated infrequently.
 More releases can be found in [`#canvas-3rd-party-releases` channel](https://discord.com/channels/614624415631671316/752632870257950790) on the [discord server](https://discord.gg/7NaqR2e).
 
 # Developing With Canvas
-Before using Canvas, you should first understand RenderMaterials, Meshes, RenderContexts and other features defined by the Fabric Rendering API.  For that information, consult the [rendering article on the Fabric Wiki](https://fabricmc.net/wiki/rendering). Note: Fabric wiki is still WIP as of this writing but should be more complete "soon."
+Before using Canvas, you should first understand RenderMaterials, Meshes, RenderContexts and other features defined by the Fabric Rendering API.  For that information, consult the [rendering article on the Fabric Wiki](https://fabricmc.net/wiki/documentation:rendering). Note: Fabric wiki is still WIP as of this writing but should be more complete "soon."
 
 You can also see [RenderBender](https://github.com/grondag/renderbender) for some (not very good) examples of usage.  Avoid duplicating those examples directly - they aren't especially performant or suitable for use at scale.  As soon as someone releases a model loader / library for Fabric Rendering API / FREX, that will almost certainly be a better approach.
 
@@ -126,10 +126,10 @@ And add Canvas to your dependencies
 
 ```gradle
 dependencies {
-	modCompileOnly "io.vram:canvas-fabric-mc118:1.0.+"
+	modCompileOnly "io.vram:canvas-fabric:19.4.+"
 
 	// optional for testing in dev environment
-	modRuntimeOnly "io.vram:canvas-fabric-mc118:1.0.+"
+	modRuntimeOnly "io.vram:canvas-fabric:19.4.+"
 }
 ```
 
