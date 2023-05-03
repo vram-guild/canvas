@@ -186,11 +186,11 @@ public class MixinLevelRenderer implements LevelRendererExt {
 	@Override
 	public void canvas_setupFabulousBuffers() {
 		if (Pipeline.isFabulous()) {
-			translucentTarget = new FabulousFrameBuffer(Pipeline.fabTranslucentFbo, Pipeline.fabTranslucentColor, Pipeline.fabTranslucentDepth);
-			itemEntityTarget = new FabulousFrameBuffer(Pipeline.fabEntityFbo, Pipeline.fabEntityColor, Pipeline.fabEntityDepth);
-			particlesTarget = new FabulousFrameBuffer(Pipeline.fabParticleFbo, Pipeline.fabParticleColor, Pipeline.fabParticleDepth);
-			weatherTarget = new FabulousFrameBuffer(Pipeline.fabWeatherFbo, Pipeline.fabWeatherColor, Pipeline.fabWeatherDepth);
-			cloudsTarget = new FabulousFrameBuffer(Pipeline.fabCloudsFbo, Pipeline.fabCloudsColor, Pipeline.fabCloudsDepth);
+			translucentTarget = new FabulousFrameBuffer(Pipeline.getFramebuffer(Pipeline.config().fabulosity.translucentFramebuffer));
+			itemEntityTarget = new FabulousFrameBuffer(Pipeline.getFramebuffer(Pipeline.config().fabulosity.entityFramebuffer));
+			particlesTarget = new FabulousFrameBuffer(Pipeline.getFramebuffer(Pipeline.config().fabulosity.particleFramebuffer));
+			weatherTarget = new FabulousFrameBuffer(Pipeline.getFramebuffer(Pipeline.config().fabulosity.weatherFramebuffer));
+			cloudsTarget = new FabulousFrameBuffer(Pipeline.getFramebuffer(Pipeline.config().fabulosity.cloudsFramebuffer));
 		} else {
 			translucentTarget = null;
 			itemEntityTarget = null;

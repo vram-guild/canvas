@@ -167,7 +167,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.DimensionTypeExt;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.varia.CelestialObjectFunction;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectInput;
 import grondag.canvas.varia.CelestialObjectFunction.CelestialObjectOutput;
@@ -450,9 +449,9 @@ public class ShaderDataManager {
 
 		MatrixData.update(entry, projectionMatrix, camera, tickDelta);
 
-		FLOAT_VECTOR_DATA.put(VIEW_WIDTH, PipelineManager.width());
-		FLOAT_VECTOR_DATA.put(VIEW_HEIGHT, PipelineManager.height());
-		FLOAT_VECTOR_DATA.put(VIEW_ASPECT, (float) PipelineManager.width() / (float) PipelineManager.height());
+		FLOAT_VECTOR_DATA.put(VIEW_WIDTH, Pipeline.width());
+		FLOAT_VECTOR_DATA.put(VIEW_HEIGHT, Pipeline.height());
+		FLOAT_VECTOR_DATA.put(VIEW_ASPECT, (float) Pipeline.width() / (float) Pipeline.height());
 		FLOAT_VECTOR_DATA.put(VIEW_BRIGHTNESS, client.options.gamma().get().floatValue());
 
 		final ClientLevel world = client.level;

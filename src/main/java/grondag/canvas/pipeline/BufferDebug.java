@@ -76,7 +76,7 @@ public class BufferDebug {
 		int i = 0;
 
 		for (final ImageConfig img : config.images) {
-			final int glId = Pipeline.getImage(img.name).glId();
+			final int glId = Pipeline.getImage(img).glId();
 
 			for (int lod = 0; lod <= img.lod; ++lod) {
 				for (int layer = 0; layer < img.depth; ++layer) {

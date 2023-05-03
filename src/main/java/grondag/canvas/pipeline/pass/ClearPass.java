@@ -20,6 +20,7 @@
 
 package grondag.canvas.pipeline.pass;
 
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PassConfig;
 import grondag.canvas.varia.GFX;
 
@@ -29,10 +30,10 @@ public class ClearPass extends Pass {
 	}
 
 	@Override
-	public void run(int width, int height) {
+	public void run() {
 		if (fbo != null) {
 			fbo.bind();
-			GFX.viewport(0, 0, width, height);
+			GFX.viewport(0, 0, Pipeline.width(), Pipeline.height());
 			fbo.clear();
 		}
 	}

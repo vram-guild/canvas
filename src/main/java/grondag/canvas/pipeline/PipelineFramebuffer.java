@@ -34,8 +34,10 @@ public class PipelineFramebuffer {
 	final int[] attachmentPoints;
 	final int colorClearFlags;
 	final int clearMask;
+	public final Image[] colorAttachments;
+	public final Image depthAttachment;
 
-	private int fboGlId = -1;
+	private final int fboGlId;
 
 	private static final int R = 0;
 	private static final int G = 1;
@@ -45,14 +47,15 @@ public class PipelineFramebuffer {
 	PipelineFramebuffer(FramebufferConfig config) {
 		this.config = config;
 
-		final int count = config.colorAttachments.length;
+		int colorAttachmentsCount = config.colorAttachments.length;
+		this.colorAttachments = new Image[colorAttachmentsCount];
 
-		clearColor = new float[count][4];
-		attachmentPoints = new int[count];
+		clearColor = new float[colorAttachmentsCount][4];
+		attachmentPoints = new int[colorAttachmentsCount];
 		int attachmentPoint = GFX.GL_COLOR_ATTACHMENT0;
 		int clearFlags = 0;
 
-		for (int i = 0; i < count; ++i) {
+		for (int i = 0; i < colorAttachmentsCount; ++i) {
 			if (config.colorAttachments[i].clear) {
 				clearFlags |= (1 << i);
 				final int color = config.colorAttachments[i].clearColor;
@@ -73,7 +76,7 @@ public class PipelineFramebuffer {
 		GFX.bindFramebuffer(GFX.GL_FRAMEBUFFER, fboGlId);
 		GFX.objectLabel(GFX.GL_FRAMEBUFFER, fboGlId, "FBO " + config.name);
 
-		if (config.colorAttachments.length == 0) {
+		if (colorAttachmentsCount == 0) {
 			GFX.glDrawBuffer(GFX.GL_NONE);
 			GFX.glReadBuffer(GFX.GL_NONE);
 		} else {
@@ -83,13 +86,13 @@ public class PipelineFramebuffer {
 		// FEAT: needs better handling of arrays, 3D and other target type
 		// and attachments need a way to specify level
 
-		for (int i = 0; i < config.colorAttachments.length; ++i) {
+		for (int i = 0; i < colorAttachmentsCount; ++i) {
 			final AttachmentConfig ac = config.colorAttachments[i];
-			final Image img = Pipeline.getImage(ac.image.name);
+			final Image img = Pipeline.getImage(ac.image);
+			this.colorAttachments[i] = img;
 
 			if (img == null) {
-				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because color attachment %s was not found",
-					config.name, ac.image.name));
+				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because color attachment %s was not found", config.name, ac.image.name));
 			} else if (img.config.target == GFX.GL_TEXTURE_2D) {
 				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0 + i, img.config.target, img.glId(), ac.lod);
 			} else if (img.config.target == GFX.GL_TEXTURE_2D_ARRAY || img.config.target == GFX.GL_TEXTURE_3D) {
@@ -101,16 +104,18 @@ public class PipelineFramebuffer {
 
 		if (config.depthAttachment != null) {
 			final AttachmentConfig depthAc = config.depthAttachment;
-			final Image img = Pipeline.getImage(depthAc.image.name);
+			final Image img = Pipeline.getImage(depthAc.image);
+			this.depthAttachment = img;
 
 			if (img == null) {
-				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because depth attachment %s was not found",
-					config.name, depthAc.image.name));
+				CanvasMod.LOG.warn(String.format("Framebuffer %s cannot be completely configured because depth attachment %s was not found", config.name, depthAc.image.name));
 			} else if (img.config.target == GFX.GL_TEXTURE_2D) {
 				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, img.config.target, img.glId(), depthAc.lod);
 			} else if (img.config.target == GFX.GL_TEXTURE_2D_ARRAY || img.config.target == GFX.GL_TEXTURE_3D) {
 				GFX.glFramebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_DEPTH_ATTACHMENT, img.glId(), depthAc.lod, depthAc.layer);
 			}
+		} else {
+			depthAttachment = null;
 		}
 
 		final int check = GFX.checkFramebufferStatus(GFX.GL_FRAMEBUFFER);
@@ -168,15 +173,12 @@ public class PipelineFramebuffer {
 	}
 
 	void close() {
-		if (fboGlId != -1) {
-			GFX.deleteFramebuffer(fboGlId);
-			fboGlId = -1;
-		}
+		GFX.deleteFramebuffer(fboGlId);
 	}
 
 	public void copyDepthFrom(PipelineFramebuffer source) {
-		final Image srcImg = Pipeline.getImage(source.config.depthAttachment.image.name);
-		final Image myImg = Pipeline.getImage(config.depthAttachment.image.name);
+		final Image srcImg = source.depthAttachment;
+		final Image myImg = depthAttachment;
 		GFX.bindFramebuffer(GFX.GL_READ_FRAMEBUFFER, source.fboGlId);
 		GFX.bindFramebuffer(GFX.GL_DRAW_FRAMEBUFFER, fboGlId);
 		GFX.blitFramebuffer(0, 0, srcImg.width, srcImg.height, 0, 0, myImg.width, myImg.height, GFX.GL_DEPTH_BUFFER_BIT, GFX.GL_NEAREST);

@@ -80,6 +80,10 @@
   beforeWorldRender: {
     passes: [
       {
+        name: "clear_main",
+        framebuffer: "solid",
+        program: "frex_clear"
+      }, {
         name: "clear_entity",
         framebuffer: "entity",
         program: "frex_clear"

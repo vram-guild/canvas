@@ -29,7 +29,7 @@ public class BlitPass extends Pass {
 	}
 
 	@Override
-	public void run(int width, int height) {
+	public void run() {
 		//		if (fbo != null) {
 		//			fbo.bind(width, height);
 		//			fbo.clear();

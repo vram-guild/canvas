@@ -41,10 +41,10 @@ public abstract class Pass {
 		return !config.toggleConfig.isValid() || config.toggleConfig.value().value();
 	}
 
-	public abstract void run(int width, int height);
+	public abstract void run();
 
 	public void loadFramebuffer() {
-		this.fbo = Pipeline.getFramebuffer(config.framebuffer.name);
+		this.fbo = Pipeline.getFramebuffer(config.framebuffer);
 	}
 
 	public abstract void close();

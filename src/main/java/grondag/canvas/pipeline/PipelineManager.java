@@ -22,7 +22,6 @@ package grondag.canvas.pipeline;
 
 import org.joml.Matrix4f;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 import grondag.canvas.CanvasMod;
@@ -37,7 +36,6 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.perf.Timekeeper;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
-import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.ProcessProgram;
 import grondag.canvas.varia.GFX;
 
@@ -56,28 +54,18 @@ public class PipelineManager {
 	static ProcessProgram debugCubeMapProgram;
 
 	static StaticDrawBuffer drawBuffer;
-	static int h;
-	static int w;
 	private static int oldTex0;
 	private static int oldTex1;
 
-	public static int width() {
-		return w;
-	}
-
-	public static int height() {
-		return h;
-	}
-
 	public static void reload() {
-		init((PrimaryFrameBuffer) Minecraft.getInstance().getMainRenderTarget(), w, h);
+		init();
 	}
 
-	public static void init(PrimaryFrameBuffer primary, int width, int height) {
+	public static void init() {
 		Pipeline.close();
 		tearDown();
 
-		Pipeline.activate(primary, width, height);
+		Pipeline.activate();
 
 		debugProgram = new ProcessProgram("debug", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod.frag"), "_cvu_input");
 		debugArrayProgram = new ProcessProgram("debug_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/copy_lod_array.frag"), "_cvu_input");
@@ -115,13 +103,8 @@ public class PipelineManager {
 		target[++index] = Float.floatToRawIntBits(v);
 	}
 
-	public static void onResize(PrimaryFrameBuffer primary, int newWidth, int newHeight) {
-		if (w == newWidth && h == newHeight) return;
-
-		w = newWidth;
-		h = newHeight;
-
-		Pipeline.onResize(primary, w, h);
+	public static void onResize() {
+		Pipeline.onResize();
 
 		renderFullFramePasses(Pipeline.onResize);
 	}
@@ -150,7 +133,7 @@ public class PipelineManager {
 					Timekeeper.instance.swap(profilerGroup, pass.getName());
 				}
 
-				pass.run(w, h);
+				pass.run();
 			}
 		}
 
@@ -168,10 +151,13 @@ public class PipelineManager {
 	static void renderDebug(int glId, int lod, int layer, boolean depth, int target) {
 		beginFullFrameRender();
 
+		int width = Pipeline.width();
+		int height = Pipeline.height();
+
 		drawBuffer.bind();
 		//TODO: validate
-		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0.0F, w, h, 0.0F, 1000.0F, 3000.0F);
-		GFX.viewport(0, 0, w, h);
+		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0.0F, width, height, 0.0F, 1000.0F, 3000.0F);
+		GFX.viewport(0, 0, width, height);
 		Pipeline.defaultFbo.bind();
 
 		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0, target, glId);
@@ -180,22 +166,22 @@ public class PipelineManager {
 
 		if (target == GFX.GL_TEXTURE_CUBE_MAP) {
 			debugCubeMapProgram.activate();
-			debugCubeMapProgram.size(w, h).lod(lod).projection(orthoMatrix);
+			debugCubeMapProgram.size(width, height).lod(lod).projection(orthoMatrix);
 		} else if (depth) {
 			if (isLayered) {
 				debugDepthArrayProgram.activate();
-				debugDepthArrayProgram.size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
+				debugDepthArrayProgram.size(width, height).lod(lod).layer(layer).projection(orthoMatrix);
 			} else {
 				debugDepthProgram.activate();
-				debugDepthProgram.size(w, h).lod(0).projection(orthoMatrix);
+				debugDepthProgram.size(width, height).lod(0).projection(orthoMatrix);
 			}
 		} else {
 			if (isLayered) {
 				debugArrayProgram.activate();
-				debugArrayProgram.size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
+				debugArrayProgram.size(width, height).lod(lod).layer(layer).projection(orthoMatrix);
 			} else {
 				debugProgram.activate();
-				debugProgram.size(w, h).lod(lod).projection(orthoMatrix);
+				debugProgram.size(width, height).lod(lod).projection(orthoMatrix);
 			}
 		}
 
@@ -226,7 +212,7 @@ public class PipelineManager {
 		GFX.depthMask(true);
 		GFX.enableDepthTest();
 		GFX.enableCull();
-		GFX.viewport(0, 0, w, h);
+		GFX.viewport(0, 0, Pipeline.width(), Pipeline.height());
 	}
 
 	private static void tearDown() {

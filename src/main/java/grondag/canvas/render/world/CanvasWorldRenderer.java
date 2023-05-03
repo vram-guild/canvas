@@ -816,14 +816,14 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		if (mc.options.getCloudsType() != CloudStatus.OFF) {
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "clouds");
 
-			if (Pipeline.fabCloudsFbo > 0) {
-				GFX.bindFramebuffer(GFX.GL_FRAMEBUFFER, Pipeline.fabCloudsFbo);
+			if (getCloudsTarget() != null) {
+				getCloudsTarget().bindWrite(false);
 			}
 
 			// NB: cloud renderer normally gets stack with view rotation but we apply that in VertexBuffer mixin
 			renderClouds(identityStack, projectionMatrix, tickDelta, cameraX, cameraY, cameraZ);
 
-			if (Pipeline.fabCloudsFbo > 0) {
+			if (getCloudsTarget() != null) {
 				Pipeline.defaultFbo.bind();
 			}
 		}

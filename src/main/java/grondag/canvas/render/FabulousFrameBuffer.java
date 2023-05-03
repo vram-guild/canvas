@@ -23,19 +23,25 @@ package grondag.canvas.render;
 import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import grondag.canvas.pipeline.PipelineManager;
+import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.PipelineFramebuffer;
 
 public class FabulousFrameBuffer extends MainTarget {
-	public FabulousFrameBuffer(int fboId, int colorId, int depthId) {
-		super(PipelineManager.width(), PipelineManager.height());
+	public FabulousFrameBuffer(PipelineFramebuffer fb) {
+		super(Pipeline.width(), Pipeline.height());
 		setClearColor(0.0F, 0.0F, 0.0F, 0.0F);
 
-		frameBufferId = fboId;
-		colorTextureId = colorId;
-		depthBufferId = depthId;
+		frameBufferId = fb.glId();
+		colorTextureId = fb.colorAttachments[0].glId();
+		depthBufferId = fb.depthAttachment.glId();
 
 		checkStatus();
 		unbindRead();
+	}
+
+	@Override
+	protected void createFrameBuffer(int width, int height) {
+		// Nope, handled by Pipeline
 	}
 
 	@Override

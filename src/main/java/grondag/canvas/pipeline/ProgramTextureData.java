@@ -53,7 +53,7 @@ public class ProgramTextureData {
 					imageBind = tex.getId();
 				}
 			} else {
-				final Image img = Pipeline.getImage(imageName);
+				final Image img = Pipeline.getImage(samplerImages[i]);
 
 				if (img != null) {
 					imageBind = img.glId();

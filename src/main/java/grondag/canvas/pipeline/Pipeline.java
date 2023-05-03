@@ -32,7 +32,6 @@ import net.minecraft.resources.ResourceLocation;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.LevelRendererExt;
-import grondag.canvas.pipeline.config.FabulousConfig;
 import grondag.canvas.pipeline.config.FramebufferConfig;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.PassConfig;
@@ -40,6 +39,7 @@ import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.ProgramConfig;
 import grondag.canvas.pipeline.config.SkyShadowConfig;
+import grondag.canvas.pipeline.config.util.NamedDependency;
 import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.GlProgram;
@@ -53,42 +53,20 @@ public class Pipeline {
 	static Pass[] onInit = { };
 	static Pass[] onResize = { };
 
-	private static boolean isFabulous = false;
-
 	public static PipelineFramebuffer defaultFbo;
-	public static int defaultColor = -1;
-	public static int defaultDepth = -1;
-	public static int fabEntityFbo = -1;
-	public static int fabEntityColor = -1;
-	public static int fabEntityDepth = -1;
-	public static int fabParticleFbo = -1;
-	public static int fabParticleColor = -1;
-	public static int fabParticleDepth = -1;
-	public static int fabWeatherFbo = -1;
-	public static int fabWeatherColor = -1;
-	public static int fabWeatherDepth = -1;
-	public static int fabCloudsFbo = -1;
-	public static int fabCloudsColor = -1;
-	public static int fabCloudsDepth = -1;
-	public static int fabTranslucentFbo = -1;
-	public static int fabTranslucentColor = -1;
-	public static int fabTranslucentDepth = -1;
-	public static int shadowMapDepth = -1;
-
+	public static PipelineFramebuffer solidFbo;
+	public static PipelineFramebuffer translucentTerrainFbo;
+	public static PipelineFramebuffer translucentParticlesFbo;
+	public static PipelineFramebuffer weatherFbo;
+	public static PipelineFramebuffer cloudsFbo;
+	public static PipelineFramebuffer translucentEntitiesFbo;
 	public static PipelineFramebuffer skyShadowFbo;
+	public static int shadowMapDepth = -1;
 	public static int skyShadowSize;
-	public static int skyShadowDepth;
 	public static float shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
 	public static float shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
 
 	public static float defaultZenithAngle = 0f;
-
-	public static PipelineFramebuffer solidTerrainFbo;
-	public static PipelineFramebuffer translucentTerrainFbo;
-	public static PipelineFramebuffer translucentEntityFbo;
-	public static PipelineFramebuffer weatherFbo;
-	public static PipelineFramebuffer cloudsFbo;
-	public static PipelineFramebuffer translucentParticlesFbo;
 
 	private static final Object2ObjectOpenHashMap<String, Image> IMAGES = new Object2ObjectOpenHashMap<>();
 	private static final Object2ObjectOpenHashMap<String, ProcessProgram> PROGRAMS = new Object2ObjectOpenHashMap<>();
@@ -99,7 +77,7 @@ public class Pipeline {
 	private static boolean advancedTerrainCulling;
 
 	public static boolean shadowsEnabled() {
-		return skyShadowFbo != null;
+		return config.skyShadow != null;
 	}
 
 	public static boolean advancedTerrainCulling() {
@@ -110,20 +88,41 @@ public class Pipeline {
 		return config;
 	}
 
-	public static Image getImage(String name) {
-		return IMAGES.get(name);
+	public static Image getImage(ImageConfig image) {
+		return IMAGES.get(image.name);
+	}
+
+	public static Image getImage(NamedDependency<ImageConfig> imageDep) {
+		return getImage(imageDep.value());
 	}
 
 	public static ProcessProgram getProgram(String name) {
 		return PROGRAMS.get(name);
 	}
 
-	public static PipelineFramebuffer getFramebuffer(String name) {
-		return FRAMEBUFFERS.get(name);
+	public static PipelineFramebuffer getFramebuffer(FramebufferConfig fbConfig) {
+		return FRAMEBUFFERS.get(fbConfig.name);
+	}
+
+	public static PipelineFramebuffer getFramebuffer(NamedDependency<FramebufferConfig> fbDep) {
+		return getFramebuffer(fbDep.value());
 	}
 
 	public static ProgramTextureData materialTextures() {
 		return materialTextures;
+	}
+
+	static PrimaryFrameBuffer getPrimaryFramebuffer() {
+		Minecraft mc = Minecraft.getInstance();
+		return (PrimaryFrameBuffer) mc.getMainRenderTarget();
+	}
+
+	public static int width() {
+		return getPrimaryFramebuffer().width;
+	}
+
+	public static int height() {
+		return getPrimaryFramebuffer().height;
 	}
 
 	public static void close() {
@@ -149,18 +148,36 @@ public class Pipeline {
 			PROGRAMS.values().forEach(GlProgram::unload);
 			PROGRAMS.clear();
 		}
+
+		defaultFbo = null;
+		solidFbo = null;
+		translucentTerrainFbo = null;
+		translucentParticlesFbo = null;
+		weatherFbo = null;
+		cloudsFbo = null;
+		translucentEntitiesFbo = null;
+
+		skyShadowFbo = null;
+
+		shadowMapDepth = -1;
+		skyShadowSize = 0;
+		shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
+		shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
+		advancedTerrainCulling = Configurator.advancedTerrainCulling;
+
+		defaultZenithAngle = 0f;
+
+		config = null;
 	}
 
-	static void activate(PrimaryFrameBuffer primary, int width, int height) {
+	static void activate() {
 		final PipelineConfig config = PipelineConfigBuilder.build(new ResourceLocation(Configurator.pipelineId));
 		Pipeline.config = config;
-
-		isFabulous = config.fabulosity != null;
 
 		Minecraft mc = Minecraft.getInstance();
 
 		if (mc.getGpuWarnlistManager() != null) {
-			mc.options.graphicsMode().set(isFabulous ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
+			mc.options.graphicsMode().set(isFabulous() ? GraphicsStatus.FABULOUS : GraphicsStatus.FANCY);
 		}
 
 		for (final ImageConfig img : config.images) {
@@ -169,7 +186,7 @@ public class Pipeline {
 				continue;
 			}
 
-			IMAGES.put(img.name, new Image(img, img.width > 0 ? img.width : width, img.height > 0 ? img.height : height));
+			IMAGES.put(img.name, new Image(img, img.width > 0 ? img.width : width(), img.height > 0 ? img.height : height()));
 		}
 
 		for (final ProgramConfig program : config.programs) {
@@ -181,93 +198,49 @@ public class Pipeline {
 			PROGRAMS.put(program.name, new ProcessProgram(program.name, program.vertexSource, program.fragmentSource, program.samplerNames));
 		}
 
-		defaultColor = getImage(config.defaultFramebuffer.value().colorAttachments[0].image.name).glId();
-		defaultDepth = getImage(config.defaultFramebuffer.value().depthAttachment.image.name).glId();
+		initFramebuffers();
 
-		initFramebuffers(primary);
-
-		if (config.skyShadow != null) {
-			final Image sd = getImage(config.skyShadow.framebuffer.value().depthAttachment.image.name);
+		if (shadowsEnabled()) {
+			final Image sd = getFramebuffer(config.skyShadow.framebuffer).depthAttachment;
 			shadowMapDepth = sd.glId();
 			skyShadowSize = sd.config.width;
 			shadowSlopeFactor = config.skyShadow.offsetSlopeFactor;
 			shadowBiasUnits = config.skyShadow.offsetBiasUnits;
 			advancedTerrainCulling = true;
-		} else {
-			shadowMapDepth = -1;
-			skyShadowSize = 0;
-			shadowSlopeFactor = SkyShadowConfig.DEFAULT_SHADOW_SLOPE_FACTOR;
-			shadowBiasUnits = SkyShadowConfig.DEFAULT_SHADOW_BIAS_UNITS;
-			advancedTerrainCulling = Configurator.advancedTerrainCulling;
 		}
 
 		if (config.sky != null) {
 			defaultZenithAngle = config.sky.defaultZenithAngle;
-		} else {
-			defaultZenithAngle = 0f;
 		}
 
-		if (isFabulous) {
-			final FabulousConfig fc = config.fabulosity;
-
-			fabEntityColor = getImage(fc.entityFramebuffer.value().colorAttachments[0].image.name).glId();
-			fabEntityDepth = getImage(fc.entityFramebuffer.value().depthAttachment.image.name).glId();
-
-			fabParticleColor = getImage(fc.particleFramebuffer.value().colorAttachments[0].image.name).glId();
-			fabParticleDepth = getImage(fc.entityFramebuffer.value().depthAttachment.image.name).glId();
-
-			fabWeatherColor = getImage(fc.weatherFramebuffer.value().colorAttachments[0].image.name).glId();
-			fabWeatherDepth = getImage(fc.weatherFramebuffer.value().depthAttachment.image.name).glId();
-
-			fabCloudsColor = getImage(fc.cloudsFramebuffer.value().colorAttachments[0].image.name).glId();
-			fabCloudsDepth = getImage(fc.cloudsFramebuffer.value().depthAttachment.image.name).glId();
-
-			fabTranslucentColor = getImage(fc.translucentFramebuffer.value().colorAttachments[0].image.name).glId();
-			fabTranslucentDepth = getImage(fc.translucentFramebuffer.value().depthAttachment.image.name).glId();
-
-			fabulous = buildPasses(config, config.fabulous);
-		} else {
-			fabEntityColor = 0;
-			fabEntityDepth = 0;
-
-			fabParticleColor = 0;
-			fabParticleDepth = 0;
-
-			fabWeatherColor = 0;
-			fabWeatherDepth = 0;
-
-			fabCloudsColor = 0;
-			fabCloudsDepth = 0;
-
-			fabTranslucentColor = 0;
-			fabTranslucentDepth = 0;
-			fabulous = new Pass[0];
+		if (isFabulous()) {
+			fabulous = buildPasses(config.fabulous);
 		}
 
 		materialTextures = new ProgramTextureData(config.materialProgram.samplerImages);
 
-		onWorldRenderStart = buildPasses(config, config.onWorldStart);
-		afterRenderHand = buildPasses(config, config.afterRenderHand);
-		onInit = buildPasses(config, config.onInit);
-		onResize = buildPasses(config, config.onResize);
+		onWorldRenderStart = buildPasses(config.onWorldStart);
+		afterRenderHand = buildPasses(config.afterRenderHand);
+		onInit = buildPasses(config.onInit);
+		onResize = buildPasses(config.onResize);
 
 		BufferDebug.init(config);
 	}
 
-	static void onResize(PrimaryFrameBuffer primary, int width, int height) {
+	static void onResize() {
 		if (!FRAMEBUFFERS.isEmpty()) {
-			FRAMEBUFFERS.values().forEach(framebuffer -> framebuffer.close());
+			FRAMEBUFFERS.values().forEach(PipelineFramebuffer::close);
 			FRAMEBUFFERS.clear();
 		}
 
-		IMAGES.forEach((s, image) -> image.reallocateIfWindowSizeDependent(width, height));
+		IMAGES.forEach((s, image) -> image.reallocateIfWindowSizeDependent(width(), height()));
 
-		initFramebuffers(primary);
+		initFramebuffers();
 
 		forEachPass(Pass::loadFramebuffer);
 	}
 
-	static void initFramebuffers(PrimaryFrameBuffer primary) {
+	static void initFramebuffers() {
 		for (final FramebufferConfig buffer : config.framebuffers) {
 			if (FRAMEBUFFERS.containsKey(buffer.name)) {
 				CanvasMod.LOG.warn(String.format("Duplicate pipeline framebuffer definition encountered with name %s. Duplicate was skipped.", buffer.name));
@@ -277,52 +250,38 @@ public class Pipeline {
 			FRAMEBUFFERS.put(buffer.name, new PipelineFramebuffer(buffer));
 		}
 
-		defaultFbo = getFramebuffer(config.defaultFramebuffer.name);
+		defaultFbo = getFramebuffer(config.defaultFramebuffer);
+		solidFbo = getFramebuffer(config.drawTargets.solidTerrain);
+		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain);
+		translucentParticlesFbo = getFramebuffer(config.drawTargets.translucentParticles);
+		weatherFbo = getFramebuffer(config.drawTargets.weather);
+		cloudsFbo = getFramebuffer(config.drawTargets.clouds);
+		translucentEntitiesFbo = getFramebuffer(config.drawTargets.translucentEntity);
 
-		primary.frameBufferId = defaultFbo.glId();
-		primary.colorTextureId = defaultColor;
-		primary.depthBufferId = defaultDepth;
-
-		solidTerrainFbo = getFramebuffer(config.drawTargets.solidTerrain.name);
-		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain.name);
-		translucentEntityFbo = getFramebuffer(config.drawTargets.translucentEntity.name);
-		weatherFbo = getFramebuffer(config.drawTargets.weather.name);
-		cloudsFbo = getFramebuffer(config.drawTargets.clouds.name);
-		translucentParticlesFbo = getFramebuffer(config.drawTargets.translucentParticles.name);
-
-		skyShadowFbo = config.skyShadow != null ? getFramebuffer(config.skyShadow.framebuffer.name) : null;
-
-		if (isFabulous) {
-			final FabulousConfig fc = config.fabulosity;
-
-			fabEntityFbo = getFramebuffer(fc.entityFramebuffer.name).glId();
-			fabParticleFbo = getFramebuffer(fc.particleFramebuffer.name).glId();
-			fabWeatherFbo = getFramebuffer(fc.weatherFramebuffer.name).glId();
-			fabCloudsFbo = getFramebuffer(fc.cloudsFramebuffer.name).glId();
-			fabTranslucentFbo = getFramebuffer(fc.translucentFramebuffer.name).glId();
-		} else {
-			fabEntityFbo = 0;
-			fabParticleFbo = 0;
-			fabWeatherFbo = 0;
-			fabCloudsFbo = 0;
-			fabTranslucentFbo = 0;
+		if (shadowsEnabled()) {
+			skyShadowFbo = getFramebuffer(config.skyShadow.framebuffer);
 		}
 
 		Minecraft mc = Minecraft.getInstance();
+
+		PrimaryFrameBuffer primary = (PrimaryFrameBuffer) mc.getMainRenderTarget();
+		primary.frameBufferId = defaultFbo.glId();
+		primary.colorTextureId = defaultFbo.colorAttachments[0].glId();
+		primary.depthBufferId = defaultFbo.depthAttachment.glId();
 
 		if (mc.levelRenderer != null) {
 			((LevelRendererExt) mc.levelRenderer).canvas_setupFabulousBuffers();
 		}
 	}
 
-	private static Pass[] buildPasses(PipelineConfig cfg, PassConfig[] configs) {
+	private static Pass[] buildPasses(PassConfig[] configs) {
 		final ObjectArrayList<Pass> passes = new ObjectArrayList<>();
 
-		for (int i = 0; i < configs.length; ++i) {
-			passes.add(Pass.create(configs[i]));
+		for (PassConfig passConfig : configs) {
+			passes.add(Pass.create(passConfig));
 		}
 
-		return passes.toArray(new Pass[passes.size()]);
+		return passes.toArray(new Pass[0]);
 	}
 
 	private static void forEachPass(Consumer<Pass> consumer) {
@@ -348,6 +307,6 @@ public class Pipeline {
 	}
 
 	public static boolean isFabulous() {
-		return isFabulous;
+		return config.fabulosity != null;
 	}
 }

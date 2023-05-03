@@ -33,35 +33,33 @@ public class PrimaryFrameBuffer extends MainTarget {
 	}
 
 	@Override
-	public void destroyBuffers() {
-		RenderSystem.assertOnGameThreadOrInit();
-		unbindRead();
-		unbindWrite();
-
-		//NB: pipeline manager handles close
-	}
-
-	@Override
 	protected void createFrameBuffer(int width, int height) {
+		// Nope. Actual framebuffer will be created using actuallyCreateFrameBuffer(int width, int height)
+		// right after assigning this object to Minecraft.mainRenderTarget
 		this.width = width;
 		this.viewWidth = width;
 		this.height = height;
 		this.viewHeight = height;
-		PipelineManager.init(this, width, height);
+	}
+
+	public void actuallyCreateFrameBuffer() {
+		PipelineManager.init();
 	}
 
 	@Override
 	public void createBuffers(int width, int height, boolean getError) {
+		if (this.width == width && this.height == height) return;
+
 		RenderSystem.assertOnGameThreadOrInit();
-		viewWidth = width;
-		viewHeight = height;
+		this.viewWidth = width;
+		this.viewHeight = height;
 		this.width = width;
 		this.height = height;
 
 		// UGLY - throwing away what seems to be a spurious INVALID_VALUE error here
 		GlStateManager._getError();
 
-		PipelineManager.onResize(this, width, height);
+		PipelineManager.onResize();
 
 		checkStatus();
 		unbindRead();
@@ -79,5 +77,14 @@ public class PrimaryFrameBuffer extends MainTarget {
 		if (++clearCount == 2) {
 			CanvasMod.LOG.info("Another mod is clearing the vanilla framebuffer. This message is a diagnostic aid and does not necessarily indicate a problem.");
 		}
+	}
+
+	@Override
+	public void destroyBuffers() {
+		RenderSystem.assertOnGameThreadOrInit();
+		unbindRead();
+		unbindWrite();
+
+		//NB: pipeline manager handles close
 	}
 }

@@ -58,14 +58,4 @@
 			colorAttachments: [{image: "solid_main"}]
 		}
 	],
-
-  beforeWorldRender: {
-    passes: [
-      {
-        name: "clear_main",
-        framebuffer: "solid",
-        program: "frex_clear"
-      }
-    ]
-  }
 }

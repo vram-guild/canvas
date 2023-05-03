@@ -32,9 +32,9 @@ import grondag.canvas.varia.GFX;
 
 public class Image {
 	public final ImageConfig config;
-	protected int glId = -1;
-	public int width;
-	public int height;
+	private final int glId;
+	int width;
+	int height;
 
 	Image(ImageConfig config, int width, int height) {
 		this.config = config;
@@ -100,9 +100,6 @@ public class Image {
 	}
 
 	void close() {
-		if (glId != -1) {
-			TextureUtil.releaseTextureId(glId);
-			glId = -1;
-		}
+		TextureUtil.releaseTextureId(glId);
 	}
 }

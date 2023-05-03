@@ -42,13 +42,13 @@ class ProgramPass extends Pass {
 	}
 
 	@Override
-	public void run(int width, int height) {
+	public void run() {
 		if (fbo == null) {
 			return;
 		}
 
-		width = config.width > 0 ? config.width : width;
-		height = config.height > 0 ? config.height : height;
+		int width = config.width > 0 ? config.width : Pipeline.width();
+		int height = config.height > 0 ? config.height : Pipeline.height();
 
 		fbo.bind();
 

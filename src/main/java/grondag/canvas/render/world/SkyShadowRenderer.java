@@ -26,7 +26,6 @@ import net.minecraft.client.Minecraft;
 
 import grondag.canvas.buffer.util.DrawableStream;
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.shader.data.ShadowMatrixData;
 import grondag.canvas.varia.GFX;
 
@@ -51,7 +50,7 @@ public class SkyShadowRenderer {
 	private static void end() {
 		assert active;
 		active = false;
-		RenderSystem.viewport(0, 0, PipelineManager.width(), PipelineManager.height());
+		RenderSystem.viewport(0, 0, Pipeline.width(), Pipeline.height());
 	}
 
 	public static boolean isActive() {

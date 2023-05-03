@@ -21,104 +21,24 @@
 package grondag.canvas.material.property;
 
 import java.util.function.Predicate;
-
-import net.minecraft.client.Minecraft;
+import java.util.function.Supplier;
 
 import io.vram.frex.api.material.MaterialConstants;
 
 import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.pipeline.PipelineFramebuffer;
 
-@SuppressWarnings("resource")
-public class TargetRenderState implements Predicate<RenderState> {
-	public static final TargetRenderState SOLID = new TargetRenderState(
-		MaterialConstants.TARGET_SOLID,
-		"solid",
-		() -> {
-			Pipeline.solidTerrainFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
+public enum TargetRenderState implements Predicate<RenderState> {
+	SOLID(MaterialConstants.TARGET_SOLID, "solid", () -> Pipeline.solidFbo),
+	OUTLINE(MaterialConstants.TARGET_SOLID, "outline", () -> null), // TODO not used
+	TRANSLUCENT(MaterialConstants.TARGET_TRANSLUCENT, "translucent", () -> Pipeline.translucentTerrainFbo),
+	PARTICLES(MaterialConstants.TARGET_PARTICLES, "particles", () -> Pipeline.translucentParticlesFbo),
+	WEATHER(MaterialConstants.TARGET_WEATHER, "weather", () -> Pipeline.weatherFbo),
+	CLOUDS(MaterialConstants.TARGET_CLOUDS, "clouds", () -> Pipeline.cloudsFbo),
+	ENTITIES(MaterialConstants.TARGET_ENTITIES, "entities", () -> Pipeline.translucentEntitiesFbo);
 
-	public static final TargetRenderState OUTLINE = new TargetRenderState(
-		MaterialConstants.TARGET_OUTLINE,
-		"outline",
-		() -> {
-			Minecraft.getInstance().levelRenderer.entityTarget().bindWrite(false);
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState TRANSLUCENT = new TargetRenderState(
-		MaterialConstants.TARGET_TRANSLUCENT,
-		"translucent",
-		() -> {
-			Pipeline.translucentTerrainFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState PARTICLES = new TargetRenderState(
-		MaterialConstants.TARGET_PARTICLES,
-		"particles",
-		() -> {
-			Pipeline.translucentParticlesFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState WEATHER = new TargetRenderState(
-		MaterialConstants.TARGET_WEATHER,
-		"weather",
-		() -> {
-			Pipeline.weatherFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState CLOUDS = new TargetRenderState(
-		MaterialConstants.TARGET_CLOUDS,
-		"clouds",
-		() -> {
-			Pipeline.cloudsFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState ENTITIES = new TargetRenderState(
-		MaterialConstants.TARGET_ENTITIES,
-		"entities",
-		() -> {
-			Pipeline.translucentEntityFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	private static final TargetRenderState[] VALUES = new TargetRenderState[MaterialConstants.TARGET_COUNT];
-
-	static {
-		VALUES[MaterialConstants.TARGET_SOLID] = SOLID;
-		VALUES[MaterialConstants.TARGET_OUTLINE] = OUTLINE;
-		VALUES[MaterialConstants.TARGET_TRANSLUCENT] = TRANSLUCENT;
-		VALUES[MaterialConstants.TARGET_PARTICLES] = PARTICLES;
-		VALUES[MaterialConstants.TARGET_WEATHER] = WEATHER;
-		VALUES[MaterialConstants.TARGET_CLOUDS] = CLOUDS;
-		VALUES[MaterialConstants.TARGET_ENTITIES] = ENTITIES;
-	}
+	private static final TargetRenderState[] VALUES = values();
 
 	public static TargetRenderState fromIndex(int index) {
 		return VALUES[index];
@@ -126,28 +46,26 @@ public class TargetRenderState implements Predicate<RenderState> {
 
 	public final int index;
 	public final String name;
-	private final Runnable startAction;
-	private final Runnable endAction;
+	private final Supplier<PipelineFramebuffer> framebufferSupplier;
 
-	private TargetRenderState(int index, String name, Runnable startAction, Runnable endAction) {
+	TargetRenderState(int index, String name, Supplier<PipelineFramebuffer> framebufferSupplier) {
 		this.index = index;
 		this.name = name;
-		this.startAction = startAction;
-		this.endAction = endAction;
+		this.framebufferSupplier = framebufferSupplier;
 	}
 
 	public void enable() {
 		if (active != null && active != this) {
-			active.endAction.run();
+			Pipeline.defaultFbo.bind();
 		}
 
-		startAction.run();
+		framebufferSupplier.get().bind();
 		active = this;
 	}
 
 	public static void disable() {
 		if (active != null) {
-			active.endAction.run();
+			Pipeline.defaultFbo.bind();
 			active = null;
 		}
 	}

@@ -75,4 +75,10 @@ public abstract class MixinMinecraft extends ReentrantBlockableEventLoop<Runnabl
 	private MainTarget onFrameBufferNew(int width, int height) {
 		return new PrimaryFrameBuffer(width, height);
 	}
+
+	// Goes right after MainTarget creation
+	@Inject(method = "<init>*", at = @At(value = "INVOKE", ordinal = 0, target = "Lcom/mojang/blaze3d/pipeline/RenderTarget;setClearColor(FFFF)V"))
+	private void actuallyCreateFrameBuffer(CallbackInfo ci) {
+		((PrimaryFrameBuffer) Minecraft.getInstance().getMainRenderTarget()).actuallyCreateFrameBuffer();
+	}
 }
