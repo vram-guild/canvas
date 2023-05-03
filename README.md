@@ -126,10 +126,10 @@ And add Canvas to your dependencies
 
 ```gradle
 dependencies {
-	modCompileOnly "io.vram:canvas-fabric:19.4.+"
+	modCompileOnly "io.vram:canvas-fabric:20.0.+"
 
 	// optional for testing in dev environment
-	modRuntimeOnly "io.vram:canvas-fabric:19.4.+"
+	modRuntimeOnly "io.vram:canvas-fabric:20.0.+"
 }
 ```
 
