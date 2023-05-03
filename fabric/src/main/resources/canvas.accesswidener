@@ -89,7 +89,7 @@ accessible   field   net/minecraft/client/renderer/RenderStateShard   RENDERTYPE
 accessible   field   net/minecraft/client/renderer/RenderStateShard   RENDERTYPE_LINES_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
 
 accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       colorTextureId I
-accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       depthBufferId I
+accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       depthStencilBufferId I
 
 accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
 accessible field net/minecraft/client/renderer/RenderType$CompositeRenderType state Lnet/minecraft/client/renderer/RenderType$CompositeState;

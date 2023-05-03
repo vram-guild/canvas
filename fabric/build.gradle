@@ -19,7 +19,7 @@ plugins {
 
 ext.platform_name = 'fabric'
 ext.loader_version = '0.14.19'
-ext.fabric_version = '0.79.0+1.19.4'
+ext.fabric_version = '0.76.3+23w13a_or_b'
 
 apply from: '../project_common.gradle'
 apply from: 'project.gradle'

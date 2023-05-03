@@ -32,7 +32,7 @@ public class FabulousFrameBuffer extends MainTarget {
 
 		frameBufferId = fboId;
 		colorTextureId = colorId;
-		depthBufferId = depthId;
+		depthStencilBufferId = depthId;
 
 		checkStatus();
 		unbindRead();
