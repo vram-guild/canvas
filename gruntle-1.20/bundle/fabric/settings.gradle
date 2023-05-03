@@ -1,0 +1,13 @@
+// VRAM STANDARD GRADLE SETTINGS FOR FABRIC
+// DO NOT MAKE CHANGES HERE - THEY WILL BE OVERWRITTEN BY AUTOMATED UPDATE
+
+pluginManagement {
+    repositories {
+      	mavenCentral()
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        gradlePluginPortal()
+    }
+}
