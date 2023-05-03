@@ -269,6 +269,9 @@ public class GlShader implements Shader {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "//#define SHADOW_MAP_SIZE 1024");
 			}
 
+			final double glintStrength = Minecraft.getInstance().options.glintStrength().get();
+			final double glintSpeed = Minecraft.getInstance().options.glintSpeed().get();
+
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialConstants.MAX_SHADERS);
 
 			// prepend GLSL version

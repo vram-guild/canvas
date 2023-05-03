@@ -22,6 +22,7 @@ package grondag.canvas.shader.data;
 
 import static grondag.canvas.shader.data.FloatData.AMBIENT_INTENSITY;
 import static grondag.canvas.shader.data.FloatData.ATMOSPHERIC_COLOR;
+import static grondag.canvas.shader.data.FloatData.DARKNESS_FACTOR;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_BLUE;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_GREEN;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_RED;
