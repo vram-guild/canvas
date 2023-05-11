@@ -4,9 +4,11 @@
 	"package": "grondag.canvas.mixin",
 	"compatibilityLevel": "JAVA_16",
 	"mixins": [
+    "MixinAccessibilityOptionsScreen",
 		"MixinAnimatedTexture",
 		"MixinAnimationMetadataSection",
 		"MixinBakedGlyph",
+    "MixinBlockEntityRenderDispatcher",
 		"MixinBlockRenderDispatcher",
 		"MixinBufferBuilder",
 		"MixinBufferUploader",

@@ -22,10 +22,10 @@ package grondag.canvas.shader.data;
 
 import static grondag.canvas.shader.data.FloatData.AMBIENT_INTENSITY;
 import static grondag.canvas.shader.data.FloatData.ATMOSPHERIC_COLOR;
+import static grondag.canvas.shader.data.FloatData.DARKNESS_FACTOR;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_BLUE;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_GREEN;
 import static grondag.canvas.shader.data.FloatData.EMISSIVE_COLOR_RED;
-import static grondag.canvas.shader.data.FloatData.DARKNESS_FACTOR;
 import static grondag.canvas.shader.data.FloatData.EYE_LIGHT_BLOCK;
 import static grondag.canvas.shader.data.FloatData.EYE_LIGHT_SKY;
 import static grondag.canvas.shader.data.FloatData.EYE_POSITION;
@@ -158,6 +158,7 @@ import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
+import io.vram.frex.api.config.ShaderConfig;
 import io.vram.frex.api.light.HeldItemLightListener;
 import io.vram.frex.api.light.ItemLight;
 
@@ -227,6 +228,8 @@ public class ShaderDataManager {
 		if (Configurator.enableLifeCycleDebug) {
 			CanvasMod.LOG.info("Lifecycle Event: WorldDataManager static init");
 		}
+
+		ShaderConfig.registerShaderConfigSupplier(AccessibilityData.id, AccessibilityData::shaderSource);
 	}
 
 	public static void captureClearColor(float r, float g, float b) {

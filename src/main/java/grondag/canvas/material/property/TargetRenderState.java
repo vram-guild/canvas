@@ -30,95 +30,79 @@ import grondag.canvas.material.state.RenderState;
 import grondag.canvas.pipeline.Pipeline;
 
 @SuppressWarnings("resource")
-public class TargetRenderState implements Predicate<RenderState> {
-	public static final TargetRenderState SOLID = new TargetRenderState(
+public enum TargetRenderState implements Predicate<RenderState> {
+	SOLID(
 		MaterialConstants.TARGET_SOLID,
 		"solid",
-		() -> {
-			Pipeline.solidTerrainFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState OUTLINE = new TargetRenderState(
+			() -> {
+				Pipeline.solidTerrainFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
+	),
+	OUTLINE(
 		MaterialConstants.TARGET_OUTLINE,
 		"outline",
-		() -> {
-			Minecraft.getInstance().levelRenderer.entityTarget().bindWrite(false);
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState TRANSLUCENT = new TargetRenderState(
+			() -> {
+				Minecraft.getInstance().levelRenderer.entityTarget().bindWrite(false);
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
+	),
+	TRANSLUCENT(
 		MaterialConstants.TARGET_TRANSLUCENT,
 		"translucent",
-		() -> {
-			Pipeline.translucentTerrainFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState PARTICLES = new TargetRenderState(
+			() -> {
+				Pipeline.translucentTerrainFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
+	),
+	PARTICLES(
 		MaterialConstants.TARGET_PARTICLES,
 		"particles",
-		() -> {
-			Pipeline.translucentParticlesFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState WEATHER = new TargetRenderState(
+			() -> {
+				Pipeline.translucentParticlesFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
+	),
+	WEATHER(
 		MaterialConstants.TARGET_WEATHER,
 		"weather",
-		() -> {
-			Pipeline.weatherFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState CLOUDS = new TargetRenderState(
+			() -> {
+				Pipeline.weatherFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
+	),
+	CLOUDS(
 		MaterialConstants.TARGET_CLOUDS,
-		"clouds",
-		() -> {
-			Pipeline.cloudsFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
-	);
-
-	public static final TargetRenderState ENTITIES = new TargetRenderState(
+	"clouds",
+			() -> {
+				Pipeline.cloudsFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
+	),
+	ENTITIES(
 		MaterialConstants.TARGET_ENTITIES,
 		"entities",
-		() -> {
-			Pipeline.translucentEntityFbo.bind();
-		},
-		() -> {
-			Pipeline.defaultFbo.bind();
-		}
+			() -> {
+				Pipeline.translucentEntityFbo.bind();
+			},
+			() -> {
+				Pipeline.defaultFbo.bind();
+			}
 	);
 
-	private static final TargetRenderState[] VALUES = new TargetRenderState[MaterialConstants.TARGET_COUNT];
-
-	static {
-		VALUES[MaterialConstants.TARGET_SOLID] = SOLID;
-		VALUES[MaterialConstants.TARGET_OUTLINE] = OUTLINE;
-		VALUES[MaterialConstants.TARGET_TRANSLUCENT] = TRANSLUCENT;
-		VALUES[MaterialConstants.TARGET_PARTICLES] = PARTICLES;
-		VALUES[MaterialConstants.TARGET_WEATHER] = WEATHER;
-		VALUES[MaterialConstants.TARGET_CLOUDS] = CLOUDS;
-		VALUES[MaterialConstants.TARGET_ENTITIES] = ENTITIES;
-	}
+	private static final TargetRenderState[] VALUES = values();
 
 	public static TargetRenderState fromIndex(int index) {
 		return VALUES[index];
@@ -129,7 +113,7 @@ public class TargetRenderState implements Predicate<RenderState> {
 	private final Runnable startAction;
 	private final Runnable endAction;
 
-	private TargetRenderState(int index, String name, Runnable startAction, Runnable endAction) {
+	TargetRenderState(int index, String name, Runnable startAction, Runnable endAction) {
 		this.index = index;
 		this.name = name;
 		this.startAction = startAction;
