@@ -3,7 +3,7 @@ project.group = 'io.vram'
 ext.author = 'Grondag'
 ext.title = 'Canvas Renderer'
 ext.mod_name = 'canvas'
-ext.mod_version = '1.0'
+ext.mod_version = '19.2'
 
 ext.github_repository_owner = 'vram-guild'
 ext.github_repository = 'canvas'

@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-	id 'dev.architectury.loom' version '0.12.0-SNAPSHOT'
+	id 'dev.architectury.loom' version '1.1.335'
 	id 'maven-publish'
 	id 'org.cadixdev.licenser' version '0.6.1'
 	id 'org.ajoberstar.grgit' version '4.1.1'
@@ -19,7 +19,7 @@ plugins {
 }
 
 ext.platform_name = 'forge'
-ext.forge_version = '43.1.24'
+ext.forge_version = '45.0.49'
 
 configurations {
 	bundle { transitive = false }
@@ -127,8 +127,8 @@ task github(dependsOn: build) {
 			def github = GitHub.connectUsingOAuth(project.github_releases_token)
 			def repository = github.getRepository("${project.github_repository_owner}/${project.github_repository}")
 
-			def releaseBuilder = new GHReleaseBuilder(repository, project.platform_name + '-' + project.mc_tag + '-' + project.version)
-			releaseBuilder.name(project.platform_name + '-' + project.mc_tag + '-' + project.version)
+			def releaseBuilder = new GHReleaseBuilder(repository, project.platform_name + '-' + project.version)
+			releaseBuilder.name(project.platform_name + '-' + project.version)
 			releaseBuilder.commitish(grgit.branch.current().name)
 
 			def ghRelease = releaseBuilder.create()
@@ -144,12 +144,12 @@ modrinth {
   if (project.hasProperty("modrinth_token") && project.hasProperty("modrinth_id")) {
 		token = project.modrinth_token
 		projectId = project.modrinth_id
-		versionName = project.platform_name + '-' + project.mc_tag + '-' + project.version
-		versionNumber = project.platform_name + '-' + project.mc_tag + '-' + project.version // Will fail if Modrinth has this version already
+		versionName = project.platform_name + '-' + project.version
+		versionNumber = project.platform_name + '-' + project.version // Will fail if Modrinth has this version already
 		versionType = project.release_type
 		// On fabric, use 'remapJar' instead of 'jar'
 		uploadFile = remapJar // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
 		gameVersions = ["${project.minecraft_version}"]
-		loaders = ["${project.platform_name}"] // Must also be an array - no need to specify this if you're using Loom
+		loaders = ["forge"] // Must also be an array - no need to specify this if you're using Loom
 	}
 }
