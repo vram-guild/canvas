@@ -27,8 +27,8 @@ dependencies {
 	modIncludeImplementation("io.vram:frex-fabric:20.0.332")
 	modIncludeImplementation("io.vram:jmx-fabric:20.0.275")
 
-	modCompileOnly "com.terraformersmc:modmenu:6.2.2"
-	modRuntimeOnly "com.terraformersmc:modmenu:6.2.2"
+	modCompileOnly "com.terraformersmc:modmenu:7.0.0-beta.2"
+	modRuntimeOnly "com.terraformersmc:modmenu:7.0.0-beta.2"
 }
 
 sourceSets {
