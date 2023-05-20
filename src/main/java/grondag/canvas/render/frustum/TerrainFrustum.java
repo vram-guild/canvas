@@ -256,7 +256,7 @@ public class TerrainFrustum extends CanvasFrustum {
 			fovPadding = Math.max(fovPadding, 5);
 		}
 
-		if (Mth.lerp(tickDelta, client.player.oPortalTime, client.player.portalTime) * client.options.screenEffectScale().get() * client.options.screenEffectScale().get() > 0) {
+		if (Mth.lerp(tickDelta, client.player.oSpinningEffectIntensity, client.player.spinningEffectIntensity) * client.options.screenEffectScale().get() * client.options.screenEffectScale().get() > 0) {
 			fovPadding = Math.max(fovPadding, 20);
 		}
 

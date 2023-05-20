@@ -23,11 +23,10 @@ package grondag.canvas.pipeline;
 import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import grondag.canvas.CanvasMod;
@@ -143,7 +142,7 @@ public class BufferDebug {
 		PipelineManager.renderDebug(glIds[n], lods[n], layers[n], isDepth[n], targets[n]);
 	}
 
-	public static void renderOverlay(PoseStack matrices, Font fontRenderer) {
+	public static void renderOverlay(GuiGraphics graphics, Font font) {
 		if (!enabled || !Configurator.enableBufferDebug) {
 			return;
 		}
@@ -159,10 +158,10 @@ public class BufferDebug {
 				string += " (selected)";
 			}
 
-			final int k = fontRenderer.width(string);
+			final int k = font.width(string);
 			final int m = 100 + 12 * i;
-			GuiComponent.fill(matrices, 20, m - 1, 22 + k + 1, m + 9, backcolor);
-			fontRenderer.draw(matrices, string, 21, m, forecolor);
+			graphics.fill(20, m - 1, 22 + k + 1, m + 9, backcolor);
+			graphics.drawString(font, string, 21, m, forecolor);
 		}
 	}
 }

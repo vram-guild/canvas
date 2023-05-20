@@ -23,11 +23,9 @@ package grondag.canvas.perf;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.Util;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
@@ -322,7 +320,7 @@ public abstract class Timekeeper {
 		}
 	}
 
-	public static void renderOverlay(PoseStack ms, Font fr) {
+	public static void renderOverlay(GuiGraphics graphics, Font font) {
 		boolean toggled = false;
 
 		while (CanvasMod.PROFILER_TOGGLE.consumeClick()) {
@@ -340,22 +338,22 @@ public abstract class Timekeeper {
 		final Active active = (Active) instance;
 		final float overlayScale = Configurator.profilerOverlayScale;
 
-		ms.pushPose();
-		ms.scale(overlayScale, overlayScale, overlayScale);
+		graphics.pose().pushPose();
+		graphics.pose().scale(overlayScale, overlayScale, overlayScale);
 
 		if (active.gpuEnabled) {
 			active.populateResult();
 		}
 
 		if (maxTextWidth == -1) {
-			final int bracketsWidth = fr.width("<>");
+			final int bracketsWidth = font.width("<>");
 
 			for (final Group group:active.groups) {
-				maxTextWidth = Math.max(fr.width(group.enumVal.token) + bracketsWidth, maxTextWidth);
+				maxTextWidth = Math.max(font.width(group.enumVal.token) + bracketsWidth, maxTextWidth);
 
 				if (group.enumVal.level <= Configurator.profilerDetailLevel) {
 					for (final String step : group.steps) {
-						maxTextWidth = Math.max(fr.width(step), maxTextWidth);
+						maxTextWidth = Math.max(font.width(step), maxTextWidth);
 					}
 				}
 			}
@@ -374,7 +372,7 @@ public abstract class Timekeeper {
 					groupGpu += active.getGpuTime(step);
 				}
 
-				renderTime(String.format("<%s>", group.enumVal.token), 0, groupCpu, groupGpu, i, ms, fr);
+				renderTime(String.format("<%s>", group.enumVal.token), 0, groupCpu, groupGpu, i, graphics, font);
 			} else {
 				for (final String step:group.steps) {
 					final long cpu = active.getCpuTime(step);
@@ -382,20 +380,20 @@ public abstract class Timekeeper {
 
 					if (!group.enumVal.token.equals(lastToken)) {
 						final String s = String.format("<%s>", group.enumVal.token);
-						renderBack(i, 0, fr.width(s), 0x99000000, ms);
-						renderLine(s, i, 0, 0xFFFFFFFF, ms, fr);
+						renderBack(i, 0, font.width(s), 0x99000000, graphics);
+						renderLine(s, i, 0, 0xFFFFFFFF, graphics, font);
 						lastToken = group.enumVal.token;
 					}
 
-					renderTime(String.format("%s", step), 24, cpu, gpu, i, ms, fr);
+					renderTime(String.format("%s", step), 24, cpu, gpu, i, graphics, font);
 				}
 			}
 		}
 
-		ms.popPose();
+		graphics.pose().popPose();
 	}
 
-	private static void renderTime(String label, int xo, long cpu, long gpu, int[] i, PoseStack ms, Font fr) {
+	private static void renderTime(String label, int xo, long cpu, long gpu, int[] i, GuiGraphics graphics, Font fr) {
 		final int forecolor;
 		final int backcolor;
 
@@ -414,24 +412,23 @@ public abstract class Timekeeper {
 			case CPU_GPU -> String.format("C %.3f ms, G %.3f ms", cpu / 1000000f, gpu / 1000000f);
 		};
 
-		renderBack(i, xo, fr.width(s) + maxTextWidth + 12, backcolor, ms);
-		renderText(label, i, xo, forecolor, ms, fr);
-		renderLine(s, i, xo + maxTextWidth + 12, forecolor, ms, fr);
+		renderBack(i, xo, fr.width(s) + maxTextWidth + 12, backcolor, graphics);
+		renderText(label, i, xo, forecolor, graphics, fr);
+		renderLine(s, i, xo + maxTextWidth + 12, forecolor, graphics, fr);
 	}
 
-	private static void renderLine(String s, int[] i, int xo, int fcolor, PoseStack ms, Font fr) {
-		renderText(s, i, xo, fcolor, ms, fr);
+	private static void renderLine(String s, int[] i, int xo, int fcolor, GuiGraphics graphics, Font font) {
+		renderText(s, i, xo, fcolor, graphics, font);
 		i[0]++;
 	}
 
-	private static void renderText(String s, int[] i, int xo, int fcolor, PoseStack ms, Font fr) {
-		//final int k = fr.getWidth(s);
+	private static void renderText(String s, int[] i, int xo, int fcolor, GuiGraphics graphics, Font font) {
 		final int m = 6 + 12 * i[0];
-		fr.draw(ms, s, 6 + xo, m, fcolor);
+		graphics.drawString(font, s, 6 + xo, m, fcolor);
 	}
 
-	private static void renderBack(int[] i, int xo, int w, int bcolor, PoseStack ms) {
+	private static void renderBack(int[] i, int xo, int w, int bcolor, GuiGraphics graphics) {
 		final int m = 6 + 12 * i[0];
-		GuiComponent.fill(ms, 5 + xo, m - 1, 6 + xo + w, m + 9, bcolor);
+		graphics.fill(5 + xo, m - 1, 6 + xo + w, m + 9, bcolor);
 	}
 }

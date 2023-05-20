@@ -26,6 +26,8 @@ import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -106,12 +108,12 @@ public class PipelineSelectionScreen extends BaseScreen {
 	}
 
 	@Override
-	protected void renderTooltips(PoseStack poseStack, int i, int j) {
+	protected void renderTooltips(GuiGraphics graphics, Font font, int i, int j) {
 		if (list != null) {
 			final List<FormattedCharSequence> tooltip = list.getTooltip(i, j);
 
 			if (tooltip != null) {
-				renderTooltip(poseStack, tooltip, i, j + 30);
+				graphics.renderTooltip(font, tooltip, i, j + 30);
 			}
 		}
 	}

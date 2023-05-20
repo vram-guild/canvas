@@ -281,7 +281,7 @@ public class Pipeline {
 
 		primary.frameBufferId = defaultFbo.glId();
 		primary.colorTextureId = defaultColor;
-		primary.depthStencilBufferId = defaultDepth;
+		primary.depthBufferId = defaultDepth;
 
 		solidTerrainFbo = getFramebuffer(config.drawTargets.solidTerrain.name);
 		translucentTerrainFbo = getFramebuffer(config.drawTargets.translucentTerrain.name);

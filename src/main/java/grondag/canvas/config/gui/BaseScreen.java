@@ -22,6 +22,8 @@ package grondag.canvas.config.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -34,15 +36,15 @@ public abstract class BaseScreen extends Screen {
 	}
 
 	@Override
-	public void render(PoseStack poseStack, int i, int j, float f) {
-		this.renderBackground(poseStack);
-		// drawCenteredString(poseStack, this.font, this.title, this.width / 2, 15, 16777215);
-		super.render(poseStack, i, j, f);
-		drawCenteredString(poseStack, this.font, this.title, this.width / 2, 8, 16777215);
-		renderTooltips(poseStack, i, j);
+	public void render(GuiGraphics graphics, int i, int j, float f) {
+		this.renderBackground(graphics);
+		// graphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 16777215);
+		super.render(graphics, i, j, f);
+		graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 16777215);
+		renderTooltips(graphics, this.font, i, j);
 	}
 
-	protected void renderTooltips(PoseStack poseStack, int i, int j) {
+	protected void renderTooltips(GuiGraphics graphics, Font font, int i, int j) {
 	}
 
 	@Override

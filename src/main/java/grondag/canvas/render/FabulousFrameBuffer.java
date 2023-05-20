@@ -27,7 +27,7 @@ import grondag.canvas.pipeline.PipelineManager;
 
 public class FabulousFrameBuffer extends RenderTarget {
 	public FabulousFrameBuffer(int fboId, int colorId, int depthId) {
-		super(true /* useDepth */, true /* useStencil */);
+		super(true /* useDepth */);
 
 		this.width = this.viewWidth = PipelineManager.width();
 		this.height = this.viewHeight = PipelineManager.height();
@@ -36,7 +36,7 @@ public class FabulousFrameBuffer extends RenderTarget {
 
 		frameBufferId = fboId;
 		colorTextureId = colorId;
-		depthStencilBufferId = depthId;
+		depthBufferId = depthId;
 
 		checkStatus();
 		unbindRead();

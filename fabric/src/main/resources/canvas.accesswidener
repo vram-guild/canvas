@@ -37,8 +37,6 @@ accessible   field   net/minecraft/client/renderer/RenderStateShard   ITEM_ENTIT
 accessible   field   net/minecraft/client/renderer/RenderStateShard   DEFAULT_LINE   Lnet/minecraft/client/renderer/RenderStateShard$LineStateShard;
 
 accessible   field   net/minecraft/client/renderer/RenderStateShard   NO_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
-accessible   field   net/minecraft/client/renderer/RenderStateShard   BLOCK_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
-accessible   field   net/minecraft/client/renderer/RenderStateShard   NEW_ENTITY_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
 accessible   field   net/minecraft/client/renderer/RenderStateShard   POSITION_COLOR_LIGHTMAP_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
 accessible   field   net/minecraft/client/renderer/RenderStateShard   POSITION_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
 accessible   field   net/minecraft/client/renderer/RenderStateShard   POSITION_COLOR_TEX_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
@@ -89,7 +87,7 @@ accessible   field   net/minecraft/client/renderer/RenderStateShard   RENDERTYPE
 accessible   field   net/minecraft/client/renderer/RenderStateShard   RENDERTYPE_LINES_SHADER   Lnet/minecraft/client/renderer/RenderStateShard$ShaderStateShard;
 
 accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       colorTextureId I
-accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       depthStencilBufferId I
+accessible   field  com/mojang/blaze3d/pipeline/RenderTarget       depthBufferId I
 
 accessible class net/minecraft/client/renderer/RenderType$CompositeRenderType
 accessible field net/minecraft/client/renderer/RenderType$CompositeRenderType state Lnet/minecraft/client/renderer/RenderType$CompositeState;

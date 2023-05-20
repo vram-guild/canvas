@@ -24,6 +24,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -43,11 +44,10 @@ public class Buttons {
 			super(i, j, k, l, component, onPress);
 		}
 
-		public void renderTitle(PoseStack poseStack, int i, int j, float f) {
+		public void renderTitle(GuiGraphics graphics, int i, int j, float f) {
 			final int l = this.active ? 16777215 : 10526880;
-			@SuppressWarnings("resource")
 			final Font font = Minecraft.getInstance().font;
-			drawCenteredString(poseStack, font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
+			graphics.drawCenteredString(font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, l | Mth.ceil(this.alpha * 255.0F) << 24);
 		}
 	}
 
@@ -57,17 +57,17 @@ public class Buttons {
 		}
 
 		@Override
-		public void renderWidget(PoseStack poseStack, int i, int j, float f) {
+		public void renderWidget(GuiGraphics graphics, int i, int j, float f) {
 			final int x = getX();
 			final int y = getY();
 
 			if (this.isHoveredOrFocused()) {
-				fill(poseStack, x, y, x + width, y + height - 3, 0x66FFFFFF);
+				graphics.fill(x, y, x + width, y + height - 3, 0x66FFFFFF);
 			}
 
-			hLine(poseStack, x, x + width - 1, y + height - 4, 0x99FFFFFF);
+			graphics.hLine(x, x + width - 1, y + height - 4, 0x99FFFFFF);
 
-			renderTitle(poseStack, i, j, f);
+			renderTitle(graphics, i, j, f);
 		}
 	}
 
@@ -77,20 +77,20 @@ public class Buttons {
 		}
 
 		@Override
-		public void renderWidget(PoseStack poseStack, int i, int j, float f) {
+		public void renderWidget(GuiGraphics graphics, int i, int j, float f) {
 			final int x = getX();
 			final int y = getY();
 
 			if (isHoveredOrFocused()) {
-				fill(poseStack, x, y, x + width, y + height, 0x66FFFFFF);
+				graphics.fill(x, y, x + width, y + height, 0x66FFFFFF);
 			}
 
-			hLine(poseStack, x, x + width - 1, y, 0x99FFFFFF);
-			hLine(poseStack, x, x + width - 1, y + height - 1, 0x99FFFFFF);
-			vLine(poseStack, x, y, y + height - 1, 0x99FFFFFF);
-			vLine(poseStack, x + width - 1, y, y + height - 1, 0x99FFFFFF);
+			graphics.hLine(x, x + width - 1, y, 0x99FFFFFF);
+			graphics.hLine(x, x + width - 1, y + height - 1, 0x99FFFFFF);
+			graphics.vLine(x, y, y + height - 1, 0x99FFFFFF);
+			graphics.vLine(x + width - 1, y, y + height - 1, 0x99FFFFFF);
 
-			renderTitle(poseStack, i, j, f);
+			renderTitle(graphics, i, j, f);
 		}
 	}
 
@@ -100,25 +100,25 @@ public class Buttons {
 		}
 
 		@Override
-		public void renderWidget(PoseStack ps, int ii, int j, float f) {
-			super.renderWidget(ps, ii, j, f);
+		public void renderWidget(GuiGraphics graphics, int ii, int j, float f) {
+			super.renderWidget(graphics, ii, j, f);
 			final int boxW = getHeight();
 			final int box = getHeight() / 2;
 
 			// fill(ps, x + width - boxW / 2 - box / 2, y + boxW / 2 - box / 2, x + width - boxW / 2 + box / 2, y + height - boxW / 2 + box / 2, 0xFFFFFFFF);
 
 			for (int i = 0; i < box / 2; i++) {
-				drawArrowShadow(ps, i, getX(), getY(), boxW, box);
-				drawArrow(ps, i, getX(), getY(), boxW, box);
+				drawArrowShadow(graphics, i, getX(), getY(), boxW, box);
+				drawArrow(graphics, i, getX(), getY(), boxW, box);
 			}
 		}
 
-		private void drawArrow(PoseStack ps, int i, int x, int y, int boxW, int box) {
-			vLine(ps, x + width - boxW / 2 - box / 2 + i, y + boxW / 2 - box / 2 + i - 1, y + height - boxW / 2 + box / 2 - i - 2, 0xFFFFFFFF);
+		private void drawArrow(GuiGraphics graphics, int i, int x, int y, int boxW, int box) {
+			graphics.vLine(x + width - boxW / 2 - box / 2 + i, y + boxW / 2 - box / 2 + i - 1, y + height - boxW / 2 + box / 2 - i - 2, 0xFFFFFFFF);
 		}
 
-		private void drawArrowShadow(PoseStack ps, int i, int x, int y, int boxW, int box) {
-			vLine(ps, x + width - boxW / 2 - box / 2 + i, y + height - boxW / 2 + box / 2 - i - 3, y + height - boxW / 2 + box / 2 - i - 1, 0x99000000);
+		private void drawArrowShadow(GuiGraphics graphics, int i, int x, int y, int boxW, int box) {
+			graphics.vLine(x + width - boxW / 2 - box / 2 + i, y + height - boxW / 2 + box / 2 - i - 3, y + height - boxW / 2 + box / 2 - i - 1, 0x99000000);
 		}
 	}
 }

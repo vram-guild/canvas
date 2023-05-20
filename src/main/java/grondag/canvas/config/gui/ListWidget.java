@@ -25,6 +25,7 @@ import java.util.List;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -51,21 +52,21 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	}
 
 	@Override
-	protected void renderBackground(PoseStack poseStack) {
+	protected void renderBackground(GuiGraphics graphics) {
 		if (darkened) {
-			fill(poseStack, x0, y0, x1, y1, 0x99000000);
+			graphics.fill(x0, y0, x1, y1, 0x99000000);
 		}
 	}
 
 	@Override
-	public void render(PoseStack poseStack, int i, int j, float f) {
-		super.render(poseStack, i, j, f);
+	public void render(GuiGraphics graphics, int i, int j, float f) {
+		super.render(graphics, i, j, f);
 
 		// Render top and bottom shadow over items but not scroll bar
 		final boolean hasScrollBar = this.getMaxScroll() > 0;
 		final int limit = hasScrollBar ? this.getScrollbarPosition() : this.x1;
-		fillGradient(poseStack, this.x0, this.y0, limit, this.y0 + 4, -16777216, 0);
-		fillGradient(poseStack, this.x0, this.y1 - 4, limit, this.y1, 0, -16777216);
+		graphics.fillGradient(this.x0, this.y0, limit, this.y0 + 4, -16777216, 0);
+		graphics.fillGradient(this.x0, this.y1 - 4, limit, this.y1, 0, -16777216);
 	}
 
 	/**

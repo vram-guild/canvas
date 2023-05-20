@@ -28,6 +28,8 @@ import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -529,14 +531,14 @@ public class CanvasConfigScreen extends BaseScreen {
 	}
 
 	@Override
-	protected void renderTooltips(PoseStack poseStack, int i, int j) {
+	protected void renderTooltips(GuiGraphics graphics, Font font, int i, int j) {
 		if (list != null) {
 			final List<FormattedCharSequence> tooltip = list.getTooltip(i, j);
 
 			if (tooltip != null) {
 				// final int x = list.getRowLeft();
 				// final int y = list.getRowBottom(list.getChildIndexAt(i, j)) + 10;
-				renderTooltip(poseStack, tooltip, i, j + 30);
+				graphics.renderTooltip(font, tooltip, i, j + 30);
 			}
 		}
 	}

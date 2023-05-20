@@ -151,7 +151,7 @@ public class ChunkColorCache implements BiomeManager.NoiseBiomeSource {
 		}
 
 		private int computeLocalBaseColor(int x, int y, int z) {
-			return colorResolver.getColor(getBiomeHolder(x, y, z), x, z);
+			return colorResolver.getColor(getBiome(x, y, z), x, z);
 		}
 
 		private int getColor(int x, int y, int z) {

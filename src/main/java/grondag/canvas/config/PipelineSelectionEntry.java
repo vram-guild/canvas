@@ -22,6 +22,7 @@ package grondag.canvas.config;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 
@@ -52,22 +53,22 @@ public class PipelineSelectionEntry extends ListItem {
 		this.buttonWidget = new Buttons.CustomButton(x, y, width, 20, Component.translatable(pipeline.nameKey),
 				b -> owner.onSelect($this)) {
 			@Override
-			public void renderWidget(PoseStack poseStack, int i, int j, float f) {
+			public void renderWidget(GuiGraphics graphics, int i, int j, float f) {
 				if (isHoveredOrFocused() && !selected) {
-					fill(poseStack, x, y, x + width, y + height - 3, 0x33FFFFFF);
+					graphics.fill(x, y, x + width, y + height - 3, 0x33FFFFFF);
 				}
 
 				if (selected) {
-					fill(poseStack, x, y, x + width, y + height - 3, 0x66FFFFFF);
-					// hLine(poseStack, x, x + width - 1, y, 0x66FFFFFF);
-					// vLine(poseStack, x, y, y + height - 4, 0x66FFFFFF);
-					// vLine(poseStack, x + width - 1, y, y + height - 4, 0x66FFFFFF);
-					hLine(poseStack, x, x + width - 1, y + height - 4, 0xFFFFFFFF);
+					graphics.fill(x, y, x + width, y + height - 3, 0x66FFFFFF);
+					// graphics.hLine(x, x + width - 1, y, 0x66FFFFFF);
+					// graphics.vLine(x, y, y + height - 4, 0x66FFFFFF);
+					// graphics.vLine(x + width - 1, y, y + height - 4, 0x66FFFFFF);
+					graphics.hLine(x, x + width - 1, y + height - 4, 0xFFFFFFFF);
 				} else {
-					hLine(poseStack, x, x + width - 1, y + height - 4, 0x33FFFFFF);
+					graphics.hLine(x, x + width - 1, y + height - 4, 0x33FFFFFF);
 				}
 
-				renderTitle(poseStack, i, j, f);
+				renderTitle(graphics, i, j, f);
 			}
 		};
 

@@ -29,6 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 
 import grondag.canvas.config.Configurator;
 import grondag.canvas.perf.Timekeeper;
@@ -37,9 +38,9 @@ import grondag.canvas.pipeline.BufferDebug;
 @Mixin(Gui.class)
 public class MixinGui {
 	@Inject(method = "render", at = @At("RETURN"), cancellable = false, require = 1)
-	private void afterRender(PoseStack matrices, float tickDelta, CallbackInfo ci) {
-		BufferDebug.renderOverlay(matrices, ((Gui) (Object) this).getFont());
-		Timekeeper.renderOverlay(matrices, ((Gui) (Object) this).getFont());
+	private void afterRender(GuiGraphics guiGraphics, float f, CallbackInfo ci) {
+		BufferDebug.renderOverlay(guiGraphics, ((Gui) (Object) this).getFont());
+		Timekeeper.renderOverlay(guiGraphics, ((Gui) (Object) this).getFont());
 	}
 
 	@Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;useFancyGraphics()Z"))

@@ -295,7 +295,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "light_update_queue");
 		mc.level.pollLightUpdates();
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "light_updates");
-		mc.level.getChunkSource().getLightEngine().runUpdates(Integer.MAX_VALUE, mc.level.isLightUpdateQueueEmpty(), true);
+		mc.level.getChunkSource().getLightEngine().runLightUpdates();
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "clear");
 		Pipeline.defaultFbo.bind();

@@ -42,7 +42,6 @@ import com.mojang.blaze3d.platform.GlUtil;
 
 //import net.minecraft.client.Minecraft;
 //import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.DebugScreenOverlay;
 //import net.minecraft.client.renderer.GameRenderer;
 
@@ -61,7 +60,7 @@ import grondag.canvas.varia.CanvasGlHelper;
 
 // WIP: restore or remove
 @Mixin(DebugScreenOverlay.class)
-public class MixinDebugScreenOverlay extends GuiComponent {
+public class MixinDebugScreenOverlay {
 	//	@Shadow private Font font;
 	//
 	//	private List<String> leftList, rightList;
