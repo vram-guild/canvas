@@ -20,8 +20,11 @@
 
 package grondag.canvas.mixinterface;
 
+import net.minecraft.client.renderer.MultiBufferSource;
+
 import grondag.canvas.buffer.input.CanvasImmediate;
 
 public interface RenderBuffersExt {
 	void canvas_setEntityConsumers(CanvasImmediate consumers);
+	MultiBufferSource.BufferSource canvas_getBufferSource();
 }

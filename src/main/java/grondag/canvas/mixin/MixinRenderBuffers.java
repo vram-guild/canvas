@@ -58,4 +58,9 @@ public class MixinRenderBuffers implements RenderBuffersExt {
 	public void canvas_setEntityConsumers(CanvasImmediate consumers) {
 		activeBufferSource = consumers == null ? bufferSource : consumers;
 	}
+
+	@Override
+	public BufferSource canvas_getBufferSource() {
+		return bufferSource;
+	}
 }

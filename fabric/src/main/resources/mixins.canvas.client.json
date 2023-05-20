@@ -24,6 +24,7 @@
     "MixinGameRenderer",
     "MixinGlStateManager",
     "MixinGui",
+    "MixinGuiGraphics",
     "MixinItemFrameRenderer",
     "MixinItemRenderer",
     "MixinLevelChunk",
