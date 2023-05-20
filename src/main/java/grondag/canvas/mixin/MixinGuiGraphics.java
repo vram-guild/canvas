@@ -42,7 +42,6 @@ import grondag.canvas.render.world.CanvasWorldRenderer;
 
 @Mixin(GuiGraphics.class)
 public abstract class MixinGuiGraphics {
-
 	@Shadow @Mutable @Final private MultiBufferSource.BufferSource bufferSource;
 
 	private MultiBufferSource.BufferSource itemImmediate;
@@ -61,7 +60,7 @@ public abstract class MixinGuiGraphics {
 	}
 
 	@Redirect(method = "Lnet/minecraft/client/gui/GuiGraphics;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/item/ItemStack;IIII)V",
-			  at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;bufferSource()Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;"))
+				at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;bufferSource()Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;"))
 	MultiBufferSource.BufferSource getItemImmediate(GuiGraphics instance) {
 		return itemImmediate;
 	}

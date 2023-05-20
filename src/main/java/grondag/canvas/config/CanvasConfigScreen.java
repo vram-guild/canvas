@@ -26,8 +26,6 @@ import static grondag.canvas.config.ConfigManager.Reload.RELOAD_EVERYTHING;
 
 import java.util.List;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
