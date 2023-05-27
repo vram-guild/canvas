@@ -415,6 +415,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		entityCullingFrustum.enableRegionCulling = Configurator.cullEntityRender;
 
+		CanvasImmediate.protectBuffers(immediate, materialExtrasImmediate, shadowExtrasImmediate);
+
 		while (entities.hasNext()) {
 			final Entity entity = entities.next();
 
@@ -558,6 +560,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 
 		RenderState.disable();
 
+		CanvasImmediate.unprotectBuffers(immediate, materialExtrasImmediate, shadowExtrasImmediate);
+
 		try (DrawableStream entityBuffer = immediate.prepareDrawable(TargetRenderState.SOLID);
 			DrawableStream materialExtrasBuffer = materialExtrasImmediate.prepareDrawable(TargetRenderState.SOLID);
 			DrawableStream shadowExtrasBuffer = shadowExtrasImmediate.prepareDrawable(TargetRenderState.SOLID);
@@ -588,8 +592,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		WorldEventHelper.entityRenderPostListener(eventContext);
 
 		/* Some things that really want to be rendered before block destruction / outline render. */
-		immediate.endBatch(RenderType.endPortal());
-		immediate.endBatch(RenderType.endGateway());
+		immediate.endBatchSafely(RenderType.endPortal());
+		immediate.endBatchSafely(RenderType.endGateway());
 
 		outlineImmediate.endOutlineBatch();
 
@@ -677,16 +681,16 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		immediate.drawCollectors(TargetRenderState.SOLID);
 
 		// These should be empty and probably won't work, but prevent them from accumulating if somehow used.
-		immediate.endBatch(RenderType.armorGlint());
-		immediate.endBatch(RenderType.armorEntityGlint());
-		immediate.endBatch(RenderType.glint());
-		immediate.endBatch(RenderType.glintDirect());
-		immediate.endBatch(RenderType.glintTranslucent());
-		immediate.endBatch(RenderType.entityGlint());
-		immediate.endBatch(RenderType.entityGlintDirect());
+		immediate.endBatchSafely(RenderType.armorGlint());
+		immediate.endBatchSafely(RenderType.armorEntityGlint());
+		immediate.endBatchSafely(RenderType.glint());
+		immediate.endBatchSafely(RenderType.glintDirect());
+		immediate.endBatchSafely(RenderType.glintTranslucent());
+		immediate.endBatchSafely(RenderType.entityGlint());
+		immediate.endBatchSafely(RenderType.entityGlintDirect());
 
 		// draw order is important and our sorting mechanism doesn't cover
-		immediate.endBatch(RenderType.waterMask());
+		immediate.endBatchSafely(RenderType.waterMask());
 
 		// Mods may populate this buffer with solid renders
 		bufferBuilders.bufferSource().endBatch();
@@ -705,13 +709,13 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			// is terrain itself - so everything else can be rendered first
 
 			// Lines draw to entity (item) target
-			immediate.endBatch(RenderType.lines());
+			immediate.endBatchSafely(RenderType.lines());
 
 			// PERF: Why is this here? Should be empty
 			immediate.drawCollectors(TargetRenderState.TRANSLUCENT);
 
 			// This catches entity layer and any remaining non-main layers
-			immediate.endBatch();
+			immediate.endBatchSafely();
 
 			worldRenderState.renderTranslucentTerrain();
 
@@ -736,7 +740,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			immediate.drawCollectors(TargetRenderState.TRANSLUCENT);
 
 			// This catches entity layer and any remaining non-main layers
-			immediate.endBatch();
+			immediate.endBatchSafely();
 
 			WorldRenderDraws.profileSwap(profiler, ProfilerGroup.EndWorld, "particles");
 			particleRenderer.renderParticles(mc.particleEngine, identityStack, immediate.collectors, lightmapTextureManager, camera, tickDelta);

@@ -74,7 +74,7 @@ public class CanvasOutlineImmediate implements MultiBufferSource {
 	}
 
 	public void endOutlineBatch() {
-		auxImmediate.endBatch();
+		auxImmediate.endBatchSafely();
 	}
 
 	private static class FixedDouble extends VertexMultiConsumer.Double {

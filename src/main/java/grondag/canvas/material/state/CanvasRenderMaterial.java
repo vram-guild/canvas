@@ -108,7 +108,6 @@ public class CanvasRenderMaterial extends BaseRenderMaterial {
 
 		// Important that these happen because otherwise material shaders will never be registered - they aren't part of render state.
 		MaterialShaderIndexer.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
-		MaterialShaderIndexer.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR);
 		MaterialShaderIndexer.INSTANCE.register(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH);
 		MaterialShaderIndexer.INSTANCE.register(vertexShaderIndex, fragmentShaderIndex, ProgramType.MATERIAL_COLOR_TERRAIN);
 		MaterialShaderIndexer.INSTANCE.register(depthVertexShaderIndex, depthFragmentShaderIndex, ProgramType.MATERIAL_DEPTH_TERRAIN);
