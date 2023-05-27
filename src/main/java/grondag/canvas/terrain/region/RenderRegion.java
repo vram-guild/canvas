@@ -52,6 +52,7 @@ import io.vram.frex.api.model.fluid.FluidModel;
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
+import grondag.canvas.compat.FlywheelHolder;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.Pipeline;
@@ -132,7 +133,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
 		final BlockEntityRenderer<E> blockEntityRenderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().getRenderer(blockEntity);
 
-		if (blockEntityRenderer != null) {
+		if (blockEntityRenderer != null && FlywheelHolder.handler.handleBEChunkRebuild(blockEntity)) {
 			chunkEntities.add(blockEntity);
 
 			if (blockEntityRenderer.shouldRenderOffScreen(blockEntity)) {

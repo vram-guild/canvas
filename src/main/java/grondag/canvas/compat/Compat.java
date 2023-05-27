@@ -35,6 +35,7 @@ import io.vram.frex.api.renderloop.WorldRenderLastListener;
 import io.vram.frex.api.renderloop.WorldRenderPostListener;
 import io.vram.frex.api.renderloop.WorldRenderStartListener;
 
+import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.render.world.WorldEventHelper;
 
 public class Compat {
@@ -47,11 +48,19 @@ public class Compat {
 		});
 
 		FrustumSetupListener.register(ctx -> {
+			FlywheelHolder.handler.beginFrame(ctx.world(), ctx.camera(), ctx.frustum());
 			LitematicaHolder.litematicaTerrainSetup.accept(ctx.frustum());
 		});
 
 		// [WorldEventHelper]
 		EntityRenderPreListener.register(ctx -> {
+			/* Can either use custom draw call or vanilla :') */
+			WorldEventHelper.useIdentityStack(ctx, () -> {
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.solid());
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.cutoutMipped());
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.cutout());
+			});
+
 			WorldEventHelper.useViewStack(ctx, () -> {
 				/* USES custom draw call and expects view matrix */
 				LitematicaHolder.litematicaRenderSolids.accept(ctx.poseStack(), ctx.projectionMatrix());
@@ -80,6 +89,11 @@ public class Compat {
 
 		// [WorldEventHelper]
 		TranslucentPostListener.register(ctx -> {
+			/* Can either use custom draw call or vanilla :') Vanilla rendering is mostly for overlays */
+			WorldEventHelper.useIdentityStack(ctx, () -> {
+				FlywheelHolder.handler.renderLayer(ctx, RenderType.translucent());
+			});
+
 			JustMapHolder.justMapRender.renderWaypoints(ctx.poseStack(), ctx.camera(), ctx.tickDelta());
 			final Vec3 cameraPos = ctx.camera().getPosition();
 			VoxelMapHolder.postRenderLayerHandler.render(ctx.worldRenderer(), RenderType.translucent(), ctx.poseStack(), cameraPos.x(), cameraPos.y(), cameraPos.z());
@@ -112,6 +126,7 @@ public class Compat {
 
 		RenderReloadListener.register(() -> {
 			LitematicaHolder.litematicaReload.run();
+			FlywheelHolder.handler.refresh(CanvasWorldRenderer.instance().worldRenderState.getWorld());
 		});
 	}
 }
