@@ -32,7 +32,7 @@ import grondag.canvas.shader.data.ShaderDataManager;
 
 @Mixin(FogRenderer.class)
 public class MixinFogRenderer {
-	@Redirect(method = "setupColor", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clearColor(FFFF)V"), require = 1)
+	@Redirect(method = "setupColor", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clearColor(FFFF)V", remap = false), require = 1)
 	private static void onClearColor(float r, float g, float b, float a) {
 		ShaderDataManager.captureClearColor(r, g, b);
 		RenderSystem.clearColor(r, g, b, a);
