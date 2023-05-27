@@ -50,6 +50,23 @@ import grondag.canvas.mixinterface.RenderTypeExt;
 public class CanvasImmediate extends BufferSource {
 	public final VertexCollectorList collectors = new VertexCollectorList(false, false);
 	public final RenderContextState contextState;
+	private boolean allowEndBatch = true;
+
+	/**
+	 * We want to protect buffers from being drawn too early due to {@link BufferSource} method calls.
+	 * Note that excluded render types are unprotected.
+	 */
+	public static void protectBuffers(CanvasImmediate... buffers) {
+		for (CanvasImmediate i:buffers) {
+			i.allowEndBatch = false;
+		}
+	}
+
+	public static void unprotectBuffers(CanvasImmediate... buffers) {
+		for (CanvasImmediate i:buffers) {
+			i.allowEndBatch = true;
+		}
+	}
 
 	public CanvasImmediate(BufferBuilder fallbackBuffer, Map<RenderType, BufferBuilder> layerBuffers, RenderContextState contextState) {
 		super(fallbackBuffer, layerBuffers);
@@ -94,10 +111,23 @@ public class CanvasImmediate extends BufferSource {
 
 	@Override
 	public void endBatch() {
-		final ObjectArrayList<DrawableVertexCollector> drawList = collectors.sortedDrawList(Predicates.alwaysTrue());
+		endBatchInner(false);
+	}
 
-		if (!drawList.isEmpty()) {
-			DrawableVertexCollector.draw(drawList);
+	/**
+	 * Well-understood usage should call this instead of {@link #endBatch()}.
+	 */
+	public void endBatchSafely() {
+		endBatchInner(true);
+	}
+
+	private void endBatchInner(boolean force) {
+		if (allowEndBatch || force) {
+			final ObjectArrayList<DrawableVertexCollector> drawList = collectors.sortedDrawList(Predicates.alwaysTrue());
+
+			if (!drawList.isEmpty()) {
+				DrawableVertexCollector.draw(drawList);
+			}
 		}
 
 		super.endBatch();
@@ -105,9 +135,20 @@ public class CanvasImmediate extends BufferSource {
 
 	@Override
 	public void endBatch(RenderType renderType) {
+		endBatchInner(renderType, false);
+	}
+
+	/**
+	 * Well-understood usage should call this instead of {@link #endBatch(RenderType)}.
+	 */
+	public void endBatchSafely(RenderType renderType) {
+		endBatchInner(renderType, true);
+	}
+
+	private void endBatchInner(RenderType renderType, boolean force) {
 		if (RenderTypeExclusion.isExcluded(renderType)) {
 			super.endBatch(renderType);
-		} else {
+		} else if (allowEndBatch || force) {
 			final DrawableVertexCollector collector = collectors.getIfExists((CanvasRenderMaterial) RenderTypeUtil.toMaterial(renderType));
 
 			if (collector != null && !collector.isEmpty()) {
