@@ -31,10 +31,22 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.GameRendererExt;
 
 public final class MatrixData {
 	private MatrixData() { }
+
+	private static boolean sanitizedOnce = false;
+
+	private static void fixVanillaBug(Matrix4f matrix) {
+		// this only happens in the first frame, when the loading screen is still visible
+		// remove this once it stops spitting out the warning
+		if (Float.isNaN(matrix.determinant())) {
+			CanvasMod.LOG.warn("Switching out projection matrix with identity because it's NaN");
+			matrix.identity();
+		}
+	}
 
 	static void update(PoseStack.Pose view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
 		// write values for prior frame before updating
@@ -43,6 +55,11 @@ public final class MatrixData {
 		viewProjMatrix.get(VP_LAST * 16, MATRIX_DATA);
 		cleanProjMatrix.get(CLEAN_PROJ_LAST * 16, MATRIX_DATA);
 		cleanViewProjMatrix.get(CLEAN_VP_LAST * 16, MATRIX_DATA);
+
+		if (!sanitizedOnce) {
+			fixVanillaBug(projectionMatrix);
+			sanitizedOnce = true;
+		}
 
 		viewNormalMatrix.set(view.normal());
 
