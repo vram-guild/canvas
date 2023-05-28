@@ -34,6 +34,7 @@ import net.minecraft.client.Minecraft;
 import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.FastMatrix3f;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.GameRendererExt;
 
 public final class MatrixData {
@@ -45,6 +46,17 @@ public final class MatrixData {
 		IDENTITY.setIdentity();
 	}
 
+	private static boolean sanitizedOnce = false;
+
+	private static void fixVanillaBug(Matrix4f matrix) {
+		// this only happens in the first frame, when the loading screen is still visible
+		// remove this once it stops spitting out the warning
+		if (Float.isNaN(matrix.determinant())) {
+			CanvasMod.LOG.warn("Switching out projection matrix with identity because it's NaN");
+			matrix.setIdentity();
+		}
+	}
+
 	static void update(PoseStack.Pose view, Matrix4f projectionMatrix, Camera camera, float tickDelta) {
 		// write values for prior frame before updating
 		viewMatrixExt.f_writeToBuffer(VIEW_LAST * 16, MATRIX_DATA);
@@ -52,6 +64,11 @@ public final class MatrixData {
 		viewProjMatrixExt.f_writeToBuffer(VP_LAST * 16, MATRIX_DATA);
 		cleanProjMatrixExt.f_writeToBuffer(CLEAN_PROJ_LAST * 16, MATRIX_DATA);
 		cleanViewProjMatrixExt.f_writeToBuffer(CLEAN_VP_LAST * 16, MATRIX_DATA);
+
+		if (!sanitizedOnce) {
+			fixVanillaBug(projectionMatrix);
+			sanitizedOnce = true;
+		}
 
 		((FastMatrix3f) (Object) viewNormalMatrix).f_set((FastMatrix3f) (Object) view.normal());
 
