@@ -31,20 +31,14 @@ import com.mojang.math.Matrix4f;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 
-import io.vram.frex.api.math.FastMatrix4f;
 import io.vram.frex.api.math.FastMatrix3f;
+import io.vram.frex.api.math.FastMatrix4f;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.GameRendererExt;
 
 public final class MatrixData {
 	private MatrixData() { }
-
-	private static final Matrix3f IDENTITY = new Matrix3f();
-
-	static {
-		IDENTITY.setIdentity();
-	}
 
 	private static boolean sanitizedOnce = false;
 
