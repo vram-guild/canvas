@@ -81,7 +81,7 @@ public class LightChunkTask {
 			LightDebug.debugData.put(index, light);
 			enqueue(incQueue, index, light);
 			CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
-		} else if (light == 0 && (Encoding.isLightSource(getLight) || (Encoding.isOccluding(getLight) && !occluding) || occluding)) {
+		} else if (light == 0 && (Encoding.isLightSource(getLight) || (Encoding.isOccluding(getLight) != occluding))) {
 			LightDebug.debugData.put(index, Encoding.encodeLight(0, false, occluding));
 			enqueue(decQueue, index, getLight);
 			CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
@@ -89,6 +89,11 @@ public class LightChunkTask {
 	}
 
 	public void propagateLight() {
+		if (incQueue.isEmpty() && decQueue.isEmpty()) {
+			CanvasMod.LOG.info("Nothing to process!");
+			return;
+		}
+
 		CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
 
 		int[] pos = new int[3];
@@ -164,7 +169,7 @@ public class LightChunkTask {
 			final short recordedLight = (short) entry;
 			final short sourceLight = LightDebug.debugData.get(index);
 
-			if (sourceLight != recordedLight) {
+			if (Encoding.pure(sourceLight) != Encoding.pure(recordedLight)) {
 				continue;
 			}
 
