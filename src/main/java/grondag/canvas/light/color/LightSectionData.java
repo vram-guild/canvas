@@ -8,7 +8,6 @@ import com.mojang.blaze3d.platform.TextureUtil;
 
 import net.minecraft.core.BlockPos;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 
@@ -60,7 +59,6 @@ public class LightSectionData {
 	private int sectionBlockOffsetZ = -16;
 
 	private ByteBuffer buffer;
-	// private long pointer;
 	private int glTexId;
 	private boolean closed = false;
 
@@ -88,9 +86,6 @@ public class LightSectionData {
 			buffer.putShort((short) 0);
 		}
 
-		// buffer = ByteBuffer.allocate(Format.pixelBytes * SIZE3D);
-		// pointer = MemoryUtil.nmemAlloc((long) Format.pixelBytes * SIZE3D); // ??
-
 		// allocate
 		GFX.texImage3D(Format.target, 0, Format.internalFormat, Const.WIDTH, Const.WIDTH, Const.WIDTH, 0, Format.pixelFormat, Format.pixelDataType, null);
 	}
@@ -107,14 +102,7 @@ public class LightSectionData {
 		// Importantly, reset the pointer without flip
 		buffer.position(0);
 
-		// GFX.texImage3D(Format.target, 0, Format.internalFormat, Const.WIDTH, Const.WIDTH, Const.WIDTH, 0, Format.pixelFormat, Format.pixelDataType, buffer);
 		GFX.glTexSubImage3D(Format.target, 0, 0, 0, 0, Const.WIDTH, Const.WIDTH, Const.WIDTH, Format.pixelFormat, Format.pixelDataType, buffer);
-	}
-
-	public void draw(long offset, short rgba) {
-		assert offset == buffer.position();
-		buffer.putShort(rgba);
-		// MemoryUtil.memPutShort(pointer + offset, rgba);
 	}
 
 	public void draw(short rgba) {
@@ -124,7 +112,6 @@ public class LightSectionData {
 	public void close() {
 		TextureUtil.releaseTextureId(glTexId);
 		MemoryUtil.memFree(buffer);
-		// MemoryUtil.nmemFree(pointer);
 		glTexId = -1;
 		closed = true;
 	}
@@ -134,9 +121,6 @@ public class LightSectionData {
 	}
 
 	public void put(int index, short light) {
-		// int[] xyz = new int[3];
-		// LightDebug.debugData.reverseIndexify(index, xyz);
-		// CanvasMod.LOG.info("putting light at : " + xyz[0] + "," + xyz[1] + "," + xyz[2] + " / " + Elem.text(light));
 		buffer.putShort(index, light);
 	}
 

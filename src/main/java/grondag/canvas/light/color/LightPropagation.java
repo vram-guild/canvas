@@ -16,7 +16,6 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.light.color.LightSectionData.Elem;
 
 public class LightPropagation {
-	final static BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 	private static Int2ShortOpenHashMap lights = new Int2ShortOpenHashMap();
 	private static LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
 	private static LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
@@ -84,32 +83,8 @@ public class LightPropagation {
 		final short getLight = LightDebug.debugData.get(index);
 
 		lessThan(getLight, light);
-		// greaterThan(getLight, light);
-
-		// short incLight = 0;
-		// short incLightMask = 0;
-		//
-		// short decLight = 0;
-		// short decLightMask = 0;
-		//
-		// final Elem[] elems = Elem.values();
-		//
-		// for (int i = 0; i < 3; i++) {
-		// 	if (inc.get(i)) {
-		// 		incLight |= elems[i].of(light);
-		// 		incLightMask |= elems[i].mask;
-		// 	} else if (dec.get(i)) {
-		// 		decLight |= elems[i].of(light);
-		// 		decLightMask |= elems[i].mask;
-		// 	}
-		// }
-		//
-		// final short putLight = (short) (((getLight & ~incLightMask) & ~decLightMask) | incLight | decLight);
 
 		if (less.any()) {
-			// int[] xyz = new int[3];
-			// LightDebug.debugData.reverseIndexify(index, xyz);
-			// CanvasMod.LOG.info("test reverse index : " + pos + "/" + xyz[0] + "," + xyz[1] + "," + xyz[2]);
 			LightDebug.debugData.put(index, light);
 			enqueue(incQueue, index, light);
 			CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) "
@@ -170,23 +145,18 @@ public class LightPropagation {
 
 					if (less.r) {
 						mask |= Elem.R.mask;
-						// LightDebug.debugData.put(nodeIndex, Elem.R, 0);
 					}
 
 					if (less.g) {
 						mask |= Elem.G.mask;
-						// LightDebug.debugData.put(nodeIndex, Elem.G, 0);
 					}
 
 					if (less.b) {
 						mask |= Elem.B.mask;
-						// LightDebug.debugData.put(nodeIndex, Elem.B, 0);
 					}
 
 					final short nodeAfterLight = (short) (nodeLight & ~(mask));
 					LightDebug.debugData.put(nodeIndex, nodeAfterLight);
-
-					// final short nodeAfterLight = LightDebug.debugData.get(nodeIndex);
 
 					enqueue(decQueue, nodeIndex, nodeLight);
 
@@ -292,7 +262,6 @@ public class LightPropagation {
 			this.r = false;
 			this.g = false;
 			this.b = false;
-			// this.a = false;
 		}
 
 		public boolean get(int i) {
@@ -314,7 +283,6 @@ public class LightPropagation {
 	}
 
 	private static BVec less = new BVec();
-	private static BVec greater = new BVec();
 
 	private static void lessThan(short left, short right) {
 		less.r = Elem.R.of(left) < Elem.R.of(right);
@@ -326,17 +294,5 @@ public class LightPropagation {
 		less.r = Elem.R.of(left) < Elem.R.of(right) - 1;
 		less.g = Elem.G.of(left) < Elem.G.of(right) - 1;
 		less.b = Elem.B.of(left) < Elem.B.of(right) - 1;
-	}
-
-	private static void equalsMinusOne(short left, short right) {
-		less.r = Elem.R.of(left) == Elem.R.of(right) - 1;
-		less.g = Elem.G.of(left) == Elem.G.of(right) - 1;
-		less.b = Elem.B.of(left) == Elem.B.of(right) - 1;
-	}
-
-	private static void greaterThanOrEqual(short left, short right) {
-		greater.r = Elem.R.of(left) >= Elem.R.of(right);
-		greater.g = Elem.G.of(left) >= Elem.G.of(right);
-		greater.b = Elem.B.of(left) >= Elem.B.of(right);
 	}
 }

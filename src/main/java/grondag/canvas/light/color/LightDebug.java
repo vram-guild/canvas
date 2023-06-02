@@ -31,22 +31,11 @@ public class LightDebug {
 		return -1;
 	}
 
-	static void clear(LightSectionData data) {
-		for (int x = 0; x < WIDTH; x ++) {
-			for (int y = 0; y < WIDTH; y ++) {
-				for (int z = 0; z < WIDTH; z ++) {
-					data.draw((short) 0);
-				}
-			}
-		}
-	}
-
 	static void drawDummy(LightSectionData data) {
 		for (int x = 0; x < WIDTH; x ++) {
 			for (int y = 0; y < WIDTH; y ++) {
 				for (int z = 0; z < WIDTH; z ++) {
 					data.draw(LightSectionData.encodeRgba(x % 16, y % 16, z % 16, 0xF));
-					// data.draw((x * WIDTH * WIDTH + y * WIDTH + z) * LightSectionData.Format.pixelBytes, LightSectionData.encodeRgba(x, y, z, 1));
 				}
 			}
 		}
