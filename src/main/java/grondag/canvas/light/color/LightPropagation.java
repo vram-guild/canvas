@@ -90,8 +90,8 @@ public class LightPropagation {
 			enqueue(incQueue, index, light);
 			CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) "
 					+ Elem.text(getLight) + "," + Elem.text(light) + " block: " + debugBlock);
-		} else if (light == 0 && (isLightSource(getLight) || isOccluding(getLight) || occluding)) {
-			LightDebug.debugData.put(index, occluding((short) 0, occluding));
+		} else if (light == 0 && (Encoding.isLightSource(getLight) || Encoding.isOccluding(getLight) || occluding)) {
+			LightDebug.debugData.put(index, Encoding.encodeLight(0, false, occluding));
 			enqueue(decQueue, index, getLight);
 			CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) "
 					+ Elem.text(getLight) + "," + Elem.text(light) + " block: " + debugBlock);
@@ -156,12 +156,12 @@ public class LightPropagation {
 						mask |= Elem.B.mask;
 					}
 
-					final short nodeAfterLight = (short) (nodeLight & ~(mask));
-					LightDebug.debugData.put(nodeIndex, nodeAfterLight);
+					final short resultLight = (short) (nodeLight & ~(mask));
+					LightDebug.debugData.put(nodeIndex, resultLight);
 
 					enqueue(decQueue, nodeIndex, nodeLight);
 
-					nodeLight = nodeAfterLight;
+					nodeLight = resultLight;
 				}
 
 				if (!less.all()) {
@@ -208,25 +208,25 @@ public class LightPropagation {
 				lessThanMinusOne(nodeLight, sourceLight);
 
 				if (less.any()) {
-					// TODO: optimize
+					short resultLight = nodeLight;
+
 					if (less.r) {
-						LightDebug.debugData.put(nodeIndex, Elem.R, (Elem.R.of(sourceLight) - 1));
+						resultLight = Elem.R.replace(resultLight, (short) (Elem.R.of(sourceLight) - 1));
 					}
 
 					if (less.g) {
-						LightDebug.debugData.put(nodeIndex, Elem.G, (Elem.G.of(sourceLight) - 1));
+						resultLight = Elem.G.replace(resultLight, (short) (Elem.G.of(sourceLight) - 1));
 					}
 
 					if (less.b) {
-						LightDebug.debugData.put(nodeIndex, Elem.B, (Elem.B.of(sourceLight) - 1));
+						resultLight = Elem.B.replace(resultLight, (short) (Elem.B.of(sourceLight) - 1));
 					}
 
-					// TODO: optimize
-					final short nodeAfterLight = LightDebug.debugData.get(nodeIndex);
+					LightDebug.debugData.put(nodeIndex, resultLight);
 
-					// CanvasMod.LOG.info("updating neighbor to: " + nodeX + "," + nodeY + "," + nodeZ + "," + Elem.text(nodeAfterLight));
+					// CanvasMod.LOG.info("updating neighbor to: " + nodeX + "," + nodeY + "," + nodeZ + "," + Elem.text(resultLight));
 
-					enqueue(incQueue, nodeIndex, nodeAfterLight);
+					enqueue(incQueue, nodeIndex, resultLight);
 				}
 			}
 		}

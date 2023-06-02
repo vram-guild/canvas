@@ -45,7 +45,15 @@ public class LightSectionData {
 		}
 
 		public int of(short light) {
-			return (light & mask) >> shift;
+			return (light >> shift) & 0xF;
+		}
+
+		public short replace(short source, short elemLight) {
+			return (short) ((source & ~mask) | (elemLight << shift));
+		}
+
+		public static short encode(int r, int g, int b, int a) {
+			return (short) ((r << R.shift) | (g << G.shift) | (b << B.shift) | (a << A.shift));
 		}
 
 		public static String text(short light) {
@@ -141,12 +149,6 @@ public class LightSectionData {
 		buffer.putShort(index, light);
 	}
 
-	public void put(int index, Elem elem, int elemLight) {
-		final short get = buffer.getShort(index);
-		final short put = (short) ((get & ~elem.mask) | (elemLight << elem.shift));
-		buffer.putShort(index, put);
-	}
-
 	public int indexify(BlockPos pos) {
 		return indexify(pos.getX(), pos.getY(), pos.getZ());
 	}
@@ -168,7 +170,7 @@ public class LightSectionData {
 		// x and z are swapped because opengl
 		result[0] = (index & Const.WIDTH_MASK) + sectionBlockOffsetX;
 		result[1] = ((index >> Const.WIDTH_SHIFT) & Const.WIDTH_MASK) + sectionBlockOffsetY;
-		result[2] = (index >> Const.WIDTH_SHIFT * 2) + sectionBlockOffsetZ;
+		result[2] = ((index >> Const.WIDTH_SHIFT * 2) & Const.WIDTH_MASK) + sectionBlockOffsetZ;
 	}
 
 	public boolean withinExtents(BlockPos pos) {
