@@ -17,6 +17,47 @@ import grondag.canvas.light.color.LightSectionData.Elem;
 import grondag.canvas.light.color.LightSectionData.Encoding;
 
 public class LightPropagation {
+	private static class BVec {
+		boolean r, g, b;
+
+		public BVec() {
+			this.r = false;
+			this.g = false;
+			this.b = false;
+		}
+
+		public boolean get(int i) {
+			return switch (i) {
+				case 0 -> r;
+				case 1 -> g;
+				case 2 -> b;
+				default -> false;
+			};
+		}
+
+		public boolean any() {
+			return r || g || b;
+		}
+
+		public boolean all() {
+			return r && g && b;
+		}
+
+		private void lessThan(short left, short right) {
+			r = Elem.R.of(left) < Elem.R.of(right);
+			g = Elem.G.of(left) < Elem.G.of(right);
+			b = Elem.B.of(left) < Elem.B.of(right);
+		}
+
+		private void lessThanMinusOne(short left, short right) {
+			r = Elem.R.of(left) < Elem.R.of(right) - 1;
+			g = Elem.G.of(left) < Elem.G.of(right) - 1;
+			b = Elem.B.of(left) < Elem.B.of(right) - 1;
+		}
+	}
+
+	private static ThreadLocal<BVec> lessPool = ThreadLocal.withInitial(BVec::new);
+
 	private static final Int2ShortOpenHashMap lights = new Int2ShortOpenHashMap();
 	private static final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
 	private static final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
@@ -82,8 +123,9 @@ public class LightPropagation {
 	private static void evaluateForQueue(BlockPos pos, short light, boolean occluding) {
 		final int index = LightDebug.debugData.indexify(pos);
 		final short getLight = LightDebug.debugData.get(index);
+		final var less = lessPool.get();
 
-		lessThan(getLight, light);
+		less.lessThan(getLight, light);
 
 		if (less.any()) {
 			LightDebug.debugData.put(index, light);
@@ -105,6 +147,8 @@ public class LightPropagation {
 
 	private static void processQueues() {
 		CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
+
+		final var less = lessPool.get();
 
 		int[] pos = new int[3];
 		int debugMaxDec = 0;
@@ -139,7 +183,7 @@ public class LightPropagation {
 				// 	continue;
 				// }
 
-				lessThan(nodeLight, sourcePrevLight);
+				less.lessThan(nodeLight, sourcePrevLight);
 
 				if (less.any()) {
 					int mask = 0;
@@ -205,7 +249,7 @@ public class LightPropagation {
 
 				// CanvasMod.LOG.info("current/neighbor index " + index + "/" + nodeIndex);
 
-				lessThanMinusOne(nodeLight, sourceLight);
+				less.lessThanMinusOne(nodeLight, sourceLight);
 
 				if (less.any()) {
 					short resultLight = nodeLight;
@@ -234,46 +278,5 @@ public class LightPropagation {
 		dirty = false;
 
 		CanvasMod.LOG.info("Processed queues! Count: inc,dec " + debugMaxInc + "," + debugMaxDec);
-	}
-
-	private static class BVec {
-		boolean r, g, b;
-
-		public BVec() {
-			this.r = false;
-			this.g = false;
-			this.b = false;
-		}
-
-		public boolean get(int i) {
-			return switch (i) {
-				case 0 -> r;
-				case 1 -> g;
-				case 2 -> b;
-				default -> false;
-			};
-		}
-
-		public boolean any() {
-			return r || g || b;
-		}
-
-		public boolean all() {
-			return r && g && b;
-		}
-	}
-
-	private static BVec less = new BVec();
-
-	private static void lessThan(short left, short right) {
-		less.r = Elem.R.of(left) < Elem.R.of(right);
-		less.g = Elem.G.of(left) < Elem.G.of(right);
-		less.b = Elem.B.of(left) < Elem.B.of(right);
-	}
-
-	private static void lessThanMinusOne(short left, short right) {
-		less.r = Elem.R.of(left) < Elem.R.of(right) - 1;
-		less.g = Elem.G.of(left) < Elem.G.of(right) - 1;
-		less.b = Elem.B.of(left) < Elem.B.of(right) - 1;
 	}
 }
