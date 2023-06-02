@@ -51,7 +51,8 @@ import io.vram.frex.api.model.fluid.FluidModel;
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.light.color.LightPropagation;
+import grondag.canvas.light.color.LightChunkTask;
+import grondag.canvas.light.color.LightDebug;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.Pipeline;
@@ -80,6 +81,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	public final CameraRegionVisibility cameraVisibility;
 	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
+	private final LightChunkTask lightChunkTask;
 
 	private RegionRenderSector renderSector = null;
 
@@ -127,6 +129,12 @@ public class RenderRegion implements TerrainExecutorTask {
 		cameraVisibility = worldRenderState.terrainIterator.cameraVisibility.createRegionState(this);
 		shadowVisibility = worldRenderState.terrainIterator.shadowVisibility.createRegionState(this);
 		origin.update();
+
+		if (LightDebug.debugData.withinExtents(origin.getX(), origin.getY(), origin.getZ())) {
+			lightChunkTask = new LightChunkTask();
+		} else {
+			lightChunkTask = null;
+		}
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -421,8 +429,6 @@ public class RenderRegion implements TerrainExecutorTask {
 		final BlockRenderDispatcher blockRenderManager = Minecraft.getInstance().getBlockRenderer();
 		final RegionOcclusionCalculator occlusionRegion = region.occlusion;
 
-		LightPropagation.onStartBuildTerrain();
-
 		for (int i = 0; i < RenderRegionStateIndexer.INTERIOR_STATE_COUNT; i++) {
 			final BlockState blockState = region.getLocalBlockState(i);
 			final int x = i & 0xF;
@@ -461,10 +467,14 @@ public class RenderRegion implements TerrainExecutorTask {
 				}
 			}
 
-			LightPropagation.onBuildTerrain(searchPos, blockState.getLightEmission(), blockState.getBlock(), blockState.canOcclude());
+			if (lightChunkTask != null) {
+				lightChunkTask.checkBlock(searchPos, blockState);
+			}
 		}
 
-		LightPropagation.onFinishedBuildTerrain();
+		if (lightChunkTask != null) {
+			lightChunkTask.propagateLight();
+		}
 
 		buildState.prepareTranslucentIfNeeded(worldRenderState.sectorManager.cameraPos(), renderSector, collectors);
 

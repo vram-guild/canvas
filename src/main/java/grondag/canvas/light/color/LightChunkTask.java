@@ -1,22 +1,18 @@
 package grondag.canvas.light.color;
 
-import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-
-import io.vram.frex.api.light.ItemLight;
+import net.minecraft.world.level.block.state.BlockState;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.light.color.LightSectionData.Elem;
 import grondag.canvas.light.color.LightSectionData.Encoding;
 
-public class LightPropagation {
+public class LightChunkTask {
 	private static class BVec {
 		boolean r, g, b;
 
@@ -56,99 +52,44 @@ public class LightPropagation {
 		}
 	}
 
-	private static ThreadLocal<BVec> lessPool = ThreadLocal.withInitial(BVec::new);
-
-	private static final Int2ShortOpenHashMap lights = new Int2ShortOpenHashMap();
+	private final BVec less = new BVec();
 	private static final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
 	private static final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
-	private static boolean dirty = false;
-	private static Block debugBlock;
-	private static int debugCountThread = 0;
 
-	static {
-		lights.defaultReturnValue((short) 0);
+	private static void enqueue(LongArrayFIFOQueue queue, long index, long light) {
+		queue.enqueue((index << 16L) | light & 0xffffL);
 	}
 
-	public static synchronized void onStartBuildTerrain() {
-		debugCountThread++;
-	}
-
-	public static synchronized void onBuildTerrain(BlockPos pos, final int lightEmission, Block block, boolean occluding) {
+	public void checkBlock(BlockPos pos, BlockState blockState) {
 		if (!LightDebug.debugData.withinExtents(pos)) {
 			return;
 		}
 
-		debugBlock = block;
-
 		short light = 0;
 
-		if (lightEmission > 0) {
-			light = lights.get(block.hashCode());
-
-			if (light == 0) {
-				// PERF: modify ItemLight API or make new API that doesn't need ItemStack
-				// TODO: ItemLight API isn't suitable for this anyway since we rely on blockstates not blocks/items
-				final ItemStack stack = new ItemStack(block, 1);
-				final ItemLight itemLight = ItemLight.get(stack);
-
-				if (itemLight != null) {
-					final int r = (int) (lightEmission * itemLight.red());
-					final int g = (int) (lightEmission * itemLight.green());
-					final int b = (int) (lightEmission * itemLight.blue());
-					light = Encoding.encodeLight(r, g, b, true, occluding);
-				} else {
-					light = Encoding.encodeLight(lightEmission, lightEmission, lightEmission, true, occluding);
-				}
-
-				lights.put(block.hashCode(), light);
-			}
+		if (blockState.getLightEmission() > 0) {
+			light = LightRegistry.get(blockState);
 		}
 
-		evaluateForQueue(pos, light, occluding);
-	}
-
-	public static synchronized void onFinishedBuildTerrain() {
-		debugCountThread --;
-
-		if (dirty && debugCountThread == 0) {
-			dirty = false;
-			// TODO: there are multiple worker threads. the queue can't handle that yet
-			// TODO: still not working
-			processQueues();
-			CanvasMod.LOG.info("Uploading texture");
-			RenderSystem.recordRenderCall(() -> LightDebug.debugData.upload());
-		}
-	}
-
-	private static void evaluateForQueue(BlockPos pos, short light, boolean occluding) {
 		final int index = LightDebug.debugData.indexify(pos);
 		final short getLight = LightDebug.debugData.get(index);
-		final var less = lessPool.get();
+		final boolean occluding = blockState.canOcclude();
 
 		less.lessThan(getLight, light);
 
 		if (less.any()) {
 			LightDebug.debugData.put(index, light);
 			enqueue(incQueue, index, light);
-			CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) "
-					+ Elem.text(getLight) + "," + Elem.text(light) + " block: " + debugBlock);
-		} else if (light == 0 && (Encoding.isLightSource(getLight) || Encoding.isOccluding(getLight) || occluding)) {
+			CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
+		} else if (light == 0 && (Encoding.isLightSource(getLight) || (Encoding.isOccluding(getLight) && !occluding) || occluding)) {
 			LightDebug.debugData.put(index, Encoding.encodeLight(0, false, occluding));
 			enqueue(decQueue, index, getLight);
-			CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) "
-					+ Elem.text(getLight) + "," + Elem.text(light) + " block: " + debugBlock);
+			CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
 		}
 	}
 
-	private static void enqueue(LongArrayFIFOQueue queue, long index, long light) {
-		dirty = true;
-		queue.enqueue((index << 16L) | light & 0xffffL);
-	}
-
-	private static void processQueues() {
+	public void propagateLight() {
 		CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
-
-		final var less = lessPool.get();
 
 		int[] pos = new int[3];
 		int debugMaxDec = 0;
@@ -275,8 +216,8 @@ public class LightPropagation {
 			}
 		}
 
-		dirty = false;
-
 		CanvasMod.LOG.info("Processed queues! Count: inc,dec " + debugMaxInc + "," + debugMaxDec);
+		CanvasMod.LOG.info("Uploading texture");
+		RenderSystem.recordRenderCall(() -> LightDebug.debugData.upload());
 	}
 }

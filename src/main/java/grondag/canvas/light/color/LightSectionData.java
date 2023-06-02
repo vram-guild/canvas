@@ -21,7 +21,7 @@ public class LightSectionData {
 	}
 
 	public static class Const {
-		public static final int WIDTH = 16 * 2;
+		public static final int WIDTH = 16;
 		private static final int SIZE3D = WIDTH * WIDTH * WIDTH;
 
 		public static final int WIDTH_SHIFT = (int) (Math.log(WIDTH) / Math.log(2));
@@ -84,9 +84,9 @@ public class LightSectionData {
 	}
 
 	// placeholder
-	private int sectionBlockOffsetX = -16;
-	private int sectionBlockOffsetY = 100;
-	private int sectionBlockOffsetZ = -16;
+	private int sectionBlockOffsetX = 0;
+	private int sectionBlockOffsetY = 80;
+	private int sectionBlockOffsetZ = 0;
 
 	private ByteBuffer buffer;
 	private int glTexId;
