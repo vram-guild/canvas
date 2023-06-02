@@ -53,6 +53,28 @@ public class LightSectionData {
 		}
 	}
 
+	public static class Encoding {
+		public static short encodeLight(int r, int g, int b, boolean isLightSource, boolean isOccluding) {
+			return Elem.encode(r, g, b, (isLightSource ? 0b1 : 0) | (isOccluding ? 0b10 : 0));
+		}
+
+		public static short encodeLight(int pureLight, boolean isLightSource, boolean isOccluding) {
+			return (short) (pureLight | (isLightSource ? 0b1 : 0) | (isOccluding ? 0b10 : 0));
+		}
+
+		public static boolean isLightSource(short light) {
+			return (light & 0b1) != 0;
+		}
+
+		public static boolean isOccluding(short light) {
+			return (light & 0b10) != 0;
+		}
+
+		public static short pure(short light) {
+			return (short) (light & 0xfff0);
+		}
+	}
+
 	// placeholder
 	private int sectionBlockOffsetX = -16;
 	private int sectionBlockOffsetY = 100;
@@ -61,11 +83,6 @@ public class LightSectionData {
 	private ByteBuffer buffer;
 	private int glTexId;
 	private boolean closed = false;
-
-	public static short encodeRgba(int r, int g, int b, int a) {
-		// PERF: alpha is unnecessary
-		return (short) ((r << 12) | (g << 8) | (b << 4) | a);
-	}
 
 	public LightSectionData() {
 		glTexId = TextureUtil.generateTextureId();

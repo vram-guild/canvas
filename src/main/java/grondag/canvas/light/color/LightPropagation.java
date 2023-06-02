@@ -14,11 +14,12 @@ import io.vram.frex.api.light.ItemLight;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.light.color.LightSectionData.Elem;
+import grondag.canvas.light.color.LightSectionData.Encoding;
 
 public class LightPropagation {
-	private static Int2ShortOpenHashMap lights = new Int2ShortOpenHashMap();
-	private static LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
-	private static LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
+	private static final Int2ShortOpenHashMap lights = new Int2ShortOpenHashMap();
+	private static final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
+	private static final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
 	private static boolean dirty = false;
 	private static Block debugBlock;
 	private static int debugCountThread = 0;
@@ -53,12 +54,12 @@ public class LightPropagation {
 					final int r = (int) (lightEmission * itemLight.red());
 					final int g = (int) (lightEmission * itemLight.green());
 					final int b = (int) (lightEmission * itemLight.blue());
-					light = LightSectionData.encodeRgba(r, g, b, 0);
+					light = Encoding.encodeLight(r, g, b, true, occluding);
 				} else {
-					light = LightSectionData.encodeRgba(lightEmission, lightEmission, lightEmission, 0);
+					light = Encoding.encodeLight(lightEmission, lightEmission, lightEmission, true, occluding);
 				}
 
-				lights.put(block.hashCode(), lightSource(light));
+				lights.put(block.hashCode(), light);
 			}
 		}
 
@@ -129,7 +130,7 @@ public class LightPropagation {
 				final int nodeIndex = LightDebug.debugData.indexify(nodeX, nodeY, nodeZ);
 				short nodeLight = LightDebug.debugData.get(nodeIndex);
 
-				if (pure(nodeLight) == 0) {
+				if (Encoding.pure(nodeLight) == 0) {
 					continue;
 				}
 
@@ -198,7 +199,7 @@ public class LightPropagation {
 				final int nodeIndex = LightDebug.debugData.indexify(nodeX, nodeY, nodeZ);
 				final short nodeLight = LightDebug.debugData.get(nodeIndex);
 
-				if (isOccluding(nodeLight)) {
+				if (Encoding.isOccluding(nodeLight)) {
 					continue;
 				}
 
@@ -233,26 +234,6 @@ public class LightPropagation {
 		dirty = false;
 
 		CanvasMod.LOG.info("Processed queues! Count: inc,dec " + debugMaxInc + "," + debugMaxDec);
-	}
-
-	private static boolean isLightSource(short light) {
-		return (light & 0b1) != 0;
-	}
-
-	private static boolean isOccluding(short light) {
-		return (light & 0b10) != 0;
-	}
-
-	private static short lightSource(short light) {
-		return (short) (light | 0b1);
-	}
-
-	private static short occluding(short light, boolean occluding) {
-		return occluding ? (short) (light | 0b10) : light;
-	}
-
-	private static short pure(short light) {
-		return (short) (light & 0xfff0);
 	}
 
 	private static class BVec {

@@ -17,7 +17,7 @@ public class LightDebug {
 		}
 
 		debugData = new LightSectionData();
-		// clear(debugData);
+		// drawDummy(debugData);
 		// debugData.upload();
 
 		CanvasMod.LOG.info("Light debug render initialized.");
@@ -35,7 +35,7 @@ public class LightDebug {
 		for (int x = 0; x < WIDTH; x ++) {
 			for (int y = 0; y < WIDTH; y ++) {
 				for (int z = 0; z < WIDTH; z ++) {
-					data.draw(LightSectionData.encodeRgba(x % 16, y % 16, z % 16, 0xF));
+					data.draw(LightSectionData.Encoding.encodeLight(x % 16, y % 16, z % 16, false, false));
 				}
 			}
 		}
