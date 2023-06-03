@@ -5,9 +5,11 @@ import java.nio.ByteBuffer;
 import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.platform.TextureUtil;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.core.BlockPos;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 
@@ -91,6 +93,7 @@ public class LightSectionData {
 
 	private ByteBuffer buffer;
 	private int glTexId;
+	private boolean dirty = true;
 	private boolean closed = false;
 
 	public LightSectionData() {
@@ -116,7 +119,21 @@ public class LightSectionData {
 		GFX.texImage3D(Format.target, 0, Format.internalFormat, Const.WIDTH, Const.WIDTH, Const.WIDTH, 0, Format.pixelFormat, Format.pixelDataType, null);
 	}
 
-	public void upload() {
+	public void markAsDirty() {
+		dirty = true;
+	}
+
+	public void uploadIfDirty() {
+		RenderSystem.assertOnRenderThread();
+
+		if (!dirty) {
+			return;
+		}
+
+		CanvasMod.LOG.info("Uploading texture...");
+
+		dirty = false;
+
 		CanvasTextureState.bindTexture(Format.target, glTexId);
 
 		// Gotta clean up some states, otherwise will cause memory access violation

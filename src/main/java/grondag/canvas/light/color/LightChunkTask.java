@@ -271,7 +271,7 @@ public class LightChunkTask {
 		}
 
 		CanvasMod.LOG.info("Processed queues! Count: inc,dec " + debugMaxInc + "," + debugMaxDec);
-		CanvasMod.LOG.info("Uploading texture");
-		RenderSystem.recordRenderCall(() -> LightDebug.debugData.upload());
+		CanvasMod.LOG.info("Marking texture as dirty");
+		LightDebug.debugData.markAsDirty();
 	}
 }
