@@ -62,6 +62,7 @@ public class LightSectionData {
 	}
 
 	public static class Encoding {
+		// TODO: change flags to occlusion / light source states (block can occlude in 1 of 6 directions, e.g. slab)
 		public static short encodeLight(int r, int g, int b, boolean isLightSource, boolean isOccluding) {
 			return Elem.encode(r, g, b, (isLightSource ? 0b1 : 0) | (isOccluding ? 0b10 : 0));
 		}

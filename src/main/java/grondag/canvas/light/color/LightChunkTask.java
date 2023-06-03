@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 
 import grondag.canvas.CanvasMod;
@@ -52,13 +51,51 @@ public class LightChunkTask {
 		}
 	}
 
+	private static enum Direction {
+		DOWN(0, -1, 0, 1, 2),
+		UP(0, 1, 0, 2, 1),
+		NORTH(0, 0, -1, 3, 4),
+		SOUTH(0, 0, 1, 4, 3),
+		WEST(-1, 0, 0, 5, 6),
+		EAST(1, 0, 0, 6, 5);
+
+		final int x, y, z, id, opposite;
+		final static int nullId = 0;
+
+		Direction(int x, int y, int z, int id, int opposite) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
+			this.id = id;
+			this.opposite = opposite;
+		}
+	}
+
+	private static class Queues {
+		static void enqueue(LongArrayFIFOQueue queue, long index, long light) {
+			queue.enqueue(((long) Direction.nullId << 48L) | (index << 16L) | light & 0xffffL);
+		}
+
+		static void enqueue(LongArrayFIFOQueue queue, long index, long light, Direction target) {
+			queue.enqueue(((long) target.opposite << 48L) | (index << 16L) | light & 0xffffL);
+		}
+
+		static int from(long entry) {
+			return (int) (entry >> 48L);
+		}
+
+		static int index(long entry) {
+			return (int) (entry >> 16L);
+		}
+
+		static short light(long entry) {
+			return (short) (entry);
+		}
+	}
+
 	private final BVec less = new BVec();
 	private static final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
 	private static final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
-
-	private static void enqueue(LongArrayFIFOQueue queue, long index, long light) {
-		queue.enqueue((index << 16L) | light & 0xffffL);
-	}
 
 	public void checkBlock(BlockPos pos, BlockState blockState) {
 		if (!LightDebug.debugData.withinExtents(pos)) {
@@ -79,11 +116,11 @@ public class LightChunkTask {
 
 		if (less.any()) {
 			LightDebug.debugData.put(index, light);
-			enqueue(incQueue, index, light);
+			Queues.enqueue(incQueue, index, light);
 			CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
 		} else if (light == 0 && (Encoding.isLightSource(getLight) || (Encoding.isOccluding(getLight) != occluding))) {
 			LightDebug.debugData.put(index, Encoding.encodeLight(0, false, occluding));
-			enqueue(decQueue, index, getLight);
+			Queues.enqueue(decQueue, index, getLight);
 			CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
 		}
 	}
@@ -104,14 +141,20 @@ public class LightChunkTask {
 			debugMaxDec++;
 
 			final long entry = decQueue.dequeueLong();
-			final int index = (int) (entry >> 16L);
-			final short sourcePrevLight = (short) entry;
+			final int index = Queues.index(entry);
+			final short sourcePrevLight = Queues.light(entry);
+			final int from = Queues.from(entry);
+
 			LightDebug.debugData.reverseIndexify(index, pos);
 
 			for (var d: Direction.values()) {
-				final int nodeX = pos[0] + d.getStepX();
-				final int nodeY = pos[1] + d.getStepY();
-				final int nodeZ = pos[2] + d.getStepZ();
+				if (d.id == from) {
+					continue;
+				}
+
+				final int nodeX = pos[0] + d.x;
+				final int nodeY = pos[1] + d.y;
+				final int nodeZ = pos[2] + d.z;
 
 				if (!LightDebug.debugData.withinExtents(nodeX, nodeY, nodeZ)) {
 					continue;
@@ -149,14 +192,14 @@ public class LightChunkTask {
 					final short resultLight = (short) (nodeLight & ~(mask));
 					LightDebug.debugData.put(nodeIndex, resultLight);
 
-					enqueue(decQueue, nodeIndex, nodeLight);
+					Queues.enqueue(decQueue, nodeIndex, nodeLight, d);
 
 					nodeLight = resultLight;
 				}
 
 				if (!less.all()) {
-					// TODO: queue but only if it's a neighboring chunk?? nah that'd be wrong
-					enqueue(incQueue, nodeIndex, nodeLight);
+					// increases queued in decrease may propagate to all directions as if a light source
+					Queues.enqueue(incQueue, nodeIndex, nodeLight);
 				}
 			}
 		}
@@ -165,8 +208,10 @@ public class LightChunkTask {
 			debugMaxInc++;
 
 			final long entry = incQueue.dequeueLong();
-			final int index = (int) (entry >> 16L);
-			final short recordedLight = (short) entry;
+			final int index = Queues.index(entry);
+			final short recordedLight = Queues.light(entry);
+			final int from = Queues.from(entry);
+
 			final short sourceLight = LightDebug.debugData.get(index);
 
 			if (Encoding.pure(sourceLight) != Encoding.pure(recordedLight)) {
@@ -176,9 +221,13 @@ public class LightChunkTask {
 			LightDebug.debugData.reverseIndexify(index, pos);
 
 			for (var d: Direction.values()) {
-				final int nodeX = pos[0] + d.getStepX();
-				final int nodeY = pos[1] + d.getStepY();
-				final int nodeZ = pos[2] + d.getStepZ();
+				if (d.id == from) {
+					continue;
+				}
+
+				final int nodeX = pos[0] + d.x;
+				final int nodeY = pos[1] + d.y;
+				final int nodeZ = pos[2] + d.z;
 
 				// CanvasMod.LOG.info("increase at " + nodeX + "," + nodeY + "," + nodeZ);
 
@@ -216,7 +265,7 @@ public class LightChunkTask {
 
 					// CanvasMod.LOG.info("updating neighbor to: " + nodeX + "," + nodeY + "," + nodeZ + "," + Elem.text(resultLight));
 
-					enqueue(incQueue, nodeIndex, resultLight);
+					Queues.enqueue(incQueue, nodeIndex, resultLight, d);
 				}
 			}
 		}
