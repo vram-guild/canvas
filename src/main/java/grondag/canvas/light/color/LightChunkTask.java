@@ -2,8 +2,6 @@ package grondag.canvas.light.color;
 
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -11,17 +9,20 @@ import grondag.canvas.CanvasMod;
 import grondag.canvas.light.color.LightSectionData.Elem;
 import grondag.canvas.light.color.LightSectionData.Encoding;
 
+// TODO: edge chunks
+// TODO: occlusion shapes
+// TODO: re-propagate light sources upon removal
 public class LightChunkTask {
 	private static class BVec {
 		boolean r, g, b;
 
-		public BVec() {
+		BVec() {
 			this.r = false;
 			this.g = false;
 			this.b = false;
 		}
 
-		public boolean get(int i) {
+		boolean get(int i) {
 			return switch (i) {
 				case 0 -> r;
 				case 1 -> g;
@@ -30,24 +31,30 @@ public class LightChunkTask {
 			};
 		}
 
-		public boolean any() {
+		boolean any() {
 			return r || g || b;
 		}
 
-		public boolean all() {
+		boolean all() {
 			return r && g && b;
 		}
 
-		private void lessThan(short left, short right) {
+		void lessThan(short left, short right) {
 			r = Elem.R.of(left) < Elem.R.of(right);
 			g = Elem.G.of(left) < Elem.G.of(right);
 			b = Elem.B.of(left) < Elem.B.of(right);
 		}
 
-		private void lessThanMinusOne(short left, short right) {
+		void lessThanMinusOne(short left, short right) {
 			r = Elem.R.of(left) < Elem.R.of(right) - 1;
 			g = Elem.G.of(left) < Elem.G.of(right) - 1;
 			b = Elem.B.of(left) < Elem.B.of(right) - 1;
+		}
+
+		void and(BVec other, BVec another) {
+			r = other.r && another.r;
+			g = other.g && another.g;
+			b = other.b && another.b;
 		}
 	}
 
@@ -133,7 +140,10 @@ public class LightChunkTask {
 
 		CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
 
-		int[] pos = new int[3];
+		final int[] pos = new int[3];
+		final BVec removeFlag = new BVec();
+		final BVec removeMask = new BVec();
+
 		int debugMaxDec = 0;
 		int debugMaxInc = 0;
 
@@ -144,6 +154,10 @@ public class LightChunkTask {
 			final int index = Queues.index(entry);
 			final short sourcePrevLight = Queues.light(entry);
 			final int from = Queues.from(entry);
+
+			// only remove elements that are less than 1 (zero)
+			final short sourceCurrentLight = LightDebug.debugData.get(index);
+			removeFlag.lessThan(sourceCurrentLight, (short) 0x1110);
 
 			LightDebug.debugData.reverseIndexify(index, pos);
 
@@ -167,25 +181,25 @@ public class LightChunkTask {
 					continue;
 				}
 
-				// this is problematic, might result in residual light unless we know the light source color
-				// if (isLightSource(nodeLight)) {
-				// 	continue;
-				// }
-
 				less.lessThan(nodeLight, sourcePrevLight);
 
-				if (less.any()) {
+				// only propagate removal according to removeFlag
+				removeMask.and(less, removeFlag);
+
+				// TODO: improve for different occlusion sides
+				// removal propagation can also be occluded
+				if (!Encoding.isOccluding(nodeLight) && removeMask.any()) {
 					int mask = 0;
 
-					if (less.r) {
+					if (removeMask.r) {
 						mask |= Elem.R.mask;
 					}
 
-					if (less.g) {
+					if (removeMask.g) {
 						mask |= Elem.G.mask;
 					}
 
-					if (less.b) {
+					if (removeMask.b) {
 						mask |= Elem.B.mask;
 					}
 
@@ -238,6 +252,7 @@ public class LightChunkTask {
 				final int nodeIndex = LightDebug.debugData.indexify(nodeX, nodeY, nodeZ);
 				final short nodeLight = LightDebug.debugData.get(nodeIndex);
 
+				// TODO: improve for different occlusion sides
 				if (Encoding.isOccluding(nodeLight)) {
 					continue;
 				}
