@@ -29,8 +29,8 @@ import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
-import grondag.canvas.light.color.LightDebug;
-import grondag.canvas.light.color.LightSectionData;
+import grondag.canvas.light.color.LightDataManager;
+import grondag.canvas.light.color.LightDataTexture;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
@@ -47,11 +47,11 @@ public class ProgramTextureData {
 
 			int imageBind = 0;
 			int bindTarget = GL46.GL_TEXTURE_2D;
-			int lightDebugTex = LightDebug.getTexture(imageName);
+			int lightDebugTex = LightDataManager.INSTANCE.getTexture(imageName);
 
 			if (lightDebugTex != -1) {
 				imageBind = lightDebugTex;
-				bindTarget = LightSectionData.Format.target;
+				bindTarget = LightDataTexture.Format.target;
 			} else if (imageName.contains(":")) {
 				final AbstractTexture tex = tryLoadResourceTexture(new ResourceLocation(imageName));
 

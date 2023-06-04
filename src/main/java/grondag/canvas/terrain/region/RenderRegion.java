@@ -51,8 +51,8 @@ import io.vram.frex.api.model.fluid.FluidModel;
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
-import grondag.canvas.light.color.LightChunkTask;
-import grondag.canvas.light.color.LightDebug;
+import grondag.canvas.light.color.LightDataManager;
+import grondag.canvas.light.color.LightRegionTask;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.Pipeline;
@@ -81,7 +81,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	public final CameraRegionVisibility cameraVisibility;
 	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
-	private final LightChunkTask lightChunkTask;
+	private final LightRegionTask lightRegionTask;
 
 	private RegionRenderSector renderSector = null;
 
@@ -130,10 +130,10 @@ public class RenderRegion implements TerrainExecutorTask {
 		shadowVisibility = worldRenderState.terrainIterator.shadowVisibility.createRegionState(this);
 		origin.update();
 
-		if (LightDebug.debugData.withinExtents(origin.getX(), origin.getY(), origin.getZ())) {
-			lightChunkTask = new LightChunkTask();
+		if (LightDataManager.INSTANCE.withinExtents(origin)) {
+			lightRegionTask = new LightRegionTask(LightDataManager.INSTANCE.getOrAllocate(origin));
 		} else {
-			lightChunkTask = null;
+			lightRegionTask = null;
 		}
 	}
 
@@ -467,13 +467,13 @@ public class RenderRegion implements TerrainExecutorTask {
 				}
 			}
 
-			if (lightChunkTask != null) {
-				lightChunkTask.checkBlock(searchPos, blockState);
+			if (lightRegionTask != null) {
+				lightRegionTask.checkBlock(searchPos, blockState);
 			}
 		}
 
-		if (lightChunkTask != null) {
-			lightChunkTask.propagateLight(region);
+		if (lightRegionTask != null) {
+			lightRegionTask.propagateLight(region);
 		}
 
 		buildState.prepareTranslucentIfNeeded(worldRenderState.sectorManager.cameraPos(), renderSector, collectors);

@@ -30,9 +30,9 @@ public class LightRegistry {
 				final int r = (int) (lightEmission * itemLight.red());
 				final int g = (int) (lightEmission * itemLight.green());
 				final int b = (int) (lightEmission * itemLight.blue());
-				light = LightSectionData.Encoding.encodeLight(r, g, b, true, occluding);
+				light = LightRegionData.Encoding.encodeLight(r, g, b, true, occluding);
 			} else {
-				light = LightSectionData.Encoding.encodeLight(lightEmission, lightEmission, lightEmission, true, occluding);
+				light = LightRegionData.Encoding.encodeLight(lightEmission, lightEmission, lightEmission, true, occluding);
 			}
 
 			lights.put(stateKey, light);

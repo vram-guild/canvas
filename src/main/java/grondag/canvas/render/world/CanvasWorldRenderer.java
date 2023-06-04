@@ -99,7 +99,7 @@ import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.compat.PlayerAnimatorHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.FlawlessFramesController;
-import grondag.canvas.light.color.LightDebug;
+import grondag.canvas.light.color.LightDataManager;
 import grondag.canvas.material.property.TargetRenderState;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
@@ -377,7 +377,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			Lighting.setupLevel(MatrixData.viewMatrix);
 		}
 
-		LightDebug.debugData.uploadIfDirty();
+		LightDataManager.INSTANCE.update();
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
 

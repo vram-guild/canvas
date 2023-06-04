@@ -9,13 +9,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.light.color.LightSectionData.Elem;
-import grondag.canvas.light.color.LightSectionData.Encoding;
+import grondag.canvas.light.color.LightRegionData.Elem;
+import grondag.canvas.light.color.LightRegionData.Encoding;
 
 // TODO: edge chunks
-// TODO: occlusion shapes
-// TODO: re-propagate light sources upon removal
-public class LightChunkTask {
+// TODO: cluster slab allocation?
+// TODO: a way to repopulate cluster if needed
+public class LightRegionTask {
 	private static class BVec {
 		boolean r, g, b;
 
@@ -114,14 +114,19 @@ public class LightChunkTask {
 		}
 	}
 
+	private LightRegionData lightRegionData;
 	private final BVec less = new BVec();
 	private final BlockPos.MutableBlockPos sourcePos = new BlockPos.MutableBlockPos();
 	private final BlockPos.MutableBlockPos nodePos = new BlockPos.MutableBlockPos();
-	private static final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
-	private static final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
+	private final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
+	private final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
+
+	public LightRegionTask(LightRegionData lightRegionData) {
+		this.lightRegionData = lightRegionData;;
+	}
 
 	public void checkBlock(BlockPos pos, BlockState blockState) {
-		if (!LightDebug.debugData.withinExtents(pos)) {
+		if (!lightRegionData.withinExtents(pos)) {
 			return;
 		}
 
@@ -131,20 +136,20 @@ public class LightChunkTask {
 			light = LightRegistry.get(blockState);
 		}
 
-		final int index = LightDebug.debugData.indexify(pos);
-		final short getLight = LightDebug.debugData.get(index);
+		final int index = lightRegionData.indexify(pos);
+		final short getLight = lightRegionData.get(index);
 		final boolean occluding = blockState.canOcclude();
 
 		less.lessThan(getLight, light);
 
 		if (less.any()) {
-			LightDebug.debugData.put(index, light);
+			lightRegionData.put(index, light);
 			Queues.enqueue(incQueue, index, light);
-			CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
+			// CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
 		} else if (light == 0 && (Encoding.isLightSource(getLight) || (Encoding.isOccluding(getLight) != occluding))) {
-			LightDebug.debugData.put(index, Encoding.encodeLight(0, false, occluding));
+			lightRegionData.put(index, Encoding.encodeLight(0, false, occluding));
 			Queues.enqueue(decQueue, index, getLight);
-			CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
+			// CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
 		}
 	}
 
@@ -160,11 +165,11 @@ public class LightChunkTask {
 
 	public void propagateLight(BlockAndTintGetter blockView) {
 		if (incQueue.isEmpty() && decQueue.isEmpty()) {
-			CanvasMod.LOG.info("Nothing to process!");
+			// CanvasMod.LOG.info("Nothing to process!");
 			return;
 		}
 
-		CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
+		// CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
 
 		final BVec removeFlag = new BVec();
 		final BVec removeMask = new BVec();
@@ -181,10 +186,10 @@ public class LightChunkTask {
 			final int from = Queues.from(entry);
 
 			// only remove elements that are less than 1 (zero)
-			final short sourceCurrentLight = LightDebug.debugData.get(index);
+			final short sourceCurrentLight = lightRegionData.get(index);
 			removeFlag.lessThan(sourceCurrentLight, (short) 0x1110);
 
-			LightDebug.debugData.reverseIndexify(index, sourcePos);
+			lightRegionData.reverseIndexify(index, sourcePos);
 
 			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
@@ -201,12 +206,12 @@ public class LightChunkTask {
 				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
 
 				// TODO: change to chunk extents + edge checks
-				if (!LightDebug.debugData.withinExtents(nodePos)) {
+				if (!lightRegionData.withinExtents(nodePos)) {
 					continue;
 				}
 
-				final int nodeIndex = LightDebug.debugData.indexify(nodePos);
-				short nodeLight = LightDebug.debugData.get(nodeIndex);
+				final int nodeIndex = lightRegionData.indexify(nodePos);
+				short nodeLight = lightRegionData.get(nodeIndex);
 
 				if (Encoding.pure(nodeLight) == 0) {
 					continue;
@@ -242,7 +247,7 @@ public class LightChunkTask {
 					}
 
 					final short resultLight = (short) (nodeLight & ~(mask));
-					LightDebug.debugData.put(nodeIndex, resultLight);
+					lightRegionData.put(nodeIndex, resultLight);
 
 					Queues.enqueue(decQueue, nodeIndex, nodeLight, side);
 
@@ -270,18 +275,18 @@ public class LightChunkTask {
 			final short recordedLight = Queues.light(entry);
 			final int from = Queues.from(entry);
 
-			short sourceLight = LightDebug.debugData.get(index);
+			short sourceLight = lightRegionData.get(index);
 
 			if (sourceLight != recordedLight) {
 				if (Encoding.isLightSource(recordedLight)) {
 					sourceLight = recordedLight;
-					LightDebug.debugData.put(index, sourceLight);
+					lightRegionData.put(index, sourceLight);
 				} else {
 					continue;
 				}
 			}
 
-			LightDebug.debugData.reverseIndexify(index, sourcePos);
+			lightRegionData.reverseIndexify(index, sourcePos);
 
 			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
@@ -300,12 +305,12 @@ public class LightChunkTask {
 				// CanvasMod.LOG.info("increase at " + nodeX + "," + nodeY + "," + nodeZ);
 
 				// TODO: change to chunk extents + edge checks
-				if (!LightDebug.debugData.withinExtents(nodePos)) {
+				if (!lightRegionData.withinExtents(nodePos)) {
 					continue;
 				}
 
-				final int nodeIndex = LightDebug.debugData.indexify(nodePos);
-				final short nodeLight = LightDebug.debugData.get(nodeIndex);
+				final int nodeIndex = lightRegionData.indexify(nodePos);
+				final short nodeLight = lightRegionData.get(nodeIndex);
 				final BlockState nodeState = blockView.getBlockState(nodePos);
 
 				// check neighbor occlusion for increase
@@ -332,7 +337,7 @@ public class LightChunkTask {
 						resultLight = Elem.B.replace(resultLight, (short) (Elem.B.of(sourceLight) - 1));
 					}
 
-					LightDebug.debugData.put(nodeIndex, resultLight);
+					lightRegionData.put(nodeIndex, resultLight);
 
 					// CanvasMod.LOG.info("updating neighbor to: " + nodeX + "," + nodeY + "," + nodeZ + "," + Elem.text(resultLight));
 
@@ -342,7 +347,7 @@ public class LightChunkTask {
 		}
 
 		CanvasMod.LOG.info("Processed queues! Count: inc,dec " + debugMaxInc + "," + debugMaxDec);
-		CanvasMod.LOG.info("Marking texture as dirty");
-		LightDebug.debugData.markAsDirty();
+		// CanvasMod.LOG.info("Marking texture as dirty");
+		lightRegionData.markAsDirty();
 	}
 }
