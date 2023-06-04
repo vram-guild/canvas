@@ -149,6 +149,8 @@ public class LightChunkTask {
 	}
 
 	private boolean occludeSide(BlockState state, Side dir, BlockAndTintGetter view, BlockPos pos) {
+		// vanilla checks state.useShapeForLightOcclusion() but here it's always false for some reason. this is fine...
+
 		if (!state.canOcclude()) {
 			return false;
 		}
@@ -198,7 +200,7 @@ public class LightChunkTask {
 
 				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
 
-				// TODO: remove
+				// TODO: change to chunk extents + edge checks
 				if (!LightDebug.debugData.withinExtents(nodePos)) {
 					continue;
 				}
@@ -222,6 +224,8 @@ public class LightChunkTask {
 				// only propagate removal according to removeFlag
 				removeMask.and(less, removeFlag);
 
+				boolean restoreLightSource = removeMask.any() && Encoding.isLightSource(nodeLight);
+
 				if (removeMask.any()) {
 					int mask = 0;
 
@@ -243,9 +247,15 @@ public class LightChunkTask {
 					Queues.enqueue(decQueue, nodeIndex, nodeLight, side);
 
 					nodeLight = resultLight;
+
+					// restore obliterated light source
+					if (restoreLightSource) {
+						short registeredLight = LightRegistry.get(nodeState);
+						nodeLight |= (registeredLight & mask);
+					}
 				}
 
-				if (!less.all()) {
+				if (!less.all() || restoreLightSource) {
 					// increases queued in decrease may propagate to all directions as if a light source
 					Queues.enqueue(incQueue, nodeIndex, nodeLight);
 				}
@@ -260,10 +270,15 @@ public class LightChunkTask {
 			final short recordedLight = Queues.light(entry);
 			final int from = Queues.from(entry);
 
-			final short sourceLight = LightDebug.debugData.get(index);
+			short sourceLight = LightDebug.debugData.get(index);
 
-			if (Encoding.pure(sourceLight) != Encoding.pure(recordedLight)) {
-				continue;
+			if (sourceLight != recordedLight) {
+				if (Encoding.isLightSource(recordedLight)) {
+					sourceLight = recordedLight;
+					LightDebug.debugData.put(index, sourceLight);
+				} else {
+					continue;
+				}
 			}
 
 			LightDebug.debugData.reverseIndexify(index, sourcePos);
@@ -284,7 +299,7 @@ public class LightChunkTask {
 
 				// CanvasMod.LOG.info("increase at " + nodeX + "," + nodeY + "," + nodeZ);
 
-				// TODO: remove
+				// TODO: change to chunk extents + edge checks
 				if (!LightDebug.debugData.withinExtents(nodePos)) {
 					continue;
 				}
