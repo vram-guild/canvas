@@ -377,7 +377,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 			Lighting.setupLevel(MatrixData.viewMatrix);
 		}
 
-		LightDataManager.INSTANCE.update();
+		LightDataManager.INSTANCE.update(world);
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
 

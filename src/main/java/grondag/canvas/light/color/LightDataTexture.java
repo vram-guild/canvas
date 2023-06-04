@@ -7,7 +7,6 @@ import org.lwjgl.system.MemoryUtil;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 

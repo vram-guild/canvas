@@ -3,18 +3,21 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
+import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
+import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
 
 import net.minecraft.core.BlockPos;
-
-import grondag.canvas.CanvasMod;
+import net.minecraft.world.level.BlockAndTintGetter;
 
 public class LightDataManager {
 	private static final int REGION_COUNT_LENGTH_WISE = 16;
 	// private static final int INITIAL_LIMIT = REGION_COUNT_LENGTH_WISE * REGION_COUNT_LENGTH_WISE * REGION_COUNT_LENGTH_WISE;
 	public static final LightDataManager INSTANCE = new LightDataManager();
 
-	private final Long2ObjectMap<LightRegionData> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 	// initial size based on 8 chunk render distance
+	private final LongPriorityQueue updateQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue(512));
 
 	// placeholder
 	private int originBlockX = -8 * 16;
@@ -33,7 +36,7 @@ public class LightDataManager {
 
 	}
 
-	public void update() {
+	public void update(BlockAndTintGetter blockView) {
 		if (texture == null) {
 			initializeTexture();
 		}
@@ -42,26 +45,54 @@ public class LightDataManager {
 		// 	expandTexture();
 		// }
 
-		allocated.forEach((key, data) -> {
-			if (data.isDirty()) {
-				texture.upload(
-						data.regionOriginBlockX - originBlockX,
-						data.regionOriginBlockY - originBlockY,
-						data.regionOriginBlockZ - originBlockZ,
-						data.getBuffer());
-				data.clearDirty();
+		synchronized (updateQueue) {
+			while (!updateQueue.isEmpty()) {
+				final LightRegion lightRegion = allocated.get(updateQueue.dequeueLong());
+
+				if (lightRegion.isClosed()) {
+					continue;
+				}
+
+				lightRegion.update(blockView);
+
+				if (lightRegion.lightData.isDirty()) {
+					texture.upload(
+							lightRegion.lightData.regionOriginBlockX - originBlockX,
+							lightRegion.lightData.regionOriginBlockY - originBlockY,
+							lightRegion.lightData.regionOriginBlockZ - originBlockZ,
+							lightRegion.lightData.getBuffer());
+					lightRegion.lightData.clearDirty();
+				}
 			}
-		});
+		}
 	}
 
-	public LightRegionData getOrAllocate(BlockPos regionOrigin) {
-		LightRegionData data = allocated.get(regionOrigin.asLong());
+	public LightRegion getOrAllocate(BlockPos origin) {
+		LightRegion lightRegion = allocated.get(origin.asLong());
 
-		if (data == null) {
-			return allocate(regionOrigin);
+		if (lightRegion == null) {
+			return allocate(origin);
 		}
 
-		return data;
+		return lightRegion;
+	}
+
+	public LightRegion getFromBlock(BlockPos blockPos) {
+		final long key = BlockPos.asLong(
+				blockPos.getX() & ~LightRegionData.Const.WIDTH_MASK,
+				blockPos.getY() & ~LightRegionData.Const.WIDTH_MASK,
+				blockPos.getZ() & ~LightRegionData.Const.WIDTH_MASK);
+		return allocated.get(key);
+	}
+
+	public void deallocate(BlockPos regionOrigin) {
+		final LightRegion lightRegion = allocated.get(regionOrigin.asLong());
+
+		if (lightRegion != null && lightRegion.lightData != null) {
+			lightRegion.lightData.close();
+		}
+
+		allocated.remove(regionOrigin.asLong());
 	}
 
 	public boolean withinExtents(BlockPos pos) {
@@ -78,17 +109,15 @@ public class LightDataManager {
 	// 	return allocated.containsKey(regionOrigin.asLong());
 	// }
 
-	private LightRegionData allocate(BlockPos regionOrigin) {
+	private LightRegion allocate(BlockPos origin) {
 		// if (allocated.size() == size - 1) {
 		// 	requestExpand();
 		// }
 
-		CanvasMod.LOG.info("allocating for " + regionOrigin);
+		final LightRegion lightRegion = new LightRegion(origin);
+		allocated.put(origin.asLong(), lightRegion);
 
-		final LightRegionData data = new LightRegionData(regionOrigin.getX(), regionOrigin.getY(), regionOrigin.getZ());
-		allocated.put(regionOrigin.asLong(), data);
-
-		return data;
+		return lightRegion;
 	}
 
 	// private void requestExpand() {
@@ -110,11 +139,15 @@ public class LightDataManager {
 	public void close() {
 		texture.close();
 
-		for (var data:allocated.values()) {
-			data.close();
-		}
+		synchronized (allocated) {
+			for (var lightRegion : allocated.values()) {
+				if (lightRegion.lightData != null) {
+					lightRegion.lightData.close();
+				}
+			}
 
-		allocated.clear();
+			allocated.clear();
+		}
 	}
 
 	public int getTexture(String imageName) {
@@ -127,6 +160,10 @@ public class LightDataManager {
 		}
 
 		return -1;
+	}
+
+	public void queueUpdate(LightRegion lightRegion) {
+		updateQueue.enqueue(lightRegion.origin);
 	}
 
 	// private void expandTexture() {

@@ -52,7 +52,7 @@ import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.light.color.LightDataManager;
-import grondag.canvas.light.color.LightRegionTask;
+import grondag.canvas.light.color.LightRegion;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.Pipeline;
@@ -81,7 +81,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	public final CameraRegionVisibility cameraVisibility;
 	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
-	private final LightRegionTask lightRegionTask;
+	private final LightRegion lightRegion;
 
 	private RegionRenderSector renderSector = null;
 
@@ -129,12 +129,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		cameraVisibility = worldRenderState.terrainIterator.cameraVisibility.createRegionState(this);
 		shadowVisibility = worldRenderState.terrainIterator.shadowVisibility.createRegionState(this);
 		origin.update();
-
-		if (LightDataManager.INSTANCE.withinExtents(origin)) {
-			lightRegionTask = new LightRegionTask(LightDataManager.INSTANCE.getOrAllocate(origin));
-		} else {
-			lightRegionTask = null;
-		}
+		lightRegion = LightDataManager.INSTANCE.getOrAllocate(origin);
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -174,6 +169,10 @@ public class RenderRegion implements TerrainExecutorTask {
 
 			if (renderSector != null) {
 				renderSector = renderSector.release(origin);
+			}
+
+			if (!lightRegion.isClosed()) {
+				LightDataManager.INSTANCE.deallocate(origin);
 			}
 		}
 	}
@@ -467,13 +466,13 @@ public class RenderRegion implements TerrainExecutorTask {
 				}
 			}
 
-			if (lightRegionTask != null) {
-				lightRegionTask.checkBlock(searchPos, blockState);
+			if (!lightRegion.isClosed()) {
+				lightRegion.checkBlock(searchPos, blockState);
 			}
 		}
 
-		if (lightRegionTask != null) {
-			lightRegionTask.propagateLight(region);
+		if (!lightRegion.isClosed()) {
+			lightRegion.markForUpdate();
 		}
 
 		buildState.prepareTranslucentIfNeeded(worldRenderState.sectorManager.cameraPos(), renderSector, collectors);

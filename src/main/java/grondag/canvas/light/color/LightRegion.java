@@ -1,6 +1,8 @@
 package grondag.canvas.light.color;
 
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
+import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
+import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -8,14 +10,12 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.light.color.LightRegionData.Elem;
 import grondag.canvas.light.color.LightRegionData.Encoding;
 
-// TODO: edge chunks
 // TODO: cluster slab allocation?
 // TODO: a way to repopulate cluster if needed
-public class LightRegionTask {
+public class LightRegion {
 	private static class BVec {
 		boolean r, g, b;
 
@@ -93,11 +93,11 @@ public class LightRegionTask {
 	}
 
 	private static class Queues {
-		static void enqueue(LongArrayFIFOQueue queue, long index, long light) {
+		static void enqueue(LongPriorityQueue queue, long index, long light) {
 			queue.enqueue(((long) Side.nullId << 48L) | (index << 16L) | light & 0xffffL);
 		}
 
-		static void enqueue(LongArrayFIFOQueue queue, long index, long light, Side target) {
+		static void enqueue(LongPriorityQueue queue, long index, long light, Side target) {
 			queue.enqueue(((long) target.opposite.id << 48L) | (index << 16L) | light & 0xffffL);
 		}
 
@@ -114,19 +114,33 @@ public class LightRegionTask {
 		}
 	}
 
-	private LightRegionData lightRegionData;
+	final LightRegionData lightData;
+	final long origin;
 	private final BVec less = new BVec();
 	private final BlockPos.MutableBlockPos sourcePos = new BlockPos.MutableBlockPos();
 	private final BlockPos.MutableBlockPos nodePos = new BlockPos.MutableBlockPos();
 	private final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
 	private final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
 
-	public LightRegionTask(LightRegionData lightRegionData) {
-		this.lightRegionData = lightRegionData;;
+	// This is bad and defeats the point of Canvas multithreading, maybe
+	private final LongPriorityQueue globalIncQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
+	private final LongPriorityQueue globalDecQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
+
+	private boolean needsUpdate = false;
+
+	LightRegion(BlockPos origin) {
+		this.origin = origin.asLong();
+
+		//debug
+		if (LightDataManager.INSTANCE.withinExtents(origin)) {
+			this.lightData = new LightRegionData(origin.getX(), origin.getY(), origin.getZ());
+		} else {
+			this.lightData = null;
+		}
 	}
 
 	public void checkBlock(BlockPos pos, BlockState blockState) {
-		if (!lightRegionData.withinExtents(pos)) {
+		if (!lightData.withinExtents(pos)) {
 			return;
 		}
 
@@ -136,19 +150,19 @@ public class LightRegionTask {
 			light = LightRegistry.get(blockState);
 		}
 
-		final int index = lightRegionData.indexify(pos);
-		final short getLight = lightRegionData.get(index);
+		final int index = lightData.indexify(pos);
+		final short getLight = lightData.get(index);
 		final boolean occluding = blockState.canOcclude();
 
 		less.lessThan(getLight, light);
 
 		if (less.any()) {
-			lightRegionData.put(index, light);
-			Queues.enqueue(incQueue, index, light);
+			lightData.put(index, light);
+			Queues.enqueue(globalIncQueue, index, light);
 			// CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
 		} else if (light == 0 && (Encoding.isLightSource(getLight) || (Encoding.isOccluding(getLight) != occluding))) {
-			lightRegionData.put(index, Encoding.encodeLight(0, false, occluding));
-			Queues.enqueue(decQueue, index, getLight);
+			lightData.put(index, Encoding.encodeLight(0, false, occluding));
+			Queues.enqueue(globalDecQueue, index, getLight);
 			// CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
 		}
 	}
@@ -163,7 +177,7 @@ public class LightRegionTask {
 		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
 	}
 
-	public void propagateLight(BlockAndTintGetter blockView) {
+	private void propagateLight(BlockAndTintGetter blockView) {
 		if (incQueue.isEmpty() && decQueue.isEmpty()) {
 			// CanvasMod.LOG.info("Nothing to process!");
 			return;
@@ -174,11 +188,11 @@ public class LightRegionTask {
 		final BVec removeFlag = new BVec();
 		final BVec removeMask = new BVec();
 
-		int debugMaxDec = 0;
-		int debugMaxInc = 0;
+		int decCount = 0;
+		int incCount = 0;
 
 		while(!decQueue.isEmpty()) {
-			debugMaxDec++;
+			decCount++;
 
 			final long entry = decQueue.dequeueLong();
 			final int index = Queues.index(entry);
@@ -186,10 +200,10 @@ public class LightRegionTask {
 			final int from = Queues.from(entry);
 
 			// only remove elements that are less than 1 (zero)
-			final short sourceCurrentLight = lightRegionData.get(index);
+			final short sourceCurrentLight = lightData.get(index);
 			removeFlag.lessThan(sourceCurrentLight, (short) 0x1110);
 
-			lightRegionData.reverseIndexify(index, sourcePos);
+			lightData.reverseIndexify(index, sourcePos);
 
 			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
@@ -206,12 +220,30 @@ public class LightRegionTask {
 				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
 
 				// TODO: change to chunk extents + edge checks
-				if (!lightRegionData.withinExtents(nodePos)) {
-					continue;
+				final LightRegionData dataAccess;
+				final LongPriorityQueue increaseQueue;
+				final LongPriorityQueue decreaseQueue;
+				boolean isNeighbor = !lightData.withinExtents(nodePos);
+				LightRegion neighbor = null;
+
+				if (isNeighbor) {
+					neighbor = LightDataManager.INSTANCE.getFromBlock(nodePos);
+
+					if (neighbor == null || neighbor.isClosed()) {
+						continue;
+					}
+
+					increaseQueue = neighbor.globalIncQueue;
+					decreaseQueue = neighbor.globalDecQueue;
+					dataAccess = neighbor.lightData;
+				} else {
+					increaseQueue = incQueue;
+					decreaseQueue = decQueue;
+					dataAccess = lightData;
 				}
 
-				final int nodeIndex = lightRegionData.indexify(nodePos);
-				short nodeLight = lightRegionData.get(nodeIndex);
+				final int nodeIndex = dataAccess.indexify(nodePos);
+				short nodeLight = dataAccess.get(nodeIndex);
 
 				if (Encoding.pure(nodeLight) == 0) {
 					continue;
@@ -220,7 +252,7 @@ public class LightRegionTask {
 				final BlockState nodeState = blockView.getBlockState(nodePos);
 
 				// check neighbor occlusion for decrease
-				if (occludeSide(nodeState, side.opposite, blockView, nodePos)) {
+				if (!Encoding.isLightSource(nodeLight) && occludeSide(nodeState, side.opposite, blockView, nodePos)) {
 					continue;
 				}
 
@@ -247,9 +279,9 @@ public class LightRegionTask {
 					}
 
 					final short resultLight = (short) (nodeLight & ~(mask));
-					lightRegionData.put(nodeIndex, resultLight);
+					dataAccess.put(nodeIndex, resultLight);
 
-					Queues.enqueue(decQueue, nodeIndex, nodeLight, side);
+					Queues.enqueue(decreaseQueue, nodeIndex, nodeLight, side);
 
 					nodeLight = resultLight;
 
@@ -258,35 +290,43 @@ public class LightRegionTask {
 						short registeredLight = LightRegistry.get(nodeState);
 						nodeLight |= (registeredLight & mask);
 					}
+
+					if (neighbor != null) {
+						neighbor.markForUpdate();
+					}
 				}
 
 				if (!less.all() || restoreLightSource) {
 					// increases queued in decrease may propagate to all directions as if a light source
-					Queues.enqueue(incQueue, nodeIndex, nodeLight);
+					Queues.enqueue(increaseQueue, nodeIndex, nodeLight);
+
+					if (neighbor != null) {
+						neighbor.markForUpdate();
+					}
 				}
 			}
 		}
 
 		while (!incQueue.isEmpty()) {
-			debugMaxInc++;
+			incCount++;
 
 			final long entry = incQueue.dequeueLong();
 			final int index = Queues.index(entry);
 			final short recordedLight = Queues.light(entry);
 			final int from = Queues.from(entry);
 
-			short sourceLight = lightRegionData.get(index);
+			short sourceLight = lightData.get(index);
 
 			if (sourceLight != recordedLight) {
 				if (Encoding.isLightSource(recordedLight)) {
 					sourceLight = recordedLight;
-					lightRegionData.put(index, sourceLight);
+					lightData.put(index, sourceLight);
 				} else {
 					continue;
 				}
 			}
 
-			lightRegionData.reverseIndexify(index, sourcePos);
+			lightData.reverseIndexify(index, sourcePos);
 
 			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
@@ -305,12 +345,27 @@ public class LightRegionTask {
 				// CanvasMod.LOG.info("increase at " + nodeX + "," + nodeY + "," + nodeZ);
 
 				// TODO: change to chunk extents + edge checks
-				if (!lightRegionData.withinExtents(nodePos)) {
-					continue;
+				final LightRegionData dataAccess;
+				final LongPriorityQueue increaseQueue;
+				boolean isNeighbor = !lightData.withinExtents(nodePos);
+				LightRegion neighbor = null;
+
+				if (isNeighbor) {
+					neighbor = LightDataManager.INSTANCE.getFromBlock(nodePos);
+
+					if (neighbor == null || neighbor.isClosed()) {
+						continue;
+					}
+
+					increaseQueue = neighbor.globalIncQueue;
+					dataAccess = neighbor.lightData;
+				} else {
+					increaseQueue = incQueue;
+					dataAccess = lightData;
 				}
 
-				final int nodeIndex = lightRegionData.indexify(nodePos);
-				final short nodeLight = lightRegionData.get(nodeIndex);
+				final int nodeIndex = dataAccess.indexify(nodePos);
+				final short nodeLight = dataAccess.get(nodeIndex);
 				final BlockState nodeState = blockView.getBlockState(nodePos);
 
 				// check neighbor occlusion for increase
@@ -337,17 +392,51 @@ public class LightRegionTask {
 						resultLight = Elem.B.replace(resultLight, (short) (Elem.B.of(sourceLight) - 1));
 					}
 
-					lightRegionData.put(nodeIndex, resultLight);
+					dataAccess.put(nodeIndex, resultLight);
 
 					// CanvasMod.LOG.info("updating neighbor to: " + nodeX + "," + nodeY + "," + nodeZ + "," + Elem.text(resultLight));
 
-					Queues.enqueue(incQueue, nodeIndex, resultLight, side);
+					Queues.enqueue(increaseQueue, nodeIndex, resultLight, side);
+
+					if (neighbor != null) {
+						neighbor.markForUpdate();
+					}
 				}
 			}
 		}
 
-		CanvasMod.LOG.info("Processed queues! Count: inc,dec " + debugMaxInc + "," + debugMaxDec);
-		// CanvasMod.LOG.info("Marking texture as dirty");
-		lightRegionData.markAsDirty();
+		// CanvasMod.LOG.info("Processed queues! Count: inc,dec " + incCount + "," + decCount);
+
+		if (decCount + incCount > 0) {
+			lightData.markAsDirty();
+		}
+	}
+
+	public void markForUpdate() {
+		if (!needsUpdate) {
+			needsUpdate = true;
+			LightDataManager.INSTANCE.queueUpdate(this);
+		}
+	}
+
+	public void update(BlockAndTintGetter blockView) {
+		boolean updating = needsUpdate || !globalDecQueue.isEmpty() || !globalIncQueue.isEmpty();
+
+		while (!globalDecQueue.isEmpty()) {
+			decQueue.enqueue(globalDecQueue.dequeueLong());
+		}
+
+		while (!globalIncQueue.isEmpty()) {
+			incQueue.enqueue(globalIncQueue.dequeueLong());
+		}
+
+		if (updating) {
+			propagateLight(blockView);
+			needsUpdate = false;
+		}
+	}
+
+	public boolean isClosed() {
+		return lightData == null || lightData.isClosed();
 	}
 }
