@@ -180,15 +180,13 @@ public class LightSectionData {
 		return ((localZ << (Const.WIDTH_SHIFT * 2)) | (localY << Const.WIDTH_SHIFT) | localX) * Format.pixelBytes;
 	}
 
-	public void reverseIndexify(int index, int[] result) {
-		assert result.length == 3;
-
+	public void reverseIndexify(int index, BlockPos.MutableBlockPos result) {
 		index = index / Format.pixelBytes;
 
 		// x and z are swapped because opengl
-		result[0] = (index & Const.WIDTH_MASK) + sectionBlockOffsetX;
-		result[1] = ((index >> Const.WIDTH_SHIFT) & Const.WIDTH_MASK) + sectionBlockOffsetY;
-		result[2] = ((index >> Const.WIDTH_SHIFT * 2) & Const.WIDTH_MASK) + sectionBlockOffsetZ;
+		result.setX((index & Const.WIDTH_MASK) + sectionBlockOffsetX);
+		result.setY(((index >> Const.WIDTH_SHIFT) & Const.WIDTH_MASK) + sectionBlockOffsetY);
+		result.setZ(((index >> Const.WIDTH_SHIFT * 2) & Const.WIDTH_MASK) + sectionBlockOffsetZ);
 	}
 
 	public boolean withinExtents(BlockPos pos) {

@@ -3,7 +3,10 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.Shapes;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.light.color.LightSectionData.Elem;
@@ -58,33 +61,44 @@ public class LightChunkTask {
 		}
 	}
 
-	private static enum Direction {
-		DOWN(0, -1, 0, 1, 2),
-		UP(0, 1, 0, 2, 1),
-		NORTH(0, 0, -1, 3, 4),
-		SOUTH(0, 0, 1, 4, 3),
-		WEST(-1, 0, 0, 5, 6),
-		EAST(1, 0, 0, 6, 5);
+	private static enum Side {
+		DOWN(0, -1, 0, 1, Direction.DOWN),
+		UP(0, 1, 0, 2, Direction.UP),
+		NORTH(0, 0, -1, 3, Direction.NORTH),
+		SOUTH(0, 0, 1, 4, Direction.SOUTH),
+		WEST(-1, 0, 0, 5, Direction.WEST),
+		EAST(1, 0, 0, 6, Direction.EAST);
 
-		final int x, y, z, id, opposite;
+		final int x, y, z, id;
+		final Direction vanilla;
+		Side opposite;
 		final static int nullId = 0;
 
-		Direction(int x, int y, int z, int id, int opposite) {
+		static {
+			DOWN.opposite = UP;
+			UP.opposite = DOWN;
+			NORTH.opposite = SOUTH;
+			SOUTH.opposite = NORTH;
+			WEST.opposite = EAST;
+			EAST.opposite = WEST;
+		}
+
+		Side(int x, int y, int z, int id, Direction vanilla) {
 			this.x = x;
 			this.y = y;
 			this.z = z;
 			this.id = id;
-			this.opposite = opposite;
+			this.vanilla = vanilla;
 		}
 	}
 
 	private static class Queues {
 		static void enqueue(LongArrayFIFOQueue queue, long index, long light) {
-			queue.enqueue(((long) Direction.nullId << 48L) | (index << 16L) | light & 0xffffL);
+			queue.enqueue(((long) Side.nullId << 48L) | (index << 16L) | light & 0xffffL);
 		}
 
-		static void enqueue(LongArrayFIFOQueue queue, long index, long light, Direction target) {
-			queue.enqueue(((long) target.opposite << 48L) | (index << 16L) | light & 0xffffL);
+		static void enqueue(LongArrayFIFOQueue queue, long index, long light, Side target) {
+			queue.enqueue(((long) target.opposite.id << 48L) | (index << 16L) | light & 0xffffL);
 		}
 
 		static int from(long entry) {
@@ -101,6 +115,8 @@ public class LightChunkTask {
 	}
 
 	private final BVec less = new BVec();
+	private final BlockPos.MutableBlockPos sourcePos = new BlockPos.MutableBlockPos();
+	private final BlockPos.MutableBlockPos nodePos = new BlockPos.MutableBlockPos();
 	private static final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
 	private static final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
 
@@ -132,7 +148,15 @@ public class LightChunkTask {
 		}
 	}
 
-	public void propagateLight() {
+	private boolean occludeSide(BlockState state, Side dir, BlockAndTintGetter view, BlockPos pos) {
+		if (!state.canOcclude()) {
+			return false;
+		}
+
+		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
+	}
+
+	public void propagateLight(BlockAndTintGetter blockView) {
 		if (incQueue.isEmpty() && decQueue.isEmpty()) {
 			CanvasMod.LOG.info("Nothing to process!");
 			return;
@@ -140,7 +164,6 @@ public class LightChunkTask {
 
 		CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
 
-		final int[] pos = new int[3];
 		final BVec removeFlag = new BVec();
 		final BVec removeMask = new BVec();
 
@@ -159,25 +182,38 @@ public class LightChunkTask {
 			final short sourceCurrentLight = LightDebug.debugData.get(index);
 			removeFlag.lessThan(sourceCurrentLight, (short) 0x1110);
 
-			LightDebug.debugData.reverseIndexify(index, pos);
+			LightDebug.debugData.reverseIndexify(index, sourcePos);
 
-			for (var d: Direction.values()) {
-				if (d.id == from) {
+			final BlockState sourceState = blockView.getBlockState(sourcePos);
+
+			for (var side:Side.values()) {
+				if (side.id == from) {
 					continue;
 				}
 
-				final int nodeX = pos[0] + d.x;
-				final int nodeY = pos[1] + d.y;
-				final int nodeZ = pos[2] + d.z;
-
-				if (!LightDebug.debugData.withinExtents(nodeX, nodeY, nodeZ)) {
+				// check self occlusion for decrease
+				if (!Encoding.isOccluding(sourceCurrentLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
 					continue;
 				}
 
-				final int nodeIndex = LightDebug.debugData.indexify(nodeX, nodeY, nodeZ);
+				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
+
+				// TODO: remove
+				if (!LightDebug.debugData.withinExtents(nodePos)) {
+					continue;
+				}
+
+				final int nodeIndex = LightDebug.debugData.indexify(nodePos);
 				short nodeLight = LightDebug.debugData.get(nodeIndex);
 
 				if (Encoding.pure(nodeLight) == 0) {
+					continue;
+				}
+
+				final BlockState nodeState = blockView.getBlockState(nodePos);
+
+				// check neighbor occlusion for decrease
+				if (occludeSide(nodeState, side.opposite, blockView, nodePos)) {
 					continue;
 				}
 
@@ -186,9 +222,7 @@ public class LightChunkTask {
 				// only propagate removal according to removeFlag
 				removeMask.and(less, removeFlag);
 
-				// TODO: improve for different occlusion sides
-				// removal propagation can also be occluded
-				if (!Encoding.isOccluding(nodeLight) && removeMask.any()) {
+				if (removeMask.any()) {
 					int mask = 0;
 
 					if (removeMask.r) {
@@ -206,7 +240,7 @@ public class LightChunkTask {
 					final short resultLight = (short) (nodeLight & ~(mask));
 					LightDebug.debugData.put(nodeIndex, resultLight);
 
-					Queues.enqueue(decQueue, nodeIndex, nodeLight, d);
+					Queues.enqueue(decQueue, nodeIndex, nodeLight, side);
 
 					nodeLight = resultLight;
 				}
@@ -232,28 +266,35 @@ public class LightChunkTask {
 				continue;
 			}
 
-			LightDebug.debugData.reverseIndexify(index, pos);
+			LightDebug.debugData.reverseIndexify(index, sourcePos);
 
-			for (var d: Direction.values()) {
-				if (d.id == from) {
+			final BlockState sourceState = blockView.getBlockState(sourcePos);
+
+			for (var side:Side.values()) {
+				if (side.id == from) {
 					continue;
 				}
 
-				final int nodeX = pos[0] + d.x;
-				final int nodeY = pos[1] + d.y;
-				final int nodeZ = pos[2] + d.z;
+				// check self occlusion for increase
+				if (!Encoding.isLightSource(sourceLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
+					continue;
+				}
+
+				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
 
 				// CanvasMod.LOG.info("increase at " + nodeX + "," + nodeY + "," + nodeZ);
 
-				if (!LightDebug.debugData.withinExtents(nodeX, nodeY, nodeZ)) {
+				// TODO: remove
+				if (!LightDebug.debugData.withinExtents(nodePos)) {
 					continue;
 				}
 
-				final int nodeIndex = LightDebug.debugData.indexify(nodeX, nodeY, nodeZ);
+				final int nodeIndex = LightDebug.debugData.indexify(nodePos);
 				final short nodeLight = LightDebug.debugData.get(nodeIndex);
+				final BlockState nodeState = blockView.getBlockState(nodePos);
 
-				// TODO: improve for different occlusion sides
-				if (Encoding.isOccluding(nodeLight)) {
+				// check neighbor occlusion for increase
+				if (occludeSide(nodeState, side.opposite, blockView, nodePos)) {
 					continue;
 				}
 
@@ -280,7 +321,7 @@ public class LightChunkTask {
 
 					// CanvasMod.LOG.info("updating neighbor to: " + nodeX + "," + nodeY + "," + nodeZ + "," + Elem.text(resultLight));
 
-					Queues.enqueue(incQueue, nodeIndex, resultLight, d);
+					Queues.enqueue(incQueue, nodeIndex, resultLight, side);
 				}
 			}
 		}

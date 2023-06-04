@@ -473,7 +473,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		}
 
 		if (lightChunkTask != null) {
-			lightChunkTask.propagateLight();
+			lightChunkTask.propagateLight(region);
 		}
 
 		buildState.prepareTranslucentIfNeeded(worldRenderState.sectorManager.cameraPos(), renderSector, collectors);
