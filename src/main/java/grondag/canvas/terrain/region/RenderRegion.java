@@ -48,6 +48,7 @@ import net.minecraft.world.phys.Vec3;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.fluid.FluidModel;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
@@ -129,7 +130,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		cameraVisibility = worldRenderState.terrainIterator.cameraVisibility.createRegionState(this);
 		shadowVisibility = worldRenderState.terrainIterator.shadowVisibility.createRegionState(this);
 		origin.update();
-		lightRegion = LightDataManager.INSTANCE.getOrAllocate(origin);
+		lightRegion = LightDataManager.INSTANCE.allocate(origin);
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -173,6 +174,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 			if (!lightRegion.isClosed()) {
 				LightDataManager.INSTANCE.deallocate(origin);
+				CanvasMod.LOG.info("called deallocate() from Render Region");
 			}
 		}
 	}
@@ -469,10 +471,6 @@ public class RenderRegion implements TerrainExecutorTask {
 			if (!lightRegion.isClosed()) {
 				lightRegion.checkBlock(searchPos, blockState);
 			}
-		}
-
-		if (!lightRegion.isClosed()) {
-			lightRegion.markForUpdate();
 		}
 
 		buildState.prepareTranslucentIfNeeded(worldRenderState.sectorManager.cameraPos(), renderSector, collectors);

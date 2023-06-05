@@ -10,7 +10,7 @@ public class LightRegionData {
 
 	public static class Const {
 		public static final int WIDTH = 16;
-		private static final int SIZE3D = WIDTH * WIDTH * WIDTH;
+		public static final int SIZE3D = WIDTH * WIDTH * WIDTH;
 
 		public static final int WIDTH_SHIFT = (int) (Math.log(WIDTH) / Math.log(2));
 		public static final int WIDTH_MASK = WIDTH - 1;

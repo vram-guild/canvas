@@ -126,17 +126,12 @@ public class LightRegion {
 	private final LongPriorityQueue globalIncQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 	private final LongPriorityQueue globalDecQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 
-	private boolean needsUpdate = false;
+	// private boolean needsUpdate = false;
+	// private boolean needsClear = false;
 
 	LightRegion(BlockPos origin) {
 		this.origin = origin.asLong();
-
-		//debug
-		if (LightDataManager.INSTANCE.withinExtents(origin)) {
-			this.lightData = new LightRegionData(origin.getX(), origin.getY(), origin.getZ());
-		} else {
-			this.lightData = null;
-		}
+		this.lightData = new LightRegionData(origin.getX(), origin.getY(), origin.getZ());
 	}
 
 	public void checkBlock(BlockPos pos, BlockState blockState) {
@@ -177,10 +172,10 @@ public class LightRegion {
 		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
 	}
 
-	private void propagateLight(BlockAndTintGetter blockView) {
+	private boolean propagateLight(BlockAndTintGetter blockView) {
 		if (incQueue.isEmpty() && decQueue.isEmpty()) {
 			// CanvasMod.LOG.info("Nothing to process!");
-			return;
+			return false;
 		}
 
 		// CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
@@ -291,18 +286,18 @@ public class LightRegion {
 						nodeLight |= (registeredLight & mask);
 					}
 
-					if (neighbor != null) {
-						neighbor.markForUpdate();
-					}
+					// if (neighbor != null) {
+					// 	neighbor.markForUpdate();
+					// }
 				}
 
 				if (!less.all() || restoreLightSource) {
 					// increases queued in decrease may propagate to all directions as if a light source
 					Queues.enqueue(increaseQueue, nodeIndex, nodeLight);
 
-					if (neighbor != null) {
-						neighbor.markForUpdate();
-					}
+					// if (neighbor != null) {
+					// 	neighbor.markForUpdate();
+					// }
 				}
 			}
 		}
@@ -398,29 +393,43 @@ public class LightRegion {
 
 					Queues.enqueue(increaseQueue, nodeIndex, resultLight, side);
 
-					if (neighbor != null) {
-						neighbor.markForUpdate();
-					}
+					// if (neighbor != null) {
+					// 	neighbor.markForUpdate();
+					// }
 				}
 			}
 		}
 
 		// CanvasMod.LOG.info("Processed queues! Count: inc,dec " + incCount + "," + decCount);
 
-		if (decCount + incCount > 0) {
-			lightData.markAsDirty();
-		}
+		return decCount + incCount > 0;
 	}
 
-	public void markForUpdate() {
-		if (!needsUpdate) {
-			needsUpdate = true;
-			LightDataManager.INSTANCE.queueUpdate(this);
-		}
-	}
+	// public void markForUpdate() {
+	// 	if (!needsUpdate) {
+	// 		needsUpdate = true;
+	// 		LightDataManager.INSTANCE.queueUpdate(this);
+	// 	}
+	// }
 
 	public void update(BlockAndTintGetter blockView) {
-		boolean updating = needsUpdate || !globalDecQueue.isEmpty() || !globalIncQueue.isEmpty();
+		// boolean neededUpdate = needsUpdate;
+		// needsUpdate = false;
+		//
+		// boolean wasCleared = false;
+		//
+		// if (needsClear) {
+		// 	for (int i = 0; i < LightRegionData.Const.SIZE3D; i++) {
+		// 		lightData.put(i * LightDataTexture.Format.pixelBytes, (short) 0);
+		// 	}
+		//
+		// 	needsClear = false;
+		// 	wasCleared = true;
+		// }
+
+		// boolean propagating = wasCleared || neededUpdate || !globalDecQueue.isEmpty() || !globalIncQueue.isEmpty();
+
+		boolean propagating = !globalDecQueue.isEmpty() || !globalIncQueue.isEmpty();
 
 		while (!globalDecQueue.isEmpty()) {
 			decQueue.enqueue(globalDecQueue.dequeueLong());
@@ -430,9 +439,33 @@ public class LightRegion {
 			incQueue.enqueue(globalIncQueue.dequeueLong());
 		}
 
-		if (updating) {
-			propagateLight(blockView);
-			needsUpdate = false;
+		boolean didPropagate = false;
+
+		if (propagating) {
+			didPropagate = propagateLight(blockView);
+		}
+
+		// if (didPropagate || wasCleared) {
+		if (didPropagate) {
+			lightData.markAsDirty();
+		}
+	}
+
+	// public void reclaim() {
+	// 	globalIncQueue.clear();
+	// 	globalDecQueue.clear();
+	//
+	// 	needsUpdate = false;
+	//
+	// 	// this is called from allocate(), so defer it to main thread
+	// 	needsClear = true;
+	//
+	// 	markForUpdate();
+	// }
+
+	public void close() {
+		if (!lightData.isClosed()) {
+			lightData.close();
 		}
 	}
 

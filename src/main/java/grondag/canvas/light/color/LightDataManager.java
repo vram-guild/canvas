@@ -3,28 +3,32 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
-import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
-import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 
+import grondag.canvas.CanvasMod;
+
 public class LightDataManager {
-	private static final int REGION_COUNT_LENGTH_WISE = 16;
+	// NB: must be even
+	private static final int REGION_COUNT_LENGTH_WISE = 32;
+	private static final boolean debugRedrawEveryFrame = false;
 	// private static final int INITIAL_LIMIT = REGION_COUNT_LENGTH_WISE * REGION_COUNT_LENGTH_WISE * REGION_COUNT_LENGTH_WISE;
+
 	public static final LightDataManager INSTANCE = new LightDataManager();
 
 	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 	// initial size based on 8 chunk render distance
-	private final LongPriorityQueue updateQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue(512));
+	// private final LongPriorityQueue updateQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue(512));
+	// private final LongPriorityQueue processQueue = new LongArrayFIFOQueue(512);
 
-	// placeholder
-	private int originBlockX = -8 * 16;
-	private int originBlockY = 64;
-	private int originBlockZ = -8 * 16;
+	private int extentStartBlockX = 0;
+	private int extentStartBlockY = 0;
+	private int extentStartBlockZ = 0;
+	private boolean cameraUninitialized = true;
 
-	private int size = REGION_COUNT_LENGTH_WISE;
+	// NB: must be even
+	private int extentSizeInRegions = REGION_COUNT_LENGTH_WISE;
 	private LightDataTexture texture;
 
 	{
@@ -36,45 +40,60 @@ public class LightDataManager {
 
 	}
 
-	public void update(BlockAndTintGetter blockView) {
+	public void update(BlockAndTintGetter blockView, int cameraX, int cameraY, int cameraZ) {
 		if (texture == null) {
 			initializeTexture();
 		}
 
-		// if (texture.size < supposedTextureSize()) {
-		// 	expandTexture();
-		// }
+		final int regionSnapMask = ~LightRegionData.Const.WIDTH_MASK;
+		final int halfRadius = extentSizeInBlocks(extentSizeInRegions / 2);
 
-		synchronized (updateQueue) {
-			while (!updateQueue.isEmpty()) {
-				final LightRegion lightRegion = allocated.get(updateQueue.dequeueLong());
+		final int prevExtentX = extentStartBlockX;
+		final int prevExtentY = extentStartBlockY;
+		final int prevExtentZ = extentStartBlockZ;
 
-				if (lightRegion.isClosed()) {
-					continue;
-				}
+		// snap camera position to the nearest region (chunk)
+		extentStartBlockX = (cameraX & regionSnapMask) - halfRadius;
+		extentStartBlockY = (cameraY & regionSnapMask) - halfRadius;
+		extentStartBlockZ = (cameraZ & regionSnapMask) - halfRadius;
 
-				lightRegion.update(blockView);
+		if (!cameraUninitialized
+				&& (extentStartBlockX != prevExtentX || extentStartBlockY != prevExtentY || extentStartBlockZ != prevExtentZ)) {
+			//TODO: IMPORTANT: re-draw newly entered regions
+			CanvasMod.LOG.info("Extent have changed");
+		}
 
-				if (lightRegion.lightData.isDirty()) {
-					texture.upload(
-							lightRegion.lightData.regionOriginBlockX - originBlockX,
-							lightRegion.lightData.regionOriginBlockY - originBlockY,
-							lightRegion.lightData.regionOriginBlockZ - originBlockZ,
-							lightRegion.lightData.getBuffer());
-					lightRegion.lightData.clearDirty();
+		cameraUninitialized = false;
+
+		// update all regions within extent
+		for (int i = extentStartBlockX; i < extentStartBlockX + extentSizeInBlocks(); i += extentSizeInBlocks(1)) {
+			for (int j = extentStartBlockY; j < extentStartBlockY + extentSizeInBlocks(); j += extentSizeInBlocks(1)) {
+				for (int k = extentStartBlockZ; k < extentStartBlockZ + extentSizeInBlocks(); k += extentSizeInBlocks(1)) {
+					long index = BlockPos.asLong(i, j, k);
+					updateRegion(index, blockView);
 				}
 			}
 		}
 	}
 
-	public LightRegion getOrAllocate(BlockPos origin) {
-		LightRegion lightRegion = allocated.get(origin.asLong());
+	private void updateRegion(long index, BlockAndTintGetter blockView) {
+		final LightRegion lightRegion = allocated.get(index);
 
-		if (lightRegion == null) {
-			return allocate(origin);
+		if (lightRegion == null || lightRegion.isClosed()) {
+			return;
 		}
 
-		return lightRegion;
+		lightRegion.update(blockView);
+
+		if (lightRegion.lightData.isDirty() || debugRedrawEveryFrame) {
+			final int extentGridMask = extentSizeMask();
+			final int x = lightRegion.lightData.regionOriginBlockX;
+			final int y = lightRegion.lightData.regionOriginBlockY;
+			final int z = lightRegion.lightData.regionOriginBlockZ;
+			// modulo into extent-grid
+			texture.upload(x & extentGridMask, y & extentGridMask, z & extentGridMask, lightRegion.lightData.getBuffer());
+			lightRegion.lightData.clearDirty();
+		}
 	}
 
 	public LightRegion getFromBlock(BlockPos blockPos) {
@@ -88,52 +107,41 @@ public class LightDataManager {
 	public void deallocate(BlockPos regionOrigin) {
 		final LightRegion lightRegion = allocated.get(regionOrigin.asLong());
 
-		if (lightRegion != null && lightRegion.lightData != null) {
-			lightRegion.lightData.close();
+		if (lightRegion != null && !lightRegion.isClosed()) {
+			lightRegion.close();
 		}
 
 		allocated.remove(regionOrigin.asLong());
 	}
 
-	public boolean withinExtents(BlockPos pos) {
-		return withinExtents(pos.getX(), pos.getY(), pos.getZ());
-	}
+	public LightRegion allocate(BlockPos regionOrigin) {
+		if (allocated.containsKey(regionOrigin.asLong())) {
+			deallocate(regionOrigin);
+			// we can probably clear it and reuse it?
+			// final LightRegion lightRegion = allocated.get(regionOrigin.asLong());
+			// lightRegion.reclaim();
+		}
 
-	public boolean withinExtents(int x, int y, int z) {
-		return (x >= originBlockX && x < originBlockX + sizeInBlocks())
-				&& (y >= originBlockY && y < originBlockY + sizeInBlocks())
-				&& (z >= originBlockZ && z < originBlockZ + sizeInBlocks());
-	}
-
-	// public boolean isAllocated(BlockPos regionOrigin) {
-	// 	return allocated.containsKey(regionOrigin.asLong());
-	// }
-
-	private LightRegion allocate(BlockPos origin) {
-		// if (allocated.size() == size - 1) {
-		// 	requestExpand();
-		// }
-
-		final LightRegion lightRegion = new LightRegion(origin);
-		allocated.put(origin.asLong(), lightRegion);
+		final LightRegion lightRegion = new LightRegion(regionOrigin);
+		allocated.put(regionOrigin.asLong(), lightRegion);
 
 		return lightRegion;
 	}
 
-	// private void requestExpand() {
-	// 	// I'm scared
-	// 	final int newLimit = size * 2;
-	// 	size = newLimit;
-	//
-	// 	CanvasMod.LOG.info(String.format("Reallocating light data texture from %d to %d! This is huge!", size, newLimit));
-	// }
+	private int extentSizeInBlocks(int extentSize) {
+		return extentSize * LightRegionData.Const.WIDTH;
+	}
 
-	private int sizeInBlocks() {
-		return size * LightRegionData.Const.WIDTH;
+	private int extentSizeInBlocks() {
+		return extentSizeInBlocks(extentSizeInRegions);
+	}
+
+	private int extentSizeMask() {
+		return extentSizeInBlocks() - 1;
 	}
 
 	private void initializeTexture() {
-		texture = new LightDataTexture(sizeInBlocks());
+		texture = new LightDataTexture(extentSizeInBlocks());
 	}
 
 	public void close() {
@@ -141,8 +149,8 @@ public class LightDataManager {
 
 		synchronized (allocated) {
 			for (var lightRegion : allocated.values()) {
-				if (lightRegion.lightData != null) {
-					lightRegion.lightData.close();
+				if (!lightRegion.isClosed()) {
+					lightRegion.close();
 				}
 			}
 
@@ -162,20 +170,7 @@ public class LightDataManager {
 		return -1;
 	}
 
-	public void queueUpdate(LightRegion lightRegion) {
-		updateQueue.enqueue(lightRegion.origin);
-	}
-
-	// private void expandTexture() {
-	// 	if (texture != null && texture.size == supposedTextureSize()) {
-	// 		return;
-	// 	}
-	//
-	// 	if (texture != null) {
-	// 		texture.close();
-	// 		texture = null;
-	// 	}
-	//
-	// 	initializeTexture();
+	// public void queueUpdate(LightRegion lightRegion) {
+	// 	updateQueue.enqueue(lightRegion.origin);
 	// }
 }
