@@ -18,9 +18,6 @@ public class LightDataManager {
 	public static final LightDataManager INSTANCE = new LightDataManager();
 
 	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
-	// initial size based on 8 chunk render distance
-	// private final LongPriorityQueue updateQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue(512));
-	// private final LongPriorityQueue processQueue = new LongArrayFIFOQueue(512);
 
 	private int extentStartBlockX = 0;
 	private int extentStartBlockY = 0;
@@ -60,6 +57,8 @@ public class LightDataManager {
 		if (!cameraUninitialized
 				&& (extentStartBlockX != prevExtentX || extentStartBlockY != prevExtentY || extentStartBlockZ != prevExtentZ)) {
 			//TODO: IMPORTANT: re-draw newly entered regions
+			//TODO: if newly entered region is null, clear using dummy (empty) lightDataRegion
+			//TODO: cleanup dummy lightDataRegion in close()
 			CanvasMod.LOG.info("Extent have changed");
 		}
 
@@ -117,9 +116,6 @@ public class LightDataManager {
 	public LightRegion allocate(BlockPos regionOrigin) {
 		if (allocated.containsKey(regionOrigin.asLong())) {
 			deallocate(regionOrigin);
-			// we can probably clear it and reuse it?
-			// final LightRegion lightRegion = allocated.get(regionOrigin.asLong());
-			// lightRegion.reclaim();
 		}
 
 		final LightRegion lightRegion = new LightRegion(regionOrigin);
@@ -159,11 +155,11 @@ public class LightDataManager {
 	}
 
 	public int getTexture(String imageName) {
-		if (texture == null) {
-			initializeTexture();
-		}
+		if (imageName.equals("canvas:alpha/light_data")) {
+			if (texture == null) {
+				initializeTexture();
+			}
 
-		if (imageName.equals("_cv_debug_light_data")) {
 			return texture.getTexId();
 		}
 

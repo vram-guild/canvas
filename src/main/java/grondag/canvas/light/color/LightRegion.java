@@ -13,7 +13,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import grondag.canvas.light.color.LightRegionData.Elem;
 import grondag.canvas.light.color.LightRegionData.Encoding;
 
-// TODO: cluster slab allocation?
+// TODO: cluster slab allocation? -> maybe unneeded now?
 // TODO: a way to repopulate cluster if needed
 public class LightRegion {
 	private static class BVec {
@@ -90,6 +90,21 @@ public class LightRegion {
 			this.id = id;
 			this.vanilla = vanilla;
 		}
+
+		static Side infer(BlockPos from, BlockPos to) {
+			int x = to.getX() - from.getX();
+			int y = to.getY() - from.getY();
+			int z = to.getZ() - from.getZ();
+
+			for (Side side:Side.values()) {
+				if (side.x == x && side.y == y && side.z == z) {
+					return side;
+				}
+			}
+
+			// detects programming error (happened once)
+			throw new IndexOutOfBoundsException("Can't infer side. From: " + from + ", To: " + to);
+		}
 	}
 
 	private static class Queues {
@@ -126,8 +141,7 @@ public class LightRegion {
 	private final LongPriorityQueue globalIncQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 	private final LongPriorityQueue globalDecQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 
-	// private boolean needsUpdate = false;
-	// private boolean needsClear = false;
+	private boolean needCheckEdges = true;
 
 	LightRegion(BlockPos origin) {
 		this.origin = origin.asLong();
@@ -214,7 +228,6 @@ public class LightRegion {
 
 				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
 
-				// TODO: change to chunk extents + edge checks
 				final LightRegionData dataAccess;
 				final LongPriorityQueue increaseQueue;
 				final LongPriorityQueue decreaseQueue;
@@ -285,19 +298,11 @@ public class LightRegion {
 						short registeredLight = LightRegistry.get(nodeState);
 						nodeLight |= (registeredLight & mask);
 					}
-
-					// if (neighbor != null) {
-					// 	neighbor.markForUpdate();
-					// }
 				}
 
 				if (!less.all() || restoreLightSource) {
 					// increases queued in decrease may propagate to all directions as if a light source
 					Queues.enqueue(increaseQueue, nodeIndex, nodeLight);
-
-					// if (neighbor != null) {
-					// 	neighbor.markForUpdate();
-					// }
 				}
 			}
 		}
@@ -339,7 +344,6 @@ public class LightRegion {
 
 				// CanvasMod.LOG.info("increase at " + nodeX + "," + nodeY + "," + nodeZ);
 
-				// TODO: change to chunk extents + edge checks
 				final LightRegionData dataAccess;
 				final LongPriorityQueue increaseQueue;
 				boolean isNeighbor = !lightData.withinExtents(nodePos);
@@ -392,10 +396,6 @@ public class LightRegion {
 					// CanvasMod.LOG.info("updating neighbor to: " + nodeX + "," + nodeY + "," + nodeZ + "," + Elem.text(resultLight));
 
 					Queues.enqueue(increaseQueue, nodeIndex, resultLight, side);
-
-					// if (neighbor != null) {
-					// 	neighbor.markForUpdate();
-					// }
 				}
 			}
 		}
@@ -405,29 +405,136 @@ public class LightRegion {
 		return decCount + incCount > 0;
 	}
 
-	// public void markForUpdate() {
-	// 	if (!needsUpdate) {
-	// 		needsUpdate = true;
-	// 		LightDataManager.INSTANCE.queueUpdate(this);
-	// 	}
-	// }
+	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, BlockAndTintGetter blockView) {
+		final int sourceIndex = neighbor.lightData.indexify(sourcePos);
+		final short sourceLight = neighbor.lightData.get(sourceIndex);
+		final BlockState sourceState = blockView.getBlockState(sourcePos);
+
+		if (Encoding.pure(sourceLight) != 0) {
+			// TODO: generalize for all increase process, with check-neighbor flag
+			// check self occlusion for increase
+			if (!Encoding.isLightSource(sourceLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
+				return;
+			}
+
+			final int targetIndex = lightData.indexify(targetPos);
+			final short targetLight = lightData.get(targetIndex);
+			final BlockState nodeState = blockView.getBlockState(targetPos);
+
+			// check neighbor occlusion for increase
+			if (occludeSide(nodeState, side.opposite, blockView, targetPos)) {
+				return;
+			}
+
+			less.lessThanMinusOne(targetLight, sourceLight);
+
+			if (less.any()) {
+				short resultLight = targetLight;
+
+				if (less.r) {
+					resultLight = Elem.R.replace(resultLight, (short) (Elem.R.of(sourceLight) - 1));
+				}
+
+				if (less.g) {
+					resultLight = Elem.G.replace(resultLight, (short) (Elem.G.of(sourceLight) - 1));
+				}
+
+				if (less.b) {
+					resultLight = Elem.B.replace(resultLight, (short) (Elem.B.of(sourceLight) - 1));
+				}
+
+				lightData.put(targetIndex, resultLight);
+
+				Queues.enqueue(incQueue, targetIndex, resultLight, side);
+			}
+		}
+	}
+
+	private void checkEdges(BlockAndTintGetter blockView) {
+		final int size = LightRegionData.Const.WIDTH;
+		final BlockPos originPos = BlockPos.of(origin);
+		final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
+		final BlockPos.MutableBlockPos targetPos = new BlockPos.MutableBlockPos();
+		final int[] searchOffsets = new int[]{-1, size};
+		final int[] targetOffsets = new int[]{0, size - 1};
+
+		for (int i = 0; i < searchOffsets.length; i ++) {
+			final int x = searchOffsets[i];
+			final int xTarget = targetOffsets[i];
+
+			searchPos.setWithOffset(originPos, x, 0, 0);
+			targetPos.setWithOffset(originPos, xTarget, 0, 0);
+			final Side side = Side.infer(searchPos, targetPos);
+			final LightRegion neighbor = LightDataManager.INSTANCE.getFromBlock(searchPos);
+
+			if (neighbor == null) {
+				continue;
+			}
+
+			for (int y = 0; y < size; y++) {
+				for (int z = 0; z < size; z++) {
+					searchPos.setWithOffset(originPos, x, y, z);
+					targetPos.setWithOffset(originPos, xTarget, y, z);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, blockView);
+				}
+			}
+		}
+
+		// TODO: generalize with Axis parameter
+		for (int i = 0; i < searchOffsets.length; i ++) {
+			final int y = searchOffsets[i];
+			final int yTarget = targetOffsets[i];
+
+			searchPos.setWithOffset(originPos, 0, y, 0);
+			targetPos.setWithOffset(originPos, 0, yTarget, 0);
+			final Side side = Side.infer(searchPos, targetPos);
+			final LightRegion neighbor = LightDataManager.INSTANCE.getFromBlock(searchPos);
+
+			if (neighbor == null) {
+				continue;
+			}
+
+			for (int z = 0; z < size; z++) {
+				for (int x = 0; x < size; x++) {
+					searchPos.setWithOffset(originPos, x, y, z);
+					targetPos.setWithOffset(originPos, x, yTarget, z);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, blockView);
+				}
+			}
+		}
+
+		for (int i = 0; i < searchOffsets.length; i ++) {
+			final int z = searchOffsets[i];
+			final int zTarget = targetOffsets[i];
+
+			searchPos.set(origin);
+			searchPos.setWithOffset(searchPos, 0, 0, z);
+			targetPos.set(origin);
+			targetPos.setWithOffset(targetPos, 0, 0, zTarget);
+			final Side side = Side.infer(searchPos, targetPos);
+			final LightRegion neighbor = LightDataManager.INSTANCE.getFromBlock(searchPos);
+
+			if (neighbor == null) {
+				continue;
+			}
+
+			for (int x = 0; x < size; x++) {
+				for (int y = 0; y < size; y++) {
+					searchPos.set(origin);
+					searchPos.setWithOffset(searchPos, x, y, z);
+					targetPos.set(origin);
+					targetPos.setWithOffset(targetPos, x, y, zTarget);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, blockView);
+				}
+			}
+		}
+	}
 
 	public void update(BlockAndTintGetter blockView) {
-		// boolean neededUpdate = needsUpdate;
-		// needsUpdate = false;
-		//
-		// boolean wasCleared = false;
-		//
-		// if (needsClear) {
-		// 	for (int i = 0; i < LightRegionData.Const.SIZE3D; i++) {
-		// 		lightData.put(i * LightDataTexture.Format.pixelBytes, (short) 0);
-		// 	}
-		//
-		// 	needsClear = false;
-		// 	wasCleared = true;
-		// }
-
-		// boolean propagating = wasCleared || neededUpdate || !globalDecQueue.isEmpty() || !globalIncQueue.isEmpty();
+		if (needCheckEdges) {
+			checkEdges(blockView);
+			needCheckEdges = false;
+		}
 
 		boolean propagating = !globalDecQueue.isEmpty() || !globalIncQueue.isEmpty();
 
@@ -445,23 +552,10 @@ public class LightRegion {
 			didPropagate = propagateLight(blockView);
 		}
 
-		// if (didPropagate || wasCleared) {
 		if (didPropagate) {
 			lightData.markAsDirty();
 		}
 	}
-
-	// public void reclaim() {
-	// 	globalIncQueue.clear();
-	// 	globalDecQueue.clear();
-	//
-	// 	needsUpdate = false;
-	//
-	// 	// this is called from allocate(), so defer it to main thread
-	// 	needsClear = true;
-	//
-	// 	markForUpdate();
-	// }
 
 	public void close() {
 		if (!lightData.isClosed()) {

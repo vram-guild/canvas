@@ -109,6 +109,7 @@ public class LightRegionData {
 		}
 
 		buffer.position(0);
+		// very important
 		MemoryUtil.memFree(buffer);
 		closed = true;
 	}
