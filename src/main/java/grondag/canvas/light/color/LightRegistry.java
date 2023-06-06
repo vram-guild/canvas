@@ -6,17 +6,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.light.ItemLight;
+import io.vram.frex.base.renderer.util.ResourceCache;
 
 public class LightRegistry {
-	private static final Int2ShortOpenHashMap lights = new Int2ShortOpenHashMap();
-
-	static {
-		lights.defaultReturnValue((short) 0);
-	}
+	private static final ResourceCache<Int2ShortOpenHashMap> lights = new ResourceCache<>(() -> {
+		final var newMap = new Int2ShortOpenHashMap();
+		newMap.defaultReturnValue((short) 0);
+		return newMap;
+	});
 
 	public static short get(BlockState blockState){
 		final int stateKey = blockState.hashCode();
-		short light = lights.get(stateKey);
+		short light = lights.getOrLoad().get(stateKey);
 
 		if (light == 0) {
 			// PERF: modify ItemLight API or make new API that doesn't need ItemStack
@@ -35,7 +36,7 @@ public class LightRegistry {
 				light = LightRegionData.Encoding.encodeLight(lightEmission, lightEmission, lightEmission, true, occluding);
 			}
 
-			lights.put(stateKey, light);
+			lights.getOrLoad().put(stateKey, light);
 		}
 
 		return light;
