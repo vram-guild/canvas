@@ -174,7 +174,7 @@ public class RenderRegion implements TerrainExecutorTask {
 
 			if (!lightRegion.isClosed()) {
 				LightDataManager.INSTANCE.deallocate(origin);
-				CanvasMod.LOG.info("called deallocate() from Render Region");
+				// CanvasMod.LOG.info("called deallocate() from Render Region");
 			}
 		}
 	}

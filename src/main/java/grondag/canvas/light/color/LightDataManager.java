@@ -3,6 +3,8 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongIterable;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -27,9 +29,48 @@ public class LightDataManager {
 	// NB: must be even
 	private int extentSizeInRegions = REGION_COUNT_LENGTH_WISE;
 	private LightDataTexture texture;
+	ExtentIterable extentIterable = new ExtentIterable();
 
 	{
 		allocated.defaultReturnValue(null);
+	}
+
+	private class ExtentIterable implements LongIterable, LongIterator  {
+		@Override
+		public LongIterator iterator() {
+			x = y = z = 0;
+			return this;
+		}
+
+		int x, y, z, startX, startY, startZ;
+
+		void set(int startX, int startY, int startZ) {
+			this.startX = startX;
+			this.startY = startY;
+			this.startZ = startZ;
+		}
+
+		@Override
+		public long nextLong() {
+			final int extent = extentSizeInBlocks(1);
+			final long value = BlockPos.asLong(startX + x * extent, startY + y * extent, startZ + z * extent);
+			if (++z >= extentSizeInRegions) {
+				z = 0;
+				y++;
+			}
+
+			if (y >= extentSizeInRegions) {
+				y = 0;
+				x++;
+			}
+
+			return value;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return x < extentSizeInRegions;
+		}
 	}
 
 	// TODO: stuff
@@ -64,34 +105,53 @@ public class LightDataManager {
 
 		cameraUninitialized = false;
 
+		extentIterable.set(extentStartBlockX, extentStartBlockY, extentStartBlockZ);
+
 		// update all regions within extent
-		for (int i = extentStartBlockX; i < extentStartBlockX + extentSizeInBlocks(); i += extentSizeInBlocks(1)) {
-			for (int j = extentStartBlockY; j < extentStartBlockY + extentSizeInBlocks(); j += extentSizeInBlocks(1)) {
-				for (int k = extentStartBlockZ; k < extentStartBlockZ + extentSizeInBlocks(); k += extentSizeInBlocks(1)) {
-					long index = BlockPos.asLong(i, j, k);
-					updateRegion(index, blockView);
-				}
+		for (long index:extentIterable) {
+			final LightRegion lightRegion = allocated.get(index);
+
+			if (lightRegion != null && !lightRegion.isClosed()) {
+				lightRegion.updateDecrease(blockView);
 			}
 		}
-	}
 
-	private void updateRegion(long index, BlockAndTintGetter blockView) {
-		final LightRegion lightRegion = allocated.get(index);
+		// this is called twice because outstanding decreases needs to be processed before increases and it's really stupid
+		for (long index:extentIterable) {
+			final LightRegion lightRegion = allocated.get(index);
 
-		if (lightRegion == null || lightRegion.isClosed()) {
-			return;
+			if (lightRegion != null && !lightRegion.isClosed()) {
+				lightRegion.updateDecrease(blockView);
+			}
 		}
 
-		lightRegion.update(blockView);
+		// as for this one, it's called twice to process outstanding increases in the same frame thus prevents flickering when placing light
+		for (long index:extentIterable) {
+			final LightRegion lightRegion = allocated.get(index);
 
-		if (lightRegion.lightData.isDirty() || debugRedrawEveryFrame) {
-			final int extentGridMask = extentSizeMask();
-			final int x = lightRegion.lightData.regionOriginBlockX;
-			final int y = lightRegion.lightData.regionOriginBlockY;
-			final int z = lightRegion.lightData.regionOriginBlockZ;
-			// modulo into extent-grid
-			texture.upload(x & extentGridMask, y & extentGridMask, z & extentGridMask, lightRegion.lightData.getBuffer());
-			lightRegion.lightData.clearDirty();
+			if (lightRegion != null && !lightRegion.isClosed()) {
+				lightRegion.updateIncrease(blockView);
+			}
+		}
+
+		for (long index: extentIterable) {
+			final LightRegion lightRegion = allocated.get(index);
+
+			if (lightRegion == null || lightRegion.isClosed()) {
+				continue;
+			}
+
+			lightRegion.updateIncrease(blockView);
+
+			if (lightRegion.lightData.isDirty() || debugRedrawEveryFrame) {
+				final int extentGridMask = extentSizeMask();
+				final int x = lightRegion.lightData.regionOriginBlockX;
+				final int y = lightRegion.lightData.regionOriginBlockY;
+				final int z = lightRegion.lightData.regionOriginBlockZ;
+				// modulo into extent-grid
+				texture.upload(x & extentGridMask, y & extentGridMask, z & extentGridMask, lightRegion.lightData.getBuffer());
+				lightRegion.lightData.clearDirty();
+			}
 		}
 	}
 

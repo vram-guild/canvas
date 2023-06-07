@@ -186,19 +186,20 @@ public class LightRegion {
 		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
 	}
 
-	private boolean propagateLight(BlockAndTintGetter blockView) {
-		if (incQueue.isEmpty() && decQueue.isEmpty()) {
-			// CanvasMod.LOG.info("Nothing to process!");
-			return false;
+	public void updateDecrease(BlockAndTintGetter blockView) {
+		if (needCheckEdges) {
+			checkEdges(blockView);
+			needCheckEdges = false;
 		}
 
-		// CanvasMod.LOG.info("Processing queues.. inc,dec " + incQueue.size() + "," + decQueue.size());
+		while (!globalDecQueue.isEmpty()) {
+			decQueue.enqueue(globalDecQueue.dequeueLong());
+		}
 
 		final BVec removeFlag = new BVec();
 		final BVec removeMask = new BVec();
 
 		int decCount = 0;
-		int incCount = 0;
 
 		while(!decQueue.isEmpty()) {
 			decCount++;
@@ -308,6 +309,18 @@ public class LightRegion {
 			}
 		}
 
+		if (decCount > 0) {
+			lightData.markAsDirty();
+		}
+	}
+
+	public void updateIncrease(BlockAndTintGetter blockView) {
+		while (!globalIncQueue.isEmpty()) {
+			incQueue.enqueue(globalIncQueue.dequeueLong());
+		}
+
+		int incCount = 0;
+
 		while (!incQueue.isEmpty()) {
 			incCount++;
 
@@ -401,9 +414,9 @@ public class LightRegion {
 			}
 		}
 
-		// CanvasMod.LOG.info("Processed queues! Count: inc,dec " + incCount + "," + decCount);
-
-		return decCount + incCount > 0;
+		if (incCount > 0) {
+			lightData.markAsDirty();
+		}
 	}
 
 	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, BlockAndTintGetter blockView) {
@@ -508,10 +521,8 @@ public class LightRegion {
 			final int z = searchOffsets[i];
 			final int zTarget = targetOffsets[i];
 
-			searchPos.set(origin);
-			searchPos.setWithOffset(searchPos, 0, 0, z);
-			targetPos.set(origin);
-			targetPos.setWithOffset(targetPos, 0, 0, zTarget);
+			searchPos.setWithOffset(originPos, 0, 0, z);
+			targetPos.setWithOffset(originPos, 0, 0, zTarget);
 			final Side side = Side.infer(searchPos, targetPos);
 			final LightRegion neighbor = LightDataManager.INSTANCE.getFromBlock(searchPos);
 
@@ -521,40 +532,11 @@ public class LightRegion {
 
 			for (int x = 0; x < size; x++) {
 				for (int y = 0; y < size; y++) {
-					searchPos.set(origin);
-					searchPos.setWithOffset(searchPos, x, y, z);
-					targetPos.set(origin);
-					targetPos.setWithOffset(targetPos, x, y, zTarget);
+					searchPos.setWithOffset(originPos, x, y, z);
+					targetPos.setWithOffset(originPos, x, y, zTarget);
 					checkEdgeBlock(neighbor, searchPos, targetPos, side, blockView);
 				}
 			}
-		}
-	}
-
-	public void update(BlockAndTintGetter blockView) {
-		if (needCheckEdges) {
-			checkEdges(blockView);
-			needCheckEdges = false;
-		}
-
-		boolean propagating = !globalDecQueue.isEmpty() || !globalIncQueue.isEmpty();
-
-		while (!globalDecQueue.isEmpty()) {
-			decQueue.enqueue(globalDecQueue.dequeueLong());
-		}
-
-		while (!globalIncQueue.isEmpty()) {
-			incQueue.enqueue(globalIncQueue.dequeueLong());
-		}
-
-		boolean didPropagate = false;
-
-		if (propagating) {
-			didPropagate = propagateLight(blockView);
-		}
-
-		if (didPropagate) {
-			lightData.markAsDirty();
 		}
 	}
 
