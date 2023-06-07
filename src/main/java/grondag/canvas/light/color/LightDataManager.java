@@ -125,6 +125,15 @@ public class LightDataManager {
 			}
 		}
 
+		// frick it, third time's the charm (covers corner neighbors)
+		for (long index:extentIterable) {
+			final LightRegion lightRegion = allocated.get(index);
+
+			if (lightRegion != null && !lightRegion.isClosed()) {
+				lightRegion.updateDecrease(blockView);
+			}
+		}
+
 		// as for this one, it's called twice to process outstanding increases in the same frame thus prevents flickering when placing light
 		for (long index:extentIterable) {
 			final LightRegion lightRegion = allocated.get(index);
