@@ -295,8 +295,9 @@ public class LightRegion {
 
 					// restore obliterated light source
 					if (restoreLightSource) {
-						short registeredLight = LightRegistry.get(nodeState);
-						nodeLight |= (registeredLight & mask);
+						// we delay putting the data until increase step as to not mess with decrease step
+						// take RGB of maximum and Alpha of registered
+						nodeLight = (short) ((nodeLight & 0xFFF0) | LightRegistry.get(nodeState));
 					}
 				}
 
