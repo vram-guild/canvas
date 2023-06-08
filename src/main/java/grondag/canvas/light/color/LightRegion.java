@@ -163,10 +163,7 @@ public class LightRegion {
 		final short getLight = lightData.get(index);
 		final boolean occluding = blockState.canOcclude();
 
-		less.lessThan(getLight, light);
-
-		if (less.any()) {
-			lightData.put(index, light);
+		if (Encoding.isLightSource(light)) {
 			Queues.enqueue(globalIncQueue, index, light);
 			// CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
 		} else if (light == 0 && (Encoding.isLightSource(getLight) || (Encoding.isOccluding(getLight) != occluding))) {
@@ -296,9 +293,10 @@ public class LightRegion {
 
 					// restore obliterated light source
 					if (restoreLightSource) {
-						// we delay putting the data until increase step as to not mess with decrease step
+						// defer putting light source as to not mess with decrease step
 						// take RGB of maximum and Alpha of registered
-						nodeLight = (short) ((nodeLight & 0xFFF0) | LightRegistry.get(nodeState));
+						final short registered = LightRegistry.get(nodeState);
+						nodeLight = Elem.maxRGB(nodeLight, registered, Elem.A.of(registered));
 					}
 				}
 
@@ -333,7 +331,7 @@ public class LightRegion {
 
 			if (sourceLight != recordedLight) {
 				if (Encoding.isLightSource(recordedLight)) {
-					sourceLight = recordedLight;
+					sourceLight = Elem.maxRGB(sourceLight, recordedLight, Elem.A.of(recordedLight));
 					lightData.put(index, sourceLight);
 				} else {
 					continue;
@@ -355,8 +353,6 @@ public class LightRegion {
 				}
 
 				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
-
-				// CanvasMod.LOG.info("increase at " + nodeX + "," + nodeY + "," + nodeZ);
 
 				final LightRegionData dataAccess;
 				final LongPriorityQueue increaseQueue;
@@ -386,8 +382,6 @@ public class LightRegion {
 					continue;
 				}
 
-				// CanvasMod.LOG.info("current/neighbor index " + index + "/" + nodeIndex);
-
 				less.lessThanMinusOne(nodeLight, sourceLight);
 
 				if (less.any()) {
@@ -406,9 +400,6 @@ public class LightRegion {
 					}
 
 					dataAccess.put(nodeIndex, resultLight);
-
-					// CanvasMod.LOG.info("updating neighbor to: " + nodeX + "," + nodeY + "," + nodeZ + "," + Elem.text(resultLight));
-
 					Queues.enqueue(increaseQueue, nodeIndex, resultLight, side);
 				}
 			}
@@ -458,7 +449,6 @@ public class LightRegion {
 				}
 
 				lightData.put(targetIndex, resultLight);
-
 				Queues.enqueue(incQueue, targetIndex, resultLight, side);
 			}
 		}

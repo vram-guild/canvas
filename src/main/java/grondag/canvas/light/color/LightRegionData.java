@@ -44,6 +44,11 @@ public class LightRegionData {
 			return (short) ((r << R.shift) | (g << G.shift) | (b << B.shift) | (a << A.shift));
 		}
 
+		public static short maxRGB(short left, short right, int a) {
+			return (short) (Math.max(left & R.mask, right & R.mask) | Math.max(left & G.mask, right & G.mask)
+								| Math.max(left & B.mask, right & B.mask) | a);
+		}
+
 		public static String text(short light) {
 			return "(" + R.of(light) + "," + G.of(light) + "," + B.of(light) + ")";
 		}
