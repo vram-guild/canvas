@@ -33,6 +33,7 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.light.api.impl.BlockLightLoader;
+import grondag.canvas.light.color.LightRegistry;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.texture.MaterialIndexProvider;
 
@@ -67,7 +68,7 @@ public class CanvasFabricMod implements ClientModInitializer {
 			public void onResourceManagerReload(ResourceManager manager) {
 				PipelineLoader.reload(manager);
 				MaterialIndexProvider.reload();
-				BlockLightLoader.reload(manager);
+				LightRegistry.reload(manager);
 			}
 		});
 	}

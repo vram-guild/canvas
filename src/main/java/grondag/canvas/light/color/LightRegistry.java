@@ -1,22 +1,26 @@
 package grondag.canvas.light.color;
 
-import it.unimi.dsi.fastutil.objects.Object2ShortOpenHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.light.ItemLight;
-import io.vram.frex.base.renderer.util.ResourceCache;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.light.color.LightRegionData.Encoding;
 import grondag.canvas.light.api.impl.BlockLightLoader;
 
-class LightRegistry {
-	private static final ResourceCache<Object2ShortOpenHashMap<BlockState>> cachedLights = new ResourceCache<>(Object2ShortOpenHashMap::new);
+public class LightRegistry {
+	private static final ConcurrentHashMap<BlockState, Short> cachedLights = new ConcurrentHashMap<>();
+
+	public static void reload(ResourceManager manager) {
+		cachedLights.clear();
+		BlockLightLoader.reload(manager);
+	}
 
 	public static short get(BlockState blockState){
-		return cachedLights.getOrLoad().computeIfAbsent(blockState, LightRegistry::generate);
+		return cachedLights.computeIfAbsent(blockState, LightRegistry::generate);
 	}
 
 	private static short generate(BlockState blockState) {
