@@ -153,23 +153,18 @@ public class LightRegion {
 			return;
 		}
 
-		short light = 0;
-
-		if (blockState.getLightEmission() > 0) {
-			light = LightRegistry.get(blockState);
-		}
-
+		final short registeredLight = LightRegistry.get(blockState);
 		final int index = lightData.indexify(pos);
 		final short getLight = lightData.get(index);
 		final boolean occluding = blockState.canOcclude();
 
-		if (Encoding.isLightSource(light)) {
-			Queues.enqueue(globalIncQueue, index, light);
-			// CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
-		} else if (light == 0 && (Encoding.isLightSource(getLight) || (Encoding.isOccluding(getLight) != occluding))) {
-			lightData.put(index, Encoding.encodeLight(0, false, occluding));
+		if (Encoding.isLightSource(registeredLight)) {
+			Queues.enqueue(globalIncQueue, index, registeredLight);
+			// CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(registeredLight) + " block: " + blockState);
+		} else if (Encoding.isLightSource(getLight) || Encoding.isOccluding(getLight) != occluding) {
+			lightData.put(index, registeredLight);
 			Queues.enqueue(globalDecQueue, index, getLight);
-			// CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(light) + " block: " + blockState);
+			// CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(registeredLight) + " block: " + blockState);
 		}
 	}
 
