@@ -1,4 +1,4 @@
-package grondag.canvas.light.color;
+package grondag.canvas.light.api.impl;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -19,16 +19,18 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.light.api.BlockLight;
+import grondag.canvas.light.color.Elem;
 
-public class BlockLightRegistry {
-	static BlockLightRegistry INSTANCE;
+public class BlockLightLoader {
+	public static BlockLightLoader INSTANCE;
 	private static final CachedBlockLight DEFAULT_LIGHT = new CachedBlockLight(0f, 0f, 0f, 0f);
 
-	final IdentityHashMap<BlockState, CachedBlockLight> blockLights = new IdentityHashMap<>();
-	final IdentityHashMap<FluidState, CachedBlockLight> fluidLights = new IdentityHashMap<>();
+	public final IdentityHashMap<BlockState, CachedBlockLight> blockLights = new IdentityHashMap<>();
+	public final IdentityHashMap<FluidState, CachedBlockLight> fluidLights = new IdentityHashMap<>();
 
 	public static void reload(ResourceManager manager) {
-		INSTANCE = new BlockLightRegistry();
+		INSTANCE = new BlockLightLoader();
 
 		for (Block block : BuiltInRegistries.BLOCK) {
 			INSTANCE.loadBlock(manager, block);
@@ -78,14 +80,14 @@ public class BlockLightRegistry {
 
 			final CachedBlockLight globalDefaultLight = DEFAULT_LIGHT;
 			final CachedBlockLight defaultLight;
-			final boolean radiusIsUnset;
+			final boolean levelIsUnset;
 
 			if (json.has("defaultLight")) {
 				defaultLight = loadLight(json.get("defaultLight").getAsJsonObject(), globalDefaultLight);
-				radiusIsUnset = !json.get("defaultLight").getAsJsonObject().has("radius");
+				levelIsUnset = !json.get("defaultLight").getAsJsonObject().has("radius");
 			} else {
 				defaultLight = globalDefaultLight;
-				radiusIsUnset = true;
+				levelIsUnset = true;
 			}
 
 			JsonObject variants = null;
@@ -102,17 +104,13 @@ public class BlockLightRegistry {
 			for (final T state : states) {
 				CachedBlockLight result = defaultLight;
 
-				if (radiusIsUnset && state instanceof BlockState blockState) {
-					result = result.with(blockState.getLightEmission());
+				if (levelIsUnset && state instanceof BlockState blockState) {
+					result = result.withLevel(blockState.getLightEmission());
 				}
 
 				if (variants != null) {
 					final String stateId = BlockModelShaper.statePropertiesToString(state.getValues());
 					result = loadLight(variants.getAsJsonObject(stateId), result);
-				}
-
-				if (state instanceof BlockState blockState) {
-					result = result.with(blockState.canOcclude());
 				}
 
 				if (!result.equals(globalDefaultLight)) {
@@ -151,12 +149,12 @@ public class BlockLightRegistry {
 		return org.joml.Math.clamp(0, 15, Math.round(light));
 	}
 
-	static record CachedBlockLight(float lightLevel, float red, float green, float blue, short value) implements BlockLight {
+	public static record CachedBlockLight(float lightLevel, float red, float green, float blue, short value) implements BlockLight {
 		CachedBlockLight(float radius, float red, float green, float blue) {
 			this(radius, red, green, blue, computeValue(radius, red, green, blue));
 		}
 
-		CachedBlockLight with(float lightEmission) {
+		CachedBlockLight withLevel(float lightEmission) {
 			if (this.lightLevel == lightEmission) {
 				return this;
 			} else {
@@ -164,25 +162,9 @@ public class BlockLightRegistry {
 			}
 		}
 
-		CachedBlockLight with(boolean isOccluding) {
-			if (isOccluding == LightRegionData.Encoding.isOccluding(value)) {
-				return this;
-			}
-
-			final short rgb = LightRegionData.Encoding.pure(value);
-			final short newValue = computeValue(rgb, isOccluding);
-
-			return new CachedBlockLight(lightLevel, red, green, blue, newValue);
-		}
-
 		static short computeValue(float radius, float red, float green, float blue) {
 			final int blockRadius = radius == 0f ? 0 : org.joml.Math.clamp(1, 15, Math.round(radius));
-			final short rgb = LightRegionData.Elem.encode(clampLight(blockRadius * red), clampLight(blockRadius * green), clampLight(blockRadius * blue), 0);
-			return computeValue(rgb, false);
-		}
-
-		private static short computeValue(int rgb, boolean isOccluding) {
-			return LightRegionData.Encoding.encodeLight(rgb, rgb != 0, isOccluding);
+			return Elem.encode(clampLight(blockRadius * red), clampLight(blockRadius * green), clampLight(blockRadius * blue), 0);
 		}
 
 		@Override

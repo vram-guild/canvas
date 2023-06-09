@@ -1,4 +1,4 @@
-package grondag.canvas.light.color;
+package grondag.canvas.light.api;
 
 /**
  * BlockLight API draft.

@@ -10,7 +10,6 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 
-import grondag.canvas.light.color.LightRegionData.Elem;
 import grondag.canvas.light.color.LightRegionData.Encoding;
 
 // TODO: cluster slab allocation? -> maybe unneeded now?

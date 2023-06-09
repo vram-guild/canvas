@@ -8,63 +8,53 @@ import net.minecraft.world.level.block.state.BlockState;
 import io.vram.frex.api.light.ItemLight;
 import io.vram.frex.base.renderer.util.ResourceCache;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.light.color.LightRegionData.Encoding;
+import grondag.canvas.light.api.impl.BlockLightLoader;
 
-public class LightRegistry {
-	private static final ResourceCache<Object2ShortOpenHashMap<BlockState>> cachedLights = new ResourceCache<>(() -> {
-		final var newMap = new Object2ShortOpenHashMap<BlockState>();
-		newMap.defaultReturnValue((short) 0);
-		return newMap;
-	});
+class LightRegistry {
+	private static final ResourceCache<Object2ShortOpenHashMap<BlockState>> cachedLights = new ResourceCache<>(Object2ShortOpenHashMap::new);
 
 	public static short get(BlockState blockState){
-		if (BlockLightRegistry.INSTANCE == null) {
-			// TODO: WIP: remove this for production and fail silently..
-			throw new IllegalStateException("BlockLightRegistry is unloaded");
+		return cachedLights.getOrLoad().computeIfAbsent(blockState, LightRegistry::generate);
+	}
+
+	private static short generate(BlockState blockState) {
+		final int lightLevel = blockState.getLightEmission();
+		final short defaultLight = Encoding.encodeLight(lightLevel, lightLevel, lightLevel, lightLevel > 0, blockState.canOcclude());
+
+		BlockLightLoader.CachedBlockLight apiLight = BlockLightLoader.INSTANCE.blockLights.get(blockState);
+
+		if (apiLight == null && !blockState.getFluidState().isEmpty()) {
+			apiLight = BlockLightLoader.INSTANCE.fluidLights.get(blockState.getFluidState());
 		}
 
-		BlockLightRegistry.CachedBlockLight getLight = BlockLightRegistry.INSTANCE.blockLights.get(blockState);
-
-		if (getLight == null && !blockState.getFluidState().isEmpty()) {
-			getLight = BlockLightRegistry.INSTANCE.fluidLights.get(blockState.getFluidState());
+		if (apiLight != null) {
+			return Encoding.encodeLight(apiLight.value(), apiLight.value() != 0, blockState.canOcclude());
 		}
 
-		if (getLight != null) {
-			return getLight.value();
-		} else if (blockState.getLightEmission() <= 0) {
-			return Encoding.encodeLight(0, false, blockState.canOcclude());
+		if (lightLevel < 1) {
+			return defaultLight;
 		}
-
-		// CanvasMod.LOG.info("Can't find cached light for block state " + blockState);
 
 		// Item Light color-only fallback (feature?)
+		final ItemStack stack = new ItemStack(blockState.getBlock(), 1);
+		final ItemLight itemLight = ItemLight.get(stack);
 
-		if (!cachedLights.getOrLoad().containsKey(blockState)) {
-			final ItemStack stack = new ItemStack(blockState.getBlock(), 1);
-			final ItemLight itemLight = ItemLight.get(stack);
-			final int lightLevel = blockState.getLightEmission();
-			final boolean occluding = blockState.canOcclude();
-			final short defaultLight = Encoding.encodeLight(lightLevel, lightLevel, lightLevel, true, occluding);
-
-			if (itemLight == null) {
-				cachedLights.getOrLoad().put(blockState, defaultLight);
-				return defaultLight;
-			}
-
-			float maxValue = Math.max(itemLight.red(), Math.max(itemLight.green(), itemLight.blue()));
-
-			if (maxValue <= 0) {
-				cachedLights.getOrLoad().put(blockState, defaultLight);
-				return defaultLight;
-			}
-
-			final int r = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.red() / maxValue));
-			final int g = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.green() / maxValue));
-			final int b = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.blue() / maxValue));
-
-			cachedLights.getOrLoad().put(blockState, Encoding.encodeLight(r, g, b, true, occluding));
+		if (itemLight == null) {
+			return defaultLight;
 		}
 
-		return cachedLights.getOrLoad().getShort(blockState);
+		float maxValue = Math.max(itemLight.red(), Math.max(itemLight.green(), itemLight.blue()));
+
+		if (maxValue <= 0) {
+			return defaultLight;
+		}
+
+		final int r = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.red() / maxValue));
+		final int g = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.green() / maxValue));
+		final int b = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.blue() / maxValue));
+
+		return Encoding.encodeLight(r, g, b, true, blockState.canOcclude());
 	}
 }

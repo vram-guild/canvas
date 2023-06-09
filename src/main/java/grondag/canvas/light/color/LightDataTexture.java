@@ -11,7 +11,6 @@ import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 
 public class LightDataTexture {
-
 	public static class Format {
 		public static int target = GFX.GL_TEXTURE_3D;
 		public static int pixelBytes = 2;
