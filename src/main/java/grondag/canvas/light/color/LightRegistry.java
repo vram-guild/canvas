@@ -20,6 +20,7 @@ public class LightRegistry {
 	}
 
 	public static short get(BlockState blockState){
+		// maybe just populate it during reload? don't want to slow down resource reload though
 		return cachedLights.computeIfAbsent(blockState, LightRegistry::generate);
 	}
 

@@ -127,16 +127,16 @@ public class BlockLightLoader {
 			return defaultValue;
 		}
 
-		final var radiusObj = obj.get("radius");
+		final var lightLevelObj = obj.get("lightLevel");
 		final var redObj = obj.get("red");
 		final var greenObj = obj.get("green");
 		final var blueObj = obj.get("blue");
 
-		final float radius = radiusObj == null ? defaultValue.lightLevel() : radiusObj.getAsFloat();
+		final float lightLevel = lightLevelObj == null ? defaultValue.lightLevel() : lightLevelObj.getAsFloat();
 		final float red = redObj == null ? defaultValue.red() : redObj.getAsFloat();
 		final float green = greenObj == null ? defaultValue.green() : greenObj.getAsFloat();
 		final float blue = blueObj == null ? defaultValue.blue() : blueObj.getAsFloat();
-		final var result = new CachedBlockLight(radius, red, green, blue);
+		final var result = new CachedBlockLight(lightLevel, red, green, blue);
 
 		if (result.equals(defaultValue)) {
 			return defaultValue;
