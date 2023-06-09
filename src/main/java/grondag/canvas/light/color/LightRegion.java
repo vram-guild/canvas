@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 
@@ -158,12 +159,20 @@ public class LightRegion {
 		final boolean occluding = blockState.canOcclude();
 
 		if (Encoding.isLightSource(registeredLight)) {
-			Queues.enqueue(globalIncQueue, index, registeredLight);
-			// CanvasMod.LOG.info("Add light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(registeredLight) + " block: " + blockState);
+			if (getLight != registeredLight) {
+				// replace light
+				if (Encoding.isLightSource(getLight)) {
+					lightData.put(index, (short) 0);
+					Queues.enqueue(globalDecQueue, index, getLight);
+				}
+
+				// place light
+				Queues.enqueue(globalIncQueue, index, registeredLight);
+			}
 		} else if (Encoding.isLightSource(getLight) || Encoding.isOccluding(getLight) != occluding) {
+			// remove light or replace occluder
 			lightData.put(index, registeredLight);
 			Queues.enqueue(globalDecQueue, index, getLight);
-			// CanvasMod.LOG.info("Remove light at " + pos + " light is (get,put) " + Elem.text(getLight) + "," + Elem.text(registeredLight) + " block: " + blockState);
 		}
 	}
 
@@ -214,9 +223,9 @@ public class LightRegion {
 				}
 
 				// check self occlusion for decrease
-				if (!Encoding.isOccluding(sourceCurrentLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
-					continue;
-				}
+				// if (!Encoding.isOccluding(sourceCurrentLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
+				// 	continue;
+				// }
 
 				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
 
