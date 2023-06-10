@@ -107,43 +107,23 @@ public class LightDataManager {
 
 		extentIterable.set(extentStartBlockX, extentStartBlockY, extentStartBlockZ);
 
+		boolean needUpdate = true;
+
+		// process all active regions' decrease queue until none is left
+		while (needUpdate) {
+			needUpdate = false;
+
+			for (long index : extentIterable) {
+				final LightRegion lightRegion = allocated.get(index);
+
+				if (lightRegion != null && !lightRegion.isClosed()) {
+					needUpdate = needUpdate || lightRegion.updateDecrease(blockView);
+				}
+			}
+		}
+
 		// update all regions within extent
 		for (long index:extentIterable) {
-			final LightRegion lightRegion = allocated.get(index);
-
-			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateDecrease(blockView);
-			}
-		}
-
-		// this is called twice because outstanding decreases needs to be processed before increases and it's really stupid
-		for (long index:extentIterable) {
-			final LightRegion lightRegion = allocated.get(index);
-
-			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateDecrease(blockView);
-			}
-		}
-
-		// frick it, third time's the charm (covers corner neighbors)
-		for (long index:extentIterable) {
-			final LightRegion lightRegion = allocated.get(index);
-
-			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateDecrease(blockView);
-			}
-		}
-
-		// as for this one, it's called twice to process outstanding increases in the same frame thus prevents flickering when placing light
-		for (long index:extentIterable) {
-			final LightRegion lightRegion = allocated.get(index);
-
-			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateIncrease(blockView);
-			}
-		}
-
-		for (long index: extentIterable) {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion == null || lightRegion.isClosed()) {

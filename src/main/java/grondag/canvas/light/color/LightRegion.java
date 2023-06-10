@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 
@@ -42,22 +41,31 @@ public class LightRegion {
 			return r && g && b;
 		}
 
+		BVec not() {
+			r = !r;
+			g = !g;
+			b = !b;
+			return this;
+		}
+
 		void lessThan(short left, short right) {
 			r = Elem.R.of(left) < Elem.R.of(right);
 			g = Elem.G.of(left) < Elem.G.of(right);
 			b = Elem.B.of(left) < Elem.B.of(right);
 		}
 
-		void lessThanMinusOne(short left, short right) {
+		BVec lessThanMinusOne(short left, short right) {
 			r = Elem.R.of(left) < Elem.R.of(right) - 1;
 			g = Elem.G.of(left) < Elem.G.of(right) - 1;
 			b = Elem.B.of(left) < Elem.B.of(right) - 1;
+			return this;
 		}
 
-		void and(BVec other, BVec another) {
+		BVec and(BVec other, BVec another) {
 			r = other.r && another.r;
 			g = other.g && another.g;
 			b = other.b && another.b;
+			return this;
 		}
 	}
 
@@ -186,10 +194,15 @@ public class LightRegion {
 		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
 	}
 
-	public void updateDecrease(BlockAndTintGetter blockView) {
+	public boolean updateDecrease(BlockAndTintGetter blockView) {
 		if (needCheckEdges) {
 			checkEdges(blockView);
 			needCheckEdges = false;
+		}
+
+		// faster exit when not necessary
+		if (globalDecQueue.isEmpty()) {
+			return false;
 		}
 
 		while (!globalDecQueue.isEmpty()) {
@@ -200,6 +213,7 @@ public class LightRegion {
 		final BVec removeMask = new BVec();
 
 		int decCount = 0;
+		boolean accessedNeighborDecrease = false;
 
 		while(!decQueue.isEmpty()) {
 			decCount++;
@@ -221,11 +235,6 @@ public class LightRegion {
 				if (side.id == from) {
 					continue;
 				}
-
-				// check self occlusion for decrease
-				// if (!Encoding.isOccluding(sourceCurrentLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
-				// 	continue;
-				// }
 
 				nodePos.setWithOffset(sourcePos, side.x, side.y, side.z);
 
@@ -301,9 +310,11 @@ public class LightRegion {
 						final short registered = LightRegistry.get(nodeState);
 						nodeLight = Elem.maxRGB(nodeLight, registered, Elem.A.of(registered));
 					}
+
+					accessedNeighborDecrease = accessedNeighborDecrease || isNeighbor;
 				}
 
-				if (!less.all() || restoreLightSource) {
+				if (removeMask.and(less.not(), removeFlag).any() || restoreLightSource) {
 					// increases queued in decrease may propagate to all directions as if a light source
 					Queues.enqueue(increaseQueue, nodeIndex, nodeLight);
 				}
@@ -313,6 +324,8 @@ public class LightRegion {
 		if (decCount > 0) {
 			lightData.markAsDirty();
 		}
+
+		return accessedNeighborDecrease;
 	}
 
 	public void updateIncrease(BlockAndTintGetter blockView) {
@@ -385,9 +398,7 @@ public class LightRegion {
 					continue;
 				}
 
-				less.lessThanMinusOne(nodeLight, sourceLight);
-
-				if (less.any()) {
+				if (less.lessThanMinusOne(nodeLight, sourceLight).any()) {
 					short resultLight = nodeLight;
 
 					if (less.r) {
@@ -434,9 +445,7 @@ public class LightRegion {
 				return;
 			}
 
-			less.lessThanMinusOne(targetLight, sourceLight);
-
-			if (less.any()) {
+			if (less.lessThanMinusOne(targetLight, sourceLight).any()) {
 				short resultLight = targetLight;
 
 				if (less.r) {
