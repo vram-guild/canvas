@@ -109,6 +109,7 @@ public class LightDataManager {
 
 		boolean needUpdate = true;
 
+		// TODO: account for extent-edge chunks?
 		// process all active regions' decrease queue until none is left
 		while (needUpdate) {
 			needUpdate = false;

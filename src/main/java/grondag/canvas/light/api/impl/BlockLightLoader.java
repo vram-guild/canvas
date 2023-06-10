@@ -24,7 +24,7 @@ import grondag.canvas.light.color.Elem;
 
 public class BlockLightLoader {
 	public static BlockLightLoader INSTANCE;
-	private static final CachedBlockLight DEFAULT_LIGHT = new CachedBlockLight(0f, 0f, 0f, 0f);
+	private static final CachedBlockLight DEFAULT_LIGHT = new CachedBlockLight(0f, 0f, 0f, 0f, false);
 
 	public final IdentityHashMap<BlockState, CachedBlockLight> blockLights = new IdentityHashMap<>();
 	public final IdentityHashMap<FluidState, CachedBlockLight> fluidLights = new IdentityHashMap<>();
@@ -80,14 +80,11 @@ public class BlockLightLoader {
 
 			final CachedBlockLight globalDefaultLight = DEFAULT_LIGHT;
 			final CachedBlockLight defaultLight;
-			final boolean levelIsUnset;
 
 			if (json.has("defaultLight")) {
 				defaultLight = loadLight(json.get("defaultLight").getAsJsonObject(), globalDefaultLight);
-				levelIsUnset = !json.get("defaultLight").getAsJsonObject().has("radius");
 			} else {
 				defaultLight = globalDefaultLight;
-				levelIsUnset = true;
 			}
 
 			JsonObject variants = null;
@@ -104,7 +101,7 @@ public class BlockLightLoader {
 			for (final T state : states) {
 				CachedBlockLight result = defaultLight;
 
-				if (levelIsUnset && state instanceof BlockState blockState) {
+				if (!result.levelIsSet && state instanceof BlockState blockState) {
 					result = result.withLevel(blockState.getLightEmission());
 				}
 
@@ -136,7 +133,8 @@ public class BlockLightLoader {
 		final float red = redObj == null ? defaultValue.red() : redObj.getAsFloat();
 		final float green = greenObj == null ? defaultValue.green() : greenObj.getAsFloat();
 		final float blue = blueObj == null ? defaultValue.blue() : blueObj.getAsFloat();
-		final var result = new CachedBlockLight(lightLevel, red, green, blue);
+		final boolean levelIsSet = lightLevelObj == null ? defaultValue.levelIsSet() : true;
+		final var result = new CachedBlockLight(lightLevel, red, green, blue, levelIsSet);
 
 		if (result.equals(defaultValue)) {
 			return defaultValue;
@@ -149,21 +147,21 @@ public class BlockLightLoader {
 		return org.joml.Math.clamp(0, 15, Math.round(light));
 	}
 
-	public static record CachedBlockLight(float lightLevel, float red, float green, float blue, short value) implements BlockLight {
-		CachedBlockLight(float radius, float red, float green, float blue) {
-			this(radius, red, green, blue, computeValue(radius, red, green, blue));
+	public static record CachedBlockLight(float lightLevel, float red, float green, float blue, short value, boolean levelIsSet) implements BlockLight {
+		CachedBlockLight(float lightLevel, float red, float green, float blue, boolean levelIsSet) {
+			this(lightLevel, red, green, blue, computeValue(lightLevel, red, green, blue), levelIsSet);
 		}
 
-		CachedBlockLight withLevel(float lightEmission) {
-			if (this.lightLevel == lightEmission) {
+		public CachedBlockLight withLevel(float lightEmission) {
+			if (this.lightLevel == lightEmission && this.levelIsSet) {
 				return this;
 			} else {
-				return new CachedBlockLight(lightEmission, red, green, blue);
+				return new CachedBlockLight(lightEmission, red, green, blue, true);
 			}
 		}
 
-		static short computeValue(float radius, float red, float green, float blue) {
-			final int blockRadius = radius == 0f ? 0 : org.joml.Math.clamp(1, 15, Math.round(radius));
+		static short computeValue(float lightLevel, float red, float green, float blue) {
+			final int blockRadius = lightLevel == 0f ? 0 : org.joml.Math.clamp(1, 15, Math.round(lightLevel));
 			return Elem.encode(clampLight(blockRadius * red), clampLight(blockRadius * green), clampLight(blockRadius * blue), 0);
 		}
 

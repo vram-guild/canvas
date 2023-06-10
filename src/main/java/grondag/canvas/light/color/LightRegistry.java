@@ -35,6 +35,10 @@ public class LightRegistry {
 		}
 
 		if (apiLight != null) {
+			if (!apiLight.levelIsSet()) {
+				apiLight = apiLight.withLevel(blockState.getLightEmission());
+			}
+
 			return Encoding.encodeLight(apiLight.value(), apiLight.value() != 0, blockState.canOcclude());
 		}
 
