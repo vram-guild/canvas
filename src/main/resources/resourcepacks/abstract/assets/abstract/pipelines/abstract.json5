@@ -6,8 +6,14 @@
 	materialProgram: {
 		vertexSource: "abstract:shaders/pipeline/abstract.vert",
 		fragmentSource: "abstract:shaders/pipeline/abstract.frag",
-		samplers: ["cvu_glint_item", "cvu_glint_entity"],
-		samplerImages: ["minecraft:textures/misc/enchanted_glint_item.png", "minecraft:textures/misc/enchanted_glint_entity.png"],
+		samplers: [
+			"cvu_glint_item",
+			"cvu_glint_entity"
+		],
+		samplerImages: [
+			"minecraft:textures/misc/enchanted_glint_item.png",
+			"minecraft:textures/misc/enchanted_glint_entity.png"
+		],
 		compileByTarget: true
 	},
 
