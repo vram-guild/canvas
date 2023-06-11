@@ -23,6 +23,8 @@ package grondag.canvas.shader.data;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
+import grondag.canvas.apiimpl.CanvasState;
+
 public class AccessibilityData {
 	static final ResourceLocation id = new ResourceLocation("canvas:accessibility");
 
@@ -31,6 +33,12 @@ public class AccessibilityData {
 	static boolean hideLightningFlashes = false;
 
 	static String cache = null;
+
+	public static void onCloseOptionScreen() {
+		if (AccessibilityData.checkChanged() && Minecraft.getInstance().level != null) {
+			CanvasState.recompileIfNeeded(true);
+		}
+	}
 
 	public static boolean checkChanged() {
 		final var mc = Minecraft.getInstance();

@@ -61,6 +61,9 @@ public class PipelineManager {
 	private static int oldTex0;
 	private static int oldTex1;
 
+	private static boolean pendingInitPass;
+	private static boolean pendingResizePass;
+
 	public static int width() {
 		return w;
 	}
@@ -103,8 +106,8 @@ public class PipelineManager {
 
 		collector.clear(); // releases storage
 
-		renderFullFramePasses(Pipeline.onInit);
-		renderFullFramePasses(Pipeline.onResize);
+		pendingInitPass = true;
+		pendingResizePass = true;
 	}
 
 	private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {
@@ -123,10 +126,20 @@ public class PipelineManager {
 
 		Pipeline.onResize(primary, w, h);
 
-		renderFullFramePasses(Pipeline.onResize);
+		pendingResizePass = true;
 	}
 
 	public static void beforeWorldRender() {
+		if (pendingInitPass) {
+			renderFullFramePasses(Pipeline.onInit);
+			pendingInitPass = false;
+		}
+
+		if (pendingResizePass) {
+			renderFullFramePasses(Pipeline.onResize);
+			pendingResizePass = false;
+		}
+
 		renderFullFramePasses(Pipeline.onWorldRenderStart, Timekeeper.ProfilerGroup.BeforeWorld);
 		Pipeline.defaultFbo.bind();
 	}

@@ -25,7 +25,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.Option;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.AccessibilityOptionsScreen;
@@ -33,7 +32,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.SimpleOptionsSubScreen;
 import net.minecraft.network.chat.Component;
 
-import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.shader.data.AccessibilityData;
 
 @Mixin(AccessibilityOptionsScreen.class)
@@ -44,18 +42,12 @@ public class MixinAccessibilityOptionsScreen extends SimpleOptionsSubScreen {
 
 	@Inject(at = @At("HEAD"), method = "method_31384")
 	void onClosing(CallbackInfo ci) {
-		canvas_onClose();
+		AccessibilityData.onCloseOptionScreen();
 	}
 
 	@Override
 	public void onClose() {
-		canvas_onClose();
+		AccessibilityData.onCloseOptionScreen();
 		super.onClose();
-	}
-
-	private static void canvas_onClose() {
-		if (AccessibilityData.checkChanged() && Minecraft.getInstance().level != null) {
-			CanvasState.recompileIfNeeded(true);
-		}
 	}
 }
