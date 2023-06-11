@@ -29,6 +29,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.VideoSettingsScreen;
 import net.minecraft.network.chat.Component;
 
+import grondag.canvas.shader.data.AccessibilityData;
 import grondag.canvas.varia.CanvasButtonWidget;
 
 @Mixin(VideoSettingsScreen.class)
@@ -40,5 +41,16 @@ public class MixinVideoSettingsScreen extends Screen {
 	@Inject(at = @At("RETURN"), method = "init()V")
 	private void onInit(CallbackInfo info) {
 		CanvasButtonWidget.parent = this;
+	}
+
+	@Inject(at = @At("HEAD"), method = "method_19865")
+	void onClosing(CallbackInfo ci) {
+		AccessibilityData.onCloseOptionScreen();
+	}
+
+	@Override
+	public void onClose() {
+		AccessibilityData.onCloseOptionScreen();
+		super.onClose();
 	}
 }
