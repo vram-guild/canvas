@@ -45,13 +45,13 @@ public class MixinHumanoidArmorLayer {
 	private boolean canvas_hasFoil = false;
 
 	@Inject(method = "renderArmorPiece", at = @At("HEAD"))
-	void captureFoil(PoseStack poseStack, MultiBufferSource multiBufferSource, LivingEntity livingEntity, EquipmentSlot equipmentSlot, int i, HumanoidModel humanoidModel, CallbackInfo ci) {
+	void captureFoil(PoseStack poseStack, MultiBufferSource multiBufferSource, LivingEntity livingEntity, EquipmentSlot equipmentSlot, int i, HumanoidModel<?> humanoidModel, CallbackInfo ci) {
 		canvas_hasFoil = livingEntity.getItemBySlot(equipmentSlot).hasFoil();
 	}
 
 	@Redirect(method = "renderModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource;getBuffer(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;"))
 	VertexConsumer adjustModelGlint(MultiBufferSource bufferSource, RenderType renderType) {
-		if (bufferSource instanceof CanvasImmediate immediate) {
+		if (bufferSource instanceof final CanvasImmediate immediate) {
 			return immediate.getConsumer(RenderTypeUtil.toMaterial(renderType, canvas_hasFoil));
 		} else {
 			return bufferSource.getBuffer(renderType);
@@ -60,7 +60,7 @@ public class MixinHumanoidArmorLayer {
 
 	@Redirect(method = "renderTrim", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource;getBuffer(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;"))
 	VertexConsumer adjustTrimGlint(MultiBufferSource bufferSource, RenderType renderType) {
-		if (bufferSource instanceof CanvasImmediate immediate) {
+		if (bufferSource instanceof final CanvasImmediate immediate) {
 			return immediate.getConsumer(RenderTypeUtil.toMaterial(renderType, canvas_hasFoil));
 		} else {
 			return bufferSource.getBuffer(renderType);
@@ -68,7 +68,7 @@ public class MixinHumanoidArmorLayer {
 	}
 
 	@Inject(method = "renderGlint", at = @At("HEAD"), cancellable = true)
-	void onRenderGlint(PoseStack poseStack, MultiBufferSource bufferSource, int i, HumanoidModel humanoidModel, CallbackInfo ci) {
+	void onRenderGlint(PoseStack poseStack, MultiBufferSource bufferSource, int i, HumanoidModel<?> humanoidModel, CallbackInfo ci) {
 		if (bufferSource instanceof CanvasImmediate) {
 			ci.cancel();
 		}
