@@ -30,29 +30,222 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.Image;
+import grondag.canvas.pipeline.Pipeline;
 
 public class LightDataManager {
-	// NB: must be even
-	private static final int REGION_COUNT_LENGTH_WISE = 32;
 	private static final boolean debugRedrawEveryFrame = false;
-	// private static final int INITIAL_LIMIT = REGION_COUNT_LENGTH_WISE * REGION_COUNT_LENGTH_WISE * REGION_COUNT_LENGTH_WISE;
 
-	public static final LightDataManager INSTANCE = new LightDataManager();
+	static LightDataManager INSTANCE;
+
+	public static LightRegionAccess allocate(BlockPos regionOrigin) {
+		if (INSTANCE == null) {
+			return LightRegionAccess.EMPTY;
+		}
+
+		return INSTANCE.allocateInner(regionOrigin);
+	}
+
+	public static void reload() {
+		if (Pipeline.config().lightVolume != null) {
+			final var image = Pipeline.getImage(Pipeline.config().lightVolume.lightImage.name);
+
+			if (INSTANCE == null) {
+				INSTANCE = new LightDataManager(image);
+			} else {
+				INSTANCE.resize(image);
+			}
+
+			CanvasMod.LOG.info("Light volume is enabled");
+		} else {
+			if (INSTANCE != null) {
+				INSTANCE.close();
+				INSTANCE = null;
+			}
+
+			CanvasMod.LOG.info("Light volume is disabled");
+		}
+	}
+
+	public static void free(BlockPos regionOrigin) {
+		if (INSTANCE != null) {
+			INSTANCE.freeInner(regionOrigin);
+		}
+	}
+
+	public static void update(BlockAndTintGetter blockView, int cameraX, int cameraY, int cameraZ) {
+		if (INSTANCE != null) {
+			INSTANCE.updateInner(blockView, cameraX, cameraY, cameraZ);
+		}
+	}
 
 	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
 	private int extentStartBlockX = 0;
 	private int extentStartBlockY = 0;
 	private int extentStartBlockZ = 0;
-	private boolean cameraUninitialized = true;
 
-	// NB: must be even
-	private int extentSizeInRegions = REGION_COUNT_LENGTH_WISE;
+	private int extentGridMaskX;
+	private int extentGridMaskY;
+	private int extentGridMaskZ;
+
+	private int extentSizeX;
+	private int extentSizeY;
+	private int extentSizeZ;
+
+	private boolean cameraUninitialized = true;
+	private boolean extentWasResized = false;
+
+	private int extentSizeXInRegions = 0;
+	private int extentSizeYInRegions = 0;
+	private int extentSizeZInRegions = 0;
 	private LightDataTexture texture;
 	ExtentIterable extentIterable = new ExtentIterable();
 
-	{
+	public LightDataManager(Image image) {
 		allocated.defaultReturnValue(null);
+		init(image);
+	}
+
+	private void resize(Image image) {
+		init(image);
+		extentWasResized = true;
+	}
+
+	private void init(Image image) {
+		// TODO: for some reason it's not working properly when width =/= depth (height is fine)
+		extentSizeXInRegions = image.config.width / 16;
+		extentSizeYInRegions = image.config.height / 16;
+		extentSizeZInRegions = image.config.depth / 16;
+
+		extentGridMaskX = extentSizeMask(extentSizeXInRegions);
+		extentGridMaskY = extentSizeMask(extentSizeYInRegions);
+		extentGridMaskZ = extentSizeMask(extentSizeZInRegions);
+
+		extentSizeX = extentSizeInBlocks(extentSizeXInRegions);
+		extentSizeY = extentSizeInBlocks(extentSizeYInRegions);
+		extentSizeZ = extentSizeInBlocks(extentSizeZInRegions);
+
+		texture = new LightDataTexture(image);
+	}
+
+	private void updateInner(BlockAndTintGetter blockView, int cameraX, int cameraY, int cameraZ) {
+		final int regionSnapMask = ~LightRegionData.Const.WIDTH_MASK;
+
+		final int prevExtentBlockX = extentStartBlockX;
+		final int prevExtentBlockY = extentStartBlockY;
+		final int prevExtentBlockZ = extentStartBlockZ;
+
+		// snap camera position to the nearest region (chunk)
+		extentStartBlockX = (cameraX & regionSnapMask) - extentSizeInBlocks(extentSizeXInRegions / 2);
+		extentStartBlockY = (cameraY & regionSnapMask) - extentSizeInBlocks(extentSizeYInRegions / 2);
+		extentStartBlockZ = (cameraZ & regionSnapMask) - extentSizeInBlocks(extentSizeZInRegions / 2);
+
+		boolean extentMoved = extentStartBlockX != prevExtentBlockX || extentStartBlockY != prevExtentBlockY || extentStartBlockZ != prevExtentBlockZ;
+
+		extentIterable.set(extentStartBlockX, extentStartBlockY, extentStartBlockZ);
+
+		boolean needUpdate = true;
+
+		// TODO: account for extent-edge chunks?
+		// process all active regions' decrease queue until none is left
+		while (needUpdate) {
+			needUpdate = false;
+
+			for (long index : extentIterable) {
+				final LightRegion lightRegion = allocated.get(index);
+
+				if (lightRegion != null && !lightRegion.isClosed()) {
+					needUpdate = needUpdate || lightRegion.updateDecrease(blockView);
+				}
+			}
+		}
+
+		boolean shouldRedraw = !cameraUninitialized && extentMoved;
+
+		// update all regions within extent
+		for (long index:extentIterable) {
+			final LightRegion lightRegion = allocated.get(index);
+
+			if (lightRegion == null || lightRegion.isClosed()) {
+				continue;
+			}
+
+			lightRegion.updateIncrease(blockView);
+
+			boolean outsidePrev = false;
+
+			final int x = lightRegion.lightData.regionOriginBlockX;
+			final int y = lightRegion.lightData.regionOriginBlockY;
+			final int z = lightRegion.lightData.regionOriginBlockZ;
+
+			if (shouldRedraw) {
+				// Redraw regions that just entered the current-frame extent
+				outsidePrev |= x < prevExtentBlockX || x >= (prevExtentBlockX + extentSizeX);
+				outsidePrev |= y < prevExtentBlockY || y >= (prevExtentBlockY + extentSizeY);
+				outsidePrev |= z < prevExtentBlockZ || z >= (prevExtentBlockZ + extentSizeZ);
+			}
+
+			if (lightRegion.lightData.isDirty() || outsidePrev || extentWasResized || debugRedrawEveryFrame) {
+				// modulo into extent-grid
+				texture.upload(x & extentGridMaskX, y & extentGridMaskY, z & extentGridMaskZ, lightRegion.lightData.getBuffer());
+				lightRegion.lightData.clearDirty();
+			}
+		}
+
+		extentWasResized = false;
+		cameraUninitialized = false;
+	}
+
+	LightRegion getFromBlock(BlockPos blockPos) {
+		final long key = BlockPos.asLong(
+				blockPos.getX() & ~LightRegionData.Const.WIDTH_MASK,
+				blockPos.getY() & ~LightRegionData.Const.WIDTH_MASK,
+				blockPos.getZ() & ~LightRegionData.Const.WIDTH_MASK);
+		return allocated.get(key);
+	}
+
+	private void freeInner(BlockPos regionOrigin) {
+		final LightRegion lightRegion = allocated.get(regionOrigin.asLong());
+
+		if (lightRegion != null && !lightRegion.isClosed()) {
+			lightRegion.close();
+		}
+
+		allocated.remove(regionOrigin.asLong());
+	}
+
+	private LightRegion allocateInner(BlockPos regionOrigin) {
+		if (allocated.containsKey(regionOrigin.asLong())) {
+			freeInner(regionOrigin);
+		}
+
+		final LightRegion lightRegion = new LightRegion(regionOrigin);
+		allocated.put(regionOrigin.asLong(), lightRegion);
+
+		return lightRegion;
+	}
+
+	private int extentSizeInBlocks(int extentSize) {
+		return extentSize * LightRegionData.Const.WIDTH;
+	}
+
+	private int extentSizeMask(int extentSize) {
+		return extentSizeInBlocks(extentSize) - 1;
+	}
+
+	public void close() {
+		texture.close();
+
+		synchronized (allocated) {
+			for (var lightRegion : allocated.values()) {
+				if (!lightRegion.isClosed()) {
+					lightRegion.close();
+				}
+			}
+
+			allocated.clear();
+		}
 	}
 
 	private class ExtentIterable implements LongIterable, LongIterator  {
@@ -74,12 +267,12 @@ public class LightDataManager {
 		public long nextLong() {
 			final int extent = extentSizeInBlocks(1);
 			final long value = BlockPos.asLong(startX + x * extent, startY + y * extent, startZ + z * extent);
-			if (++z >= extentSizeInRegions) {
+			if (++z >= extentSizeZInRegions) {
 				z = 0;
 				y++;
 			}
 
-			if (y >= extentSizeInRegions) {
+			if (y >= extentSizeYInRegions) {
 				y = 0;
 				x++;
 			}
@@ -89,154 +282,7 @@ public class LightDataManager {
 
 		@Override
 		public boolean hasNext() {
-			return x < extentSizeInRegions;
+			return x < extentSizeZInRegions;
 		}
 	}
-
-	// TODO: stuff
-	public static void initialize() {
-
-	}
-
-	public void update(BlockAndTintGetter blockView, int cameraX, int cameraY, int cameraZ) {
-		if (texture == null) {
-			initializeTexture();
-		}
-
-		final int regionSnapMask = ~LightRegionData.Const.WIDTH_MASK;
-		final int halfRadius = extentSizeInBlocks(extentSizeInRegions / 2);
-
-		final int prevExtentX = extentStartBlockX;
-		final int prevExtentY = extentStartBlockY;
-		final int prevExtentZ = extentStartBlockZ;
-
-		// snap camera position to the nearest region (chunk)
-		extentStartBlockX = (cameraX & regionSnapMask) - halfRadius;
-		extentStartBlockY = (cameraY & regionSnapMask) - halfRadius;
-		extentStartBlockZ = (cameraZ & regionSnapMask) - halfRadius;
-
-		if (!cameraUninitialized
-				&& (extentStartBlockX != prevExtentX || extentStartBlockY != prevExtentY || extentStartBlockZ != prevExtentZ)) {
-			//TODO: IMPORTANT: re-draw newly entered regions
-			//TODO: if newly entered region is null, clear using dummy (empty) lightDataRegion
-			//TODO: cleanup dummy lightDataRegion in close()
-			CanvasMod.LOG.info("Extent have changed");
-		}
-
-		cameraUninitialized = false;
-
-		extentIterable.set(extentStartBlockX, extentStartBlockY, extentStartBlockZ);
-
-		boolean needUpdate = true;
-
-		// TODO: account for extent-edge chunks?
-		// process all active regions' decrease queue until none is left
-		while (needUpdate) {
-			needUpdate = false;
-
-			for (long index : extentIterable) {
-				final LightRegion lightRegion = allocated.get(index);
-
-				if (lightRegion != null && !lightRegion.isClosed()) {
-					needUpdate = needUpdate || lightRegion.updateDecrease(blockView);
-				}
-			}
-		}
-
-		// update all regions within extent
-		for (long index:extentIterable) {
-			final LightRegion lightRegion = allocated.get(index);
-
-			if (lightRegion == null || lightRegion.isClosed()) {
-				continue;
-			}
-
-			lightRegion.updateIncrease(blockView);
-
-			if (lightRegion.lightData.isDirty() || debugRedrawEveryFrame) {
-				final int extentGridMask = extentSizeMask();
-				final int x = lightRegion.lightData.regionOriginBlockX;
-				final int y = lightRegion.lightData.regionOriginBlockY;
-				final int z = lightRegion.lightData.regionOriginBlockZ;
-				// modulo into extent-grid
-				texture.upload(x & extentGridMask, y & extentGridMask, z & extentGridMask, lightRegion.lightData.getBuffer());
-				lightRegion.lightData.clearDirty();
-			}
-		}
-	}
-
-	public LightRegion getFromBlock(BlockPos blockPos) {
-		final long key = BlockPos.asLong(
-				blockPos.getX() & ~LightRegionData.Const.WIDTH_MASK,
-				blockPos.getY() & ~LightRegionData.Const.WIDTH_MASK,
-				blockPos.getZ() & ~LightRegionData.Const.WIDTH_MASK);
-		return allocated.get(key);
-	}
-
-	public void deallocate(BlockPos regionOrigin) {
-		final LightRegion lightRegion = allocated.get(regionOrigin.asLong());
-
-		if (lightRegion != null && !lightRegion.isClosed()) {
-			lightRegion.close();
-		}
-
-		allocated.remove(regionOrigin.asLong());
-	}
-
-	public LightRegion allocate(BlockPos regionOrigin) {
-		if (allocated.containsKey(regionOrigin.asLong())) {
-			deallocate(regionOrigin);
-		}
-
-		final LightRegion lightRegion = new LightRegion(regionOrigin);
-		allocated.put(regionOrigin.asLong(), lightRegion);
-
-		return lightRegion;
-	}
-
-	private int extentSizeInBlocks(int extentSize) {
-		return extentSize * LightRegionData.Const.WIDTH;
-	}
-
-	private int extentSizeInBlocks() {
-		return extentSizeInBlocks(extentSizeInRegions);
-	}
-
-	private int extentSizeMask() {
-		return extentSizeInBlocks() - 1;
-	}
-
-	private void initializeTexture() {
-		texture = new LightDataTexture(extentSizeInBlocks());
-	}
-
-	public void close() {
-		texture.close();
-
-		synchronized (allocated) {
-			for (var lightRegion : allocated.values()) {
-				if (!lightRegion.isClosed()) {
-					lightRegion.close();
-				}
-			}
-
-			allocated.clear();
-		}
-	}
-
-	public int getTexture(String imageName) {
-		if (imageName.equals("canvas:alpha/light_data")) {
-			if (texture == null) {
-				initializeTexture();
-			}
-
-			return texture.getTexId();
-		}
-
-		return -1;
-	}
-
-	// public void queueUpdate(LightRegion lightRegion) {
-	// 	updateQueue.enqueue(lightRegion.origin);
-	// }
 }

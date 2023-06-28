@@ -47,12 +47,8 @@ public class ProgramTextureData {
 
 			int imageBind = 0;
 			int bindTarget = GL46.GL_TEXTURE_2D;
-			int lightDataTex = LightDataManager.INSTANCE.getTexture(imageName);
 
-			if (lightDataTex != -1) {
-				imageBind = lightDataTex;
-				bindTarget = LightDataTexture.Format.target;
-			} else if (imageName.contains(":")) {
+			if (imageName.contains(":")) {
 				final AbstractTexture tex = tryLoadResourceTexture(new ResourceLocation(imageName));
 
 				if (tex != null) {

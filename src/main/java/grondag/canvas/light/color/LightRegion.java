@@ -34,7 +34,7 @@ import grondag.canvas.light.color.LightRegionData.Encoding;
 
 // TODO: cluster slab allocation? -> maybe unneeded now?
 // TODO: a way to repopulate cluster if needed
-public class LightRegion {
+class LightRegion implements LightRegionAccess{
 	private static class BVec {
 		boolean r, g, b;
 
@@ -176,6 +176,7 @@ public class LightRegion {
 		this.lightData = new LightRegionData(origin.getX(), origin.getY(), origin.getZ());
 	}
 
+	@Override
 	public void checkBlock(BlockPos pos, BlockState blockState) {
 		if (!lightData.withinExtents(pos)) {
 			return;
@@ -214,7 +215,7 @@ public class LightRegion {
 		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
 	}
 
-	public boolean updateDecrease(BlockAndTintGetter blockView) {
+	boolean updateDecrease(BlockAndTintGetter blockView) {
 		if (needCheckEdges) {
 			checkEdges(blockView);
 			needCheckEdges = false;
@@ -568,6 +569,7 @@ public class LightRegion {
 		}
 	}
 
+	@Override
 	public boolean isClosed() {
 		return lightData == null || lightData.isClosed();
 	}

@@ -22,11 +22,9 @@ package grondag.canvas.light.color;
 
 import java.nio.ByteBuffer;
 
-import org.lwjgl.system.MemoryUtil;
-
-import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import grondag.canvas.pipeline.Image;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 
@@ -39,42 +37,26 @@ public class LightDataTexture {
 		public static int pixelDataType = GFX.GL_UNSIGNED_SHORT_4_4_4_4;
 	}
 
-	private int glTexId = -1;
-	final int size;
+	private final Image image;
 
-	LightDataTexture(int size) {
-		this.size = size;
+	LightDataTexture(Image image) {
+		this.image = image;
 
-		glTexId = TextureUtil.generateTextureId();
+		// ByteBuffer clearer = MemoryUtil.memAlloc(image.config.width * image.config.height * image.config.depth * Format.pixelBytes);
+		//
+		// while (clearer.position() < clearer.limit()) {
+		// 	clearer.putShort((short) 0);
+		// }
 
-		CanvasTextureState.bindTexture(Format.target, glTexId);
-		GFX.objectLabel(GFX.GL_TEXTURE, glTexId, "IMG light_section_volume");
+		// // clear?? NOTE: this is wrong
+		// upload(0, 0, 0, clearer);
 
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_LINEAR);
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_LINEAR);
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_WRAP_S, GFX.GL_CLAMP_TO_EDGE);
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_WRAP_T, GFX.GL_CLAMP_TO_EDGE);
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_WRAP_R, GFX.GL_CLAMP_TO_EDGE);
-
-		// allocate
-		GFX.texImage3D(Format.target, 0, Format.internalFormat, size, size, size, 0, Format.pixelFormat, Format.pixelDataType, null);
-
-		ByteBuffer clearer = MemoryUtil.memAlloc(size * size * size * Format.pixelBytes);
-
-		while (clearer.position() < clearer.limit()) {
-			clearer.putShort((short) 0);
-		}
-
-		// clear??
-		upload(0, 0, 0, clearer);
-
-		clearer.position(0);
-		MemoryUtil.memFree(clearer);
+		// clearer.position(0);
+		// MemoryUtil.memFree(clearer);
 	}
 
 	public void close() {
-		TextureUtil.releaseTextureId(glTexId);
-		glTexId = -1;
+		// Image closing is already handled by pipeline manager
 	}
 
 	public void upload(int x, int y, int z, ByteBuffer buffer) {
@@ -82,13 +64,9 @@ public class LightDataTexture {
 	}
 
 	public void upload(int x, int y, int z, int regionSize, ByteBuffer buffer) {
-		if (glTexId == -1) {
-			throw new IllegalStateException("Uploading to a deleted texture!");
-		}
-
 		RenderSystem.assertOnRenderThread();
 
-		CanvasTextureState.bindTexture(LightDataTexture.Format.target, glTexId);
+		CanvasTextureState.bindTexture(LightDataTexture.Format.target, image.glId());
 
 		// Gotta clean up some states, otherwise will cause memory access violation
 		GFX.pixelStore(GFX.GL_UNPACK_SKIP_PIXELS, 0);
@@ -100,13 +78,5 @@ public class LightDataTexture {
 		buffer.position(0);
 
 		GFX.glTexSubImage3D(Format.target, 0, x, y, z, regionSize, regionSize, regionSize, Format.pixelFormat, Format.pixelDataType, buffer);
-	}
-
-	public int getTexId() {
-		if (glTexId == -1) {
-			throw new IllegalStateException("Trying to access a deleted Light Data texture!");
-		}
-
-		return glTexId;
 	}
 }

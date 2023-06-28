@@ -48,12 +48,11 @@ import net.minecraft.world.phys.Vec3;
 import io.vram.frex.api.math.MatrixStack;
 import io.vram.frex.api.model.fluid.FluidModel;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.apiimpl.rendercontext.CanvasTerrainRenderContext;
 import grondag.canvas.buffer.input.DrawableVertexCollector;
 import grondag.canvas.buffer.input.VertexCollectorList;
 import grondag.canvas.light.color.LightDataManager;
-import grondag.canvas.light.color.LightRegion;
+import grondag.canvas.light.color.LightRegionAccess;
 import grondag.canvas.material.state.TerrainRenderStates;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.pipeline.Pipeline;
@@ -82,7 +81,7 @@ public class RenderRegion implements TerrainExecutorTask {
 	public final CameraRegionVisibility cameraVisibility;
 	public final ShadowRegionVisibility shadowVisibility;
 	public final NeighborRegions neighbors;
-	private final LightRegion lightRegion;
+	private final LightRegionAccess lightRegion;
 
 	private RegionRenderSector renderSector = null;
 
@@ -130,7 +129,7 @@ public class RenderRegion implements TerrainExecutorTask {
 		cameraVisibility = worldRenderState.terrainIterator.cameraVisibility.createRegionState(this);
 		shadowVisibility = worldRenderState.terrainIterator.shadowVisibility.createRegionState(this);
 		origin.update();
-		lightRegion = LightDataManager.INSTANCE.allocate(origin);
+		lightRegion = LightDataManager.allocate(origin);
 	}
 
 	private static <E extends BlockEntity> void addBlockEntity(List<BlockEntity> chunkEntities, Set<BlockEntity> globalEntities, E blockEntity) {
@@ -173,8 +172,7 @@ public class RenderRegion implements TerrainExecutorTask {
 			}
 
 			if (!lightRegion.isClosed()) {
-				LightDataManager.INSTANCE.deallocate(origin);
-				// CanvasMod.LOG.info("called deallocate() from Render Region");
+				LightDataManager.free(origin);
 			}
 		}
 	}

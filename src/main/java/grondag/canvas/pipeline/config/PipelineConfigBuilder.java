@@ -63,6 +63,7 @@ public class PipelineConfigBuilder {
 	@Nullable public DrawTargetsConfig drawTargets;
 	@Nullable public SkyShadowConfig skyShadow;
 	@Nullable public SkyConfig sky;
+	@Nullable public LightVolumeConfig lightVolume;
 
 	public boolean smoothBrightnessBidirectionaly = false;
 	public int brightnessSmoothingFrames = 20;
@@ -140,6 +141,14 @@ public class PipelineConfigBuilder {
 			}
 		}
 
+		if (configJson.containsKey("lightVolume")) {
+			if (lightVolume == null) {
+				lightVolume = LoadHelper.loadObject(context, configJson, "lightVolume", LightVolumeConfig::new);
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'lightVolume' ignored.");
+			}
+		}
+
 		if (configJson.containsKey("sky")) {
 			if (sky == null) {
 				sky = LoadHelper.loadObject(context, configJson, "sky", SkyConfig::new);
@@ -184,6 +193,7 @@ public class PipelineConfigBuilder {
 
 		valid &= (fabulosity == null || fabulosity.validate());
 		valid &= (skyShadow == null || skyShadow.validate());
+		valid &= (lightVolume == null || lightVolume.validate());
 
 		valid &= defaultFramebuffer != null && defaultFramebuffer.validate("Invalid pipeline config - missing or invalid defaultFramebuffer.");
 
