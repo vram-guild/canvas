@@ -25,12 +25,14 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
+import org.joml.Vector3i;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 
 import grondag.canvas.pipeline.Image;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.shader.data.ShaderDataManager;
 
 public class LightDataManager {
 	private static final boolean debugRedrawEveryFrame = false;
@@ -77,9 +79,7 @@ public class LightDataManager {
 
 	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
-	private int extentStartBlockX = 0;
-	private int extentStartBlockY = 0;
-	private int extentStartBlockZ = 0;
+	private final Vector3i extentOrigin = new Vector3i();
 
 	private int extentGridMaskX;
 	private int extentGridMaskY;
@@ -128,18 +128,20 @@ public class LightDataManager {
 	private void updateInner(BlockAndTintGetter blockView, int cameraX, int cameraY, int cameraZ) {
 		final int regionSnapMask = ~LightRegionData.Const.WIDTH_MASK;
 
-		final int prevExtentBlockX = extentStartBlockX;
-		final int prevExtentBlockY = extentStartBlockY;
-		final int prevExtentBlockZ = extentStartBlockZ;
+		final int prevExtentBlockX = extentOrigin.x;
+		final int prevExtentBlockY = extentOrigin.y;
+		final int prevExtentBlockZ = extentOrigin.z;
 
 		// snap camera position to the nearest region (chunk)
-		extentStartBlockX = (cameraX & regionSnapMask) - extentSizeInBlocks(extentSizeXInRegions / 2);
-		extentStartBlockY = (cameraY & regionSnapMask) - extentSizeInBlocks(extentSizeYInRegions / 2);
-		extentStartBlockZ = (cameraZ & regionSnapMask) - extentSizeInBlocks(extentSizeZInRegions / 2);
+		extentOrigin.x = (cameraX & regionSnapMask) - extentSizeInBlocks(extentSizeXInRegions / 2);
+		extentOrigin.y = (cameraY & regionSnapMask) - extentSizeInBlocks(extentSizeYInRegions / 2);
+		extentOrigin.z = (cameraZ & regionSnapMask) - extentSizeInBlocks(extentSizeZInRegions / 2);
 
-		boolean extentMoved = extentStartBlockX != prevExtentBlockX || extentStartBlockY != prevExtentBlockY || extentStartBlockZ != prevExtentBlockZ;
+		ShaderDataManager.updateLightVolumeOrigin(extentOrigin);
 
-		extentIterable.set(extentStartBlockX, extentStartBlockY, extentStartBlockZ);
+		boolean extentMoved = !extentOrigin.equals(prevExtentBlockX, prevExtentBlockY, prevExtentBlockZ);
+
+		extentIterable.set(extentOrigin.x, extentOrigin.y, extentOrigin.z);
 
 		boolean needUpdate = true;
 
@@ -152,7 +154,7 @@ public class LightDataManager {
 				final LightRegion lightRegion = allocated.get(index);
 
 				if (lightRegion != null && !lightRegion.isClosed()) {
-					needUpdate = needUpdate || lightRegion.updateDecrease(blockView);
+					needUpdate |= lightRegion.updateDecrease(blockView);
 				}
 			}
 		}

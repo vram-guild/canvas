@@ -38,6 +38,7 @@
 #define frx_shadowProjectionMatrix(index) (_cvu_matrix[_CV_MAT_SHADOW_PROJ_0 + index])
 #define frx_shadowViewProjectionMatrix(index) (_cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ_0 + index])
 #define frx_shadowCenter(index) (_cvu_world[_CV_SHADOW_CENTER + index])
+#define frx_lightVolumeOrigin _cvu_world[_CV_LIGHT_VOLUME_ORIGIN].xyz
 #define frx_viewWidth _cvu_world[_CV_VIEW_PARAMS].x
 #define frx_viewHeight _cvu_world[_CV_VIEW_PARAMS].y
 #define frx_viewAspectRatio _cvu_world[_CV_VIEW_PARAMS].z

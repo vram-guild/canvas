@@ -39,6 +39,7 @@ import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_INNER_ANGLE;
 import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_INTENSITY;
 import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_OUTER_ANGLE;
 import static grondag.canvas.shader.data.FloatData.HELD_LIGHT_RED;
+import static grondag.canvas.shader.data.FloatData.LIGHT_VOLUME_ORIGIN;
 import static grondag.canvas.shader.data.FloatData.MOON_SIZE;
 import static grondag.canvas.shader.data.FloatData.NIGHT_VISION_STRENGTH;
 import static grondag.canvas.shader.data.FloatData.PLAYER_MOOD;
@@ -136,6 +137,7 @@ import static grondag.canvas.shader.data.IntData.WORLD_DATA_INDEX;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
@@ -165,6 +167,7 @@ import io.vram.frex.api.light.ItemLight;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.light.color.LightDataManager;
 import grondag.canvas.mixinterface.DimensionTypeExt;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
@@ -645,6 +648,12 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(EMISSIVE_COLOR_RED, ((color >> 24) & 0xFF) / 255f);
 		FLOAT_VECTOR_DATA.put(EMISSIVE_COLOR_GREEN, ((color >> 16) & 0xFF) / 255f);
 		FLOAT_VECTOR_DATA.put(EMISSIVE_COLOR_BLUE, (color & 0xFF) / 255f);
+	}
+
+	public static void updateLightVolumeOrigin(Vector3i lightOrigin) {
+		FLOAT_VECTOR_DATA.put(LIGHT_VOLUME_ORIGIN, lightOrigin.x);
+		FLOAT_VECTOR_DATA.put(LIGHT_VOLUME_ORIGIN + 1, lightOrigin.y);
+		FLOAT_VECTOR_DATA.put(LIGHT_VOLUME_ORIGIN + 2, lightOrigin.z);
 	}
 
 	private static void putViewVector(int index, float yaw, float pitch, Vector3f storeTo) {

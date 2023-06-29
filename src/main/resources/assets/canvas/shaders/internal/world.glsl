@@ -72,6 +72,9 @@
 // w = smoothed thunder strength
 #define _CV_WEATHER 20
 
+// w is unused
+#define _CV_LIGHT_VOLUME_ORIGIN 21
+
 // UINT ARRAY
 #define _CV_RENDER_FRAMES 0
 

@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.joml.Vector3i;
 
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
@@ -98,6 +99,7 @@ public class Pipeline {
 
 	private static boolean advancedTerrainCulling;
 	private static boolean coloredLightsEnabled;
+	private static final Vector3i lightVolumeSize = new Vector3i();
 
 	public static boolean shadowsEnabled() {
 		return skyShadowFbo != null;
@@ -105,6 +107,10 @@ public class Pipeline {
 
 	public static boolean coloredLightsEnabled() {
 		return coloredLightsEnabled;
+	}
+
+	public static Vector3i lightVolumeSize() {
+		return lightVolumeSize;
 	}
 
 	public static boolean advancedTerrainCulling() {
@@ -212,7 +218,14 @@ public class Pipeline {
 			defaultZenithAngle = 0f;
 		}
 
-		coloredLightsEnabled = config.coloredLights != null;
+		if (config.coloredLights != null) {
+			coloredLightsEnabled = true;
+			var image = config.coloredLights.lightImage.value();
+			lightVolumeSize.set(image.width, image.height, image.depth);
+		} else {
+			coloredLightsEnabled = false;
+			lightVolumeSize.set(0);
+		}
 
 		if (isFabulous) {
 			final FabulousConfig fc = config.fabulosity;
