@@ -141,8 +141,6 @@ public class LightDataManager {
 
 		boolean extentMoved = !extentOrigin.equals(prevExtentBlockX, prevExtentBlockY, prevExtentBlockZ);
 
-		extentIterable.set(extentOrigin.x, extentOrigin.y, extentOrigin.z);
-
 		boolean needUpdate = true;
 
 		// TODO: account for extent-edge chunks?
@@ -247,24 +245,19 @@ public class LightDataManager {
 	}
 
 	private class ExtentIterable implements LongIterable, LongIterator {
+		final int extent = extentSizeInBlocks(1);
+
 		@Override
 		public LongIterator iterator() {
 			x = y = z = 0;
 			return this;
 		}
 
-		int x, y, z, startX, startY, startZ;
-
-		void set(int startX, int startY, int startZ) {
-			this.startX = startX;
-			this.startY = startY;
-			this.startZ = startZ;
-		}
+		int x, y, z;
 
 		@Override
 		public long nextLong() {
-			final int extent = extentSizeInBlocks(1);
-			final long value = BlockPos.asLong(startX + x * extent, startY + y * extent, startZ + z * extent);
+			final long value = BlockPos.asLong(extentOrigin.x + x * extent, extentOrigin.y + y * extent, extentOrigin.z + z * extent);
 
 			if (++z >= extentSizeZInRegions) {
 				z = 0;
@@ -281,7 +274,7 @@ public class LightDataManager {
 
 		@Override
 		public boolean hasNext() {
-			return x < extentSizeZInRegions;
+			return x < extentSizeXInRegions;
 		}
 	}
 }
