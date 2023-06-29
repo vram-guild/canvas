@@ -32,7 +32,6 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.light.api.impl.BlockLightLoader;
 import grondag.canvas.light.color.LightRegistry;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.texture.MaterialIndexProvider;

@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 
-import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.Image;
 import grondag.canvas.pipeline.Pipeline;
 
@@ -245,7 +244,7 @@ public class LightDataManager {
 		}
 	}
 
-	private class ExtentIterable implements LongIterable, LongIterator  {
+	private class ExtentIterable implements LongIterable, LongIterator {
 		@Override
 		public LongIterator iterator() {
 			x = y = z = 0;
@@ -264,6 +263,7 @@ public class LightDataManager {
 		public long nextLong() {
 			final int extent = extentSizeInBlocks(1);
 			final long value = BlockPos.asLong(startX + x * extent, startY + y * extent, startZ + z * extent);
+
 			if (++z >= extentSizeZInRegions) {
 				z = 0;
 				y++;

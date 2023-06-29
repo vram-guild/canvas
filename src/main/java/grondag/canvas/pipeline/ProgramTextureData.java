@@ -29,8 +29,6 @@ import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
-import grondag.canvas.light.color.LightDataManager;
-import grondag.canvas.light.color.LightDataTexture;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 

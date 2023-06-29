@@ -34,7 +34,6 @@ import grondag.canvas.light.color.LightDataManager;
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.perf.Timekeeper;
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.shader.GlMaterialProgramManager;

@@ -222,11 +222,11 @@ public class PipelineConfigBuilder {
 			return null;
 		}
 
-		final PipelineConfigBuilder result = new PipelineConfigBuilder();
-		final ObjectOpenHashSet<ResourceLocation> included = new ObjectOpenHashSet<>();
-		final ObjectArrayFIFOQueue<ResourceLocation> readQueue = new ObjectArrayFIFOQueue<>();
-		final ObjectArrayFIFOQueue<JsonObject> primaryLoadQueue = new ObjectArrayFIFOQueue<>();
-		final ObjectArrayFIFOQueue<JsonObject> secondLoadQueue = new ObjectArrayFIFOQueue<>();
+		final var result = new PipelineConfigBuilder();
+		final var included = new ObjectOpenHashSet<ResourceLocation>();
+		final var readQueue = new ObjectArrayFIFOQueue<ResourceLocation>();
+		final var primaryLoadQueue = new ObjectArrayFIFOQueue<JsonObject>();
+		final var secondLoadQueue = new ObjectArrayFIFOQueue<JsonObject>();
 
 		loadResources(id, readQueue, primaryLoadQueue, included, rm);
 
@@ -251,6 +251,10 @@ public class PipelineConfigBuilder {
 		}
 	}
 
+	/**
+	 * This function is also used in {@link PipelineDescription} to parse the entire pipeline.
+	 * Notably, this and subsequently called functions shouldn't contain any building code.
+	 */
 	static void loadResources(ResourceLocation id, ObjectArrayFIFOQueue<ResourceLocation> queue, ObjectArrayFIFOQueue<JsonObject> loadQueue, ObjectOpenHashSet<ResourceLocation> included, ResourceManager rm) {
 		queue.enqueue(id);
 		included.add(id);

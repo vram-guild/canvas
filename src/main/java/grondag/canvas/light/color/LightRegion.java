@@ -34,7 +34,7 @@ import grondag.canvas.light.color.LightRegionData.Encoding;
 
 // TODO: cluster slab allocation? -> maybe unneeded now?
 // TODO: a way to repopulate cluster if needed
-class LightRegion implements LightRegionAccess{
+class LightRegion implements LightRegionAccess {
 	private static class BVec {
 		boolean r, g, b;
 
@@ -89,7 +89,7 @@ class LightRegion implements LightRegionAccess{
 		}
 	}
 
-	private static enum Side {
+	private enum Side {
 		DOWN(0, -1, 0, 1, Direction.DOWN),
 		UP(0, 1, 0, 2, Direction.UP),
 		NORTH(0, 0, -1, 3, Direction.NORTH),
@@ -100,7 +100,7 @@ class LightRegion implements LightRegionAccess{
 		final int x, y, z, id;
 		final Direction vanilla;
 		Side opposite;
-		final static int nullId = 0;
+		static final int nullId = 0;
 
 		static {
 			DOWN.opposite = UP;
@@ -236,7 +236,7 @@ class LightRegion implements LightRegionAccess{
 		int decCount = 0;
 		boolean accessedNeighborDecrease = false;
 
-		while(!decQueue.isEmpty()) {
+		while (!decQueue.isEmpty()) {
 			decCount++;
 
 			final long entry = decQueue.dequeueLong();
@@ -495,7 +495,7 @@ class LightRegion implements LightRegionAccess{
 		final int[] searchOffsets = new int[]{-1, size};
 		final int[] targetOffsets = new int[]{0, size - 1};
 
-		for (int i = 0; i < searchOffsets.length; i ++) {
+		for (int i = 0; i < searchOffsets.length; i++) {
 			final int x = searchOffsets[i];
 			final int xTarget = targetOffsets[i];
 
@@ -518,7 +518,7 @@ class LightRegion implements LightRegionAccess{
 		}
 
 		// TODO: generalize with Axis parameter
-		for (int i = 0; i < searchOffsets.length; i ++) {
+		for (int i = 0; i < searchOffsets.length; i++) {
 			final int y = searchOffsets[i];
 			final int yTarget = targetOffsets[i];
 
@@ -540,7 +540,7 @@ class LightRegion implements LightRegionAccess{
 			}
 		}
 
-		for (int i = 0; i < searchOffsets.length; i ++) {
+		for (int i = 0; i < searchOffsets.length; i++) {
 			final int z = searchOffsets[i];
 			final int zTarget = targetOffsets[i];
 

@@ -20,17 +20,11 @@
 
 package grondag.canvas.pipeline.config;
 
-import java.io.InputStream;
-import java.util.function.Function;
-
-import blue.endless.jankson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.config.ConfigManager;
 
 public class PipelineLoader {
 	private static boolean hasLoadedOnce = false;
