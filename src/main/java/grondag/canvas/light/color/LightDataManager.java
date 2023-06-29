@@ -46,9 +46,9 @@ public class LightDataManager {
 	}
 
 	public static void reload() {
-		if (Pipeline.lightVolumeEnabled()) {
-			assert Pipeline.config().lightVolume != null;
-			final var image = Pipeline.getImage(Pipeline.config().lightVolume.lightImage.name);
+		if (Pipeline.coloredLightsEnabled()) {
+			assert Pipeline.config().coloredLights != null;
+			final var image = Pipeline.getImage(Pipeline.config().coloredLights.lightImage.name);
 
 			if (INSTANCE == null) {
 				INSTANCE = new LightDataManager(image);

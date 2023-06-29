@@ -28,10 +28,10 @@ import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
-public class LightVolumeConfig extends AbstractConfig {
+public class ColoredLightsConfig extends AbstractConfig {
 	public final NamedDependency<ImageConfig> lightImage;
 
-	protected LightVolumeConfig(ConfigContext ctx, JsonObject config) {
+	protected ColoredLightsConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx);
 		lightImage = ctx.images.dependOn(ctx.dynamic.getString(config, "lightImage"));
 	}

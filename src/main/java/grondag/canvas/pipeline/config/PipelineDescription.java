@@ -36,7 +36,7 @@ public class PipelineDescription {
 	public final String descriptionKey;
 	public final boolean isFabulous;
 	public final boolean shadowsEnabled;
-	public final boolean lightVolumeEnabled;
+	public final boolean coloredLightsEnabled;
 
 	public static PipelineDescription create(ResourceLocation id, ResourceManager rm) {
 		final var included = new ObjectOpenHashSet<ResourceLocation>();
@@ -59,25 +59,25 @@ public class PipelineDescription {
 
 		boolean fabulous = config.containsKey("fabulousTargets");
 		boolean shadows = config.containsKey("skyShadows");
-		boolean lightVolume = config.containsKey("lightVolume");
+		boolean coloredLights = config.containsKey("coloredLights");
 
 		while (!objects.isEmpty()) {
 			var obj = objects.dequeue();
 			fabulous |= obj.containsKey("fabulousTargets");
 			shadows |= obj.containsKey("skyShadows");
-			lightVolume |= obj.containsKey("lightVolume");
+			coloredLights |= obj.containsKey("coloredLights");
 		}
 
-		return new PipelineDescription(id, nameKey, descriptionKey, fabulous, shadows, lightVolume);
+		return new PipelineDescription(id, nameKey, descriptionKey, fabulous, shadows, coloredLights);
 	}
 
-	public PipelineDescription(ResourceLocation id, String nameKey, String descriptionKey, boolean isFabulous, boolean shadowsEnabled, boolean lightVolumeEnabled) {
+	public PipelineDescription(ResourceLocation id, String nameKey, String descriptionKey, boolean isFabulous, boolean shadowsEnabled, boolean coloredLightsEnabled) {
 		this.id = id;
 		this.nameKey = nameKey;
 		this.descriptionKey = descriptionKey;
 		this.isFabulous = isFabulous;
 		this.shadowsEnabled = shadowsEnabled;
-		this.lightVolumeEnabled = lightVolumeEnabled;
+		this.coloredLightsEnabled = coloredLightsEnabled;
 	}
 
 	public String name() {

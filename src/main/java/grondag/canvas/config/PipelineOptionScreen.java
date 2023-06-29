@@ -121,8 +121,8 @@ public class PipelineOptionScreen extends BaseScreen {
 		final var newPipeline = PipelineLoader.get(newPipelineId.toString());
 
 		boolean shadowsChanged = Pipeline.shadowsEnabled() != newPipeline.shadowsEnabled;
-		boolean lightVolumeChanged = Pipeline.lightVolumeEnabled() != newPipeline.lightVolumeEnabled;
-		boolean needRegionsReloaded = (shadowsChanged && !Configurator.advancedTerrainCulling) || lightVolumeChanged;
+		boolean coloredLightsChanged = Pipeline.coloredLightsEnabled() != newPipeline.coloredLightsEnabled;
+		boolean needRegionsReloaded = (shadowsChanged && !Configurator.advancedTerrainCulling) || coloredLightsChanged;
 
 		Configurator.pipelineId = newPipelineId.toString();
 		ConfigManager.saveUserInput(needRegionsReloaded ? RELOAD_EVERYTHING : RELOAD_PIPELINE);
