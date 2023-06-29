@@ -97,9 +97,14 @@ public class Pipeline {
 	private static PipelineConfig config;
 
 	private static boolean advancedTerrainCulling;
+	private static boolean lightVolumeEnabled;
 
 	public static boolean shadowsEnabled() {
 		return skyShadowFbo != null;
+	}
+
+	public static boolean lightVolumeEnabled() {
+		return lightVolumeEnabled;
 	}
 
 	public static boolean advancedTerrainCulling() {
@@ -206,6 +211,8 @@ public class Pipeline {
 		} else {
 			defaultZenithAngle = 0f;
 		}
+
+		lightVolumeEnabled = config.lightVolume != null;
 
 		if (isFabulous) {
 			final FabulousConfig fc = config.fabulosity;

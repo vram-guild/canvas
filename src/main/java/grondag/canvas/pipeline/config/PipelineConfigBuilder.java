@@ -79,8 +79,7 @@ public class PipelineConfigBuilder {
 
 	/**
 	 * Priority-pass loading. Loads options before anything else. This is necessary for the
-	 * current design of {@link grondag.canvas.pipeline.config.util.DynamicLoader}, at the cost
-	 * of reading the disk twice.
+	 * current design of {@link grondag.canvas.pipeline.config.util.DynamicLoader}.
 	 *
 	 * @param configJson the json file being read
 	 */
@@ -229,13 +228,7 @@ public class PipelineConfigBuilder {
 		final ObjectArrayFIFOQueue<JsonObject> primaryLoadQueue = new ObjectArrayFIFOQueue<>();
 		final ObjectArrayFIFOQueue<JsonObject> secondLoadQueue = new ObjectArrayFIFOQueue<>();
 
-		readQueue.enqueue(id);
-		included.add(id);
-
-		while (!readQueue.isEmpty()) {
-			final ResourceLocation target = readQueue.dequeue();
-			readResource(target, readQueue, primaryLoadQueue, included, rm);
-		}
+		loadResources(id, readQueue, primaryLoadQueue, included, rm);
 
 		while (!primaryLoadQueue.isEmpty()) {
 			final JsonObject target = primaryLoadQueue.dequeue();
@@ -255,6 +248,16 @@ public class PipelineConfigBuilder {
 		} else {
 			// fallback to minimal renderable pipeline if not valid
 			return null;
+		}
+	}
+
+	static void loadResources(ResourceLocation id, ObjectArrayFIFOQueue<ResourceLocation> queue, ObjectArrayFIFOQueue<JsonObject> loadQueue, ObjectOpenHashSet<ResourceLocation> included, ResourceManager rm) {
+		queue.enqueue(id);
+		included.add(id);
+
+		while (!queue.isEmpty()) {
+			final ResourceLocation target = queue.dequeue();
+			readResource(target, queue, loadQueue, included, rm);
 		}
 	}
 

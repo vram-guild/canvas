@@ -40,6 +40,7 @@ import grondag.canvas.config.gui.ActionItem;
 import grondag.canvas.config.gui.BaseButton;
 import grondag.canvas.config.gui.BaseScreen;
 import grondag.canvas.config.gui.ListWidget;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.PipelineLoader;
@@ -117,9 +118,14 @@ public class PipelineOptionScreen extends BaseScreen {
 	}
 
 	private void savePipelineSelection(ResourceLocation newPipelineId) {
+		final var newPipeline = PipelineLoader.get(newPipelineId.toString());
+
+		boolean shadowsChanged = Pipeline.shadowsEnabled() != newPipeline.shadowsEnabled;
+		boolean lightVolumeChanged = Pipeline.lightVolumeEnabled() != newPipeline.lightVolumeEnabled;
+		boolean needRegionsReloaded = (shadowsChanged && !Configurator.advancedTerrainCulling) || lightVolumeChanged;
+
 		Configurator.pipelineId = newPipelineId.toString();
-		// When advanced terrain culling is *soft* disabled, better clear the region storage
-		ConfigManager.saveUserInput(Configurator.advancedTerrainCulling ? RELOAD_PIPELINE : RELOAD_EVERYTHING);
+		ConfigManager.saveUserInput(needRegionsReloaded ? RELOAD_EVERYTHING : RELOAD_PIPELINE);
 	}
 
 	private void save() {

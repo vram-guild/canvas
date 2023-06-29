@@ -47,7 +47,8 @@ public class LightDataManager {
 	}
 
 	public static void reload() {
-		if (Pipeline.config().lightVolume != null) {
+		if (Pipeline.lightVolumeEnabled()) {
+			assert Pipeline.config().lightVolume != null;
 			final var image = Pipeline.getImage(Pipeline.config().lightVolume.lightImage.name);
 
 			if (INSTANCE == null) {
@@ -55,15 +56,11 @@ public class LightDataManager {
 			} else {
 				INSTANCE.resize(image);
 			}
-
-			CanvasMod.LOG.info("Light volume is enabled");
 		} else {
 			if (INSTANCE != null) {
 				INSTANCE.close();
 				INSTANCE = null;
 			}
-
-			CanvasMod.LOG.info("Light volume is disabled");
 		}
 	}
 
