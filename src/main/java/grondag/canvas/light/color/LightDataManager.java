@@ -159,15 +159,28 @@ public class LightDataManager {
 
 		boolean shouldRedraw = !cameraUninitialized && extentMoved;
 
-		// update all regions within extent
+		needUpdate = true;
+
+		// TODO: optimize active region traversal with queue
+		while (needUpdate) {
+			needUpdate = false;
+
+			for (long index : extentIterable) {
+				final LightRegion lightRegion = allocated.get(index);
+
+				if (lightRegion != null && !lightRegion.isClosed()) {
+					needUpdate |= lightRegion.updateIncrease(blockView);
+				}
+			}
+		}
+
+		// TODO: swap texture in case of sparse, perhaps
 		for (long index:extentIterable) {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion == null || lightRegion.isClosed()) {
 				continue;
 			}
-
-			lightRegion.updateIncrease(blockView);
 
 			boolean outsidePrev = false;
 

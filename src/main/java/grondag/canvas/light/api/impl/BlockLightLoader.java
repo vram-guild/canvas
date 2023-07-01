@@ -40,7 +40,7 @@ import net.minecraft.world.level.material.FluidState;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.light.api.BlockLight;
-import grondag.canvas.light.color.Elem;
+import grondag.canvas.light.color.LightOp;
 
 public class BlockLightLoader {
 	public static BlockLightLoader INSTANCE;
@@ -182,7 +182,7 @@ public class BlockLightLoader {
 
 		static short computeValue(float lightLevel, float red, float green, float blue) {
 			final int blockRadius = lightLevel == 0f ? 0 : org.joml.Math.clamp(1, 15, Math.round(lightLevel));
-			return Elem.encode(clampLight(blockRadius * red), clampLight(blockRadius * green), clampLight(blockRadius * blue), 0);
+			return LightOp.encode(clampLight(blockRadius * red), clampLight(blockRadius * green), clampLight(blockRadius * blue), 0);
 		}
 
 		@Override

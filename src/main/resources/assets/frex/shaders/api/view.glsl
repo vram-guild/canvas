@@ -38,7 +38,6 @@
 #define frx_shadowProjectionMatrix(index) (_cvu_matrix[_CV_MAT_SHADOW_PROJ_0 + index])
 #define frx_shadowViewProjectionMatrix(index) (_cvu_matrix[_CV_MAT_SHADOW_VIEW_PROJ_0 + index])
 #define frx_shadowCenter(index) (_cvu_world[_CV_SHADOW_CENTER + index])
-#define frx_lightVolumeOrigin _cvu_world[_CV_LIGHT_VOLUME_ORIGIN].xyz
 #define frx_viewWidth _cvu_world[_CV_VIEW_PARAMS].x
 #define frx_viewHeight _cvu_world[_CV_VIEW_PARAMS].y
 #define frx_viewAspectRatio _cvu_world[_CV_VIEW_PARAMS].z
@@ -54,6 +53,3 @@
 #define frx_cameraInSnow int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> 25) & 1u)
 
 #define frx_viewFlag(flag) (((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> flag) & 1u) == 1u) // DEPRECATED - DO NOT USE
-
-
-

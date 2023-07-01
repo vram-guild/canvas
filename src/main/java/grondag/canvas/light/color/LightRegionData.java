@@ -35,28 +35,6 @@ class LightRegionData {
 		public static final int WIDTH_MASK = WIDTH - 1;
 	}
 
-	static class Encoding {
-		public static short encodeLight(int r, int g, int b, boolean isLightSource, boolean isOccluding) {
-			return Elem.encode(r, g, b, (isLightSource ? 0b1 : 0) | (isOccluding ? 0b10 : 0));
-		}
-
-		public static short encodeLight(int pureLight, boolean isLightSource, boolean isOccluding) {
-			return (short) (pureLight | (isLightSource ? 0b1 : 0) | (isOccluding ? 0b10 : 0));
-		}
-
-		public static boolean isLightSource(short light) {
-			return (light & 0b1) != 0;
-		}
-
-		public static boolean isOccluding(short light) {
-			return (light & 0b10) != 0;
-		}
-
-		public static short pure(short light) {
-			return (short) (light & 0xfff0);
-		}
-	}
-
 	final int regionOriginBlockX;
 	final int regionOriginBlockY;
 	final int regionOriginBlockZ;

@@ -28,7 +28,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import io.vram.frex.api.light.ItemLight;
 
-import grondag.canvas.light.color.LightRegionData.Encoding;
 import grondag.canvas.light.api.impl.BlockLightLoader;
 
 public class LightRegistry {
@@ -46,7 +45,7 @@ public class LightRegistry {
 
 	private static short generate(BlockState blockState) {
 		final int lightLevel = blockState.getLightEmission();
-		final short defaultLight = Encoding.encodeLight(lightLevel, lightLevel, lightLevel, lightLevel > 0, blockState.canOcclude());
+		final short defaultLight = LightOp.encodeLight(lightLevel, lightLevel, lightLevel, lightLevel > 0, blockState.canOcclude());
 
 		BlockLightLoader.CachedBlockLight apiLight = BlockLightLoader.INSTANCE.blockLights.get(blockState);
 
@@ -59,7 +58,7 @@ public class LightRegistry {
 				apiLight = apiLight.withLevel(blockState.getLightEmission());
 			}
 
-			return Encoding.encodeLight(apiLight.value(), apiLight.value() != 0, blockState.canOcclude());
+			return LightOp.encodeLight(apiLight.value(), apiLight.value() != 0, blockState.canOcclude());
 		}
 
 		if (lightLevel < 1) {
@@ -84,6 +83,6 @@ public class LightRegistry {
 		final int g = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.green() / maxValue));
 		final int b = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.blue() / maxValue));
 
-		return Encoding.encodeLight(r, g, b, true, blockState.canOcclude());
+		return LightOp.encodeLight(r, g, b, true, blockState.canOcclude());
 	}
 }

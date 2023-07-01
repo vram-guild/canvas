@@ -30,65 +30,9 @@ import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 
-import grondag.canvas.light.color.LightRegionData.Encoding;
-
 // TODO: cluster slab allocation? -> maybe unneeded now?
 // TODO: a way to repopulate cluster if needed
 class LightRegion implements LightRegionAccess {
-	private static class BVec {
-		boolean r, g, b;
-
-		BVec() {
-			this.r = false;
-			this.g = false;
-			this.b = false;
-		}
-
-		boolean get(int i) {
-			return switch (i) {
-				case 0 -> r;
-				case 1 -> g;
-				case 2 -> b;
-				default -> false;
-			};
-		}
-
-		boolean any() {
-			return r || g || b;
-		}
-
-		boolean all() {
-			return r && g && b;
-		}
-
-		BVec not() {
-			r = !r;
-			g = !g;
-			b = !b;
-			return this;
-		}
-
-		void lessThan(short left, short right) {
-			r = Elem.R.of(left) < Elem.R.of(right);
-			g = Elem.G.of(left) < Elem.G.of(right);
-			b = Elem.B.of(left) < Elem.B.of(right);
-		}
-
-		BVec lessThanMinusOne(short left, short right) {
-			r = Elem.R.of(left) < Elem.R.of(right) - 1;
-			g = Elem.G.of(left) < Elem.G.of(right) - 1;
-			b = Elem.B.of(left) < Elem.B.of(right) - 1;
-			return this;
-		}
-
-		BVec and(BVec other, BVec another) {
-			r = other.r && another.r;
-			g = other.g && another.g;
-			b = other.b && another.b;
-			return this;
-		}
-	}
-
 	private enum Side {
 		DOWN(0, -1, 0, 1, Direction.DOWN),
 		UP(0, 1, 0, 2, Direction.UP),
@@ -159,7 +103,7 @@ class LightRegion implements LightRegionAccess {
 
 	final LightRegionData lightData;
 	final long origin;
-	private final BVec less = new BVec();
+	private final LightOp.BVec less = new LightOp.BVec();
 	private final BlockPos.MutableBlockPos sourcePos = new BlockPos.MutableBlockPos();
 	private final BlockPos.MutableBlockPos nodePos = new BlockPos.MutableBlockPos();
 	private final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
@@ -187,19 +131,19 @@ class LightRegion implements LightRegionAccess {
 		final short getLight = lightData.get(index);
 		final boolean occluding = blockState.canOcclude();
 
-		if (Encoding.isLightSource(registeredLight)) {
+		if (LightOp.emitter(registeredLight)) {
 			if (getLight != registeredLight) {
-				// replace light
-				if (Encoding.isLightSource(getLight)) {
-					lightData.put(index, (short) 0);
+				// remove old emitter
+				if (LightOp.emitter(getLight)) {
+					lightData.put(index, LightOp.EMPTY);
 					Queues.enqueue(globalDecQueue, index, getLight);
 				}
 
-				// place light
+				// place new emitter
 				Queues.enqueue(globalIncQueue, index, registeredLight);
 			}
-		} else if (Encoding.isLightSource(getLight) || Encoding.isOccluding(getLight) != occluding) {
-			// remove light or replace occluder
+		} else if (LightOp.emitter(getLight) || LightOp.occluder(getLight) != occluding || (LightOp.lit(getLight) && occluding)) {
+			// remove emitter or replace occluder
 			lightData.put(index, registeredLight);
 			Queues.enqueue(globalDecQueue, index, getLight);
 		}
@@ -230,8 +174,8 @@ class LightRegion implements LightRegionAccess {
 			decQueue.enqueue(globalDecQueue.dequeueLong());
 		}
 
-		final BVec removeFlag = new BVec();
-		final BVec removeMask = new BVec();
+		final LightOp.BVec removeFlag = new LightOp.BVec();
+		final LightOp.BVec removeMask = new LightOp.BVec();
 
 		int decCount = 0;
 		boolean accessedNeighborDecrease = false;
@@ -282,62 +226,48 @@ class LightRegion implements LightRegionAccess {
 				}
 
 				final int nodeIndex = dataAccess.indexify(nodePos);
-				short nodeLight = dataAccess.get(nodeIndex);
+				final short nodeLight = dataAccess.get(nodeIndex);
 
-				if (Encoding.pure(nodeLight) == 0) {
+				if (!LightOp.lit(nodeLight)) {
 					continue;
 				}
 
 				final BlockState nodeState = blockView.getBlockState(nodePos);
 
 				// check neighbor occlusion for decrease
-				if (!Encoding.isLightSource(nodeLight) && occludeSide(nodeState, side.opposite, blockView, nodePos)) {
+				if (!LightOp.emitter(nodeLight) && occludeSide(nodeState, side.opposite, blockView, nodePos)) {
 					continue;
 				}
 
-				less.lessThan(nodeLight, sourcePrevLight);
-
 				// only propagate removal according to removeFlag
-				removeMask.and(less, removeFlag);
+				removeMask.and(less.lessThan(nodeLight, sourcePrevLight), removeFlag);
 
-				boolean restoreLightSource = removeMask.any() && Encoding.isLightSource(nodeLight);
+				final boolean restoreLightSource = removeMask.any() && LightOp.emitter(nodeLight);
+				final short repropLight;
 
 				if (removeMask.any()) {
-					int mask = 0;
-
-					if (removeMask.r) {
-						mask |= Elem.R.mask;
-					}
-
-					if (removeMask.g) {
-						mask |= Elem.G.mask;
-					}
-
-					if (removeMask.b) {
-						mask |= Elem.B.mask;
-					}
-
-					final short resultLight = (short) (nodeLight & ~(mask));
+					final short resultLight = LightOp.remove(nodeLight, removeMask);
 					dataAccess.put(nodeIndex, resultLight);
-
 					Queues.enqueue(decreaseQueue, nodeIndex, nodeLight, side);
-
-					nodeLight = resultLight;
 
 					// restore obliterated light source
 					if (restoreLightSource) {
 						// defer putting light source as to not mess with decrease step
 						// take RGB of maximum and Alpha of registered
 						final short registered = LightRegistry.get(nodeState);
-						nodeLight = Elem.maxRGB(nodeLight, registered, Elem.A.of(registered));
+						repropLight = LightOp.max(registered, resultLight);
+					} else {
+						repropLight = resultLight;
 					}
 
-					accessedNeighborDecrease = accessedNeighborDecrease || isNeighbor;
+					accessedNeighborDecrease |= isNeighbor;
+				} else {
+					repropLight = nodeLight;
 				}
 
 				if (removeMask.and(less.not(), removeFlag).any() || restoreLightSource) {
 					// increases queued in decrease may propagate to all directions as if a light source
-					Queues.enqueue(increaseQueue, nodeIndex, nodeLight);
+					Queues.enqueue(increaseQueue, nodeIndex, repropLight);
 				}
 			}
 		}
@@ -349,12 +279,13 @@ class LightRegion implements LightRegionAccess {
 		return accessedNeighborDecrease;
 	}
 
-	public void updateIncrease(BlockAndTintGetter blockView) {
+	public boolean updateIncrease(BlockAndTintGetter blockView) {
 		while (!globalIncQueue.isEmpty()) {
 			incQueue.enqueue(globalIncQueue.dequeueLong());
 		}
 
 		int incCount = 0;
+		boolean accessedNeighbor = false;
 
 		while (!incQueue.isEmpty()) {
 			incCount++;
@@ -364,15 +295,18 @@ class LightRegion implements LightRegionAccess {
 			final short recordedLight = Queues.light(entry);
 			final int from = Queues.from(entry);
 
-			short sourceLight = lightData.get(index);
+			final short getLight = lightData.get(index);
+			final short sourceLight;
 
-			if (sourceLight != recordedLight) {
-				if (Encoding.isLightSource(recordedLight)) {
-					sourceLight = Elem.maxRGB(sourceLight, recordedLight, Elem.A.of(recordedLight));
+			if (getLight != recordedLight) {
+				if (LightOp.emitter(recordedLight)) {
+					sourceLight = LightOp.max(recordedLight, getLight);
 					lightData.put(index, sourceLight);
 				} else {
 					continue;
 				}
+			} else {
+				sourceLight = getLight;
 			}
 
 			lightData.reverseIndexify(index, sourcePos);
@@ -385,7 +319,7 @@ class LightRegion implements LightRegionAccess {
 				}
 
 				// check self occlusion for increase
-				if (!Encoding.isLightSource(sourceLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
+				if (!LightOp.emitter(sourceLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
 					continue;
 				}
 
@@ -420,22 +354,11 @@ class LightRegion implements LightRegionAccess {
 				}
 
 				if (less.lessThanMinusOne(nodeLight, sourceLight).any()) {
-					short resultLight = nodeLight;
-
-					if (less.r) {
-						resultLight = Elem.R.replace(resultLight, (short) (Elem.R.of(sourceLight) - 1));
-					}
-
-					if (less.g) {
-						resultLight = Elem.G.replace(resultLight, (short) (Elem.G.of(sourceLight) - 1));
-					}
-
-					if (less.b) {
-						resultLight = Elem.B.replace(resultLight, (short) (Elem.B.of(sourceLight) - 1));
-					}
-
+					final short resultLight = LightOp.replaceMinusOne(nodeLight, sourceLight, less);
 					dataAccess.put(nodeIndex, resultLight);
 					Queues.enqueue(increaseQueue, nodeIndex, resultLight, side);
+
+					accessedNeighbor |= isNeighbor;
 				}
 			}
 		}
@@ -443,6 +366,8 @@ class LightRegion implements LightRegionAccess {
 		if (incCount > 0) {
 			lightData.markAsDirty();
 		}
+
+		return accessedNeighbor;
 	}
 
 	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, BlockAndTintGetter blockView) {
@@ -450,10 +375,10 @@ class LightRegion implements LightRegionAccess {
 		final short sourceLight = neighbor.lightData.get(sourceIndex);
 		final BlockState sourceState = blockView.getBlockState(sourcePos);
 
-		if (Encoding.pure(sourceLight) != 0) {
+		if (LightOp.lit(sourceLight)) {
 			// TODO: generalize for all increase process, with check-neighbor flag
 			// check self occlusion for increase
-			if (!Encoding.isLightSource(sourceLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
+			if (!LightOp.emitter(sourceLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
 				return;
 			}
 
@@ -467,20 +392,7 @@ class LightRegion implements LightRegionAccess {
 			}
 
 			if (less.lessThanMinusOne(targetLight, sourceLight).any()) {
-				short resultLight = targetLight;
-
-				if (less.r) {
-					resultLight = Elem.R.replace(resultLight, (short) (Elem.R.of(sourceLight) - 1));
-				}
-
-				if (less.g) {
-					resultLight = Elem.G.replace(resultLight, (short) (Elem.G.of(sourceLight) - 1));
-				}
-
-				if (less.b) {
-					resultLight = Elem.B.replace(resultLight, (short) (Elem.B.of(sourceLight) - 1));
-				}
-
+				final short resultLight = LightOp.replaceMinusOne(targetLight, sourceLight, less);
 				lightData.put(targetIndex, resultLight);
 				Queues.enqueue(incQueue, targetIndex, resultLight, side);
 			}

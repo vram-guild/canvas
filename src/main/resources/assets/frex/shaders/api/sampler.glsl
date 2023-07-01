@@ -1,4 +1,5 @@
 #include canvas:shaders/internal/program.glsl
+#include frex:shaders/api/light.glsl
 
 /****************************************************************
  * frex:shaders/api/sampler.glsl - Canvas Implementation
@@ -23,4 +24,15 @@ uniform sampler2D frxs_lightmap;
 uniform sampler2DArrayShadow frxs_shadowMap;
 uniform sampler2DArray frxs_shadowMapTexture;
 #endif
+#endif
+
+#ifdef COLORED_LIGHTS_ENABLED
+#ifdef SPARSE_LIGHT_DATA
+uniform sampler2D frxs_lightData;
+#else
+uniform sampler3D frxs_lightData;
+#endif
+
+#define frx_getLightFiltered(worldPos, fallback) frx_getLightFiltered(frxs_lightData, worldPos, fallback)
+#define frx_getLightRaw(worldPos) frx_getLightRaw(frxs_lightData, worldPos)
 #endif
