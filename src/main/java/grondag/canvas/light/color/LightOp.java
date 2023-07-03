@@ -47,16 +47,16 @@ public enum LightOp {
 		return (short) ((r << R.shift) | (g << G.shift) | (b << B.shift) | (a << A.shift));
 	}
 
-	public static short encodeLight(int r, int g, int b, boolean isEmitter, boolean isOccluding) {
-		return ensureUsefulness(encode(r, g, b, encodeAlpha(isEmitter, isOccluding)));
+	public static short encodeLight(int r, int g, int b, boolean isFull, boolean isEmitter, boolean isOccluding) {
+		return ensureUsefulness(encode(r, g, b, encodeAlpha(isFull, isEmitter, isOccluding)));
 	}
 
-	public static short encodeLight(int pureLight, boolean isEmitter, boolean isOccluding) {
-		return ensureUsefulness((short) (pureLight | encodeAlpha(isEmitter, isOccluding)));
+	public static short encodeLight(int pureLight, boolean isFull, boolean isEmitter, boolean isOccluding) {
+		return ensureUsefulness((short) (pureLight | encodeAlpha(isFull, isEmitter, isOccluding)));
 	}
 
-	private static int encodeAlpha(boolean isEmitter, boolean isOccluding) {
-		return (isEmitter ? EMITTER_FLAG : 0) | (isOccluding ? OCCLUDER_FLAG : 0);
+	private static int encodeAlpha(boolean isFull, boolean isEmitter, boolean isOccluding) {
+		return (isFull ? FULL_FLAG : 0) | (isEmitter ? EMITTER_FLAG : 0) | (isOccluding ? OCCLUDER_FLAG : 0);
 	}
 
 	private static short ensureUsefulness(short light) {

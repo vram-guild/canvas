@@ -33,6 +33,7 @@ uniform sampler2D frxs_lightData;
 uniform sampler3D frxs_lightData;
 #endif
 
-#define frx_getLightFiltered(worldPos, fallback) frx_getLightFiltered(frxs_lightData, worldPos, fallback)
+#define frx_getLightFiltered(worldPos) frx_getLightFiltered(frxs_lightData, worldPos)
 #define frx_getLightRaw(worldPos) frx_getLightRaw(frxs_lightData, worldPos)
+#define frx_getLight(worldPos, fallback) frx_getLight(frxs_lightData, worldPos, fallback)
 #endif
