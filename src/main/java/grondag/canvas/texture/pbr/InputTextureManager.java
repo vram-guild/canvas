@@ -21,6 +21,7 @@
 package grondag.canvas.texture.pbr;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -138,6 +139,7 @@ public class InputTextureManager {
 			}
 
 			CanvasTextureState.bindTexture(texId);
+			GFX.texImage2D(GFX.GL_TEXTURE_2D, 0, GFX.GL_RGBA8, image.getWidth(), image.getHeight(), 0, image.format().glFormat(), GFX.GL_UNSIGNED_BYTE, (ByteBuffer) null);
 			image.upload(0, 0, 0, autoClose);
 		}
 

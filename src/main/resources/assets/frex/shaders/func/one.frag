@@ -1,15 +1,11 @@
 #include frex:shaders/api/header.glsl
 
 /******************************************************
-  canvas:shaders/pipeline/internal/pbr.frag
+  frex:shaders/func/one.frag
 ******************************************************/
-
-uniform frx_source0;
-
-in vec2 frx_texcoord;
 
 out vec4 outColor;
 
 void main() {
-	outColor = texture(frx_source0, frx_texcoord);
+	outColor = vec4(1.0);
 }

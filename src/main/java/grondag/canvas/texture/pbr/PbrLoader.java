@@ -24,11 +24,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import net.minecraft.client.resources.model.AtlasSet;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.mixinterface.SpriteContentsExt;
 import grondag.canvas.mixinterface.StitchResultExt;
+import grondag.canvas.varia.GFX;
 
 public class PbrLoader {
 	static final InputTextureManager inputTextureManager = new InputTextureManager();
@@ -39,7 +41,7 @@ public class PbrLoader {
 
 	public static void reload(ResourceManager manager, Collection<AtlasSet.StitchResult> atlasPreparations) {
 		var atlases = new ArrayList<PbrMapAtlas>();
-		var debugProcess = new PbrProcess();
+		var debugProcess = new PbrProcess(new ResourceLocation("frex:shaders/func/normal_from_luminance.frag"));
 
 		for (var rawEntry : atlasPreparations) {
 			final var entry = (StitchResultExt) rawEntry;
@@ -59,7 +61,7 @@ public class PbrLoader {
 				pbrAtlas.sprites.add(pbrSprite);
 
 				// debug
-				// pbrSprite.withProcess(PbrMapSpriteLayer.NORMAL, debugProcess, new InputTextureManager.InputTexture[]{inputTextureManager.getSpriteDefault(spriteEntry.getKey())});
+				pbrSprite.withProcess(PbrMapSpriteLayer.NORMAL, debugProcess, new InputTextureManager.InputTexture[]{inputTextureManager.getSpriteDefault(spriteEntry.getKey())});
 
 				// CanvasMod.LOG.info(atlas.location() + ", " + spriteEntry.getKey() + ", " + spriteEntry.getValue().contentsExt().name());
 			}
@@ -67,6 +69,11 @@ public class PbrLoader {
 
 		// we are in Render thread the whole time
 		inputTextureManager.uploadInputs();
+
+		GFX.depthMask(false);
+		GFX.disableBlend();
+		GFX.disableCull();
+		GFX.disableDepthTest();
 
 		var context = new PbrProcess.DrawContext();
 		context.drawBuffer.bind();

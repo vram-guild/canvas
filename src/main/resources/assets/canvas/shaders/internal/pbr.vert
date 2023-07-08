@@ -4,6 +4,9 @@
   canvas:shaders/pipeline/internal/pbr.vert
 ******************************************************/
 
+uniform mat4 frxu_frameProjectionMatrix;
+uniform ivec2 frxu_size;
+
 in vec3 in_vertex;
 in vec2 in_uv;
 

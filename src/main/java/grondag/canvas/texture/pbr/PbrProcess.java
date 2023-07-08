@@ -40,6 +40,9 @@ import grondag.canvas.varia.GFX;
 public class PbrProcess {
 	private static final String[] SAMPLERS;
 	private static final int INPUT_COUNT = 8;
+	private static int prevWidth = -1;
+	private static int prevHeight = -1;
+	private static int lastProgram = 0;
 
 	static {
 		SAMPLERS = new String[INPUT_COUNT];
@@ -56,7 +59,7 @@ public class PbrProcess {
 	}
 
 	public PbrProcess() {
-		this.program = new ProcessProgram("pbr_process", new ResourceLocation("canvas:shaders/internal/pbr.vert"), new ResourceLocation("canvas:shaders/internal/pbr.frag"), SAMPLERS);
+		this.program = new ProcessProgram("pbr_process", new ResourceLocation("canvas:shaders/internal/pbr.vert"), new ResourceLocation("frex:shaders/func/color.frag"), SAMPLERS);
 	}
 
 	boolean process(String debugLabel, int width, int height, InputTextureManager.InputTexture[] inputTexture, int outputTextureId) {
@@ -64,10 +67,6 @@ public class PbrProcess {
 			throw new IllegalStateException("PBR process is made to accept more than " + INPUT_COUNT + " image sources");
 		}
 
-		int fboGlId = GFX.genFramebuffer();
-		GFX.bindFramebuffer(GFX.GL_FRAMEBUFFER, fboGlId);
-		GFX.objectLabel(GFX.GL_FRAMEBUFFER, fboGlId, "FBO " + debugLabel);
-		GFX.glDrawBuffers(new int[]{GFX.GL_COLOR_ATTACHMENT0});
 		GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0, GFX.GL_TEXTURE_2D, outputTextureId, 0);
 		final int check = GFX.checkFramebufferStatus(GFX.GL_FRAMEBUFFER);
 
@@ -76,19 +75,31 @@ public class PbrProcess {
 			return false;
 		}
 
-		final Matrix4f orthoMatrix = new Matrix4f().setOrtho(0, width, height, 0, 1000.0F, 3000.0F);
-		GFX.viewport(0, 0, width, height);
+		final boolean resized = width != prevWidth || height != prevHeight;
+
+		prevWidth = width;
+		prevHeight = height;
+
+		if (resized) {
+			GFX.viewport(0, 0, width, height);
+		}
 
 		for (int i = 0; i < inputTexture.length; ++i) {
 			CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0 + i, GFX.GL_TEXTURE_2D, inputTexture[i].getTexId());
 		}
 
 		program.activate();
-		program.lod(0).layer(0).size(width, height).projection(orthoMatrix);
+		program.lod(0).layer(0).size(width, height);
+
+		final boolean programChanged = lastProgram != program.programId();
+
+		lastProgram = program.programId();
+
+		if (resized || programChanged) {
+			program.projection(new Matrix4f().setOrtho(0, width, height, 0, 1000.0F, 3000.0F));
+		}
 
 		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
-
-		GFX.deleteFramebuffer(fboGlId);
 
 		return true;
 	}
@@ -99,6 +110,7 @@ public class PbrProcess {
 
 	static class DrawContext {
 		final StaticDrawBuffer drawBuffer;
+		final int fboGlId;
 
 		{
 			final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.missing(), new int[64]);
@@ -115,10 +127,17 @@ public class PbrProcess {
 			collector.toBuffer(transfer, 0);
 			drawBuffer = new StaticDrawBuffer(CanvasVertexFormats.PROCESS_VERTEX_UV, transfer);
 			drawBuffer.upload();
+			collector.clear();
+
+			fboGlId = GFX.genFramebuffer();
+			GFX.bindFramebuffer(GFX.GL_FRAMEBUFFER, fboGlId);
+			GFX.objectLabel(GFX.GL_FRAMEBUFFER, fboGlId, "FBO pbr_context");
+			GFX.glDrawBuffers(new int[]{GFX.GL_COLOR_ATTACHMENT0});
 		}
 
 		void close() {
 			drawBuffer.release();
+			GFX.deleteFramebuffer(fboGlId);
 		}
 
 		private static void addVertex(float x, float y, float z, float u, float v, int[] target, int index) {
