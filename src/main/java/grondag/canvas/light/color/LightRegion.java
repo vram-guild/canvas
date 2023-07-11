@@ -130,22 +130,16 @@ class LightRegion implements LightRegionAccess {
 		final int index = lightData.indexify(pos);
 		final short getLight = lightData.get(index);
 		final boolean occluding = blockState.canOcclude();
+		final boolean emitting = LightOp.emitter(registeredLight);
 
-		if (LightOp.emitter(registeredLight)) {
-			if (getLight != registeredLight) {
-				// remove old emitter
-				if (LightOp.emitter(getLight)) {
-					lightData.put(index, LightOp.EMPTY);
-					Queues.enqueue(globalDecQueue, index, getLight);
-				}
-
-				// place new emitter
-				Queues.enqueue(globalIncQueue, index, registeredLight);
-			}
-		} else if (LightOp.emitter(getLight) || LightOp.occluder(getLight) != occluding || (LightOp.lit(getLight) && occluding)) {
-			// remove emitter or replace occluder
-			lightData.put(index, registeredLight);
+		if ((emitting && getLight != registeredLight) || LightOp.emitter(getLight) || LightOp.occluder(getLight) != occluding || (LightOp.lit(getLight) && occluding)) {
+			final short combined = emitting ? LightOp.max(registeredLight, getLight) : registeredLight;
+			lightData.put(index, combined);
 			Queues.enqueue(globalDecQueue, index, getLight);
+
+			if (emitting) {
+				Queues.enqueue(globalIncQueue, index, combined);
+			}
 		}
 	}
 
