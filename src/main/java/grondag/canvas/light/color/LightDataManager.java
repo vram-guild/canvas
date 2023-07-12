@@ -86,6 +86,14 @@ public class LightDataManager {
 		return 0;
 	}
 
+	public static String debugString() {
+		if (INSTANCE != null) {
+			return INSTANCE.texAllocator.debugString();
+		}
+
+		return "Colored lights DISABLED";
+	}
+
 	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
 	private final Vector3i extentOrigin = new Vector3i();
@@ -224,7 +232,6 @@ public class LightDataManager {
 
 		extentWasResized = false;
 		cameraUninitialized = false;
-		texAllocator.debug_PrintAddressCount();
 	}
 
 	LightRegion getFromBlock(BlockPos blockPos) {

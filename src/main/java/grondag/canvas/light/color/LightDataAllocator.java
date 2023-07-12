@@ -31,8 +31,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 
 import grondag.canvas.CanvasMod;
+import grondag.canvas.pipeline.Pipeline;
 
 public class LightDataAllocator {
+	private static final boolean DEBUG_LOG_RESIZE = false;
+
 	// unsigned short hard limit, because we are putting addresses in the data texture.
 	// although, this number of maximum address correspond to about 1 GiB of memory
 	// of light data, so this is a reasonable "hard limit".
@@ -61,8 +64,8 @@ public class LightDataAllocator {
 	// 0 is reserved for empty address
 	private int nextAllocateAddress = 1;
 	private int addressCount = 1;
-	private int debug_prevAddressCount = 0;
-	private boolean debug_logResize = true;
+
+	private float dataSize = 0f;
 
 	private final Short2LongOpenHashMap allocatedAddresses = new Short2LongOpenHashMap();
 	private final ShortStack freedAddresses = new ShortArrayList();
@@ -82,7 +85,7 @@ public class LightDataAllocator {
 		var prevRows = pointerRows;
 		pointerRows = pointerCountReq / ROW_SIZE + ((pointerCountReq % ROW_SIZE == 0) ? 0 : 1);
 
-		if (debug_logResize) {
+		if (DEBUG_LOG_RESIZE) {
 			CanvasMod.LOG.info("Resized pointer storage capacity from " + prevRows + " to " + pointerRows);
 		}
 
@@ -118,7 +121,7 @@ public class LightDataAllocator {
 			return;
 		}
 
-		if (debug_logResize) {
+		if (DEBUG_LOG_RESIZE) {
 			CanvasMod.LOG.info("Resized light data address capacity from " + dynamicMaxAddresses + " to " + cappedNewSize);
 		}
 
@@ -222,6 +225,7 @@ public class LightDataAllocator {
 		requireTextureRemake = false;
 		needUploadPointers = true;
 		needUploadMeta = true;
+		dataSize = (float) (textureWidth() * textureHeight() * 4d / (double) 0x100000);
 	}
 
 	public int dataRowStart() {
@@ -271,11 +275,7 @@ public class LightDataAllocator {
 		texture.upload(HEADER_META_ROWS, pointerRows, pointerBuffer);
 	}
 
-	void debug_PrintAddressCount() {
-		if (addressCount != debug_prevAddressCount) {
-			CanvasMod.LOG.info("Light data allocator address count: " + addressCount);
-		}
-
-		debug_prevAddressCount = addressCount;
+	String debugString() {
+		return String.format("Light %s (%d) %d/%d %5.1fMb", Pipeline.config().coloredLights.useOcclusionData ? "LO" : "L", pointerRows, addressCount, dynamicMaxAddresses, dataSize);
 	}
 }
