@@ -103,6 +103,7 @@ class LightRegion implements LightRegionAccess {
 
 	final LightRegionData lightData;
 	final long origin;
+	final BlockPos originPos;
 	private final LightOp.BVec less = new LightOp.BVec();
 	private final BlockPos.MutableBlockPos sourcePos = new BlockPos.MutableBlockPos();
 	private final BlockPos.MutableBlockPos nodePos = new BlockPos.MutableBlockPos();
@@ -113,9 +114,12 @@ class LightRegion implements LightRegionAccess {
 	private final LongPriorityQueue globalIncQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 	private final LongPriorityQueue globalDecQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 
+	short texAllocation = LightDataAllocator.EMPTY_ADDRESS;
+	boolean hasData = false;
 	private boolean needCheckEdges = true;
 
 	LightRegion(BlockPos origin) {
+		this.originPos = new BlockPos(origin);
 		this.origin = origin.asLong();
 		this.lightData = new LightRegionData(origin.getX(), origin.getY(), origin.getZ());
 	}
@@ -139,6 +143,10 @@ class LightRegion implements LightRegionAccess {
 
 			if (emitting) {
 				Queues.enqueue(globalIncQueue, index, combined);
+			}
+
+			if (LightDataManager.INSTANCE.useOcclusionData) {
+				hasData = true;
 			}
 		}
 	}
@@ -358,6 +366,7 @@ class LightRegion implements LightRegionAccess {
 		}
 
 		if (incCount > 0) {
+			hasData = true;
 			lightData.markAsDirty();
 		}
 
@@ -395,7 +404,6 @@ class LightRegion implements LightRegionAccess {
 
 	private void checkEdges(BlockAndTintGetter blockView) {
 		final int size = LightRegionData.Const.WIDTH;
-		final BlockPos originPos = BlockPos.of(origin);
 		final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 		final BlockPos.MutableBlockPos targetPos = new BlockPos.MutableBlockPos();
 		final int[] searchOffsets = new int[]{-1, size};

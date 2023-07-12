@@ -30,10 +30,12 @@ import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class ColoredLightsConfig extends AbstractConfig {
 	public final NamedDependency<ImageConfig> lightImage;
+	public final boolean useOcclusionData;
 
 	protected ColoredLightsConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx);
 		lightImage = ctx.images.dependOn(ctx.dynamic.getString(config, "lightImage"));
+		useOcclusionData = ctx.dynamic.getBoolean(config, "useOcclusionData", false);
 	}
 
 	@Override

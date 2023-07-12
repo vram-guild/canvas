@@ -57,6 +57,8 @@ public class LightDataManager {
 			} else {
 				INSTANCE.resize(image);
 			}
+
+			INSTANCE.useOcclusionData = Pipeline.config().coloredLights.useOcclusionData;
 		} else {
 			if (INSTANCE != null) {
 				INSTANCE.close();
@@ -80,6 +82,9 @@ public class LightDataManager {
 	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
 	private final Vector3i extentOrigin = new Vector3i();
+	private final LightDataAllocator texAllocator;
+
+	boolean useOcclusionData = false;
 
 	private int extentGridMaskX;
 	private int extentGridMaskY;
@@ -99,6 +104,7 @@ public class LightDataManager {
 	ExtentIterable extentIterable = new ExtentIterable();
 
 	public LightDataManager(Image image) {
+		texAllocator = new LightDataAllocator();
 		allocated.defaultReturnValue(null);
 		init(image);
 	}
@@ -182,6 +188,9 @@ public class LightDataManager {
 				continue;
 			}
 
+			// debug
+			texAllocator.allocateAddress(lightRegion);
+
 			boolean outsidePrev = false;
 
 			final int x = lightRegion.lightData.regionOriginBlockX;
@@ -195,7 +204,7 @@ public class LightDataManager {
 				outsidePrev |= z < prevExtentBlockZ || z >= (prevExtentBlockZ + extentSizeZ);
 			}
 
-			if (lightRegion.lightData.isDirty() || outsidePrev || extentWasResized || debugRedrawEveryFrame) {
+			if (lightRegion.lightData.hasBuffer() && (lightRegion.lightData.isDirty() || outsidePrev || extentWasResized || debugRedrawEveryFrame)) {
 				// modulo into extent-grid
 				texture.upload(x & extentGridMaskX, y & extentGridMaskY, z & extentGridMaskZ, lightRegion.lightData.getBuffer());
 				lightRegion.lightData.clearDirty();
@@ -204,6 +213,7 @@ public class LightDataManager {
 
 		extentWasResized = false;
 		cameraUninitialized = false;
+		texAllocator.debug_PrintAddressCount();
 	}
 
 	LightRegion getFromBlock(BlockPos blockPos) {
@@ -214,10 +224,15 @@ public class LightDataManager {
 		return allocated.get(key);
 	}
 
+	LightRegion get(long originKey) {
+		return allocated.get(originKey);
+	}
+
 	private void freeInner(BlockPos regionOrigin) {
 		final LightRegion lightRegion = allocated.get(regionOrigin.asLong());
 
 		if (lightRegion != null && !lightRegion.isClosed()) {
+			texAllocator.freeAddress(lightRegion);
 			lightRegion.close();
 		}
 

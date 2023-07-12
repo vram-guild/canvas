@@ -38,7 +38,7 @@ class LightRegionData {
 	final int regionOriginBlockX;
 	final int regionOriginBlockY;
 	final int regionOriginBlockZ;
-	private final ByteBuffer buffer;
+	private ByteBuffer buffer = null;
 	private boolean dirty = true;
 	private boolean closed = false;
 
@@ -46,6 +46,12 @@ class LightRegionData {
 		this.regionOriginBlockX = regionOriginBlockX;
 		this.regionOriginBlockY = regionOriginBlockY;
 		this.regionOriginBlockZ = regionOriginBlockZ;
+	}
+
+	private void allocateBuffer() {
+		if (buffer != null) {
+			throw new IllegalStateException("Trying to allocate light region buffer twice!");
+		}
 
 		buffer = MemoryUtil.memAlloc(LightDataTexture.Format.pixelBytes * Const.SIZE3D);
 
@@ -63,26 +69,29 @@ class LightRegionData {
 		dirty = false;
 	}
 
-	public void draw(short rgba) {
-		buffer.putShort(rgba);
-	}
-
 	public void close() {
 		if (closed) {
 			return;
 		}
 
-		buffer.position(0);
-		// very important
-		MemoryUtil.memFree(buffer);
+		if (buffer != null) {
+			buffer.position(0);
+			// very important
+			MemoryUtil.memFree(buffer);
+		}
+
 		closed = true;
 	}
 
 	public short get(int index) {
-		return buffer.getShort(index);
+		return buffer == null ? 0 : buffer.getShort(index);
 	}
 
 	public void put(int index, short light) {
+		if (buffer == null) {
+			allocateBuffer();
+		}
+
 		buffer.putShort(index, light);
 	}
 
@@ -118,9 +127,13 @@ class LightRegionData {
 				&& (z >= regionOriginBlockZ && z < regionOriginBlockZ + Const.WIDTH);
 	}
 
+	boolean hasBuffer() {
+		return buffer != null;
+	}
+
 	ByteBuffer getBuffer() {
-		if (closed) {
-			throw new IllegalStateException("Attempting to access a closed light region buffer!");
+		if (closed || buffer == null) {
+			throw new IllegalStateException("Attempting to access a closed or null light region buffer!");
 		}
 
 		return buffer;
