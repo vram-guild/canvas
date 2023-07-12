@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.shorts.ShortStack;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 
 import grondag.canvas.CanvasMod;
 
@@ -78,27 +79,32 @@ public class LightDataAllocator {
 		pointerExtent = newPointerExtent;
 
 		final int pointerCountReq = pointerExtent * pointerExtent * pointerExtent;
+		var prevRows = pointerRows;
 		pointerRows = pointerCountReq / ROW_SIZE + ((pointerCountReq % ROW_SIZE == 0) ? 0 : 1);
 
-		final ByteBuffer newPointerBuffer = MemoryUtil.memAlloc(pointerRows * ROW_SIZE * 2);
+		if (debug_logResize) {
+			CanvasMod.LOG.info("Resized pointer storage capacity from " + prevRows + " to " + pointerRows);
+		}
 
 		if (pointerBuffer != null) {
-			pointerBuffer.position(0);
-
-			// we copy because ..???
-			while (pointerBuffer.position() < pointerBuffer.limit()) {
-				newPointerBuffer.putShort(pointerBuffer.getShort());
-			}
-
-			while (newPointerBuffer.position() < newPointerBuffer.limit()) {
-				newPointerBuffer.putShort((short) 0);
-			}
-
 			pointerBuffer.position(0);
 			MemoryUtil.memFree(pointerBuffer);
 		}
 
-		pointerBuffer = newPointerBuffer;
+		pointerBuffer = MemoryUtil.memAlloc(pointerRows * ROW_SIZE * 2);
+
+		// reset each storage value
+		while (pointerBuffer.position() < pointerBuffer.limit()) {
+			pointerBuffer.putShort((short) 0);
+		}
+
+		// remap old pointers
+		final var searchPos = new BlockPos.MutableBlockPos();
+
+		for (var entry : allocatedAddresses.short2LongEntrySet()) {
+			setPointer(searchPos.set(entry.getLongValue()), entry.getShortKey());
+		}
+
 		requireTextureRemake = true;
 		needUploadMeta = true;
 	}
@@ -123,7 +129,7 @@ public class LightDataAllocator {
 
 	int allocateAddress(LightRegion region) {
 		if (!region.hasData) {
-			return EMPTY_ADDRESS;
+			return setAddress(region, EMPTY_ADDRESS);
 		}
 
 		short regionAddress = region.texAllocation;
@@ -131,10 +137,6 @@ public class LightDataAllocator {
 		if (regionAddress == EMPTY_ADDRESS) {
 			regionAddress = allocateAddressInner(region);
 		}
-
-		final int pointerIndex = getPointerIndex(region) * 2;
-		pointerBuffer.putShort(pointerIndex, regionAddress);
-		needUploadPointers = true;
 
 		return regionAddress;
 	}
@@ -172,7 +174,7 @@ public class LightDataAllocator {
 					final LightRegion oldRegion = LightDataManager.INSTANCE.get(oldOrigin);
 
 					if (oldRegion != null) {
-						oldRegion.texAllocation = EMPTY_ADDRESS;
+						setAddress(oldRegion, EMPTY_ADDRESS);
 					}
 				}
 
@@ -181,18 +183,29 @@ public class LightDataAllocator {
 			}
 		}
 
+		return setAddress(region, newAddress);
+	}
+
+	private short setAddress(LightRegion region, short newAddress) {
 		region.texAllocation = newAddress;
-		allocatedAddresses.put(newAddress, region.origin);
+		setPointer(region.originPos, newAddress);
+
+		if (newAddress != EMPTY_ADDRESS) {
+			allocatedAddresses.put(newAddress, region.origin);
+		}
 
 		return newAddress;
 	}
 
-	private int getPointerIndex(LightRegion region) {
-		final int xInExtent = ((region.originPos.getX() / 16) % pointerExtent + pointerExtent) % pointerExtent;
-		final int yInExtent = ((region.originPos.getY() / 16) % pointerExtent + pointerExtent) % pointerExtent;
-		final int zInExtent = ((region.originPos.getZ() / 16) % pointerExtent + pointerExtent) % pointerExtent;
-
-		return xInExtent * pointerExtent * pointerExtent + yInExtent * pointerExtent + zInExtent;
+	private void setPointer(BlockPos regionOrigin, short regionAddress) {
+		final int xInExtent = ((regionOrigin.getX() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+		final int yInExtent = ((regionOrigin.getY() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+		final int zInExtent = ((regionOrigin.getZ() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+		final int pointerIndex = xInExtent * pointerExtent * pointerExtent + yInExtent * pointerExtent + zInExtent;
+		final int bufferIndex = pointerIndex * 2;
+		final short storedAddress = pointerBuffer.getShort(bufferIndex);
+		pointerBuffer.putShort(bufferIndex, regionAddress);
+		needUploadPointers |= storedAddress != regionAddress;
 	}
 
 	void freeAddress(LightRegion region) {
@@ -200,7 +213,7 @@ public class LightDataAllocator {
 			final short oldAddress = region.texAllocation;
 			freedAddresses.push(oldAddress);
 			allocatedAddresses.remove(oldAddress);
-			region.texAllocation = EMPTY_ADDRESS;
+			setAddress(region, EMPTY_ADDRESS);
 		}
 	}
 
@@ -217,9 +230,10 @@ public class LightDataAllocator {
 
 	public boolean checkInvalid() {
 		final var viewDistance = Minecraft.getInstance().options.renderDistance().get();
+		final var expectedExtent = (viewDistance + 1) * 2;
 
-		if (pointerExtent < viewDistance * 2) {
-			resizePointerBuffer(viewDistance * 2);
+		if (pointerExtent < expectedExtent) {
+			resizePointerBuffer(expectedExtent);
 		}
 
 		return requireTextureRemake;
@@ -233,25 +247,21 @@ public class LightDataAllocator {
 		return HEADER_META_ROWS + pointerRows + dynamicMaxAddresses;
 	}
 
-	void uploadMetaIfNeeded(LightDataTexture texture) {
-		if (!needUploadMeta) {
-			return;
+	void uploadPointersIfNeeded(LightDataTexture texture) {
+		if (needUploadMeta) {
+			needUploadMeta = false;
+
+			final int count = 2;
+			ByteBuffer metaBuffer = MemoryUtil.memAlloc(count * 2);
+			metaBuffer.putShort((short) pointerExtent);
+			metaBuffer.putShort((short) pointerRows);
+
+			texture.uploadDirect(0, 0, count, 1, metaBuffer);
+
+			metaBuffer.position(0);
+			MemoryUtil.memFree(metaBuffer);
 		}
 
-		needUploadMeta = false;
-
-		final int count = 2;
-		ByteBuffer metaBuffer = MemoryUtil.memAlloc(count * 2);
-		metaBuffer.putShort((short) pointerExtent);
-		metaBuffer.putShort((short) pointerRows);
-
-		texture.uploadDirect(0, 0, count, 1, metaBuffer);
-
-		metaBuffer.position(0);
-		MemoryUtil.memFree(metaBuffer);
-	}
-
-	void uploadPointersIfNeeded(LightDataTexture texture) {
 		if (!needUploadPointers) {
 			return;
 		}

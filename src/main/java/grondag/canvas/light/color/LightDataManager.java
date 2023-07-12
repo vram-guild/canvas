@@ -188,8 +188,6 @@ public class LightDataManager {
 			textureOrExtentChanged = true;
 		}
 
-		texAllocator.uploadMetaIfNeeded(texture);
-
 		// TODO: swap texture in case of sparse, perhaps
 		for (long index : extentIterable) {
 			final LightRegion lightRegion = allocated.get(index);
