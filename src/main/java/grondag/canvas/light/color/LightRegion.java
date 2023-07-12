@@ -68,7 +68,7 @@ class LightRegion implements LightRegionAccess {
 			int y = to.getY() - from.getY();
 			int z = to.getZ() - from.getZ();
 
-			for (Side side:Side.values()) {
+			for (Side side : Side.values()) {
 				if (side.x == x && side.y == y && side.z == z) {
 					return side;
 				}
@@ -198,7 +198,7 @@ class LightRegion implements LightRegionAccess {
 
 			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
-			for (var side:Side.values()) {
+			for (var side : Side.values()) {
 				if (side.id == from) {
 					continue;
 				}
@@ -315,7 +315,7 @@ class LightRegion implements LightRegionAccess {
 
 			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
-			for (var side:Side.values()) {
+			for (var side : Side.values()) {
 				if (side.id == from) {
 					continue;
 				}

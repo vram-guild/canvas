@@ -224,7 +224,7 @@ public final class RenderState {
 			// Activate non-frex material program textures
 			for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
 				final int bindTarget = Pipeline.materialTextures().texTargets[i];
-				final int bind = Pipeline.materialTextures().texIds[i];
+				final int bind = Pipeline.materialTextures().texIds[i].getAsInt();
 				CanvasTextureState.ensureTextureOfTextureUnit(TextureData.PROGRAM_SAMPLERS + i, bindTarget, bind);
 			}
 

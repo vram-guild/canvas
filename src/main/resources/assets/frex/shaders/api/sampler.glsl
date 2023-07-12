@@ -27,11 +27,7 @@ uniform sampler2DArray frxs_shadowMapTexture;
 #endif
 
 #ifdef COLORED_LIGHTS_ENABLED
-#ifdef SPARSE_LIGHT_DATA
 uniform sampler2D frxs_lightData;
-#else
-uniform sampler3D frxs_lightData;
-#endif
 
 #define frx_getLightFiltered(worldPos) frx_getLightFiltered(frxs_lightData, worldPos)
 #define frx_getLightRaw(worldPos) frx_getLightRaw(frxs_lightData, worldPos)

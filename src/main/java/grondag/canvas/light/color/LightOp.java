@@ -82,9 +82,9 @@ public enum LightOp {
 
 	public static short max(short master, short sub) {
 		final short max = (short) (Math.max(master & R.mask, sub & R.mask)
-						| Math.max(master & G.mask, sub & G.mask)
-						| Math.max(master & B.mask, sub & B.mask)
-						| master & 0xf);
+				| Math.max(master & G.mask, sub & G.mask)
+				| Math.max(master & B.mask, sub & B.mask)
+				| master & 0xf);
 		return ensureUsefulness(max);
 	}
 

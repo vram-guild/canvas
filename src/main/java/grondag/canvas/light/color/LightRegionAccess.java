@@ -27,11 +27,13 @@ public interface LightRegionAccess {
 	LightRegionAccess EMPTY = new Empty();
 
 	void checkBlock(BlockPos pos, BlockState blockState);
+
 	boolean isClosed();
 
 	class Empty implements LightRegionAccess {
 		@Override
-		public void checkBlock(BlockPos pos, BlockState blockState) { }
+		public void checkBlock(BlockPos pos, BlockState blockState) {
+		}
 
 		@Override
 		public boolean isClosed() {

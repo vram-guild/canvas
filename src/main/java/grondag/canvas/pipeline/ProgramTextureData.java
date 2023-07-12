@@ -22,6 +22,9 @@ package grondag.canvas.pipeline;
 
 import static net.minecraft.client.renderer.entity.ItemRenderer.ENCHANTED_GLINT_ITEM;
 
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
+
 import org.lwjgl.opengl.GL46;
 
 import net.minecraft.client.Minecraft;
@@ -29,34 +32,42 @@ import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.resources.ResourceLocation;
 
+import grondag.canvas.light.color.LightDataManager;
 import grondag.canvas.pipeline.config.ImageConfig;
 import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class ProgramTextureData {
-	public final int[] texIds;
+	public final IntSupplier[] texIds;
 	public final int[] texTargets;
 
 	public ProgramTextureData(NamedDependency<ImageConfig>[] samplerImages) {
-		texIds = new int[samplerImages.length];
+		texIds = new IntSupplier[samplerImages.length];
 		texTargets = new int[samplerImages.length];
 
 		for (int i = 0; i < samplerImages.length; ++i) {
 			final String imageName = samplerImages[i].name;
 
-			int imageBind = 0;
+			IntSupplier imageBind = () -> 0;
 			int bindTarget = GL46.GL_TEXTURE_2D;
 
-			if (imageName.contains(":")) {
+			if (imageName.startsWith("frex:")) {
+				// TODO use a registry
+				if (imageName.equals("frex:textures/colored_lights")) {
+					imageBind = LightDataManager::texId;
+				}
+			} else if (imageName.contains(":")) {
 				final AbstractTexture tex = tryLoadResourceTexture(new ResourceLocation(imageName));
 
 				if (tex != null) {
-					imageBind = tex.getId();
+					final int id = tex.getId();
+					imageBind = () -> id;
 				}
 			} else {
 				final Image img = Pipeline.getImage(imageName);
 
 				if (img != null) {
-					imageBind = img.glId();
+					final int id = img.glId();
+					imageBind = () -> id;
 					bindTarget = img.config.target;
 				}
 			}

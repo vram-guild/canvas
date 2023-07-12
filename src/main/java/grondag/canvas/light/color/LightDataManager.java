@@ -30,7 +30,6 @@ import org.joml.Vector3i;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 
-import grondag.canvas.pipeline.Image;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.data.ShaderDataManager;
 
@@ -50,12 +49,12 @@ public class LightDataManager {
 	public static void reload() {
 		if (Pipeline.coloredLightsEnabled()) {
 			assert Pipeline.config().coloredLights != null;
-			final var image = Pipeline.getImage(Pipeline.config().coloredLights.lightImage.name);
+			final var extentSizeRegions = Pipeline.config().coloredLights.maxRadiusChunks * 2;
 
 			if (INSTANCE == null) {
-				INSTANCE = new LightDataManager(image);
+				INSTANCE = new LightDataManager(extentSizeRegions);
 			} else {
-				INSTANCE.resize(image);
+				INSTANCE.resize(extentSizeRegions);
 			}
 
 			INSTANCE.useOcclusionData = Pipeline.config().coloredLights.useOcclusionData;
@@ -79,16 +78,20 @@ public class LightDataManager {
 		}
 	}
 
+	public static int texId() {
+		if (INSTANCE != null && INSTANCE.texture != null) {
+			return INSTANCE.texture.texId();
+		}
+
+		return 0;
+	}
+
 	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
 	private final Vector3i extentOrigin = new Vector3i();
 	private final LightDataAllocator texAllocator;
 
 	boolean useOcclusionData = false;
-
-	private int extentGridMaskX;
-	private int extentGridMaskY;
-	private int extentGridMaskZ;
 
 	private int extentSizeX;
 	private int extentSizeY;
@@ -103,32 +106,25 @@ public class LightDataManager {
 	private LightDataTexture texture;
 	ExtentIterable extentIterable = new ExtentIterable();
 
-	public LightDataManager(Image image) {
+	public LightDataManager(int newExtentSize) {
 		texAllocator = new LightDataAllocator();
 		allocated.defaultReturnValue(null);
-		init(image);
+		init(newExtentSize);
 	}
 
-	private void resize(Image image) {
-		init(image);
+	private void resize(int newExtentSize) {
+		init(newExtentSize);
 		extentWasResized = true;
 	}
 
-	private void init(Image image) {
-		// TODO: for some reason it's not working properly when width =/= depth (height is fine)
-		extentSizeXInRegions = image.config.width / 16;
-		extentSizeYInRegions = image.config.height / 16;
-		extentSizeZInRegions = image.config.depth / 16;
-
-		extentGridMaskX = extentSizeMask(extentSizeXInRegions);
-		extentGridMaskY = extentSizeMask(extentSizeYInRegions);
-		extentGridMaskZ = extentSizeMask(extentSizeZInRegions);
+	private void init(int newExtentSize) {
+		extentSizeXInRegions = newExtentSize;
+		extentSizeYInRegions = newExtentSize;
+		extentSizeZInRegions = newExtentSize;
 
 		extentSizeX = extentSizeInBlocks(extentSizeXInRegions);
 		extentSizeY = extentSizeInBlocks(extentSizeYInRegions);
 		extentSizeZ = extentSizeInBlocks(extentSizeZInRegions);
-
-		texture = new LightDataTexture(image);
 	}
 
 	private void updateInner(BlockAndTintGetter blockView, int cameraX, int cameraY, int cameraZ) {
@@ -180,8 +176,22 @@ public class LightDataManager {
 			}
 		}
 
+		boolean textureOrExtentChanged = extentWasResized;
+
+		if (texAllocator.checkInvalid()) {
+			if (texture != null) {
+				texture.close();
+			}
+
+			texture = new LightDataTexture(texAllocator.textureWidth(), texAllocator.textureHeight());
+			texAllocator.textureRemade();
+			textureOrExtentChanged = true;
+		}
+
+		texAllocator.uploadMetaIfNeeded(texture);
+
 		// TODO: swap texture in case of sparse, perhaps
-		for (long index:extentIterable) {
+		for (long index : extentIterable) {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion == null || lightRegion.isClosed()) {
@@ -193,23 +203,26 @@ public class LightDataManager {
 
 			boolean outsidePrev = false;
 
-			final int x = lightRegion.lightData.regionOriginBlockX;
-			final int y = lightRegion.lightData.regionOriginBlockY;
-			final int z = lightRegion.lightData.regionOriginBlockZ;
-
-			if (shouldRedraw) {
+			if (shouldRedraw && !textureOrExtentChanged) {
 				// Redraw regions that just entered the current-frame extent
-				outsidePrev |= x < prevExtentBlockX || x >= (prevExtentBlockX + extentSizeX);
-				outsidePrev |= y < prevExtentBlockY || y >= (prevExtentBlockY + extentSizeY);
-				outsidePrev |= z < prevExtentBlockZ || z >= (prevExtentBlockZ + extentSizeZ);
+				outsidePrev |= lightRegion.lightData.regionOriginBlockX < prevExtentBlockX || lightRegion.lightData.regionOriginBlockX >= (prevExtentBlockX + extentSizeX);
+				outsidePrev |= lightRegion.lightData.regionOriginBlockY < prevExtentBlockY || lightRegion.lightData.regionOriginBlockY >= (prevExtentBlockY + extentSizeY);
+				outsidePrev |= lightRegion.lightData.regionOriginBlockZ < prevExtentBlockZ || lightRegion.lightData.regionOriginBlockZ >= (prevExtentBlockZ + extentSizeZ);
 			}
 
-			if (lightRegion.lightData.hasBuffer() && (lightRegion.lightData.isDirty() || outsidePrev || extentWasResized || debugRedrawEveryFrame)) {
-				// modulo into extent-grid
-				texture.upload(x & extentGridMaskX, y & extentGridMaskY, z & extentGridMaskZ, lightRegion.lightData.getBuffer());
+			if (lightRegion.lightData.hasBuffer() && (lightRegion.lightData.isDirty() || outsidePrev || textureOrExtentChanged || debugRedrawEveryFrame)) {
+				final int targetAddress = texAllocator.allocateAddress(lightRegion);
+
+				if (targetAddress != LightDataAllocator.EMPTY_ADDRESS) {
+					final int targetRow = texAllocator.dataRowStart() + targetAddress;
+					texture.upload(targetRow, lightRegion.lightData.getBuffer());
+				}
+
 				lightRegion.lightData.clearDirty();
 			}
 		}
+
+		texAllocator.uploadPointersIfNeeded(texture);
 
 		extentWasResized = false;
 		cameraUninitialized = false;
@@ -252,10 +265,6 @@ public class LightDataManager {
 
 	private int extentSizeInBlocks(int extentSize) {
 		return extentSize * LightRegionData.Const.WIDTH;
-	}
-
-	private int extentSizeMask(int extentSize) {
-		return extentSizeInBlocks(extentSize) - 1;
 	}
 
 	public void close() {

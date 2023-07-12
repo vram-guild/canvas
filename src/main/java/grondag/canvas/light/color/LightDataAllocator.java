@@ -20,9 +20,12 @@
 
 package grondag.canvas.light.color;
 
+import java.nio.ByteBuffer;
+
 import it.unimi.dsi.fastutil.shorts.Short2LongOpenHashMap;
 import it.unimi.dsi.fastutil.shorts.ShortArrayList;
 import it.unimi.dsi.fastutil.shorts.ShortStack;
+import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.client.Minecraft;
 
@@ -36,19 +39,21 @@ public class LightDataAllocator {
 
 	// size of one row as determined by the data size of one region (16^3).
 	// also represents row size of pointer header because we are putting addresses in the data texture.
-	private static final int ROW_SIZE = 4096;
-
-	// max addresses divided by row size.
-	// the number of pointers might exceed number of address, since we assume most just point to empty address.
-	private static final int MIN_POINTER_ROWS = 16;
+	private static final int ROW_SIZE = LightRegionData.Const.SIZE3D;
 
 	// address for the static empty region.
 	static final short EMPTY_ADDRESS = 0;
 
 	private static final int INITIAL_ADDRESS_COUNT = 128;
 
-	private int pointerHeaderRows;
+	private static final int HEADER_META_ROWS = 1;
+
+	private int pointerRows;
+	// note: pointer extent always cover the entire view distance, unlike light data manager extent
 	private int pointerExtent = -1;
+	private boolean needUploadPointers = false;
+	private boolean needUploadMeta = false;
+	private ByteBuffer pointerBuffer;
 	private boolean requireTextureRemake;
 
 	private int dynamicMaxAddresses = 0;
@@ -62,29 +67,40 @@ public class LightDataAllocator {
 	private final ShortStack freedAddresses = new ShortArrayList();
 
 	LightDataAllocator() {
-		initPointerHeaderInfo();
 		increaseAddressSize(INITIAL_ADDRESS_COUNT);
 	}
 
-	private void initPointerHeaderInfo() {
-		final int viewDistance = Minecraft.getInstance().options.renderDistance().get();
-		final int newPointerExtent = viewDistance * 2;
-
+	private void resizePointerBuffer(int newPointerExtent) {
 		if (newPointerExtent == pointerExtent) {
 			return;
 		}
 
-		final int pointerCountReq = newPointerExtent * newPointerExtent * newPointerExtent;
-
 		pointerExtent = newPointerExtent;
-		pointerHeaderRows = Math.max(MIN_POINTER_ROWS, pointerCountReq / ROW_SIZE + (pointerCountReq % ROW_SIZE != 0 ? 1 : 0));
-		int maxPointers = pointerHeaderRows * ROW_SIZE;
 
-		if (maxPointers < pointerCountReq) {
-			throw new IllegalStateException("Wrong light data allocator size due to logic error!");
+		final int pointerCountReq = pointerExtent * pointerExtent * pointerExtent;
+		pointerRows = pointerCountReq / ROW_SIZE + ((pointerCountReq % ROW_SIZE == 0) ? 0 : 1);
+
+		final ByteBuffer newPointerBuffer = MemoryUtil.memAlloc(pointerRows * ROW_SIZE * 2);
+
+		if (pointerBuffer != null) {
+			pointerBuffer.position(0);
+
+			// we copy because ..???
+			while (pointerBuffer.position() < pointerBuffer.limit()) {
+				newPointerBuffer.putShort(pointerBuffer.getShort());
+			}
+
+			while (newPointerBuffer.position() < newPointerBuffer.limit()) {
+				newPointerBuffer.putShort((short) 0);
+			}
+
+			pointerBuffer.position(0);
+			MemoryUtil.memFree(pointerBuffer);
 		}
 
+		pointerBuffer = newPointerBuffer;
 		requireTextureRemake = true;
+		needUploadMeta = true;
 	}
 
 	// currently, this only increase size
@@ -110,19 +126,20 @@ public class LightDataAllocator {
 			return EMPTY_ADDRESS;
 		}
 
-		int regionAddress = region.texAllocation;
+		short regionAddress = region.texAllocation;
 
 		if (regionAddress == EMPTY_ADDRESS) {
 			regionAddress = allocateAddressInner(region);
 		}
 
-		// TODO: queue pointer for upload
-		final int pointerIndex = getPointerIndex(region);
+		final int pointerIndex = getPointerIndex(region) * 2;
+		pointerBuffer.putShort(pointerIndex, regionAddress);
+		needUploadPointers = true;
 
 		return regionAddress;
 	}
 
-	private int allocateAddressInner(LightRegion region) {
+	private short allocateAddressInner(LightRegion region) {
 		assert region.hasData;
 		final short newAddress;
 
@@ -171,9 +188,10 @@ public class LightDataAllocator {
 	}
 
 	private int getPointerIndex(LightRegion region) {
-		final int xInExtent = region.originPos.getX() % pointerExtent;
-		final int yInExtent = region.originPos.getY() % pointerExtent;
-		final int zInExtent = region.originPos.getZ() % pointerExtent;
+		final int xInExtent = ((region.originPos.getX() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+		final int yInExtent = ((region.originPos.getY() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+		final int zInExtent = ((region.originPos.getZ() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+
 		return xInExtent * pointerExtent * pointerExtent + yInExtent * pointerExtent + zInExtent;
 	}
 
@@ -186,15 +204,24 @@ public class LightDataAllocator {
 		}
 	}
 
-	public void resizeRenderDistance() {
-		initPointerHeaderInfo();
+	void textureRemade() {
+		CanvasMod.LOG.info("Light texture was remade, new size : " + textureHeight());
+		requireTextureRemake = false;
+		needUploadPointers = true;
+		needUploadMeta = true;
 	}
 
 	public int dataRowStart() {
-		return pointerHeaderRows;
+		return HEADER_META_ROWS + pointerRows;
 	}
 
-	public boolean requireTextureRemake() {
+	public boolean checkInvalid() {
+		final var viewDistance = Minecraft.getInstance().options.renderDistance().get();
+
+		if (pointerExtent < viewDistance * 2) {
+			resizePointerBuffer(viewDistance * 2);
+		}
+
 		return requireTextureRemake;
 	}
 
@@ -203,11 +230,35 @@ public class LightDataAllocator {
 	}
 
 	public int textureHeight() {
-		return pointerHeaderRows + dynamicMaxAddresses;
+		return HEADER_META_ROWS + pointerRows + dynamicMaxAddresses;
 	}
 
-	void uploadPointers() {
-		// TODO either return bytebuffer or accept output texture?
+	void uploadMetaIfNeeded(LightDataTexture texture) {
+		if (!needUploadMeta) {
+			return;
+		}
+
+		needUploadMeta = false;
+
+		final int count = 2;
+		ByteBuffer metaBuffer = MemoryUtil.memAlloc(count * 2);
+		metaBuffer.putShort((short) pointerExtent);
+		metaBuffer.putShort((short) pointerRows);
+
+		texture.uploadDirect(0, 0, count, 1, metaBuffer);
+
+		metaBuffer.position(0);
+		MemoryUtil.memFree(metaBuffer);
+	}
+
+	void uploadPointersIfNeeded(LightDataTexture texture) {
+		if (!needUploadPointers) {
+			return;
+		}
+
+		needUploadPointers = false;
+
+		texture.upload(HEADER_META_ROWS, pointerRows, pointerBuffer);
 	}
 
 	void debug_PrintAddressCount() {
