@@ -105,7 +105,9 @@ public final class IntData {
 	static final BitPacker32<Void>.BooleanElement FLAG_BAD_OMEN = PLAYER_FLAGS.createBooleanElement();
 	static final BitPacker32<Void>.BooleanElement FLAG_HERO_OF_THE_VILLAGE = PLAYER_FLAGS.createBooleanElement();
 
-	public static final int UINT_COUNT = 1;
+	public static final int UINT_COUNT = 3;
 	public static final int RENDER_FRAMES = 0;
+	public static final int LIGHT_POINTER_EXTENT = 1;
+	public static final int LIGHT_DATA_FIRST_ROW = 2;
 	public static final IntBuffer UINT_DATA = BufferUtils.createIntBuffer(UINT_COUNT);
 }

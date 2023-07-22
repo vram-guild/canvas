@@ -1,45 +1,39 @@
+#include canvas:shaders/internal/world.glsl
+
 /****************************************************************
  * frex:shaders/api/light.glsl - Canvas Implementation
  ***************************************************************/
 
 #ifdef COLORED_LIGHTS_ENABLED
 
-#ifdef SPARSE_LIGHT_DATA
-#define LightSampler sampler2D
+uint _cv_lightAddress(sampler2D lightSampler, vec3 worldPos) {
+	uint EXTENT = _cvu_world_uint[_CV_LIGHT_POINTER_EXTENT];
+	uvec3 local = uvec3(mod(worldPos / 16.0, float(EXTENT)));
+	uint linearized = local.x * EXTENT * EXTENT + local.y * EXTENT + local.z;
 
-bool _cv_hasLightData(vec3 worldPos) {
-	return false;
+	// interpret vec4 as a short
+	uint pointerRow = linearized / 4096u;
+	uvec4 address = uvec4(texelFetch(lightSampler, ivec2(linearized - pointerRow * 4096u, pointerRow), 0) * 15.0);
+	return (address.r << 12u) | (address.g << 8u) | (address.b << 4u) | address.a;
 }
 
-vec2 _cv_lightCoords(vec3 worldPos) {
-	return vec2(0.0);
+bool _cv_hasLightData(sampler2D lightSampler, vec3 worldPos) {
+	return _cv_lightAddress(lightSampler, worldPos) != 0u;
 }
 
-ivec2 _cv_lightTexelCoords(vec3 worldPos) {
-	return ivec2(0);
-}
-#else
-#define LightSampler sampler3D
+ivec2 _cv_lightTexelCoords(sampler2D lightSampler, vec3 worldPos) {
+	uint exactRow = _cvu_world_uint[_CV_LIGHT_DATA_FIRST_ROW] + _cv_lightAddress(lightSampler, worldPos);
+	ivec3 local = ivec3(mod(worldPos, 16.0));
 
-bool _cv_hasLightData(vec3 worldPos) {
-	return clamp(worldPos, _cvu_world[_CV_LIGHT_DATA_ORIGIN].xyz, _cvu_world[_CV_LIGHT_DATA_ORIGIN].xyz + _CV_LIGHT_DATA_SIZE) == worldPos;
+	return ivec2(local.z * 16 * 16 + local.y * 16 + local.x, exactRow);
 }
-
-vec3 _cv_lightCoords(vec3 worldPos) {
-	return mod(worldPos, _CV_LIGHT_DATA_SIZE) / _CV_LIGHT_DATA_SIZE;
-}
-
-ivec3 _cv_lightTexelCoords(vec3 worldPos) {
-	return ivec3(mod(clamp(worldPos, _cvu_world[_CV_LIGHT_DATA_ORIGIN].xyz, _cvu_world[_CV_LIGHT_DATA_ORIGIN].xyz + _CV_LIGHT_DATA_SIZE), _CV_LIGHT_DATA_SIZE));
-}
-#endif
 
 bool _cv_isUseful(float a) {
 	return (int(a * 15.0) & 8) > 0;
 }
 
-vec4 frx_getLightFiltered(LightSampler lightSampler, vec3 worldPos) {
-	if (!_cv_hasLightData(worldPos)) {
+vec4 frx_getLightFiltered(sampler2D lightSampler, vec3 worldPos) {
+	if (!_cv_hasLightData(lightSampler, worldPos)) {
 		return vec4(0.0);
 	}
 
@@ -51,14 +45,14 @@ vec4 frx_getLightFiltered(LightSampler lightSampler, vec3 worldPos) {
 	const vec3 H = vec3(1.0);
 	#endif
 
-	vec4 tex000 = texelFetch(lightSampler, _cv_lightTexelCoords(pos + vec3(0.0, 0.0, 0.0)), 0);
-	vec4 tex001 = texelFetch(lightSampler, _cv_lightTexelCoords(pos + vec3(0.0, 0.0, H.z)), 0);
-	vec4 tex010 = texelFetch(lightSampler, _cv_lightTexelCoords(pos + vec3(0.0, H.y, 0.0)), 0);
-	vec4 tex011 = texelFetch(lightSampler, _cv_lightTexelCoords(pos + vec3(0.0, H.y, H.z)), 0);
-	vec4 tex101 = texelFetch(lightSampler, _cv_lightTexelCoords(pos + vec3(H.x, 0.0, H.z)), 0);
-	vec4 tex110 = texelFetch(lightSampler, _cv_lightTexelCoords(pos + vec3(H.x, H.y, 0.0)), 0);
-	vec4 tex100 = texelFetch(lightSampler, _cv_lightTexelCoords(pos + vec3(H.x, 0.0, 0.0)), 0);
-	vec4 tex111 = texelFetch(lightSampler, _cv_lightTexelCoords(pos + vec3(H.x, H.y, H.z)), 0);
+	vec4 tex000 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(0.0, 0.0, 0.0)), 0);
+	vec4 tex001 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(0.0, 0.0, H.z)), 0);
+	vec4 tex010 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(0.0, H.y, 0.0)), 0);
+	vec4 tex011 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(0.0, H.y, H.z)), 0);
+	vec4 tex101 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(H.x, 0.0, H.z)), 0);
+	vec4 tex110 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(H.x, H.y, 0.0)), 0);
+	vec4 tex100 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(H.x, 0.0, 0.0)), 0);
+	vec4 tex111 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(H.x, H.y, H.z)), 0);
 
 	#ifdef _CV_LIGHT_DATA_COMPLEX_FILTER
 	vec3 center = worldPos - pos;
@@ -109,23 +103,22 @@ vec4 frx_getLightFiltered(LightSampler lightSampler, vec3 worldPos) {
 	return finalMix;
 }
 
-vec4 frx_getLightRaw(LightSampler lightSampler, vec3 worldPos) {
-	if (!_cv_hasLightData(worldPos)) {
+vec4 frx_getLightRaw(sampler2D lightSampler, vec3 worldPos) {
+	if (!_cv_hasLightData(lightSampler, worldPos)) {
 		return vec4(0.0);
 	}
 
-	// TODO: use texture() for debug purpose. should be texelFetc() eventually
-	vec4 tex = texture(lightSampler, _cv_lightCoords(worldPos));
+	vec4 tex = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, worldPos), 0);
 	return vec4(tex.rgb, float(_cv_isUseful(tex.a)));
 }
 
-vec3 frx_getLight(LightSampler lightSampler, vec3 worldPos, vec3 fallback) {
+vec3 frx_getLight(sampler2D lightSampler, vec3 worldPos, vec3 fallback) {
 	vec4 light = frx_getLightFiltered(lightSampler, worldPos);
 	return mix(fallback, light.rgb, light.a);
 }
 
-bool frx_lightDataExists(vec3 worldPos) {
-	return _cv_hasLightData(worldPos);
+bool frx_lightDataExists(sampler2D lightSampler, vec3 worldPos) {
+	return _cv_hasLightData(lightSampler, worldPos);
 }
 
 #ifdef LIGHT_DATA_HAS_OCCLUSION
@@ -136,13 +129,13 @@ struct frx_LightData {
 	bool isFullCube;
 };
 
-frx_LightData frx_getLightOcclusionData(LightSampler lightSampler, vec3 worldPos) {
-	if (!_cv_hasLightData(worldPos)) {
+frx_LightData frx_getLightOcclusionData(sampler2D lightSampler, vec3 worldPos) {
+	if (!_cv_hasLightData(lightSampler, worldPos)) {
 		return frx_LightData(vec4(0.0), false, false, false);
 	}
 
-	vec4 tex = texelFetch(lightSampler, _cv_lightTexelCoords(worldPos));
-	int flags = int(a * 15.0);
+	vec4 tex = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, worldPos), 0);
+	int flags = int(tex.a * 15.0);
 
 	bool isFullCube = (flags & 4) > 0;
 	bool isOccluder = (flags & 2) > 0;

@@ -471,6 +471,10 @@ public class RenderRegion implements TerrainExecutorTask {
 			}
 		}
 
+		if (!lightRegion.isClosed()) {
+			lightRegion.submitChecks();
+		}
+
 		buildState.prepareTranslucentIfNeeded(worldRenderState.sectorManager.cameraPos(), renderSector, collectors);
 
 		if (ChunkRebuildCounters.ENABLED) {

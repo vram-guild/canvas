@@ -22,41 +22,19 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
 
-import grondag.canvas.light.color.LightDataTexture;
-import grondag.canvas.pipeline.GlSymbolLookup;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
-import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class ColoredLightsConfig extends AbstractConfig {
-	public final NamedDependency<ImageConfig> lightImage;
+	public final boolean useOcclusionData;
 
 	protected ColoredLightsConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx);
-		lightImage = ctx.images.dependOn(ctx.dynamic.getString(config, "lightImage"));
+		useOcclusionData = ctx.dynamic.getBoolean(config, "useOcclusionData", false);
 	}
 
 	@Override
 	public boolean validate() {
-		final var image = lightImage.value();
-
-		if (image != null) {
-			boolean valid = image.validate();
-
-			valid &= assertAndWarn(image.target == LightDataTexture.Format.target, "Invalid pipeline config for image %s. Light data image needs to target %s", image.name, GlSymbolLookup.reverseLookup(LightDataTexture.Format.target));
-			valid &= assertAndWarn(image.internalFormat == LightDataTexture.Format.internalFormat, "Invalid pipeline config for image %s. Light data image needs to have internal format of  %s", image.name, GlSymbolLookup.reverseLookup(LightDataTexture.Format.internalFormat));
-			valid &= assertAndWarn(image.pixelFormat == LightDataTexture.Format.pixelFormat, "Invalid pipeline config for image %s. Light data image needs to have pixel format of  %s", image.name, GlSymbolLookup.reverseLookup(LightDataTexture.Format.pixelFormat));
-			valid &= assertAndWarn(image.pixelDataType == LightDataTexture.Format.pixelDataType, "Invalid pipeline config for image %s. Light data image needs to have pixel data type of  %s", image.name, GlSymbolLookup.reverseLookup(LightDataTexture.Format.pixelDataType));
-			valid &= assertAndWarn(image.width > 0 && image.height > 0 && image.depth > 0, "Invalid pipeline config for image %s. Light data image needs to have non-zero width, height, and depth", image.name);
-			valid &= assertAndWarn(image.width % 16 == 0 && image.height % 16 == 0 && image.depth % 16 == 0, "Invalid pipeline config for image %s. Light data image needs to have width, height, and depth that are multiples of 16", image.name);
-
-			return valid;
-		}
-
-		if (lightImage.name == null) {
-			return assertAndWarn(false, "Invalid pipeline light volume config. Light image is unspecified.");
-		} else {
-			return assertAndWarn(false, "Invalid pipeline light volume config. Image %s doesn't exist", lightImage.name);
-		}
+		return true;
 	}
 }

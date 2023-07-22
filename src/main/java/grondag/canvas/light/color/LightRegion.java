@@ -23,6 +23,7 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -68,7 +69,7 @@ class LightRegion implements LightRegionAccess {
 			int y = to.getY() - from.getY();
 			int z = to.getZ() - from.getZ();
 
-			for (Side side:Side.values()) {
+			for (Side side : Side.values()) {
 				if (side.x == x && side.y == y && side.z == z) {
 					return side;
 				}
@@ -103,6 +104,7 @@ class LightRegion implements LightRegionAccess {
 
 	final LightRegionData lightData;
 	final long origin;
+	final BlockPos originPos;
 	private final LightOp.BVec less = new LightOp.BVec();
 	private final BlockPos.MutableBlockPos sourcePos = new BlockPos.MutableBlockPos();
 	private final BlockPos.MutableBlockPos nodePos = new BlockPos.MutableBlockPos();
@@ -113,9 +115,12 @@ class LightRegion implements LightRegionAccess {
 	private final LongPriorityQueue globalIncQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 	private final LongPriorityQueue globalDecQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 
+	short texAllocation = LightDataAllocator.EMPTY_ADDRESS;
+	boolean hasData = false;
 	private boolean needCheckEdges = true;
 
 	LightRegion(BlockPos origin) {
+		this.originPos = new BlockPos(origin);
 		this.origin = origin.asLong();
 		this.lightData = new LightRegionData(origin.getX(), origin.getY(), origin.getZ());
 	}
@@ -140,6 +145,17 @@ class LightRegion implements LightRegionAccess {
 			if (emitting) {
 				Queues.enqueue(globalIncQueue, index, combined);
 			}
+
+			if (LightDataManager.INSTANCE.useOcclusionData) {
+				hasData = true;
+			}
+		}
+	}
+
+	@Override
+	public void submitChecks() {
+		if (!globalDecQueue.isEmpty() || !globalIncQueue.isEmpty()) {
+			LightDataManager.INSTANCE.publicUpdateQueue.add(origin);
 		}
 	}
 
@@ -153,7 +169,7 @@ class LightRegion implements LightRegionAccess {
 		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
 	}
 
-	boolean updateDecrease(BlockAndTintGetter blockView) {
+	void updateDecrease(BlockAndTintGetter blockView, LongSet neighborDecreaseQueue, LongSet neighborIncreaseQueue) {
 		if (needCheckEdges) {
 			checkEdges(blockView);
 			needCheckEdges = false;
@@ -161,7 +177,7 @@ class LightRegion implements LightRegionAccess {
 
 		// faster exit when not necessary
 		if (globalDecQueue.isEmpty()) {
-			return false;
+			return;
 		}
 
 		while (!globalDecQueue.isEmpty()) {
@@ -172,7 +188,6 @@ class LightRegion implements LightRegionAccess {
 		final LightOp.BVec removeMask = new LightOp.BVec();
 
 		int decCount = 0;
-		boolean accessedNeighborDecrease = false;
 
 		while (!decQueue.isEmpty()) {
 			decCount++;
@@ -190,7 +205,7 @@ class LightRegion implements LightRegionAccess {
 
 			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
-			for (var side:Side.values()) {
+			for (var side : Side.values()) {
 				if (side.id == from) {
 					continue;
 				}
@@ -244,6 +259,10 @@ class LightRegion implements LightRegionAccess {
 					dataAccess.put(nodeIndex, resultLight);
 					Queues.enqueue(decreaseQueue, nodeIndex, nodeLight, side);
 
+					if (isNeighbor) {
+						neighborDecreaseQueue.add(neighbor.origin);
+					}
+
 					// restore obliterated light source
 					if (restoreLightSource) {
 						// defer putting light source as to not mess with decrease step
@@ -253,8 +272,6 @@ class LightRegion implements LightRegionAccess {
 					} else {
 						repropLight = resultLight;
 					}
-
-					accessedNeighborDecrease |= isNeighbor;
 				} else {
 					repropLight = nodeLight;
 				}
@@ -262,24 +279,26 @@ class LightRegion implements LightRegionAccess {
 				if (removeMask.and(less.not(), removeFlag).any() || restoreLightSource) {
 					// increases queued in decrease may propagate to all directions as if a light source
 					Queues.enqueue(increaseQueue, nodeIndex, repropLight);
+
+					if (isNeighbor) {
+						neighborIncreaseQueue.add(neighbor.origin);
+					}
 				}
 			}
 		}
 
 		if (decCount > 0) {
 			lightData.markAsDirty();
+			LightDataManager.INSTANCE.publicDrawQueue.add(origin);
 		}
-
-		return accessedNeighborDecrease;
 	}
 
-	public boolean updateIncrease(BlockAndTintGetter blockView) {
+	void updateIncrease(BlockAndTintGetter blockView, LongSet neighborIncreaseQueue) {
 		while (!globalIncQueue.isEmpty()) {
 			incQueue.enqueue(globalIncQueue.dequeueLong());
 		}
 
 		int incCount = 0;
-		boolean accessedNeighbor = false;
 
 		while (!incQueue.isEmpty()) {
 			incCount++;
@@ -307,7 +326,7 @@ class LightRegion implements LightRegionAccess {
 
 			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
-			for (var side:Side.values()) {
+			for (var side : Side.values()) {
 				if (side.id == from) {
 					continue;
 				}
@@ -352,16 +371,18 @@ class LightRegion implements LightRegionAccess {
 					dataAccess.put(nodeIndex, resultLight);
 					Queues.enqueue(increaseQueue, nodeIndex, resultLight, side);
 
-					accessedNeighbor |= isNeighbor;
+					if (isNeighbor) {
+						neighborIncreaseQueue.add(neighbor.origin);
+					}
 				}
 			}
 		}
 
 		if (incCount > 0) {
+			hasData = true;
 			lightData.markAsDirty();
+			LightDataManager.INSTANCE.publicDrawQueue.add(origin);
 		}
-
-		return accessedNeighbor;
 	}
 
 	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, BlockAndTintGetter blockView) {
@@ -395,7 +416,6 @@ class LightRegion implements LightRegionAccess {
 
 	private void checkEdges(BlockAndTintGetter blockView) {
 		final int size = LightRegionData.Const.WIDTH;
-		final BlockPos originPos = BlockPos.of(origin);
 		final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 		final BlockPos.MutableBlockPos targetPos = new BlockPos.MutableBlockPos();
 		final int[] searchOffsets = new int[]{-1, size};

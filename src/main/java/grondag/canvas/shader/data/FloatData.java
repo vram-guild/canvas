@@ -112,7 +112,4 @@ public final class FloatData {
 	static final int THUNDER_STRENGTH = VEC_WEATHER + 1;
 	static final int SMOOTHED_RAIN_STRENGTH = VEC_WEATHER + 2;
 	static final int SMOOTHED_THUNDER_STRENGTH = VEC_WEATHER + 3;
-
-	static final int VEC_LIGHT_VOLUME_ORIGIN = 4 * 21;
-	static final int LIGHT_DATA_ORIGIN = VEC_LIGHT_VOLUME_ORIGIN;
 }

@@ -270,11 +270,11 @@ public class GlShader implements Shader {
 			}
 
 			if (Pipeline.coloredLightsEnabled()) {
-				var lightSize = Pipeline.lightVolumeSize();
-				result = StringUtils.replace(result, "#define _CV_LIGHT_DATA_SIZE vec3(256.0)", String.format("#define _CV_LIGHT_DATA_SIZE vec3(%d, %d, %d)", lightSize.x, lightSize.y, lightSize.z));
-			} else {
-				result = StringUtils.replace(result, "#define COLORED_LIGHTS_ENABLED", "//#define COLORED_LIGHTS_ENABLED");
-				result = StringUtils.replace(result, "#define _CV_LIGHT_DATA_SIZE vec3(256.0)", "//#define _CV_LIGHT_DATA_SIZE vec3(256.0)");
+				result = StringUtils.replace(result, "//#define COLORED_LIGHTS_ENABLED", "#define COLORED_LIGHTS_ENABLED");
+
+				if (Pipeline.config().coloredLights.useOcclusionData) {
+					result = StringUtils.replace(result, "//#define LIGHT_DATA_HAS_OCCLUSION", "#define LIGHT_DATA_HAS_OCCLUSION");
+				}
 			}
 
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialConstants.MAX_SHADERS);
