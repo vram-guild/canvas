@@ -53,10 +53,10 @@ class LightRegionData {
 			throw new IllegalStateException("Trying to allocate light region buffer twice!");
 		}
 
-		buffer = MemoryUtil.memAlloc(LightDataTexture.Format.pixelBytes * Const.SIZE3D);
+		buffer = MemoryUtil.memAlloc(LightDataTexture.Format.PIXEL_BYTES * Const.SIZE3D);
 
 		// clear manually ?
-		while (buffer.position() < LightDataTexture.Format.pixelBytes * Const.SIZE3D) {
+		while (buffer.position() < LightDataTexture.Format.PIXEL_BYTES * Const.SIZE3D) {
 			buffer.putShort((short) 0);
 		}
 	}
@@ -105,11 +105,11 @@ class LightRegionData {
 		final int localZ = z - regionOriginBlockZ;
 
 		// x and z are swapped because opengl
-		return ((localZ << (Const.WIDTH_SHIFT * 2)) | (localY << Const.WIDTH_SHIFT) | localX) * LightDataTexture.Format.pixelBytes;
+		return ((localZ << (Const.WIDTH_SHIFT * 2)) | (localY << Const.WIDTH_SHIFT) | localX) * LightDataTexture.Format.PIXEL_BYTES;
 	}
 
 	public void reverseIndexify(int index, BlockPos.MutableBlockPos result) {
-		index = index / LightDataTexture.Format.pixelBytes;
+		index = index / LightDataTexture.Format.PIXEL_BYTES;
 
 		// x and z are swapped because opengl
 		result.setX((index & Const.WIDTH_MASK) + regionOriginBlockX);

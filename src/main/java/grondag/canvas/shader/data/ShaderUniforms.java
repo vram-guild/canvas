@@ -35,6 +35,7 @@ public class ShaderUniforms {
 
 		program.uniformSampler("frxs_shadowMap", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SHADOWMAP - GL21.GL_TEXTURE0));
 		program.uniformSampler("frxs_shadowMapTexture", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.SHADOWMAP_TEXTURE - GL21.GL_TEXTURE0));
+		program.uniformSampler("frxs_lightData", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.COLORED_LIGHTS_DATA - GL21.GL_TEXTURE0));
 
 		//program.uniformSampler2d("frxs_dither", UniformRefreshFrequency.ON_LOAD, u -> u.set(TextureData.DITHER - GL21.GL_TEXTURE0));
 

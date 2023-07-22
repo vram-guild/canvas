@@ -49,11 +49,9 @@ public class ProgramTextureData {
 			IntSupplier imageBind = () -> 0;
 			int bindTarget = GL46.GL_TEXTURE_2D;
 
-			if (imageName.startsWith("frex:")) {
-				// TODO use a registry
-				if (imageName.equals("frex:textures/colored_lights")) {
-					imageBind = LightDataManager::texId;
-				}
+			// TODO: use a registry if there is more of these
+			if (imageName.equals("frex:textures/auto/colored_lights")) {
+				imageBind = LightDataManager::texId;
 			} else if (imageName.contains(":")) {
 				final AbstractTexture tex = tryLoadResourceTexture(new ResourceLocation(imageName));
 

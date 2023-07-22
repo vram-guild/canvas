@@ -32,11 +32,11 @@ import grondag.canvas.varia.GFX;
 
 public class LightDataTexture {
 	public static class Format {
-		public static int target = GFX.GL_TEXTURE_2D;
-		public static int pixelBytes = 2;
-		public static int internalFormat = GFX.GL_RGBA4;
-		public static int pixelFormat = GFX.GL_RGBA;
-		public static int pixelDataType = GFX.GL_UNSIGNED_SHORT_4_4_4_4;
+		public static int TARGET = GFX.GL_TEXTURE_2D;
+		public static int PIXEL_BYTES = 2;
+		public static int INTERNAL_FORMAT = GFX.GL_RGBA4;
+		public static int PIXEL_FORMAT = GFX.GL_RGBA;
+		public static int TYPE = GFX.GL_UNSIGNED_SHORT_4_4_4_4;
 	}
 
 	private final int glId;
@@ -49,14 +49,14 @@ public class LightDataTexture {
 		glId = TextureUtil.generateTextureId();
 		CanvasTextureState.bindTexture(glId);
 
-		GFX.objectLabel(GL11.GL_TEXTURE, glId, "IMG colored_lights_data");
+		GFX.objectLabel(GL11.GL_TEXTURE, glId, "IMG auto_colored_lights");
 
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_NEAREST);
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_NEAREST);
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_WRAP_S, GFX.GL_CLAMP_TO_EDGE);
-		GFX.texParameter(Format.target, GFX.GL_TEXTURE_WRAP_T, GFX.GL_CLAMP_TO_EDGE);
+		GFX.texParameter(Format.TARGET, GFX.GL_TEXTURE_MIN_FILTER, GFX.GL_NEAREST);
+		GFX.texParameter(Format.TARGET, GFX.GL_TEXTURE_MAG_FILTER, GFX.GL_NEAREST);
+		GFX.texParameter(Format.TARGET, GFX.GL_TEXTURE_WRAP_S, GFX.GL_CLAMP_TO_EDGE);
+		GFX.texParameter(Format.TARGET, GFX.GL_TEXTURE_WRAP_T, GFX.GL_CLAMP_TO_EDGE);
 
-		GFX.texImage2D(Format.target, 0, Format.internalFormat, width, height, 0, Format.pixelFormat, Format.pixelDataType, (ByteBuffer) null);
+		GFX.texImage2D(Format.TARGET, 0, Format.INTERNAL_FORMAT, width, height, 0, Format.PIXEL_FORMAT, Format.TYPE, (ByteBuffer) null);
 	}
 
 	public int texId() {
@@ -103,6 +103,6 @@ public class LightDataTexture {
 		// Importantly, reset the pointer without flip
 		buffer.position(0);
 
-		GFX.glTexSubImage2D(Format.target, 0, x, y, width, height, Format.pixelFormat, Format.pixelDataType, buffer);
+		GFX.glTexSubImage2D(Format.TARGET, 0, x, y, width, height, Format.PIXEL_FORMAT, Format.TYPE, buffer);
 	}
 }
