@@ -1,36 +1,28 @@
+#include canvas:shaders/internal/world.glsl
+
 /****************************************************************
  * frex:shaders/api/light.glsl - Canvas Implementation
  ***************************************************************/
 
 #ifdef COLORED_LIGHTS_ENABLED
 
-int _cv_vec2short(vec4 source) {
-	ivec4 bytes = ivec4(source * 15.0);
-	return (bytes.r << 12) | (bytes.g << 8) | (bytes.b << 4) | bytes.a;
-}
+uint _cv_lightAddress(sampler2D lightSampler, vec3 worldPos) {
+	uint EXTENT = _cvu_world_uint[_CV_LIGHT_POINTER_EXTENT];
+	uvec3 local = uvec3(mod(worldPos / 16.0, float(EXTENT)));
+	uint linearized = local.x * EXTENT * EXTENT + local.y * EXTENT + local.z;
 
-ivec2 _cv_lightPointer(sampler2D lightSampler, vec3 worldPos) {
-	// TODO use uniforms for meta
-	int pointerExtent = _cv_vec2short(texelFetch(lightSampler, ivec2(0, 0), 0));
-	ivec3 local = ivec3(mod(worldPos / 16.0, float(pointerExtent)));
-	int index = local.x * pointerExtent * pointerExtent + local.y * pointerExtent + local.z;
-
-	// TODO use uniforms for meta, remove padding
-	return ivec2(index - (index / 4096) * 4096, index / 4096 + 1);
+	// interpret vec4 as a short
+	uint pointerRow = linearized / 4096u;
+	uvec4 address = uvec4(texelFetch(lightSampler, ivec2(linearized - pointerRow * 4096u, pointerRow), 0) * 15.0);
+	return (address.r << 12u) | (address.g << 8u) | (address.b << 4u) | address.a;
 }
 
 bool _cv_hasLightData(sampler2D lightSampler, vec3 worldPos) {
-	return _cv_vec2short(texelFetch(lightSampler, _cv_lightPointer(lightSampler, worldPos), 0)) != 0;
+	return _cv_lightAddress(lightSampler, worldPos) != 0u;
 }
 
 ivec2 _cv_lightTexelCoords(sampler2D lightSampler, vec3 worldPos) {
-	int address = _cv_vec2short(texelFetch(lightSampler, _cv_lightPointer(lightSampler, worldPos), 0));
-
-	// TODO use uniforms for meta
-	int pointerRows = _cv_vec2short(texelFetch(lightSampler, ivec2(1, 0), 0));
-
-	// TODO use uniforms for meta, remove padding
-	int exactRow = pointerRows + 1 + address;
+	uint exactRow = _cvu_world_uint[_CV_LIGHT_DATA_FIRST_ROW] + _cv_lightAddress(lightSampler, worldPos);
 	ivec3 local = ivec3(mod(worldPos, 16.0));
 
 	return ivec2(local.z * 16 * 16 + local.y * 16 + local.x, exactRow);

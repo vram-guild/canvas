@@ -32,6 +32,7 @@ import net.minecraft.core.BlockPos;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.Pipeline;
+import grondag.canvas.shader.data.IntData;
 
 public class LightDataAllocator {
 	private static final boolean DEBUG_LOG_RESIZE = false;
@@ -49,8 +50,6 @@ public class LightDataAllocator {
 	static final short EMPTY_ADDRESS = 0;
 
 	private static final int INITIAL_ADDRESS_COUNT = 128;
-
-	private static final int HEADER_META_ROWS = 1;
 
 	private int pointerRows;
 	// note: pointer extent always cover the entire view distance, unlike light data manager extent
@@ -229,7 +228,7 @@ public class LightDataAllocator {
 	}
 
 	public int dataRowStart() {
-		return HEADER_META_ROWS + pointerRows;
+		return pointerRows;
 	}
 
 	public boolean checkInvalid() {
@@ -248,31 +247,20 @@ public class LightDataAllocator {
 	}
 
 	public int textureHeight() {
-		return HEADER_META_ROWS + pointerRows + dynamicMaxAddresses;
+		return pointerRows + dynamicMaxAddresses;
 	}
 
 	void uploadPointersIfNeeded(LightDataTexture texture) {
 		if (needUploadMeta) {
 			needUploadMeta = false;
-
-			final int count = 2;
-			ByteBuffer metaBuffer = MemoryUtil.memAlloc(count * 2);
-			metaBuffer.putShort((short) pointerExtent);
-			metaBuffer.putShort((short) pointerRows);
-
-			texture.uploadDirect(0, 0, count, 1, metaBuffer);
-
-			metaBuffer.position(0);
-			MemoryUtil.memFree(metaBuffer);
+			IntData.UINT_DATA.put(IntData.LIGHT_POINTER_EXTENT, pointerExtent);
+			IntData.UINT_DATA.put(IntData.LIGHT_DATA_FIRST_ROW, pointerRows);
 		}
 
-		if (!needUploadPointers) {
-			return;
+		if (needUploadPointers) {
+			needUploadPointers = false;
+			texture.upload(0, pointerRows, pointerBuffer);
 		}
-
-		needUploadPointers = false;
-
-		texture.upload(HEADER_META_ROWS, pointerRows, pointerBuffer);
 	}
 
 	String debugString() {
