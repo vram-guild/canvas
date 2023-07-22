@@ -23,6 +23,7 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -151,6 +152,13 @@ class LightRegion implements LightRegionAccess {
 		}
 	}
 
+	@Override
+	public void submitChecks() {
+		if (!globalDecQueue.isEmpty() || !globalIncQueue.isEmpty()) {
+			LightDataManager.INSTANCE.publicUpdateQueue.add(origin);
+		}
+	}
+
 	private boolean occludeSide(BlockState state, Side dir, BlockAndTintGetter view, BlockPos pos) {
 		// vanilla checks state.useShapeForLightOcclusion() but here it's always false for some reason. this is fine...
 
@@ -161,7 +169,7 @@ class LightRegion implements LightRegionAccess {
 		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
 	}
 
-	boolean updateDecrease(BlockAndTintGetter blockView) {
+	void updateDecrease(BlockAndTintGetter blockView, LongSet neighborDecreaseQueue, LongSet neighborIncreaseQueue) {
 		if (needCheckEdges) {
 			checkEdges(blockView);
 			needCheckEdges = false;
@@ -169,7 +177,7 @@ class LightRegion implements LightRegionAccess {
 
 		// faster exit when not necessary
 		if (globalDecQueue.isEmpty()) {
-			return false;
+			return;
 		}
 
 		while (!globalDecQueue.isEmpty()) {
@@ -180,7 +188,6 @@ class LightRegion implements LightRegionAccess {
 		final LightOp.BVec removeMask = new LightOp.BVec();
 
 		int decCount = 0;
-		boolean accessedNeighborDecrease = false;
 
 		while (!decQueue.isEmpty()) {
 			decCount++;
@@ -252,6 +259,10 @@ class LightRegion implements LightRegionAccess {
 					dataAccess.put(nodeIndex, resultLight);
 					Queues.enqueue(decreaseQueue, nodeIndex, nodeLight, side);
 
+					if (isNeighbor) {
+						neighborDecreaseQueue.add(neighbor.origin);
+					}
+
 					// restore obliterated light source
 					if (restoreLightSource) {
 						// defer putting light source as to not mess with decrease step
@@ -261,8 +272,6 @@ class LightRegion implements LightRegionAccess {
 					} else {
 						repropLight = resultLight;
 					}
-
-					accessedNeighborDecrease |= isNeighbor;
 				} else {
 					repropLight = nodeLight;
 				}
@@ -270,24 +279,26 @@ class LightRegion implements LightRegionAccess {
 				if (removeMask.and(less.not(), removeFlag).any() || restoreLightSource) {
 					// increases queued in decrease may propagate to all directions as if a light source
 					Queues.enqueue(increaseQueue, nodeIndex, repropLight);
+
+					if (isNeighbor) {
+						neighborIncreaseQueue.add(neighbor.origin);
+					}
 				}
 			}
 		}
 
 		if (decCount > 0) {
 			lightData.markAsDirty();
+			LightDataManager.INSTANCE.publicDrawQueue.add(origin);
 		}
-
-		return accessedNeighborDecrease;
 	}
 
-	public boolean updateIncrease(BlockAndTintGetter blockView) {
+	void updateIncrease(BlockAndTintGetter blockView, LongSet neighborIncreaseQueue) {
 		while (!globalIncQueue.isEmpty()) {
 			incQueue.enqueue(globalIncQueue.dequeueLong());
 		}
 
 		int incCount = 0;
-		boolean accessedNeighbor = false;
 
 		while (!incQueue.isEmpty()) {
 			incCount++;
@@ -360,7 +371,9 @@ class LightRegion implements LightRegionAccess {
 					dataAccess.put(nodeIndex, resultLight);
 					Queues.enqueue(increaseQueue, nodeIndex, resultLight, side);
 
-					accessedNeighbor |= isNeighbor;
+					if (isNeighbor) {
+						neighborIncreaseQueue.add(neighbor.origin);
+					}
 				}
 			}
 		}
@@ -368,9 +381,8 @@ class LightRegion implements LightRegionAccess {
 		if (incCount > 0) {
 			hasData = true;
 			lightData.markAsDirty();
+			LightDataManager.INSTANCE.publicDrawQueue.add(origin);
 		}
-
-		return accessedNeighbor;
 	}
 
 	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, BlockAndTintGetter blockView) {

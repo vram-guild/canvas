@@ -23,19 +23,17 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongIterable;
-import it.unimi.dsi.fastutil.longs.LongIterator;
-import org.joml.Vector3i;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
+import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 
 import grondag.canvas.pipeline.Pipeline;
-import grondag.canvas.shader.data.ShaderDataManager;
 
 public class LightDataManager {
-	private static final boolean debugRedrawEveryFrame = false;
-
 	static LightDataManager INSTANCE;
 
 	public static LightRegionAccess allocate(BlockPos regionOrigin) {
@@ -49,12 +47,9 @@ public class LightDataManager {
 	public static void reload() {
 		if (Pipeline.coloredLightsEnabled()) {
 			assert Pipeline.config().coloredLights != null;
-			final var extentSizeRegions = Pipeline.config().coloredLights.maxRadiusChunks * 2;
 
 			if (INSTANCE == null) {
-				INSTANCE = new LightDataManager(extentSizeRegions);
-			} else {
-				INSTANCE.resize(extentSizeRegions);
+				INSTANCE = new LightDataManager();
 			}
 
 			INSTANCE.useOcclusionData = Pipeline.config().coloredLights.useOcclusionData;
@@ -72,9 +67,9 @@ public class LightDataManager {
 		}
 	}
 
-	public static void update(BlockAndTintGetter blockView, int cameraX, int cameraY, int cameraZ) {
+	public static void update(BlockAndTintGetter blockView) {
 		if (INSTANCE != null) {
-			INSTANCE.updateInner(blockView, cameraX, cameraY, cameraZ);
+			INSTANCE.updateInner(blockView);
 		}
 	}
 
@@ -94,97 +89,84 @@ public class LightDataManager {
 		return "Colored lights DISABLED";
 	}
 
-	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+	private final Long2ObjectMap<LightRegion> allocated = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>(1024));
 
-	private final Vector3i extentOrigin = new Vector3i();
+	final LongSet publicUpdateQueue = LongSets.synchronize(new LongOpenHashSet());
+	final LongSet publicDrawQueue = LongSets.synchronize(new LongOpenHashSet());
+	private final LongSet decreaseQueue = new LongOpenHashSet();
+	private final LongSet increaseQueue = new LongOpenHashSet();
+
 	private final LightDataAllocator texAllocator;
 
 	boolean useOcclusionData = false;
-
-	private int extentSizeX;
-	private int extentSizeY;
-	private int extentSizeZ;
-
-	private boolean cameraUninitialized = true;
-	private boolean extentWasResized = false;
-
-	private int extentSizeXInRegions = 0;
-	private int extentSizeYInRegions = 0;
-	private int extentSizeZInRegions = 0;
 	private LightDataTexture texture;
-	ExtentIterable extentIterable = new ExtentIterable();
 
-	public LightDataManager(int newExtentSize) {
+	public LightDataManager() {
 		texAllocator = new LightDataAllocator();
 		allocated.defaultReturnValue(null);
-		init(newExtentSize);
 	}
 
-	private void resize(int newExtentSize) {
-		init(newExtentSize);
-		extentWasResized = true;
-	}
+	private void updateInner(BlockAndTintGetter blockView) {
+		synchronized (publicUpdateQueue) {
+			for (long index : publicUpdateQueue) {
+				decreaseQueue.add(index);
+				increaseQueue.add(index);
+			}
 
-	private void init(int newExtentSize) {
-		extentSizeXInRegions = newExtentSize;
-		extentSizeYInRegions = newExtentSize;
-		extentSizeZInRegions = newExtentSize;
+			publicUpdateQueue.clear();
+		}
 
-		extentSizeX = extentSizeInBlocks(extentSizeXInRegions);
-		extentSizeY = extentSizeInBlocks(extentSizeYInRegions);
-		extentSizeZ = extentSizeInBlocks(extentSizeZInRegions);
-	}
+		while (!decreaseQueue.isEmpty()) {
+			// hopefully faster with native op?
+			final int queueLen = decreaseQueue.size();
+			final long queueIterator = MemoryUtil.nmemAlloc(8L * queueLen);
 
-	private void updateInner(BlockAndTintGetter blockView, int cameraX, int cameraY, int cameraZ) {
-		final int regionSnapMask = ~LightRegionData.Const.WIDTH_MASK;
+			long i = 0L;
 
-		final int prevExtentBlockX = extentOrigin.x;
-		final int prevExtentBlockY = extentOrigin.y;
-		final int prevExtentBlockZ = extentOrigin.z;
+			for (long index : decreaseQueue) {
+				MemoryUtil.memPutLong(queueIterator + i * 8L, index);
+				i++;
+			}
 
-		// snap camera position to the nearest region (chunk)
-		extentOrigin.x = (cameraX & regionSnapMask) - extentSizeInBlocks(extentSizeXInRegions / 2);
-		extentOrigin.y = (cameraY & regionSnapMask) - extentSizeInBlocks(extentSizeYInRegions / 2);
-		extentOrigin.z = (cameraZ & regionSnapMask) - extentSizeInBlocks(extentSizeZInRegions / 2);
+			decreaseQueue.clear();
 
-		ShaderDataManager.updateLightVolumeOrigin(extentOrigin);
-
-		boolean extentMoved = !extentOrigin.equals(prevExtentBlockX, prevExtentBlockY, prevExtentBlockZ);
-
-		boolean needUpdate = true;
-
-		// TODO: account for extent-edge chunks?
-		// process all active regions' decrease queue until none is left
-		while (needUpdate) {
-			needUpdate = false;
-
-			for (long index : extentIterable) {
+			for (i = 0; i < queueLen; i++) {
+				final long index = MemoryUtil.memGetLong(queueIterator + i * 8L);
 				final LightRegion lightRegion = allocated.get(index);
 
 				if (lightRegion != null && !lightRegion.isClosed()) {
-					needUpdate |= lightRegion.updateDecrease(blockView);
+					lightRegion.updateDecrease(blockView, decreaseQueue, increaseQueue);
 				}
 			}
+
+			MemoryUtil.nmemFree(queueIterator);
 		}
 
-		boolean shouldRedraw = !cameraUninitialized && extentMoved;
+		while (!increaseQueue.isEmpty()) {
+			// hopefully faster with native op?
+			final int queueLen = increaseQueue.size();
+			final long queueIterator = MemoryUtil.nmemAlloc(8L * queueLen);
 
-		needUpdate = true;
+			long i = 0L;
 
-		// TODO: optimize active region traversal with queue
-		while (needUpdate) {
-			needUpdate = false;
+			for (long index : increaseQueue) {
+				MemoryUtil.memPutLong(queueIterator + i * 8L, index);
+				i++;
+			}
 
-			for (long index : extentIterable) {
+			increaseQueue.clear();
+
+			for (i = 0; i < queueLen; i++) {
+				final long index = MemoryUtil.memGetLong(queueIterator + i * 8L);
 				final LightRegion lightRegion = allocated.get(index);
 
 				if (lightRegion != null && !lightRegion.isClosed()) {
-					needUpdate |= lightRegion.updateIncrease(blockView);
+					lightRegion.updateIncrease(blockView, increaseQueue);
 				}
 			}
-		}
 
-		boolean textureOrExtentChanged = extentWasResized;
+			MemoryUtil.nmemFree(queueIterator);
+		}
 
 		if (texAllocator.checkInvalid()) {
 			if (texture != null) {
@@ -193,45 +175,60 @@ public class LightDataManager {
 
 			texture = new LightDataTexture(texAllocator.textureWidth(), texAllocator.textureHeight());
 			texAllocator.textureRemade();
-			textureOrExtentChanged = true;
-		}
 
-		// TODO: swap texture in case of sparse, perhaps
-		for (long index : extentIterable) {
-			final LightRegion lightRegion = allocated.get(index);
+			publicDrawQueue.clear();
 
-			if (lightRegion == null || lightRegion.isClosed()) {
-				continue;
+			// redraw
+			for (var lightRegion : allocated.values()) {
+				if (!lightRegion.isClosed()) {
+					drawInner(lightRegion, true);
+				}
 			}
+		} else if (!publicDrawQueue.isEmpty()) {
+			final int queueLen;
+			final long queueIterator;
 
-			// debug
-			texAllocator.allocateAddress(lightRegion);
+			long i = 0L;
 
-			boolean outsidePrev = false;
+			synchronized (publicDrawQueue) {
+				// hopefully faster with native op?
+				queueLen = publicDrawQueue.size();
+				queueIterator = MemoryUtil.nmemAlloc(8L * queueLen);
 
-			if (shouldRedraw && !textureOrExtentChanged) {
-				// Redraw regions that just entered the current-frame extent
-				outsidePrev |= lightRegion.lightData.regionOriginBlockX < prevExtentBlockX || lightRegion.lightData.regionOriginBlockX >= (prevExtentBlockX + extentSizeX);
-				outsidePrev |= lightRegion.lightData.regionOriginBlockY < prevExtentBlockY || lightRegion.lightData.regionOriginBlockY >= (prevExtentBlockY + extentSizeY);
-				outsidePrev |= lightRegion.lightData.regionOriginBlockZ < prevExtentBlockZ || lightRegion.lightData.regionOriginBlockZ >= (prevExtentBlockZ + extentSizeZ);
-			}
-
-			if (lightRegion.lightData.hasBuffer() && (lightRegion.lightData.isDirty() || outsidePrev || textureOrExtentChanged || debugRedrawEveryFrame)) {
-				final int targetAddress = texAllocator.allocateAddress(lightRegion);
-
-				if (targetAddress != LightDataAllocator.EMPTY_ADDRESS) {
-					final int targetRow = texAllocator.dataRowStart() + targetAddress;
-					texture.upload(targetRow, lightRegion.lightData.getBuffer());
+				for (long index : publicDrawQueue) {
+					MemoryUtil.memPutLong(queueIterator + i * 8L, index);
+					i++;
 				}
 
-				lightRegion.lightData.clearDirty();
+				publicDrawQueue.clear();
 			}
+
+			for (i = 0; i < queueLen; i++) {
+				final long index = MemoryUtil.memGetLong(queueIterator + i * 8L);
+				final LightRegion lightRegion = allocated.get(index);
+
+				if (lightRegion != null && !lightRegion.isClosed()) {
+					drawInner(lightRegion, false);
+				}
+			}
+
+			MemoryUtil.nmemFree(queueIterator);
 		}
 
 		texAllocator.uploadPointersIfNeeded(texture);
+	}
 
-		extentWasResized = false;
-		cameraUninitialized = false;
+	private void drawInner(LightRegion lightRegion, boolean redraw) {
+		if (lightRegion.lightData.hasBuffer() && (lightRegion.lightData.isDirty() || redraw)) {
+			final int targetAddress = texAllocator.allocateAddress(lightRegion);
+
+			if (targetAddress != LightDataAllocator.EMPTY_ADDRESS) {
+				final int targetRow = texAllocator.dataRowStart() + targetAddress;
+				texture.upload(targetRow, lightRegion.lightData.getBuffer());
+			}
+
+			lightRegion.lightData.clearDirty();
+		}
 	}
 
 	LightRegion getFromBlock(BlockPos blockPos) {
@@ -268,10 +265,6 @@ public class LightDataManager {
 		return lightRegion;
 	}
 
-	private int extentSizeInBlocks(int extentSize) {
-		return extentSize * LightRegionData.Const.WIDTH;
-	}
-
 	public void close() {
 		texture.close();
 
@@ -283,40 +276,6 @@ public class LightDataManager {
 			}
 
 			allocated.clear();
-		}
-	}
-
-	private class ExtentIterable implements LongIterable, LongIterator {
-		final int extent = extentSizeInBlocks(1);
-
-		@Override
-		public LongIterator iterator() {
-			x = y = z = 0;
-			return this;
-		}
-
-		int x, y, z;
-
-		@Override
-		public long nextLong() {
-			final long value = BlockPos.asLong(extentOrigin.x + x * extent, extentOrigin.y + y * extent, extentOrigin.z + z * extent);
-
-			if (++z >= extentSizeZInRegions) {
-				z = 0;
-				y++;
-			}
-
-			if (y >= extentSizeYInRegions) {
-				y = 0;
-				x++;
-			}
-
-			return value;
-		}
-
-		@Override
-		public boolean hasNext() {
-			return x < extentSizeXInRegions;
 		}
 	}
 }

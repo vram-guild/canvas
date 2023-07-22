@@ -102,7 +102,7 @@ public class LightRegistry {
 		private static BlockState state;
 
 		private DummyWorld set(BlockState state) {
-			this.state = state;
+			DummyWorld.state = state;
 			return this;
 		}
 

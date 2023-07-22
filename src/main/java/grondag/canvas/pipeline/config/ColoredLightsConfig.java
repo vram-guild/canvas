@@ -22,19 +22,14 @@ package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
 
-import grondag.canvas.light.color.LightDataTexture;
-import grondag.canvas.pipeline.GlSymbolLookup;
 import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
-import grondag.canvas.pipeline.config.util.NamedDependency;
 
 public class ColoredLightsConfig extends AbstractConfig {
-	public final int maxRadiusChunks;
 	public final boolean useOcclusionData;
 
 	protected ColoredLightsConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx);
-		maxRadiusChunks = ctx.dynamic.getInt(config, "maxRadiusChunks", 4);
 		useOcclusionData = ctx.dynamic.getBoolean(config, "useOcclusionData", false);
 	}
 

@@ -24,7 +24,6 @@ import java.util.function.Consumer;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.joml.Vector3i;
 
 import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;

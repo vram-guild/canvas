@@ -23,7 +23,6 @@ package grondag.canvas.pipeline;
 import static net.minecraft.client.renderer.entity.ItemRenderer.ENCHANTED_GLINT_ITEM;
 
 import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 
 import org.lwjgl.opengl.GL46;
 
