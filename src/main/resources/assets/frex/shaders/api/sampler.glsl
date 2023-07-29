@@ -29,7 +29,15 @@ uniform sampler2DArray frxs_shadowMapTexture;
 #ifdef COLORED_LIGHTS_ENABLED
 uniform sampler2D frxs_lightData;
 
-#define frx_getLightFiltered(worldPos) frx_getLightFiltered(frxs_lightData, worldPos)
-#define frx_getLightRaw(worldPos) frx_getLightRaw(frxs_lightData, worldPos)
-#define frx_getLight(worldPos, fallback) frx_getLight(frxs_lightData, worldPos, fallback)
+vec4 frx_getLightFiltered(vec3 worldPos) {
+	return frx_getLightFiltered(frxs_lightData, worldPos);
+}
+
+vec4 frx_getLightRaw(vec3 worldPos) {
+	return frx_getLightRaw(frxs_lightData, worldPos);
+}
+
+vec3 frx_getLight(vec3 worldPos, vec3 fallback) {
+	return frx_getLight(frxs_lightData, worldPos, fallback);
+}
 #endif
