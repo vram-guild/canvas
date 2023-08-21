@@ -15,7 +15,7 @@ float far = frx_viewDistance() * 0.5f;
 
 // rough approximation - will be more linear and visible but cannot be used for anything else
 void main() {
-	float depth = texture(_cvu_input, _cvv_texcoord).r;
+	float depth = textureLod(_cvu_input, _cvv_texcoord, frxu_lod).r;
 	float linearDepth = (2.0 * near) / (far + near - depth * (far - near));
 	fragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
 }

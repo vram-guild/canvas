@@ -95,7 +95,10 @@ public class PipelineFramebuffer {
 			} else if (img.config.target == GFX.GL_TEXTURE_2D_ARRAY || img.config.target == GFX.GL_TEXTURE_3D) {
 				GFX.glFramebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0 + i, img.glId(), ac.lod, ac.layer);
 			} else if (img.config.target == GFX.GL_TEXTURE_CUBE_MAP) {
-				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0 + i, GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + ac.layer, img.glId(), ac.lod);
+				int face = ac.face != -1 ? ac.face : ac.layer; // for compatibility
+				GFX.glFramebufferTexture2D(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0 + i, GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, img.glId(), ac.lod);
+			} else if (img.config.target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY) {
+				GFX.glFramebufferTextureLayer(GFX.GL_FRAMEBUFFER, GFX.GL_COLOR_ATTACHMENT0 + i, img.glId(), ac.lod, ac.layer * 6 + ac.face);
 			}
 		}
 

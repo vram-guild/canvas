@@ -85,16 +85,23 @@ public class Image {
 		CanvasTextureState.bindTexture(config.target, glId);
 
 		for (int i = 0; i <= config.lod; ++i) {
+			int w = width >> i;
+			int h = height >> i;
+
 			if (config.target == GFX.GL_TEXTURE_3D) {
-				GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				GFX.texImage3D(config.target, i, config.internalFormat, w, h, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 			} else if (config.target == GFX.GL_TEXTURE_2D_ARRAY) {
-				GFX.texImage3D(config.target, i, config.internalFormat, width >> i, height >> i, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				GFX.texImage3D(config.target, i, config.internalFormat, w, h, config.depth, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 			} else if (config.target == GFX.GL_TEXTURE_CUBE_MAP) {
 				for (int face = 0; face < 6; ++face) {
-					GFX.texImage2D(GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+					GFX.texImage2D(GFX.GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, i, config.internalFormat, w, h, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 				}
+			} else if (config.target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY) {
+				/* "... depth must be a multiple of six indicating 6N layer-faces in the
+				cube map array, otherwise the error INVALID_VALUE is generated." */
+				GFX.texImage3D(GFX.GL_TEXTURE_CUBE_MAP_ARRAY, i, config.internalFormat, w, h, config.depth * 6, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 			} else {
-				GFX.texImage2D(config.target, i, config.internalFormat, width >> i, height >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
+				GFX.texImage2D(config.target, i, config.internalFormat, w, h, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
 			}
 		}
 	}
