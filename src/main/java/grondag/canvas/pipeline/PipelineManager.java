@@ -197,7 +197,7 @@ public class PipelineManager {
 
 		final boolean isLayered = target == GFX.GL_TEXTURE_2D_ARRAY || target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY;
 
-		ProcessProgram p;
+		final ProcessProgram p;
 
 		if (target == GFX.GL_TEXTURE_CUBE_MAP || target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY) {
 			p = isLayered ? debugCubeMapArrayProgram : debugCubeMapProgram;

@@ -85,8 +85,8 @@ public class Image {
 		CanvasTextureState.bindTexture(config.target, glId);
 
 		for (int i = 0; i <= config.lod; ++i) {
-			int w = width >> i;
-			int h = height >> i;
+			final int w = width >> i;
+			final int h = height >> i;
 
 			if (config.target == GFX.GL_TEXTURE_3D) {
 				GFX.texImage3D(config.target, i, config.internalFormat, w, h, config.depth >> i, 0, config.pixelFormat, config.pixelDataType, (ByteBuffer) null);
