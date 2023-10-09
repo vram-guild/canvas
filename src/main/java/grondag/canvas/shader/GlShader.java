@@ -427,6 +427,10 @@ public class GlShader implements Shader {
 			source = "#extension GL_ARB_conservative_depth: enable\n" + source;
 		}
 
+		if (Pipeline.config().glslVersion < 400 && CanvasGlHelper.supportsArbTextureCubeMapArray()) {
+			source = "#extension GL_ARB_texture_cube_map_array: enable\n" + source;
+		}
+
 		// restore GLSL version, enable conservative depth
 		source = "#version " + Pipeline.config().glslVersion + "\n" + source;
 

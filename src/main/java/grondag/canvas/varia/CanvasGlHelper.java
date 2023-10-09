@@ -34,6 +34,7 @@ import grondag.canvas.config.Configurator;
 public class CanvasGlHelper {
 	private static boolean supportsPersistentMapped = false;
 	private static boolean supportsKhrDebug = false;
+	private static boolean supportsArbTextureCubeMapArray = false;
 	private static boolean supportsArbConservativeDepth = false;
 
 	private static String maxGlVersion = "3.2";
@@ -44,6 +45,10 @@ public class CanvasGlHelper {
 
 	public static boolean supportsKhrDebug() {
 		return supportsKhrDebug;
+	}
+
+	public static boolean supportsArbTextureCubeMapArray() {
+		return supportsArbTextureCubeMapArray;
 	}
 
 	public static boolean supportsArbConservativeDepth() {
@@ -62,6 +67,7 @@ public class CanvasGlHelper {
 		final GLCapabilities caps = GL.getCapabilities();
 		supportsPersistentMapped = caps.glBufferStorage != 0;
 		supportsKhrDebug = caps.GL_KHR_debug;
+		supportsArbTextureCubeMapArray = caps.GL_ARB_texture_cube_map_array;
 		supportsArbConservativeDepth = caps.GL_ARB_conservative_depth;
 		maxGlVersion = maxGlVersion(caps);
 
@@ -83,6 +89,7 @@ public class CanvasGlHelper {
 		log.info(String.format(" glBufferStorage: %s", caps.glBufferStorage == 0 ? "N" : "Y"));
 		log.info(String.format(" KHR_debug: %s", supportsKhrDebug() ? "Y" : "N"));
 		log.info(String.format(" ARB_conservative_depth: %s", supportsArbConservativeDepth ? "Y" : "N"));
+		log.info(String.format(" ARB_texture_cube_map_array: %s", supportsArbTextureCubeMapArray ? "Y" : "N"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
 	}

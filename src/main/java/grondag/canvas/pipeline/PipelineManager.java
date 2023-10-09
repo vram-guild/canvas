@@ -39,6 +39,7 @@ import grondag.canvas.pipeline.pass.Pass;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.render.PrimaryFrameBuffer;
 import grondag.canvas.shader.ProcessProgram;
+import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GFX;
 
 //PERF: handle VAO properly here before re-enabling VAO
@@ -54,6 +55,7 @@ public class PipelineManager {
 	static ProcessProgram debugDepthProgram;
 	static ProcessProgram debugDepthArrayProgram;
 	static ProcessProgram debugCubeMapProgram;
+	static ProcessProgram debugCubeMapArrayProgram;
 
 	static StaticDrawBuffer drawBuffer;
 	static int h;
@@ -87,6 +89,10 @@ public class PipelineManager {
 		debugDepthProgram = new ProcessProgram("debug_depth", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth.frag"), "_cvu_input");
 		debugDepthArrayProgram = new ProcessProgram("debug_depth_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_depth_array.frag"), "_cvu_input");
 		debugCubeMapProgram = new ProcessProgram("debug_cube_map", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map.frag"), "_cvu_input");
+
+		if (CanvasGlHelper.supportsArbTextureCubeMapArray()) {
+			debugCubeMapArrayProgram = new ProcessProgram("debug_cube_map_array", new ResourceLocation("canvas:shaders/pipeline/post/simple_full_frame.vert"), new ResourceLocation("canvas:shaders/pipeline/post/visualize_cube_map_array.frag"), "_cvu_input");
+		}
 
 		final DrawableVertexCollector collector = new SimpleVertexCollector(RenderState.missing(), new int[64]);
 
@@ -189,27 +195,23 @@ public class PipelineManager {
 
 		CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0, target, glId);
 
-		final boolean isLayered = target == GFX.GL_TEXTURE_2D_ARRAY;
+		final boolean isLayered = target == GFX.GL_TEXTURE_2D_ARRAY || target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY;
 
-		if (target == GFX.GL_TEXTURE_CUBE_MAP) {
-			debugCubeMapProgram.activate();
-			debugCubeMapProgram.size(w, h).lod(lod).projection(orthoMatrix);
+		final ProcessProgram p;
+
+		if (target == GFX.GL_TEXTURE_CUBE_MAP || target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY) {
+			p = isLayered ? debugCubeMapArrayProgram : debugCubeMapProgram;
 		} else if (depth) {
-			if (isLayered) {
-				debugDepthArrayProgram.activate();
-				debugDepthArrayProgram.size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
-			} else {
-				debugDepthProgram.activate();
-				debugDepthProgram.size(w, h).lod(0).projection(orthoMatrix);
-			}
+			p = isLayered ? debugDepthArrayProgram : debugDepthProgram;
 		} else {
-			if (isLayered) {
-				debugArrayProgram.activate();
-				debugArrayProgram.size(w, h).lod(lod).layer(layer).projection(orthoMatrix);
-			} else {
-				debugProgram.activate();
-				debugProgram.size(w, h).lod(lod).projection(orthoMatrix);
-			}
+			p = isLayered ? debugArrayProgram : debugProgram;
+		}
+
+		p.activate();
+		p.size(w, h).lod(lod).projection(orthoMatrix);
+
+		if (isLayered) {
+			p.layer(layer);
 		}
 
 		GFX.drawArrays(GFX.GL_TRIANGLES, 0, 6);
@@ -248,6 +250,10 @@ public class PipelineManager {
 		debugDepthProgram = ProcessProgram.unload(debugDepthProgram);
 		debugDepthArrayProgram = ProcessProgram.unload(debugDepthArrayProgram);
 		debugCubeMapProgram = ProcessProgram.unload(debugCubeMapProgram);
+
+		if (debugCubeMapArrayProgram != null) {
+			debugCubeMapArrayProgram = ProcessProgram.unload(debugCubeMapArrayProgram);
+		}
 
 		if (drawBuffer != null) {
 			drawBuffer.release();
