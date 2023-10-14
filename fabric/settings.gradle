@@ -11,3 +11,5 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+apply from: '../project_settings.gradle'
