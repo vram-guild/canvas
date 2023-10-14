@@ -909,20 +909,20 @@ public class CanvasWorldRenderer extends LevelRenderer {
 	}
 
 	@Override
-	public boolean hasRenderedAllChunks() {
+	public boolean hasRenderedAllSections() {
 		return worldRenderState.regionRebuildManager.isEmpty() && worldRenderState.regionBuilder().isEmpty() && !worldRenderState.terrainIterator.hasWork();
 	}
 
 	@Override
-	public int countRenderedChunks() {
+	public int countRenderedSections() {
 		return worldRenderState.cameraVisibleRegions.getActiveCount();
 	}
 
 	@Override
 	@SuppressWarnings("resource")
-	public String getChunkStatistics() {
+	public String getSectionStatistics() {
 		final int len = worldRenderState.renderRegionStorage.loadedRegionCount();
-		final int count = countRenderedChunks();
+		final int count = countRenderedSections();
 		String shadowRegionString = "";
 
 		if (worldRenderState.shadowsEnabled()) {

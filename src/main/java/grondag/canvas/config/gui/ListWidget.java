@@ -38,7 +38,6 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 		// The workings of these coordinates are arcane by nature
 		super(Minecraft.getInstance(), width, height + y, y, height + y, ITEM_HEIGHT + ITEM_SPACING);
 		setRenderBackground(false);
-		setRenderTopAndBottom(false);
 		x0 = x;
 		x1 = x + width;
 		rowWidth = Math.min(300, width - 20);
@@ -50,14 +49,11 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	}
 
 	@Override
-	protected void renderBackground(GuiGraphics graphics) {
+	public void render(GuiGraphics graphics, int i, int j, float f) {
 		if (darkened) {
 			graphics.fill(x0, y0, x1, y1, 0x99000000);
 		}
-	}
 
-	@Override
-	public void render(GuiGraphics graphics, int i, int j, float f) {
 		super.render(graphics, i, j, f);
 
 		// Render top and bottom shadow over items but not scroll bar

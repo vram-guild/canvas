@@ -35,7 +35,7 @@ public abstract class BaseScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics graphics, int i, int j, float f) {
-		this.renderBackground(graphics);
+		this.renderBackground(graphics, i, j, f);
 		// graphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 16777215);
 		super.render(graphics, i, j, f);
 		graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 16777215);

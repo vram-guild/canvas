@@ -28,7 +28,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 public class Checkbox extends BaseButton {
-	private static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/checkbox.png");
+	private static final ResourceLocation CHECKBOX = new ResourceLocation("widget/checkbox");
+	private static final ResourceLocation SELECTED = new ResourceLocation("widget/checkbox_selected");
+	private static final ResourceLocation HIGHLIGHTED = new ResourceLocation("widget/checkbox_highlighted");
+	private static final ResourceLocation SELECTED_HIGHLIGHTED = new ResourceLocation("widget/checkbox_selected_highlighted");
+
 	private boolean value;
 	private final Runnable onValueChange;
 	private boolean highlighted;
@@ -62,9 +66,16 @@ public class Checkbox extends BaseButton {
 			message = getMessage();
 		}
 
+		final ResourceLocation texture;
+
+		if (this.value) {
+			texture = this.isFocused() ? SELECTED_HIGHLIGHTED : SELECTED;
+		} else {
+			texture = this.isFocused() ? HIGHLIGHTED : CHECKBOX;
+		}
+
 		graphics.setColor(1.0F, 1.0F, 1.0F, this.alpha);
-		graphics.blit(TEXTURE, this.getX(), this.getY(), this.isFocused() ? 20.0F : 0.0F, this.value ? 20.0F : 0.0F, 20, this.height, 64, 64);
-		// this.renderBg(poseStack, minecraft, i, j);
+		graphics.blitSprite(texture, this.getX(), this.getY(), 20, this.height);
 		graphics.drawString(font, message, this.getX() + 24, this.getY() + (this.height - 8) / 2, 14737632 | Mth.ceil(this.alpha * 255.0F) << 24);
 	}
 
