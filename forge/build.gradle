@@ -74,7 +74,7 @@ processResources {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			artifactId = project.archivesBaseName;
+			artifactId = base.archivesName.get();
 
 			artifact(remapJar) {
 				builtBy remapJar
@@ -132,8 +132,8 @@ task github(dependsOn: build) {
 			releaseBuilder.commitish(grgit.branch.current().name)
 
 			def ghRelease = releaseBuilder.create()
-			ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"), "application/java-archive");
-			ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}-sources.jar"), "application/java-archive");
+			ghRelease.uploadAsset(file("${project.buildDir}/libs/${base.archivesName.get()}-${version}.jar"), "application/java-archive");
+			ghRelease.uploadAsset(file("${project.buildDir}/libs/${base.archivesName.get()}-${version}-sources.jar"), "application/java-archive");
 		}
 	}
 }

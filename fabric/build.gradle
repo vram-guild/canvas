@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-	id 'fabric-loom' version '1.2-SNAPSHOT'
+	id 'fabric-loom' version '1.4-SNAPSHOT'
 	id 'maven-publish'
 	id 'org.cadixdev.licenser' version '0.6.1'
 	id 'org.ajoberstar.grgit' version '4.1.1'
@@ -18,8 +18,15 @@ plugins {
 }
 
 ext.platform_name = 'fabric'
-ext.loader_version = '0.14.21'
-ext.fabric_version = '0.83.0+1.20'
+ext.loader_version = '0.14.23'
+ext.fabric_version = '0.90.0+1.20.2'
+
+// Hat tip to JellySquid
+configurations {
+    modIncludeImplementation
+    modImplementation.extendsFrom modIncludeImplementation
+    include.extendsFrom modIncludeImplementation
+}
 
 apply from: '../project_common.gradle'
 apply from: 'project.gradle'
@@ -28,13 +35,6 @@ apply from: '../gruntle_common.gradle'
 dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 	mappings loom.officialMojangMappings()
-}
-
-// Hat tip to JellySquid
-configurations {
-    modIncludeImplementation
-    modImplementation.extendsFrom modIncludeImplementation
-    include.extendsFrom modIncludeImplementation
 }
 
 loom {
@@ -56,7 +56,7 @@ processResources {
 if (project.build_fat_jar) {
 	task remapMavenJar(type: net.fabricmc.loom.task.RemapJarTask, dependsOn: jar) {
 		input = jar.archiveFile
-		archiveFileName = "${archivesBaseName}-${project.version}-slim.jar"
+		archiveFileName = "${base.archivesName.get()}-${project.version}-slim.jar"
 		addNestedDependencies = false
 	}
 
@@ -66,27 +66,8 @@ if (project.build_fat_jar) {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			artifactId = project.archivesBaseName;
-
-			if (project.build_fat_jar) {
-				artifact(remapMavenJar) {
-					builtBy remapMavenJar
-				}
-
-				artifact(remapJar) {
-					classifier = "fat"
-					builtBy remapJar
-				}
-			} else {
-				artifact(remapJar) {
-					builtBy remapJar
-				}
-			}
-
-			artifact(sourcesJar) {
-				classifier = "sources"
-				builtBy remapSourcesJar
-			}
+			artifactId = base.archivesName.get();
+			from components.java
 		}
 	}
 
@@ -135,8 +116,8 @@ task github(dependsOn: build) {
 			releaseBuilder.commitish(grgit.branch.current().name)
 
 			def ghRelease = releaseBuilder.create()
-			ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"), "application/java-archive");
-			ghRelease.uploadAsset(file("${project.buildDir}/libs/${archivesBaseName}-${version}-sources.jar"), "application/java-archive");
+			ghRelease.uploadAsset(file("${project.buildDir}/libs/${base.archivesName.get()}-${version}.jar"), "application/java-archive");
+			ghRelease.uploadAsset(file("${project.buildDir}/libs/${base.archivesName.get()}-${version}-sources.jar"), "application/java-archive");
 		}
 	}
 }
