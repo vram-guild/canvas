@@ -65,6 +65,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -886,6 +887,11 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		MatrixState.set(MatrixState.SCREEN);
 		ScreenRenderState.setRenderingHand(true);
 		BufferSynchronizer.checkPoint();
+	}
+
+	@Override
+	public void onChunkLoaded(ChunkPos chunkPos) {
+		// Whatever this is it's probably not good
 	}
 
 	@Override
