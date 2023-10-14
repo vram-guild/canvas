@@ -24,9 +24,11 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -48,7 +50,6 @@ import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.client.renderer.RunningTrimmedMean;
 import net.minecraft.client.renderer.ViewArea;
-import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher.RenderChunk;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
@@ -69,16 +70,16 @@ import grondag.canvas.render.world.CanvasWorldRenderer;
 public class MixinLevelRenderer implements LevelRendererExt {
 	@Shadow private ClientLevel level;
 	@Shadow private boolean generateClouds;
-	@Shadow private EntityRenderDispatcher entityRenderDispatcher;
+	@Final @Shadow private EntityRenderDispatcher entityRenderDispatcher;
 	// PERF: prevent wasteful allocation of these - they are not all used with Canvas and take a lot of space
-	@Shadow private RenderBuffers renderBuffers;
+	@Final @Shadow private RenderBuffers renderBuffers;
 	@Shadow private int renderedEntities;
 	@Shadow private int culledEntities;
-	@Shadow private RunningTrimmedMean frameTimes;
+	@Final @Shadow private RunningTrimmedMean frameTimes;
 	@Shadow private RenderTarget entityTarget;
 	@Shadow private PostChain entityEffect;
-	@Shadow private Set<BlockEntity> globalBlockEntities;
-	@Shadow private Long2ObjectMap<SortedSet<BlockDestructionProgress>> destructionProgress;
+	@Final @Shadow private Set<BlockEntity> globalBlockEntities;
+	@Final @Shadow private Long2ObjectMap<SortedSet<BlockDestructionProgress>> destructionProgress;
 	@Shadow private RenderTarget translucentTarget;
 	@Shadow private RenderTarget itemEntityTarget;
 	@Shadow private RenderTarget particlesTarget;
@@ -96,6 +97,7 @@ public class MixinLevelRenderer implements LevelRendererExt {
 
 	@Shadow private void renderSnowAndRain(LightTexture lightmapTextureManager, float f, double d, double e, double g) { }
 
+	@Unique
 	private static boolean shouldWarnOnSetupTerrain = true;
 
 	@Inject(at = @At("HEAD"), method = "setupRender", cancellable = true)
@@ -124,7 +126,7 @@ public class MixinLevelRenderer implements LevelRendererExt {
 
 	private static boolean shouldWarnOnRenderChunkLayer = true;
 
-	@Inject(at = @At("HEAD"), method = "renderChunkLayer", cancellable = true)
+	@Inject(at = @At("HEAD"), method = "renderSectionLayer", cancellable = true)
 	private void onRenderChunkLayer(CallbackInfo ci) {
 		if (shouldWarnOnRenderChunkLayer) {
 			CanvasMod.LOG.warn("[Canvas] LevelRenderer.renderChunkLayer() called unexpectedly. This probably indicates a mod incompatibility.");
@@ -133,34 +135,12 @@ public class MixinLevelRenderer implements LevelRendererExt {
 		}
 	}
 
-	private static boolean shouldWarnGetRelativeFrom = true;
-
-	@Inject(at = @At("HEAD"), method = "getRelativeFrom", cancellable = true)
-	private void onGetRelativeFrom(CallbackInfoReturnable<RenderChunk> ci) {
-		if (shouldWarnGetRelativeFrom) {
-			CanvasMod.LOG.warn("[Canvas] LevelRenderer.getRelativeFrom() called unexpectedly. This probably indicates a mod incompatibility.");
-			ci.setReturnValue(null);
-			shouldWarnGetRelativeFrom = false;
-		}
-	}
-
-	private static boolean shouldWarnOnUpdateRenderChunks = true;
-
-	@Inject(at = @At("HEAD"), method = "updateRenderChunks", cancellable = true)
-	private void onUpdateRenderChunks(CallbackInfo ci) {
-		if (shouldWarnOnUpdateRenderChunks) {
-			CanvasMod.LOG.warn("[Canvas] WorldRenderer.updateRenderChunks() called unexpectedly. This probably indicates a mod incompatibility.");
-			ci.cancel();
-			shouldWarnOnUpdateRenderChunks = false;
-		}
-	}
-
 	/**
 	 * @author spiralhalo
 	 * @reason simplicity
 	 */
 	@Overwrite
-	public boolean isChunkCompiled(BlockPos blockPos) {
+	public boolean isSectionCompiled(BlockPos blockPos) {
 		return ((CanvasWorldRenderer) (Object) this).worldRenderState.renderRegionStorage.getRegionIfExists(blockPos) != null;
 	}
 

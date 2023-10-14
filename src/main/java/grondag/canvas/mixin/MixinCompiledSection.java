@@ -25,12 +25,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher.CompiledChunk;
+import net.minecraft.client.renderer.chunk.SectionRenderDispatcher.CompiledSection;
 
 import grondag.canvas.CanvasMod;
 
-@Mixin(CompiledChunk.class)
-public class MixinCompiledChunk {
+@Mixin(CompiledSection.class)
+public class MixinCompiledSection {
 	private static boolean shouldWarn = true;
 
 	@Inject(at = @At("RETURN"), method = "<init>*")

@@ -24,13 +24,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 
-@Mixin(ChunkRenderDispatcher.class)
-public abstract class MixinChunkRenderDispatcher {
+@Mixin(SectionRenderDispatcher.class)
+public abstract class MixinSectionRenderDispatcher {
 	@ModifyVariable(method = "<init>", index = 9, at = @At(value = "INVOKE", target = "Lcom/google/common/collect/Lists;newArrayListWithExpectedSize(I)Ljava/util/ArrayList;", remap = false))
 	private int onInitZeroListSize(int ignored) {
 		if (Configurator.enableLifeCycleDebug) {
