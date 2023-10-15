@@ -32,7 +32,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.server.packs.resources.ResourceProvider;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.mixinterface.GameRendererExt;
 import grondag.canvas.perf.Timekeeper;
@@ -70,6 +72,11 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 	@Inject(method = "renderLevel", require = 1, at = @At("HEAD"))
 	private void onRenderLevel(CallbackInfo ci) {
 		Timekeeper.instance.startFrame(Timekeeper.ProfilerGroup.GameRendererSetup, "GameRenderer_setup");
+	}
+
+	@Inject(method = "reloadShaders", at = @At("TAIL"))
+	private void onReloadShaders(ResourceProvider resourceProvider, CallbackInfo ci) {
+		CanvasMod.onReloadShaders.run();
 	}
 
 	@Override

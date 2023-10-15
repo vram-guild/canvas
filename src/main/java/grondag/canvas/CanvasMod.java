@@ -48,6 +48,7 @@ import grondag.canvas.apiimpl.CanvasState;
 import grondag.canvas.compat.Compat;
 import grondag.canvas.config.ConfigManager;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.material.state.TerrainRenderStates;
 
 //FEAT: weather rendering
 //FEAT: sky rendering
@@ -69,6 +70,9 @@ public class CanvasMod {
 	public static KeyMapping FLAWLESS_TOGGLE = new KeyMapping("key.canvas.flawless_toggle", -1, "key.canvas.category");
 	public static KeyMapping PROFILER_TOGGLE = new KeyMapping("key.canvas.profiler_toggle", -1, "key.canvas.category");
 	public static String versionString = "unknown";
+
+	private static boolean vanillaShadersLoaded = false;
+	public static Runnable onReloadShaders = CanvasMod::onFirstShaderReload;
 
 	public static void init() {
 		if (Configurator.enableLifeCycleDebug) {
@@ -118,13 +122,14 @@ public class CanvasMod {
 			}
 
 			final var compositeState = ((CompositeRenderType) renderType).state;
+			final boolean verifiablyCustomShader = vanillaShadersLoaded && VanillaShaderInfo.get(compositeState.shaderState) == VanillaShaderInfo.MISSING;
 
 			// Excludes glint, end portal, and other specialized render types that won't play nice with our current setup
 			// Excludes render types with custom shaders
 			// Excludes render types without a texture
 			if (compositeState.texturingState != RenderStateShard.DEFAULT_TEXTURING
 					|| !(compositeState.textureState instanceof TextureStateShard)
-					|| VanillaShaderInfo.get(compositeState.shaderState) == VanillaShaderInfo.MISSING) {
+					|| verifiablyCustomShader) {
 				return true;
 			}
 
@@ -144,5 +149,13 @@ public class CanvasMod {
 			final Component message = Component.literal("[Canvas] ").append(Component.literal(errorMessage).setStyle(ERROR_STYLE));
 			localPlayer.displayClientMessage(message, false);
 		}
+	}
+
+	// this should execute very early on (before the title screen)
+	private static void onFirstShaderReload() {
+		vanillaShadersLoaded = true;
+		TerrainRenderStates.onFirstShaderReload();
+
+		onReloadShaders = () -> { };
 	}
 }

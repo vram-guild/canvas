@@ -15,7 +15,6 @@ import grondag.canvas.CanvasMod;
 
 @Mixin(SectionOcclusionGraph.class)
 public class MixinSectionOcclusionGraph {
-
 	@Unique
 	private static boolean shouldWarnOnChunkLoaded = true;
 

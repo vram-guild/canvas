@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 
 import net.minecraft.client.renderer.RenderType;
 
+import io.vram.frex.api.material.MaterialFinder;
 import io.vram.frex.api.rendertype.RenderTypeUtil;
 
 import grondag.canvas.material.property.TargetRenderState;
@@ -34,9 +35,22 @@ import grondag.canvas.material.property.TargetRenderState;
 public final class TerrainRenderStates {
 	private TerrainRenderStates() { }
 
-	public static final CanvasRenderMaterial TRANSLUCENT_TERRAIN = (CanvasRenderMaterial) RenderTypeUtil.toMaterial(RenderType.translucent());
-	public static final RenderState TRANSLUCENT = TRANSLUCENT_TERRAIN.renderState();
-	public static final RenderState SOLID = ((CanvasRenderMaterial) RenderTypeUtil.toMaterial(RenderType.solid())).renderState();
+	public static CanvasRenderMaterial TRANSLUCENT_TERRAIN;
+	public static RenderState TRANSLUCENT;
+	public static RenderState SOLID;
 	public static final Predicate<RenderState> TRANSLUCENT_PREDICATE = m -> m.target == TargetRenderState.TRANSLUCENT && m.primaryTargetTransparency;
 	public static final Predicate<RenderState> SOLID_PREDICATE = m -> !TRANSLUCENT_PREDICATE.test(m);
+
+	public static void onFirstShaderReload() {
+		TRANSLUCENT_TERRAIN = (CanvasRenderMaterial) RenderTypeUtil.toMaterial(RenderType.translucent());
+		TRANSLUCENT = TRANSLUCENT_TERRAIN.renderState();
+		SOLID = ((CanvasRenderMaterial) RenderTypeUtil.toMaterial(RenderType.solid())).renderState();
+	}
+
+	static {
+		// initialize with placeholder for things that tried to access it before shaders are loaded
+		var standard = (CanvasRenderMaterial) MaterialFinder.threadLocal().find();
+		TRANSLUCENT_TERRAIN = (CanvasRenderMaterial) MaterialFinder.threadLocal().find();
+		TRANSLUCENT = SOLID = standard.renderState();
+	}
 }
