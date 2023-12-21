@@ -45,7 +45,7 @@ void main() {
 	if (_cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE] != 0.0) {
 		float spriteIndex = in_material.x;
 		// for sprite atlas textures, convert from normalized (0-1) to interpolated coordinates
-		vec4 spriteBounds = texture2DLod(frxs_spriteInfo, vec2(0, spriteIndex / _cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
+		vec4 spriteBounds = textureLod(frxs_spriteInfo, vec2(0, spriteIndex / _cvu_atlas[_CV_SPRITE_INFO_TEXTURE_SIZE]), 0);
 
 		float atlasHeight = _cvu_atlas[_CV_ATLAS_HEIGHT];
 		float atlasWidth = _cvu_atlas[_CV_ATLAS_WIDTH];
