@@ -36,6 +36,7 @@ public class CanvasGlHelper {
 	private static boolean supportsKhrDebug = false;
 	private static boolean supportsArbTextureCubeMapArray = false;
 	private static boolean supportsArbConservativeDepth = false;
+	private static int maxTextureSize = 0;
 
 	private static String maxGlVersion = "3.2";
 
@@ -55,6 +56,10 @@ public class CanvasGlHelper {
 		return supportsArbConservativeDepth;
 	}
 
+	public static int maxTextureSize() {
+		return maxTextureSize;
+	}
+
 	public static String maxGlVersion() {
 		return maxGlVersion;
 	}
@@ -70,6 +75,7 @@ public class CanvasGlHelper {
 		supportsArbTextureCubeMapArray = caps.GL_ARB_texture_cube_map_array;
 		supportsArbConservativeDepth = caps.GL_ARB_conservative_depth;
 		maxGlVersion = maxGlVersion(caps);
+		maxTextureSize = GFX.getInteger(GFX.GL_MAX_TEXTURE_SIZE);
 
 		if (Configurator.logMachineInfo) {
 			logMachineInfo(caps);
@@ -81,15 +87,12 @@ public class CanvasGlHelper {
 		final Minecraft client = Minecraft.getInstance();
 
 		log.info("==================  CANVAS RENDERER DEBUG INFORMATION ==================");
-		log.info(String.format(" Java: %s %dbit   Canvas: %s", System.getProperty("java.version"), client.is64Bit() ? 64 : 32, CanvasMod.versionString));
+		log.info(String.format(" Java: %s %dbit   Canvas: %s   LWJGL: %s", System.getProperty("java.version"), client.is64Bit() ? 64 : 32, CanvasMod.versionString, GLX._getLWJGLVersion()));
 		log.info(String.format(" CPU: %s", GLX._getCpuInfo()));
-		log.info(String.format(" LWJGL: %s", GLX._getLWJGLVersion()));
 		log.info(String.format(" OpenGL (Reported): %s", GLX.getOpenGLVersionString()));
-		log.info(String.format(" OpenGL (Available): %s", maxGlVersion));
-		log.info(String.format(" glBufferStorage: %s", caps.glBufferStorage == 0 ? "N" : "Y"));
-		log.info(String.format(" KHR_debug: %s", supportsKhrDebug() ? "Y" : "N"));
-		log.info(String.format(" ARB_conservative_depth: %s", supportsArbConservativeDepth ? "Y" : "N"));
-		log.info(String.format(" ARB_texture_cube_map_array: %s", supportsArbTextureCubeMapArray ? "Y" : "N"));
+		log.info(String.format(" OpenGL (Available): %s     Max texture size: %s", maxGlVersion, maxTextureSize));
+		log.info(String.format(" glBufferStorage: %s          KHR_debug: %s", caps.glBufferStorage == 0 ? "N" : "Y", supportsKhrDebug() ? "Y" : "N"));
+		log.info(String.format(" ARB_conservative_depth: %s   ARB_texture_cube_map_array: %s", supportsArbConservativeDepth ? "Y" : "N", supportsArbTextureCubeMapArray ? "Y" : "N"));
 		log.info(" (This message can be disabled by configuring logMachineInfo = false.)");
 		log.info("========================================================================");
 	}

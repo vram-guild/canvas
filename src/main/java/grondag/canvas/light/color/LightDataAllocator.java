@@ -33,13 +33,14 @@ import net.minecraft.core.BlockPos;
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.shader.data.IntData;
+import grondag.canvas.varia.CanvasGlHelper;
 
 public class LightDataAllocator {
 	private static final boolean DEBUG_LOG_RESIZE = false;
 
 	// unsigned short hard limit, because we are putting addresses in the data texture.
-	// although, this number of maximum address correspond to about 1 GiB of memory
-	// of light data, so this is a reasonable "hard limit".
+	// this corresponds to about 1 GiB of light data which is a reasonable hard limit,
+	// but in practice, the texture size limit will be reached far before this limit.
 	private static final int MAX_ADDRESSES = 65536;
 
 	// size of one row as determined by the data size of one region (16^3).
@@ -59,9 +60,10 @@ public class LightDataAllocator {
 	private ByteBuffer pointerBuffer;
 	private boolean requireTextureRemake;
 
+	private int addressLimit = INITIAL_ADDRESS_COUNT;
 	private int dynamicMaxAddresses = 0;
 	// 0 is reserved for empty address
-	private int nextAllocateAddress = 1;
+	private short nextAllocateAddress = 1;
 	private int addressCount = 1;
 
 	private float dataSize = 0f;
@@ -71,6 +73,25 @@ public class LightDataAllocator {
 
 	LightDataAllocator() {
 		increaseAddressSize(INITIAL_ADDRESS_COUNT);
+	}
+
+	private void ensureWithinLimits() {
+		final int maxTextureHeight = CanvasGlHelper.maxTextureSize() == 0 ? 16384 : CanvasGlHelper.maxTextureSize();
+		addressLimit = Math.max(INITIAL_ADDRESS_COUNT, Math.min(maxTextureHeight - pointerRows, MAX_ADDRESSES));
+
+		if (dynamicMaxAddresses > addressLimit) {
+			dynamicMaxAddresses = addressLimit;
+			requireTextureRemake = true;
+		}
+
+		// Remove addresses exceeding limit
+		if (addressCount > dynamicMaxAddresses) {
+			for (short addressToRemove = (short) dynamicMaxAddresses; addressToRemove < addressCount; addressToRemove++) {
+				removeAddressIfAllocated(addressToRemove);
+			}
+
+			addressCount = dynamicMaxAddresses;
+		}
 	}
 
 	private void resizePointerBuffer(int newPointerExtent) {
@@ -83,6 +104,7 @@ public class LightDataAllocator {
 		final int pointerCountReq = pointerExtent * pointerExtent * pointerExtent;
 		var prevRows = pointerRows;
 		pointerRows = pointerCountReq / ROW_SIZE + ((pointerCountReq % ROW_SIZE == 0) ? 0 : 1);
+		ensureWithinLimits();
 
 		if (DEBUG_LOG_RESIZE) {
 			CanvasMod.LOG.info("Resized pointer storage capacity from " + prevRows + " to " + pointerRows);
@@ -112,11 +134,13 @@ public class LightDataAllocator {
 	}
 
 	// currently, this only increase size
-	// TODO: shrink
+	// TODO: shrink (reclaim video memory) - not very necessary though?
 	private void increaseAddressSize(int newSize) {
-		final int cappedNewSize = Math.min(newSize, MAX_ADDRESSES);
+		ensureWithinLimits();
 
-		if (dynamicMaxAddresses >= cappedNewSize) {
+		final int cappedNewSize = Math.min(newSize, addressLimit);
+
+		if (dynamicMaxAddresses == cappedNewSize) {
 			return;
 		}
 
@@ -148,17 +172,16 @@ public class LightDataAllocator {
 		final short newAddress;
 
 		// go through freed addresses first
-		// note: this is kinda bad when we reach MAX_ADDRESSES, but that's kinda edge case
 		if (!freedAddresses.isEmpty()) {
 			newAddress = freedAddresses.popShort();
 		} else {
-			if (addressCount >= dynamicMaxAddresses && addressCount < MAX_ADDRESSES) {
+			if (addressCount == dynamicMaxAddresses) {
 				// try resize first
 				increaseAddressSize(dynamicMaxAddresses * 2);
 			}
 
 			if (addressCount < dynamicMaxAddresses) {
-				newAddress = (short) nextAllocateAddress;
+				newAddress = nextAllocateAddress;
 				nextAllocateAddress++;
 				addressCount++;
 			} else {
@@ -167,20 +190,9 @@ public class LightDataAllocator {
 					nextAllocateAddress = EMPTY_ADDRESS + 1;
 				}
 
-				final short castedNextAddress = (short) nextAllocateAddress;
-
-				if (allocatedAddresses.containsKey(castedNextAddress)) {
-					final long oldOrigin = allocatedAddresses.get(castedNextAddress);
-					allocatedAddresses.remove(castedNextAddress);
-
-					final LightRegion oldRegion = LightDataManager.INSTANCE.get(oldOrigin);
-
-					if (oldRegion != null) {
-						setAddress(oldRegion, EMPTY_ADDRESS);
-					}
-				}
-
-				newAddress = castedNextAddress;
+				final short nextAddress = nextAllocateAddress;
+				removeAddressIfAllocated(nextAddress);
+				newAddress = nextAddress;
 				nextAllocateAddress++;
 			}
 		}
@@ -219,8 +231,24 @@ public class LightDataAllocator {
 		}
 	}
 
+	void removeAddressIfAllocated(short addressToRemove) {
+		if (allocatedAddresses.containsKey(addressToRemove)) {
+			final long oldOrigin = allocatedAddresses.get(addressToRemove);
+			allocatedAddresses.remove(addressToRemove);
+
+			final LightRegion oldRegion = LightDataManager.INSTANCE.get(oldOrigin);
+
+			if (oldRegion != null) {
+				setAddress(oldRegion, EMPTY_ADDRESS);
+			}
+		}
+	}
+
 	void textureRemade() {
-		CanvasMod.LOG.info("Light texture was remade, new size : " + textureHeight());
+		if (DEBUG_LOG_RESIZE) {
+			CanvasMod.LOG.info("Light texture was remade, new size : " + textureHeight());
+		}
+
 		requireTextureRemake = false;
 		needUploadPointers = true;
 		needUploadMeta = true;

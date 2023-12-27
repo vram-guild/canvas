@@ -45,19 +45,16 @@ public class LightDataManager {
 	}
 
 	public static void reload() {
+		if (INSTANCE != null) {
+			INSTANCE.close();
+			INSTANCE = null;
+		}
+
 		if (Pipeline.coloredLightsEnabled()) {
 			assert Pipeline.config().coloredLights != null;
 
-			if (INSTANCE == null) {
-				INSTANCE = new LightDataManager();
-			}
-
+			INSTANCE = new LightDataManager();
 			INSTANCE.useOcclusionData = Pipeline.config().coloredLights.useOcclusionData;
-		} else {
-			if (INSTANCE != null) {
-				INSTANCE.close();
-				INSTANCE = null;
-			}
 		}
 	}
 
