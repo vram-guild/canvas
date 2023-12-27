@@ -111,7 +111,7 @@ class LightRegion implements LightRegionAccess {
 	private final LongArrayFIFOQueue incQueue = new LongArrayFIFOQueue();
 	private final LongArrayFIFOQueue decQueue = new LongArrayFIFOQueue();
 
-	// This is bad and defeats the point of Canvas multithreading, maybe
+	// PERF: since increase queue is only honored if it's "latest", it can be optimized with a Map
 	private final LongPriorityQueue globalIncQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 	private final LongPriorityQueue globalDecQueue = LongPriorityQueues.synchronize(new LongArrayFIFOQueue());
 
@@ -203,7 +203,8 @@ class LightRegion implements LightRegionAccess {
 
 			lightData.reverseIndexify(index, sourcePos);
 
-			final BlockState sourceState = blockView.getBlockState(sourcePos);
+			// unused for some reason
+			// final BlockState sourceState = blockView.getBlockState(sourcePos);
 
 			for (var side : Side.values()) {
 				if (side.id == from) {
@@ -266,9 +267,7 @@ class LightRegion implements LightRegionAccess {
 					// restore obliterated light source
 					if (restoreLightSource) {
 						// defer putting light source as to not mess with decrease step
-						// take RGB of maximum and Alpha of registered
-						final short registered = LightRegistry.get(nodeState);
-						repropLight = LightOp.max(registered, resultLight);
+						repropLight = LightRegistry.get(nodeState);
 					} else {
 						repropLight = resultLight;
 					}
@@ -311,20 +310,29 @@ class LightRegion implements LightRegionAccess {
 			final short getLight = lightData.get(index);
 			final short sourceLight;
 
+			final BlockState sourceState;
+
 			if (getLight != recordedLight) {
 				if (LightOp.emitter(recordedLight)) {
+					lightData.reverseIndexify(index, sourcePos);
+					sourceState = blockView.getBlockState(sourcePos);
+
+					if (LightRegistry.get(sourceState) != recordedLight) {
+						continue;
+					}
+
+					// take max of current and recorded source
 					sourceLight = LightOp.max(recordedLight, getLight);
 					lightData.put(index, sourceLight);
 				} else {
 					continue;
 				}
 			} else {
+				lightData.reverseIndexify(index, sourcePos);
+				sourceState = blockView.getBlockState(sourcePos);
+
 				sourceLight = getLight;
 			}
-
-			lightData.reverseIndexify(index, sourcePos);
-
-			final BlockState sourceState = blockView.getBlockState(sourcePos);
 
 			for (var side : Side.values()) {
 				if (side.id == from) {
