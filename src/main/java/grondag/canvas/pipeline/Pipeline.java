@@ -212,7 +212,11 @@ public class Pipeline {
 			defaultZenithAngle = 0f;
 		}
 
-		coloredLightsEnabled = config.coloredLights != null;
+		if (config.coloredLights != null && Configurator.coloredLights) {
+			coloredLightsEnabled = config.coloredLights.enabled;
+		} else {
+			coloredLightsEnabled = false;
+		}
 
 		if (isFabulous) {
 			final FabulousConfig fc = config.fabulosity;

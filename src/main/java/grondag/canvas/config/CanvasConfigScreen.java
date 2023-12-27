@@ -116,6 +116,15 @@ public class CanvasConfigScreen extends BaseScreen {
 				DEFAULTS.semiFlatLighting,
 				"config.canvas.help.semi_flat_lighting").listItem());
 
+		list.addItem(optionSession.booleanOption("config.canvas.value.colored_lights",
+				() -> editing.coloredLights,
+				b -> {
+					reload |= Configurator.coloredLights != b;
+					editing.coloredLights = b;
+				},
+				DEFAULTS.coloredLights,
+				"config.canvas.help.colored_lights").listItem());
+
 		// TWEAKS
 		final int indexTweaks = list.addCategory("config.canvas.category.tweaks");
 

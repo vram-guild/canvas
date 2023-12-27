@@ -40,6 +40,7 @@ public class Configurator {
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
+	public static boolean coloredLights = DEFAULTS.coloredLights;
 
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
@@ -136,6 +137,7 @@ public class Configurator {
 		// lightmapNoise = config.lightmapNoise;
 		lightSmoothing = config.lightSmoothing;
 		semiFlatLighting = config.semiFlatLighting;
+		coloredLights = config.coloredLights;
 
 		//        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
 		preventDepthFighting = config.preventDepthFighting;
@@ -202,6 +204,7 @@ public class Configurator {
 		config.lightSmoothing = lightSmoothing;
 		//config.moreLightmap = moreLightmap;
 		config.semiFlatLighting = semiFlatLighting;
+		config.coloredLights = coloredLights;
 
 		config.preventDepthFighting = preventDepthFighting;
 		config.clampExteriorVertices = clampExteriorVertices;

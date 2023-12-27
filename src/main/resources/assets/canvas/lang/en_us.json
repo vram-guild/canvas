@@ -53,6 +53,8 @@
   "config.canvas.help.lightmap_delay_frames": "Setting > 0 may give slightly;better FPS at cost of potential;flickering when lighting changes.",
   "config.canvas.value.semi_flat_lighting": "Semi-Flat Lightmap",
   "config.canvas.help.semi_flat_lighting": "Models with flat lighting have smoother lighting;(but no ambient occlusion).",
+  "config.canvas.value.colored_lights": "Colored Lights",
+  "config.canvas.help.colored_lights": "Enable client-side colored block lights for pipelines that supports it. Will replace server lighting visually.",
   "config.canvas.enum.ao_mode.normal": "Vanilla",
   "config.canvas.enum.ao_mode.subtle_always": "Subtle",
   "config.canvas.enum.ao_mode.subtle_block_light": "Subtle Torchlit",

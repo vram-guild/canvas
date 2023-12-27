@@ -26,10 +26,12 @@ import grondag.canvas.pipeline.config.util.AbstractConfig;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 
 public class ColoredLightsConfig extends AbstractConfig {
+	public final boolean enabled;
 	public final boolean useOcclusionData;
 
 	protected ColoredLightsConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx);
+		enabled = ctx.dynamic.getBoolean(config, "enabled", true);
 		useOcclusionData = ctx.dynamic.getBoolean(config, "useOcclusionData", false);
 	}
 
