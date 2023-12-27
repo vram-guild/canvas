@@ -31,6 +31,7 @@ public class AttachmentConfig extends AbstractConfig {
 	public final NamedDependency<ImageConfig> image;
 	public final int lod;
 	public final int layer;
+	public final int face;
 	public final int clearColor;
 	public final boolean clear;
 	public final boolean isDepth;
@@ -44,6 +45,7 @@ public class AttachmentConfig extends AbstractConfig {
 			image = context.images.dependOn("__invalid__");
 			lod = 0;
 			layer = 0;
+			face = -1;
 			clear = false;
 			clearColor = 0;
 			clearDepth = 1.0f;
@@ -51,6 +53,7 @@ public class AttachmentConfig extends AbstractConfig {
 			image = context.images.dependOn(context.dynamic.getString(config, "image"));
 			lod = context.dynamic.getInt(config, "lod", 0);
 			layer = context.dynamic.getInt(config, "layer", 0);
+			face = context.dynamic.getInt(config, "face", -1);
 
 			if (isDepth) {
 				clear = config.containsKey("clearDepth");
@@ -69,6 +72,7 @@ public class AttachmentConfig extends AbstractConfig {
 		image = context.images.dependOn(name);
 		lod = 0;
 		layer = 0;
+		face = -1;
 		clearColor = 0;
 		clear = false;
 		isDepth = false;

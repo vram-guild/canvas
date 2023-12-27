@@ -25,6 +25,7 @@
     "MixinGlStateManager",
     "MixinGui",
     "MixinGuiGraphics",
+    "MixinHumanoidArmorLayer",
     "MixinItemFrameRenderer",
     "MixinItemRenderer",
     "MixinLevelChunk",

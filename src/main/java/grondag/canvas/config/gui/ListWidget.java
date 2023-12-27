@@ -67,16 +67,6 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 		graphics.fillGradient(this.x0, this.y1 - 4, limit, this.y1, 0, -16777216);
 	}
 
-	/**
-	 * Magic taken directly from SpruceUI. MIT Licensed
-	 */
-	private static int adaptY(int y, int height, double guiScale) {
-		final var window = Minecraft.getInstance().getWindow();
-		final int tmpHeight = (int) (window.getHeight() / guiScale);
-		final int scaledHeight = window.getHeight() / guiScale > (double) tmpHeight ? tmpHeight + 1 : tmpHeight;
-		return (int) (guiScale * (scaledHeight - height - y));
-	}
-
 	@Override
 	public int getRowWidth() {
 		return rowWidth;
@@ -96,7 +86,7 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	}
 
 	public int addItem(ListItem item) {
-		int i = addEntry(item);
+		final int i = addEntry(item);
 
 		item.clearWidgets();
 		item.createWidget(getRowLeft(), getRowTop(i) + ITEM_SPACING / 2, getRowWidth(), ITEM_HEIGHT);

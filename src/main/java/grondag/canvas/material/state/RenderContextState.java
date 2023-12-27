@@ -37,6 +37,7 @@ public class RenderContextState {
 	private GuiMode guiMode = GuiMode.NORMAL;
 
 	// PERF: use int states and bitwise operation
+	@SuppressWarnings("rawtypes")
 	private record State (MaterialMap map, Object searchObj, boolean glintEntity) { }
 
 	// PERF: use array with failsafe

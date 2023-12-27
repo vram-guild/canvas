@@ -27,6 +27,7 @@ import grondag.canvas.pipeline.GlSymbolLookup;
 import grondag.canvas.pipeline.config.util.ConfigContext;
 import grondag.canvas.pipeline.config.util.NamedConfig;
 import grondag.canvas.pipeline.config.util.NamedDependencyMap;
+import grondag.canvas.varia.CanvasGlHelper;
 import grondag.canvas.varia.GFX;
 
 public class ImageConfig extends NamedConfig<ImageConfig> {
@@ -120,11 +121,12 @@ public class ImageConfig extends NamedConfig<ImageConfig> {
 	public boolean validate() {
 		boolean valid = super.validate();
 
-		valid &= assertAndWarn(target == GFX.GL_TEXTURE_2D || target == GFX.GL_TEXTURE_2D_ARRAY || target == GFX.GL_TEXTURE_3D || target == GFX.GL_TEXTURE_CUBE_MAP, "Invalid pipeline config for image %s. Unsupported target.", name, GlSymbolLookup.reverseLookup(target));
-		valid &= assertAndWarn(!(target == GFX.GL_TEXTURE_2D && depth > 1), "Invalid pipeline config for image %s.  2D texture has depth > 1.", name);
-		valid &= assertAndWarn(!((target == GFX.GL_TEXTURE_3D || target == GFX.GL_TEXTURE_2D_ARRAY) && depth < 1), "Invalid pipeline config for image %s.  3D texture must have depth >= 1.", name);
-		valid &= assertAndWarn(!((target == GFX.GL_TEXTURE_CUBE_MAP) && depth != 1), "Invalid pipeline config for image %s.  CubeMap texture must have depth == 1.", name);
-		valid &= assertAndWarn(!((target == GFX.GL_TEXTURE_CUBE_MAP) && width != height), "Invalid pipeline config for image %s.  CubeMap texture's width must be equal to height.", name);
+		valid &= assertAndWarn(target == GFX.GL_TEXTURE_2D || target == GFX.GL_TEXTURE_2D_ARRAY || target == GFX.GL_TEXTURE_3D || target == GFX.GL_TEXTURE_CUBE_MAP || target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY, "Invalid pipeline config for image %s. Unsupported target.", name, GlSymbolLookup.reverseLookup(target));
+		valid &= assertAndWarn(!(target == GFX.GL_TEXTURE_2D && depth > 1), "Invalid pipeline config for image %s. 2D texture has depth > 1.", name);
+		valid &= assertAndWarn(!((target == GFX.GL_TEXTURE_3D || target == GFX.GL_TEXTURE_2D_ARRAY) && depth < 1), "Invalid pipeline config for image %s. 3D texture must have depth >= 1.", name);
+		valid &= assertAndWarn(!((target == GFX.GL_TEXTURE_CUBE_MAP) && depth != 1), "Invalid pipeline config for image %s. CubeMap texture must have depth == 1.", name);
+		valid &= assertAndWarn(!((target == GFX.GL_TEXTURE_CUBE_MAP || target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY) && width != height), "Invalid pipeline config for image %s. CubeMap texture's width must be equal to height.", name);
+		valid &= assertAndWarn(!(target == GFX.GL_TEXTURE_CUBE_MAP_ARRAY && !CanvasGlHelper.supportsArbTextureCubeMapArray()), "Invalid pipeline config for image %s. CubeMap arrays aren't supported by this system", name);
 
 		return valid;
 	}
