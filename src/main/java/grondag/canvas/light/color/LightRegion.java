@@ -23,7 +23,6 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
-import it.unimi.dsi.fastutil.longs.LongSet;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -169,12 +168,7 @@ class LightRegion implements LightRegionAccess {
 		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
 	}
 
-	void updateDecrease(BlockAndTintGetter blockView, LongSet neighborDecreaseQueue, LongSet neighborIncreaseQueue) {
-		if (needCheckEdges) {
-			checkEdges(blockView);
-			needCheckEdges = false;
-		}
-
+	void updateDecrease(BlockAndTintGetter blockView, LongPriorityQueue neighborDecreaseQueue, LongPriorityQueue neighborIncreaseQueue) {
 		// faster exit when not necessary
 		if (globalDecQueue.isEmpty()) {
 			return;
@@ -187,11 +181,9 @@ class LightRegion implements LightRegionAccess {
 		final LightOp.BVec removeFlag = new LightOp.BVec();
 		final LightOp.BVec removeMask = new LightOp.BVec();
 
-		int decCount = 0;
+		boolean didUpdate = false;
 
 		while (!decQueue.isEmpty()) {
-			decCount++;
-
 			final long entry = decQueue.dequeueLong();
 			final int index = Queues.index(entry);
 			final short sourcePrevLight = Queues.light(entry);
@@ -200,6 +192,9 @@ class LightRegion implements LightRegionAccess {
 			// only remove elements that are less than 1 (zero)
 			final short sourceCurrentLight = lightData.get(index);
 			removeFlag.lessThan(sourceCurrentLight, (short) 0x1110);
+
+			// NB: rarely happens, not worth the "if"
+			// if (!removeFlag.any()) continue;
 
 			lightData.reverseIndexify(index, sourcePos);
 
@@ -238,9 +233,8 @@ class LightRegion implements LightRegionAccess {
 				final int nodeIndex = dataAccess.indexify(nodePos);
 				final short nodeLight = dataAccess.get(nodeIndex);
 
-				if (!LightOp.lit(nodeLight)) {
-					continue;
-				}
+				// Important: extremely high frequency redundancy filter (removes 99% of operations)
+				if (!LightOp.lit(nodeLight)) continue;
 
 				final BlockState nodeState = blockView.getBlockState(nodePos);
 
@@ -257,11 +251,18 @@ class LightRegion implements LightRegionAccess {
 
 				if (removeMask.any()) {
 					final short resultLight = LightOp.remove(nodeLight, removeMask);
+
+					// high frequency redundancy when removing next to a different colored light, low otherwise
+					if (resultLight == nodeLight) continue;
+
 					dataAccess.put(nodeIndex, resultLight);
 					Queues.enqueue(decreaseQueue, nodeIndex, nodeLight, side);
 
+					// congrats, the queued update was not redundant!
+					didUpdate = true;
+
 					if (isNeighbor) {
-						neighborDecreaseQueue.add(neighbor.origin);
+						neighborDecreaseQueue.enqueue(neighbor.origin);
 					}
 
 					// restore obliterated light source
@@ -280,28 +281,29 @@ class LightRegion implements LightRegionAccess {
 					Queues.enqueue(increaseQueue, nodeIndex, repropLight);
 
 					if (isNeighbor) {
-						neighborIncreaseQueue.add(neighbor.origin);
+						neighborIncreaseQueue.enqueue(neighbor.origin);
 					}
 				}
 			}
 		}
 
-		if (decCount > 0) {
+		if (didUpdate) {
 			lightData.markAsDirty();
 			LightDataManager.INSTANCE.publicDrawQueue.add(origin);
 		}
 	}
 
-	void updateIncrease(BlockAndTintGetter blockView, LongSet neighborIncreaseQueue) {
+	void updateIncrease(BlockAndTintGetter blockView, LongPriorityQueue neighborIncreaseQueue) {
+		if (needCheckEdges) {
+			needCheckEdges = false;
+			checkEdges(blockView);
+		}
+
 		while (!globalIncQueue.isEmpty()) {
 			incQueue.enqueue(globalIncQueue.dequeueLong());
 		}
 
-		int incCount = 0;
-
 		while (!incQueue.isEmpty()) {
-			incCount++;
-
 			final long entry = incQueue.dequeueLong();
 			final int index = Queues.index(entry);
 			final short recordedLight = Queues.light(entry);
@@ -380,17 +382,16 @@ class LightRegion implements LightRegionAccess {
 					Queues.enqueue(increaseQueue, nodeIndex, resultLight, side);
 
 					if (isNeighbor) {
-						neighborIncreaseQueue.add(neighbor.origin);
+						neighborIncreaseQueue.enqueue(neighbor.origin);
 					}
 				}
 			}
 		}
 
-		if (incCount > 0) {
-			hasData = true;
-			lightData.markAsDirty();
-			LightDataManager.INSTANCE.publicDrawQueue.add(origin);
-		}
+		// If we reached here we should draw
+		hasData = true;
+		lightData.markAsDirty();
+		LightDataManager.INSTANCE.publicDrawQueue.add(origin);
 	}
 
 	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, BlockAndTintGetter blockView) {

@@ -23,7 +23,9 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
 import org.lwjgl.system.MemoryUtil;
@@ -64,8 +66,9 @@ public class LightDataManager {
 		}
 	}
 
-	public static void update(BlockAndTintGetter blockView) {
+	public static void update(BlockAndTintGetter blockView, Runnable profilerTask) {
 		if (INSTANCE != null) {
+			profilerTask.run();
 			INSTANCE.updateInner(blockView);
 		}
 	}
@@ -90,8 +93,8 @@ public class LightDataManager {
 
 	final LongSet publicUpdateQueue = LongSets.synchronize(new LongOpenHashSet());
 	final LongSet publicDrawQueue = LongSets.synchronize(new LongOpenHashSet());
-	private final LongSet decreaseQueue = new LongOpenHashSet();
-	private final LongSet increaseQueue = new LongOpenHashSet();
+	private final LongPriorityQueue decreaseQueue = new LongArrayFIFOQueue();
+	private final LongPriorityQueue increaseQueue = new LongArrayFIFOQueue();
 
 	private final LightDataAllocator texAllocator;
 
@@ -106,63 +109,29 @@ public class LightDataManager {
 	private void updateInner(BlockAndTintGetter blockView) {
 		synchronized (publicUpdateQueue) {
 			for (long index : publicUpdateQueue) {
-				decreaseQueue.add(index);
-				increaseQueue.add(index);
+				decreaseQueue.enqueue(index);
+				increaseQueue.enqueue(index);
 			}
 
 			publicUpdateQueue.clear();
 		}
 
 		while (!decreaseQueue.isEmpty()) {
-			// hopefully faster with native op?
-			final int queueLen = decreaseQueue.size();
-			final long queueIterator = MemoryUtil.nmemAlloc(8L * queueLen);
+			final long index = decreaseQueue.dequeueLong();
+			final LightRegion lightRegion = allocated.get(index);
 
-			long i = 0L;
-
-			for (long index : decreaseQueue) {
-				MemoryUtil.memPutLong(queueIterator + i * 8L, index);
-				i++;
+			if (lightRegion != null && !lightRegion.isClosed()) {
+				lightRegion.updateDecrease(blockView, decreaseQueue, increaseQueue);
 			}
-
-			decreaseQueue.clear();
-
-			for (i = 0; i < queueLen; i++) {
-				final long index = MemoryUtil.memGetLong(queueIterator + i * 8L);
-				final LightRegion lightRegion = allocated.get(index);
-
-				if (lightRegion != null && !lightRegion.isClosed()) {
-					lightRegion.updateDecrease(blockView, decreaseQueue, increaseQueue);
-				}
-			}
-
-			MemoryUtil.nmemFree(queueIterator);
 		}
 
 		while (!increaseQueue.isEmpty()) {
-			// hopefully faster with native op?
-			final int queueLen = increaseQueue.size();
-			final long queueIterator = MemoryUtil.nmemAlloc(8L * queueLen);
+			final long index = increaseQueue.dequeueLong();
+			final LightRegion lightRegion = allocated.get(index);
 
-			long i = 0L;
-
-			for (long index : increaseQueue) {
-				MemoryUtil.memPutLong(queueIterator + i * 8L, index);
-				i++;
+			if (lightRegion != null && !lightRegion.isClosed()) {
+				lightRegion.updateIncrease(blockView, increaseQueue);
 			}
-
-			increaseQueue.clear();
-
-			for (i = 0; i < queueLen; i++) {
-				final long index = MemoryUtil.memGetLong(queueIterator + i * 8L);
-				final LightRegion lightRegion = allocated.get(index);
-
-				if (lightRegion != null && !lightRegion.isClosed()) {
-					lightRegion.updateIncrease(blockView, increaseQueue);
-				}
-			}
-
-			MemoryUtil.nmemFree(queueIterator);
 		}
 
 		if (texAllocator.checkInvalid()) {
@@ -176,9 +145,11 @@ public class LightDataManager {
 			publicDrawQueue.clear();
 
 			// redraw
-			for (var lightRegion : allocated.values()) {
-				if (!lightRegion.isClosed()) {
-					drawInner(lightRegion, true);
+			synchronized (allocated) {
+				for (var lightRegion : allocated.values()) {
+					if (!lightRegion.isClosed()) {
+						drawInner(lightRegion, true);
+					}
 				}
 			}
 		} else if (!publicDrawQueue.isEmpty()) {

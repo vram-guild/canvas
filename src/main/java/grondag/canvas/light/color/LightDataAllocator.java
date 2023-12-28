@@ -292,6 +292,6 @@ public class LightDataAllocator {
 	}
 
 	String debugString() {
-		return String.format("Light %s (%d) %d/%d %5.1fMb", Pipeline.config().coloredLights.useOcclusionData ? "LO" : "L", pointerRows, addressCount, dynamicMaxAddresses, dataSize);
+		return String.format("ColoredLights%s (%d) %d/%d %5.1fMb", Pipeline.config().coloredLights.useOcclusionData ? "+Occlusion" : "", pointerRows, addressCount, dynamicMaxAddresses, dataSize);
 	}
 }
