@@ -33,6 +33,7 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.Pipeline;
 
 public class LightDataManager {
@@ -69,7 +70,9 @@ public class LightDataManager {
 	public static void update(BlockAndTintGetter blockView, Runnable profilerTask) {
 		if (INSTANCE != null) {
 			profilerTask.run();
+			INSTANCE.profiler.start();
 			INSTANCE.updateInner(blockView);
+			INSTANCE.profiler.end();
 		}
 	}
 
@@ -101,6 +104,7 @@ public class LightDataManager {
 	boolean useOcclusionData = false;
 	private LightDataTexture texture;
 
+	private DebugProfiler profiler = new ActiveProfiler();
 	public LightDataManager() {
 		texAllocator = new LightDataAllocator();
 		allocated.defaultReturnValue(null);
@@ -244,6 +248,58 @@ public class LightDataManager {
 			}
 
 			allocated.clear();
+		}
+	}
+
+	private interface DebugProfiler {
+		void start();
+		void end();
+	}
+
+	private static class EmptyProfiler implements DebugProfiler {
+		@Override
+		public void start() {
+		}
+
+		@Override
+		public void end() {
+		}
+	}
+
+	private final class ActiveProfiler implements DebugProfiler {
+		private long minUpdateTimeNanos = Long.MAX_VALUE;
+		private long maxUpdateTimeNanos = 0;
+		private long totalUpdateTimeNanos = 0;
+		private long totalUpdatePerformed = 0;
+		private long startTimeNanos = 0;
+		private long startTimeOverall = 0;
+		private boolean init = false;
+
+		@Override
+		public void start() {
+			startTimeNanos = System.nanoTime();
+
+			if (!init) {
+				startTimeOverall = startTimeNanos;
+				init = true;
+			}
+		}
+
+		@Override
+		public void end() {
+			final long elapsedNanos = System.nanoTime() - startTimeNanos;
+			minUpdateTimeNanos = Math.min(elapsedNanos, minUpdateTimeNanos);
+			maxUpdateTimeNanos = Math.max(elapsedNanos, maxUpdateTimeNanos);
+			totalUpdateTimeNanos += elapsedNanos;
+			totalUpdatePerformed ++;
+
+			if (System.nanoTime() - startTimeOverall > 10000000000L) {
+				CanvasMod.LOG.info("Colored Lights profiler output:");
+				CanvasMod.LOG.info("min update time:  " + ((float) minUpdateTimeNanos / 1000000.0f) + "ms");
+				CanvasMod.LOG.info("max update time:  " + ((float) maxUpdateTimeNanos / 1000000.0f) + "ms");
+				CanvasMod.LOG.info("avg. update time: " + (((float) totalUpdateTimeNanos / (float) totalUpdatePerformed) / 1000000.0f) + "ms (over 10 seconds)");
+				LightDataManager.this.profiler = new EmptyProfiler();
+			}
 		}
 	}
 }
