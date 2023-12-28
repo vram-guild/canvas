@@ -33,6 +33,8 @@ import org.lwjgl.system.MemoryUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 
+import io.vram.frex.api.config.FlawlessFrames;
+
 import grondag.canvas.CanvasMod;
 import grondag.canvas.pipeline.Pipeline;
 
@@ -67,11 +69,11 @@ public class LightDataManager {
 		}
 	}
 
-	public static void update(BlockAndTintGetter blockView, Runnable profilerTask) {
+	public static void update(BlockAndTintGetter blockView, long deadlineNanos, Runnable profilerTask) {
 		if (INSTANCE != null) {
 			profilerTask.run();
 			INSTANCE.profiler.start();
-			INSTANCE.updateInner(blockView);
+			INSTANCE.updateInner(blockView, FlawlessFrames.isActive() ? Long.MAX_VALUE : deadlineNanos);
 			INSTANCE.profiler.end();
 		}
 	}
@@ -99,6 +101,10 @@ public class LightDataManager {
 	private final LongPriorityQueue decreaseQueue = new LongArrayFIFOQueue();
 	private final LongPriorityQueue increaseQueue = new LongArrayFIFOQueue();
 
+	final LongSet publicUrgentUpdateQueue = LongSets.synchronize(new LongOpenHashSet());
+	private final LongPriorityQueue urgentDecreaseQueue = new LongArrayFIFOQueue();
+	private final LongPriorityQueue urgentIncreaseQueue = new LongArrayFIFOQueue();
+
 	private final LightDataAllocator texAllocator;
 
 	boolean useOcclusionData = false;
@@ -110,7 +116,7 @@ public class LightDataManager {
 		allocated.defaultReturnValue(null);
 	}
 
-	private void updateInner(BlockAndTintGetter blockView) {
+	private void executeRegularUpdates(BlockAndTintGetter blockView, int minimumUpdates, long deadlineNanos) {
 		synchronized (publicUpdateQueue) {
 			for (long index : publicUpdateQueue) {
 				decreaseQueue.enqueue(index);
@@ -120,6 +126,8 @@ public class LightDataManager {
 			publicUpdateQueue.clear();
 		}
 
+		int count = 0;
+
 		while (!decreaseQueue.isEmpty()) {
 			final long index = decreaseQueue.dequeueLong();
 			final LightRegion lightRegion = allocated.get(index);
@@ -127,7 +135,13 @@ public class LightDataManager {
 			if (lightRegion != null && !lightRegion.isClosed()) {
 				lightRegion.updateDecrease(blockView, decreaseQueue, increaseQueue);
 			}
+
+			if (++count > minimumUpdates && System.nanoTime() > deadlineNanos) {
+				break;
+			}
 		}
+
+		count = 0;
 
 		while (!increaseQueue.isEmpty()) {
 			final long index = increaseQueue.dequeueLong();
@@ -135,6 +149,42 @@ public class LightDataManager {
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
 				lightRegion.updateIncrease(blockView, increaseQueue);
+			}
+
+			if (++count > minimumUpdates && System.nanoTime() > deadlineNanos) {
+				break;
+			}
+		}
+	}
+
+	private void updateInner(BlockAndTintGetter blockView, long deadlineNanos) {
+		synchronized (publicUrgentUpdateQueue) {
+			for (long index : publicUrgentUpdateQueue) {
+				urgentDecreaseQueue.enqueue(index);
+				urgentIncreaseQueue.enqueue(index);
+				publicUpdateQueue.remove(index);
+			}
+
+			publicUrgentUpdateQueue.clear();
+		}
+
+		while (!urgentDecreaseQueue.isEmpty()) {
+			final long index = urgentDecreaseQueue.dequeueLong();
+			final LightRegion lightRegion = allocated.get(index);
+
+			if (lightRegion != null && !lightRegion.isClosed()) {
+				lightRegion.updateDecrease(blockView, urgentDecreaseQueue, urgentIncreaseQueue);
+			}
+		}
+
+		executeRegularUpdates(blockView, 7, deadlineNanos);
+
+		while (!urgentIncreaseQueue.isEmpty()) {
+			final long index = urgentIncreaseQueue.dequeueLong();
+			final LightRegion lightRegion = allocated.get(index);
+
+			if (lightRegion != null && !lightRegion.isClosed()) {
+				lightRegion.updateIncrease(blockView, urgentIncreaseQueue);
 			}
 		}
 

@@ -30,6 +30,8 @@ public interface LightRegionAccess {
 
 	void submitChecks();
 
+	void markUrgent();
+
 	boolean isClosed();
 
 	class Empty implements LightRegionAccess {
@@ -39,6 +41,10 @@ public interface LightRegionAccess {
 
 		@Override
 		public void submitChecks() {
+		}
+
+		@Override
+		public void markUrgent() {
 		}
 
 		@Override

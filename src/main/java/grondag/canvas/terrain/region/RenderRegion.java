@@ -189,6 +189,10 @@ public class RenderRegion implements TerrainExecutorTask {
 		final boolean neededRebuild = needsRebuild;
 		needsRebuild = true;
 		needsImportantRebuild = isImportant | (neededRebuild && needsImportantRebuild);
+
+		if (needsImportantRebuild && !lightRegion.isClosed()) {
+			lightRegion.markUrgent();
+		}
 	}
 
 	/**

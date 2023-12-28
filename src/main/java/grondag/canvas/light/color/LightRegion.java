@@ -158,6 +158,11 @@ class LightRegion implements LightRegionAccess {
 		}
 	}
 
+	@Override
+	public void markUrgent() {
+		LightDataManager.INSTANCE.publicUrgentUpdateQueue.add(origin);
+	}
+
 	private boolean occludeSide(BlockState state, Side dir, BlockAndTintGetter view, BlockPos pos) {
 		// vanilla checks state.useShapeForLightOcclusion() but here it's always false for some reason. this is fine...
 
