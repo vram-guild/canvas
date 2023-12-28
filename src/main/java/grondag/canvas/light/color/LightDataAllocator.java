@@ -155,7 +155,7 @@ public class LightDataAllocator {
 
 	int allocateAddress(LightRegion region) {
 		if (!region.hasData) {
-			return setAddress(region, EMPTY_ADDRESS);
+			return clearAddress(region);
 		}
 
 		short regionAddress = region.texAllocation;
@@ -200,13 +200,21 @@ public class LightDataAllocator {
 		return setAddress(region, newAddress);
 	}
 
+	private short clearAddress(LightRegion region) {
+		if (region.texAllocation != EMPTY_ADDRESS) {
+			clearPointerIfWas(region.originPos, region.texAllocation);
+			region.texAllocation = EMPTY_ADDRESS;
+		}
+
+		return EMPTY_ADDRESS;
+	}
+
 	private short setAddress(LightRegion region, short newAddress) {
+		assert newAddress != EMPTY_ADDRESS;
+
 		region.texAllocation = newAddress;
 		setPointer(region.originPos, newAddress);
-
-		if (newAddress != EMPTY_ADDRESS) {
-			allocatedAddresses.put(newAddress, region.origin);
-		}
+		allocatedAddresses.put(newAddress, region.origin);
 
 		return newAddress;
 	}
@@ -222,12 +230,26 @@ public class LightDataAllocator {
 		needUploadPointers |= storedAddress != regionAddress;
 	}
 
+	private void clearPointerIfWas(BlockPos regionOrigin, short oldAddress) {
+		final int xInExtent = ((regionOrigin.getX() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+		final int yInExtent = ((regionOrigin.getY() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+		final int zInExtent = ((regionOrigin.getZ() / 16) % pointerExtent + pointerExtent) % pointerExtent;
+		final int pointerIndex = xInExtent * pointerExtent * pointerExtent + yInExtent * pointerExtent + zInExtent;
+		final int bufferIndex = pointerIndex * 2;
+		final short storedAddress = pointerBuffer.getShort(bufferIndex);
+
+		if (storedAddress == oldAddress) {
+			pointerBuffer.putShort(bufferIndex, EMPTY_ADDRESS);
+			needUploadPointers = true;
+		}
+	}
+
 	void freeAddress(LightRegion region) {
 		if (region.texAllocation != EMPTY_ADDRESS) {
 			final short oldAddress = region.texAllocation;
 			freedAddresses.push(oldAddress);
 			allocatedAddresses.remove(oldAddress);
-			setAddress(region, EMPTY_ADDRESS);
+			clearAddress(region);
 		}
 	}
 
@@ -239,7 +261,7 @@ public class LightDataAllocator {
 			final LightRegion oldRegion = LightDataManager.INSTANCE.get(oldOrigin);
 
 			if (oldRegion != null) {
-				setAddress(oldRegion, EMPTY_ADDRESS);
+				clearAddress(oldRegion);
 			}
 		}
 	}
