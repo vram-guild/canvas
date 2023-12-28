@@ -39,7 +39,7 @@ vec4 aoFactor(vec2 lightCoord) {
 	#if AO_SHADING_MODE == AO_MODE_SUBTLE_ALWAYS
 	return vec4(bao, bao, bao, 1.0);
 	#else
-	vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, lightCoord.y));
+	vec4 sky = texture(frxs_lightmap, vec2(0.03125, lightCoord.y));
 	ao = mix(bao, ao, frx_luminance(sky.rgb));
 	return vec4(ao, ao, ao, 1.0);
 	#endif
@@ -64,7 +64,7 @@ vec4 lightSample(vec3 pos, vec3 normal) {
 vec4 light(frx_FragmentData fragData) {
 	vec4 result;
 	vec4 block = lightSample(_cvv_worldcoord, _cvv_normal);
-	vec4 sky = texture2D(frxs_lightmap, vec2(0.03125, fragData.light.y));
+	vec4 sky = texture(frxs_lightmap, vec2(0.03125, fragData.light.y));
 
 #if DIFFUSE_SHADING_MODE == DIFFUSE_MODE_SKY_ONLY
 	if (fragData.diffuse) {
@@ -83,7 +83,7 @@ vec4 light(frx_FragmentData fragData) {
 		float d = clamp(gl_FogFragCoord / (held.w * HANDHELD_LIGHT_RADIUS), 0.0, 1.0);
 		d = 1.0 - d * d;
 
-		vec4 maxBlock = texture2D(frxs_lightmap, vec2(0.96875, 0.03125));
+		vec4 maxBlock = texture(frxs_lightmap, vec2(0.96875, 0.03125));
 
 		held = vec4(held.xyz, 1.0) * maxBlock * d;
 
@@ -102,7 +102,7 @@ void main() {
 #endif
 
 	frx_FragmentData fragData = frx_FragmentData (
-		texture2D(frxs_spriteAltas, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
+		texture(frxs_spriteAltas, _cvv_texcoord, _cv_getFlag(_CV_FLAG_UNMIPPED) * -4.0),
 		_cvv_color,
 		frx_matEmissive() ? 1.0 : 0.0,
 		!frx_matDisableDiffuse(),
