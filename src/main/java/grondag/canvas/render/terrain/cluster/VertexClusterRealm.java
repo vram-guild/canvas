@@ -59,7 +59,10 @@ public class VertexClusterRealm {
 	public void clear() {
 		assert RenderSystem.isOnRenderThread();
 
-		for (final VertexCluster cluster : clusters.values()) {
+		// loop through static array to prevent concurrent removal issue
+		final VertexCluster[] clusterArray = clusters.values().toArray(new VertexCluster[0]);
+
+		for (final VertexCluster cluster : clusterArray) {
 			cluster.close();
 		}
 
