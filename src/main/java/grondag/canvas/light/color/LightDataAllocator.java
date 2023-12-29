@@ -47,6 +47,9 @@ public class LightDataAllocator {
 	// also represents row size of pointer header because we are putting addresses in the data texture.
 	private static final int ROW_SIZE = LightRegionData.Const.SIZE3D;
 
+	// padding to prevent overlap. set to minimum achievable without error
+	private static final int EXTENT_PADDING = 2;
+
 	// address for the static empty region.
 	static final short EMPTY_ADDRESS = 0;
 
@@ -200,6 +203,7 @@ public class LightDataAllocator {
 		return setAddress(region, newAddress);
 	}
 
+	// MAINTENANCE NOTICE: this function is a special casing of setAddress(LightRegion, short)
 	private short clearAddress(LightRegion region) {
 		if (region.texAllocation != EMPTY_ADDRESS) {
 			clearPointerIfWas(region.originPos, region.texAllocation);
@@ -219,23 +223,24 @@ public class LightDataAllocator {
 		return newAddress;
 	}
 
-	private void setPointer(BlockPos regionOrigin, short regionAddress) {
+	private int getBufferIndex(BlockPos regionOrigin) {
 		final int xInExtent = ((regionOrigin.getX() / 16) % pointerExtent + pointerExtent) % pointerExtent;
 		final int yInExtent = ((regionOrigin.getY() / 16) % pointerExtent + pointerExtent) % pointerExtent;
 		final int zInExtent = ((regionOrigin.getZ() / 16) % pointerExtent + pointerExtent) % pointerExtent;
 		final int pointerIndex = xInExtent * pointerExtent * pointerExtent + yInExtent * pointerExtent + zInExtent;
-		final int bufferIndex = pointerIndex * 2;
+		return pointerIndex * 2;
+	}
+
+	private void setPointer(BlockPos regionOrigin, short regionAddress) {
+		final int bufferIndex = getBufferIndex(regionOrigin);
 		final short storedAddress = pointerBuffer.getShort(bufferIndex);
 		pointerBuffer.putShort(bufferIndex, regionAddress);
 		needUploadPointers |= storedAddress != regionAddress;
 	}
 
+	// MAINTENANCE NOTICE: this function is a special casing of setPointer(BlockPos, short)
 	private void clearPointerIfWas(BlockPos regionOrigin, short oldAddress) {
-		final int xInExtent = ((regionOrigin.getX() / 16) % pointerExtent + pointerExtent) % pointerExtent;
-		final int yInExtent = ((regionOrigin.getY() / 16) % pointerExtent + pointerExtent) % pointerExtent;
-		final int zInExtent = ((regionOrigin.getZ() / 16) % pointerExtent + pointerExtent) % pointerExtent;
-		final int pointerIndex = xInExtent * pointerExtent * pointerExtent + yInExtent * pointerExtent + zInExtent;
-		final int bufferIndex = pointerIndex * 2;
+		final int bufferIndex = getBufferIndex(regionOrigin);
 		final short storedAddress = pointerBuffer.getShort(bufferIndex);
 
 		if (storedAddress == oldAddress) {
@@ -283,7 +288,7 @@ public class LightDataAllocator {
 
 	public boolean checkInvalid() {
 		final var viewDistance = Minecraft.getInstance().options.renderDistance().get();
-		final var expectedExtent = (viewDistance + 1) * 2;
+		final var expectedExtent = (viewDistance + EXTENT_PADDING) * 2;
 
 		if (pointerExtent < expectedExtent) {
 			resizePointerBuffer(expectedExtent);
