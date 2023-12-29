@@ -151,16 +151,24 @@ class LightRegion implements LightRegionAccess {
 		}
 	}
 
+	private boolean urgent = false;
+
 	@Override
 	public void submitChecks() {
 		if (!globalDecQueue.isEmpty() || !globalIncQueue.isEmpty()) {
-			LightDataManager.INSTANCE.publicUpdateQueue.add(origin);
+			if (urgent) {
+				LightDataManager.INSTANCE.publicUrgentUpdateQueue.add(origin);
+			} else {
+				LightDataManager.INSTANCE.publicUpdateQueue.add(origin);
+			}
 		}
+
+		urgent = false;
 	}
 
 	@Override
 	public void markUrgent() {
-		LightDataManager.INSTANCE.publicUrgentUpdateQueue.add(origin);
+		urgent = true;
 	}
 
 	private boolean occludeSide(BlockState state, Side dir, BlockAndTintGetter view, BlockPos pos) {

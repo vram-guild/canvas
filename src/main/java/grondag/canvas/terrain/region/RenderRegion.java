@@ -189,10 +189,6 @@ public class RenderRegion implements TerrainExecutorTask {
 		final boolean neededRebuild = needsRebuild;
 		needsRebuild = true;
 		needsImportantRebuild = isImportant | (neededRebuild && needsImportantRebuild);
-
-		if (needsImportantRebuild && !lightRegion.isClosed()) {
-			lightRegion.markUrgent();
-		}
 	}
 
 	/**
@@ -546,6 +542,10 @@ public class RenderRegion implements TerrainExecutorTask {
 			final CanvasTerrainRenderContext context = renderRegionBuilder.mainThreadContext.prepareForRegion(inputRegion);
 			final RegionBuildState newBuildState = captureAndSetBuildState(context, origin.isNear());
 			context.encoder.updateSector(renderSector, origin);
+
+			if (!lightRegion.isClosed()) {
+				lightRegion.markUrgent();
+			}
 
 			buildTerrain(context, newBuildState);
 
