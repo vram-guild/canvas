@@ -20,7 +20,6 @@
 
 package grondag.canvas.config;
 
-import static grondag.canvas.config.ConfigManager.Reload.RELOAD_EVERYTHING;
 import static grondag.canvas.config.ConfigManager.Reload.RELOAD_PIPELINE;
 
 import java.util.List;
@@ -40,7 +39,6 @@ import grondag.canvas.config.gui.ActionItem;
 import grondag.canvas.config.gui.BaseButton;
 import grondag.canvas.config.gui.BaseScreen;
 import grondag.canvas.config.gui.ListWidget;
-import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.config.PipelineConfig;
 import grondag.canvas.pipeline.config.PipelineConfigBuilder;
 import grondag.canvas.pipeline.config.PipelineLoader;
@@ -118,14 +116,8 @@ public class PipelineOptionScreen extends BaseScreen {
 	}
 
 	private void savePipelineSelection(ResourceLocation newPipelineId) {
-		final var newPipeline = PipelineLoader.get(newPipelineId.toString());
-
-		boolean shadowsChanged = Pipeline.shadowsEnabled() != newPipeline.shadowsEnabled;
-		boolean coloredLightsChanged = Pipeline.coloredLightsEnabled() != newPipeline.coloredLightsEnabled;
-		boolean needRegionsReloaded = (shadowsChanged && !Configurator.advancedTerrainCulling) || coloredLightsChanged;
-
 		Configurator.pipelineId = newPipelineId.toString();
-		ConfigManager.saveUserInput(needRegionsReloaded ? RELOAD_EVERYTHING : RELOAD_PIPELINE);
+		ConfigManager.saveCanvasConfig(RELOAD_PIPELINE);
 	}
 
 	private void save() {

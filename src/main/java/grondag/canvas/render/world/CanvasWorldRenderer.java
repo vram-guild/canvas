@@ -851,7 +851,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		BufferSynchronizer.checkPoint();
 		DirectBufferAllocator.update();
 		TransferBuffers.update();
-		CanvasState.recompileIfNeeded(false);
+		CanvasState.handleRecompileKeybind();
 		FlawlessFramesController.handleToggle();
 
 		if (wasFabulous != Pipeline.isFabulous()) {

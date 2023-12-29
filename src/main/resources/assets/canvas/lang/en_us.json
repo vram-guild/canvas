@@ -204,5 +204,6 @@
   "config.canvas.help.trace_texture_load": "Log significant events of texture/sprite atlas loading.;For debugging use. Will spam the log.",
   "config.canvas.value.bloom_toggle": "Enable Bloom",
   "config.canvas.help.bloom_toggle": "Renders glow effect around light sources.;Modest impact on performance.",
-  "info.canvas.recompile": "Recompiling shaders"
+  "info.canvas.recompile": "Recompiling shaders",
+  "info.canvas.recompile_needs_reload": "Found a state change that requires reload during recompilation. Reloading renderer..."
 }

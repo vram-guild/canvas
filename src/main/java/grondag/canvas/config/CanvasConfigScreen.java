@@ -528,7 +528,7 @@ public class CanvasConfigScreen extends BaseScreen {
 			Timekeeper.configOrPipelineReload();
 		}
 
-		ConfigManager.saveUserInput(reload ? RELOAD_EVERYTHING : DONT_RELOAD);
+		ConfigManager.saveCanvasConfig(reload ? RELOAD_EVERYTHING : DONT_RELOAD);
 
 		if (requiresRestart) {
 			this.minecraft.setScreen(new ConfigRestartScreen(this.parent));

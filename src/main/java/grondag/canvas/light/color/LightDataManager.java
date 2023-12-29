@@ -50,16 +50,21 @@ public class LightDataManager {
 	}
 
 	public static void reload() {
-		if (INSTANCE != null) {
-			INSTANCE.close();
-			INSTANCE = null;
-		}
-
 		if (Pipeline.coloredLightsEnabled()) {
 			assert Pipeline.config().coloredLights != null;
 
-			INSTANCE = new LightDataManager();
+			// NB: this is a shader recompile, not chunk storage reload. DON'T destroy existing instance.
+			if (INSTANCE == null) {
+				INSTANCE = new LightDataManager();
+			}
+
 			INSTANCE.useOcclusionData = Pipeline.config().coloredLights.useOcclusionData;
+		} else {
+			// If colored lights state change, we can clean this up as the next state change will trigger chunk storage reload.
+			if (INSTANCE != null) {
+				INSTANCE.close();
+				INSTANCE = null;
+			}
 		}
 	}
 
@@ -341,7 +346,7 @@ public class LightDataManager {
 			minUpdateTimeNanos = Math.min(elapsedNanos, minUpdateTimeNanos);
 			maxUpdateTimeNanos = Math.max(elapsedNanos, maxUpdateTimeNanos);
 			totalUpdateTimeNanos += elapsedNanos;
-			totalUpdatePerformed ++;
+			totalUpdatePerformed++;
 
 			if (System.nanoTime() - startTimeOverall > 10000000000L) {
 				CanvasMod.LOG.info("Colored Lights profiler output:");
