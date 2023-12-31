@@ -136,15 +136,25 @@ class LightRegion implements LightRegionAccess {
 		final boolean occluding = blockState.canOcclude();
 		final boolean emitting = LightOp.emitter(registeredLight);
 
-		if ((emitting && getLight != registeredLight) || LightOp.emitter(getLight) || LightOp.occluder(getLight) != occluding || (LightOp.lit(getLight) && occluding)) {
-			final short combined = emitting ? LightOp.max(registeredLight, getLight) : registeredLight;
-			lightData.put(index, combined);
+		// Equivalent of "hard reset" on this particular block pos, so we want it to pass specific checks
+		final boolean replaceEmitter = emitting && getLight != registeredLight;
+		final boolean removeEmitter = LightOp.emitter(getLight);
+		final boolean replaceOccluder = LightOp.occluder(getLight) != occluding;
+		final boolean occludeLitBlock = LightOp.lit(getLight) && occluding;
+
+		if (replaceEmitter || removeEmitter || replaceOccluder || occludeLitBlock) {
+			// If emitter, light with be placed later so put 0 here for removal purpose. Otherwise, put occlusion data here
+			lightData.put(index, emitting ? (short) 0 : registeredLight);
+
+			// Removal queue, since we're doing "hard reset"
 			Queues.enqueue(globalDecQueue, index, getLight);
 
+			// Emission queue
 			if (emitting) {
-				Queues.enqueue(globalIncQueue, index, combined);
+				Queues.enqueue(globalIncQueue, index, registeredLight);
 			}
 
+			// At this point, no light data yet, but we might have occlusion data
 			if (LightDataManager.INSTANCE.useOcclusionData) {
 				hasData = true;
 			}

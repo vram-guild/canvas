@@ -28,6 +28,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
+import org.apache.logging.log4j.Level;
 import org.lwjgl.system.MemoryUtil;
 
 import net.minecraft.core.BlockPos;
@@ -349,10 +350,11 @@ public class LightDataManager {
 			totalUpdatePerformed++;
 
 			if (System.nanoTime() - startTimeOverall > 10000000000L) {
-				CanvasMod.LOG.info("Colored Lights profiler output:");
-				CanvasMod.LOG.info("min update time:  " + ((float) minUpdateTimeNanos / 1000000.0f) + "ms");
-				CanvasMod.LOG.info("max update time:  " + ((float) maxUpdateTimeNanos / 1000000.0f) + "ms");
-				CanvasMod.LOG.info("avg. update time: " + (((float) totalUpdateTimeNanos / (float) totalUpdatePerformed) / 1000000.0f) + "ms (over 10 seconds)");
+				final float minTime = (float) minUpdateTimeNanos / 1000000.0f;
+				final float maxTime = (float) maxUpdateTimeNanos / 1000000.0f;
+				final float avgTime = ((float) totalUpdateTimeNanos / (float) totalUpdatePerformed) / 1000000.0f;
+				// final String score = avgTime <= 2.5 ? "GOOD" : (avgTime <= 6.0 ? "OKAY" : "BAD");
+				CanvasMod.LOG.printf(Level.INFO, "Colored Lights frame time statistics: min %.2G ms; max %.2f ms; avg. %.2f ms; over 10 seconds (%d frames)", minTime, maxTime, avgTime, totalUpdatePerformed);
 				LightDataManager.this.profiler = new EmptyProfiler();
 			}
 		}
