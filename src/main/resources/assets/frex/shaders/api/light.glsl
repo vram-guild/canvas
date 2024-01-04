@@ -38,13 +38,14 @@ vec4 frx_getLightFiltered(sampler2D lightSampler, vec3 worldPos) {
 	}
 
 	#ifdef _CV_LIGHT_DATA_COMPLEX_FILTER
-	vec3 pos = floor(worldPos) + vec3(0.5);
-	vec3 H = sign(fract(worldPos) - vec3(0.5));
+		vec3 pos = floor(worldPos) + vec3(0.5);
+		vec3 H = sign(fract(worldPos) - vec3(0.5));
 	#else
-	vec3 pos = worldPos - vec3(0.5);
-	const vec3 H = vec3(1.0);
+		vec3 pos = worldPos - vec3(0.5);
+		const vec3 H = vec3(1.0);
 	#endif
 
+	// sample 2x2x2 area
 	vec4 tex000 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(0.0, 0.0, 0.0)), 0);
 	vec4 tex001 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(0.0, 0.0, H.z)), 0);
 	vec4 tex010 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(0.0, H.y, 0.0)), 0);
@@ -55,49 +56,61 @@ vec4 frx_getLightFiltered(sampler2D lightSampler, vec3 worldPos) {
 	vec4 tex111 = texelFetch(lightSampler, _cv_lightTexelCoords(lightSampler, pos + vec3(H.x, H.y, H.z)), 0);
 
 	#ifdef _CV_LIGHT_DATA_COMPLEX_FILTER
-	vec3 center = worldPos - pos;
-	vec3 pos000 = vec3(0.0, 0.0, 0.0) - center;
-	vec3 pos001 = vec3(0.0, 0.0, H.z) - center;
-	vec3 pos010 = vec3(0.0, H.y, 0.0) - center;
-	vec3 pos011 = vec3(0.0, H.y, H.z) - center;
-	vec3 pos101 = vec3(H.x, 0.0, H.z) - center;
-	vec3 pos110 = vec3(H.x, H.y, 0.0) - center;
-	vec3 pos100 = vec3(H.x, 0.0, 0.0) - center;
-	vec3 pos111 = vec3(H.x, H.y, H.z) - center;
+		vec3 center = worldPos - pos;
+		vec3 pos000 = vec3(0.0, 0.0, 0.0) - center;
+		vec3 pos001 = vec3(0.0, 0.0, H.z) - center;
+		vec3 pos010 = vec3(0.0, H.y, 0.0) - center;
+		vec3 pos011 = vec3(0.0, H.y, H.z) - center;
+		vec3 pos101 = vec3(H.x, 0.0, H.z) - center;
+		vec3 pos110 = vec3(H.x, H.y, 0.0) - center;
+		vec3 pos100 = vec3(H.x, 0.0, 0.0) - center;
+		vec3 pos111 = vec3(H.x, H.y, H.z) - center;
 
-	// origin filter
-	float a000 = 1.0;
-	float a001 = float(_cv_isUseful(tex001.a)) * float(all(greaterThanEqual(vec3(1.05 / 15.0), abs(tex001.rgb - tex000.rgb))));
-	float a010 = float(_cv_isUseful(tex010.a)) * float(all(greaterThanEqual(vec3(1.05 / 15.0), abs(tex010.rgb - tex000.rgb))));
-	float a100 = float(_cv_isUseful(tex100.a)) * float(all(greaterThanEqual(vec3(1.05 / 15.0), abs(tex100.rgb - tex000.rgb))));
-	float a011 = float(_cv_isUseful(tex011.a)) * float(all(greaterThanEqual(vec3(2.05 / 15.0), abs(tex011.rgb - tex000.rgb))));
-	float a101 = float(_cv_isUseful(tex101.a)) * float(all(greaterThanEqual(vec3(2.05 / 15.0), abs(tex101.rgb - tex000.rgb))));
-	float a110 = float(_cv_isUseful(tex110.a)) * float(all(greaterThanEqual(vec3(2.05 / 15.0), abs(tex110.rgb - tex000.rgb))));
-	float a111 = float(_cv_isUseful(tex111.a)) * float(all(greaterThanEqual(vec3(3.05 / 15.0), abs(tex111.rgb - tex000.rgb))));
+		float a000 = 1.0; // origin
+		float a001 = float(_cv_isUseful(tex001.a));
+		float a010 = float(_cv_isUseful(tex010.a));
+		float a100 = float(_cv_isUseful(tex100.a));
+		float a011 = float(_cv_isUseful(tex011.a));
+		float a101 = float(_cv_isUseful(tex101.a));
+		float a110 = float(_cv_isUseful(tex110.a));
+		float a111 = float(_cv_isUseful(tex111.a));
 
-	float w000 = a000 * abs(pos111.x * pos111.y * pos111.z);
-	float w001 = a001 * abs(pos110.x * pos110.y * pos110.z);
-	float w010 = a010 * abs(pos101.x * pos101.y * pos101.z);
-	float w011 = a011 * abs(pos100.x * pos100.y * pos100.z);
-	float w101 = a101 * abs(pos010.x * pos010.y * pos010.z);
-	float w110 = a110 * abs(pos001.x * pos001.y * pos001.z);
-	float w100 = a100 * abs(pos011.x * pos011.y * pos011.z);
-	float w111 = a111 * abs(pos000.x * pos000.y * pos000.z);
+		#ifdef _CV_DEBUG
+			// filters out "irrelevant" data from the current blending result.
+			// in theory it should make the resulting light more accurate. in practice, this makes propagation errors stand out more.
+			// as our implementation is not error-free, this is more detrimental than useful to the users. use for debugging.
+			a001 *= float(all(greaterThanEqual(vec3(1.05 / 15.0), abs(tex001.rgb - tex000.rgb))));
+			a010 *= float(all(greaterThanEqual(vec3(1.05 / 15.0), abs(tex010.rgb - tex000.rgb))));
+			a100 *= float(all(greaterThanEqual(vec3(1.05 / 15.0), abs(tex100.rgb - tex000.rgb))));
+			a011 *= float(all(greaterThanEqual(vec3(2.05 / 15.0), abs(tex011.rgb - tex000.rgb))));
+			a101 *= float(all(greaterThanEqual(vec3(2.05 / 15.0), abs(tex101.rgb - tex000.rgb))));
+			a110 *= float(all(greaterThanEqual(vec3(2.05 / 15.0), abs(tex110.rgb - tex000.rgb))));
+			a111 *= float(all(greaterThanEqual(vec3(3.05 / 15.0), abs(tex111.rgb - tex000.rgb))));
+		#endif
 
-	float weight = w000 + w001 + w010 + w011 + w101 + w110 + w100 + w111;
-	vec4 finalMix = weight == 0.0 ? vec4(0.0) : vec4((tex000.rgb * w000 + tex001.rgb * w001 + tex010.rgb * w010 + tex011.rgb * w011 + tex101.rgb * w101 + tex110.rgb * w110 + tex100.rgb * w100 + tex111.rgb * w111) / weight, 1.0);
+		float w000 = a000 * abs(pos111.x * pos111.y * pos111.z);
+		float w001 = a001 * abs(pos110.x * pos110.y * pos110.z);
+		float w010 = a010 * abs(pos101.x * pos101.y * pos101.z);
+		float w011 = a011 * abs(pos100.x * pos100.y * pos100.z);
+		float w101 = a101 * abs(pos010.x * pos010.y * pos010.z);
+		float w110 = a110 * abs(pos001.x * pos001.y * pos001.z);
+		float w100 = a100 * abs(pos011.x * pos011.y * pos011.z);
+		float w111 = a111 * abs(pos000.x * pos000.y * pos000.z);
+
+		float weight = w000 + w001 + w010 + w011 + w101 + w110 + w100 + w111;
+		vec4 finalMix = weight == 0.0 ? vec4(0.0) : vec4((tex000.rgb * w000 + tex001.rgb * w001 + tex010.rgb * w010 + tex011.rgb * w011 + tex101.rgb * w101 + tex110.rgb * w110 + tex100.rgb * w100 + tex111.rgb * w111) / weight, 1.0);
 	#else
-	vec3 fac = fract(pos);
+		vec3 fac = fract(pos);
 
-	vec3 mix001 = mix(tex000.rgb, tex001.rgb, fac.z);
-	vec3 mix011 = mix(tex010.rgb, tex011.rgb, fac.z);
-	vec3 mix010 = mix(mix001, mix011, fac.y);
+		vec3 mix001 = mix(tex000.rgb, tex001.rgb, fac.z);
+		vec3 mix011 = mix(tex010.rgb, tex011.rgb, fac.z);
+		vec3 mix010 = mix(mix001, mix011, fac.y);
 
-	vec3 mix101 = mix(tex100.rgb, tex101.rgb, fac.z);
-	vec3 mix111 = mix(tex110.rgb, tex111.rgb, fac.z);
-	vec3 mix110 = mix(mix101, mix111, fac.y);
+		vec3 mix101 = mix(tex100.rgb, tex101.rgb, fac.z);
+		vec3 mix111 = mix(tex110.rgb, tex111.rgb, fac.z);
+		vec3 mix110 = mix(mix101, mix111, fac.y);
 
-	vec4 finalMix = vec4(mix(mix010, mix110, fac.x), 1.0);
+		vec4 finalMix = vec4(mix(mix010, mix110, fac.x), 1.0);
 	#endif
 
 	return finalMix;

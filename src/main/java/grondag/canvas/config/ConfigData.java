@@ -153,6 +153,8 @@ class ConfigData {
 	boolean debugSpriteAtlas = false;
 	@Comment("Log significant events of texture/sprite atlas loading. For debugging use. Will spam the log.")
 	boolean traceTextureLoad = false;
+	@Comment("Enables debug flag in the shader. Only intended for internal Canvas development purposes.")
+	boolean debugShaderFlag = false;
 
 	// GSON doesn't do this automatically
 	public void clearNulls() {

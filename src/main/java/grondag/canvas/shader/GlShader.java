@@ -277,6 +277,10 @@ public class GlShader implements Shader {
 				}
 			}
 
+			if (Configurator.debugShaderFlag) {
+				result = StringUtils.replace(result, "//#define _CV_DEBUG", "#define _CV_DEBUG");
+			}
+
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialConstants.MAX_SHADERS);
 
 			// prepend GLSL version

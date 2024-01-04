@@ -96,6 +96,7 @@ public class Configurator {
 	public static boolean cullBackfacingTerrain = DEFAULTS.cullBackfacingTerrain;
 	public static boolean debugSpriteAtlas = DEFAULTS.debugSpriteAtlas;
 	public static boolean traceTextureLoad = DEFAULTS.traceTextureLoad;
+	public static boolean debugShaderFlag = DEFAULTS.debugShaderFlag;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -187,6 +188,7 @@ public class Configurator {
 		cullBackfacingTerrain = config.cullBackfacingTerrain;
 		debugSpriteAtlas = config.debugSpriteAtlas;
 		traceTextureLoad = config.traceTextureLoad;
+		debugShaderFlag = config.debugShaderFlag;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -253,5 +255,6 @@ public class Configurator {
 		config.cullBackfacingTerrain = cullBackfacingTerrain;
 		config.debugSpriteAtlas = debugSpriteAtlas;
 		config.traceTextureLoad = traceTextureLoad;
+		config.debugShaderFlag = debugShaderFlag;
 	}
 }

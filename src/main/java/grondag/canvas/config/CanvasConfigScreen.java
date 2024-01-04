@@ -493,6 +493,12 @@ public class CanvasConfigScreen extends BaseScreen {
 				DEFAULTS.traceTextureLoad,
 				"config.canvas.help.trace_texture_load").listItem());
 
+		list.addItem(optionSession.booleanOption("config.canvas.value.debug_shader_flag",
+				() -> editing.debugShaderFlag,
+				b -> editing.debugShaderFlag = b,
+				DEFAULTS.debugShaderFlag,
+				"config.canvas.help.debug_shader_flag").listItem());
+
 		if (sideW > 0) {
 			final ListWidget tabs = new ListWidget(1, list.getY(), sideW, list.getHeight(), true);
 			addRenderableWidget(tabs);

@@ -152,6 +152,9 @@
   "config.canvas.help.profiler_detail_level": "Profiler level of detail. 0=Collapse all, 1=Expand program passes, 2=Expand all",
   "config.canvas.value.profiler_overlay_scale": "Profiler Overlay Scale",
   "config.canvas.help.profiler_overlay_scale": "Size of the profiler overlay relative to GUI scale.",
+  "config.canvas.value.debug_shader_flag": "Shader Debug Flag",
+  "config.canvas.help.debug_shader_flag": "Enables debug flag in the shader. Only intended for internal Canvas development purposes.",
+
   "key.canvas.debug_toggle": "Toggle Debug View",
   "key.canvas.debug_prev": "Debug Previous Image",
   "key.canvas.debug_next": "Debug Next Image",
