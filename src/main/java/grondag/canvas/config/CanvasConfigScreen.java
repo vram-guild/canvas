@@ -23,6 +23,7 @@ package grondag.canvas.config;
 import static grondag.canvas.config.ConfigManager.DEFAULTS;
 import static grondag.canvas.config.ConfigManager.Reload.DONT_RELOAD;
 import static grondag.canvas.config.ConfigManager.Reload.RELOAD_EVERYTHING;
+import static grondag.canvas.config.ConfigManager.Reload.RELOAD_PIPELINE;
 
 import java.util.List;
 
@@ -47,6 +48,7 @@ import grondag.canvas.terrain.occlusion.TerrainIterator;
 
 public class CanvasConfigScreen extends BaseScreen {
 	private boolean reload;
+	private boolean recompile;
 	private boolean reloadTimekeeper;
 	private boolean requiresRestart;
 
@@ -59,6 +61,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		super(parent, Component.translatable("config.canvas.title"));
 
 		reload = false;
+		recompile = false;
 		reloadTimekeeper = false;
 		requiresRestart = false;
 
@@ -95,7 +98,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.wavy_grass",
 				() -> editing.wavyGrass,
 				b -> {
-					reload |= Configurator.wavyGrass != b;
+					recompile |= Configurator.wavyGrass != b;
 					editing.wavyGrass = b;
 				},
 				DEFAULTS.wavyGrass,
@@ -341,7 +344,7 @@ public class CanvasConfigScreen extends BaseScreen {
 		list.addItem(optionSession.booleanOption("config.canvas.value.preprocess_shader_source",
 				() -> editing.preprocessShaderSource,
 				b -> {
-					reload |= Configurator.preprocessShaderSource != b;
+					recompile |= Configurator.preprocessShaderSource != b;
 					editing.preprocessShaderSource = b;
 				},
 				DEFAULTS.preprocessShaderSource,
@@ -495,7 +498,10 @@ public class CanvasConfigScreen extends BaseScreen {
 
 		list.addItem(optionSession.booleanOption("config.canvas.value.debug_shader_flag",
 				() -> editing.debugShaderFlag,
-				b -> editing.debugShaderFlag = b,
+				b -> {
+					recompile |= Configurator.debugShaderFlag != b;
+					editing.debugShaderFlag = b;
+				},
 				DEFAULTS.debugShaderFlag,
 				"config.canvas.help.debug_shader_flag").listItem());
 
@@ -534,7 +540,17 @@ public class CanvasConfigScreen extends BaseScreen {
 			Timekeeper.configOrPipelineReload();
 		}
 
-		ConfigManager.saveCanvasConfig(reload ? RELOAD_EVERYTHING : DONT_RELOAD);
+		final ConfigManager.Reload configReload;
+
+		if (reload) {
+			configReload = RELOAD_EVERYTHING;
+		} else if (recompile) {
+			configReload = RELOAD_PIPELINE;
+		} else {
+			configReload = DONT_RELOAD;
+		}
+
+		ConfigManager.saveCanvasConfig(configReload);
 
 		if (requiresRestart) {
 			this.minecraft.setScreen(new ConfigRestartScreen(this.parent));
