@@ -925,10 +925,15 @@ public class GFX extends GL46C {
 		assert logError("nglBufferSubData");
 	}
 
-	public static long fenceSynch() {
+	public static long fenceSync() {
 		final long result = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		assert logError("glFenceSync");
 		return result;
+	}
+
+	public static void deleteSync(long sync) {
+		glDeleteSync(sync);
+		assert logError("glDeleteSync");
 	}
 
 	public static int clientWaitSync(long synch, int flags, long timeoutNanos) {
