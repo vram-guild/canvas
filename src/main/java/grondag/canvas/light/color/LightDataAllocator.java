@@ -64,7 +64,9 @@ public class LightDataAllocator {
 	private boolean requireTextureRemake;
 
 	private int addressLimit = INITIAL_ADDRESS_COUNT;
-	private int dynamicMaxAddresses = 0;
+	// dummy value, need immediate initialization
+	private int dynamicMaxAddresses = 1;
+
 	// 0 is reserved for empty address
 	private short nextAllocateAddress = 1;
 	private int addressCount = 1;
@@ -94,6 +96,10 @@ public class LightDataAllocator {
 			}
 
 			addressCount = dynamicMaxAddresses;
+
+			if (nextAllocateAddress > addressCount) {
+				nextAllocateAddress = EMPTY_ADDRESS + 1;
+			}
 		}
 	}
 
@@ -188,7 +194,7 @@ public class LightDataAllocator {
 				nextAllocateAddress++;
 				addressCount++;
 			} else {
-				if (nextAllocateAddress >= dynamicMaxAddresses) {
+				if (nextAllocateAddress >= addressCount) {
 					// rolling pointer
 					nextAllocateAddress = EMPTY_ADDRESS + 1;
 				}
@@ -294,6 +300,10 @@ public class LightDataAllocator {
 			resizePointerBuffer(expectedExtent);
 		}
 
+		return requireTextureRemake;
+	}
+
+	public boolean isInvalid() {
 		return requireTextureRemake;
 	}
 

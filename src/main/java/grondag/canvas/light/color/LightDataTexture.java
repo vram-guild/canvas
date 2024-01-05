@@ -27,6 +27,7 @@ import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import grondag.canvas.CanvasMod;
 import grondag.canvas.render.CanvasTextureState;
 import grondag.canvas.varia.GFX;
 
@@ -41,10 +42,12 @@ public class LightDataTexture {
 
 	private final int glId;
 	private final int width;
+	private final int height;
 	private boolean closed = false;
 
 	LightDataTexture(int width, int height) {
 		this.width = width;
+		this.height = height;
 
 		glId = TextureUtil.generateTextureId();
 		CanvasTextureState.bindTexture(glId);
@@ -88,6 +91,10 @@ public class LightDataTexture {
 	public void uploadDirect(int x, int y, int width, int height, ByteBuffer buffer) {
 		if (closed) {
 			throw new IllegalStateException("Uploading to a closed light texture!");
+		}
+
+		if (x + width > this.width || y + height > this.height) {
+			CanvasMod.LOG.warn("Drawing light texture out of bounds");
 		}
 
 		RenderSystem.assertOnRenderThread();

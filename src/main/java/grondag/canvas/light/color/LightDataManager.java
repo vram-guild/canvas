@@ -250,6 +250,11 @@ public class LightDataManager {
 		if (lightRegion.lightData.hasBuffer() && (lightRegion.lightData.isDirty() || redraw)) {
 			final int targetAddress = texAllocator.allocateAddress(lightRegion);
 
+			if (texAllocator.isInvalid()) {
+				// don't draw to invalid texture, but continue looping to allocate the rest of the region queue
+				return;
+			}
+
 			if (targetAddress != LightDataAllocator.EMPTY_ADDRESS) {
 				final int targetRow = texAllocator.dataRowStart() + targetAddress;
 				texture.upload(targetRow, lightRegion.lightData.getBuffer());
