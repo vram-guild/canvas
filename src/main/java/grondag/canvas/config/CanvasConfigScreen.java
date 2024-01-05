@@ -535,11 +535,6 @@ public class CanvasConfigScreen extends BaseScreen {
 
 		Configurator.readFromConfig(editing);
 
-		// for now Config reload does reload everything including Timekeeper
-		if (reloadTimekeeper && !reload) {
-			Timekeeper.configOrPipelineReload();
-		}
-
 		final ConfigManager.Reload configReload;
 
 		if (reload) {
@@ -547,6 +542,11 @@ public class CanvasConfigScreen extends BaseScreen {
 		} else if (recompile) {
 			configReload = RELOAD_PIPELINE;
 		} else {
+			// the other cases already cover timekeeper reload at the moment.
+			if (reloadTimekeeper) {
+				Timekeeper.configOrPipelineReload();
+			}
+
 			configReload = DONT_RELOAD;
 		}
 
