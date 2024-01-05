@@ -8,11 +8,11 @@ vec4 aoFactor(vec2 lightCoord) {
 	// Don't apply AO for item renders
 	#if CONTEXT_IS_BLOCK
 
-	vec4 hd = texture2D(u_utility, v_hd_lightmap);
+	vec4 hd = texture(u_utility, v_hd_lightmap);
 	float ao = hd.r;
 
 	#if ENABLE_LIGHT_NOISE
-	vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 16.0);
+	vec4 dither = texture(u_dither, gl_FragCoord.xy / 16.0);
 	ao += dither.r / 16.0 - (1.0 / 32.0);
 	#endif
 
@@ -41,12 +41,12 @@ vec4 aoFactor(vec2 lightCoord) {
 
 vec2 lightCoord() {
 	#if ENABLE_SMOOTH_LIGHT
-	vec4 hd = texture2D(u_utility, v_hd_lightmap);
+	vec4 hd = texture(u_utility, v_hd_lightmap);
 	// PERF: return directly vs extra math below
 	vec2 lightCoord = vec2(hd.g, hd.a) * 15.0;
 
 	#if ENABLE_LIGHT_NOISE
-	vec4 dither = texture2D(u_dither, gl_FragCoord.xy / 8.0);
+	vec4 dither = texture(u_dither, gl_FragCoord.xy / 8.0);
 	lightCoord += dither.r / 64.0 - (1.0 / 128.0);
 	#endif
 

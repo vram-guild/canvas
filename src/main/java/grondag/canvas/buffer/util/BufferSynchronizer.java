@@ -27,19 +27,19 @@ import grondag.canvas.varia.GFX;
 
 public class BufferSynchronizer {
 	private static final ObjectArrayFIFOQueue<SyncBufferList> queue = new ObjectArrayFIFOQueue<>(4);
-	private static SyncBufferList currentFrameAccumultator = new SyncBufferList();
+	private static SyncBufferList currentFrameAccumulator = new SyncBufferList();
 
 	public static void accept(SynchronizedBuffer buffer) {
-		currentFrameAccumultator.add(buffer);
+		currentFrameAccumulator.add(buffer);
 	}
 
 	public static void checkPoint() {
 		releaseBuffers();
 
-		if (!currentFrameAccumultator.isEmpty()) {
-			currentFrameAccumultator.claimFence();
-			queue.enqueue(currentFrameAccumultator);
-			currentFrameAccumultator = new SyncBufferList();
+		if (!currentFrameAccumulator.isEmpty()) {
+			currentFrameAccumulator.claimFence();
+			queue.enqueue(currentFrameAccumulator);
+			currentFrameAccumulator = new SyncBufferList();
 		}
 	}
 
@@ -79,7 +79,7 @@ public class BufferSynchronizer {
 
 		private void claimFence() {
 			assert fence == 0;
-			fence = GFX.fenceSynch();
+			fence = GFX.fenceSync();
 		}
 
 		private void release() {
@@ -90,6 +90,7 @@ public class BufferSynchronizer {
 			}
 
 			clear();
+			GFX.deleteSync(fence);
 			fence = 0;
 		}
 	}
