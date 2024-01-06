@@ -55,6 +55,14 @@ public enum LightOp {
 		return ensureUsefulness((short) (pureLight | encodeAlpha(isFull, isEmitter, isOccluding)));
 	}
 
+	public static short pure(short light) {
+		return (short) (light & 0xfff0);
+	}
+
+	public static short makeEmitter(short light) {
+		return (short) (light | EMITTER_FLAG);
+	}
+
 	private static int encodeAlpha(boolean isFull, boolean isEmitter, boolean isOccluding) {
 		return (isFull ? FULL_FLAG : 0) | (isEmitter ? EMITTER_FLAG : 0) | (isOccluding ? OCCLUDER_FLAG : 0);
 	}

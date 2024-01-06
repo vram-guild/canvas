@@ -112,6 +112,7 @@ public class LightDataManager {
 	private final LongPriorityQueue urgentIncreaseQueue = new LongArrayFIFOQueue();
 
 	private final LightDataAllocator texAllocator;
+	private final VirtualLightManager lightView;
 
 	boolean useOcclusionData = false;
 	private LightDataTexture texture;
@@ -119,6 +120,7 @@ public class LightDataManager {
 	private DebugProfiler profiler = new ActiveProfiler();
 	public LightDataManager() {
 		texAllocator = new LightDataAllocator();
+		lightView = new VirtualLightManager();
 		allocated.defaultReturnValue(null);
 	}
 
@@ -139,7 +141,7 @@ public class LightDataManager {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateDecrease(blockView, decreaseQueue, increaseQueue);
+				lightRegion.updateDecrease(lightView, decreaseQueue, increaseQueue);
 			}
 
 			if (++count > minimumUpdates && System.nanoTime() > deadlineNanos) {
@@ -154,7 +156,7 @@ public class LightDataManager {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateIncrease(blockView, increaseQueue);
+				lightRegion.updateIncrease(lightView, increaseQueue);
 			}
 
 			if (++count > minimumUpdates && System.nanoTime() > deadlineNanos) {
@@ -164,6 +166,8 @@ public class LightDataManager {
 	}
 
 	private void updateInner(BlockAndTintGetter blockView, long deadlineNanos) {
+		lightView.startFrame(blockView);
+
 		synchronized (publicUrgentUpdateQueue) {
 			for (long index : publicUrgentUpdateQueue) {
 				urgentDecreaseQueue.enqueue(index);
@@ -179,7 +183,7 @@ public class LightDataManager {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateDecrease(blockView, urgentDecreaseQueue, urgentIncreaseQueue);
+				lightRegion.updateDecrease(lightView, urgentDecreaseQueue, urgentIncreaseQueue);
 			}
 		}
 
@@ -190,7 +194,7 @@ public class LightDataManager {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateIncrease(blockView, urgentIncreaseQueue);
+				lightRegion.updateIncrease(lightView, urgentIncreaseQueue);
 			}
 		}
 
@@ -244,6 +248,7 @@ public class LightDataManager {
 		}
 
 		texAllocator.uploadPointersIfNeeded(texture);
+		lightView.endFrame();
 	}
 
 	private void drawInner(LightRegion lightRegion, boolean redraw) {
@@ -274,6 +279,10 @@ public class LightDataManager {
 
 	LightRegion get(long originKey) {
 		return allocated.get(originKey);
+	}
+
+	LightView lightView() {
+		return lightView;
 	}
 
 	private void freeInner(BlockPos regionOrigin) {

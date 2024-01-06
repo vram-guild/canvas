@@ -23,10 +23,10 @@ package grondag.canvas.light.color;
 import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueue;
 import it.unimi.dsi.fastutil.longs.LongPriorityQueues;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 
@@ -125,15 +125,16 @@ class LightRegion implements LightRegionAccess {
 	}
 
 	@Override
-	public void checkBlock(BlockPos pos, BlockState blockState) {
+	public void checkBlock(BlockPos pos, @Nullable BlockState blockState) {
 		if (!lightData.withinExtents(pos)) {
 			return;
 		}
 
-		final short registeredLight = LightRegistry.get(blockState);
 		final int index = lightData.indexify(pos);
+		final short registeredLight = LightDataManager.INSTANCE.lightView().getRegistered(pos, blockState);
+		final boolean occluding = LightOp.occluder(registeredLight);
+
 		final short getLight = lightData.get(index);
-		final boolean occluding = blockState.canOcclude();
 		final boolean emitting = LightOp.emitter(registeredLight);
 
 		// Equivalent of "hard reset" on this particular block pos, so we want it to pass specific checks
@@ -181,17 +182,18 @@ class LightRegion implements LightRegionAccess {
 		urgent = true;
 	}
 
-	private boolean occludeSide(BlockState state, Side dir, BlockAndTintGetter view, BlockPos pos) {
+	private boolean occludeSide(Side dir, LightView view, BlockPos pos) {
 		// vanilla checks state.useShapeForLightOcclusion() but here it's always false for some reason. this is fine...
+		var state = view.baseView().getBlockState(pos);
 
 		if (!state.canOcclude()) {
 			return false;
 		}
 
-		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view, pos, dir.vanilla));
+		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view.baseView(), pos, dir.vanilla));
 	}
 
-	void updateDecrease(BlockAndTintGetter blockView, LongPriorityQueue neighborDecreaseQueue, LongPriorityQueue neighborIncreaseQueue) {
+	void updateDecrease(LightView view, LongPriorityQueue neighborDecreaseQueue, LongPriorityQueue neighborIncreaseQueue) {
 		// faster exit when not necessary
 		if (globalDecQueue.isEmpty()) {
 			return;
@@ -259,17 +261,16 @@ class LightRegion implements LightRegionAccess {
 				// Important: extremely high frequency redundancy filter (removes 99% of operations)
 				if (!LightOp.lit(nodeLight)) continue;
 
-				final BlockState nodeState = blockView.getBlockState(nodePos);
-
 				// check neighbor occlusion for decrease
-				if (!LightOp.emitter(nodeLight) && occludeSide(nodeState, side.opposite, blockView, nodePos)) {
+				if (!LightOp.emitter(nodeLight) && occludeSide(side.opposite, view, nodePos)) {
 					continue;
 				}
 
 				// only propagate removal according to removeFlag
 				removeMask.and(less.lessThan(nodeLight, sourcePrevLight), removeFlag);
 
-				final boolean restoreLightSource = removeMask.any() && LightOp.emitter(nodeLight);
+				final short registered = view.getRegistered(nodePos);
+				final boolean restoreLightSource = removeMask.any() && LightOp.emitter(registered);
 				final short repropLight;
 
 				if (removeMask.any()) {
@@ -291,7 +292,7 @@ class LightRegion implements LightRegionAccess {
 					// restore obliterated light source
 					if (restoreLightSource) {
 						// defer putting light source as to not mess with decrease step
-						repropLight = LightRegistry.get(nodeState);
+						repropLight = registered;
 					} else {
 						repropLight = resultLight;
 					}
@@ -316,10 +317,10 @@ class LightRegion implements LightRegionAccess {
 		}
 	}
 
-	void updateIncrease(BlockAndTintGetter blockView, LongPriorityQueue neighborIncreaseQueue) {
+	void updateIncrease(LightView view, LongPriorityQueue neighborIncreaseQueue) {
 		if (needCheckEdges) {
 			needCheckEdges = false;
-			checkEdges(blockView);
+			checkEdges(view);
 		}
 
 		while (!globalIncQueue.isEmpty()) {
@@ -335,14 +336,11 @@ class LightRegion implements LightRegionAccess {
 			final short getLight = lightData.get(index);
 			final short sourceLight;
 
-			final BlockState sourceState;
-
 			if (getLight != recordedLight) {
 				if (LightOp.emitter(recordedLight)) {
 					lightData.reverseIndexify(index, sourcePos);
-					sourceState = blockView.getBlockState(sourcePos);
 
-					if (LightRegistry.get(sourceState) != recordedLight) {
+					if (view.getRegistered(sourcePos) != recordedLight) {
 						continue;
 					}
 
@@ -354,7 +352,6 @@ class LightRegion implements LightRegionAccess {
 				}
 			} else {
 				lightData.reverseIndexify(index, sourcePos);
-				sourceState = blockView.getBlockState(sourcePos);
 
 				sourceLight = getLight;
 			}
@@ -365,7 +362,7 @@ class LightRegion implements LightRegionAccess {
 				}
 
 				// check self occlusion for increase
-				if (!LightOp.emitter(sourceLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
+				if (!LightOp.emitter(sourceLight) && occludeSide(side, view, sourcePos)) {
 					continue;
 				}
 
@@ -392,10 +389,9 @@ class LightRegion implements LightRegionAccess {
 
 				final int nodeIndex = dataAccess.indexify(nodePos);
 				final short nodeLight = dataAccess.get(nodeIndex);
-				final BlockState nodeState = blockView.getBlockState(nodePos);
 
 				// check neighbor occlusion for increase
-				if (occludeSide(nodeState, side.opposite, blockView, nodePos)) {
+				if (occludeSide(side.opposite, view, nodePos)) {
 					continue;
 				}
 
@@ -417,24 +413,22 @@ class LightRegion implements LightRegionAccess {
 		LightDataManager.INSTANCE.publicDrawQueue.add(origin);
 	}
 
-	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, BlockAndTintGetter blockView) {
+	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, LightView view) {
 		final int sourceIndex = neighbor.lightData.indexify(sourcePos);
 		final short sourceLight = neighbor.lightData.get(sourceIndex);
-		final BlockState sourceState = blockView.getBlockState(sourcePos);
 
 		if (LightOp.lit(sourceLight)) {
 			// TODO: generalize for all increase process, with check-neighbor flag
 			// check self occlusion for increase
-			if (!LightOp.emitter(sourceLight) && occludeSide(sourceState, side, blockView, sourcePos)) {
+			if (!LightOp.emitter(sourceLight) && occludeSide(side, view, sourcePos)) {
 				return;
 			}
 
 			final int targetIndex = lightData.indexify(targetPos);
 			final short targetLight = lightData.get(targetIndex);
-			final BlockState nodeState = blockView.getBlockState(targetPos);
 
 			// check neighbor occlusion for increase
-			if (occludeSide(nodeState, side.opposite, blockView, targetPos)) {
+			if (occludeSide(side.opposite, view, targetPos)) {
 				return;
 			}
 
@@ -446,7 +440,7 @@ class LightRegion implements LightRegionAccess {
 		}
 	}
 
-	private void checkEdges(BlockAndTintGetter blockView) {
+	private void checkEdges(LightView view) {
 		final int size = LightRegionData.Const.WIDTH;
 		final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 		final BlockPos.MutableBlockPos targetPos = new BlockPos.MutableBlockPos();
@@ -470,7 +464,7 @@ class LightRegion implements LightRegionAccess {
 				for (int z = 0; z < size; z++) {
 					searchPos.setWithOffset(originPos, x, y, z);
 					targetPos.setWithOffset(originPos, xTarget, y, z);
-					checkEdgeBlock(neighbor, searchPos, targetPos, side, blockView);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, view);
 				}
 			}
 		}
@@ -493,7 +487,7 @@ class LightRegion implements LightRegionAccess {
 				for (int x = 0; x < size; x++) {
 					searchPos.setWithOffset(originPos, x, y, z);
 					targetPos.setWithOffset(originPos, x, yTarget, z);
-					checkEdgeBlock(neighbor, searchPos, targetPos, side, blockView);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, view);
 				}
 			}
 		}
@@ -515,7 +509,7 @@ class LightRegion implements LightRegionAccess {
 				for (int y = 0; y < size; y++) {
 					searchPos.setWithOffset(originPos, x, y, z);
 					targetPos.setWithOffset(originPos, x, y, zTarget);
-					checkEdgeBlock(neighbor, searchPos, targetPos, side, blockView);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, view);
 				}
 			}
 		}

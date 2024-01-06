@@ -23,35 +23,13 @@ package grondag.canvas.light.color;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
-public interface LightRegionAccess {
-	LightRegionAccess EMPTY = new Empty();
-
-	void checkBlock(BlockPos pos, @Nullable BlockState blockState);
-
-	void submitChecks();
-
-	void markUrgent();
-
-	boolean isClosed();
-
-	class Empty implements LightRegionAccess {
-		@Override
-		public void checkBlock(BlockPos pos, BlockState blockState) {
-		}
-
-		@Override
-		public void submitChecks() {
-		}
-
-		@Override
-		public void markUrgent() {
-		}
-
-		@Override
-		public boolean isClosed() {
-			return true;
-		}
-	}
+public interface LightView {
+    BlockAndTintGetter baseView();
+    short getRegistered(BlockPos pos);
+    short getRegistered(BlockPos pos, @Nullable BlockState state);
+    void placeVirtualLight(BlockPos blockPos, short light);
+    void removeVirtualLight(BlockPos blockPos, short light);
 }
