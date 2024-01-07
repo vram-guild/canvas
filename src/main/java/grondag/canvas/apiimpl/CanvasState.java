@@ -20,6 +20,8 @@
 
 package grondag.canvas.apiimpl;
 
+import java.util.Objects;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 
@@ -69,16 +71,18 @@ public class CanvasState {
 	private static int loopCounter = 0;
 
 	private static boolean recompilePipeline() {
-		final boolean prevColorLightsState = Pipeline.coloredLightsEnabled();
-		final boolean prevAdvancedCullingState = Pipeline.advancedTerrainCulling();
+		final var prev_coloredLightsConfig = Pipeline.config().coloredLights;
+		final boolean coloredLights_wasDisabled = !Pipeline.coloredLightsEnabled();
+		final boolean advancedCulling_wasDisabled = !Pipeline.advancedTerrainCulling();
 
 		PipelineLoader.reload(Minecraft.getInstance().getResourceManager());
 		PipelineManager.reload();
 
-		final boolean coloredLightsChanged = Pipeline.coloredLightsEnabled() && !prevColorLightsState;
-		final boolean requireCullingRebuild = Pipeline.advancedTerrainCulling() && !prevAdvancedCullingState;
+		final boolean coloredLightsConfigChanged = !Objects.equals(Pipeline.config().coloredLights, prev_coloredLightsConfig);
+		final boolean coloredLights_requiresRebuild = Pipeline.coloredLightsEnabled() && (coloredLightsConfigChanged || coloredLights_wasDisabled);
+		final boolean culling_requiresRebuild = Pipeline.advancedTerrainCulling() && advancedCulling_wasDisabled;
 
-		return coloredLightsChanged || requireCullingRebuild;
+		return coloredLights_requiresRebuild || culling_requiresRebuild;
 	}
 
 	private static void recompile(boolean wasReloaded) {

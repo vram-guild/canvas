@@ -77,15 +77,15 @@ public class EntityLightTracker {
 		}
 	}
 
-	void reload() {
+	void reload(boolean clearLights) {
 		requiresInitialization = true;
 		// might be called twice due to multiple hook (setLevel and allChanged). idempotent.
-		removeAll();
+		removeAll(clearLights);
 	}
 
-	void close(boolean lightLevelIsClosing) {
-		if (!lightLevelIsClosing) {
-			removeAll();
+	void close(boolean clear) {
+		if (clear) {
+			removeAll(true);
 		}
 
 		if (INSTANCE == this) {
@@ -93,10 +93,12 @@ public class EntityLightTracker {
 		}
 	}
 
-	private void removeAll() {
+	private void removeAll(boolean clearLights) {
 		// see notes on reload()
-		for (var entity:entities.values()) {
-			entity.removeLight();
+		if (clearLights) {
+			for (var entity : entities.values()) {
+				entity.removeLight();
+			}
 		}
 
 		entities.clear();

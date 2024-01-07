@@ -56,7 +56,7 @@
   "config.canvas.value.colored_lights": "Colored Lights",
   "config.canvas.help.colored_lights": "Enable colored block lights on pipelines that support it. Replaces vanilla lighting but only visually.",
   "config.canvas.value.entity_light_source": "Entity Light Source",
-  "config.canvas.help.entity_light_source": "Enable entity as dynamic light sources. Requires colored lights.",
+  "config.canvas.help.entity_light_source": "Enable entity as dynamic light sources. Requires colored lights and supporting pipeline.",
   "config.canvas.enum.ao_mode.normal": "Vanilla",
   "config.canvas.enum.ao_mode.subtle_always": "Subtle",
   "config.canvas.enum.ao_mode.subtle_block_light": "Subtle Torchlit",

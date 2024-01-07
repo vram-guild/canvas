@@ -57,7 +57,7 @@ class ConfigData {
 	boolean semiFlatLighting = true;
 	@Comment("Enable colored block lights on pipelines that support it. Replaces vanilla lighting but only visually.")
 	boolean coloredLights = false;
-	@Comment("Enable entity as dynamic light sources. Requires colored lights.")
+	@Comment("Enable entity as dynamic light sources. Requires colored lights and supporting pipeline.")
 	boolean entityLightSource = false;
 
 	// TWEAKS

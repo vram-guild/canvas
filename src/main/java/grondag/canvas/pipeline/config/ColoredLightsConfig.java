@@ -27,16 +27,32 @@ import grondag.canvas.pipeline.config.util.ConfigContext;
 
 public class ColoredLightsConfig extends AbstractConfig {
 	public final boolean enabled;
+	public final boolean allowVirtual;
 	public final boolean useOcclusionData;
 
 	protected ColoredLightsConfig(ConfigContext ctx, JsonObject config) {
 		super(ctx);
 		enabled = ctx.dynamic.getBoolean(config, "enabled", true);
+		allowVirtual = ctx.dynamic.getBoolean(config, "allowVirtual", true);
 		useOcclusionData = ctx.dynamic.getBoolean(config, "useOcclusionData", false);
 	}
 
 	@Override
 	public boolean validate() {
 		return true;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+
+		final ColoredLightsConfig that = (ColoredLightsConfig) obj;
+		return enabled == that.enabled && allowVirtual == that.allowVirtual && useOcclusionData == that.useOcclusionData;
 	}
 }
