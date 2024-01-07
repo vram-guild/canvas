@@ -55,8 +55,10 @@ class ConfigData {
 	//boolean moreLightmap = true;
 	@Comment("Models with flat lighting have smoother lighting (but no ambient occlusion).")
 	boolean semiFlatLighting = true;
-	@Comment("Enable client-side colored block lights for pipelines that supports it. Will replace server lighting visually.")
+	@Comment("Enable colored block lights on pipelines that support it. Replaces vanilla lighting but only visually.")
 	boolean coloredLights = false;
+	@Comment("Enable entity as dynamic light sources. Requires colored lights.")
+	boolean entityLightSource = false;
 
 	// TWEAKS
 	@Comment("Adjusts quads on some vanilla models (like iron bars) to avoid z-fighting with neighbor blocks.")

@@ -31,8 +31,8 @@ import it.unimi.dsi.fastutil.longs.LongSets;
 import org.apache.logging.log4j.Level;
 import org.lwjgl.system.MemoryUtil;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockAndTintGetter;
 
 import io.vram.frex.api.config.FlawlessFrames;
 
@@ -50,13 +50,16 @@ public class LightDataManager {
 		return INSTANCE.allocateInner(regionOrigin);
 	}
 
-	public static void reload() {
+	public static void reload(boolean chunkReload) {
 		if (Pipeline.coloredLightsEnabled()) {
 			assert Pipeline.config().coloredLights != null;
 
 			// NB: this is a shader recompile, not chunk storage reload. DON'T destroy existing instance.
 			if (INSTANCE == null) {
 				INSTANCE = new LightDataManager();
+			} else if (chunkReload) {
+				// if the chunk storage was reloaded, the light level object needs to be reloaded as well
+				INSTANCE.lightLevel.reload();
 			}
 
 			INSTANCE.useOcclusionData = Pipeline.config().coloredLights.useOcclusionData;
@@ -75,11 +78,11 @@ public class LightDataManager {
 		}
 	}
 
-	public static void update(BlockAndTintGetter blockView, long deadlineNanos, Runnable profilerTask) {
+	public static void update(ClientLevel level, long deadlineNanos, Runnable profilerTask) {
 		if (INSTANCE != null) {
 			profilerTask.run();
 			INSTANCE.profiler.start();
-			INSTANCE.updateInner(blockView, FlawlessFrames.isActive() ? Long.MAX_VALUE : deadlineNanos);
+			INSTANCE.updateInner(level, FlawlessFrames.isActive() ? Long.MAX_VALUE : deadlineNanos);
 			INSTANCE.profiler.end();
 		}
 	}
@@ -112,19 +115,20 @@ public class LightDataManager {
 	private final LongPriorityQueue urgentIncreaseQueue = new LongArrayFIFOQueue();
 
 	private final LightDataAllocator texAllocator;
-	private final VirtualLightManager lightView;
+	private final LightLevel lightLevel;
 
 	boolean useOcclusionData = false;
 	private LightDataTexture texture;
 
 	private DebugProfiler profiler = new ActiveProfiler();
+
 	public LightDataManager() {
 		texAllocator = new LightDataAllocator();
-		lightView = new VirtualLightManager();
+		lightLevel = new LightLevel();
 		allocated.defaultReturnValue(null);
 	}
 
-	private void executeRegularUpdates(BlockAndTintGetter blockView, int minimumUpdates, long deadlineNanos) {
+	private void executeRegularUpdates(int minimumUpdates, long deadlineNanos) {
 		synchronized (publicUpdateQueue) {
 			for (long index : publicUpdateQueue) {
 				decreaseQueue.enqueue(index);
@@ -141,7 +145,7 @@ public class LightDataManager {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateDecrease(lightView, decreaseQueue, increaseQueue);
+				lightRegion.updateDecrease(lightLevel, decreaseQueue, increaseQueue);
 			}
 
 			if (++count > minimumUpdates && System.nanoTime() > deadlineNanos) {
@@ -156,7 +160,7 @@ public class LightDataManager {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateIncrease(lightView, increaseQueue);
+				lightRegion.updateIncrease(lightLevel, increaseQueue);
 			}
 
 			if (++count > minimumUpdates && System.nanoTime() > deadlineNanos) {
@@ -165,8 +169,8 @@ public class LightDataManager {
 		}
 	}
 
-	private void updateInner(BlockAndTintGetter blockView, long deadlineNanos) {
-		lightView.startFrame(blockView);
+	private void updateInner(ClientLevel level, long deadlineNanos) {
+		lightLevel.updateOnStartFrame(level);
 
 		synchronized (publicUrgentUpdateQueue) {
 			for (long index : publicUrgentUpdateQueue) {
@@ -183,18 +187,18 @@ public class LightDataManager {
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateDecrease(lightView, urgentDecreaseQueue, urgentIncreaseQueue);
+				lightRegion.updateDecrease(lightLevel, urgentDecreaseQueue, urgentIncreaseQueue);
 			}
 		}
 
-		executeRegularUpdates(blockView, 7, deadlineNanos);
+		executeRegularUpdates(7, deadlineNanos);
 
 		while (!urgentIncreaseQueue.isEmpty()) {
 			final long index = urgentIncreaseQueue.dequeueLong();
 			final LightRegion lightRegion = allocated.get(index);
 
 			if (lightRegion != null && !lightRegion.isClosed()) {
-				lightRegion.updateIncrease(lightView, urgentIncreaseQueue);
+				lightRegion.updateIncrease(lightLevel, urgentIncreaseQueue);
 			}
 		}
 
@@ -248,7 +252,6 @@ public class LightDataManager {
 		}
 
 		texAllocator.uploadPointersIfNeeded(texture);
-		lightView.endFrame();
 	}
 
 	private void drawInner(LightRegion lightRegion, boolean redraw) {
@@ -281,8 +284,8 @@ public class LightDataManager {
 		return allocated.get(originKey);
 	}
 
-	LightView lightView() {
-		return lightView;
+	LightLevelAccess lightLevel() {
+		return lightLevel;
 	}
 
 	private void freeInner(BlockPos regionOrigin) {
@@ -309,6 +312,7 @@ public class LightDataManager {
 
 	public void close() {
 		texture.close();
+		lightLevel.close();
 
 		synchronized (allocated) {
 			for (var lightRegion : allocated.values()) {
@@ -323,6 +327,7 @@ public class LightDataManager {
 
 	private interface DebugProfiler {
 		void start();
+
 		void end();
 	}
 

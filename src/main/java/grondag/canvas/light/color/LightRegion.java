@@ -131,7 +131,7 @@ class LightRegion implements LightRegionAccess {
 		}
 
 		final int index = lightData.indexify(pos);
-		final short registeredLight = LightDataManager.INSTANCE.lightView().getRegistered(pos, blockState);
+		final short registeredLight = LightDataManager.INSTANCE.lightLevel().getRegistered(pos, blockState);
 		final boolean occluding = LightOp.occluder(registeredLight);
 
 		final short getLight = lightData.get(index);
@@ -182,18 +182,18 @@ class LightRegion implements LightRegionAccess {
 		urgent = true;
 	}
 
-	private boolean occludeSide(Side dir, LightView view, BlockPos pos) {
+	private boolean occludeSide(Side dir, LightLevelAccess lightLevel, BlockPos pos) {
 		// vanilla checks state.useShapeForLightOcclusion() but here it's always false for some reason. this is fine...
-		var state = view.baseView().getBlockState(pos);
+		var state = lightLevel.level().getBlockState(pos);
 
 		if (!state.canOcclude()) {
 			return false;
 		}
 
-		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(view.baseView(), pos, dir.vanilla));
+		return Shapes.faceShapeOccludes(Shapes.empty(), state.getFaceOcclusionShape(lightLevel.level(), pos, dir.vanilla));
 	}
 
-	void updateDecrease(LightView view, LongPriorityQueue neighborDecreaseQueue, LongPriorityQueue neighborIncreaseQueue) {
+	void updateDecrease(LightLevelAccess lightLevel, LongPriorityQueue neighborDecreaseQueue, LongPriorityQueue neighborIncreaseQueue) {
 		// faster exit when not necessary
 		if (globalDecQueue.isEmpty()) {
 			return;
@@ -262,14 +262,14 @@ class LightRegion implements LightRegionAccess {
 				if (!LightOp.lit(nodeLight)) continue;
 
 				// check neighbor occlusion for decrease
-				if (!LightOp.emitter(nodeLight) && occludeSide(side.opposite, view, nodePos)) {
+				if (!LightOp.emitter(nodeLight) && occludeSide(side.opposite, lightLevel, nodePos)) {
 					continue;
 				}
 
 				// only propagate removal according to removeFlag
 				removeMask.and(less.lessThan(nodeLight, sourcePrevLight), removeFlag);
 
-				final short registered = view.getRegistered(nodePos);
+				final short registered = lightLevel.getRegistered(nodePos);
 				final boolean restoreLightSource = removeMask.any() && LightOp.emitter(registered);
 				final short repropLight;
 
@@ -317,10 +317,10 @@ class LightRegion implements LightRegionAccess {
 		}
 	}
 
-	void updateIncrease(LightView view, LongPriorityQueue neighborIncreaseQueue) {
+	void updateIncrease(LightLevelAccess lightLevel, LongPriorityQueue neighborIncreaseQueue) {
 		if (needCheckEdges) {
 			needCheckEdges = false;
-			checkEdges(view);
+			checkEdges(lightLevel);
 		}
 
 		while (!globalIncQueue.isEmpty()) {
@@ -340,7 +340,7 @@ class LightRegion implements LightRegionAccess {
 				if (LightOp.emitter(recordedLight)) {
 					lightData.reverseIndexify(index, sourcePos);
 
-					if (view.getRegistered(sourcePos) != recordedLight) {
+					if (lightLevel.getRegistered(sourcePos) != recordedLight) {
 						continue;
 					}
 
@@ -362,7 +362,7 @@ class LightRegion implements LightRegionAccess {
 				}
 
 				// check self occlusion for increase
-				if (!LightOp.emitter(sourceLight) && occludeSide(side, view, sourcePos)) {
+				if (!LightOp.emitter(sourceLight) && occludeSide(side, lightLevel, sourcePos)) {
 					continue;
 				}
 
@@ -391,7 +391,7 @@ class LightRegion implements LightRegionAccess {
 				final short nodeLight = dataAccess.get(nodeIndex);
 
 				// check neighbor occlusion for increase
-				if (occludeSide(side.opposite, view, nodePos)) {
+				if (occludeSide(side.opposite, lightLevel, nodePos)) {
 					continue;
 				}
 
@@ -413,14 +413,14 @@ class LightRegion implements LightRegionAccess {
 		LightDataManager.INSTANCE.publicDrawQueue.add(origin);
 	}
 
-	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, LightView view) {
+	private void checkEdgeBlock(LightRegion neighbor, BlockPos.MutableBlockPos sourcePos, BlockPos.MutableBlockPos targetPos, Side side, LightLevelAccess lightLevel) {
 		final int sourceIndex = neighbor.lightData.indexify(sourcePos);
 		final short sourceLight = neighbor.lightData.get(sourceIndex);
 
 		if (LightOp.lit(sourceLight)) {
 			// TODO: generalize for all increase process, with check-neighbor flag
 			// check self occlusion for increase
-			if (!LightOp.emitter(sourceLight) && occludeSide(side, view, sourcePos)) {
+			if (!LightOp.emitter(sourceLight) && occludeSide(side, lightLevel, sourcePos)) {
 				return;
 			}
 
@@ -428,7 +428,7 @@ class LightRegion implements LightRegionAccess {
 			final short targetLight = lightData.get(targetIndex);
 
 			// check neighbor occlusion for increase
-			if (occludeSide(side.opposite, view, targetPos)) {
+			if (occludeSide(side.opposite, lightLevel, targetPos)) {
 				return;
 			}
 
@@ -440,7 +440,7 @@ class LightRegion implements LightRegionAccess {
 		}
 	}
 
-	private void checkEdges(LightView view) {
+	private void checkEdges(LightLevelAccess lightLevel) {
 		final int size = LightRegionData.Const.WIDTH;
 		final BlockPos.MutableBlockPos searchPos = new BlockPos.MutableBlockPos();
 		final BlockPos.MutableBlockPos targetPos = new BlockPos.MutableBlockPos();
@@ -464,7 +464,7 @@ class LightRegion implements LightRegionAccess {
 				for (int z = 0; z < size; z++) {
 					searchPos.setWithOffset(originPos, x, y, z);
 					targetPos.setWithOffset(originPos, xTarget, y, z);
-					checkEdgeBlock(neighbor, searchPos, targetPos, side, view);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, lightLevel);
 				}
 			}
 		}
@@ -487,7 +487,7 @@ class LightRegion implements LightRegionAccess {
 				for (int x = 0; x < size; x++) {
 					searchPos.setWithOffset(originPos, x, y, z);
 					targetPos.setWithOffset(originPos, x, yTarget, z);
-					checkEdgeBlock(neighbor, searchPos, targetPos, side, view);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, lightLevel);
 				}
 			}
 		}
@@ -509,7 +509,7 @@ class LightRegion implements LightRegionAccess {
 				for (int y = 0; y < size; y++) {
 					searchPos.setWithOffset(originPos, x, y, z);
 					targetPos.setWithOffset(originPos, x, y, zTarget);
-					checkEdgeBlock(neighbor, searchPos, targetPos, side, view);
+					checkEdgeBlock(neighbor, searchPos, targetPos, side, lightLevel);
 				}
 			}
 		}

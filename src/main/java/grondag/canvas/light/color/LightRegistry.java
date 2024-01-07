@@ -80,21 +80,39 @@ public class LightRegistry {
 		final ItemStack stack = new ItemStack(blockState.getBlock(), 1);
 		final ItemLight itemLight = ItemLight.get(stack);
 
-		if (itemLight == null) {
+		if (itemLight == ItemLight.NONE) {
 			return defaultLight;
 		}
 
 		float maxValue = Math.max(itemLight.red(), Math.max(itemLight.green(), itemLight.blue()));
 
-		if (maxValue <= 0) {
+		if (maxValue <= 0 || itemLight.intensity() <= 0) {
 			return defaultLight;
 		}
 
-		final int r = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.red() / maxValue));
-		final int g = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.green() / maxValue));
-		final int b = org.joml.Math.clamp(1, 15, Math.round(lightLevel * itemLight.blue() / maxValue));
+		return encodeItem(itemLight, lightLevel, isFullCube, blockState.canOcclude());
+	}
 
-		return LightOp.encodeLight(r, g, b, isFullCube, true, blockState.canOcclude());
+	public static short encodeItem(ItemLight light) {
+		return encodeItem(light, -1, false, false);
+	}
+
+	public static short encodeItem(ItemLight light, int lightLevel, boolean isFull, boolean isOccluding) {
+		if (light == null || light == ItemLight.NONE) {
+			return 0;
+		}
+
+		if (lightLevel < 0) {
+			lightLevel = 15;
+		}
+
+		final int r = org.joml.Math.clamp(0, 15, Math.round(((float) lightLevel) * light.intensity() * light.red()));
+		final int g = org.joml.Math.clamp(0, 15, Math.round(((float) lightLevel) * light.intensity() * light.green()));
+		final int b = org.joml.Math.clamp(0, 15, Math.round(((float) lightLevel) * light.intensity() * light.blue()));
+
+		var result = LightOp.encode(r, g, b, 0);
+
+		return LightOp.encodeLight(result, isFull, LightOp.lit(result), isOccluding);
 	}
 
 	private static class DummyWorld implements BlockGetter {

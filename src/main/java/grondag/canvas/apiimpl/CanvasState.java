@@ -81,19 +81,19 @@ public class CanvasState {
 		return coloredLightsChanged || requireCullingRebuild;
 	}
 
-	private static void recompile(boolean alreadyReloaded) {
+	private static void recompile(boolean wasReloaded) {
 		CanvasMod.LOG.info(I18n.get("info.canvas.recompile"));
 
 		final boolean requireReload = recompilePipeline();
 
-		if (!alreadyReloaded && loopCounter < 2 && requireReload) {
+		if (!wasReloaded && loopCounter < 2 && requireReload) {
 			CanvasMod.LOG.info(I18n.get("info.canvas.recompile_needs_reload"));
 			loopCounter++;
 			Minecraft.getInstance().levelRenderer.allChanged();
 			return;
 		}
 
-		LightDataManager.reload();
+		LightDataManager.reload(wasReloaded);
 		PreReleaseShaderCompat.reload();
 		MaterialProgram.reload();
 		GlShaderManager.INSTANCE.reload();

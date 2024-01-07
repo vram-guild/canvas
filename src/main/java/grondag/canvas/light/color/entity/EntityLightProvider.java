@@ -18,18 +18,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.light.color;
-
-import org.jetbrains.annotations.Nullable;
+package grondag.canvas.light.color.entity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraft.world.level.block.state.BlockState;
 
-public interface LightView {
-    BlockAndTintGetter baseView();
-    short getRegistered(BlockPos pos);
-    short getRegistered(BlockPos pos, @Nullable BlockState state);
-    void placeVirtualLight(BlockPos blockPos, short light);
-    void removeVirtualLight(BlockPos blockPos, short light);
+public interface EntityLightProvider {
+	BlockPos canvas_getPos();
+
+	short canvas_getLight();
 }

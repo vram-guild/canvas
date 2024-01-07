@@ -128,6 +128,15 @@ public class CanvasConfigScreen extends BaseScreen {
 				DEFAULTS.coloredLights,
 				"config.canvas.help.colored_lights").listItem());
 
+		list.addItem(optionSession.booleanOption("config.canvas.value.entity_light_source",
+				() -> editing.entityLightSource,
+				b -> {
+					reload |= Configurator.entityLightSource != b;
+					editing.entityLightSource = b;
+				},
+				DEFAULTS.entityLightSource,
+				"config.canvas.help.entity_light_source").listItem());
+
 		// TWEAKS
 		final int indexTweaks = list.addCategory("config.canvas.category.tweaks");
 
