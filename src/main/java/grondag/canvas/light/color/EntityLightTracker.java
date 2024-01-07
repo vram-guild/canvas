@@ -18,29 +18,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package grondag.canvas.light.color.entity;
+package grondag.canvas.light.color;
+
+import java.util.function.Function;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.level.entity.EntityAccess;
 
-import grondag.canvas.light.color.LightLevelAccess;
-import grondag.canvas.light.color.LightOp;
+import io.vram.frex.api.light.HeldItemLightListener;
+import io.vram.frex.api.light.ItemLight;
 
 public class EntityLightTracker {
 	private static EntityLightTracker INSTANCE;
-	private final Int2ObjectOpenHashMap<TrackedEntity> entities = new Int2ObjectOpenHashMap<>();
+	private final Int2ObjectOpenHashMap<TrackedEntity<?>> entities = new Int2ObjectOpenHashMap<>();
 	private final LightLevelAccess lightLevel;
 	private boolean requiresInitialization = true;
 
-	public EntityLightTracker(LightLevelAccess lightLevel) {
+	EntityLightTracker(LightLevelAccess lightLevel) {
 		INSTANCE = this;
 		this.lightLevel = lightLevel;
 	}
 
-	public void update(ClientLevel level) {
+	void update(ClientLevel level) {
 		if (requiresInitialization) {
 			requiresInitialization = false;
 
@@ -68,13 +75,13 @@ public class EntityLightTracker {
 		}
 	}
 
-	public void reload() {
+	void reload() {
 		requiresInitialization = true;
 		// might be called twice due to multiple hook (setLevel and allChanged). idempotent.
 		removeAll();
 	}
 
-	public void close(boolean lightLevelIsClosing) {
+	void close(boolean lightLevelIsClosing) {
 		if (!lightLevelIsClosing) {
 			removeAll();
 		}
@@ -94,12 +101,21 @@ public class EntityLightTracker {
 	}
 
 	private void trackAny(Entity entity) {
-		try {
-			EntityLightProvider lightProvider = (EntityLightProvider) entity;
-			entities.put(entity.getId(), new TrackedEntity(lightProvider));
-		} catch (ClassCastException ignored) {
-			// eat 'em
+		final TrackedEntity<?> trackedEntity;
+
+		// supported entity types. TODO: json / api based entity mapping
+		if (entity == Minecraft.getInstance().player) {
+			// we already have shader held light. TODO: json / api support
+			return;
+		} else if (entity instanceof LivingEntity livingEntity) {
+			trackedEntity = new TrackedEntity<>(livingEntity, new HeldLightSupplier());
+		} else if (entity instanceof ItemEntity itemEntity) {
+			trackedEntity = new TrackedEntity<>(itemEntity, new ItemLightSupplier());
+		} else {
+			return;
 		}
+
+		entities.put(entity.getId(), trackedEntity);
 	}
 
 	private void removeAny(int id) {
@@ -108,19 +124,68 @@ public class EntityLightTracker {
 		}
 	}
 
-	private class TrackedEntity {
-		final EntityLightProvider entity;
+	// Unused at the moment
+	private static class ThirdPersonSupplier implements Function<LocalPlayer, Short> {
+		private final HeldLightSupplier heldLightSupplier = new HeldLightSupplier();
+
+		@Override
+		public Short apply(LocalPlayer localPlayer) {
+			final boolean firstPerson = Minecraft.getInstance().options.getCameraType().isFirstPerson();
+			return firstPerson ? 0 : heldLightSupplier.apply(localPlayer);
+		}
+	}
+
+	private static class ItemLightSupplier implements Function<ItemEntity, Short> {
+		@Override
+		public Short apply(ItemEntity itemEntity) {
+			ItemLight light = ItemLight.get(itemEntity.getItem());
+
+			if (!light.worksInFluid() && itemEntity.isUnderWater()) {
+				light = ItemLight.NONE;
+			}
+
+			return LightRegistry.encodeItem(light);
+		}
+	}
+
+	private static class HeldLightSupplier implements Function<LivingEntity, Short> {
+		@Override
+		public Short apply(LivingEntity livingEntity) {
+			final var mainItem = livingEntity.getMainHandItem();
+			final var mainLight = ItemLight.get(mainItem);
+
+			var light = HeldItemLightListener.apply(livingEntity, mainItem, mainLight);
+
+			if (light.equals(ItemLight.NONE)) {
+				final var offItem = livingEntity.getOffhandItem();
+				final var offLight = ItemLight.get(offItem);
+				light = HeldItemLightListener.apply(livingEntity, offItem, offLight);
+			}
+
+			if (!light.worksInFluid() && livingEntity.isUnderWater()) {
+				light = ItemLight.NONE;
+			}
+
+			return LightRegistry.encodeItem(light);
+		}
+	}
+
+	private class TrackedEntity<E extends EntityAccess> {
+		private final E entity;
+		private final Function<E, Short> lightSupplier;
+
 		private final BlockPos.MutableBlockPos lastTrackedPos = new BlockPos.MutableBlockPos();
 		private short lastTrackedLight = 0;
 
-		TrackedEntity(EntityLightProvider entity) {
+		TrackedEntity(E entity, Function<E, Short> lightSupplier) {
 			this.entity = entity;
-			lastTrackedPos.set(entity.canvas_getPos());
+			this.lightSupplier = lightSupplier;
+			lastTrackedPos.set(entity.blockPosition());
 		}
 
 		void update() {
-			final BlockPos pos = entity.canvas_getPos();
-			final short light = entity.canvas_getLight();
+			final BlockPos pos = entity.blockPosition();
+			final short light = lightSupplier.apply(entity);
 			final boolean changedLight = lastTrackedLight != light;
 			final boolean changedPos = LightOp.emitter(light) && !lastTrackedPos.equals(pos);
 
@@ -132,8 +197,6 @@ public class EntityLightTracker {
 				if (LightOp.emitter(light)) {
 					lightLevel.placeVirtualLight(pos, light);
 				}
-
-				System.out.println("Changed," + changedLight + "," + changedPos + "," + entity);
 			}
 
 			lastTrackedLight = light;
@@ -142,7 +205,7 @@ public class EntityLightTracker {
 
 		public void removeLight() {
 			if (LightOp.emitter(lastTrackedLight)) {
-				lightLevel.removeVirtualLight(entity.canvas_getPos(), lastTrackedLight);
+				lightLevel.removeVirtualLight(entity.blockPosition(), lastTrackedLight);
 			}
 		}
 	}

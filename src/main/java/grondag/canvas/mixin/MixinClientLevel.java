@@ -28,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.Entity;
 
-import grondag.canvas.light.color.entity.EntityLightTracker;
+import grondag.canvas.light.color.EntityLightTracker;
 
 @Mixin(ClientLevel.class)
 public class MixinClientLevel {

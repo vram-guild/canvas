@@ -33,7 +33,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import grondag.canvas.CanvasMod;
 import grondag.canvas.config.Configurator;
-import grondag.canvas.light.color.entity.EntityLightTracker;
 
 class LightLevel implements LightLevelAccess {
 	private BlockAndTintGetter baseLevel = null;
