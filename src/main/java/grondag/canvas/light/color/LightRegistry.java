@@ -37,6 +37,7 @@ import net.minecraft.world.level.material.Fluids;
 import io.vram.frex.api.light.ItemLight;
 
 import grondag.canvas.light.api.impl.BlockLightLoader;
+import grondag.canvas.light.api.impl.FloodFillBlockLight;
 
 public class LightRegistry {
 	private static final ConcurrentHashMap<BlockState, Short> cachedLights = new ConcurrentHashMap<>();
@@ -58,18 +59,18 @@ public class LightRegistry {
 		final int lightLevel = blockState.getLightEmission();
 		final short defaultLight = LightOp.encodeLight(lightLevel, lightLevel, lightLevel, isFullCube, lightLevel > 0, blockState.canOcclude());
 
-		BlockLightLoader.CachedBlockLight apiLight = BlockLightLoader.INSTANCE.blockLights.get(blockState);
+		FloodFillBlockLight apiLight = BlockLightLoader.BLOCK_LIGHTS.get(blockState);
 
 		if (apiLight == null && !blockState.getFluidState().isEmpty()) {
-			apiLight = BlockLightLoader.INSTANCE.fluidLights.get(blockState.getFluidState());
+			apiLight = BlockLightLoader.FLUID_LIGHTS.get(blockState.getFluidState());
 		}
 
 		if (apiLight != null) {
-			if (!apiLight.levelIsSet()) {
+			if (!apiLight.levelIsSet) {
 				apiLight = apiLight.withLevel(blockState.getLightEmission());
 			}
 
-			return LightOp.encodeLight(apiLight.value(), isFullCube, apiLight.value() != 0, blockState.canOcclude());
+			return LightOp.encodeLight(apiLight.value, isFullCube, apiLight.value != 0, blockState.canOcclude());
 		}
 
 		if (lightLevel < 1) {

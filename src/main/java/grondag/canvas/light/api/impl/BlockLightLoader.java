@@ -32,6 +32,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateHolder;
@@ -39,29 +40,33 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.light.api.BlockLight;
-import grondag.canvas.light.color.LightOp;
 
 public class BlockLightLoader {
-	public static BlockLightLoader INSTANCE;
-	private static final CachedBlockLight DEFAULT_LIGHT = new CachedBlockLight(0f, 0f, 0f, 0f, false);
+	public static final FloodFillBlockLight DEFAULT_LIGHT = new FloodFillBlockLight(0f, 0f, 0f, 0f, false);
 
-	public final IdentityHashMap<BlockState, CachedBlockLight> blockLights = new IdentityHashMap<>();
-	public final IdentityHashMap<FluidState, CachedBlockLight> fluidLights = new IdentityHashMap<>();
+	public static final IdentityHashMap<BlockState, FloodFillBlockLight> BLOCK_LIGHTS = new IdentityHashMap<>();
+	public static final IdentityHashMap<FluidState, FloodFillBlockLight> FLUID_LIGHTS = new IdentityHashMap<>();
+	public static final IdentityHashMap<EntityType<?>, FloodFillBlockLight> ENTITY_LIGHTS = new IdentityHashMap<>();
 
 	public static void reload(ResourceManager manager) {
-		INSTANCE = new BlockLightLoader();
+		BLOCK_LIGHTS.clear();
+		FLUID_LIGHTS.clear();
+		ENTITY_LIGHTS.clear();
 
 		for (Block block : BuiltInRegistries.BLOCK) {
-			INSTANCE.loadBlock(manager, block);
+			loadBlock(manager, block);
 		}
 
 		for (Fluid fluid : BuiltInRegistries.FLUID) {
-			INSTANCE.loadFluid(manager, fluid);
+			loadFluid(manager, fluid);
+		}
+
+		for (EntityType<?> type : BuiltInRegistries.ENTITY_TYPE) {
+			loadEntity(manager, type);
 		}
 	}
 
-	private void loadBlock(ResourceManager manager, Block block) {
+	private static void loadBlock(ResourceManager manager, Block block) {
 		final ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
 
 		final ResourceLocation id = new ResourceLocation(blockId.getNamespace(), "lights/block/" + blockId.getPath() + ".json");
@@ -70,14 +75,14 @@ public class BlockLightLoader {
 			final var res = manager.getResource(id);
 
 			if (res.isPresent()) {
-				deserialize(block.getStateDefinition().getPossibleStates(), id, new InputStreamReader(res.get().open(), StandardCharsets.UTF_8), blockLights);
+				deserialize(block.getStateDefinition().getPossibleStates(), id, new InputStreamReader(res.get().open(), StandardCharsets.UTF_8), BLOCK_LIGHTS);
 			}
 		} catch (final Exception e) {
 			CanvasMod.LOG.info("Unable to load block light map " + id.toString() + " due to exception " + e.toString());
 		}
 	}
 
-	private void loadFluid(ResourceManager manager, Fluid fluid) {
+	private static void loadFluid(ResourceManager manager, Fluid fluid) {
 		final ResourceLocation blockId = BuiltInRegistries.FLUID.getKey(fluid);
 
 		final ResourceLocation id = new ResourceLocation(blockId.getNamespace(), "lights/fluid/" + blockId.getPath() + ".json");
@@ -86,20 +91,35 @@ public class BlockLightLoader {
 			final var res = manager.getResource(id);
 
 			if (res.isPresent()) {
-				deserialize(fluid.getStateDefinition().getPossibleStates(), id, new InputStreamReader(res.get().open(), StandardCharsets.UTF_8), fluidLights);
+				deserialize(fluid.getStateDefinition().getPossibleStates(), id, new InputStreamReader(res.get().open(), StandardCharsets.UTF_8), FLUID_LIGHTS);
 			}
 		} catch (final Exception e) {
 			CanvasMod.LOG.info("Unable to load fluid light map " + id.toString() + " due to exception " + e.toString());
 		}
 	}
 
-	public static <T extends StateHolder<?, ?>> void deserialize(List<T> states, ResourceLocation idForLog, InputStreamReader reader, IdentityHashMap<T, CachedBlockLight> map) {
+	private static void loadEntity(ResourceManager manager, EntityType<?> entityType) {
+		final ResourceLocation entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entityType);
+		final ResourceLocation id = new ResourceLocation(entityId.getNamespace(), "lights/entity/" + entityId.getPath() + ".json");
+
+		try {
+			final var res = manager.getResource(id);
+
+			if (res.isPresent()) {
+				deserialize(entityType, id, new InputStreamReader(res.get().open(), StandardCharsets.UTF_8), ENTITY_LIGHTS);
+			}
+		} catch (final Exception e) {
+			CanvasMod.LOG.info("Unable to load block light map " + id.toString() + " due to exception " + e.toString());
+		}
+	}
+
+	private static <T extends StateHolder<?, ?>> void deserialize(List<T> states, ResourceLocation idForLog, InputStreamReader reader, IdentityHashMap<T, FloodFillBlockLight> map) {
 		try {
 			final JsonObject json = GsonHelper.parse(reader);
 			final String idString = idForLog.toString();
 
-			final CachedBlockLight globalDefaultLight = DEFAULT_LIGHT;
-			final CachedBlockLight defaultLight;
+			final FloodFillBlockLight globalDefaultLight = DEFAULT_LIGHT;
+			final FloodFillBlockLight defaultLight;
 
 			if (json.has("defaultLight")) {
 				defaultLight = loadLight(json.get("defaultLight").getAsJsonObject(), globalDefaultLight);
@@ -119,7 +139,7 @@ public class BlockLightLoader {
 			}
 
 			for (final T state : states) {
-				CachedBlockLight result = defaultLight;
+				FloodFillBlockLight result = defaultLight;
 
 				if (!result.levelIsSet && state instanceof BlockState blockState) {
 					result = result.withLevel(blockState.getLightEmission());
@@ -139,7 +159,27 @@ public class BlockLightLoader {
 		}
 	}
 
-	public static CachedBlockLight loadLight(JsonObject obj, CachedBlockLight defaultValue) {
+	private static <T> void deserialize(T type, ResourceLocation idForLog, InputStreamReader reader, IdentityHashMap<T, FloodFillBlockLight> map) {
+		try {
+			final JsonObject json = GsonHelper.parse(reader);
+			final FloodFillBlockLight globalDefaultLight = BlockLightLoader.DEFAULT_LIGHT;
+			final FloodFillBlockLight result;
+
+			if (json.has("defaultLight")) {
+				result = BlockLightLoader.loadLight(json.get("defaultLight").getAsJsonObject(), globalDefaultLight);
+			} else {
+				result = BlockLightLoader.loadLight(json, globalDefaultLight);
+			}
+
+			if (!result.equals(globalDefaultLight) && result.levelIsSet) {
+				map.put(type, result);
+			}
+		} catch (final Exception e) {
+			CanvasMod.LOG.warn("Unable to load lights for " + idForLog.toString() + " due to unhandled exception:", e);
+		}
+	}
+
+	private static FloodFillBlockLight loadLight(JsonObject obj, FloodFillBlockLight defaultValue) {
 		if (obj == null) {
 			return defaultValue;
 		}
@@ -149,71 +189,18 @@ public class BlockLightLoader {
 		final var greenObj = obj.get("green");
 		final var blueObj = obj.get("blue");
 
-		final float lightLevel = lightLevelObj == null ? defaultValue.lightLevel() : lightLevelObj.getAsFloat();
+		final float defaultLightLevel = defaultValue.levelIsSet ? defaultValue.lightLevel() : 15f;
+		final float lightLevel = lightLevelObj == null ? defaultLightLevel : lightLevelObj.getAsFloat();
 		final float red = redObj == null ? defaultValue.red() : redObj.getAsFloat();
 		final float green = greenObj == null ? defaultValue.green() : greenObj.getAsFloat();
 		final float blue = blueObj == null ? defaultValue.blue() : blueObj.getAsFloat();
-		final boolean levelIsSet = lightLevelObj == null ? defaultValue.levelIsSet() : true;
-		final var result = new CachedBlockLight(lightLevel, red, green, blue, levelIsSet);
+		final boolean levelIsSet = lightLevelObj != null || defaultValue.levelIsSet;
+		final var result = new FloodFillBlockLight(lightLevel, red, green, blue, levelIsSet);
 
 		if (result.equals(defaultValue)) {
 			return defaultValue;
 		} else {
 			return result;
-		}
-	}
-
-	private static int clampLight(float light) {
-		return org.joml.Math.clamp(0, 15, Math.round(light));
-	}
-
-	public static record CachedBlockLight(float lightLevel, float red, float green, float blue, short value, boolean levelIsSet) implements BlockLight {
-		CachedBlockLight(float lightLevel, float red, float green, float blue, boolean levelIsSet) {
-			this(lightLevel, red, green, blue, computeValue(lightLevel, red, green, blue), levelIsSet);
-		}
-
-		public CachedBlockLight withLevel(float lightEmission) {
-			if (this.lightLevel == lightEmission && this.levelIsSet) {
-				return this;
-			} else {
-				return new CachedBlockLight(lightEmission, red, green, blue, true);
-			}
-		}
-
-		static short computeValue(float lightLevel, float red, float green, float blue) {
-			final int blockRadius = lightLevel == 0f ? 0 : org.joml.Math.clamp(1, 15, Math.round(lightLevel));
-			return LightOp.encode(clampLight(blockRadius * red), clampLight(blockRadius * green), clampLight(blockRadius * blue), 0);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-
-			if (obj == null || getClass() != obj.getClass()) {
-				return false;
-			}
-
-			CachedBlockLight that = (CachedBlockLight) obj;
-
-			if (that.lightLevel != lightLevel) {
-				return false;
-			}
-
-			if (that.red != red) {
-				return false;
-			}
-
-			if (that.green != green) {
-				return false;
-			}
-
-			if (that.blue != blue) {
-				return false;
-			}
-
-			return value == that.value;
 		}
 	}
 }

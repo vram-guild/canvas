@@ -20,10 +20,10 @@
 
 package grondag.canvas.light.api;
 
+import grondag.canvas.light.api.impl.FloodFillBlockLight;
+
 /**
  * BlockLight API draft.
- *
- * <p>Similar to Material, this needs to be constructed by a factory provided by implementation.
  */
 public interface BlockLight {
 	/**
@@ -35,34 +35,33 @@ public interface BlockLight {
 	 * <p>Typical value is in range 0-15. Value outside of this range is implementation-specific.
 	 *
 	 * <p>In JSON format, defaults to the vanilla registered light level when missing.
-	 * Importantly, light level is attached to blocks, so for fluid states
-	 * (not their block counterpart) the default is always 0.
-	 *
-	 * @return Raw light level value
+	 * Importantly, light level is attached to block states. Fluid states will attempt
+	 * to default to their block state counterpart.
 	 */
 	float lightLevel();
 
 	/**
 	 * Red intensity. Behavior of values outside of range 0-1 is undefined.
 	 * In JSON format, defaults to 0 when missing.
-	 *
-	 * @return Raw red intensity
 	 */
 	float red();
 
 	/**
 	 * Green intensity. Behavior of values outside of range 0-1 is undefined.
 	 * In JSON format, defaults to 0 when missing.
-	 *
-	 * @return Raw green intensity
 	 */
 	float green();
 
 	/**
 	 * Blue intensity. Behavior of values outside of range 0-1 is undefined.
 	 * In JSON format, defaults to 0 when missing.
-	 *
-	 * @return Raw blue intensity
 	 */
 	float blue();
+
+	/**
+	 * Constructs an implementation consistent instance of BlockLight.
+	 */
+	static BlockLight of(float lightLevel, float red, float green, float blue) {
+		return new FloodFillBlockLight(lightLevel, red, green, blue, true);
+	}
 }

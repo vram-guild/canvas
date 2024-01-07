@@ -36,6 +36,8 @@ import net.minecraft.world.level.entity.EntityAccess;
 import io.vram.frex.api.light.HeldItemLightListener;
 import io.vram.frex.api.light.ItemLight;
 
+import grondag.canvas.light.api.impl.BlockLightLoader;
+
 public class EntityLightTracker {
 	private static EntityLightTracker INSTANCE;
 	private final Int2ObjectOpenHashMap<TrackedEntity<?>> entities = new Int2ObjectOpenHashMap<>();
@@ -103,9 +105,11 @@ public class EntityLightTracker {
 	private void trackAny(Entity entity) {
 		final TrackedEntity<?> trackedEntity;
 
-		// supported entity types. TODO: json / api based entity mapping
-		if (entity == Minecraft.getInstance().player) {
-			// we already have shader held light. TODO: json / api support
+		if (BlockLightLoader.ENTITY_LIGHTS.containsKey(entity.getType())) {
+			final short loadedLight = BlockLightLoader.ENTITY_LIGHTS.get(entity.getType()).value;
+			trackedEntity = new TrackedEntity<>(entity, e -> loadedLight);
+		} else if (entity == Minecraft.getInstance().player) {
+			// we already have shader held light
 			return;
 		} else if (entity instanceof LivingEntity livingEntity) {
 			trackedEntity = new TrackedEntity<>(livingEntity, new HeldLightSupplier());
@@ -187,14 +191,14 @@ public class EntityLightTracker {
 			final BlockPos pos = entity.blockPosition();
 			final short light = lightSupplier.apply(entity);
 			final boolean changedLight = lastTrackedLight != light;
-			final boolean changedPos = LightOp.emitter(light) && !lastTrackedPos.equals(pos);
+			final boolean changedPos = LightOp.lit(light) && !lastTrackedPos.equals(pos);
 
 			if (changedLight || changedPos) {
-				if (LightOp.emitter(lastTrackedLight)) {
+				if (LightOp.lit(lastTrackedLight)) {
 					lightLevel.removeVirtualLight(lastTrackedPos, lastTrackedLight);
 				}
 
-				if (LightOp.emitter(light)) {
+				if (LightOp.lit(light)) {
 					lightLevel.placeVirtualLight(pos, light);
 				}
 			}
@@ -204,7 +208,7 @@ public class EntityLightTracker {
 		}
 
 		public void removeLight() {
-			if (LightOp.emitter(lastTrackedLight)) {
+			if (LightOp.lit(lastTrackedLight)) {
 				lightLevel.removeVirtualLight(entity.blockPosition(), lastTrackedLight);
 			}
 		}
