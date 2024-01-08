@@ -20,11 +20,12 @@
 
 package grondag.canvas.mixin;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -45,15 +46,13 @@ import grondag.canvas.buffer.input.CanvasImmediate;
 
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer {
-	@Shadow private ItemModelShaper itemModelShaper;
+	@Shadow @Final private ItemModelShaper itemModelShaper;
 
-	/**
-	 * @author grondag
-	 * @reason simplicity
-	 */
-	@Overwrite
-	public void render(ItemStack stack, ItemDisplayContext renderMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model) {
+	@Inject(at = @At("HEAD"), method = "render", cancellable = true)
+	public void render(ItemStack stack, ItemDisplayContext renderMode, boolean leftHanded, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay, BakedModel model, CallbackInfo ci) {
+		// was an overwrite but is now an inject for compatibility reason
 		CanvasItemRenderContext.get().renderItem(itemModelShaper, stack, renderMode, leftHanded, matrices, vertexConsumers, light, overlay, model);
+		ci.cancel();
 	}
 
 	@Inject(at = @At("HEAD"), method = "getArmorFoilBuffer", cancellable = true)
