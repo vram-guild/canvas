@@ -239,19 +239,25 @@ public class ShaderDataManager {
 		FLOAT_VECTOR_DATA.put(VEC_VANILLA_CLEAR_COLOR + 2, b);
 	}
 
-	private static void computeEyeNumbers(ClientLevel world, LocalPlayer player) {
+	private static final BlockPos.MutableBlockPos eyePos = new BlockPos.MutableBlockPos();
+
+	private static void computeEyeNumbers(ClientLevel world, LocalPlayer player, float tickDelta) {
 		float sky = 15, block = 15;
 
-		FLOAT_VECTOR_DATA.put(EYE_POSITION, (float) player.getX());
-		FLOAT_VECTOR_DATA.put(EYE_POSITION + 1, (float) player.getY());
-		FLOAT_VECTOR_DATA.put(EYE_POSITION + 2, (float) player.getZ());
+		final float eyeXf = (float) Mth.lerp(tickDelta, player.xo, player.getX());
+		final float eyeYf = (float) Mth.lerp(tickDelta, player.yo, player.getY()) + player.getEyeHeight();
+		final float eyeZf = (float) Mth.lerp(tickDelta, player.zo, player.getZ());
 
-		final int eyeX = Mth.floor(player.getX());
-		final int eyeZ = Mth.floor(player.getZ());
+		FLOAT_VECTOR_DATA.put(EYE_POSITION, eyeXf);
+		FLOAT_VECTOR_DATA.put(EYE_POSITION + 1, eyeYf);
+		FLOAT_VECTOR_DATA.put(EYE_POSITION + 2, eyeZf);
+
+		final int eyeX = Mth.floor(eyeXf);
+		final int eyeZ = Mth.floor(eyeZf);
 
 		if (eyeX >= -30000000 && eyeZ >= -30000000 && eyeX < 30000000 && eyeZ < 30000000) {
 			if (world.hasChunk(eyeX >> 4, eyeZ >> 4)) {
-				final BlockPos eyePos = new BlockPos(eyeX, Mth.floor(player.getEyeY()), eyeZ);
+				eyePos.set(eyeX, Mth.floor(eyeYf), eyeZ);
 				final LevelLightEngine lighter = world.getLightEngine();
 				computeEyeFlags(world, player, eyePos);
 
@@ -465,7 +471,7 @@ public class ShaderDataManager {
 			FLOAT_VECTOR_DATA.put(WORLD_TIME, (float) (tickTime / 24000.0));
 			final LocalPlayer player = client.player;
 			FLOAT_VECTOR_DATA.put(PLAYER_MOOD, player.getCurrentMood());
-			computeEyeNumbers(world, player);
+			computeEyeNumbers(world, player, tickDelta);
 			computeCameraFlags(world, camera);
 
 			final float[] fogColor = RenderSystem.getShaderFogColor();
