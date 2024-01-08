@@ -107,9 +107,11 @@ public class LightRegistry {
 			lightLevel = 15;
 		}
 
-		final int r = org.joml.Math.clamp(0, 15, Math.round(((float) lightLevel) * light.intensity() * light.red()));
-		final int g = org.joml.Math.clamp(0, 15, Math.round(((float) lightLevel) * light.intensity() * light.green()));
-		final int b = org.joml.Math.clamp(0, 15, Math.round(((float) lightLevel) * light.intensity() * light.blue()));
+		final float postLevel = (float) Math.min(15, lightLevel) * org.joml.Math.clamp(0.0f, 1.0f, light.intensity());
+
+		final int r = org.joml.Math.clamp(0, 15, Math.round(postLevel * light.red()));
+		final int g = org.joml.Math.clamp(0, 15, Math.round(postLevel * light.green()));
+		final int b = org.joml.Math.clamp(0, 15, Math.round(postLevel * light.blue()));
 
 		var result = LightOp.encode(r, g, b, 0);
 
