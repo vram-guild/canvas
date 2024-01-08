@@ -34,6 +34,7 @@ import io.vram.frex.base.renderer.context.render.ItemRenderContext;
 
 import grondag.canvas.apiimpl.rendercontext.encoder.StandardQuadEncoder;
 import grondag.canvas.buffer.input.CanvasImmediate;
+import grondag.canvas.compat.ModItemRendererHolder;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderContextState.GuiMode;
 
@@ -75,6 +76,12 @@ public class CanvasItemRenderContext extends ItemRenderContext {
 
 	@Override
 	protected void renderCustomModel(BlockEntityWithoutLevelRenderer builtInRenderer, MultiBufferSource vertexConsumers) {
+		final BlockEntityWithoutLevelRenderer customRenderer = ModItemRendererHolder.rendererGetter.apply(inputContext.itemStack(), builtInRenderer);
+
+		if (customRenderer != null) {
+			builtInRenderer = customRenderer;
+		}
+
 		final ItemStack stack = inputContext.itemStack();
 		final RenderContextState context = (vertexConsumers instanceof CanvasImmediate immediate) ? immediate.contextState : null;
 
