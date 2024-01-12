@@ -44,6 +44,8 @@ import io.vram.frex.api.renderer.MaterialTextureManager;
 import io.vram.frex.api.texture.MaterialTexture;
 
 import grondag.canvas.config.Configurator;
+import grondag.canvas.light.color.LightDataManager;
+import grondag.canvas.light.color.LightDataTexture;
 import grondag.canvas.material.property.BinaryRenderState;
 import grondag.canvas.material.property.DecalRenderState;
 import grondag.canvas.material.property.DepthTestRenderState;
@@ -214,22 +216,24 @@ public final class RenderState {
 		if (Pipeline.shadowMapDepth != -1) {
 			CanvasTextureState.ensureTextureOfTextureUnit(TextureData.SHADOWMAP, GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
 			CanvasTextureState.ensureTextureOfTextureUnit(TextureData.SHADOWMAP_TEXTURE, GFX.GL_TEXTURE_2D_ARRAY, Pipeline.shadowMapDepth);
+		}
 
-			// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
-			// Was seeing stray invalid operations errors in GL without.
-			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
+		if (Pipeline.coloredLightsEnabled()) {
+			CanvasTextureState.ensureTextureOfTextureUnit(TextureData.COLORED_LIGHTS_DATA, LightDataTexture.Format.TARGET, LightDataManager.texId());
 		}
 
 		if (Pipeline.config().materialProgram.samplerNames.length > 0) {
 			// Activate non-frex material program textures
 			for (int i = 0; i < Pipeline.config().materialProgram.samplerNames.length; i++) {
 				final int bindTarget = Pipeline.materialTextures().texTargets[i];
-				final int bind = Pipeline.materialTextures().texIds[i];
+				final int bind = Pipeline.materialTextures().texIds[i].getAsInt();
 				CanvasTextureState.ensureTextureOfTextureUnit(TextureData.PROGRAM_SAMPLERS + i, bindTarget, bind);
 			}
-
-			CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 		}
+
+		// Set this back so nothing inadvertently tries to do stuff with array texture/shadowmap.
+		// Was seeing stray invalid operations errors in GL without.
+		CanvasTextureState.activeTextureUnit(TextureData.MC_SPRITE_ATLAS);
 
 		texture.enable(blur);
 		transparency.enable();

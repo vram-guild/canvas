@@ -50,6 +50,7 @@ import grondag.canvas.buffer.input.ArrayVertexCollector;
 import grondag.canvas.buffer.render.TransferBuffers;
 import grondag.canvas.buffer.util.DirectBufferAllocator;
 import grondag.canvas.buffer.util.GlBufferAllocator;
+import grondag.canvas.light.color.LightDataManager;
 import grondag.canvas.render.terrain.cluster.SlabAllocator;
 import grondag.canvas.render.world.CanvasWorldRenderer;
 import grondag.canvas.terrain.util.TerrainExecutor;
@@ -217,6 +218,8 @@ public class MixinDebugScreenOverlay {
 		result.add("Translucent " + worldRenderState.translucentClusterRealm.debugSummary());
 		result.add(worldRenderState.drawlistDebugSummary());
 		result.add(SlabAllocator.debugSummary());
+
+		result.add(LightDataManager.debugString());
 
 		return result;
 	}

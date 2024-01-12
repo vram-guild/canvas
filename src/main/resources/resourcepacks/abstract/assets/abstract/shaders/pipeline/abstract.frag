@@ -7,6 +7,7 @@
 #include frex:shaders/api/player.glsl
 #include frex:shaders/api/material.glsl
 #include frex:shaders/api/fragment.glsl
+#include frex:shaders/api/sampler.glsl
 #include abstract:shaders/pipeline/glint.glsl
 #include abstract:basic_light_config
 #include abstract:handheld_light_config
@@ -26,7 +27,8 @@ out vec4[2] fragColor;
 #if HANDHELD_LIGHT_RADIUS != 0
 flat in float _cvInnerAngle;
 flat in float _cvOuterAngle;
-in vec4 _cvViewVertex;
+in vec3 _cvViewVertex;
+in vec3 _cvWorldVertex;
 #endif
 
 /**
@@ -96,8 +98,9 @@ void frx_pipelineFragment() {
 
 		// ambient
 		float skyCoord = frx_fragEnableDiffuse ? 0.03125 + (frx_fragLight.y - 0.03125) * 0.5 : frx_fragLight.y;
-		vec4 light = frx_fromGamma(texture(frxs_lightmap, vec2(frx_fragLight.x, skyCoord)));
-		light = mix(light, frx_emissiveColor, frx_fragEmissive);
+		vec4 light = frx_fromGamma(texture(frxs_lightmap, vec2(0.03125, skyCoord)));
+		light += frx_fromGamma(frx_getLightFiltered(_cvWorldVertex));
+		light += frx_emissiveColor * frx_fragEmissive;
 
 	#if HANDHELD_LIGHT_RADIUS != 0
 		vec4 held = frx_heldLight;

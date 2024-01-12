@@ -99,6 +99,7 @@ import grondag.canvas.compat.FirstPersonModelHolder;
 import grondag.canvas.compat.PlayerAnimatorHolder;
 import grondag.canvas.config.Configurator;
 import grondag.canvas.config.FlawlessFramesController;
+import grondag.canvas.light.color.LightDataManager;
 import grondag.canvas.material.property.TargetRenderState;
 import grondag.canvas.material.state.RenderContextState;
 import grondag.canvas.material.state.RenderState;
@@ -375,6 +376,8 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		} else {
 			Lighting.setupLevel(MatrixData.viewMatrix);
 		}
+
+		LightDataManager.update(world, System.nanoTime() + 2000000, () -> WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "colored_lights"));
 
 		WorldRenderDraws.profileSwap(profiler, ProfilerGroup.StartWorld, "before_entities_event");
 
@@ -848,7 +851,7 @@ public class CanvasWorldRenderer extends LevelRenderer {
 		BufferSynchronizer.checkPoint();
 		DirectBufferAllocator.update();
 		TransferBuffers.update();
-		CanvasState.recompileIfNeeded(false);
+		CanvasState.handleRecompileKeybind();
 		FlawlessFramesController.handleToggle();
 
 		if (wasFabulous != Pipeline.isFabulous()) {

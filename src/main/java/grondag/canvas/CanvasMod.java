@@ -54,7 +54,6 @@ import grondag.canvas.config.Configurator;
 //FEAT: pbr textures
 //PERF: disable animated textures when not in view
 //PERF: improve light smoothing performance
-//FEAT: colored lights
 //FEAT: weather uniforms
 //FEAT: biome texture in shader
 

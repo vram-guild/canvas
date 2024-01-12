@@ -65,7 +65,7 @@ class ProgramPass extends Pass {
 		final int slimit = textures.texIds.length;
 
 		for (int i = 0; i < slimit; ++i) {
-			CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0 + i, textures.texTargets[i], textures.texIds[i]);
+			CanvasTextureState.ensureTextureOfTextureUnit(GFX.GL_TEXTURE0 + i, textures.texTargets[i], textures.texIds[i].getAsInt());
 		}
 
 		program.activate();

@@ -55,6 +55,10 @@ class ConfigData {
 	//boolean moreLightmap = true;
 	@Comment("Models with flat lighting have smoother lighting (but no ambient occlusion).")
 	boolean semiFlatLighting = true;
+	@Comment("Enable colored block lights on pipelines that support it. Replaces vanilla lighting but only visually.")
+	boolean coloredLights = false;
+	@Comment("Enable entity as dynamic light sources. Requires colored lights and supporting pipeline.")
+	boolean entityLightSource = false;
 
 	// TWEAKS
 	@Comment("Adjusts quads on some vanilla models (like iron bars) to avoid z-fighting with neighbor blocks.")
@@ -151,6 +155,8 @@ class ConfigData {
 	boolean debugSpriteAtlas = false;
 	@Comment("Log significant events of texture/sprite atlas loading. For debugging use. Will spam the log.")
 	boolean traceTextureLoad = false;
+	@Comment("Enables debug flag in the shader. Only intended for internal Canvas development purposes.")
+	boolean debugShaderFlag = false;
 
 	// GSON doesn't do this automatically
 	public void clearNulls() {

@@ -54,6 +54,7 @@ public class PipelineConfig {
 	@Nullable public final DrawTargetsConfig drawTargets;
 	@Nullable public final SkyShadowConfig skyShadow;
 	@Nullable public final SkyConfig sky;
+	@Nullable public final ColoredLightsConfig coloredLights;
 
 	public final NamedDependency<FramebufferConfig> defaultFramebuffer;
 
@@ -83,6 +84,7 @@ public class PipelineConfig {
 		fabulosity = null;
 		skyShadow = null;
 		sky = null;
+		coloredLights = null;
 		drawTargets = DrawTargetsConfig.makeDefault(context);
 		defaultFramebuffer = context.frameBuffers.dependOn("default");
 		materialProgram = new MaterialProgramConfig(context);
@@ -105,6 +107,7 @@ public class PipelineConfig {
 		drawTargets = builder.drawTargets;
 		skyShadow = builder.skyShadow;
 		sky = builder.sky;
+		coloredLights = builder.coloredLights;
 
 		for (final OptionConfig opt : builder.options) {
 			optionMap.put(opt.includeToken, opt);

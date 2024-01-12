@@ -63,6 +63,7 @@ public class PipelineConfigBuilder {
 	@Nullable public DrawTargetsConfig drawTargets;
 	@Nullable public SkyShadowConfig skyShadow;
 	@Nullable public SkyConfig sky;
+	@Nullable public ColoredLightsConfig coloredLights;
 
 	public boolean smoothBrightnessBidirectionaly = false;
 	public int brightnessSmoothingFrames = 20;
@@ -78,8 +79,7 @@ public class PipelineConfigBuilder {
 
 	/**
 	 * Priority-pass loading. Loads options before anything else. This is necessary for the
-	 * current design of {@link grondag.canvas.pipeline.config.util.DynamicLoader}, at the cost
-	 * of reading the disk twice.
+	 * current design of {@link grondag.canvas.pipeline.config.util.DynamicLoader}.
 	 *
 	 * @param configJson the json file being read
 	 */
@@ -140,6 +140,14 @@ public class PipelineConfigBuilder {
 			}
 		}
 
+		if (configJson.containsKey("coloredLights")) {
+			if (coloredLights == null) {
+				coloredLights = LoadHelper.loadObject(context, configJson, "coloredLights", ColoredLightsConfig::new);
+			} else {
+				CanvasMod.LOG.warn("Invalid pipeline config - duplicate 'coloredLights' ignored.");
+			}
+		}
+
 		if (configJson.containsKey("sky")) {
 			if (sky == null) {
 				sky = LoadHelper.loadObject(context, configJson, "sky", SkyConfig::new);
@@ -184,6 +192,7 @@ public class PipelineConfigBuilder {
 
 		valid &= (fabulosity == null || fabulosity.validate());
 		valid &= (skyShadow == null || skyShadow.validate());
+		valid &= (coloredLights == null || coloredLights.validate());
 
 		valid &= defaultFramebuffer != null && defaultFramebuffer.validate("Invalid pipeline config - missing or invalid defaultFramebuffer.");
 
@@ -213,19 +222,13 @@ public class PipelineConfigBuilder {
 			return null;
 		}
 
-		final PipelineConfigBuilder result = new PipelineConfigBuilder();
-		final ObjectOpenHashSet<ResourceLocation> included = new ObjectOpenHashSet<>();
-		final ObjectArrayFIFOQueue<ResourceLocation> readQueue = new ObjectArrayFIFOQueue<>();
-		final ObjectArrayFIFOQueue<JsonObject> primaryLoadQueue = new ObjectArrayFIFOQueue<>();
-		final ObjectArrayFIFOQueue<JsonObject> secondLoadQueue = new ObjectArrayFIFOQueue<>();
+		final var result = new PipelineConfigBuilder();
+		final var included = new ObjectOpenHashSet<ResourceLocation>();
+		final var readQueue = new ObjectArrayFIFOQueue<ResourceLocation>();
+		final var primaryLoadQueue = new ObjectArrayFIFOQueue<JsonObject>();
+		final var secondLoadQueue = new ObjectArrayFIFOQueue<JsonObject>();
 
-		readQueue.enqueue(id);
-		included.add(id);
-
-		while (!readQueue.isEmpty()) {
-			final ResourceLocation target = readQueue.dequeue();
-			readResource(target, readQueue, primaryLoadQueue, included, rm);
-		}
+		loadResources(id, readQueue, primaryLoadQueue, included, rm);
 
 		while (!primaryLoadQueue.isEmpty()) {
 			final JsonObject target = primaryLoadQueue.dequeue();
@@ -245,6 +248,20 @@ public class PipelineConfigBuilder {
 		} else {
 			// fallback to minimal renderable pipeline if not valid
 			return null;
+		}
+	}
+
+	/**
+	 * This function is also used in {@link PipelineDescription} to parse the entire pipeline.
+	 * Notably, this and subsequently called functions shouldn't contain any building code.
+	 */
+	static void loadResources(ResourceLocation id, ObjectArrayFIFOQueue<ResourceLocation> queue, ObjectArrayFIFOQueue<JsonObject> loadQueue, ObjectOpenHashSet<ResourceLocation> included, ResourceManager rm) {
+		queue.enqueue(id);
+		included.add(id);
+
+		while (!queue.isEmpty()) {
+			final ResourceLocation target = queue.dequeue();
+			readResource(target, queue, loadQueue, included, rm);
 		}
 	}
 

@@ -20,7 +20,6 @@
 
 package grondag.canvas.config;
 
-import static grondag.canvas.config.ConfigManager.Reload.RELOAD_EVERYTHING;
 import static grondag.canvas.config.ConfigManager.Reload.RELOAD_PIPELINE;
 
 import java.util.List;
@@ -118,8 +117,7 @@ public class PipelineOptionScreen extends BaseScreen {
 
 	private void savePipelineSelection(ResourceLocation newPipelineId) {
 		Configurator.pipelineId = newPipelineId.toString();
-		// When advanced terrain culling is *soft* disabled, better clear the region storage
-		ConfigManager.saveUserInput(Configurator.advancedTerrainCulling ? RELOAD_PIPELINE : RELOAD_EVERYTHING);
+		ConfigManager.saveCanvasConfig(RELOAD_PIPELINE);
 	}
 
 	private void save() {

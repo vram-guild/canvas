@@ -41,7 +41,7 @@ public class AccessibilityData {
 
 	public static void onCloseOptionScreen() {
 		if (AccessibilityData.checkChanged() && Minecraft.getInstance().level != null) {
-			CanvasState.recompileIfNeeded(true);
+			CanvasState.recompile();
 		}
 	}
 

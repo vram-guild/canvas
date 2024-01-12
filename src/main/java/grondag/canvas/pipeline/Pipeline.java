@@ -97,9 +97,14 @@ public class Pipeline {
 	private static PipelineConfig config;
 
 	private static boolean advancedTerrainCulling;
+	private static boolean coloredLightsEnabled;
 
 	public static boolean shadowsEnabled() {
 		return skyShadowFbo != null;
+	}
+
+	public static boolean coloredLightsEnabled() {
+		return coloredLightsEnabled;
 	}
 
 	public static boolean advancedTerrainCulling() {
@@ -205,6 +210,12 @@ public class Pipeline {
 			defaultZenithAngle = config.sky.defaultZenithAngle;
 		} else {
 			defaultZenithAngle = 0f;
+		}
+
+		if (config.coloredLights != null && Configurator.coloredLights) {
+			coloredLightsEnabled = config.coloredLights.enabled;
+		} else {
+			coloredLightsEnabled = false;
 		}
 
 		if (isFabulous) {

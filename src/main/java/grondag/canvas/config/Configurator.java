@@ -40,6 +40,8 @@ public class Configurator {
 	//public static boolean moreLightmap = DEFAULTS.moreLightmap;
 	//public static int maxLightmapDelayFrames = DEFAULTS.maxLightmapDelayFrames;
 	public static boolean semiFlatLighting = DEFAULTS.semiFlatLighting;
+	public static boolean coloredLights = DEFAULTS.coloredLights;
+	public static boolean entityLightSource = DEFAULTS.entityLightSource;
 
 	public static boolean preventDepthFighting = DEFAULTS.preventDepthFighting;
 	public static boolean clampExteriorVertices = DEFAULTS.clampExteriorVertices;
@@ -95,6 +97,7 @@ public class Configurator {
 	public static boolean cullBackfacingTerrain = DEFAULTS.cullBackfacingTerrain;
 	public static boolean debugSpriteAtlas = DEFAULTS.debugSpriteAtlas;
 	public static boolean traceTextureLoad = DEFAULTS.traceTextureLoad;
+	public static boolean debugShaderFlag = DEFAULTS.debugShaderFlag;
 
 	//    @LangKey("config.acuity_fancy_fluids")
 	//    @Comment({"Enable fancy water and lava rendering.",
@@ -136,6 +139,8 @@ public class Configurator {
 		// lightmapNoise = config.lightmapNoise;
 		lightSmoothing = config.lightSmoothing;
 		semiFlatLighting = config.semiFlatLighting;
+		coloredLights = config.coloredLights;
+		entityLightSource = config.entityLightSource;
 
 		//        disableVanillaChunkMatrix = config.disableVanillaChunkMatrix;
 		preventDepthFighting = config.preventDepthFighting;
@@ -185,6 +190,7 @@ public class Configurator {
 		cullBackfacingTerrain = config.cullBackfacingTerrain;
 		debugSpriteAtlas = config.debugSpriteAtlas;
 		traceTextureLoad = config.traceTextureLoad;
+		debugShaderFlag = config.debugShaderFlag;
 	}
 
 	static void writeToConfig(ConfigData config) {
@@ -202,6 +208,8 @@ public class Configurator {
 		config.lightSmoothing = lightSmoothing;
 		//config.moreLightmap = moreLightmap;
 		config.semiFlatLighting = semiFlatLighting;
+		config.coloredLights = coloredLights;
+		config.entityLightSource = entityLightSource;
 
 		config.preventDepthFighting = preventDepthFighting;
 		config.clampExteriorVertices = clampExteriorVertices;
@@ -250,5 +258,6 @@ public class Configurator {
 		config.cullBackfacingTerrain = cullBackfacingTerrain;
 		config.debugSpriteAtlas = debugSpriteAtlas;
 		config.traceTextureLoad = traceTextureLoad;
+		config.debugShaderFlag = debugShaderFlag;
 	}
 }

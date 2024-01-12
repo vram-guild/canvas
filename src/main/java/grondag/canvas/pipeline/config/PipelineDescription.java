@@ -21,9 +21,12 @@
 package grondag.canvas.pipeline.config;
 
 import blue.endless.jankson.JsonObject;
+import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 import grondag.canvas.pipeline.config.util.JanksonHelper;
 
@@ -32,16 +35,49 @@ public class PipelineDescription {
 	public final String nameKey;
 	public final String descriptionKey;
 	public final boolean isFabulous;
+	public final boolean shadowsEnabled;
+	public final boolean coloredLightsEnabled;
 
-	public PipelineDescription (ResourceLocation id, JsonObject config) {
+	public static PipelineDescription create(ResourceLocation id, ResourceManager rm) {
+		final var included = new ObjectOpenHashSet<ResourceLocation>();
+		final var reading = new ObjectArrayFIFOQueue<ResourceLocation>();
+		final var objects = new ObjectArrayFIFOQueue<JsonObject>();
+
+		PipelineConfigBuilder.loadResources(id, reading, objects, included, rm);
+
+		if (objects.isEmpty()) {
+			return null;
+		}
+
+		var config = objects.dequeue();
+
+		final String getNameKey = JanksonHelper.asString(config.get("nameKey"));
+		final String nameKey = getNameKey == null ? id.toString() : getNameKey;
+
+		final String getDescriptionKey = JanksonHelper.asString(config.get("descriptionKey"));
+		final String descriptionKey = getDescriptionKey == null ? "pipeline.no_desc" : getDescriptionKey;
+
+		boolean fabulous = config.containsKey("fabulousTargets");
+		boolean shadows = config.containsKey("skyShadows");
+		boolean coloredLights = config.containsKey("coloredLights");
+
+		while (!objects.isEmpty()) {
+			var obj = objects.dequeue();
+			fabulous |= obj.containsKey("fabulousTargets");
+			shadows |= obj.containsKey("skyShadows");
+			coloredLights |= obj.containsKey("coloredLights");
+		}
+
+		return new PipelineDescription(id, nameKey, descriptionKey, fabulous, shadows, coloredLights);
+	}
+
+	public PipelineDescription(ResourceLocation id, String nameKey, String descriptionKey, boolean isFabulous, boolean shadowsEnabled, boolean coloredLightsEnabled) {
 		this.id = id;
-
-		final String nameKey = JanksonHelper.asString(config.get("nameKey"));
-		this.nameKey = nameKey == null ? id.toString() : nameKey;
-		isFabulous = config.containsKey("fabulousTargets");
-
-		final String descriptionKey = JanksonHelper.asString(config.get("descriptionKey"));
-		this.descriptionKey = descriptionKey == null ? "pipeline.no_desc" : descriptionKey;
+		this.nameKey = nameKey;
+		this.descriptionKey = descriptionKey;
+		this.isFabulous = isFabulous;
+		this.shadowsEnabled = shadowsEnabled;
+		this.coloredLightsEnabled = coloredLightsEnabled;
 	}
 
 	public String name() {

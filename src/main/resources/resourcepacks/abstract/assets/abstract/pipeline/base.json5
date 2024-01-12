@@ -10,6 +10,10 @@
   rainSmoothingFrames: 500,
   glslVersion: 330,
 
+  coloredLights: {
+    useOcclusionData: false
+  },
+
   images: [
     // color attachment for solid draws
     {

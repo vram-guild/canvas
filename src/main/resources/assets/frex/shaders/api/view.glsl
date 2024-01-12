@@ -53,6 +53,3 @@
 #define frx_cameraInSnow int((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> 25) & 1u)
 
 #define frx_viewFlag(flag) (((_cvu_flags[_CV_WORLD_FLAGS_INDEX] >> flag) & 1u) == 1u) // DEPRECATED - DO NOT USE
-
-
-

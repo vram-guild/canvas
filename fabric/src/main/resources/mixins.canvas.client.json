@@ -15,6 +15,7 @@
     "MixinBufferUploader",
     "MixinChunkRenderDispatcher",
     "MixinClientChunkCache",
+    "MixinClientLevel",
     "MixinCompiledChunk",
     "MixinCyclingOption",
     "MixinDebugScreenOverlay",

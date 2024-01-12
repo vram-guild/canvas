@@ -120,7 +120,7 @@ public class ConfigManager {
 			CanvasMod.LOG.error("Error loading pipeline config. Using default values.");
 		}
 
-		CanvasState.recompileIfNeeded(true);
+		CanvasState.recompile();
 	}
 
 	private static void saveConfig() {
@@ -163,12 +163,12 @@ public class ConfigManager {
 		Configurator.readFromConfig(config, true);
 	}
 
-	static void saveUserInput(Reload reload) {
+	static void saveCanvasConfig(Reload reload) {
 		saveConfig();
 
 		switch (reload) {
 			case RELOAD_EVERYTHING -> Minecraft.getInstance().levelRenderer.allChanged();
-			case RELOAD_PIPELINE -> CanvasState.recompileIfNeeded(true);
+			case RELOAD_PIPELINE -> CanvasState.recompile();
 			case DONT_RELOAD -> { }
 		}
 	}

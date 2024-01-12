@@ -53,6 +53,10 @@
   "config.canvas.help.lightmap_delay_frames": "Setting > 0 may give slightly;better FPS at cost of potential;flickering when lighting changes.",
   "config.canvas.value.semi_flat_lighting": "Semi-Flat Lightmap",
   "config.canvas.help.semi_flat_lighting": "Models with flat lighting have smoother lighting;(but no ambient occlusion).",
+  "config.canvas.value.colored_lights": "Colored Lights",
+  "config.canvas.help.colored_lights": "Enable colored block lights on pipelines that support it. Replaces vanilla lighting but only visually.",
+  "config.canvas.value.entity_light_source": "Entity Light Source",
+  "config.canvas.help.entity_light_source": "Enable entity as dynamic light sources. Requires colored lights and supporting pipeline.",
   "config.canvas.enum.ao_mode.normal": "Vanilla",
   "config.canvas.enum.ao_mode.subtle_always": "Subtle",
   "config.canvas.enum.ao_mode.subtle_block_light": "Subtle Torchlit",
@@ -150,6 +154,9 @@
   "config.canvas.help.profiler_detail_level": "Profiler level of detail. 0=Collapse all, 1=Expand program passes, 2=Expand all",
   "config.canvas.value.profiler_overlay_scale": "Profiler Overlay Scale",
   "config.canvas.help.profiler_overlay_scale": "Size of the profiler overlay relative to GUI scale.",
+  "config.canvas.value.debug_shader_flag": "Shader Debug Flag",
+  "config.canvas.help.debug_shader_flag": "Enables debug flag in the shader. Only intended for internal Canvas development purposes.",
+
   "key.canvas.debug_toggle": "Toggle Debug View",
   "key.canvas.debug_prev": "Debug Previous Image",
   "key.canvas.debug_next": "Debug Next Image",
@@ -202,5 +209,6 @@
   "config.canvas.help.trace_texture_load": "Log significant events of texture/sprite atlas loading.;For debugging use. Will spam the log.",
   "config.canvas.value.bloom_toggle": "Enable Bloom",
   "config.canvas.help.bloom_toggle": "Renders glow effect around light sources.;Modest impact on performance.",
-  "info.canvas.recompile": "Recompiling shaders"
+  "info.canvas.recompile": "Recompiling shaders",
+  "info.canvas.recompile_needs_reload": "Found a state change that requires reload during recompilation. Reloading renderer..."
 }

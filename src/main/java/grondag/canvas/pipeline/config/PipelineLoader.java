@@ -20,17 +20,11 @@
 
 package grondag.canvas.pipeline.config;
 
-import java.io.InputStream;
-import java.util.function.Function;
-
-import blue.endless.jankson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import grondag.canvas.CanvasMod;
-import grondag.canvas.config.ConfigManager;
 
 public class PipelineLoader {
 	private static boolean hasLoadedOnce = false;
@@ -49,12 +43,12 @@ public class PipelineLoader {
 			final String stringx = location.toString();
 			return stringx.endsWith(".json") || stringx.endsWith(".json5");
 		}).forEach((id, resource) -> {
-			try (InputStream inputStream = resource.open()) {
-				final JsonObject configJson = ConfigManager.JANKSON.load(inputStream);
-				final PipelineDescription p = new PipelineDescription(id, configJson);
+			final PipelineDescription p = PipelineDescription.create(id, manager);
+
+			if (p == null) {
+				CanvasMod.LOG.warn(String.format("Unable to load pipeline configuration %s", id));
+			} else {
 				MAP.put(id.toString(), p);
-			} catch (final Exception e) {
-				CanvasMod.LOG.warn(String.format("Unable to load pipeline configuration %s due to unhandled exception.", id), e);
 			}
 		});
 	}
@@ -72,6 +66,4 @@ public class PipelineLoader {
 	public static PipelineDescription[] array() {
 		return MAP.values().toArray(new PipelineDescription[MAP.size()]);
 	}
-
-	public static final Function<String, Component> NAME_TEXT_FUNCTION = s -> Component.translatable(get(s).nameKey);
 }

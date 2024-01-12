@@ -199,14 +199,14 @@ public class GlShader implements Shader {
 		File shaderDir = path.toFile();
 
 		if (shaderDir.mkdir()) {
-			CanvasMod.LOG.info("Created shader debug output folder" + shaderDir.toString());
+			CanvasMod.LOG.info("Created shader debug output folder " + shaderDir.toString());
 		}
 
 		if (error != null) {
 			shaderDir = path.resolve("failed").toFile();
 
 			if (shaderDir.mkdir()) {
-				CanvasMod.LOG.info("Created shader debug output failure folder" + shaderDir.toString());
+				CanvasMod.LOG.info("Created shader debug output failure folder " + shaderDir.toString());
 			}
 
 			source += "\n\n///////// ERROR ////////\n" + error + "\n////////////////////////\n";
@@ -267,6 +267,18 @@ public class GlShader implements Shader {
 			} else {
 				result = StringUtils.replace(result, "#define SHADOW_MAP_PRESENT", "//#define SHADOW_MAP_PRESENT");
 				result = StringUtils.replace(result, "#define SHADOW_MAP_SIZE 1024", "//#define SHADOW_MAP_SIZE 1024");
+			}
+
+			if (Pipeline.coloredLightsEnabled()) {
+				result = StringUtils.replace(result, "//#define COLORED_LIGHTS_ENABLED", "#define COLORED_LIGHTS_ENABLED");
+
+				if (Pipeline.config().coloredLights.useOcclusionData) {
+					result = StringUtils.replace(result, "//#define LIGHT_DATA_HAS_OCCLUSION", "#define LIGHT_DATA_HAS_OCCLUSION");
+				}
+			}
+
+			if (Configurator.debugShaderFlag) {
+				result = StringUtils.replace(result, "//#define _CV_DEBUG", "#define _CV_DEBUG");
 			}
 
 			result = StringUtils.replace(result, "#define _CV_MAX_SHADER_COUNT 0", "#define _CV_MAX_SHADER_COUNT " + MaterialConstants.MAX_SHADERS);

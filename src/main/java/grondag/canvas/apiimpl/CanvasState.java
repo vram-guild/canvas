@@ -20,6 +20,8 @@
 
 package grondag.canvas.apiimpl;
 
+import java.util.Objects;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 
@@ -30,9 +32,11 @@ import grondag.canvas.apiimpl.rendercontext.CanvasBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasEntityBlockRenderContext;
 import grondag.canvas.apiimpl.rendercontext.CanvasItemRenderContext;
 import grondag.canvas.config.Configurator;
+import grondag.canvas.light.color.LightDataManager;
 import grondag.canvas.material.property.TextureMaterialState;
 import grondag.canvas.perf.ChunkRebuildCounters;
 import grondag.canvas.perf.Timekeeper;
+import grondag.canvas.pipeline.Pipeline;
 import grondag.canvas.pipeline.PipelineManager;
 import grondag.canvas.pipeline.config.PipelineLoader;
 import grondag.canvas.shader.GlMaterialProgramManager;
@@ -45,26 +49,71 @@ import grondag.canvas.terrain.region.input.PackedInputRegion;
 import grondag.canvas.terrain.util.ChunkColorCache;
 
 public class CanvasState {
-	public static void recompileIfNeeded(boolean forceRecompile) {
-		while (CanvasMod.RECOMPILE.consumeClick()) {
-			forceRecompile = true;
+	public static void handleRecompileKeybind() {
+		final boolean recompilePressed = CanvasMod.RECOMPILE.consumeClick();
+
+		while (true) {
+			// consume all clicks
+			if (!CanvasMod.RECOMPILE.consumeClick()) {
+				break;
+			}
 		}
 
-		if (forceRecompile) {
-			CanvasMod.LOG.info(I18n.get("info.canvas.recompile"));
-			PipelineLoader.reload(Minecraft.getInstance().getResourceManager());
-			PipelineManager.reload();
-			PreReleaseShaderCompat.reload();
-			MaterialProgram.reload();
-			GlShaderManager.INSTANCE.reload();
-			GlProgramManager.INSTANCE.reload();
-			GlMaterialProgramManager.INSTANCE.reload();
-			// LightmapHdTexture.reload();
-			// LightmapHd.reload();
-			TextureMaterialState.reload();
-			ShaderDataManager.reload();
-			Timekeeper.configOrPipelineReload();
+		if (recompilePressed) {
+			recompile(false);
 		}
+	}
+
+	public static void recompile() {
+		recompile(false);
+	}
+
+	private static int loopCounter = 0;
+
+	private static boolean recompilePipeline() {
+		final var prev_coloredLightsConfig = Pipeline.config().coloredLights;
+		final boolean coloredLights_wasDisabled = !Pipeline.coloredLightsEnabled();
+		final boolean advancedCulling_wasDisabled = !Pipeline.advancedTerrainCulling();
+
+		PipelineLoader.reload(Minecraft.getInstance().getResourceManager());
+		PipelineManager.reload();
+
+		final boolean coloredLightsConfigChanged = !Objects.equals(Pipeline.config().coloredLights, prev_coloredLightsConfig);
+		final boolean coloredLights_requiresRebuild = Pipeline.coloredLightsEnabled() && (coloredLightsConfigChanged || coloredLights_wasDisabled);
+		final boolean culling_requiresRebuild = Pipeline.advancedTerrainCulling() && advancedCulling_wasDisabled;
+
+		return coloredLights_requiresRebuild || culling_requiresRebuild;
+	}
+
+	private static void recompile(boolean wasReloaded) {
+		CanvasMod.LOG.info(I18n.get("info.canvas.recompile"));
+
+		final boolean requireReload = recompilePipeline();
+
+		if (!wasReloaded && loopCounter < 2 && requireReload) {
+			CanvasMod.LOG.info(I18n.get("info.canvas.recompile_needs_reload"));
+			loopCounter++;
+			Minecraft.getInstance().levelRenderer.allChanged();
+			return;
+		}
+
+		LightDataManager.reload(wasReloaded);
+		PreReleaseShaderCompat.reload();
+		MaterialProgram.reload();
+		GlShaderManager.INSTANCE.reload();
+		GlProgramManager.INSTANCE.reload();
+		GlMaterialProgramManager.INSTANCE.reload();
+		// LightmapHdTexture.reload();
+		// LightmapHd.reload();
+		TextureMaterialState.reload();
+		ShaderDataManager.reload();
+		Timekeeper.configOrPipelineReload();
+
+		if (loopCounter > 1) {
+			CanvasMod.LOG.warn("Reloading recursively twice or more. This isn't supposed to happen.");
+		}
+
+		loopCounter = 0;
 	}
 
 	public static void reload() {
@@ -77,6 +126,6 @@ public class CanvasState {
 		ChunkColorCache.invalidate();
 		AoFace.clampExteriorVertices(Configurator.clampExteriorVertices);
 
-		recompileIfNeeded(true);
+		recompile(true);
 	}
 }
