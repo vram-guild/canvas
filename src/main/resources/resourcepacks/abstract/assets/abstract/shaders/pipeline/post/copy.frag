@@ -2,7 +2,7 @@
 #include abstract:shaders/pipeline/pipeline.glsl
 
 /******************************************************
-  abstract:shaders/pipeline/post/copy.frag
+  abstract:shaders/pipeline/post/color.frag
 ******************************************************/
 uniform sampler2D _cvu_input;
 

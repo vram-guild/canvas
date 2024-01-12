@@ -154,3 +154,5 @@ accessible field net/minecraft/client/renderer/entity/EntityRenderDispatcher SHA
 accessible field net/minecraft/client/renderer/ShaderInstance name Ljava/lang/String;
 
 extendable method com/mojang/blaze3d/pipeline/MainTarget createFrameBuffer (II)V
+
+accessible class net/minecraft/client/resources/model/ModelManager$ReloadState
