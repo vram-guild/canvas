@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-	id 'fabric-loom' version '1.4-SNAPSHOT'
+	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
 	id 'org.cadixdev.licenser' version '0.6.1'
 	id 'org.ajoberstar.grgit' version '4.1.1'
@@ -18,8 +18,8 @@ plugins {
 }
 
 ext.platform_name = 'fabric'
-ext.loader_version = '0.14.23'
-ext.fabric_version = '0.90.0+1.20.2'
+ext.loader_version = '0.15.6'
+ext.fabric_version = '0.95.0+1.20.4'
 
 // Hat tip to JellySquid
 configurations {

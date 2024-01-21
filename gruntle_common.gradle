@@ -1,5 +1,5 @@
-ext.minecraft_version = '1.20.2'
-ext.release_version = '1.20.2'
+ext.minecraft_version = '1.20.4'
+ext.release_version = '1.20.4'
 
 base {
 	archivesName = project.mod_name + "-" + project.platform_name

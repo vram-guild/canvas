@@ -7,7 +7,7 @@ ext.mod_name = 'canvas'
 // by gruntle build script to match MC minor/patch version
 // and should be present for all grondag/VRAM mods specific to MC version.
 // @track_minecraft_version
-ext.mod_version = '20.2'
+ext.mod_version = '20.4'
 
 ext.github_repository_owner = 'vram-guild'
 ext.github_repository = 'canvas'
