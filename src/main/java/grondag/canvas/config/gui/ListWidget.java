@@ -47,19 +47,13 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	}
 
 	@Override
-	public void render(GuiGraphics graphics, int i, int j, float f) {
-		if (!this.visible) {
-			super.render(graphics, i, j, f);
-			return;
-		}
-
+	public void renderWidget(GuiGraphics graphics, int i, int j, float f) {
 		graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), darkened ? 0x99000000 : 0x33000000);
 
-		super.render(graphics, i, j, f);
+		super.renderWidget(graphics, i, j, f);
 
 		// Render top and bottom shadow over items but not scroll bar
-		final boolean hasScrollBar = this.getMaxScroll() > 0;
-		final int limit = hasScrollBar ? this.getScrollbarPosition() : this.getX() + getWidth();
+		final int limit = this.getMaxScroll() > 0 ? this.getScrollbarPosition() : this.getX() + getWidth();
 		graphics.fillGradient(getX(), this.getY(), limit, this.getY() + 4, -16777216, 0);
 		graphics.fillGradient(getX(), this.getY() + getHeight() - 4, limit, this.getY() + getHeight(), 0, -16777216);
 	}
