@@ -37,5 +37,5 @@ public interface GameRendererExt {
 
 	void canvas_bobView(PoseStack matrixStack, float f);
 
-	int canvas_ticks();
+	int canvas_confusionAnimationTicks();
 }

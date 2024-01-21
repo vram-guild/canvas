@@ -35,11 +35,9 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 	private final boolean darkened;
 
 	public ListWidget(int x, int y, int width, int height, boolean darkened) {
-		// The workings of these coordinates are arcane by nature
-		super(Minecraft.getInstance(), width, height + y, y, height + y, ITEM_HEIGHT + ITEM_SPACING);
+		super(Minecraft.getInstance(), width, height, y, ITEM_HEIGHT + ITEM_SPACING);
 		setRenderBackground(false);
-		x0 = x;
-		x1 = x + width;
+		setX(x);
 		rowWidth = Math.min(300, width - 20);
 		this.darkened = darkened;
 	}
@@ -50,17 +48,20 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 
 	@Override
 	public void render(GuiGraphics graphics, int i, int j, float f) {
-		if (darkened) {
-			graphics.fill(x0, y0, x1, y1, 0x99000000);
+		if (!this.visible) {
+			super.render(graphics, i, j, f);
+			return;
 		}
+
+		graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), darkened ? 0x99000000 : 0x33000000);
 
 		super.render(graphics, i, j, f);
 
 		// Render top and bottom shadow over items but not scroll bar
 		final boolean hasScrollBar = this.getMaxScroll() > 0;
-		final int limit = hasScrollBar ? this.getScrollbarPosition() : this.x1;
-		graphics.fillGradient(this.x0, this.y0, limit, this.y0 + 4, -16777216, 0);
-		graphics.fillGradient(this.x0, this.y1 - 4, limit, this.y1, 0, -16777216);
+		final int limit = hasScrollBar ? this.getScrollbarPosition() : this.getX() + getWidth();
+		graphics.fillGradient(getX(), this.getY(), limit, this.getY() + 4, -16777216, 0);
+		graphics.fillGradient(getX(), this.getY() + getHeight() - 4, limit, this.getY() + getHeight(), 0, -16777216);
 	}
 
 	@Override
@@ -70,11 +71,11 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 
 	@Override
 	protected int getScrollbarPosition() {
-		return x1 - 5;
+		return getX() + getWidth() - SCROLLBAR_WIDTH;
 	}
 
 	public int addCategory(String key) {
-		if (children().size() > 0) {
+		if (!children().isEmpty()) {
 			addItem(new Category());
 		}
 
@@ -90,14 +91,6 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 		return i;
 	}
 
-	public int getY() {
-		return y0;
-	}
-
-	public int getHeight() {
-		return y1 - y0;
-	}
-
 	public int getChildScroll(int i) {
 		return i * this.itemHeight;
 	}
@@ -107,7 +100,7 @@ public class ListWidget extends ContainerObjectSelectionList<ListItem> {
 			return null;
 		}
 
-		final double relativeY = j - y0 - headerHeight + getScrollAmount();
+		final double relativeY = j - getY() - headerHeight + getScrollAmount();
 		final int index = (int) (relativeY / itemHeight);
 		final int innerY = (int) relativeY - getChildScroll(index) - ITEM_SPACING / 2 - 1;
 

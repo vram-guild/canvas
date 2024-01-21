@@ -20,6 +20,7 @@
 
 package grondag.canvas.mixin;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -45,14 +46,14 @@ import grondag.canvas.shader.data.ScreenRenderState;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer implements GameRendererExt {
-	@Shadow float zoom;
-	@Shadow float zoomX;
-	@Shadow float zoomY;
-	@Shadow int tick;
+	@Shadow private float zoom;
+	@Shadow private float zoomX;
+	@Shadow private float zoomY;
+	@Shadow private int confusionAnimationTick;
 	@Shadow protected abstract double getFov(Camera camera, float tickDelta, boolean changingFov);
 	@Shadow protected abstract void bobHurt(PoseStack matrixStack, float f);
 	@Shadow protected abstract void bobView(PoseStack matrixStack, float f);
-	@Shadow private Minecraft minecraft;
+	@Shadow @Final Minecraft minecraft;
 
 	@Inject(method = "renderLevel", require = 1, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;renderItemInHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/Camera;F)V", shift = At.Shift.AFTER))
 	private void afterRenderHand(CallbackInfo ci) {
@@ -110,8 +111,8 @@ public abstract class MixinGameRenderer implements GameRendererExt {
 	}
 
 	@Override
-	public int canvas_ticks() {
-		return tick;
+	public int canvas_confusionAnimationTicks() {
+		return confusionAnimationTick;
 	}
 
 	//	@Redirect(method = "renderWorld", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clear(IZ)V"))

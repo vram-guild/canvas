@@ -162,7 +162,7 @@ public class CanvasImmediate extends BufferSource {
 			// Shadows don't like sharing buffers with leash
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, EntityRenderDispatcher.SHADOW_RENDER_TYPE);
 
-			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.translucentNoCrumbling());
+			// assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.translucentNoCrumbling());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.armorGlint());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.armorEntityGlint());
 			assignBufferBuilder(object2ObjectLinkedOpenHashMap, RenderType.glint());
