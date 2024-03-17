@@ -190,7 +190,7 @@ public class TerrainIterator implements TerrainExecutorTask {
 		return state.get();
 	}
 
-	public void reset() {
+	public void reset(boolean resetWorld) {
 		cancelled = true;
 		state.set(IDLE);
 		cameraVisibility.invalidate();
@@ -203,6 +203,10 @@ public class TerrainIterator implements TerrainExecutorTask {
 			case TIERED -> tieredStrategy;
 			case NAIVE -> naiveStrategy;
 		};
+
+		if (resetWorld) {
+			shadowVisibility.resetWorld();
+		}
 	}
 
 	public void idle() {

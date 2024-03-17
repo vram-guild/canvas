@@ -109,4 +109,8 @@ public class ShadowVisibility extends AbstractVisbility<ShadowVisibility, Shadow
 	public int primary(int shadowDistanceRank) {
 		return pvrs.primary(shadowDistanceRank);
 	}
+
+	public void resetWorld() {
+		pvrs.resetWorld(worldRenderState);
+	}
 }

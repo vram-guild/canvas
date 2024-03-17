@@ -34,6 +34,8 @@ public class RenderChunk {
 	private int chunkX;
 	private int chunkZ;
 	private RenderRegion[] regions = null;
+	private int blockYOffset;
+	private int maxYRegions;
 	private boolean areCornersLoadedCache = false;
 
 	private long cameraRegionOrigin = -1;
@@ -42,18 +44,19 @@ public class RenderChunk {
 
 	public RenderChunk(WorldRenderState worldRenderState) {
 		this.worldRenderState = worldRenderState;
+		resetWorld();
 	}
 
 	private void open(int chunkX, int chunkZ) {
 		this.chunkX = chunkX;
 		this.chunkZ = chunkZ;
-		regions = new RenderRegion[RenderRegionIndexer.MAX_Y_REGIONS];
+		regions = new RenderRegion[maxYRegions];
 		areCornersLoadedCache = false;
 		cameraRegionOrigin = -1;
 		computeChunkDistanceMetrics();
 	}
 
-	public synchronized void close() {
+	public synchronized void close(boolean resetWorld) {
 		if (regions != null) {
 			for (final RenderRegion region : regions) {
 				if (region != null) {
@@ -63,6 +66,21 @@ public class RenderChunk {
 
 			regions = null;
 		}
+
+		if (resetWorld) {
+			resetWorld();
+		}
+	}
+
+	public void resetWorld() {
+		final var world = worldRenderState.getWorld();
+
+		if (world == null) {
+			return;
+		}
+
+		blockYOffset = RenderRegionIndexer.blockYOffset(world);
+		maxYRegions = RenderRegionIndexer.maxYRegions(world);
 	}
 
 	public boolean areCornersLoaded() {
@@ -88,7 +106,7 @@ public class RenderChunk {
 		final RenderRegion[] regions = this.regions;
 
 		if (regions != null) {
-			for (int i = 0; i < RenderRegionIndexer.MAX_Y_REGIONS; ++i) {
+			for (int i = 0; i < maxYRegions; ++i) {
 				final RenderRegion r = regions[i];
 
 				if (r != null) {
@@ -114,9 +132,9 @@ public class RenderChunk {
 	}
 
 	synchronized @Nullable RenderRegion getOrCreateRegion(int x, int y, int z) {
-		final int i = (y + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
+		final int i = (y + blockYOffset) >> 4;
 
-		if (i < 0 || i >= RenderRegionIndexer.MAX_Y_REGIONS) {
+		if (i < 0 || i >= maxYRegions) {
 			return null;
 		}
 
@@ -138,9 +156,9 @@ public class RenderChunk {
 	}
 
 	synchronized RenderRegion getRegionIfExists(int x, int y, int z) {
-		final int i = (y + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
+		final int i = (y + blockYOffset) >> 4;
 
-		if (i < 0 || i >= RenderRegionIndexer.MAX_Y_REGIONS) {
+		if (i < 0 || i >= maxYRegions) {
 			return null;
 		}
 
