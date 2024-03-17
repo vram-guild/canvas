@@ -29,18 +29,43 @@ import net.minecraft.core.BlockPos;
 
 import io.vram.dtk.CircleUtil;
 
+import grondag.canvas.render.world.WorldRenderState;
 import grondag.canvas.terrain.occlusion.base.PotentiallyVisibleRegionSet;
 import grondag.canvas.terrain.region.RenderRegionIndexer;
 
 public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegionSet<ShadowPotentiallyVisibleRegionSet, ShadowRegionVisibility> {
 	private int version = 1;
 	private int regionCount = 0;
-	private final ShadowRegionVisibility[] states = new ShadowRegionVisibility[RenderRegionIndexer.PADDED_REGION_INDEX_COUNT];
+	private ShadowRegionVisibility[] states;
 
 	int xBase;
 	int zBase;
 
 	private int x, y, z;
+
+	private int maxYRegions;
+	private int blockYOffset;
+
+	public ShadowPotentiallyVisibleRegionSet() {
+	}
+
+	public void resetWorld(WorldRenderState worldRenderState) {
+		final var world = worldRenderState.getWorld();
+
+		if (world == null) {
+			return;
+		}
+
+		// TODO: do something about this hard limit (see rankIndex implementation)
+		maxYRegions = Math.min(RenderRegionIndexer.maxYRegions(world), RenderRegionIndexer.MAX_LOADED_CHUNK_DIAMETER);
+		blockYOffset = RenderRegionIndexer.blockYOffset(world);
+
+		final int maxStates = RenderRegionIndexer.PADDED_CHUNK_INDEX_COUNT * maxYRegions;
+
+		if (states == null || states.length < maxStates) {
+			states = new ShadowRegionVisibility[maxStates];
+		}
+	}
 
 	private DirectionFunction xDir = DIRECTION_NORMAL, yDir = DIRECTION_NORMAL, zDir = DIRECTION_NORMAL;
 
@@ -81,7 +106,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	private final AxisIterator YPOS = new AxisIterator() {
 		@Override
 		public boolean next() {
-			if (++y < RenderRegionIndexer.MAX_Y_REGIONS) {
+			if (++y < maxYRegions) {
 				return true;
 			} else {
 				reset();
@@ -108,7 +133,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 		@Override
 		public void reset() {
-			y = RenderRegionIndexer.MAX_Y_REGIONS - 1;
+			y = maxYRegions - 1;
 		}
 	};
 
@@ -288,6 +313,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 	@Override
 	public void clear() {
+		assert states != null;
 		Arrays.fill(states, null);
 		regionCount = 0;
 		++version;
@@ -296,10 +322,12 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 	@Override
 	public void add(ShadowRegionVisibility state) {
+		assert states != null;
+
 		final BlockPos origin = state.region.origin;
 		final int rx = (origin.getX() >> 4) + xBase;
 		final int rz = (origin.getZ() >> 4) + zBase;
-		final int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
+		final int ry = (origin.getY() + blockYOffset) >> 4;
 
 		//System.out.println(String.format("Adding origin %s with region pos %d  %d  %d  with index %d", region.origin().toShortString(), rx, ry, rz, index(rx, ry, rz)));
 		final int i = index(rx, ry, rz);
@@ -324,6 +352,8 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 
 	@Override
 	public @Nullable ShadowRegionVisibility next() {
+		assert states != null;
+
 		ShadowRegionVisibility result = null;
 
 		if (!complete) {
@@ -349,7 +379,7 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 		final BlockPos origin = state.region.origin;
 		final int rx = (origin.getX() >> 4) + xBase;
 		final int rz = (origin.getZ() >> 4) + zBase;
-		final int ry = (origin.getY() + RenderRegionIndexer.Y_BLOCKPOS_OFFSET) >> 4;
+		final int ry = (origin.getY() + blockYOffset) >> 4;
 		return distanceRankFunction.distanceRank(xDir.apply(rx), yDir.apply(ry), zDir.apply(rz));
 	}
 
@@ -363,8 +393,8 @@ public class ShadowPotentiallyVisibleRegionSet implements PotentiallyVisibleRegi
 	 * @param rz chunk coordinate relative to zBase (0 to MAX_CHUNK_DIAMETER - 1)
 	 * @return index to region array, will be within {@link RenderRegionIndexer#MAX_LOADED_CHUNK_DIAMETER}
 	 */
-	private static int index(int rx, int ry, int rz) {
-		assert ry < RenderRegionIndexer.MAX_Y_REGIONS;
+	private int index(int rx, int ry, int rz) {
+		assert ry < maxYRegions;
 		return rankIndex(ry, rz, rx);
 	}
 

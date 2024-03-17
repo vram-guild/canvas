@@ -21,6 +21,7 @@
 package grondag.canvas.terrain.region;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelHeightAccessor;
 
 public final class RenderRegionIndexer {
 	RenderRegionIndexer() { }
@@ -40,23 +41,23 @@ public final class RenderRegionIndexer {
 	/** Size of the address space for all horizontal chunk positions within the padded chunk diameter. */
 	public static final int PADDED_CHUNK_INDEX_COUNT = PADDED_CHUNK_DIAMETER * PADDED_CHUNK_DIAMETER;
 
-	/** Value that must be added to region orgin Y component to ensure it is non-negative. */
-	public static final int Y_BLOCKPOS_OFFSET = 64;
-
-	/** Max number of Y regions in a chunk.  May be fewer of them present - this is meant for addressing. */
-	public static final int MAX_Y_REGIONS = 24;
-
-	/** Number of bits needed to represent MAX_Y_REGIONS as a positive number. (Positive because offset by Y_BLOCKPOS_OFFSET.) */
-	public static final int Y_REGION_BITS = 5;
-
-	/** Largest possible number of loaded regions within the un-padded chunk diameter. */
-	public static final int LOADED_REGION_INDEX_COUNT = MAX_LOADED_CHUNK_DIAMETER * MAX_LOADED_CHUNK_DIAMETER * MAX_Y_REGIONS;
-
-	/** Size of the padded address space for regions within the padded chunk diameter. Used for sparse open addressing. */
-	public static final int PADDED_REGION_INDEX_COUNT = PADDED_CHUNK_INDEX_COUNT * MAX_Y_REGIONS;
-
-	/** Size of the address space in an X- or Z-axis cross-section of the loaded region volume. */
-	public static final int SIDE_SLICE_LOADED_REGION_INDEX_COUNT = MAX_Y_REGIONS * MAX_LOADED_CHUNK_DIAMETER;
+	// /** Value that must be added to region orgin Y component to ensure it is non-negative. */
+	// public static final int Y_BLOCKPOS_OFFSET = 64;
+	//
+	// /** Max number of Y regions in a chunk.  May be fewer of them present - this is meant for addressing. */
+	// public static final int MAX_Y_REGIONS = 24;
+	//
+	// /** Number of bits needed to represent MAX_Y_REGIONS as a positive number. (Positive because offset by Y_BLOCKPOS_OFFSET.) */
+	// public static final int Y_REGION_BITS = 5;
+	//
+	// /** Largest possible number of loaded regions within the un-padded chunk diameter. */
+	// public static final int LOADED_REGION_INDEX_COUNT = MAX_LOADED_CHUNK_DIAMETER * MAX_LOADED_CHUNK_DIAMETER * MAX_Y_REGIONS;
+	//
+	// /** Size of the padded address space for regions within the padded chunk diameter. Used for sparse open addressing. */
+	// public static final int PADDED_REGION_INDEX_COUNT = PADDED_CHUNK_INDEX_COUNT * MAX_Y_REGIONS;
+	//
+	// /** Size of the address space in an X- or Z-axis cross-section of the loaded region volume. */
+	// public static final int SIDE_SLICE_LOADED_REGION_INDEX_COUNT = MAX_Y_REGIONS * MAX_LOADED_CHUNK_DIAMETER;
 
 	/**
 	 * Returns an index within an array of CHUNK_INDEX_COUNT size that
@@ -84,5 +85,13 @@ public final class RenderRegionIndexer {
 
 	public static long blockPosToRegionOrigin(int x, int y, int z) {
 		return BlockPos.asLong(x & 0xFFFFFFF0, y & 0xFFFFFFF0, z & 0xFFFFFFF0);
+	}
+
+	public static int maxYRegions(LevelHeightAccessor world) {
+		return (world.getHeight() + 16 - 1) / 16;
+	}
+
+	public static int blockYOffset(LevelHeightAccessor world) {
+		return -world.getMinBuildHeight();
 	}
 }

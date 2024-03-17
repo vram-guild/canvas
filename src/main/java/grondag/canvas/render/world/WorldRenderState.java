@@ -119,8 +119,8 @@ public class WorldRenderState {
 		world = clientWorld;
 		cameraVisibleRegions.clear();
 		clearDrawSpecs();
-		terrainIterator.reset();
-		renderRegionStorage.clear();
+		terrainIterator.reset(true);
+		renderRegionStorage.clear(true);
 		hasSkylight = world != null && world.dimensionType().hasSkyLight();
 		solidClusterRealm.clear();
 		translucentClusterRealm.clear();
@@ -218,14 +218,14 @@ public class WorldRenderState {
 
 	void clear() {
 		computeDistances();
-		terrainIterator.reset();
+		terrainIterator.reset(false);
 		regionRebuildManager.clear();
 
 		if (regionBuilder != null) {
 			regionBuilder.reset();
 		}
 
-		renderRegionStorage.clear();
+		renderRegionStorage.clear(false);
 		cameraVisibleRegions.clear();
 		terrainFrustum.reload();
 		clearDrawSpecs();

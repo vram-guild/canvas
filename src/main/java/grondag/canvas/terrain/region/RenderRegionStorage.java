@@ -46,9 +46,9 @@ public class RenderRegionStorage {
 		}
 	}
 
-	public synchronized void clear() {
+	public synchronized void clear(boolean resetWorld) {
 		for (final RenderChunk chunk : chunks) {
-			chunk.close();
+			chunk.close(resetWorld);
 		}
 	}
 
@@ -107,7 +107,7 @@ public class RenderRegionStorage {
 		RenderChunk chunk = closeQueue.poll();
 
 		while (chunk != null) {
-			chunk.close();
+			chunk.close(false);
 			chunk = closeQueue.poll();
 		}
 	}
